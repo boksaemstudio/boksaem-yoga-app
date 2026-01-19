@@ -707,6 +707,8 @@ export const storageService = {
         type: 'experience'
       });
 
+      if (!resultData) throw new Error("AI returned empty data");
+
       return resultData;
     } catch (err) {
       console.error(`DEBUG: storageService.getAIExperience CRITICAL ERROR: lang=${language}`, err);

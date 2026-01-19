@@ -3,7 +3,7 @@ import { VAPID_KEY } from "../firebase"; // VAPID_KEY is unused here, just check
 
 // Hardcoded API Key from firebase.js (for client-side use as requested by current constraints)
 // In production, this should be proxied, but for this specific local task where deployment is blocked, we use it directly.
-const API_KEY = "AIzaSyCTjDayI1tiZO15eynRzKqrDK3TKj3D-yw";
+const API_KEY = "AIzaSyD8UytbRqhGQUn-JWf6_uT660I6aJIxvGs";
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({
@@ -123,9 +123,10 @@ async function generateContent(prompt) {
         if (jsonMatch) {
             return JSON.parse(jsonMatch[0]);
         }
-        throw new Error("Invalid structure");
+        throw new Error("Invalid response structure from AI");
     } catch (error) {
         console.error("[AI Service] Generation Failed:", error);
-        return null; // The caller (storage.js) handles fallbacks
+        // Throw the error instead of returning null so the caller's catch block handles it
+        throw error;
     }
 }
