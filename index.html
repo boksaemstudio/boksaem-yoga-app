@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="google" content="notranslate" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#D4AF37" />
+  <link rel="apple-touch-icon" href="/logo_circle.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <script>
+    // 경로에 따른 PWA 설정 동적 변경 로직
+    (function () {
+      var path = window.location.pathname;
+      var manifestFile = '/manifest-checkin.json';
+      var appTitle = '복샘요가';
+
+      if (path.indexOf('/admin') === 0) {
+        manifestFile = '/manifest-admin.json';
+        appTitle = '복샘요가 관리자';
+      } else if (path.indexOf('/member') === 0) {
+        manifestFile = '/manifest-member.json';
+        appTitle = '나의요가';
+      }
+
+      // Manifest 주입
+      var link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = manifestFile;
+      document.head.appendChild(link);
+
+      // iOS Title 및 일반 Title 주입
+      var metaTitle = document.createElement('meta');
+      metaTitle.name = 'apple-mobile-web-app-title';
+      metaTitle.content = appTitle;
+      document.head.appendChild(metaTitle);
+
+      document.title = appTitle;
+    })();
+  </script>
+  <title>복샘요가</title>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
+</html>

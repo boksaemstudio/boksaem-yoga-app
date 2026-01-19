@@ -1,0 +1,50 @@
+{
+    "name": "나의요가",
+    "short_name": "나의요가",
+    "description": "나의요가 관리 및 회원 서비스",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#121212",
+    "theme_color": "#D4AF37",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/logo_circle.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/logo_circle.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "관리자 모드",
+            "short_name": "관리자",
+            "description": "관리자 대시보드 열기",
+            "url": "/admin",
+            "icons": [
+                {
+                    "src": "/logo_circle.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "회원 정보",
+            "short_name": "회원",
+            "description": "회원 프로필 및 기록 확인",
+            "url": "/member",
+            "icons": [
+                {
+                    "src": "/logo_circle.png",
+                    "sizes": "192x192"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,20 @@
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, setDoc } from "firebase/firestore";
+import fs from 'fs';
+
+// Read firebase config from the project
+const firebaseConfig = {
+  apiKey: "AIzaSy...", // This will be handled by the environment or I should find the real one
+  authDomain: "boksaem-yoga.firebaseapp.com",
+  projectId: "boksaem-yoga",
+  storageBucket: "boksaem-yoga.appspot.com",
+  messagingSenderId: "...",
+  appId: "..."
+};
+
+// I'll use the storageService instead if I can run it in a tool, 
+// but I can't easily run a script with imports in this environment without setup.
+// Instead, I will ask the user to click the button again after a refresh.
+
+// Wait, I can actually update the AdminDashboard.jsx to "force" an update or 
+// provide a button to "Reset Settings to Image Defaults".
