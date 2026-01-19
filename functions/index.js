@@ -113,7 +113,7 @@ exports.sendBulkPushV2 = onDocumentCreated("push_campaigns/{campaignId}", async 
                 const apiKey = process.env.GEMINI_KEY;
                 if (!apiKey) return text;
                 const client = new GoogleGenerativeAI(apiKey);
-                const model = client.getGenerativeModel({ model: "gemini-1.5-flash" });
+                const model = client.getGenerativeModel({ model: "gemini-2.5-flash" });
                 const prompt = `Translate the following text to ${targetLang}. Output ONLY the translated text.\n\nText: ${text}`;
                 const result = await model.generateContent(prompt);
                 return result.response.text().trim();
@@ -170,7 +170,7 @@ exports.generatePageExperienceV2 = onCall({ cors: true, secrets: ["GEMINI_KEY"] 
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-2.5-flash",
             generationConfig: {
                 responseMimeType: "application/json",
                 temperature: role === 'admin' ? 0.3 : 1.0, // 관리자는 사실적(0.3), 사용자는 창의적(1.0)
@@ -344,7 +344,7 @@ exports.sendPushOnNoticeV2 = onDocumentCreated("notices/{noticeId}", async (even
                 const apiKey = process.env.GEMINI_KEY;
                 if (!apiKey) return text;
                 const client = new GoogleGenerativeAI(apiKey);
-                const model = client.getGenerativeModel({ model: "gemini-1.5-flash" });
+                const model = client.getGenerativeModel({ model: "gemini-2.5-flash" });
 
                 const prompt = `Translate the following text to ${targetLang}. Output ONLY the translated text.\n\nText: ${text}`;
                 const result = await model.generateContent(prompt);
@@ -414,7 +414,7 @@ async function generateReEngagementMessage(member, attendanceStats, language = '
 
     try {
         const client = new GoogleGenerativeAI(apiKey);
-        const model = client.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = client.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const langMap = {
             'ko': 'Korean',
@@ -581,7 +581,7 @@ exports.translateNoticesV2 = onCall({ cors: true, secrets: ["GEMINI_KEY"] }, asy
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-2.5-flash",
             generationConfig: { responseMimeType: "application/json" }
         });
 
