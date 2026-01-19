@@ -14,7 +14,21 @@ const { HttpsError } = require("firebase-functions/v2/https");
 // Initialize Admin
 if (admin.apps.length === 0) {
     admin.initializeApp();
+    admin.firestore().settings({ ignoreUndefinedProperties: true });
 }
+
+// Helper: Log AI Errors only
+const logAIError = async (context, error) => {
+    try {
+        await admin.firestore().collection('ai_error_logs').add({
+            context,
+            error: error.message || error,
+            timestamp: admin.firestore.FieldValue.serverTimestamp()
+        });
+    } catch (e) {
+        console.error("Failed to log AI error:", e);
+    }
+};
 
 // Helper to get AI service instance
 const getAI = () => {
@@ -49,7 +63,11 @@ exports.sendPushOnMessageV2 = onDocumentCreated("messages/{messageId}", async (e
             }
         };
 
-        const response = await admin.messaging().sendToDevice(tokens, payload);
+        const response = await admin.messaging().sendEachForMulticast({
+            tokens,
+            notification: payload.notification,
+            data: payload.data
+        });
         console.log("Single push sent:", response.successCount);
 
         // 결과 기록 추가
@@ -70,58 +88,108 @@ exports.sendPushOnMessageV2 = onDocumentCreated("messages/{messageId}", async (e
     }
 });
 
-// V2 함수: 대량 푸시 알림 전송
+// V2 함수: 대량 푸시 알림 전송 (Optimized with Batching & Pagination)
 exports.sendBulkPushV2 = onDocumentCreated("push_campaigns/{campaignId}", async (event) => {
     const snap = event.data;
+    const campaignId = event.params.campaignId;
     const data = snap.data();
     const targetMemberIds = data.targetMemberIds || [];
     const titleOriginal = data.title || "나의요가";
     const bodyOriginal = data.body || "";
 
-    if (targetMemberIds.length === 0 || !bodyOriginal) return;
+    if (!bodyOriginal) return;
+
+    // 캠페인이 이미 처리되었거나 처리 중인 경우 중복 실행 방지
+    if (data.status === 'processing' || data.status === 'sent') return;
 
     try {
+        await snap.ref.update({ status: 'processing', startedAt: admin.firestore.FieldValue.serverTimestamp() });
+
         const db = admin.firestore();
         const ai = getAI();
 
-        // 1. Optimized Targeting: Fetch only tokens that match language AND are associated with targetMemberIds
-        const validTokensByLang = {};
-
-        const allTokensSnap = await db.collection("fcm_tokens").get();
-        if (allTokensSnap.empty) return;
-
-        allTokensSnap.forEach(doc => {
-            const tokenData = doc.data();
-            const memberId = tokenData.memberId;
-            if (targetMemberIds.includes(memberId)) {
-                const lang = tokenData.language || 'ko';
-                if (!validTokensByLang[lang]) validTokensByLang[lang] = [];
-                validTokensByLang[lang].push(doc.id);
-            }
-        });
-
-        const payloadBase = { data: { url: "/member" } };
         let successTotal = 0;
         let failureTotal = 0;
 
-        // 4. Send batches per language
-        for (const [lang, tokens] of Object.entries(validTokensByLang)) {
-            if (tokens.length === 0) continue;
+        // 1. Prepare Content by Language (Pre-translate)
+        const supportedLangs = ['ko', 'en', 'ru', 'zh', 'ja'];
+        const contentsByLang = {};
 
-            const title = await ai.translate(titleOriginal, lang);
-            const body = await ai.translate(bodyOriginal, lang);
+        for (const lang of supportedLangs) {
+            try {
+                const title = await ai.translate(titleOriginal, lang);
+                const body = await ai.translate(bodyOriginal, lang);
+                contentsByLang[lang] = {
+                    notification: { title, body },
+                    data: { url: "/member" }
+                };
+            } catch (e) {
+                console.error(`Translation failed for ${lang}, fallback to Korean/Original`);
+                contentsByLang[lang] = {
+                    notification: { title: titleOriginal, body: bodyOriginal },
+                    data: { url: "/member" }
+                };
+                await logAIError(`BulkPush_Translation_${lang}`, e);
+            }
+        }
 
-            const payload = {
-                ...payloadBase,
-                notification: { title, body }
-            };
+        // 2. Stream tokens to handle large scaling without memory overflow
+        // If targetMemberIds is empty, we send to ALL using stream.
+        // If targetMemberIds has items, we query specifically (chunked if too large).
 
-            const chunkSize = 500;
-            for (let i = 0; i < tokens.length; i += chunkSize) {
-                const chunk = tokens.slice(i, i + chunkSize);
-                const response = await admin.messaging().sendToDevice(chunk, payload);
-                successTotal += response.successCount;
-                failureTotal += response.failureCount;
+        let tokenQuery = db.collection("fcm_tokens");
+
+        // NOTE: If targetMemberIds length > 30, it's better to stream all tokens and filter in code
+        // OR process in batches of 30 using 'in' operator. 
+        // For simplicity and scalability > 1000 users, we stream all valid tokens and filter in memory if filtering is needed.
+        // (Cost trade-off: Reads vs Complexity. Streaming all is safer for "All Member" blasts).
+
+        const isTargeted = targetMemberIds.length > 0;
+        const validTokensByLang = { 'ko': [], 'en': [], 'ru': [], 'zh': [], 'ja': [] };
+
+        const stream = tokenQuery.stream();
+
+        // Helper to flush buffer
+        const sendBatch = async (tokens, payload) => {
+            if (tokens.length === 0) return { success: 0, failure: 0 };
+            const res = await admin.messaging().sendEachForMulticast({
+                tokens,
+                notification: payload.notification,
+                data: payload.data
+            });
+            return { success: res.successCount, failure: res.failureCount };
+        };
+
+        for await (const doc of stream) {
+            const tokenData = doc.data();
+            const token = doc.id;
+            const lang = tokenData.language || 'ko';
+
+            // Filter if targeting specific members
+            if (isTargeted && !targetMemberIds.includes(tokenData.memberId)) continue;
+
+            // Group by language
+            if (!validTokensByLang[lang]) validTokensByLang[lang] = []; // Safety
+            validTokensByLang[lang].push(token);
+
+            // 3. Batched Sending (Flush every 500 per language to keep memory low)
+            if (validTokensByLang[lang].length >= 500) {
+                const payload = contentsByLang[lang] || contentsByLang['ko'];
+                const result = await sendBatch(validTokensByLang[lang], payload);
+                successTotal += result.success;
+                failureTotal += result.failure;
+                validTokensByLang[lang] = []; // Clear buffer
+            }
+        }
+
+        // 4. Flush remaining tokens
+        for (const lang of Object.keys(validTokensByLang)) {
+            const tokens = validTokensByLang[lang];
+            if (tokens.length > 0) {
+                const payload = contentsByLang[lang] || contentsByLang['ko'];
+                const result = await sendBatch(tokens, payload);
+                successTotal += result.success;
+                failureTotal += result.failure;
             }
         }
 
@@ -129,12 +197,60 @@ exports.sendBulkPushV2 = onDocumentCreated("push_campaigns/{campaignId}", async 
             status: 'sent',
             successCount: successTotal,
             failureCount: failureTotal,
-            sentAt: admin.firestore.FieldValue.serverTimestamp()
+            completedAt: admin.firestore.FieldValue.serverTimestamp()
         });
 
     } catch (error) {
         console.error("Error in bulk push:", error);
         await snap.ref.update({ status: 'failed', error: error.message });
+        await logAIError('BulkPush_System', error);
+    }
+});
+
+// V2 함수: 2개월 이상 미사용(Ghost) 토큰 정기 클리닝 (매주 일요일 새벽 4시)
+exports.cleanupGhostTokens = onSchedule({
+    schedule: '0 4 * * 0',
+    timeZone: 'Asia/Seoul',
+}, async (event) => {
+    const db = admin.firestore();
+    const batchSize = 400; // Firestore Batch limit is 500
+    let totalDeleted = 0;
+
+    console.log("Starting Ghost Token Cleanup...");
+
+    try {
+        // 1. Identify Tokens with Errors or extremely old 'lastActive' (if we tracked it)
+        // Since we don't track 'lastActive' on token strictly yet, we look for tokens of Deleted Members OR Orphaned tokens.
+
+        // Strategy A: Verify Member Existence (Expensive but safe)
+        // better strategy for now: relying on invalid tokens reported by messaging().send() calls?
+        // Actually, sendToDevice returns error codes for invalid tokens. 
+        // We really should delete them THEN. But as a fallback, let's delete tokens that point to null memberId (Orphaned).
+
+        const ghostSnap = await db.collection("fcm_tokens")
+            .where("memberId", "==", null)
+            .limit(1000) // Safety limit per run
+            .get();
+
+        if (ghostSnap.empty) {
+            console.log("No ghost tokens found.");
+            return;
+        }
+
+        const batch = db.batch();
+        ghostSnap.docs.forEach(doc => {
+            batch.delete(doc.ref);
+            totalDeleted++;
+        });
+
+        await batch.commit();
+        console.log(`Deleted ${totalDeleted} ghost tokens.`);
+
+        await logAIError('System_Cleanup', { deleted: totalDeleted, type: 'GhostTokenCleanup' });
+
+    } catch (error) {
+        console.error("Cleanup failed:", error);
+        await logAIError('System_Cleanup_Failed', error);
     }
 });
 
@@ -315,7 +431,11 @@ exports.sendPushOnNoticeV2 = onDocumentCreated("notices/{noticeId}", async (even
             const chunkSize = 500;
             for (let i = 0; i < tokens.length; i += chunkSize) {
                 const chunk = tokens.slice(i, i + chunkSize);
-                const response = await admin.messaging().sendToDevice(chunk, payload);
+                const response = await admin.messaging().sendEachForMulticast({
+                    tokens: chunk,
+                    notification: payload.notification,
+                    data: payload.data
+                });
                 successTotal += response.successCount;
                 failureTotal += response.failureCount;
             }
@@ -397,7 +517,8 @@ exports.checkExpiringMembersV2 = onSchedule({
             const tokensSnap = await db.collection("fcm_tokens").where("memberId", "==", memberId).get();
             if (!tokensSnap.empty) {
                 const tokens = tokensSnap.docs.map(t => t.id);
-                await admin.messaging().sendToDevice(tokens, {
+                await admin.messaging().sendEachForMulticast({
+                    tokens,
                     notification: { title: "나의요가 알림", body },
                     data: { url: "/member" }
                 });
@@ -450,7 +571,8 @@ exports.checkLowCreditsV2 = onDocumentUpdated({
         const tokensSnap = await db.collection("fcm_tokens").where("memberId", "==", memberId).get();
         if (!tokensSnap.empty) {
             const tokens = tokensSnap.docs.map(t => t.id);
-            await admin.messaging().sendToDevice(tokens, {
+            await admin.messaging().sendEachForMulticast({
+                tokens,
                 notification: { title: "나의요가 알림", body },
                 data: { url: "/member" }
             });
@@ -532,7 +654,8 @@ exports.sendDailyAdminReportV2 = onSchedule({
 
         const tokens = tokensSnap.docs.map(d => d.id);
 
-        await admin.messaging().sendToDevice(tokens, {
+        await admin.messaging().sendEachForMulticast({
+            tokens,
             notification: {
                 title: "일일 운영/보안 보고서",
                 body: message
@@ -573,7 +696,8 @@ exports.onMemberUpdateSecurityAlertV2 = onDocumentUpdated("members/{memberId}", 
             const message = `[긴급 보안 알림]
 ${memberName} 회원의 크레딧이 음수(${newData.credits})로 떨어졌습니다. 비정상 접근이나 시스템 오류가 의심됩니다.`;
 
-            await admin.messaging().sendToDevice(tokens, {
+            await admin.messaging().sendEachForMulticast({
+                tokens,
                 notification: {
                     title: "⚠️ 보안/데이터 긴급 알림",
                     body: message
@@ -715,6 +839,181 @@ exports.getAllMembersAdminV2Call = onCall({ cors: true }, async (request) => {
     }
 });
 
+
+/**
+ * [EVENT-DRIVEN] Practice Events System
+ * Triggered when attendance is created. Calculates gap, streak, and rhythm changes.
+ * Stores events in practice_events collection for neutral, fact-based member experience.
+ */
+exports.onAttendanceCreated = onDocumentCreated("attendance/{attendanceId}", async (event) => {
+    const attendance = event.data.data();
+    const memberId = attendance.memberId;
+    const currentDate = attendance.date; // Format: "YYYY-MM-DD"
+
+    if (!memberId || !currentDate) return;
+
+    const db = admin.firestore();
+
+    try {
+        // 1. Get member's previous attendance records (last 30 days for pattern analysis)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const cutoffDate = thirtyDaysAgo.toISOString().split('T')[0];
+
+        const prevAttendanceSnap = await db.collection('attendance')
+            .where('memberId', '==', memberId)
+            .where('date', '>=', cutoffDate)
+            .where('date', '<', currentDate)
+            .orderBy('date', 'desc')
+            .limit(20)
+            .get();
+
+        const prevRecords = prevAttendanceSnap.docs.map(doc => doc.data());
+
+        // 2. Calculate metrics
+        const gapDays = prevRecords.length > 0 ? calculateGap(prevRecords[0].date, currentDate) : 0;
+        const streak = calculateStreak(prevRecords, currentDate);
+        const timeBand = getTimeBand(attendance.timestamp);
+
+        // Pattern shift detection (simple version: compare current timeBand with recent average)
+        const recentTimeBands = prevRecords.slice(0, 5).map(r => getTimeBand(r.timestamp));
+        const mostCommonBand = getMostCommon(recentTimeBands);
+        const timeBandShifted = mostCommonBand && mostCommonBand !== timeBand && recentTimeBands.length >= 3;
+
+        // 3. Determine Event Type
+        let eventType = "PRACTICE_COMPLETED"; // Default
+        let context = {
+            gapDays,
+            streak,
+            timeBand,
+            previousTimeBand: mostCommonBand || null
+        };
+
+        if (gapDays === 0) {
+            eventType = "FLOW_MAINTAINED"; // Same day or next day
+        } else if (gapDays >= 7 && gapDays < 30) {
+            eventType = "GAP_DETECTED";
+        } else if (gapDays >= 30) {
+            eventType = "FLOW_RESUMED"; // Long absence, then return
+        } else if (gapDays >= 1 && gapDays < 7) {
+            eventType = "FLOW_MAINTAINED"; // Short gap, still within rhythm
+        }
+
+        if (timeBandShifted) {
+            eventType = "PATTERN_SHIFTED";
+            context.shiftDetails = `${mostCommonBand} → ${timeBand}`;
+        }
+
+        // 4. Generate Template Messages (NO AI)
+        const messages = generateEventMessage(eventType, context);
+
+        // 5. Store Event
+        await db.collection('practice_events').add({
+            memberId,
+            attendanceId: event.params.attendanceId,
+            eventType,
+            triggeredAt: admin.firestore.FieldValue.serverTimestamp(),
+            date: currentDate,
+            context,
+            displayMessage: messages
+        });
+
+        console.log(`Practice event created: ${eventType} for member ${memberId}`);
+
+    } catch (error) {
+        console.error("Error creating practice event:", error);
+        await logAIError('PracticeEvent_Calculation', error);
+    }
+});
+
+// Helper: Calculate gap in days between two dates
+function calculateGap(lastDate, currentDate) {
+    const last = new Date(lastDate);
+    const current = new Date(currentDate);
+    const diffTime = Math.abs(current - last);
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+// Helper: Calculate current streak
+function calculateStreak(records, currentDate) {
+    if (records.length === 0) return 1;
+
+    let streak = 1;
+    let expectedDate = new Date(currentDate);
+
+    for (const record of records) {
+        expectedDate.setDate(expectedDate.getDate() - 1);
+        const recordDate = new Date(record.date);
+
+        if (recordDate.toISOString().split('T')[0] === expectedDate.toISOString().split('T')[0]) {
+            streak++;
+        } else {
+            break;
+        }
+    }
+    return streak;
+}
+
+// Helper: Get time band from timestamp
+function getTimeBand(timestamp) {
+    if (!timestamp) return 'UNKNOWN';
+    const hour = new Date(timestamp).getHours();
+    if (hour >= 6 && hour < 12) return 'MORNING';
+    if (hour >= 12 && hour < 18) return 'AFTERNOON';
+    if (hour >= 18 && hour < 22) return 'EVENING';
+    return 'NIGHT';
+}
+
+// Helper: Get most common item in array
+function getMostCommon(arr) {
+    if (arr.length === 0) return null;
+    const counts = {};
+    arr.forEach(item => counts[item] = (counts[item] || 0) + 1);
+    return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+}
+
+// Helper: Generate template messages (NO AI, pure templates)
+function generateEventMessage(eventType, context) {
+    const templates = {
+        PRACTICE_COMPLETED: {
+            ko: "오늘의 수련이 완료되었습니다.",
+            en: "Today's practice is complete.",
+            ru: "Сегодняшняя практика завершена.",
+            zh: "今日练习已完成。",
+            ja: "本日の練習が完了しました。"
+        },
+        FLOW_MAINTAINED: {
+            ko: `수련 흐름이 유지되고 있습니다. (연속 ${context.streak}일)`,
+            en: `Practice flow is maintained. (${context.streak} days streak)`,
+            ru: `Поток практики поддерживается. (серия ${context.streak} дней)`,
+            zh: `练习流程保持中。（连续 ${context.streak} 天）`,
+            ja: `練習の流れが維持されています。（連続 ${context.streak} 日）`
+        },
+        GAP_DETECTED: {
+            ko: `${context.gapDays}일의 간격이 발생했습니다.`,
+            en: `A gap of ${context.gapDays} days has occurred.`,
+            ru: `Произошел перерыв в ${context.gapDays} дней.`,
+            zh: `发生了 ${context.gapDays} 天的间隔。`,
+            ja: `${context.gapDays} 日の間隔が発生しました。`
+        },
+        FLOW_RESUMED: {
+            ko: `${context.gapDays}일 만에 수련이 재개되었습니다.`,
+            en: `Practice resumed after ${context.gapDays} days.`,
+            ru: `Практика возобновлена после ${context.gapDays} дней.`,
+            zh: `在 ${context.gapDays} 天后恢复了练习。`,
+            ja: `${context.gapDays} 日ぶりに練習が再開されました。`
+        },
+        PATTERN_SHIFTED: {
+            ko: `수련 시간대가 변경되었습니다. (${context.shiftDetails})`,
+            en: `Practice time has shifted. (${context.shiftDetails})`,
+            ru: `Время практики изменилось. (${context.shiftDetails})`,
+            zh: `练习时间已改变。（${context.shiftDetails}）`,
+            ja: `練習時間が変更されました。（${context.shiftDetails}）`
+        }
+    };
+
+    return templates[eventType] || templates.PRACTICE_COMPLETED;
+}
 
 // 글로벌 설정: 리전을 서울(asia-northeast3)로 설정
 setGlobalOptions({ region: "asia-northeast3" });

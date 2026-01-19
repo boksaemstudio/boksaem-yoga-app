@@ -3,7 +3,7 @@ import Keypad from '../components/Keypad';
 import { storageService } from '../services/storage';
 import { STUDIO_CONFIG, getAllBranches, getBranchName } from '../studioConfig';
 import logoWide from '../assets/logo_wide.png';
-import { MapPin, Sun, Cloud, CloudRain, Snowflake, Lightning, Moon, CornersOut, CornersIn, Fire, Plant, Leaf, Sparkle, Waves, Boat, Barbell, Plus } from '@phosphor-icons/react';
+import { MapPin, Sun, Cloud, CloudRain, Snowflake, Lightning, Moon, CornersOut, CornersIn, Fire, Plant, Leaf, Sparkle, Waves, Boat, Barbell, Plus, DownloadSimple } from '@phosphor-icons/react';
 import { useLanguage } from '../hooks/useLanguage';
 
 import bgMorning from '../assets/bg_morning.png';

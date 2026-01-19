@@ -96,7 +96,7 @@ const MemberProfile = () => {
     const [notices, setNotices] = useState([]);
     const [images, setImages] = useState({});
     const [weatherData, setWeatherData] = useState(null); // Changed to object { key, temp }
-    const [aiExperience, setAiExperience] = useState(null);
+    const [practiceEvents, setPracticeEvents] = useState([]); // NEW: Events instead of AI
     const [aiAnalysis, setAiAnalysis] = useState(null);
 
     const [pushStatus, setPushStatus] = useState('default');
@@ -183,7 +183,7 @@ const MemberProfile = () => {
         });
 
         if (member) {
-            fetchWeather(); // This will call loadAIExperience
+            loadPracticeEvents(member.id); // NEW: Load events instead of AI
 
             // Initial translation for notices if language is not 'ko'
             if (language !== 'ko' && notices.length > 0) {
@@ -199,6 +199,16 @@ const MemberProfile = () => {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [member?.id, language]);
+
+    async function loadPracticeEvents(memberId) {
+        try {
+            const events = await storageService.getPracticeEvents(memberId, 5);
+            setPracticeEvents(events);
+        } catch (e) {
+            console.error('Failed to load practice events:', e);
+            setPracticeEvents([]);
+        }
+    }
 
     async function loadAIExperience(m, targetLang, wData = null, daysLeft = null) {
         try {

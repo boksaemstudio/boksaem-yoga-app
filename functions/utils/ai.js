@@ -4,9 +4,9 @@ class AIService {
     constructor(apiKey) {
         if (!apiKey) throw new Error("API Key is missing for AIService");
         this.client = new GoogleGenerativeAI(apiKey);
-        this.model = this.client.getGenerativeModel({ model: "gemini-2.5-flash" });
+        this.model = this.client.getGenerativeModel({ model: "gemini-1.5-flash" });
         this.jsonModel = this.client.getGenerativeModel({
-            model: "gemini-2.5-flash",
+            model: "gemini-1.5-flash",
             generationConfig: { responseMimeType: "application/json" }
         });
         this.langMap = { 'ko': 'Korean', 'en': 'English', 'ru': 'Russian', 'zh': 'Chinese (Simplified)', 'ja': 'Japanese' };

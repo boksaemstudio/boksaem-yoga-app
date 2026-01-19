@@ -263,5 +263,33 @@ export const storageService = {
         userId: auth.currentUser ? auth.currentUser.uid : 'anonymous'
       });
     } catch (e) { }
+  },
+
+  // Kiosk branch management (localStorage-based for tablet persistence)
+  getKioskBranch() {
+    const stored = this._safeGetItem('kiosk_branch');
+    return stored || 'mapo'; // Default to mapo
+  },
+
+  setKioskBranch(branchId) {
+    this._safeSetItem('kiosk_branch', branchId);
+  },
+
+  // Get latest practice events for a member (used by Member App)
+  async getPracticeEvents(memberId, limit = 5) {
+    try {
+      const eventsSnap = await getDocs(
+        query(
+          collection(db, 'practice_events'),
+          where('memberId', '==', memberId),
+          orderBy('triggeredAt', 'desc'),
+          limit(limit)
+        )
+      );
+      return eventsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (e) {
+      console.error('Failed to fetch practice events:', e);
+      return [];
+    }
   }
 };
