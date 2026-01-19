@@ -344,7 +344,7 @@ const MemberProfile = () => {
 
                 // Load AI Analysis
                 const now = new Date();
-                const analysis = await storageService.getAIAnalysis(memberData.name, history.length, history, now.getHours(), language);
+                const analysis = await storageService.getAIAnalysis(memberData.name, history.length, history, now.getHours(), language || 'ko');
                 if (analysis) setAiAnalysis(analysis);
 
                 if ('Notification' in window) {

@@ -486,6 +486,7 @@ export const storageService = {
           id: memberId,
           name: memberName,
           credits: newCredits,
+          endDate: response.data.endDate || (cachedMembers.find(m => m.id === memberId)?.endDate),
           streak: streak,
           diligence: diligence // Return the full analysis object
         },
@@ -761,8 +762,7 @@ export const storageService = {
 
 
 
-  async getAIAnalysis(memberName, attendanceCount, logs, timeOfDay, language = 'ko', requestRole = 'member') {
-    this._lastAnalysisLang = language;
+  async getAIAnalysis(memberName, attendanceCount, logs, timeOfDay, language = 'ko', requestRole = 'member', statsData = null) {
     this._lastAnalysisLang = language;
     try {
       // Use Client-Side AI for Analysis too
@@ -775,6 +775,7 @@ export const storageService = {
         timeOfDay,
         language,
         role: requestRole,
+        statsData,
         diligence: null // Analysis doesn't need diligence object itself, it CREATES analysis
       });
       return result;

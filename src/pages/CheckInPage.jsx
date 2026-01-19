@@ -338,7 +338,7 @@ const CheckInPage = () => {
                 null, // weather (not available here yet, passing null)
                 member.credits,
                 daysRemaining,
-                'ko',
+                language, // Use selected language instead of hardcoded 'ko'
                 member.diligence // Pass diligence object
             );
             return exp?.message;
@@ -421,6 +421,14 @@ const CheckInPage = () => {
                             <div style={{ fontSize: '1.2rem', opacity: 0.6, marginBottom: '8px' }}>잔여 횟수</div>
                             <div style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--primary-gold)' }}>
                                 {result.member.credits}회
+                            </div>
+                        </div>
+                        <div style={{ width: '1px', background: 'rgba(255,255,255,0.1)' }} />
+
+                        <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: '1.2rem', opacity: 0.6, marginBottom: '8px' }}>잔여 일수</div>
+                            <div style={{ fontSize: '3rem', fontWeight: 800, color: '#4CAF50' }}>
+                                {result.member.endDate ? (getDaysRemaining(result.member.endDate) >= 0 ? `D-${getDaysRemaining(result.member.endDate)}` : '만료') : '-'}
                             </div>
                         </div>
                         <div style={{ width: '1px', background: 'rgba(255,255,255,0.1)' }} />

@@ -54,6 +54,30 @@ export const generateClientSideAIExperience = async (data) => {
         return generateContent(prompt);
     }
 
+    // 1.5 Admin Dashboard Insight Logic
+    if (role === 'admin') {
+        const stats = data.statsData || {};
+        const prompt = `
+            You are the 'Yoga Studio Business Analyst AI'.
+            Provide a **factual yet encouraging real-time status summary** for the manager.
+            
+            **Current Stats:**
+            - Active Members: ${stats.activeCount || 'Loading...'}
+            - Today's Attendance: ${stats.attendanceToday || 0}
+            - Expiring Soon: ${stats.expiringCount || 0}
+            - Recent Top Classes: ${JSON.stringify(stats.topClasses || [])}
+            
+            **Instructions:**
+            1. Analyze the balance between attendance and registration.
+            2. Provide 2 concise sentences of insight or a suggestion for today's operations.
+            3. Tone: Professional, Brief, Reliable. (Do NOT be overly poetic).
+            4. Language: **${targetLang}**.
+            5. Output Format (JSON ONLY):
+            { "message": "Factual insight in ${targetLang}", "bgTheme": "sunny", "colorTone": "#FFFFFF" }
+        `;
+        return generateContent(prompt);
+    }
+
     // 2. Member Logic with Smart Diligence
     // We explicitly inject diligence data here
     let diligenceContext = "";
