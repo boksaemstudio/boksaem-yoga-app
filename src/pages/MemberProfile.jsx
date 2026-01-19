@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, cloneElement, useRef } from 'react';
 import { storageService } from '../services/storage';
 import {
     User, Calendar, Ticket, CaretRight,
     InstagramLogo, YoutubeLogo,
     SealCheck, BellRinging, BellSlash, House, Megaphone, Article, SignOut,
-    DownloadSimple, Export, ChatCircleDots, CloudSun,
-    Fire, Plant, Leaf, Sparkle, Waves, Boat, Barbell
+    DownloadSimple, Export, ChatCircleDots,
+    Fire, Plant, Leaf, Sparkle, Waves, Boat, Barbell, CloudSun as CloudSunIcon
 } from '@phosphor-icons/react';
 import logo from '../assets/logo.png';
 import memberBg from '../assets/zen_yoga_bg.png';
@@ -55,6 +55,15 @@ const safeSessionStorage = {
         }
     }
 };
+const getDaysRemaining = (endDate) => {
+    if (!endDate) return 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setHours(0, 0, 0, 0);
+    const diff = end - today;
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+};
 
 const MemberProfile = () => {
     const [member, setMember] = useState(null);
@@ -75,12 +84,13 @@ const MemberProfile = () => {
         return () => clearInterval(interval);
     }, [langLabels.length]);
 
-    // Persist language to member profile when changed
+    // [OPTIMIZED] Persist language preference ONLY when it actually changes
     useEffect(() => {
-        if (member && member.id) {
+        if (member && member.id && member.language !== language) {
+            console.log(`[Language] Updating member preference to: ${language}`);
             storageService.updateMember(member.id, { language: language });
         }
-    }, [language, member]);
+    }, [language, member?.id, member?.language]);
 
     const [logs, setLogs] = useState([]);
     const [notices, setNotices] = useState([]);
@@ -104,15 +114,38 @@ const MemberProfile = () => {
 
     const [scheduleBranch, setScheduleBranch] = useState('gwangheungchang'); // Default, will update on auth
 
+    const [greetingVisible, setGreetingVisible] = useState(true);
+
+    // [GENIUS ANIMATION] Trigger fade effect when AI message arrives
+    useEffect(() => {
+        if (aiExperience?.message) {
+            setGreetingVisible(false);
+            const timer = setTimeout(() => setGreetingVisible(true), 150);
+            return () => clearTimeout(timer);
+        }
+    }, [aiExperience?.message]);
+
     useEffect(() => {
         const storedMember = safeSessionStorage.getItem('member');
         if (storedMember) {
-            const m = JSON.parse(storedMember);
-            loadMemberData(m.id);
+            try {
+                const m = JSON.parse(storedMember);
+                // [GENIUS OPTIMISTIC UI] Load cache immediately to prevent flicker
+                const cachedGreeting = storageService.getGreetingCache(m.id);
+                if (cachedGreeting) {
+                    setAiExperience(cachedGreeting);
+                }
+                loadMemberData(m.id);
+            } catch (e) {
+                console.warn("Failed to parse stored member", e);
+                setLoading(false);
+            }
         } else {
             setLoading(false);
         }
+    }, [safeSessionStorage]);
 
+    useEffect(() => {
         // Check platform and install eligibility
         try {
             const userAgent = window.navigator.userAgent.toLowerCase();
@@ -165,78 +198,9 @@ const MemberProfile = () => {
             unsubscribe();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [member ? member.id : null]);
+    }, [member?.id, language]);
 
-    const fetchWeather = async () => {
-        try {
-            const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.9780&current_weather=true');
-            const data = await res.json();
-            const weatherCode = data.current_weather.weathercode;
-
-            // Map code to translation key suffix
-            let weatherKey = 'clear';
-            if (weatherCode >= 1 && weatherCode <= 3) weatherKey = 'partly_cloudy';
-            if (weatherCode > 3) weatherKey = 'cloudy';
-            if (weatherCode >= 45 && weatherCode <= 48) weatherKey = 'fog';
-            if (weatherCode >= 51 && weatherCode <= 67) weatherKey = 'rain';
-            if (weatherCode >= 71 && weatherCode <= 77) weatherKey = 'snow';
-            if (weatherCode >= 95) weatherKey = 'thunderstorm';
-
-            // Store raw weather key for AI, but display translated
-            const wData = { key: weatherKey, temp: data.current_weather.temperature };
-            setWeatherData(wData);
-
-            // For AI, we might want to pass a generic English term or the translated one. 
-            // The backend handles localized response, so passing the translated one is fine as long as AI understands it.
-            // Or better, pass the raw code/key if possible, but existing generic AI relies on string description.
-            // For safety, let's pass a known simple string or the translated one.
-            if (member) loadAIExperience(member, language, wData); // Pass language
-        } catch (err) {
-            console.log('Weather fetch failed', err);
-            if (member) {
-                const daysLeft = getDaysRemaining(member.endDate);
-                loadAIExperience(member, language, null, daysLeft);
-            }
-        }
-    };
-
-
-    // Reload AI when language changes
-    useEffect(() => {
-        if (member) {
-            setAiExperience(null); // Force loading state
-            console.log(`[AI Request] RELOADING AI Experience for language: ${language}`);
-
-            loadAIExperience(member, language, weatherData); // Use current language
-
-            // Also reload analysis
-            setAiAnalysis(null);
-            const now = new Date();
-            storageService.getAIAnalysis(member.name, logs.length, logs, now.getHours(), language, 'member')
-                .then(analysis => {
-                    // Check if current language hasn't changed during request to prevent racing
-                    if (language === storageService._lastAnalysisLang) {
-                        console.log('[AI Request] Analysis Loaded Success or Fallback');
-                        setAiAnalysis(analysis || { message: t('analysisPending'), isError: true });
-                    }
-                })
-                .catch(err => {
-                    console.warn("AI Analysis halted (safe fail):", err);
-                    setAiAnalysis({ message: t('analysisPending'), isError: true });
-                });
-
-            // Translate notices
-            if (notices.length > 0) {
-                storageService.translateNotices(notices, language).then(translated => {
-                    setNotices(translated);
-                });
-            }
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [language]);
-
-
-    const loadAIExperience = async (m, targetLang, wData = null, daysLeft = null) => {
+    async function loadAIExperience(m, targetLang, wData = null, daysLeft = null) {
         try {
             const now = new Date();
             const hour = now.getHours();
@@ -279,18 +243,15 @@ const MemberProfile = () => {
             const response = await storageService.getAIExperience(
                 m.name,
                 logs.length,
-                day,
                 hour,
-                upcoming,
-                currentWeather,
-                m.credits,
+                day,
                 actualDaysRemaining,
-                targetLang // Pass the specific language requested
+                targetLang,
+                currentWeather,
+                upcoming
             );
 
-            // Check if current language matches targetLang to prevent racing
-            if (response && language === targetLang) {
-                console.log('[AI Request] Experience Loaded Success', response);
+            if (response && response.message) {
                 setAiExperience(response);
             }
         } catch (error) {
@@ -301,21 +262,40 @@ const MemberProfile = () => {
                 bgTheme: 'hatha'
             });
         }
-    };
+    }
 
-    const handleInstallClick = () => {
-        if (!installPrompt) return;
-        installPrompt.prompt();
-        installPrompt.userChoice.then((choiceResult) => {
-            if (choiceResult.outcome === 'accepted') {
-                console.log('User accepted the A2HS prompt');
-            }
-            setInstallPrompt(null);
-        });
-    };
-
-    const loadMemberData = async (memberId) => {
+    async function fetchWeather() {
         try {
+            const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.9780&current_weather=true');
+            const data = await res.json();
+            const weatherCode = data.current_weather.weathercode;
+
+            // Map code to translation key suffix
+            let weatherKey = 'clear';
+            if (weatherCode >= 1 && weatherCode <= 3) weatherKey = 'partly_cloudy';
+            if (weatherCode > 3) weatherKey = 'cloudy';
+            if (weatherCode >= 45 && weatherCode <= 48) weatherKey = 'fog';
+            if (weatherCode >= 51 && weatherCode <= 67) weatherKey = 'rain';
+            if (weatherCode >= 71 && weatherCode <= 77) weatherKey = 'snow';
+            if (weatherCode >= 95) weatherKey = 'thunderstorm';
+
+            // Store raw weather key for AI, but display translated
+            const wData = { key: weatherKey, temp: data.current_weather.temperature };
+            setWeatherData(wData);
+
+            if (member && !aiExperience) loadAIExperience(member, language, wData);
+        } catch (err) {
+            console.log('Weather fetch failed', err);
+            if (member) {
+                const daysLeftValue = getDaysRemaining(member.endDate);
+                loadAIExperience(member, language, null, daysLeftValue);
+            }
+        }
+    }
+
+    async function loadMemberData(memberId) {
+        try {
+            setLoading(true);
             const memberData = await storageService.getMemberById(memberId);
             if (memberData) {
                 setMember(memberData);
@@ -333,7 +313,6 @@ const MemberProfile = () => {
                 }
 
                 setMember(prev => ({ ...prev, streak, diligence }));
-
                 setLogs(history);
                 setScheduleBranch(memberData.homeBranch || 'gwangheungchang');
 
@@ -341,16 +320,12 @@ const MemberProfile = () => {
                 setNotices(noticeData);
                 setImages(storageService.getImages());
 
-
-                // Load AI Analysis
-                const now = new Date();
-                const analysis = await storageService.getAIAnalysis(memberData.name, history.length, history, now.getHours(), language || 'ko');
-                if (analysis) setAiAnalysis(analysis);
+                // Trigger AI loading in background
+                fetchWeather();
 
                 if ('Notification' in window) {
                     const permission = Notification.permission;
                     const isEnabled = localStorage.getItem('push_enabled');
-
                     if (permission === 'granted' && isEnabled !== 'false') {
                         setPushStatus('granted');
                     } else if (permission === 'denied') {
@@ -369,9 +344,9 @@ const MemberProfile = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }
 
-    const handleLogin = async (e) => {
+    async function handleLogin(e) {
         e.preventDefault();
         const trimmedName = name.trim();
         const trimmedPhone = phone.trim();
@@ -396,7 +371,7 @@ const MemberProfile = () => {
             setError(t('loginFailed') + ': ' + (err.message || t('unknownError')));
             setLoading(false);
         }
-    };
+    }
 
     const handleLogout = () => {
         if (window.confirm(t('logoutConfirm'))) {
@@ -407,6 +382,40 @@ const MemberProfile = () => {
             setError('');
         }
     };
+
+    // Reload AI when language changes
+    useEffect(() => {
+        if (member) {
+            setAiExperience(null); // Force loading state
+            console.log(`[AI Request] RELOADING AI Experience for language: ${language}`);
+
+            loadAIExperience(member, language, weatherData); // Use current language
+
+            // Also reload analysis
+            setAiAnalysis(null);
+            const now = new Date();
+            storageService.getAIAnalysis(member.name, logs.length, logs, now.getHours(), language, 'member')
+                .then(analysis => {
+                    // Check if current language hasn't changed during request to prevent racing
+                    if (language === storageService._lastAnalysisLang) {
+                        console.log('[AI Request] Analysis Loaded Success or Fallback');
+                        setAiAnalysis(analysis || { message: t('analysisPending'), isError: true });
+                    }
+                })
+                .catch(err => {
+                    console.warn("AI Analysis halted (safe fail):", err);
+                    setAiAnalysis({ message: t('analysisPending'), isError: true });
+                });
+
+            // Translate notices
+            if (notices.length > 0) {
+                storageService.translateNotices(notices, language).then(translated => {
+                    setNotices(translated);
+                });
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [language]);
 
     const getTraditionalYogaMessage = () => {
         const now = new Date();
@@ -448,17 +457,6 @@ const MemberProfile = () => {
             localStorage.setItem('push_enabled', 'false');
             alert(t('pushDisabled'));
         }
-    };
-
-    const getDaysRemaining = (endDate) => {
-        if (!endDate) return null;
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const end = new Date(endDate);
-        end.setHours(0, 0, 0, 0);
-        const diffTime = end - today;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays;
     };
 
     if (loading) return <div className="loading-screen"><div className="spinner"></div></div>;
@@ -591,7 +589,7 @@ const MemberProfile = () => {
                                     {member.diligence ? (
                                         <span style={{ background: member.diligence.badge.color, color: 'white', padding: '3px 10px', borderRadius: '5px', fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             {(() => {
-                                                const IconMap = { Fire, Plant, Leaf, Sparkle, Waves, Boat, Barbell };
+                                                const IconMap = { Fire, Plant, Leaf, Sparkle, Waves, Boat, Barbell, Sprout };
                                                 const IconComponent = IconMap[member.diligence.badge.icon] || Sparkle;
                                                 return <IconComponent weight="fill" />;
                                             })()}
@@ -617,166 +615,198 @@ const MemberProfile = () => {
                                             filter: 'blur(10px)'
                                         }}
                                     />
-                                    {/* Weather and Greeting */}
+                                    {/* [GENIUS UI] Weather and Greeting Area with Smooth Transition */}
                                     <div style={{ marginBottom: '20px' }}>
-                                        <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)', marginBottom: '5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                             <CloudSun size={18} weight="duotone" />
-                                            {weatherData ? `${t('weather_' + weatherData.key)} (${weatherData.temp}°C)` : (aiExperience ? (aiExperience.weather || '') : '')}
+                                            <span>{weatherData ? `${t('weather_' + weatherData.key)} (${weatherData.temp}°C)` : (aiExperience?.weather || '')}</span>
                                         </div>
-                                        <h1 style={{ fontSize: '1.4rem', fontWeight: 'bold', lineHeight: '1.4', margin: 0, color: 'white' }}>
-                                            {aiExperience ? aiExperience.message : getTraditionalYogaMessage()}
-                                        </h1>
-                                    </div>
-                                </div>
 
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                                    <div>
-                                        <div style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '4px', color: 'white' }}>{t('currentMembership')}</div>
-                                        <div style={{ fontSize: '1rem', fontWeight: 'bold', color: 'var(--primary-gold)' }}>
-                                            {t(`class_${member.membershipType}`) !== `class_${member.membershipType}` ? t(`class_${member.membershipType}`) : (member.membershipType || t('class_regular'))} ({member.subject || t('ticket')})
-                                        </div>
-                                    </div>
-                                    <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '4px', color: 'white' }}>{t('remainingCredits')}</div>
-                                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white' }}>{member.credits > 200 ? t('unlimited') : `${member.credits}${t('times')}`}</div>
-                                    </div>
-                                    <div>
-                                        <div style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '4px', color: 'white' }}>{t('expiryDate')}</div>
-                                        <div style={{ fontSize: '1rem', color: 'white' }}>
-                                            {member.endDate ? new Intl.DateTimeFormat(language === 'ko' ? 'ko-KR' : (language === 'en' ? 'en-US' : (language === 'ru' ? 'ru-RU' : (language === 'zh' ? 'zh-CN' : 'ja-JP'))), { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(member.endDate)) : t('unlimited')}
-                                        </div>
-                                    </div>
-                                    <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '4px', color: 'white' }}>{t('daysLeft')}</div>
-                                        <div style={{ fontSize: '1.3rem', fontWeight: 'bold', color: 'white' }}>{member.endDate ? (daysRemaining >= 0 ? `D-${daysRemaining}` : t('expired')) : '-'}</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Recent Attendance Summary */}
-                            {logs.length > 0 && (
-                                <div className="glass-panel" style={{ padding: '20px', marginBottom: '20px', background: 'rgba(24, 24, 27, 0.9)' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                                        <h3 style={{ fontSize: '1.1rem', color: 'var(--primary-gold)', margin: 0 }}>{t('recentAttendance')}</h3>
-                                        <button onClick={() => setActiveTab('history')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem' }}>{t('viewAll')} {'>'}</button>
-                                    </div>
-                                    <div style={{ padding: '15px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', display: 'flex', justifyContent: 'space-between' }}>
-                                        <div>
-                                            <div style={{ fontSize: '0.85rem', color: 'var(--primary-gold)' }}>
-                                                {new Intl.DateTimeFormat(language === 'ko' ? 'ko-KR' : (language === 'en' ? 'en-US' : (language === 'ru' ? 'ru-RU' : (language === 'zh' ? 'zh-CN' : 'ja-JP'))), { month: 'long', day: 'numeric', weekday: 'short' }).format(new Date(logs[0].timestamp))}
-                                            </div>
-                                            <div style={{ fontSize: '1rem', fontWeight: 'bold', color: 'white' }}>{logs[0].className ? (t(`class_${logs[0].className}`) !== `class_${logs[0].className}` ? t(`class_${logs[0].className}`) : logs[0].className) : t('selfPractice')} {logs[0].instructor && `(${logs[0].instructor})`}</div>
-                                        </div>
-                                        <div style={{ fontSize: '0.8rem', color: 'white', opacity: 0.7 }}>{t('sessionOrder', { n: logs.length })}</div>
-                                    </div>
-                                </div>
-                            )}
-
-
-
-                            {/* Settings */}
-                            <div className="glass-panel" style={{ padding: '20px', background: 'rgba(20, 20, 20, 0.8)' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <BellRinging size={20} color="var(--primary-gold)" />
-                                        <span style={{ color: 'white', fontWeight: 500 }}>{t('notificationSetting')}</span>
-                                    </div>
-                                    {pushStatus === 'granted' ?
-                                        <button onClick={handlePushDisable} style={{ background: '#10B981', color: 'white', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', border: 'none' }}>ON</button> :
-                                        <button onClick={handlePushRequest} style={{ background: 'rgba(255,255,255,0.1)', color: 'white', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', border: 'none' }}>OFF</button>
-                                    }
-                                </div>
-                            </div>
-
-                            {/* PWA Install Prompt */}
-                            {!isInStandaloneMode && !isInAppBrowser && (
-                                <div className="glass-panel" style={{
-                                    padding: '24px',
-                                    marginTop: '25px',
-                                    background: 'linear-gradient(135deg, #1a1a1c, #0d0d0f)',
-                                    border: '1px solid var(--primary-gold)',
-                                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
-                                    position: 'relative',
-                                    overflow: 'hidden'
-                                }}>
-                                    <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', background: 'var(--primary-gold)', opacity: 0.05, borderRadius: '50%' }} />
-
-                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '15px' }}>
-                                        <div style={{ background: 'rgba(212, 175, 55, 0.1)', padding: '10px', borderRadius: '12px' }}>
-                                            <DownloadSimple size={32} color="var(--primary-gold)" weight="bold" />
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            <h4 style={{ margin: '0 0 6px 0', color: 'var(--primary-gold)', fontSize: '1.2rem', fontWeight: '800' }}>
-                                                {t('installApp')}
-                                            </h4>
-                                            <p style={{ margin: '0 0 16px 0', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                                                {isIOS
-                                                    ? t('installDescIOS')
-                                                    : t('installDescAndroid')
-                                                }
-                                            </p>
-
-                                            {isIOS ? (
-                                                <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px dashed rgba(255,255,255,0.2)' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', color: 'white', fontSize: '0.9rem', fontWeight: '600' }}>
-                                                        <span style={{ background: 'var(--primary-gold)', color: 'black', width: '20px', height: '20px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem' }}>1</span>
-                                                        하단 <Export size={20} weight="bold" style={{ color: '#007AFF' }} /> 공유 버튼 클릭
-                                                    </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontSize: '0.9rem', fontWeight: '600' }}>
-                                                        <span style={{ background: 'var(--primary-gold)', color: 'black', width: '20px', height: '20px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem' }}>2</span>
-                                                        '홈 화면에 추가' 선택
-                                                    </div>
+                                        <div className={`welcome-container ${greetingVisible ? 'fade-in' : 'fade-out'}`} style={{ minHeight: '3.6rem' }}>
+                                            <h1 style={{ fontSize: '1.4rem', fontWeight: 'bold', lineHeight: '1.4', margin: 0, color: 'white', wordBreak: 'keep-all' }}>
+                                                {aiExperience?.message || getTraditionalYogaMessage()}
+                                            </h1>
+                                            {/* [NEW] Context Log Display */}
+                                            {aiExperience?.contextLog && (
+                                                <div style={{
+                                                    marginTop: '12px',
+                                                    padding: '8px 12px',
+                                                    background: 'rgba(0,0,0,0.3)',
+                                                    borderLeft: '2px solid rgba(255,255,255,0.2)',
+                                                    fontFamily: 'monospace',
+                                                    fontSize: '0.8rem',
+                                                    color: 'rgba(255,255,255,0.6)',
+                                                    textAlign: 'left'
+                                                }}>
+                                                    {`> ${aiExperience.contextLog}`}
                                                 </div>
-                                            ) : (
-                                                installPrompt ? (
-                                                    <button
-                                                        onClick={handleInstallClick}
-                                                        style={{
-                                                            background: 'var(--primary-gold)',
-                                                            color: 'black',
-                                                            border: 'none',
-                                                            padding: '12px 24px',
-                                                            borderRadius: '12px',
-                                                            fontWeight: '800',
-                                                            fontSize: '1rem',
-                                                            cursor: 'pointer',
-                                                            width: '100%',
-                                                            boxShadow: '0 5px 15px rgba(212, 175, 55, 0.3)'
-                                                        }}
-                                                    >
-                                                        {t('installBtn')}
-                                                    </button>
-                                                ) : (
-                                                    <p style={{ fontSize: '0.8rem', color: 'var(--primary-gold)', opacity: 0.8, background: 'rgba(212, 175, 55, 0.05)', padding: '8px', borderRadius: '8px', textAlign: 'center' }}>
-                                                        {t('appInstallGuide')}
-                                                    </p>
-                                                )
                                             )}
                                         </div>
                                     </div>
-                                </div>
-                            )}
 
-                            {/* In-App Browser Warning */}
-                            {isInAppBrowser && (
-                                <div className="glass-panel" style={{
-                                    padding: '16px',
-                                    marginTop: '20px',
-                                    background: 'rgba(255, 165, 2, 0.1)',
-                                    border: '1px solid rgba(255, 165, 2, 0.3)'
-                                }}>
-                                    <p style={{ margin: 0, color: '#ffa502', fontSize: '0.85rem', lineHeight: '1.5' }}>
-                                        {t('inAppBrowserWarning')}
-                                    </p>
-                                </div>
-                            )}
+                                    {/* [NEW] Today's Home Yoga (Down Dog Lite) */}
+                                    <div style={{ marginBottom: '25px', padding: '15px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                                            <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: 'var(--primary-gold)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                🧘 {t('homeYogaTitle') || "오늘의 3분 홈트"}
+                                            </h3>
+                                            <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>{t('homeYogaSub') || "요가원에 못 오신다면 딱 이것만!"}</span>
+                                        </div>
 
-                            {/* Social Buttons */}
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginTop: '20px' }}>
-                                <a href={STUDIO_CONFIG.SOCIAL.Gwangheungchang_Instagram} target="_blank" rel="noreferrer" style={socialBtnStyle}><InstagramLogo size={24} color="#E1306C" /><span>{t('branchGwangheungchang')}</span></a>
-                                <a href={STUDIO_CONFIG.SOCIAL.Mapo_Instagram} target="_blank" rel="noreferrer" style={socialBtnStyle}><InstagramLogo size={24} color="#E1306C" /><span>{t('branchMapo')}</span></a>
-                                <a href={STUDIO_CONFIG.SOCIAL.Youtube} target="_blank" rel="noreferrer" style={socialBtnStyle}><YoutubeLogo size={24} color="#FF0000" /><span>Youtube</span></a>
-                                <a href={STUDIO_CONFIG.SOCIAL.Blog} target="_blank" rel="noreferrer" style={socialBtnStyle}><Article size={24} color="#03C75A" /><span>Blog</span></a>
+                                        <div className="home-yoga-scroll" style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '5px', scrollSnapType: 'x mandatory' }}>
+                                            <HomeYogaCards language={language} />
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                                        <div>
+                                            <div style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '4px', color: 'white' }}>{t('currentMembership')}</div>
+                                            <div style={{ fontSize: '1rem', fontWeight: 'bold', color: 'var(--primary-gold)' }}>
+                                                {t(`class_${member.membershipType}`) !== `class_${member.membershipType}` ? t(`class_${member.membershipType}`) : (member.membershipType || t('class_regular'))} ({member.subject || t('ticket')})
+                                            </div>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <div style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '4px', color: 'white' }}>{t('remainingCredits')}</div>
+                                            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white' }}>{member.credits > 200 ? t('unlimited') : `${member.credits}${t('times')}`}</div>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '4px', color: 'white' }}>{t('expiryDate')}</div>
+                                            <div style={{ fontSize: '1rem', color: 'white' }}>
+                                                {member.endDate ? new Intl.DateTimeFormat(language === 'ko' ? 'ko-KR' : (language === 'en' ? 'en-US' : (language === 'ru' ? 'ru-RU' : (language === 'zh' ? 'zh-CN' : 'ja-JP'))), { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(member.endDate)) : t('unlimited')}
+                                            </div>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <div style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '4px', color: 'white' }}>{t('daysLeft')}</div>
+                                            <div style={{ fontSize: '1.3rem', fontWeight: 'bold', color: 'white' }}>{member.endDate ? (daysRemaining >= 0 ? `D-${daysRemaining}` : t('expired')) : '-'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Recent Attendance Summary */}
+                                {logs.length > 0 && (
+                                    <div className="glass-panel" style={{ padding: '20px', marginBottom: '20px', background: 'rgba(24, 24, 27, 0.9)' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                                            <h3 style={{ fontSize: '1.1rem', color: 'var(--primary-gold)', margin: 0 }}>{t('recentAttendance')}</h3>
+                                            <button onClick={() => setActiveTab('history')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem' }}>{t('viewAll')} {'>'}</button>
+                                        </div>
+                                        <div style={{ padding: '15px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', display: 'flex', justifyContent: 'space-between' }}>
+                                            <div>
+                                                <div style={{ fontSize: '0.85rem', color: 'var(--primary-gold)' }}>
+                                                    {new Intl.DateTimeFormat(language === 'ko' ? 'ko-KR' : (language === 'en' ? 'en-US' : (language === 'ru' ? 'ru-RU' : (language === 'zh' ? 'zh-CN' : 'ja-JP'))), { month: 'long', day: 'numeric', weekday: 'short' }).format(new Date(logs[0].timestamp))}
+                                                </div>
+                                                <div style={{ fontSize: '1rem', fontWeight: 'bold', color: 'white' }}>{logs[0].className ? (t(`class_${logs[0].className}`) !== `class_${logs[0].className}` ? t(`class_${logs[0].className}`) : logs[0].className) : t('selfPractice')} {logs[0].instructor && `(${logs[0].instructor})`}</div>
+                                            </div>
+                                            <div style={{ fontSize: '0.8rem', color: 'white', opacity: 0.7 }}>{t('sessionOrder', { n: logs.length })}</div>
+                                        </div>
+                                    </div>
+                                )}
+
+
+
+                                {/* Settings */}
+                                <div className="glass-panel" style={{ padding: '20px', background: 'rgba(20, 20, 20, 0.8)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <BellRinging size={20} color="var(--primary-gold)" />
+                                            <span style={{ color: 'white', fontWeight: 500 }}>{t('notificationSetting')}</span>
+                                        </div>
+                                        {pushStatus === 'granted' ?
+                                            <button onClick={handlePushDisable} style={{ background: '#10B981', color: 'white', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', border: 'none' }}>ON</button> :
+                                            <button onClick={handlePushRequest} style={{ background: 'rgba(255,255,255,0.1)', color: 'white', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', border: 'none' }}>OFF</button>
+                                        }
+                                    </div>
+                                </div>
+
+                                {/* PWA Install Prompt */}
+                                {!isInStandaloneMode && !isInAppBrowser && (
+                                    <div className="glass-panel" style={{
+                                        padding: '24px',
+                                        marginTop: '25px',
+                                        background: 'linear-gradient(135deg, #1a1a1c, #0d0d0f)',
+                                        border: '1px solid var(--primary-gold)',
+                                        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
+                                        position: 'relative',
+                                        overflow: 'hidden'
+                                    }}>
+                                        <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', background: 'var(--primary-gold)', opacity: 0.05, borderRadius: '50%' }} />
+
+                                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '15px' }}>
+                                            <div style={{ background: 'rgba(212, 175, 55, 0.1)', padding: '10px', borderRadius: '12px' }}>
+                                                <DownloadSimple size={32} color="var(--primary-gold)" weight="bold" />
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+                                                <h4 style={{ margin: '0 0 6px 0', color: 'var(--primary-gold)', fontSize: '1.2rem', fontWeight: '800' }}>
+                                                    {t('installApp')}
+                                                </h4>
+                                                <p style={{ margin: '0 0 16px 0', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', lineHeight: '1.6' }}>
+                                                    {isIOS
+                                                        ? t('installDescIOS')
+                                                        : t('installDescAndroid')
+                                                    }
+                                                </p>
+
+                                                {isIOS ? (
+                                                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px dashed rgba(255,255,255,0.2)' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', color: 'white', fontSize: '0.9rem', fontWeight: '600' }}>
+                                                            <span style={{ background: 'var(--primary-gold)', color: 'black', width: '20px', height: '20px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem' }}>1</span>
+                                                            하단 <Export size={20} weight="bold" style={{ color: '#007AFF' }} /> 공유 버튼 클릭
+                                                        </div>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontSize: '0.9rem', fontWeight: '600' }}>
+                                                            <span style={{ background: 'var(--primary-gold)', color: 'black', width: '20px', height: '20px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem' }}>2</span>
+                                                            '홈 화면에 추가' 선택
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    installPrompt ? (
+                                                        <button
+                                                            onClick={handleInstallClick}
+                                                            style={{
+                                                                background: 'var(--primary-gold)',
+                                                                color: 'black',
+                                                                border: 'none',
+                                                                padding: '12px 24px',
+                                                                borderRadius: '12px',
+                                                                fontWeight: '800',
+                                                                fontSize: '1rem',
+                                                                cursor: 'pointer',
+                                                                width: '100%',
+                                                                boxShadow: '0 5px 15px rgba(212, 175, 55, 0.3)'
+                                                            }}
+                                                        >
+                                                            {t('installBtn')}
+                                                        </button>
+                                                    ) : (
+                                                        <p style={{ fontSize: '0.8rem', color: 'var(--primary-gold)', opacity: 0.8, background: 'rgba(212, 175, 55, 0.05)', padding: '8px', borderRadius: '8px', textAlign: 'center' }}>
+                                                            {t('appInstallGuide')}
+                                                        </p>
+                                                    )
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* In-App Browser Warning */}
+                                {isInAppBrowser && (
+                                    <div className="glass-panel" style={{
+                                        padding: '16px',
+                                        marginTop: '20px',
+                                        background: 'rgba(255, 165, 2, 0.1)',
+                                        border: '1px solid rgba(255, 165, 2, 0.3)'
+                                    }}>
+                                        <p style={{ margin: 0, color: '#ffa502', fontSize: '0.85rem', lineHeight: '1.5' }}>
+                                            {t('inAppBrowserWarning')}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Social Buttons */}
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginTop: '20px' }}>
+                                    <a href={STUDIO_CONFIG.SOCIAL.Gwangheungchang_Instagram} target="_blank" rel="noreferrer" style={socialBtnStyle}><InstagramLogo size={24} color="#E1306C" /><span>{t('branchGwangheungchang')}</span></a>
+                                    <a href={STUDIO_CONFIG.SOCIAL.Mapo_Instagram} target="_blank" rel="noreferrer" style={socialBtnStyle}><InstagramLogo size={24} color="#E1306C" /><span>{t('branchMapo')}</span></a>
+                                    <a href={STUDIO_CONFIG.SOCIAL.Youtube} target="_blank" rel="noreferrer" style={socialBtnStyle}><YoutubeLogo size={24} color="#FF0000" /><span>Youtube</span></a>
+                                    <a href={STUDIO_CONFIG.SOCIAL.Blog} target="_blank" rel="noreferrer" style={socialBtnStyle}><Article size={24} color="#03C75A" /><span>Blog</span></a>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -812,7 +842,7 @@ const MemberProfile = () => {
                                     <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)' }}>{t('totalSessions', { n: logs.length })}</span>
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    {logs.map((log, idx) => {
+                                    {logs.slice(0, 30).map((log, idx) => {
                                         const date = new Date(log.timestamp);
                                         return (
                                             <div key={log.id} style={{ padding: '15px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -833,6 +863,11 @@ const MemberProfile = () => {
                                             </div>
                                         );
                                     })}
+                                    {logs.length > 30 && (
+                                        <div style={{ textAlign: 'center', padding: '10px', opacity: 0.5, fontSize: '0.85rem' }}>
+                                            최근 30개의 기록만 표시됩니다.
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -1000,10 +1035,10 @@ const MemberProfile = () => {
                         </div>
                     )}
                 </div>
-            </div >
+            </div> {/* End of profile-container */}
 
             {/* Bottom Navigation */}
-            < div style={{
+            <div style={{
                 position: 'fixed',
                 bottom: '20px',
                 left: '20px',
@@ -1021,14 +1056,13 @@ const MemberProfile = () => {
                 zIndex: 1000,
                 transition: 'all 0.3s ease'
             }}>
-
                 <NavItem active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<House size={26} />} label={t('tabHome')} />
                 <NavItem active={activeTab === 'history'} onClick={() => setActiveTab('history')} icon={<Article size={26} />} label={t('tabHistory')} />
                 <NavItem active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} icon={<Calendar size={26} />} label={t('tabSchedule')} />
                 <NavItem active={activeTab === 'prices'} onClick={() => setActiveTab('prices')} icon={<Ticket size={26} />} label={t('tabPrices')} />
                 <NavItem active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} icon={<Megaphone size={26} />} label={t('tabNotices')} />
-            </div >
-        </div >
+            </div>
+        </div>
     );
 };
 
@@ -1046,7 +1080,7 @@ const NavItem = ({ active, onClick, icon, label }) => (
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         transform: active ? 'scale(1.1) translateY(-2px)' : 'scale(1)',
     }}>
-        {React.cloneElement(icon, {
+        {cloneElement(icon, {
             weight: active ? 'fill' : 'regular',
             style: { filter: active ? 'drop-shadow(0 0 8px rgba(212, 175, 55, 0.5))' : 'none' }
         })}
@@ -1058,5 +1092,48 @@ const authInputStyle = { width: '100%', padding: '16px', borderRadius: '12px', b
 const authButtonStyle = { width: '100%', padding: '16px', borderRadius: '12px', border: 'none', background: 'var(--primary-gold)', color: 'black', fontSize: '1rem', fontWeight: 'bold' };
 const viewToggleStyle = { border: 'none', padding: '5px 15px', borderRadius: '18px', fontSize: '0.8rem', cursor: 'pointer' };
 const socialBtnStyle = { background: 'rgba(0,0,0,0.4)', borderRadius: '12px', padding: '12px 5px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', textDecoration: 'none', color: 'white', fontSize: '0.7rem' };
+
+const HomeYogaCards = ({ language }) => {
+    const [poses, setPoses] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadPoses = async () => {
+            setLoading(true);
+            try {
+                const data = await storageService.getDailyYoga(language);
+                setPoses(data);
+            } catch (e) {
+                console.warn(e);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadPoses();
+    }, [language]);
+
+    if (loading) return <div style={{ color: 'gray', fontSize: '0.8rem', padding: '10px' }}>AI 추천 로딩 중...</div>;
+    if (!poses) return null;
+
+    return (
+        <>
+            {poses.map((pose, idx) => (
+                <div key={idx} style={{
+                    minWidth: '200px',
+                    background: 'rgba(255,255,255,0.05)',
+                    padding: '12px',
+                    borderRadius: '10px',
+                    scrollSnapAlign: 'start',
+                    border: '1px solid rgba(255,255,255,0.05)'
+                }}>
+                    <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>{pose.emoji}</div>
+                    <div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'white', marginBottom: '4px' }}>{pose.name}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--primary-gold)', marginBottom: '6px' }}>{pose.benefit}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', lineHeight: '1.4' }}>{pose.instruction}</div>
+                </div>
+            ))}
+        </>
+    );
+};
 
 export default MemberProfile;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, cloneElement, useRef } from 'react';
 import { storageService } from '../services/storage';
 import { STUDIO_CONFIG, getBranchName } from '../studioConfig';
 import { useNavigate } from 'react-router-dom';
@@ -139,7 +139,7 @@ const AdminDashboard = () => {
     };
 
     // 필터링된 멤버 목록을 메모이제이션하여 성능 최적화
-    const filteredMembers = React.useMemo(() => {
+    const filteredMembers = useMemo(() => {
         const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
         const todayObj = new Date(todayStr);
 
@@ -475,18 +475,29 @@ const AdminDashboard = () => {
                 expiringCount: summary.expiringMembersCount,
                 topClasses: todayClasses.slice(0, 3)
             };
-            const insight = await storageService.getAIAnalysis(
+            // [GENIUS OPTIMIZATION] Add timeout to AI call to prevent infinite loading
+            const aiPromise = storageService.getAIAnalysis(
                 "Administrator",
                 logs.length,
                 logs,
                 new Date().getHours(),
                 'ko',
                 'admin',
-                statsData
+                statsData,
+                'admin'
             );
+
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("AI Analysis Timeout")), 8000)
+            );
+
+            const insight = await Promise.race([aiPromise, timeoutPromise]);
             if (insight) setAiInsight(insight);
         } catch (err) {
-            console.error("Failed to load admin insight:", err);
+            console.warn("[AI] Admin Insight failed or timed out. Using fallback summary.", err);
+            // Fallback: Generate a factual summary immediately if AI fails
+            const fallbackMsg = `현재 ${summary.activeMembers}명의 회원이 활동 중이며, 오늘 ${summary.todayAttendance}명이 출석했습니다. ${summary.expiringMembersCount > 0 ? `${summary.expiringMembersCount}명의 회원이 만료 예정입니다. ` : ''}안정적인 센터 운영이 이어지고 있습니다.`;
+            setAiInsight({ message: fallbackMsg, isFallback: true });
         } finally {
             setLoadingInsight(false);
         }
@@ -1630,16 +1641,27 @@ const AdminDashboard = () => {
                                 {[
                                     { id: 'card', label: '카드' },
                                     { id: 'cash', label: '현금' }
-                                ].map(p => (
-                                    <button
-                                        key={p.id}
-                                        className={`action-btn ${newMember.paymentMethod === p.id ? 'primary' : ''}`}
-                                        style={{ flex: 1, opacity: newMember.paymentMethod === p.id ? 1 : 0.5 }}
-                                        onClick={() => setNewMember({ ...newMember, paymentMethod: p.id })}
-                                    >
-                                        {p.label}
-                                    </button>
-                                ))}
+                                ].map(p => {
+                                    // [GENIUS UI] Only show cash button if discount (duration >= 3) applies, 
+                                    // or if the member already had cash selected (to avoid breaking UI state)
+                                    const pricingInfo = (pricingConfig || STUDIO_CONFIG.PRICING)[newMember.membershipType];
+                                    const selectedOpt = pricingInfo?.options?.find(o => o.id === newMember.selectedOption);
+                                    const isSubscription = selectedOpt?.type === 'subscription';
+                                    const showCash = p.id === 'card' || (isSubscription && newMember.duration >= 3) || !isSubscription;
+
+                                    if (!showCash) return null;
+
+                                    return (
+                                        <button
+                                            key={p.id}
+                                            className={`action-btn ${newMember.paymentMethod === p.id ? 'primary' : ''}`}
+                                            style={{ flex: 1, opacity: newMember.paymentMethod === p.id ? 1 : 0.5 }}
+                                            onClick={() => setNewMember({ ...newMember, paymentMethod: p.id })}
+                                        >
+                                            {p.label}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
 

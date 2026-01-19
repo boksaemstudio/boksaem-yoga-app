@@ -61,11 +61,11 @@ class Particle {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
 
-        // Minimal glow only for large particles to reduce GPU load
-        if (this.radius > 1.5) {
-            ctx.shadowBlur = 4;
-            ctx.shadowColor = this.color + '0.5)';
-        }
+        // Minimal glow removed for better clarity and performance
+        // if (this.radius > 1.5) {
+        //     ctx.shadowBlur = 4;
+        //     ctx.shadowColor = this.color + '0.5)';
+        // }
 
         ctx.fillStyle = this.color + this.opacity + ')';
         ctx.fill();

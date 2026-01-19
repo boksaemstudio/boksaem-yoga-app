@@ -6,14 +6,21 @@
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { onCall, onRequest } = require("firebase-functions/v2/https");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-const { setGlobalOptions } = require("firebase-functions/v2");
+const AIService = require("./utils/ai"); // Centralized AI logic
 const admin = require("firebase-admin");
+const { setGlobalOptions } = require("firebase-functions/v2");
+const { HttpsError } = require("firebase-functions/v2/https");
 
-admin.initializeApp();
+// Initialize Admin
+if (admin.apps.length === 0) {
+    admin.initializeApp();
+}
 
-// 글로벌 설정: 리전을 서울(asia-northeast3)로 설정
-setGlobalOptions({ region: "asia-northeast3" });
+// Helper to get AI service instance
+const getAI = () => {
+    const key = process.env.GEMINI_KEY || admin.app().options?.geminiKey;
+    return new AIService(key);
+};
 
 // V2 함수: 메시지 생성 시 푸시 알림 전송
 exports.sendPushOnMessageV2 = onDocumentCreated("messages/{messageId}", async (event) => {
@@ -75,28 +82,19 @@ exports.sendBulkPushV2 = onDocumentCreated("push_campaigns/{campaignId}", async 
 
     try {
         const db = admin.firestore();
+        const ai = getAI();
 
-        // 1. Fetch target members to get languages
-        // In Firestore, "in" queries are limited to 10 or 30. If targetMemberIds > 30, we must batch or fetch all members.
-        // Assuming we can just fetch all members for simplicity or fetch individually if small.
-        // Or better: Fetch tokens where memberId is in targetMemberIds? No, Firestore doesn't support massive "IN" array well.
-        // Strategy: Fetch all tokens. Filter by targetMemberIds locally. Fetch all members. Map languages.
+        // 1. Optimized Targeting: Fetch only tokens that match language AND are associated with targetMemberIds
+        const validTokensByLang = {};
 
         const allTokensSnap = await db.collection("fcm_tokens").get();
         if (allTokensSnap.empty) return;
 
-        const allMembersSnap = await db.collection("members").get();
-        const memberLangMap = {};
-        allMembersSnap.forEach(doc => {
-            memberLangMap[doc.id] = doc.data().language || 'ko';
-        });
-
-        const validTokensByLang = { 'ko': [] };
-
         allTokensSnap.forEach(doc => {
             const tokenData = doc.data();
-            if (targetMemberIds.includes(tokenData.memberId)) {
-                const lang = memberLangMap[tokenData.memberId] || 'ko';
+            const memberId = tokenData.memberId;
+            if (targetMemberIds.includes(memberId)) {
+                const lang = tokenData.language || 'ko';
                 if (!validTokensByLang[lang]) validTokensByLang[lang] = [];
                 validTokensByLang[lang].push(doc.id);
             }
@@ -106,28 +104,12 @@ exports.sendBulkPushV2 = onDocumentCreated("push_campaigns/{campaignId}", async 
         let successTotal = 0;
         let failureTotal = 0;
 
-        // Helper (Duplicated from above - should be a shared function in real refactor)
-        const getTranslatedContent = async (text, targetLang) => {
-            if (targetLang === 'ko') return text;
-            try {
-                const apiKey = process.env.GEMINI_KEY;
-                if (!apiKey) return text;
-                const client = new GoogleGenerativeAI(apiKey);
-                const model = client.getGenerativeModel({ model: "gemini-2.5-flash" });
-                const prompt = `Translate the following text to ${targetLang}. Output ONLY the translated text.\n\nText: ${text}`;
-                const result = await model.generateContent(prompt);
-                return result.response.text().trim();
-            } catch (e) {
-                console.error(`Translation failed for ${targetLang}:`, e);
-                return text;
-            }
-        };
-
+        // 4. Send batches per language
         for (const [lang, tokens] of Object.entries(validTokensByLang)) {
             if (tokens.length === 0) continue;
 
-            const title = await getTranslatedContent(titleOriginal, lang);
-            const body = await getTranslatedContent(bodyOriginal, lang);
+            const title = await ai.translate(titleOriginal, lang);
+            const body = await ai.translate(bodyOriginal, lang);
 
             const payload = {
                 ...payloadBase,
@@ -156,30 +138,13 @@ exports.sendBulkPushV2 = onDocumentCreated("push_campaigns/{campaignId}", async 
     }
 });
 
-// V2 함수: Gemini AI를 활용한 맞춤형 페이지 경험(메시지 + 배경) 생성
+// V2 함수: Gemini AI를 활용한 맞춤형 페이지 경험
 exports.generatePageExperienceV2 = onCall({ cors: true, secrets: ["GEMINI_KEY"] }, async (request) => {
-    const {
-        memberName, attendanceCount, upcomingClass, weather, timeOfDay, dayOfWeek, credits, remainingDays,
-        language = 'ko', role = 'member' // 'member', 'admin', 'visitor'
-    } = request.data;
-    const recentClasses = request.data.recentClasses || upcomingClass;
-
-    const apiKey = process.env.GEMINI_KEY || admin.app().options?.geminiKey;
-    if (!apiKey) throw new Error("API configuration missing");
+    const { memberName, weather, timeOfDay, dayOfWeek, upcomingClass, language = 'ko', role = 'member' } = request.data;
 
     try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({
-            model: "gemini-2.5-flash",
-            generationConfig: {
-                responseMimeType: "application/json",
-                temperature: role === 'admin' ? 0.3 : 1.0, // 관리자는 사실적(0.3), 사용자는 창의적(1.0)
-            }
-        });
-
-        const langMap = { 'ko': 'Korean', 'en': 'English', 'ru': 'Russian', 'zh': 'Chinese (Simplified)', 'ja': 'Japanese' };
-        const targetLang = langMap[language] || 'Korean';
-
+        const ai = getAI();
+        const targetLang = ai.getLangName(language);
         let prompt = "";
 
         if (request.data.type === 'analysis' || role === 'admin') {
@@ -188,23 +153,19 @@ exports.generatePageExperienceV2 = onCall({ cors: true, secrets: ["GEMINI_KEY"] 
             const stats = request.data.stats || {};
 
             prompt = `
-                 You are the Senior Analyst of 'Boksaem Yoga'. 
+                 You are the Senior Analyst of '복샘요가'. 
                  Provide a **factual, data-driven analysis** for the ${role === 'admin' ? 'Administrator' : 'Member'}.
 
                  Context:
                  - Member: ${memberName}
-                 - Total Attendance: ${attendanceCount}
                  - Recent Pattern: ${recentLogs}
                  - Stats: ${JSON.stringify(stats)}
 
-                     Requirements (Role: ${role}):
+                     Requirements:
                      1. ${role === 'admin' ? 'Focus on retention risk, frequency, and factual insights.' : 'Focus on professional feedback and progress tracking.'}
                      2. Tone: **Factual, Concise, Professional**. No poetic fillers.
                      3. Language: **${targetLang}**.
-                     4. IMPORTANT: Even if member names or class names are in Korean, your output MUST be in **${targetLang}**.
-                     5. DO NOT use "Namaste". 
-                     
-                     Output Format (JSON ONLY):
+                     4. Output Format (JSON ONLY):
                      {
                          "message": "Factual analysis text in ${targetLang}",
                          "bgTheme": "data",
@@ -212,88 +173,100 @@ exports.generatePageExperienceV2 = onCall({ cors: true, secrets: ["GEMINI_KEY"] 
                      }
              `;
         } else {
+            // ... Greeting Prompt Logic ...
             const isGeneric = role === 'visitor' || !memberName || ["방문 회원", "방문회원", "visitor", "Guest"].includes(memberName);
+            const preciseTime = `${timeOfDay || 12}:00`;
+            const diligence = request.data.diligence || {};
+            const diligenceContext = diligence.badge ? `Badge: ${diligence.badge.label}` : "";
 
             if (isGeneric) {
                 prompt = `
-                    You are the poetic and emotional AI of 'Boksaem Yoga'.
-                    Create an **emotional and inspiring greeting** for the lobby kiosk.
-                    Context: ${timeOfDay}h, Weather: ${weather || "Calm"}, Day: ${dayOfWeek}
-                    
-                    Instructions:
-                    1. Use elegant, warm, and human-like emotional language.
-                    2. Write 1-2 sentences that touch the heart.
-                    3. Language: **${targetLang}**. 
-                    4. IMPORTANT: Even if inputs are in Korean, your output MUST be in **${targetLang}**.
-                    5. Banned: "Namaste", "Welcome".
-                    6. Tone: Poetic, Artistic.
-
-                    Output Format (JSON ONLY):
-                    { "message": "Emotional message in ${targetLang}", "bgTheme": "dawn", "colorTone": "#FDFCF0" }
-                `;
+                     You are the AI of '나의요가'. Create a simple greeting.
+                     Context: ${timeOfDay}h, Weather: ${weather}, Day: ${dayOfWeek}
+                     Language: **${targetLang}**.
+                     Output Format (JSON ONLY): { "message": "Message in ${targetLang}", "bgTheme": "dawn", "colorTone": "#FDFCF0" }
+                 `;
             } else {
-                prompt = `
-                    You are the warm and energetic AI coach of 'Boksaem Yoga'.
-                    Create a **highly encouraging and emotional welcome message** for ${memberName}.
-                    
-                    Stats: Total ${attendanceCount}, Next Class: ${upcomingClass || "Self Practice"}
-                    
-                    Instructions:
-                    1. Focus on 'Energy' and 'Growth'. Make the member feel special and motivated.
-                    2. Tone: Warm, Energetic, Emotional.
-                    3. Language: **${targetLang}**. 
-                    4. IMPORTANT: Even if inputs (like class names) are in Korean, your output MUST be in **${targetLang}**.
-                    5. Banned: "Namaste". End with "Fighting!" or similar energetic closing.
-                    6. Length: 2-3 sentences.
+                // State Determination Logic for Declaration Message
+                const streak = diligence.streak || 0;
+                const isAfterClass = request.data.context === 'checkin';
+                const lastAtt = diligence.lastAttendanceAt || null; // Assuming available, otherwise treat as rest
 
+                let category = "Rest/No-Show"; // Default
+                if (isAfterClass) {
+                    category = "After Class (Completion)";
+                } else if (streak >= 3) {
+                    category = "Frequent Attendance (Already Enough)";
+                } else if (streak === 0 && (!lastAtt || (new Date() - new Date(lastAtt) > 7 * 24 * 60 * 60 * 1000))) {
+                    category = "Rare/Returning (Don't Force)";
+                }
+
+                prompt = `
+                    You are the 'Practice Standard Declaration' system of '나의요가'.
+                    Your ONLY purpose is to declare a clear, stoic standard for the member's practice today.
+                    
+                    **CRITICAL SIX PRINCIPLES (STRICTLY FOLLOW)**:
+                    1. ❌ NO EVALUATION: No "Good", "Great", "Hard", "Well done".
+                    2. ❌ NO EMPATHY: No "Cheer up", "Understand", "It's okay".
+                    3. ❌ NO PRESSURE: No "Come back", "Don't give up".
+                    4. ⭕️ DECLARE STATE: Just state the fact of the flow/gap.
+                    5. ⭕️ VALIDATE RETURN: If they returned after a gap, acknowledge the "Flow is restored".
+                    6. ⭕️ NEUTRALITY: The app is a recorder, not a coach.
+                    
+                    Target Context:
+                    - Category: ${category}
+                    - Member: ${memberName}
+                    
+                    **Reference Sentence Sets (Tone: Dry, Objectve, Declarative)**:
+                    
+                    [After Class / Frequent]
+                    - "The practice flow is maintained."
+                    - "Today's practice is complete."
+                    - "The sequence is continued."
+                    
+                    [Rare / Returning (CRITICAL)]
+                    - "The flow of practice has resumed today."
+                    - "A gap in practice has occurred recently."
+                    - "Today, the cycle begins again."
+                    - "The interval since the last practice was observed."
+                    
+                    [Rest / No-Show]
+                    - "The practice record is currently paused."
+                    - "A sufficient gap is being maintained."
+                    - "Today stays as a blank in the flow."
+
+                    Instructions:
+                    1. 'message': Select or generate ONE NEUTRAL sentence.
+                    2. 'contextLog': Generate a DRY, FACT-BASED log (e.g., "Gap occurred", "Flow restored", "3rd Session").
+                    
+                    Language: **${targetLang}**.
+                    
                     Output Format (JSON ONLY):
-                    { "message": "Passionate message in ${targetLang}", "bgTheme": "hatha", "colorTone": "#FDFCF0" }
+                    { 
+                        "message": "The Declaration Sentence", 
+                        "contextLog": "The Objective Log Sentence",
+                        "bgTheme": "calm", 
+                        "colorTone": "#FDFCF0" 
+                    }
                 `;
             }
         }
 
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) return JSON.parse(jsonMatch[0]);
-        throw new Error("Invalid format");
+        return await ai.generateExperience(prompt);
 
     } catch (error) {
         console.error("AI Generation Failed:", error);
 
-        const isGeneric = role === 'visitor' || !memberName || ["방문 회원", "방문회원", "visitor", "Guest"].includes(memberName);
-        const isAnalysis = request.data.type === 'analysis' || role === 'admin';
-
-        // Localized Fallbacks for Server-side Errors
+        // Fallback Logic
         const fallbackMsgs = {
-            ko: {
-                analysis: `${memberName || ""} 회원님의 수련 데이터를 분석 중입니다. 잠시만 기다려주세요.`,
-                experience: `${memberName ? memberName + "님, " : ""}오늘도 매트 위에서 나를 만나는 소중한 시간 되시길 바랍니다.`
-            },
-            en: {
-                analysis: `Analyzing ${memberName || "your"} training data. Please wait a moment.`,
-                experience: `Have a precious time meeting yourself on the mat today${memberName ? ", " + memberName : ""}.`
-            },
-            ru: {
-                analysis: `Анализируем ваши данные тренировок${memberName ? ", " + memberName : ""}. Пожалуйста, подождите.`,
-                experience: `Прекрасного времени на коврике сегодня${memberName ? ", " + memberName : ""}.`
-            },
-            zh: {
-                analysis: `正在分析${memberName || "您"}的训练数据。请稍候。`,
-                experience: `愿你今天在垫子上度过与自己相处的珍贵时光${memberName ? "，" + memberName : ""}。`
-            },
-            ja: {
-                analysis: `${memberName || "会員"}様の修練データを分析中です。少々お待ちください。`,
-                experience: `今日もマットの上で自分と向き合う大切な時間をお過ごしください${memberName ? "、" + memberName : "。"}`
-            }
+            ko: { msg: "오늘도 매트 위에서 평온을 찾으세요." },
+            en: { msg: "Find peace on the mat today." }
         };
-
-        const lang = fallbackMsgs[language] ? language : 'ko';
-        const fallbackMsg = isAnalysis ? fallbackMsgs[lang].analysis : fallbackMsgs[lang].experience;
+        const msg = fallbackMsgs[language]?.msg || fallbackMsgs.ko.msg;
 
         return {
-            message: fallbackMsg,
-            bgTheme: timeOfDay < 10 ? "dawn" : (timeOfDay >= 20 ? "night" : "sunny"),
+            message: msg,
+            bgTheme: "sunny",
             colorTone: "#FFFFFF",
             isFallback: true,
             error: error.message
@@ -309,58 +282,29 @@ exports.sendPushOnNoticeV2 = onDocumentCreated("notices/{noticeId}", async (even
 
     try {
         const db = admin.firestore();
+        const ai = getAI();
         const allTokensSnap = await db.collection("fcm_tokens").get();
         if (allTokensSnap.empty) return;
 
-        // 1. Fetch all members to map ID -> Language
-        // Optimization: In a real large app, store language in fcm_tokens or use topic subscription
-        const allMembersSnap = await db.collection("members").get();
-        const memberLangMap = {};
-        allMembersSnap.forEach(doc => {
-            memberLangMap[doc.id] = doc.data().language || 'ko';
-        });
-
-        // 2. Group tokens by language
-        const tokensByLang = { 'ko': [] };
+        // 1. Group tokens by language
+        const tokensByLang = {};
         allTokensSnap.forEach(doc => {
             const tokenData = doc.data();
-            const memberId = tokenData.memberId;
-            // Default to 'ko' if not found or no language set
-            const lang = (memberId && memberLangMap[memberId]) ? memberLangMap[memberId] : 'ko';
-
+            const lang = tokenData.language || 'ko';
             if (!tokensByLang[lang]) tokensByLang[lang] = [];
             tokensByLang[lang].push(doc.id);
         });
 
-        // 3. Prepare translations
+        // 2. Send batches per language
         const payloadBase = { data: { url: "/member" } };
         let successTotal = 0;
         let failureTotal = 0;
 
-        // Helper to translate if needed
-        const getTranslatedContent = async (text, targetLang) => {
-            if (targetLang === 'ko') return text;
-            try {
-                const apiKey = process.env.GEMINI_KEY;
-                if (!apiKey) return text;
-                const client = new GoogleGenerativeAI(apiKey);
-                const model = client.getGenerativeModel({ model: "gemini-2.5-flash" });
-
-                const prompt = `Translate the following text to ${targetLang}. Output ONLY the translated text.\n\nText: ${text}`;
-                const result = await model.generateContent(prompt);
-                return result.response.text().trim();
-            } catch (e) {
-                console.error(`Translation failed for ${targetLang}:`, e);
-                return text; // Fallback to original
-            }
-        };
-
-        // 4. Send batches per language
         for (const [lang, tokens] of Object.entries(tokensByLang)) {
             if (tokens.length === 0) continue;
 
-            const title = await getTranslatedContent(titleOriginal, lang);
-            const bodyRaw = await getTranslatedContent(bodyOriginal, lang);
+            const title = await ai.translate(titleOriginal, lang);
+            const bodyRaw = await ai.translate(bodyOriginal, lang);
             const body = bodyRaw.length > 100 ? bodyRaw.substring(0, 100) + "..." : bodyRaw;
 
             const payload = {
@@ -368,11 +312,6 @@ exports.sendPushOnNoticeV2 = onDocumentCreated("notices/{noticeId}", async (even
                 notification: { title: `[Notice] ${title}`, body }
             };
 
-            // Send to device (max 1000 at a time, but sendToDevice handles it usually or we chunk it)
-            // admin.messaging().sendToDevice handles up to 1000 tokens. 
-            // If more, we should chunk. Assuming < 1000 for now or relying on library.
-            // Actually, sendToDevice is legacy. But we use it here.
-            // Safe chunking just in case.
             const chunkSize = 500;
             for (let i = 0; i < tokens.length; i += chunkSize) {
                 const chunk = tokens.slice(i, i + chunkSize);
@@ -382,9 +321,6 @@ exports.sendPushOnNoticeV2 = onDocumentCreated("notices/{noticeId}", async (even
             }
         }
 
-        console.log(`Global notice push sent. Success: ${successTotal}, Failure: ${failureTotal}`);
-
-        // 결과 기록 추가
         await event.data.ref.update({
             pushStatus: {
                 sent: true,
@@ -402,57 +338,16 @@ exports.sendPushOnNoticeV2 = onDocumentCreated("notices/{noticeId}", async (even
     }
 });
 
-/**
- * Helper to generate AI re-engagement messages
- */
-/**
- * Helper to generate AI re-engagement messages
- */
+// Helper for Re-engagement (using AIService)
 async function generateReEngagementMessage(member, attendanceStats, language = 'ko') {
-    const apiKey = process.env.GEMINI_KEY;
-    if (!apiKey) return null;
-
     try {
-        const client = new GoogleGenerativeAI(apiKey);
-        const model = client.getGenerativeModel({ model: "gemini-2.5-flash" });
-
-        const langMap = {
-            'ko': 'Korean',
-            'en': 'English',
-            'ru': 'Russian',
-            'zh': 'Chinese (Simplified)',
-            'ja': 'Japanese'
-        };
-        const targetLang = langMap[language] || 'Korean';
-
-        const prompt = `
-            You are the friendly and wise AI director of 'Boksaem Yoga'.
-            The member's membership involves expiration or low credits. Write a short, warm encouragement message to bring them back.
-
-            Member Info:
-            - Name: ${member.name}
-            - Summary: ${attendanceStats || "No recent records"}
-
-            Instructions:
-            1. Write very briefly (1-2 sentences) for a Push Notification.
-            2. Mention their past consistency or consistency in general to trigger nostalgia for peace.
-            3. End with a message waiting for them on the mat.
-            4. **Language**: Write the response in **${targetLang}**.
-
-            Output ONLY the message text.
-        `;
-
-        const result = await model.generateContent(prompt);
-        return result.response.text().trim();
+        const ai = getAI();
+        return await ai.generateReEngagement(member, attendanceStats, language);
     } catch (e) {
-        console.error("AI Re-engagement Generation Failed:", e);
         return null;
     }
 }
 
-/**
- * Daily 9:00 AM Check for Expiring Members
- */
 // V2 함수: 만료 예정 회원 체크
 exports.checkExpiringMembersV2 = onSchedule({
     schedule: 'every day 13:00',
@@ -516,9 +411,6 @@ exports.checkExpiringMembersV2 = onSchedule({
     return null;
 });
 
-/**
- * Trigger on Credits Change (Low Balance Alert)
- */
 // V2 함수: 낮은 크레딧 알림
 exports.checkLowCreditsV2 = onDocumentUpdated({
     document: "members/{memberId}",
@@ -536,7 +428,6 @@ exports.checkLowCreditsV2 = onDocumentUpdated({
     if (current !== 0 || current >= oldData.credits) return null;
 
     try {
-        // 출석 기록 분석
         const attendanceSnap = await db.collection('attendance')
             .where('memberId', '==', memberId)
             .limit(10)
@@ -569,60 +460,18 @@ exports.checkLowCreditsV2 = onDocumentUpdated({
         console.error(e);
     }
 });
+
 // V2 함수: 공지사항 목록 실시간 번역
 exports.translateNoticesV2 = onCall({ cors: true, secrets: ["GEMINI_KEY"] }, async (request) => {
     const { notices, language = 'ko' } = request.data;
-    const apiKey = process.env.GEMINI_KEY || admin.app().options?.geminiKey;
-
-    if (!apiKey || !notices || notices.length === 0 || language === 'ko') {
-        return notices; // 번역이 필요 없거나 키가 없으면 원본 반환
-    }
-
     try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({
-            model: "gemini-2.5-flash",
-            generationConfig: { responseMimeType: "application/json" }
-        });
-
-        const langMap = {
-            'en': 'English', 'ru': 'Russian', 'zh': 'Chinese (Simplified)', 'ja': 'Japanese'
-        };
-        const targetLang = langMap[language] || 'English';
-
-        // 여러 공지사항을 한 번에 번역하기 위한 프롬프트
-        const prompt = `
-            Translate the following array of notices into ${targetLang}.
-            Keep the original IDs and only translate 'title' and 'content'.
-            Output ONLY the translated array in JSON format.
-            
-            Notices:
-            ${JSON.stringify(notices.map(n => ({ id: n.id, title: n.title, content: n.content })))}
-            
-            Requirements:
-            1. Language: **${targetLang}**
-            2. Tone: Official, polite, information-oriented
-            3. Do not change IDs.
-        `;
-
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-        const jsonMatch = text.match(/\[[\s\S]*\]/);
-
-        if (jsonMatch) {
-            const translatedArray = JSON.parse(jsonMatch[0]);
-            // 원본 데이터와 병합 (이미지 등 유지)
-            return notices.map(original => {
-                const trans = translatedArray.find(t => t.id === original.id);
-                return trans ? { ...original, title: trans.title, content: trans.content, isTranslated: true } : original;
-            });
-        }
-        return notices;
+        const ai = getAI();
+        return await ai.translateNotices(notices, language);
     } catch (error) {
-        console.error("Notice translation failed:", error);
         return notices;
     }
 });
+
 /**
  * Daily Admin Report at 23:00 KST
  */
@@ -683,7 +532,6 @@ exports.sendDailyAdminReportV2 = onSchedule({
 
         const tokens = tokensSnap.docs.map(d => d.id);
 
-        // 5. Send Push
         await admin.messaging().sendToDevice(tokens, {
             notification: {
                 title: "일일 운영/보안 보고서",
@@ -781,6 +629,7 @@ exports.checkInMemberV2Call = onCall({ cors: true }, async (request) => {
                 success: true,
                 memberName: memberData.name,
                 newCredits: memberData.credits - 1,
+                endDate: memberData.endDate || null,
                 attendanceId: attendanceRef.id
             };
         });
@@ -793,9 +642,26 @@ exports.checkInMemberV2Call = onCall({ cors: true }, async (request) => {
 });
 
 /**
- * [SECURE] 온디맨드 회원 조회: 개인정보 노출 최소화
- * 전화번호 뒤 4자리로 필터링하여 필요한 최소 데이터만 반환합니다.
+ * [NEW] Daily Home Yoga Recommendation (Downdog Lite)
+ * Generates 3 simple poses based on context (weather/time) for home practice.
  */
+exports.generateDailyYogaV2 = onCall({ cors: true, secrets: ["GEMINI_KEY"] }, async (request) => {
+    const { weather, timeOfDay, language = 'ko' } = request.data;
+    try {
+        const ai = getAI();
+        const result = await ai.generateHomeYoga(weather, timeOfDay, language);
+        if (result) return result;
+        throw new Error("No result");
+    } catch (e) {
+        // Fallback
+        return [
+            { name: "Child's Pose", benefit: language === 'ko' ? "휴식" : "Rest", instruction: "...", emoji: "👶" },
+            { name: "Cat-Cow", benefit: language === 'ko' ? "척추 이완" : "Spine", instruction: "...", emoji: "🐈" },
+            { name: "Down Dog", benefit: language === 'ko' ? "전신 스트레칭" : "Stretch", instruction: "...", emoji: "🐕" }
+        ];
+    }
+});
+
 exports.getSecureMemberV2Call = onCall({ cors: true }, async (request) => {
     const { phoneLast4 } = request.data;
     if (!phoneLast4) throw new Error("Missing phoneLast4");
@@ -831,7 +697,6 @@ exports.getSecureMemberV2Call = onCall({ cors: true }, async (request) => {
 
 /**
  * [SECURE] 관리자 전용: 전체 회원 목록 조회
- * 클라이언트의 직접적인 'list' 접근이 차단되었으므로, 서버를 통해 데이터를 제공합니다.
  */
 exports.getAllMembersAdminV2Call = onCall({ cors: true }, async (request) => {
     // [SECURITY] 관리자 권한 검사: 익명 사용자가 아닌 이메일 인증된 관리자만 허용
@@ -849,3 +714,7 @@ exports.getAllMembersAdminV2Call = onCall({ cors: true }, async (request) => {
         throw new HttpsError("internal", e.message);
     }
 });
+
+
+// 글로벌 설정: 리전을 서울(asia-northeast3)로 설정
+setGlobalOptions({ region: "asia-northeast3" });

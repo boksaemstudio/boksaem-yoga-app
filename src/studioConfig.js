@@ -5,7 +5,7 @@
 export const STUDIO_CONFIG = {
     // 1. 기본 정보
     NAME: "복샘요가",
-    NAME_ENGLISH: "Boksaem Yoga",
+    NAME_ENGLISH: "복샘요가",
     LOGO_TEXT: "BOKSAEM",
 
     // 2. 지점 설정 (ID는 영어, NAME은 한글 표시용)

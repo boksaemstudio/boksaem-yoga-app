@@ -6,10 +6,14 @@ import logoCircle from '../assets/logo_circle.png';
 const Keypad = ({ onKeyPress, onClear, disabled }) => {
     const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
-    const handleInteraction = (action) => {
-        action(); // Execute immediately for faster response
+    const handleInteraction = (e, action) => {
+        // Prevent default only for touch to avoid phantom clicks
+        if (e.type === 'touchstart') {
+            e.preventDefault();
+        }
+        action();
         if (navigator.vibrate) {
-            setTimeout(() => navigator.vibrate(15), 0); // Async haptic feedback
+            navigator.vibrate(10); // Simpler feedback
         }
     };
 
@@ -18,7 +22,7 @@ const Keypad = ({ onKeyPress, onClear, disabled }) => {
             {keys.map((key) => (
                 <KeyButton
                     key={key}
-                    onClick={() => handleInteraction(() => onKeyPress(key))}
+                    onPress={(e) => handleInteraction(e, () => onKeyPress(key))}
                     disabled={disabled}
                 >
                     {key}
@@ -26,7 +30,7 @@ const Keypad = ({ onKeyPress, onClear, disabled }) => {
             ))}
 
             <KeyButton
-                onClick={() => handleInteraction(onClear)}
+                onPress={(e) => handleInteraction(e, onClear)}
                 disabled={disabled}
                 special="clear"
             >
@@ -34,7 +38,7 @@ const Keypad = ({ onKeyPress, onClear, disabled }) => {
             </KeyButton>
 
             <KeyButton
-                onClick={() => handleInteraction(() => onKeyPress('0'))}
+                onPress={(e) => handleInteraction(e, () => onKeyPress('0'))}
                 disabled={disabled}
             >
                 0
@@ -48,25 +52,34 @@ const Keypad = ({ onKeyPress, onClear, disabled }) => {
 };
 
 // Extracted Button Component with memo for performance
-const KeyButton = React.memo(({ onClick, disabled, children, special }) => {
-    const lastTap = React.useRef(0);
+const KeyButton = React.memo(({ onPress, disabled, children, special }) => {
+    const lastEventTime = React.useRef(0);
 
-    const handleClick = (e) => {
+    const handleProtectedPress = (e) => {
         const now = Date.now();
-        if (now - lastTap.current < 50) { // 50ms - only prevent physical double-tap
-            e.preventDefault();
+        // Increased to 350ms to prevent double input on tablets while maintaining responsiveness
+        if (now - lastEventTime.current < 350) {
+            if (e.cancelable) e.preventDefault();
             return;
         }
-        lastTap.current = now;
-        onClick(e);
+        lastEventTime.current = now;
+        onPress(e);
     };
 
     return (
         <button
             className={`keypad-btn ${special || ''}`}
-            onClick={handleClick}
+            onTouchStart={handleProtectedPress}
+            onMouseDown={(e) => {
+                // Ignore if touch (which happened < 300ms ago) handled it
+                if (e.button === 0) handleProtectedPress(e);
+            }}
             disabled={disabled}
-            style={{ touchAction: 'manipulation' }}
+            style={{
+                touchAction: 'none',
+                userSelect: 'none',
+                WebkitUserSelect: 'none'
+            }}
         >
             {children}
         </button>

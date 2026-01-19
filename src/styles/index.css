@@ -37,11 +37,12 @@
   --accent-success: #10B981;
   --accent-info: #3B82F6;
 
-  /* Advanced Glassmorphism */
-  --glass-bg: rgba(15, 15, 18, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-shadow: 0 8px 64px -12px rgba(0, 0, 0, 0.7);
-  --glass-blur: blur(4px);
+  /* Advanced Glassmorphism - Simplified for performance */
+  --glass-bg: rgba(20, 20, 25, 0.9);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  /* Removed blur for speed */
+  --glass-blur: none;
 
   /* Spacing & Radius */
   --radius-sm: 8px;
@@ -51,15 +52,24 @@
 
   --font-main: "Pretendard", sans-serif;
   --font-heading: "Outfit", sans-serif;
-  --transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
-  /* Faster, snappier transition */
+  --transition: none;
+  /* Completely disabled for immediate response */
 }
 
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  /* Improves touch response */
+  /* Prevent ghost cursors/carets in non-input areas */
+  caret-color: transparent;
+  outline: none !important;
+}
+
+/* Enable caret only where needed and use brand gold */
+input,
+textarea,
+[contenteditable="true"] {
+  caret-color: var(--primary-gold) !important;
 }
 
 body {
@@ -83,13 +93,8 @@ body::before {
   width: 100%;
   height: 100%;
   z-index: -1;
-  background:
-    radial-gradient(circle at 20% 30%, rgba(212, 175, 55, 0.05) 0%, transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.05) 0%, transparent 40%),
-    radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.02) 0%, transparent 60%);
-  filter: blur(40px);
-  /* Reduced from 80px for performance */
-  /* Animation removed for performance */
+  background: #08080a;
+  /* Simple solid background for speed */
   will-change: auto;
 }
 
@@ -128,26 +133,18 @@ button {
    ========================================= */
 
 @keyframes ai-glow {
-  0% {
-    box-shadow: 0 0 10px var(--primary-gold-glow);
-  }
 
-  50% {
-    box-shadow: 0 0 30px var(--primary-gold-glow), 0 0 10px var(--accent-ai-glow);
-  }
-
+  0%,
   100% {
-    box-shadow: 0 0 10px var(--primary-gold-glow);
+    box-shadow: none;
   }
 }
 
 @keyframes scanline {
-  0% {
-    transform: translateY(-100%);
-  }
 
+  0%,
   100% {
-    transform: translateY(300%);
+    transform: none;
   }
 }
 
@@ -168,8 +165,8 @@ button {
   width: 100%;
   height: 2px;
   background: linear-gradient(90deg, transparent, var(--primary-gold), transparent);
-  opacity: 0.3;
-  animation: scanline 4s linear infinite;
+  opacity: 0;
+  animation: none;
   pointer-events: none;
 }
 
@@ -336,7 +333,7 @@ button {
   font-size: 0.75rem;
   font-weight: 500;
   white-space: nowrap;
-  transition: all 0.2s;
+  transition: none;
 }
 
 .nav-tab-item.active {
@@ -393,7 +390,7 @@ button {
 }
 
 .dashboard-card.interactive:hover {
-  transform: translateY(-2px);
+  transform: none;
   border-color: rgba(255, 255, 255, 0.15);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
@@ -511,7 +508,7 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: background-color 0.2s;
+  transition: none;
 }
 
 .member-list-item:hover {
@@ -559,8 +556,7 @@ button {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(8px);
+  background-color: rgba(0, 0, 0, 0.9);
   z-index: 2000;
   display: flex;
   align-items: center;
@@ -585,7 +581,6 @@ button {
   .modal-overlay {
     padding: 10px;
     align-items: flex-end;
-    /* Mobile: slide up from bottom feel */
   }
 
   .modal-content {
@@ -663,26 +658,16 @@ button {
 
 /* Aura Animation */
 .aura-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(197, 160, 101, 0.08) 0%, transparent 70%);
-  animation: pulse 8s infinite alternate ease-in-out;
-  pointer-events: none;
-  z-index: 1;
+  display: none;
+  /* Completely removed pulse overlay for speed */
 }
 
 @keyframes pulse {
-  0% {
-    transform: scale(1);
-    opacity: 0.4;
-  }
 
+  0%,
   100% {
-    transform: scale(1.15);
-    opacity: 0.7;
+    transform: none;
+    opacity: 1;
   }
 }
 
@@ -697,12 +682,10 @@ button {
 }
 
 .glass-panel-sm {
-  background: rgba(30, 30, 30, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(35, 35, 35, 0.95);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-full);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .checkin-top-bar {
@@ -853,7 +836,6 @@ button {
 
 .pin-active {
   color: var(--text-primary);
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
 }
 
 .pin-inactive {
@@ -897,7 +879,6 @@ button {
   background: rgba(20, 20, 20, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-  animation: slideUp 0.4s cubic-bezier(0.19, 1, 0.22, 1);
   overflow: hidden;
   /* Manage internal scroll */
 }
@@ -1026,7 +1007,6 @@ button {
 .qr-text li {
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.95);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   margin-bottom: 4px;
   display: flex;
   align-items: center;
@@ -1178,6 +1158,16 @@ button {
 }
 
 /* Animations */
+.fade-in {
+  opacity: 1;
+  transition: opacity 0.6s ease-in-out;
+}
+
+.fade-out {
+  opacity: 0;
+  transition: opacity 0.6s ease-in-out;
+}
+
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -1262,9 +1252,7 @@ h6 {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  background-color: rgba(26, 26, 26, 0.98);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background-color: rgba(18, 18, 20, 1);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
   padding: 10px 0;
@@ -1454,23 +1442,6 @@ h6 {
   }
 }
 
-@keyframes pulse-gold {
-  0% {
-    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4);
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-
-  70% {
-    box-shadow: 0 0 0 6px rgba(255, 215, 0, 0);
-    border-color: rgba(255, 215, 0, 0.3);
-  }
-
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-}
-
 .pulse-gold {
-  animation: pulse-gold 2s infinite;
+  animation: none;
 }

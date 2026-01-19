@@ -24,8 +24,38 @@ const getWeatherIcon = (code, isNight) => {
     return <Cloud size={24} weight="fill" />;
 };
 
-const TopBar = React.memo(({ currentTime, weather, currentBranch, branches, handleBranchChange, toggleFullscreen, isFullscreen, language, handleInstallClick }) => {
+// [OPTIMIZED] Self-contained Clock to prevent full-page re-renders
+const DigitalClock = React.memo(() => {
+    const [time, setTime] = useState(new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => setTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    // Optimized formatting for older CPUs
+    const h = time.getHours().toString().padStart(2, '0');
+    const m = time.getMinutes().toString().padStart(2, '0');
+    const s = time.getSeconds().toString().padStart(2, '0');
+
+    return (
+        <div className="top-clock outfit-font" style={{
+            fontSize: '2.2rem',
+            fontWeight: 700,
+            color: 'var(--primary-gold)',
+            letterSpacing: '2px',
+            fontVariantNumeric: 'tabular-nums',
+            lineHeight: 1
+        }}>
+            {h}:{m}:{s}
+        </div>
+    );
+});
+
+const TopBar = React.memo(({ weather, currentBranch, branches, handleBranchChange, toggleFullscreen, isFullscreen, language, handleInstallClick }) => {
     const locale = language === 'ko' ? 'ko-KR' : (language === 'en' ? 'en-US' : (language === 'ru' ? 'ru-RU' : (language === 'zh' ? 'zh-CN' : 'ja-JP')));
+    const now = new Date();
+
     return (
         <div className="checkin-top-bar" style={{
             display: 'flex',
@@ -35,7 +65,8 @@ const TopBar = React.memo(({ currentTime, weather, currentBranch, branches, hand
             zIndex: 10,
             position: 'relative'
         }}>
-            <div className="branch-selector">
+            {/* Left: Branch Selector */}
+            <div className="branch-selector" style={{ flex: 1, display: 'flex', gap: '10px' }}>
                 {branches.map(branch => (
                     <button
                         key={branch.id}
@@ -47,7 +78,11 @@ const TopBar = React.memo(({ currentTime, weather, currentBranch, branches, hand
                 ))}
             </div>
 
+            {/* Center: Clock & Weather (Absolute Centered) */}
             <div className="top-info-center glass-panel-sm" style={{
+                position: 'absolute',
+                left: '50%',
+                transform: 'translateX(-50%)',
                 display: 'flex',
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -55,31 +90,21 @@ const TopBar = React.memo(({ currentTime, weather, currentBranch, branches, hand
                 gap: '12px',
                 padding: '8px 20px',
                 borderRadius: '50px',
-                background: 'rgba(255, 255, 255, 0.1)', // Simplified from glass
+                background: 'rgba(255, 255, 255, 0.1)',
                 border: '1px solid rgba(255, 215, 0, 0.3)',
                 boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
                 whiteSpace: 'nowrap',
                 width: 'fit-content',
                 flexShrink: 0
             }}>
-                <div className="top-clock outfit-font" style={{
-                    fontSize: '2.2rem',
-                    fontWeight: 700,
-                    color: 'var(--primary-gold)',
-                    letterSpacing: '2px',
-                    fontVariantNumeric: 'tabular-nums',
-                    textShadow: '0 0 15px rgba(255, 215, 0, 0.4)',
-                    lineHeight: 1
-                }}>
-                    {currentTime.toLocaleTimeString(locale, { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                </div>
+                <DigitalClock locale={locale} />
 
                 <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.15)' }} />
 
                 {weather && (
                     <>
                         <div className="top-weather" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            {getWeatherIcon(weather.weathercode, currentTime.getHours() >= 18 || currentTime.getHours() < 6)}
+                            {getWeatherIcon(weather.weathercode, now.getHours() >= 18 || now.getHours() < 6)}
                             <span className="weather-temp" style={{ fontSize: '1.4rem', fontWeight: 600, color: 'rgba(255,255,255,0.95)', lineHeight: 1 }}>
                                 {weather.temperature}°C
                             </span>
@@ -88,54 +113,55 @@ const TopBar = React.memo(({ currentTime, weather, currentBranch, branches, hand
                         <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.15)' }} />
 
                         <span className="weather-date" style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.6)', fontWeight: 500, letterSpacing: '0.5px', lineHeight: 1 }}>
-                            {currentTime.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
+                            {now.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
                         </span>
                     </>
                 )}
             </div>
 
-            <button
-                className="fullscreen-btn"
-                onClick={toggleFullscreen}
-                aria-label={isFullscreen ? "전체화면 종료" : "전체화면 시작"}
-                style={{
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    borderRadius: '50%',
-                    width: '44px',
-                    height: '44px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: 'white',
-                    transition: 'all 0.2s ease'
-                }}
-            >
-                {isFullscreen ? <CornersIn size={24} /> : <CornersOut size={24} />}
-            </button>
+            {/* Right: Action Buttons Grouped */}
+            <div className="top-actions-right" style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                <button
+                    className="install-btn"
+                    onClick={handleInstallClick}
+                    style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        borderRadius: '50%',
+                        width: '44px',
+                        height: '44px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        color: 'white',
+                        transition: 'all 0.3s ease'
+                    }}
+                >
+                    <DownloadSimple size={24} />
+                </button>
 
-            <button
-                className="install-pwa-btn"
-                onClick={handleInstallClick}
-                style={{
-                    background: 'rgba(212, 175, 55, 0.15)',
-                    border: '1px solid rgba(212, 215, 0, 0.3)',
-                    borderRadius: '50%',
-                    width: '44px',
-                    height: '44px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: 'var(--primary-gold)',
-                    transition: 'all 0.2s ease',
-                    boxShadow: '0 0 10px rgba(212, 175, 55, 0.2)'
-                }}
-                title="홈 화면에 추가"
-            >
-                <Plus size={24} weight="bold" />
-            </button>
+                <button
+                    className="fullscreen-btn"
+                    onClick={toggleFullscreen}
+                    aria-label={isFullscreen ? "전체화면 종료" : "전체화면 시작"}
+                    style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        borderRadius: '50%',
+                        width: '44px',
+                        height: '44px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        color: 'white',
+                        transition: 'none'
+                    }}
+                >
+                    {isFullscreen ? <CornersIn size={24} /> : <CornersOut size={24} />}
+                </button>
+            </div>
         </div>
     );
 });
@@ -151,10 +177,19 @@ const CheckInPage = () => {
     const [weather, setWeather] = useState(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [aiExperience, setAiExperience] = useState(null);
-    const [currentTime, setCurrentTime] = useState(new Date());
+    const [showKioskInstallGuide, setShowKioskInstallGuide] = useState(false);
     const [showInstallGuide, setShowInstallGuide] = useState(false);
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const { language } = useLanguage();
+
+    // Use a slow timer for background period updates (every 5 minutes)
+    const [period, setPeriod] = useState(() => {
+        const hour = new Date().getHours();
+        if (hour >= 6 && hour < 12) return 'morning';
+        if (hour >= 12 && hour < 17) return 'afternoon';
+        if (hour >= 17 && hour < 21) return 'evening';
+        return 'night';
+    });
 
     const branches = getAllBranches();
 
@@ -177,7 +212,7 @@ const CheckInPage = () => {
                 setDeferredPrompt(null);
             });
         } else {
-            setShowInstallGuide(true);
+            setShowKioskInstallGuide(true);
         }
     };
 
@@ -198,15 +233,25 @@ const CheckInPage = () => {
     useEffect(() => {
         fetchWeather();
 
-        const timer = setInterval(() => {
-            setCurrentTime(new Date());
-        }, 1000);
+        // Background / Period Slow Timer
+        const periodTimer = setInterval(() => {
+            const hour = new Date().getHours();
+            let newPeriod = 'night';
+            if (hour >= 6 && hour < 12) newPeriod = 'morning';
+            else if (hour >= 12 && hour < 17) newPeriod = 'afternoon';
+            else if (hour >= 17 && hour < 21) newPeriod = 'evening';
+            setPeriod(newPeriod);
+        }, 5 * 60 * 1000); // 5 minutes
 
-        // Auto-refresh AI standby message every 10 minutes
-        const aiRefreshTimer = setInterval(() => {
-            console.log("Refreshing AI standby message...");
-            loadAIExperience("방문 회원", null, null, weather);
-        }, 10 * 60 * 1000);
+        // Auto-refresh Weather & AI Standby Message every 20 minutes
+        // [PROTECTED LOGIC - DO NOT CHANGE]
+        // This keeps the greeting fresh (Time/Weather changes) without heavy loops.
+        // Do NOT remove this, and do NOT increase frequency. This is the "Truth".
+        const refreshTimer = setInterval(() => {
+            console.log("Refreshing Weather & AI context...");
+            fetchWeather(); // This triggers loadAIExperience with fresh data
+        }, 20 * 60 * 1000);
+
 
         // 자동 전체화면 유도 (브라우저 정책상 첫 클릭/터치가 필요함)
         const handleFirstInteraction = () => {
@@ -222,8 +267,8 @@ const CheckInPage = () => {
         window.addEventListener('touchstart', handleFirstInteraction);
 
         return () => {
-            clearInterval(timer);
-            clearInterval(aiRefreshTimer);
+            clearInterval(periodTimer);
+            clearInterval(refreshTimer);
             window.removeEventListener('click', handleFirstInteraction);
             window.removeEventListener('touchstart', handleFirstInteraction);
         };
@@ -283,20 +328,29 @@ const CheckInPage = () => {
 
 
     const handleKeyPress = (num) => {
-        if (pin.length < 4) {
-            const newPin = pin + num;
-            setPin(newPin);
-            if (newPin.length === 4) {
-                // Minimal delay (30ms) to ensure 4th digit is visible, then submit
-                setTimeout(() => {
+        setPin(prev => {
+            if (prev.length < 4) {
+                const newPin = prev + num;
+                if (newPin.length === 4) {
+                    // Immediate submission for performance
                     handleSubmit(newPin);
-                }, 30);
+                }
+                return newPin;
             }
-        }
+            return prev;
+        });
     };
 
     const handleClear = () => {
-        setPin('');
+        setPin(prev => prev.slice(0, -1));
+    };
+
+    const handleQRInteraction = (e) => {
+        // [OPTIMIZED] Instant reaction for QR guide
+        if (e.type === 'touchstart' && e.cancelable) {
+            e.preventDefault();
+        }
+        setShowInstallGuide(true);
     };
 
     const handleBranchChange = (branchId) => {
@@ -354,26 +408,55 @@ const CheckInPage = () => {
 
         setLoading(true);
         try {
-            const result = await storageService.checkIn(pinCode, currentBranch);
+            // [OPTIMIZED] find member first to start AI generation early
+            const members = await storageService.findMembersByPhone(pinCode);
+
+            if (members.length === 0) {
+                setMessage({ type: 'error', text: '회원 정보를 찾을 수 없습니다.' });
+                setPin('');
+                startDismissTimer(2000);
+                return;
+            }
+
+            if (members.length > 1) {
+                setDuplicateMembers(members);
+                setShowSelectionModal(true);
+                return;
+            }
+
+            const member = members[0];
+
+            // [STRATEGY] Run Check-in and AI Message generation in PARALLEL
+            const checkInPromise = storageService.checkInById(member.id, currentBranch);
+
+            // Start loading welcome message immediately since we know the member
+            const welcomePromise = loadWelcomeMessage(member, currentBranch);
+
+            const result = await checkInPromise;
 
             if (result.success) {
-                if (result.needsSelection) {
-                    setDuplicateMembers(result.members);
-                    setShowSelectionModal(true);
-                } else {
-                    // Fetch personalized WELCOME message
-                    // We use the same getAIExperience but logic on server side should ideally handle 'welcome' nuances based on inputs
-                    // Since we can't change server easily right now, we rely on the prompt context we pass (credits, etc)
-                    const welcomeMsg = await loadWelcomeMessage(result.member, currentBranch);
-                    showCheckInSuccess(result, welcomeMsg);
-                }
+                // Show success UI immediately with a temporary subtext
+                showCheckInSuccess(result, null);
+
+                // Wait for AI message (it might already be done or still loading)
+                welcomePromise.then(welcomeMsg => {
+                    if (welcomeMsg) {
+                        setMessage(prev => (prev && prev.member?.id === result.member.id) ? {
+                            ...prev,
+                            subText: welcomeMsg.replace(/^.*님,\s*/, '').trim()
+                        } : prev);
+                    }
+                });
             } else {
                 setMessage({ type: 'error', text: result.message });
-                startDismissTimer(2000); // Short duration for errors
+                setPin('');
+                startDismissTimer(2000);
             }
-        } catch {
-            setMessage({ type: 'error', text: '출석 처리 중 오류가 발생했습니다.' });
-            startDismissTimer(2000); // Short duration for errors
+        } catch (err) {
+            console.error("Check-in error:", err);
+            setMessage({ type: 'error', text: '출석 처리 중 오류가 발생했습니다: ' + (err.message || String(err)) });
+            setPin('');
+            startDismissTimer(2000);
         } finally {
             setLoading(false);
         }
@@ -383,31 +466,47 @@ const CheckInPage = () => {
         setShowSelectionModal(false);
         setLoading(true);
         try {
-            const result = await storageService.checkInById(memberId, currentBranch);
+            const member = duplicateMembers.find(m => m.id === memberId);
+
+            // [STRATEGY] Parallelize for selected member
+            const checkInPromise = storageService.checkInById(memberId, currentBranch);
+            const welcomePromise = loadWelcomeMessage(member, currentBranch);
+
+            const result = await checkInPromise;
+
             if (result.success) {
-                const welcomeMsg = await loadWelcomeMessage(result.member, currentBranch);
-                showCheckInSuccess(result, welcomeMsg);
+                showCheckInSuccess(result, null);
+                welcomePromise.then(welcomeMsg => {
+                    if (welcomeMsg) {
+                        setMessage(prev => (prev && prev.member?.id === result.member.id) ? {
+                            ...prev,
+                            subText: welcomeMsg.replace(/^.*님,\s*/, '').trim()
+                        } : prev);
+                    }
+                });
             } else {
                 setMessage({ type: 'error', text: result.message });
-                startDismissTimer(2000); // Short duration for errors
+                setPin('');
+                startDismissTimer(2000);
             }
         } catch {
             setMessage({ type: 'error', text: '출석 처리 중 오류가 발생했습니다.' });
-            startDismissTimer(2000); // Short duration for errors
+            setPin('');
+            startDismissTimer(2000);
         } finally {
             setLoading(false);
         }
     };
 
-    const showCheckInSuccess = (result, customAiMsg = null) => {
-        // Use the freshly fetched custom message, or fall back to standby, or generic
-        const aiMsg = customAiMsg || aiExperience?.message || `${result.member.name}님 환영합니다!`;
-        const cleanMsg = aiMsg.replace(/^.*님,\s*/, '').trim(); // Clean it up just in case
+    const showCheckInSuccess = (result) => {
+        // [STRICT TABLET UX] No AI, No Emotion, Just Declaration.
+        const staticDeclaration = "오늘의 수련이 시작됩니다.";
 
         setMessage({
             type: 'success',
-            text: `${result.member.name}님 환영합니다!`,
-            subText: cleanMsg,
+            member: result.member,
+            text: `${result.member.name}님`,
+            subText: staticDeclaration,
             details: (
                 <div className="attendance-info" style={{
                     marginTop: '30px',
@@ -433,54 +532,19 @@ const CheckInPage = () => {
                         </div>
                         <div style={{ width: '1px', background: 'rgba(255,255,255,0.1)' }} />
 
-                        {/* Gamification: Smart Diligence Display */}
-                        {result.member.diligence ? (
-                            <div style={{ textAlign: 'center', animation: 'popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}>
-                                <div style={{ fontSize: '1.2rem', opacity: 0.8, marginBottom: '8px', color: result.member.diligence.badge.color }}>
-                                    {result.member.diligence.badge.label}
-                                </div>
-                                <div style={{
-                                    fontSize: '3rem',
-                                    fontWeight: 800,
-                                    color: result.member.diligence.badge.color,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '10px',
-                                    textShadow: `0 0 20px ${result.member.diligence.badge.color}40`
-                                }}>
-                                    <span style={{ fontSize: '3.5rem', filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.3))' }}>
-                                        {result.member.diligence.badge.icon}
-                                    </span>
-                                </div>
-                                <div style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.7)', marginTop: '5px' }}>
-                                    {result.member.diligence.message}
-                                </div>
+                        {/* Simplified Log for Tablet: Streak or Total only */}
+                        <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: '1.2rem', opacity: 0.6, marginBottom: '8px' }}>연속 수련</div>
+                            <div style={{ fontSize: '3rem', fontWeight: 800, color: '#FF6B6B', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                <span>🔥</span> {result.member.streak > 1 ? `${result.member.streak}일` : (result.attendanceCount + '회')}
                             </div>
-                        ) : (
-                            /* Fallback to Streak if Diligence fails */
-                            result.member.streak > 1 ? (
-                                <div style={{ textAlign: 'center' }}>
-                                    <div style={{ fontSize: '1.2rem', opacity: 0.6, marginBottom: '8px' }}>연속 수련</div>
-                                    <div style={{ fontSize: '3rem', fontWeight: 800, color: '#FF6B6B', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                        <span>🔥</span> {result.member.streak}일
-                                    </div>
-                                </div>
-                            ) : (
-                                <div style={{ textAlign: 'center' }}>
-                                    <div style={{ fontSize: '1.2rem', opacity: 0.6, marginBottom: '8px' }}>누적 출석</div>
-                                    <div style={{ fontSize: '3rem', fontWeight: 800, color: 'white' }}>
-                                        {result.attendanceCount}회
-                                    </div>
-                                </div>
-                            )
-                        )}
+                        </div>
                     </div>
                 </div>
             )
         });
         setPin('');
-        startDismissTimer(8000); // Long duration for reading success message
+        startDismissTimer(4500); // [ADJUSTED] 4.5s is the sweet spot (Readability vs Flow)
     };
 
     const getDaysRemaining = (endDate) => {
@@ -497,6 +561,7 @@ const CheckInPage = () => {
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => {
             setMessage(null);
+            setPin(''); // [FIX] Ensure PIN is clear when returning to standby
         }, duration);
     };
 
@@ -523,10 +588,9 @@ const CheckInPage = () => {
             }}>
                 <img
                     src={(() => {
-                        const hour = new Date().getHours();
-                        if (hour >= 5 && hour < 12) return bgMorning;
-                        if (hour >= 12 && hour < 17) return bgAfternoon;
-                        if (hour >= 17 && hour < 21) return bgEvening;
+                        if (period === 'morning') return bgMorning;
+                        if (period === 'afternoon') return bgAfternoon;
+                        if (period === 'evening') return bgEvening;
                         return bgNight;
                     })()}
                     alt="bg"
@@ -543,13 +607,12 @@ const CheckInPage = () => {
                     left: 0,
                     width: '100%',
                     height: '100%',
-                    background: 'radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%), rgba(0,0,0,0.2)'
+                    background: 'rgba(0,0,0,0.5)' // Solid overlay for speed
                 }} />
             </div>
 
-            {/* Top Bar - Optimized with Memoization */}
+            {/* Top Bar - Optimized with Memoization & Internal Clock */}
             <TopBar
-                currentTime={currentTime}
                 weather={weather}
                 currentBranch={currentBranch}
                 branches={branches}
@@ -585,8 +648,8 @@ const CheckInPage = () => {
                     )}
 
                     <div className="info-body">
-                        {!message && (
-                            <div className="pin-display scanline-container">
+                        {!message && !showInstallGuide && (
+                            <div className="pin-display">
                                 {pin.padEnd(4, '•').split('').map((c, i) => (
                                     <span key={i} className={i < pin.length ? 'pin-active' : 'pin-inactive'}>{c}</span>
                                 ))}
@@ -597,14 +660,15 @@ const CheckInPage = () => {
                             {message ? (
                                 <div
                                     className={`message-box ${message.type}`}
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
                                         setMessage(null);
                                         setPin('');
                                         if (timerRef.current) clearTimeout(timerRef.current);
                                     }}
                                     onTouchStart={(e) => {
                                         // Prevents "ghost clicks" on elements behind the message
-                                        e.preventDefault();
                                         e.stopPropagation();
                                         setMessage(null);
                                         setPin('');
@@ -612,8 +676,8 @@ const CheckInPage = () => {
                                     }}
                                 >
                                     <div className="message-content">
-                                        <div className="message-text" style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '20px' }}>{message.text}</div>
-                                        {message.subText && <div className="message-subtext" style={{ fontSize: '1.8rem', opacity: 1, marginBottom: '20px', whiteSpace: 'pre-wrap', lineHeight: '1.4' }}>{message.subText}</div>}
+                                        <div className="message-text" style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '15px' }}>{message.text}</div>
+                                        {message.subText && <div className="message-subtext" style={{ fontSize: '1.5rem', opacity: 1, marginBottom: '20px', whiteSpace: 'pre-wrap', lineHeight: '1.3' }}>{message.subText}</div>}
                                         {message.details}
                                     </div>
                                     <p className="message-dismiss-text" style={{ fontSize: '1.2rem', opacity: 0.7 }}>화면을 터치하면 바로 닫힙니다</p>
@@ -654,9 +718,13 @@ const CheckInPage = () => {
                                 justifyContent: 'center',
                                 gap: '25px',
                                 alignSelf: 'center',
-                                border: '1px solid rgba(255, 215, 0, 0.4)'
+                                border: '1px solid rgba(255, 215, 0, 0.4)',
+                                touchAction: 'none' // Disable double-tap zoom for speed
                             }}
-                            onClick={() => setShowInstallGuide(true)}
+                            onTouchStart={handleQRInteraction}
+                            onMouseDown={(e) => {
+                                if (e.button === 0) handleQRInteraction(e);
+                            }}
                         >
                             <div className="qr-img-wrapper" style={{ background: 'white', padding: '12px', borderRadius: '16px', flexShrink: 0 }}>
                                 <img src={qrCodeUrl} alt="QR" style={{ width: '130px', height: '130px', display: 'block' }} />
@@ -668,17 +736,17 @@ const CheckInPage = () => {
                                 justifyContent: 'center',
                                 marginTop: '-8px' // Moved text up slightly for better alignment
                             }}>
-                                <h3 style={{ fontSize: '2.2rem', color: 'var(--primary-gold)', marginBottom: '12px', fontWeight: 900, lineHeight: 1 }}>
-                                    복샘요가
+                                <h3 style={{ fontSize: '1.9rem', color: 'var(--primary-gold)', marginBottom: '8px', fontWeight: 900, lineHeight: 1 }}>
+                                    나의요가
                                 </h3>
-                                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                    <li style={{ fontSize: '1.3rem', color: 'rgba(255, 255, 255, 0.95)', display: 'flex', alignItems: 'center', gap: '10px', lineHeight: 1.1 }}>
+                                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                    <li style={{ fontSize: '1.2rem', color: 'rgba(255, 255, 255, 0.95)', display: 'flex', alignItems: 'center', gap: '8px', lineHeight: 1.1 }}>
                                         ✓ 잔여횟수 확인
                                     </li>
-                                    <li style={{ fontSize: '1.3rem', color: 'rgba(255, 255, 255, 0.95)', display: 'flex', alignItems: 'center', gap: '10px', lineHeight: 1.1 }}>
+                                    <li style={{ fontSize: '1.2rem', color: 'rgba(255, 255, 255, 0.95)', display: 'flex', alignItems: 'center', gap: '8px', lineHeight: 1.1 }}>
                                         ✓ 수업일정 보기
                                     </li>
-                                    <li style={{ fontSize: '1.3rem', color: 'rgba(255, 255, 255, 0.95)', display: 'flex', alignItems: 'center', gap: '10px', lineHeight: 1.1 }}>
+                                    <li style={{ fontSize: '1.2rem', color: 'rgba(255, 255, 255, 0.95)', display: 'flex', alignItems: 'center', gap: '8px', lineHeight: 1.1 }}>
                                         ✓ 맞춤알림 받기
                                     </li>
                                 </ul>
@@ -687,7 +755,7 @@ const CheckInPage = () => {
                     )}
                 </div>
 
-                <div className="checkin-keypad-section glass-panel ai-glow" style={{ position: 'relative' }}>
+                <div className="checkin-keypad-section glass-panel" style={{ position: 'relative' }}>
                     {pin.length === 0 && !message && (
                         <div className="keypad-floating-instruction">
                             전화번호 뒤 4자리를 입력하세요
@@ -715,11 +783,14 @@ const CheckInPage = () => {
                             {duplicateMembers.map(m => (
                                 <button
                                     key={m.id}
-                                    onClick={() => handleSelectMember(m.id)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleSelectMember(m.id);
+                                    }}
                                     className="member-card"
                                     style={{
-                                        padding: '40px',
-                                        fontSize: '2rem',
+                                        padding: '30px',
+                                        fontSize: '1.8rem',
                                         borderRadius: '24px',
                                         background: 'rgba(255,255,255,0.1)',
                                         color: 'white',
@@ -727,13 +798,12 @@ const CheckInPage = () => {
                                         display: 'flex',
                                         flexDirection: 'column',
                                         alignItems: 'center',
-                                        gap: '15px',
-                                        transition: 'all 0.1s',
+                                        gap: '12px',
                                         cursor: 'pointer'
                                     }}
                                 >
                                     <span style={{ fontWeight: '800' }}>{m.name}</span>
-                                    <span style={{ fontSize: '1.4rem', opacity: 0.8, background: 'rgba(0,0,0,0.3)', padding: '5px 15px', borderRadius: '50px' }}>
+                                    <span style={{ fontSize: '1.2rem', opacity: 0.8, background: 'rgba(0,0,0,0.3)', padding: '5px 15px', borderRadius: '50px' }}>
                                         {getBranchName(m.homeBranch)}
                                     </span>
                                 </button>
@@ -757,20 +827,19 @@ const CheckInPage = () => {
                     </div>
                 </div>
             )}
-            {/* PWA Install Guide for Check-in (Kiosk/Tablet) */}
-            {showInstallGuide && (
+            {/* PWA Install Guide for Admin Kiosk */}
+            {showKioskInstallGuide && (
                 <div
                     style={{
                         position: 'fixed',
                         top: 0, left: 0, right: 0, bottom: 0,
-                        backgroundColor: 'rgba(0,0,0,0.85)',
+                        backgroundColor: 'rgba(0,0,0,0.92)', // Slightly darker for contrast without blur
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        zIndex: 10000,
-                        backdropFilter: 'blur(10px)'
+                        zIndex: 10000
                     }}
-                    onClick={() => setShowInstallGuide(false)}
+                    onClick={() => setShowKioskInstallGuide(false)}
                 >
                     <div
                         style={{
@@ -785,25 +854,25 @@ const CheckInPage = () => {
                         }}
                         onClick={e => e.stopPropagation()}
                     >
-                        <h3 style={{ fontSize: '1.8rem', color: 'var(--primary-gold)', marginBottom: '20px' }}>홈 화면에 추가하기</h3>
+                        <h3 style={{ fontSize: '1.8rem', color: 'var(--primary-gold)', marginBottom: '20px' }}>키오스크 모드 설치</h3>
                         <p style={{ color: 'white', lineHeight: '1.8', fontSize: '1.1rem', marginBottom: '30px' }}>
-                            출석 체크 페이지를 앱처럼 사용하시려면 <br />
-                            브라우저 메뉴에서 <strong>'홈 화면에 추가'</strong>를 <br />
-                            선택해 주세요. <br /><br />
-                            <small style={{ color: 'rgba(255,255,255,0.6)' }}>
-                                * 아이패드(iOS)는 상단 <strong>'공유'</strong> 버튼 클릭 후 <br />
-                                <strong>'홈 화면에 추가'</strong>를 누르시면 됩니다.
-                            </small>
+                            이 화면을 앱처럼 사용하시려면 <br />
+                            <strong>'홈 화면에 추가'</strong>를 선택해 주세요.<br />
+                            (관리자 전용)
                         </p>
                         <button
                             className="action-btn primary"
                             style={{ width: '100%', height: '60px', fontSize: '1.2rem', borderRadius: '15px' }}
-                            onClick={() => setShowInstallGuide(false)}
+                            onClick={() => setShowKioskInstallGuide(false)}
                         >
                             확인
                         </button>
                     </div>
                 </div>
+            )}
+            {/* 회원용 설치 안내 모달 복구 */}
+            {showInstallGuide && (
+                <InstallGuideModal onClose={() => setShowInstallGuide(false)} />
             )}
         </div>
     );

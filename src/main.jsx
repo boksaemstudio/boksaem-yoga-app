@@ -6,7 +6,10 @@ import { storageService } from './services/storage'
 import { LanguageProvider } from './context/LanguageContext'
 import ErrorBoundary from './components/ErrorBoundary'
 
-storageService.initialize();
+// Detect Kiosk Mode (Check-in Page)
+const isKiosk = window.location.pathname === '/';
+storageService.initialize({ mode: isKiosk ? 'kiosk' : 'full' });
+
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

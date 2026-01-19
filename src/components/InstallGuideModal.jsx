@@ -5,7 +5,7 @@ const InstallGuideModal = ({ onClose }) => {
     const [tab, setTab] = useState('android'); // 'android' or 'ios'
 
     return (
-        <div className="modal-overlay" onClick={onClose} style={{ zIndex: 3000, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)' }}>
+        <div className="modal-overlay" onClick={onClose} style={{ zIndex: 3000, background: 'rgba(0,0,0,0.92)' }}>
             <div
                 className="modal-content glass-panel"
                 onClick={e => e.stopPropagation()}
@@ -25,7 +25,7 @@ const InstallGuideModal = ({ onClose }) => {
             >
                 {/* Header */}
                 <div style={{
-                    padding: '40px 50px',
+                    padding: '20px 40px',
                     borderBottom: '1px solid rgba(255,255,255,0.1)',
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -33,15 +33,15 @@ const InstallGuideModal = ({ onClose }) => {
                     background: 'linear-gradient(to right, rgba(0,0,0,0.3), transparent)'
                 }}>
                     <div>
-                        <h2 style={{ fontSize: '3.2rem', margin: 0, color: 'var(--primary-gold)', fontWeight: 900, letterSpacing: '-1px' }}>
+                        <h2 style={{ fontSize: '2.4rem', margin: 0, color: 'var(--primary-gold)', fontWeight: 900, letterSpacing: '-0.5px' }}>
                             앱 설치 안내
                         </h2>
-                        <p style={{ margin: '10px 0 0', fontSize: '1.4rem', color: 'rgba(255,255,255,0.6)' }}>
+                        <p style={{ margin: '5px 0 0', fontSize: '1.2rem', color: 'rgba(255,255,255,0.6)' }}>
                             홈 화면에 추가하여 더 빠르고 편리하게 이용하세요.
                         </p>
                     </div>
-                    <button onClick={onClose} style={{ padding: '15px', color: 'rgba(255,255,255,0.5)', transition: '0.2s' }} className="hover-bright">
-                        <X size={48} weight="bold" />
+                    <button onClick={onClose} style={{ padding: '10px', color: 'rgba(255,255,255,0.5)', transition: '0.2s' }} className="hover-bright">
+                        <X size={32} weight="bold" />
                     </button>
                 </div>
 
@@ -51,66 +51,47 @@ const InstallGuideModal = ({ onClose }) => {
                         onClick={() => setTab('android')}
                         style={{
                             flex: 1,
-                            padding: '30px',
-                            fontSize: '1.8rem',
+                            padding: '15px',
+                            fontSize: '1.5rem',
                             fontWeight: 800,
                             background: tab === 'android' ? 'rgba(164, 198, 57, 0.1)' : 'transparent',
                             color: tab === 'android' ? '#a4c639' : 'rgba(255,255,255,0.4)',
-                            borderBottom: tab === 'android' ? '6px solid #a4c639' : 'none',
+                            borderBottom: tab === 'android' ? '4px solid #a4c639' : 'none',
                             transition: 'all 0.3s ease',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: '15px'
+                            gap: '12px'
                         }}
                     >
-                        <Devices size={32} /> 삼성 갤럭시 / 안드로이드
+                        <Devices size={24} /> 삼성 갤럭시 / 안드로이드
                     </button>
                     <button
                         onClick={() => setTab('ios')}
                         style={{
                             flex: 1,
-                            padding: '30px',
-                            fontSize: '1.8rem',
+                            padding: '15px',
+                            fontSize: '1.5rem',
                             fontWeight: 800,
                             background: tab === 'ios' ? 'rgba(0, 122, 255, 0.1)' : 'transparent',
                             color: tab === 'ios' ? '#007aff' : 'rgba(255,255,255,0.4)',
-                            borderBottom: tab === 'ios' ? '6px solid #007aff' : 'none',
+                            borderBottom: tab === 'ios' ? '4px solid #007aff' : 'none',
                             transition: 'all 0.3s ease',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: '15px'
+                            gap: '12px'
                         }}
                     >
-                        <Monitor size={32} /> 아이폰 / iPad (iOS)
+                        <Monitor size={24} /> 아이폰 / iPad (iOS)
                     </button>
                 </div>
 
                 {/* Content */}
-                <div style={{ flex: 1, padding: '60px 50px' }}>
+                <div style={{ flex: 1, padding: '30px 40px' }}>
                     {tab === 'android' ? <AndroidGuide /> : <IOSGuide />}
                 </div>
 
-                {/* Footer */}
-                <div style={{ padding: '40px', textAlign: 'center', background: 'rgba(0,0,0,0.2)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                    <button
-                        onClick={onClose}
-                        style={{
-                            background: 'var(--primary-gold)',
-                            color: 'black',
-                            padding: '20px 80px',
-                            fontSize: '1.8rem',
-                            fontWeight: 900,
-                            borderRadius: '100px',
-                            boxShadow: '0 15px 30px rgba(212, 175, 55, 0.3)',
-                            cursor: 'pointer'
-                        }}
-                        className="hover-bright"
-                    >
-                        알겠습니다
-                    </button>
-                </div>
             </div>
         </div>
     );
@@ -126,38 +107,38 @@ const StepItem = ({ number, icon, text, subtext, isLast }) => (
         position: 'relative'
     }}>
         <div style={{
-            width: '100px',
-            height: '100px',
-            borderRadius: '35px',
+            width: '70px',
+            height: '70px',
+            borderRadius: '24px',
             background: 'rgba(255,255,255,0.08)',
             border: '1px solid rgba(255,255,255,0.1)',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            marginBottom: '30px',
+            marginBottom: '20px',
             color: 'var(--primary-gold)',
             position: 'relative',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
+            boxShadow: '0 10px 20px rgba(0,0,0,0.3)'
         }}>
             <div style={{
                 position: 'absolute',
-                top: '-15px',
-                left: '-15px',
-                width: '40px',
-                height: '40px',
+                top: '-10px',
+                left: '-10px',
+                width: '30px',
+                height: '30px',
                 background: 'var(--primary-gold)',
                 color: 'black',
                 borderRadius: '50%',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                fontSize: '1.6rem',
+                fontSize: '1.2rem',
                 fontWeight: 900,
-                boxShadow: '0 5px 15px rgba(0,0,0,0.5)'
+                boxShadow: '0 5px 10px rgba(0,0,0,0.5)'
             }}>
                 {number}
             </div>
-            {icon}
+            {React.cloneElement(icon, { size: 36 })}
         </div>
 
         <div style={{ padding: '0 10px' }}>
