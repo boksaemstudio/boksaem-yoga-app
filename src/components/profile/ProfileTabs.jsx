@@ -1,0 +1,55 @@
+import React, { cloneElement } from 'react';
+import { Icons } from '../CommonIcons';
+
+const NavItem = ({ active, onClick, icon, label }) => (
+    <button onClick={onClick} style={{
+        background: 'none',
+        border: 'none',
+        color: active ? 'var(--primary-gold)' : 'rgba(255,255,255,0.4)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '4px',
+        padding: '8px',
+        borderRadius: '16px',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        transform: active ? 'scale(1.1) translateY(-2px)' : 'scale(1)',
+    }}>
+        {cloneElement(icon, {
+            weight: active ? 'fill' : 'regular',
+            style: { filter: active ? 'drop-shadow(0 0 8px rgba(212, 175, 55, 0.5))' : 'none' }
+        })}
+        <span style={{ fontSize: '0.65rem', fontWeight: active ? '800' : '600' }}>{label}</span>
+    </button>
+);
+
+const ProfileTabs = ({ activeTab, setActiveTab, t }) => {
+    return (
+        <div style={{
+            position: 'fixed',
+            bottom: '20px',
+            left: '20px',
+            right: '20px',
+            height: '75px',
+            background: 'rgba(20, 20, 23, 0.85)',
+            backdropFilter: 'blur(15px)',
+            borderRadius: '25px',
+            display: 'flex',
+            justifyContent: 'space-around',
+            alignItems: 'center',
+            padding: '0 15px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 15px 35px rgba(0,0,0,0.5)',
+            zIndex: 1000,
+            transition: 'all 0.3s ease'
+        }}>
+            <NavItem active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<Icons.House size={26} />} label={t('tabHome')} />
+            <NavItem active={activeTab === 'history'} onClick={() => setActiveTab('history')} icon={<Icons.Article size={26} />} label={t('tabHistory')} />
+            <NavItem active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} icon={<Icons.Calendar size={26} />} label={t('tabSchedule')} />
+            <NavItem active={activeTab === 'prices'} onClick={() => setActiveTab('prices')} icon={<Icons.Ticket size={26} />} label={t('tabPrices')} />
+            <NavItem active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} icon={<Icons.Megaphone size={26} />} label={t('tabNotices')} />
+        </div>
+    );
+};
+
+export default ProfileTabs;

@@ -139,6 +139,22 @@ export const STUDIO_CONFIG = {
             options: [
                 { id: '4_session', label: '4회권 (1개월)', basePrice: 180000, credits: 4, months: 1, type: 'ticket' }
             ]
+        },
+        'ttc': {
+            label: 'TTC (지도자과정)',
+            branches: ['gwangheungchang', 'mapo'],
+            options: [
+                {
+                    id: 'ttc_standard',
+                    label: 'TTC 6개월 과정',
+                    basePrice: 3520000,
+                    cashPrice: 3200000,
+                    credits: 9999,
+                    months: 6,
+                    type: 'ticket',
+                    isCourse: true
+                }
+            ]
         }
     }
 };

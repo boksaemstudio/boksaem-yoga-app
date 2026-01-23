@@ -15,14 +15,14 @@
     (function () {
       var path = window.location.pathname;
       var manifestFile = '/manifest-checkin.json';
-      var appTitle = '복샘요가';
+      var appTitle = '복샘요가 출석체크';
 
       if (path.indexOf('/admin') === 0) {
         manifestFile = '/manifest-admin.json';
         appTitle = '복샘요가 관리자';
       } else if (path.indexOf('/member') === 0) {
         manifestFile = '/manifest-member.json';
-        appTitle = '나의요가';
+        appTitle = '내요가';
       }
 
       // Manifest 주입

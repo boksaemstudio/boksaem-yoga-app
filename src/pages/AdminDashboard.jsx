@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useMemo, cloneElement, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { storageService } from '../services/storage';
 import { STUDIO_CONFIG, getBranchName } from '../studioConfig';
 import { useNavigate } from 'react-router-dom';
-import { Users, ClockCounterClockwise, Plus, PlusCircle, Image as ImageIcon, Calendar, Megaphone, BellRinging, X, Check, Funnel, Trash, NotePencil, FloppyDisk, ChatCircleText, PencilLine, CalendarPlus, Ticket, Tag, House, SignOut, ChartBar, Export } from '@phosphor-icons/react';
+import { Users, ClockCounterClockwise, Plus, PlusCircle, Image as ImageIcon, Calendar, Megaphone, BellRinging, X, Check, Funnel, Trash, NotePencil, FloppyDisk, ChatCircleText, PencilLine, CalendarPlus, Ticket, Tag, House, SignOut, ChartBar, Export, Gear } from '@phosphor-icons/react';
 import AdminScheduleManager from '../components/AdminScheduleManager';
 import AdminRevenue from '../components/AdminRevenue';
 import AdminPriceManager from '../components/AdminPriceManager';
+import AdminMemberDetailModal from '../components/AdminMemberDetailModal';
 import timeTable1 from '../assets/timetable_gwangheungchang.png';
 import timeTable2 from '../assets/timetable_mapo.png';
 import priceTable1 from '../assets/price_table_1.png';
@@ -46,6 +47,7 @@ const AdminDashboard = () => {
 
     const [activeTab, setActiveTab] = useState('members');
     const [members, setMembers] = useState([]);
+    const [sales, setSales] = useState([]);
     const [logs, setLogs] = useState([]);
     const [notices, setNotices] = useState([]);
     const [stats, setStats] = useState({ byTime: [], bySubject: [] });
@@ -85,6 +87,7 @@ const AdminDashboard = () => {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [scheduleSubTab, setScheduleSubTab] = useState('monthly');
+    const [showScheduleSettings, setShowScheduleSettings] = useState(false);
 
 
     // New Member State
@@ -211,65 +214,68 @@ const AdminDashboard = () => {
         storageService.setBranch(branch);
     };
 
-    // Calculate Price and End Date whenever form changes
-    useEffect(() => {
-        if (!showAddModal) return;
+    // [Smart Calculation Logic for New Member]
+    const { calculatedPrice, calculatedCredits, calculatedEndDate, calculatedProductName } = useMemo(() => {
+        if (!showAddModal) return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedProductName: '' };
 
         const { membershipType, selectedOption, duration, paymentMethod, startDate } = newMember;
-
-        let price = 0;
-        let credits = 0;
-        let label = '';
-        let monthsToAdd = duration;
-
         const category = pricingConfig[membershipType];
 
-        if (category) {
-            const option = category.options.find(opt => opt.id === selectedOption);
-            if (option) {
-                label = option.label;
+        if (!category) return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedProductName: '' };
 
-                if (option.type === 'ticket') {
-                    // Fixed term tickets (e.g. 10 sessions / 3 months)
-                    price = option.basePrice;
-                    credits = option.credits;
-                    monthsToAdd = option.months || 3;
-                } else {
-                    // Monthly Subscriptions (e.g. Month 8 / 1 month renewable)
-                    // If 'unlimited', credits is high
-                    credits = option.credits === 9999 ? 9999 : option.credits * duration;
+        const option = category.options.find(opt => opt.id === selectedOption);
+        if (!option) return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedProductName: '' };
 
-                    if (duration === 1) {
-                        price = option.basePrice;
-                    } else if (duration === 3) {
-                        price = option.discount3 || (option.basePrice * 3);
-                    } else if (duration === 6) {
-                        price = option.discount6 || (option.basePrice * 6);
-                    } else {
-                        price = option.basePrice * duration; // Fallback
-                    }
-                }
+        let p = 0;
+        let c = 0;
+        let months = duration;
+        let label = option.label;
 
-                if (paymentMethod === 'cash' && duration >= 3 && price > 0) {
-                    price = Math.round(price * 0.95);
-                }
+        // Price Calculation with Cash Price support
+        if (paymentMethod === 'cash' && option.cashPrice) {
+            p = option.cashPrice;
+        } else {
+            if (option.type === 'ticket') {
+                p = option.basePrice;
+                c = option.credits;
+                months = option.months || 3;
+            } else {
+                c = option.credits === 9999 ? 9999 : option.credits * duration;
+                if (duration === 1) p = option.basePrice;
+                else if (duration === 3) p = option.discount3 || (option.basePrice * 3);
+                else if (duration === 6) p = option.discount6 || (option.basePrice * 6);
+                else p = option.basePrice * duration;
+            }
+
+            if (paymentMethod === 'cash' && duration >= 3 && p > 0 && !option.cashPrice) {
+                p = Math.round(p * 0.95);
             }
         }
 
-        const end = new Date(startDate);
-        end.setMonth(end.getMonth() + monthsToAdd);
+        const start = new Date(startDate);
+        const end = new Date(start);
+        end.setMonth(end.getMonth() + months);
         end.setDate(end.getDate() - 1);
 
+        return {
+            calculatedPrice: p,
+            calculatedCredits: c,
+            calculatedEndDate: end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }),
+            calculatedProductName: `${label} ${duration > 1 && option.type !== 'ticket' ? `(${duration}개월)` : ''}`
+        };
+    }, [newMember, pricingConfig, showAddModal]);
+
+    // Sync newMember state with calculated values
+    useEffect(() => {
+        if (!showAddModal) return;
         setNewMember(prev => ({
             ...prev,
-            amount: price,
-            credits: credits,
-            endDate: end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }),
-            subject: label
+            amount: calculatedPrice,
+            credits: calculatedCredits,
+            endDate: calculatedEndDate,
+            subject: calculatedProductName
         }));
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [newMember.membershipType, newMember.selectedOption, newMember.duration, newMember.paymentMethod, newMember.startDate, showAddModal]);
+    }, [calculatedPrice, calculatedCredits, calculatedEndDate, calculatedProductName, showAddModal]);
 
     // Reset membership type when branch changes in Add Modal
     useEffect(() => {
@@ -359,10 +365,13 @@ const AdminDashboard = () => {
             console.error('Failed to fetch push tokens:', err);
         }
 
+        const currentSales = await storageService.getSales();
+
         setMembers(currentMembers);
         setLogs(currentLogs);
         setNotices(currentNotices);
         setImages(currentImages);
+        setSales(currentSales);
 
         const branchLogs = currentBranch === 'all'
             ? currentLogs
@@ -394,13 +403,21 @@ const AdminDashboard = () => {
             m.regDate === today && (currentBranch === 'all' || m.homeBranch === currentBranch)
         ).length;
 
-        const todayRevenue = currentMembers
-            .filter(m => m.regDate === today && (currentBranch === 'all' || m.homeBranch === currentBranch))
-            .reduce((sum, m) => sum + (m.amount || 0), 0);
+        const todayRevenue = currentSales
+            .filter(s => {
+                if (!s.timestamp) return false;
+                const sDate = new Date(s.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                return sDate === today && (currentBranch === 'all' || s.branchId === currentBranch);
+            })
+            .reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
 
-        const monthlyRevenue = currentMembers
-            .filter(m => m.regDate && m.regDate.startsWith(currentMonth) && (currentBranch === 'all' || m.homeBranch === currentBranch))
-            .reduce((sum, m) => sum + (m.amount || 0), 0);
+        const monthlyRevenue = currentSales
+            .filter(s => {
+                if (!s.timestamp) return false;
+                const sDate = new Date(s.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                return sDate.startsWith(currentMonth) && (currentBranch === 'all' || s.branchId === currentBranch);
+            })
+            .reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
 
         const expiringMembersCount = currentMembers.filter(m => {
             if (currentBranch !== 'all' && m.homeBranch !== currentBranch) return false;
@@ -597,11 +614,6 @@ const AdminDashboard = () => {
         setShowNoteModal(false);
     };
 
-    const handleOpenMessage = (member) => {
-        setSelectedMember(member);
-        setShowMessageModal(true);
-    };
-
     const handleSendMessage = async () => {
         if (!messageText) return;
         await storageService.addMessage(selectedMember.id, messageText);
@@ -609,8 +621,6 @@ const AdminDashboard = () => {
         setMessageText('');
         setShowMessageModal(false);
     };
-
-
 
     const handleOpenEdit = (member) => {
         setSelectedMember(member);
@@ -622,27 +632,29 @@ const AdminDashboard = () => {
         setShowEditModal(true);
     };
 
-    const handleUpdateMember = async () => {
-        if (!selectedMember || isSubmitting) return;
-        setIsSubmitting(true);
+    const handleAddSalesRecord = async (salesData) => {
         try {
-            await storageService.updateMember(selectedMember.id, {
-                name: newMember.name,
-                phone: newMember.phone,
-                homeBranch: newMember.branch,
-                credits: parseInt(newMember.credits),
-                endDate: newMember.endDate,
-                subject: newMember.subject,
-                notes: newMember.notes
-            });
-            setShowEditModal(false);
+            await storageService.addSalesRecord(salesData);
+            // Refresh sales data
+            const updatedSales = await storageService.getSales();
+            setSales(updatedSales);
+            return true;
+        } catch (error) {
+            console.error('Error adding sales record:', error);
+            alert('판매 기록 저장 중 오류가 발생했습니다.');
+            return false;
+        }
+    };
+
+    // Wrapper for AdminMemberDetailModal - expects (memberId, dataToUpdate)
+    const handleMemberModalUpdate = async (memberId, dataToUpdate) => {
+        try {
+            await storageService.updateMember(memberId, dataToUpdate);
             refreshData();
-            alert('회원 정보가 수정되었습니다.');
-        } catch (err) {
-            console.error('Error updating member:', err);
-            alert('수정 중 오류가 발생했습니다.');
-        } finally {
-            setIsSubmitting(false);
+            return true;
+        } catch (error) {
+            console.error('Error updating member:', error);
+            return false;
         }
     };
 
@@ -888,7 +900,7 @@ const AdminDashboard = () => {
                     </div>
                 )}
                 {activeTab === 'revenue' && (
-                    <AdminRevenue members={members} currentBranch={currentBranch} />
+                    <AdminRevenue members={members} sales={sales} currentBranch={currentBranch} />
                 )}
 
                 {activeTab === 'pricing' && (
@@ -896,7 +908,6 @@ const AdminDashboard = () => {
                         <AdminPriceManager />
 
                         <hr style={{ borderColor: 'rgba(255,255,255,0.05)', margin: '20px 0' }} />
-
                         <div className="dashboard-card">
                             <h3 className="card-label" style={{ marginBottom: '20px' }}>가격표 개요 (이미지)</h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -1090,8 +1101,13 @@ const AdminDashboard = () => {
                                             </div>
                                         ) : (
                                             paginated.map(member => (
-                                                <div key={member.id} className="member-list-item">
-                                                    <div style={{ padding: '0 10px' }}>
+                                                <div
+                                                    key={member.id}
+                                                    className="member-list-item"
+                                                    onClick={() => handleOpenEdit(member)}
+                                                    style={{ cursor: 'pointer' }}
+                                                >
+                                                    <div style={{ padding: '0 10px' }} onClick={(e) => e.stopPropagation()}>
                                                         <input
                                                             type="checkbox"
                                                             checked={selectedMemberIds.includes(member.id)}
@@ -1128,12 +1144,6 @@ const AdminDashboard = () => {
                                                                 <NotePencil size={12} style={{ marginRight: '4px' }} /> {member.notes}
                                                             </div>
                                                         )}
-                                                    </div>
-                                                    <div className="member-actions" style={{ display: 'flex', gap: '8px' }}>
-                                                        <button onClick={() => handleOpenEdit(member)} className="action-btn sm" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                            <PencilLine size={18} /> <span style={{ fontSize: '0.8rem' }}>수정</span>
-                                                        </button>
-                                                        <button onClick={() => handleOpenMessage(member)} className="action-btn sm" title="메시지"><ChatCircleText size={18} /></button>
                                                     </div>
                                                 </div>
                                             ))
@@ -1216,6 +1226,29 @@ const AdminDashboard = () => {
 
                 {activeTab === 'schedule' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        {/* Settings Button - Only visible in Monthly view where the Schedule Manager is active */}
+                        {scheduleSubTab === 'monthly' && (
+                            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                <button
+                                    onClick={() => setShowScheduleSettings(!showScheduleSettings)}
+                                    style={{
+                                        padding: '8px 16px',
+                                        borderRadius: '8px',
+                                        border: '1px solid var(--border-color)',
+                                        backgroundColor: 'var(--bg-input)',
+                                        color: 'var(--text-primary)',
+                                        fontWeight: 'bold',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px'
+                                    }}
+                                >
+                                    <Gear size={18} /> 설정
+                                </button>
+                            </div>
+                        )}
+
                         {/* Sub-tabs for Schedule */}
                         <div style={{ display: 'flex', gap: '10px', background: 'rgba(255,255,255,0.05)', padding: '5px', borderRadius: '12px' }}>
                             <button
@@ -1230,31 +1263,81 @@ const AdminDashboard = () => {
 
                         {scheduleSubTab === 'monthly' ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                                {STUDIO_CONFIG.BRANCHES.map(branch => (
+                                {STUDIO_CONFIG.BRANCHES.map((branch, index) => (
                                     <div key={branch.id} className="dashboard-card">
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
                                             <h3 style={{ fontSize: '1.8rem', fontWeight: '800', margin: 0, color: 'var(--primary-gold)', letterSpacing: '-0.05em' }}>{branch.name}</h3>
                                         </div>
-                                        <AdminScheduleManager branchId={branch.id} />
+                                        <AdminScheduleManager
+                                            branchId={branch.id}
+                                            showSettings={index === 0 && showScheduleSettings}
+                                            onShowSettings={() => setShowScheduleSettings(false)}
+                                        />
                                     </div>
                                 ))}
                             </div>
                         ) : (
                             <div className="dashboard-card">
                                 <h3 className="card-label" style={{ marginBottom: '20px' }}>주간 시간표 (이미지)</h3>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-                                    {STUDIO_CONFIG.BRANCHES.map(branch => (
-                                        <div key={branch.id} style={{ background: 'rgba(255,255,255,0.02)', padding: '15px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                                            <div style={{ marginBottom: '15px' }}>
-                                                <h3 style={{ fontSize: '1.6rem', fontWeight: '800', margin: 0 }}>{branch.name}</h3>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+                                    {STUDIO_CONFIG.BRANCHES.map(branch => {
+                                        const now = new Date();
+                                        const curYear = now.getFullYear();
+                                        const curMonth = (now.getMonth() + 1).toString().padStart(2, '0');
+                                        const nextDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+                                        const nextYear = nextDate.getFullYear();
+                                        const nextMonth = (nextDate.getMonth() + 1).toString().padStart(2, '0');
+
+                                        const curKey = `timetable_${branch.id}_${curYear}-${curMonth}`;
+                                        const nextKey = `timetable_${branch.id}_${nextYear}-${nextMonth}`;
+                                        // Legacy fallback
+                                        // If specific month image not set, try generic fallback? No, let's keep it specific or use legacy as fallback for current only.
+                                        const curImage = images[curKey] || images[`timetable_${branch.id}`] || (branch.id === 'gwangheungchang' ? timeTable1 : timeTable2);
+                                        const nextImage = images[nextKey];
+
+                                        return (
+                                            <div key={branch.id} style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                                                <h3 style={{ fontSize: '1.6rem', fontWeight: '800', margin: '0 0 20px 0' }}>{branch.name}</h3>
+
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                                    {/* Current Month */}
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                                        <h4 style={{ margin: 0, color: 'var(--primary-gold)' }}>{curMonth}월 (현재)</h4>
+                                                        <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '12px', overflow: 'hidden', minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                                                            {curImage ? (
+                                                                <img src={curImage} alt="Current" style={{ width: '100%', display: 'block' }} />
+                                                            ) : (
+                                                                <span style={{ color: 'var(--text-secondary)' }}>이미지 없음</span>
+                                                            )}
+                                                        </div>
+                                                        <div style={{ textAlign: 'right' }}>
+                                                            <input type="file" accept="image/*" onChange={e => handleImageUpload(e, curKey)} style={{ display: 'none' }} id={`up-cur-${branch.id}`} />
+                                                            <label htmlFor={`up-cur-${branch.id}`} className="action-btn sm" style={{ display: 'inline-block', padding: '6px 12px', fontSize: '0.8rem', background: 'rgba(255,255,255,0.1)', cursor: 'pointer' }}>이미지 변경</label>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Next Month */}
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                                        <h4 style={{ margin: 0, color: '#a1a1aa' }}>{nextMonth}월 (다음달)</h4>
+                                                        <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '12px', overflow: 'hidden', minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                                                            {nextImage ? (
+                                                                <img src={nextImage} alt="Next" style={{ width: '100%', display: 'block' }} />
+                                                            ) : (
+                                                                <div style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                                                                    <p>등록된 이미지가 없습니다.</p>
+                                                                    <p style={{ fontSize: '0.8rem', opacity: 0.7 }}>미등록 시 현재 월 이미지가<br />계속 표시될 수 있습니다.</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div style={{ textAlign: 'right' }}>
+                                                            <input type="file" accept="image/*" onChange={e => handleImageUpload(e, nextKey)} style={{ display: 'none' }} id={`up-next-${branch.id}`} />
+                                                            <label htmlFor={`up-next-${branch.id}`} className="action-btn sm" style={{ display: 'inline-block', padding: '6px 12px', fontSize: '0.8rem', background: 'rgba(255,255,255,0.1)', cursor: 'pointer' }}>이미지 등록/변경</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <img src={images[`timetable_${branch.id}`] || (branch.id === 'gwangheungchang' ? timeTable1 : timeTable2)} alt={`${branch.name} 시간표`} style={{ width: '100%', borderRadius: '12px', marginBottom: '10px' }} />
-                                            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                                <input type="file" accept="image/*" onChange={e => handleImageUpload(e, `timetable_${branch.id}`)} style={{ display: 'none' }} id={`up-time-${branch.id}`} />
-                                                <label htmlFor={`up-time-${branch.id}`} className="action-btn sm" style={{ padding: '4px 10px', fontSize: '0.7rem', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', border: 'none' }}>시간표 이미지 변경</label>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
@@ -1908,56 +1991,13 @@ const AdminDashboard = () => {
                 </div>
             )}
             {showEditModal && selectedMember && (
-                <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h2 className="modal-title">회원 정보 수정</h2>
-                            <button onClick={() => setShowEditModal(false)}><X size={24} /></button>
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">이름</label>
-                            <input className="form-input" value={newMember.name} onChange={e => setNewMember({ ...newMember, name: e.target.value })} lang="ko" inputMode="text" autoComplete="name" spellCheck="false" autoCorrect="off" />
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">전화번호</label>
-                            <input className="form-input" value={newMember.phone} onChange={e => setNewMember({ ...newMember, phone: e.target.value })} />
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">지점</label>
-                            <select className="form-select" value={newMember.branch} onChange={e => setNewMember({ ...newMember, branch: e.target.value })}>
-                                {STUDIO_CONFIG.BRANCHES.map(b => (
-                                    <option key={b.id} value={b.id}>{b.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                            <div className="form-group">
-                                <label className="form-label">잔여 횟수</label>
-                                <input type="number" className="form-input" value={newMember.credits} onChange={e => setNewMember({ ...newMember, credits: e.target.value })} />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">종료일</label>
-                                <input type="date" className="form-input" value={newMember.endDate} onChange={e => setNewMember({ ...newMember, endDate: e.target.value })} />
-                            </div>
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">메모 (수련 시 참고사항)</label>
-                            <textarea
-                                className="form-input"
-                                style={{ height: '80px', resize: 'none' }}
-                                value={newMember.notes}
-                                onChange={e => setNewMember({ ...newMember, notes: e.target.value })}
-                                placeholder="특이사항이나 메모를 입력하세요."
-                            />
-                        </div>
-                        <div className="modal-actions">
-                            <button onClick={() => setShowEditModal(false)} style={{ padding: '10px 20px', color: 'var(--text-secondary)' }}>취소</button>
-                            <button onClick={handleUpdateMember} className="action-btn primary" disabled={isSubmitting}>
-                                {isSubmitting ? '수정 중...' : '수정완료'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <AdminMemberDetailModal
+                    member={selectedMember}
+                    onClose={() => setShowEditModal(false)}
+                    pricingConfig={pricingConfig}
+                    onUpdateMember={handleMemberModalUpdate}
+                    onAddSalesRecord={handleAddSalesRecord}
+                />
             )}
 
             {/* Install Guide Modal */}

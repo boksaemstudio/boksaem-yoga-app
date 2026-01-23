@@ -1,158 +1,117 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { House, UserGear, User } from '@phosphor-icons/react';
-import CheckInPage from './pages/CheckInPage';
-import AdminDashboard from './pages/AdminDashboard';
-import MemberProfile from './pages/MemberProfile';
-
-const Navigation = () => {
-  const location = useLocation();
-
-  // 출석체크(키오스크) 화면 또는 관리자 모드(/admin)에서는 네비게이션을 숨깁니다.
-  if (location.pathname === '/' || location.pathname === '/admin') {
-    return null;
-  }
-
-  // 회원 정보 페이지에서도 일단 숨깁니다.
-  if (location.pathname === '/member') {
-    return null;
-  }
-
-  // 관리자 대시보드(/admin) 등 기타 페이지에서 보여줄 네비게이션
-  return (
-    <nav style={{
-      position: 'fixed',
-      bottom: '20px',
-      right: '20px',
-      backgroundColor: 'var(--bg-surface)',
-      padding: '8px 16px',
-      borderRadius: 'var(--radius-full)',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-      display: 'flex',
-      gap: '20px',
-      zIndex: 100,
-      border: '1px solid var(--border-color)'
-    }}>
-      <Link to="/" title="출석체크 키오스크로 이동" style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}>
-        <House size={24} />
-        <span style={{ fontSize: '0.8rem' }}>출석체크</span>
-      </Link>
-      <Link to="/member" title="회원 정보 조회 페이지로 이동" style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}>
-        <User size={24} />
-        <span style={{ fontSize: '0.8rem' }}>회원정보</span>
-      </Link>
-    </nav>
-  );
-};
-
+import React, { lazy, Suspense, useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import ErrorBoundary from './components/ErrorBoundary';
 import { storageService } from './services/storage';
-import LoginPage from './pages/LoginPage';
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 
+// Lazy load pages
+// Lazy load pages
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const CheckInPage = lazy(() => import('./pages/CheckInPage'));
+const MemberProfile = lazy(() => import('./pages/MemberProfile'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+
+// Loading fallback
+const LoadingScreen = () => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0a0a0a', color: '#D4AF37' }}>
+    <div style={{ textAlign: 'center' }}>
+      <div className="loading-spinner" style={{ border: '4px solid rgba(212, 175, 55, 0.1)', borderTop: '4px solid var(--primary-gold)', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }}></div>
+      <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>복샘요가 로딩 중...</h2>
+    </div>
+  </div>
+);
+
+// Error fallback
+const ErrorFallback = ({ error }) => (
+  <div style={{ padding: 50, color: 'red', background: '#0a0a0a', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+    <div>
+      <h1 style={{ marginBottom: '20px' }}>⚠️ 시스템 오류 발생</h1>
+      <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>애플리케이션을 로드하는 중 문제가 발생했습니다.</p>
+      <pre style={{ background: 'rgba(255,0,0,0.1)', padding: '20px', borderRadius: '8px', fontSize: '0.8rem', overflowX: 'auto', maxWidth: '80vw' }}>
+        {error?.toString()}
+      </pre>
+      <button
+        onClick={() => window.location.reload()}
+        style={{ marginTop: '30px', padding: '12px 24px', background: 'var(--primary-gold)', color: 'black', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+      >
+        새로고침 시도
+      </button>
+    </div>
+  </div>
+);
+
+// --- AUTH GUARD ---
 const RequireAuth = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(null); // null = loading
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    storageService.onAuthStateChanged((user) => {
-      if (user) {
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-      }
+    return storageService.onAuthStateChanged((u) => {
+      // Check if user is an admin (has email). Anonymous users are NOT admins.
+      setUser(u && u.email ? u : null);
+      setLoading(false);
     });
   }, []);
 
-  if (isAuthenticated === null) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: 'var(--bg-main)' }}>Loading...</div>;
-  }
-
-  if (!isAuthenticated) {
-    // Redirect to login if not authenticated
-    // We use a small timeout or just render null to allow navigate to work
-    // But better to just navigate here? 
-    // Actually, navigate in render is bad. Use useEffect?
-    // Let's just return Navigate component if we imported it, or simpler:
-    // We can't navigate in render easily without <Navigate>.
-    // Let's import Navigate from react-router-dom.
-    return null; // The useEffect below handles navigation
-  }
+  if (loading) return <LoadingScreen />;
+  if (!user) return <Navigate to="/login" replace />;
 
   return children;
 };
 
-// Start a separate component to handle redirection to avoid hook rules in conditional render
-const AuthGuard = ({ children }) => {
-  const [status, setStatus] = useState('loading'); // loading, authenticated, unauthenticated
-  const navigate = useNavigate();
-
+function App() {
   useEffect(() => {
-    storageService.onAuthStateChanged((user) => {
-      if (user) {
-        setStatus('authenticated');
-      } else {
-        setStatus('unauthenticated');
-        navigate('/login', { replace: true });
-      }
-    });
-  }, [navigate]);
-
-  if (status === 'loading') {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: 'var(--bg-main)', color: 'var(--text-secondary)' }}>인증 확인 중...</div>;
-  }
-
-  if (status === 'unauthenticated') {
-    return null;
-  }
-
-  return children;
-};
-
-function AppContent() {
-  return (
-    <div className="app">
-      <Routes>
-        <Route path="/" element={<CheckInPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route
-          path="/admin"
-          element={
-            <AuthGuard>
-              <AdminDashboard />
-            </AuthGuard>
-          }
-        />
-        <Route path="/member" element={<MemberProfile />} />
-      </Routes>
-      <Navigation />
-    </div>
-  );
-}
-
-const App = () => {
-  useEffect(() => {
-    // Global Error Listener (for non-React errors)
-    const handleError = (event) => {
-      storageService.logError(event.error || new Error(event.message), { source: 'window.onerror' });
-    };
-
-    // Global Promise Rejection Listener (for async errors)
-    const handleRejection = (event) => {
-      storageService.logError(event.reason || new Error("Unhandled Rejection"), { source: 'unhandledrejection' });
-    };
-
-    window.addEventListener('error', handleError);
-    window.addEventListener('unhandledrejection', handleRejection);
-
-    return () => {
-      window.removeEventListener('error', handleError);
-      window.removeEventListener('unhandledrejection', handleRejection);
-    };
+    // Initialize storage service with real-time listeners for Admin/Mobile apps
+    storageService.initialize({ mode: 'full' });
   }, []);
 
   return (
     <BrowserRouter>
-      <AppContent />
+      <div className="app">
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <ErrorBoundary fallback={<ErrorFallback />}>
+                <Suspense fallback={<LoadingScreen />}>
+                  <CheckInPage />
+                </Suspense>
+              </ErrorBoundary>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ErrorBoundary fallback={<ErrorFallback />}>
+                <Suspense fallback={<LoadingScreen />}>
+                  <RequireAuth>
+                    <AdminDashboard />
+                  </RequireAuth>
+                </Suspense>
+              </ErrorBoundary>
+            }
+          />
+          <Route
+            path="/member"
+            element={
+              <ErrorBoundary fallback={<ErrorFallback />}>
+                <Suspense fallback={<LoadingScreen />}>
+                  <MemberProfile />
+                </Suspense>
+              </ErrorBoundary>
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <ErrorBoundary fallback={<ErrorFallback />}>
+                <Suspense fallback={<LoadingScreen />}>
+                  <LoginPage />
+                </Suspense>
+              </ErrorBoundary>
+            }
+          />
+        </Routes>
+      </div>
     </BrowserRouter>
   );
 }

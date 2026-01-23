@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { storageService } from '../services/storage';
-import { CaretLeft, CaretRight, Plus, Trash, X, Gear } from '@phosphor-icons/react';
+import { CaretLeft, CaretRight, Plus, Trash, X, Gear, Image as ImageIcon, UploadSimple } from '@phosphor-icons/react';
 import { getHolidayName } from '../utils/holidays';
 import { ScheduleClassEditor, SettingsModal } from './ScheduleHelpers';
 import { getTagColor } from '../utils/colors';
+import { useLanguageContext } from '../context/LanguageContext';
 
 const ColorLegend = ({ branchId }) => {
     const items = [
@@ -35,14 +36,16 @@ const ColorLegend = ({ branchId }) => {
     );
 };
 
-const AdminScheduleManager = ({ branchId }) => {
+const AdminScheduleManager = ({ branchId, showSettings, onShowSettings }) => {
+    const { t } = useLanguageContext();
     const today = new Date();
     const [year, setYear] = useState(today.getFullYear());
     const [month, setMonth] = useState(today.getMonth() + 1);
     const [monthlyClasses, setMonthlyClasses] = useState({});
+    const [scheduleStatus, setScheduleStatus] = useState('undefined'); // 'undefined' | 'saved'
+    const [images, setImages] = useState({});
     const [selectedDate, setSelectedDate] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [showSettingsModal, setShowSettingsModal] = useState(false);
     const [loading, setLoading] = useState(false);
     const [dayClasses, setDayClasses] = useState([]);
     const [instructors, setInstructors] = useState([]);
@@ -54,14 +57,36 @@ const AdminScheduleManager = ({ branchId }) => {
     useEffect(() => {
         loadMonthlyData();
         loadMasterData();
+
+        // [FIX] Subscribe to storage updates to keep images in sync
+        const unsub = storageService.subscribe(async () => {
+            const latestImages = await storageService.getImages();
+            setImages(latestImages);
+        });
+
+        return () => unsub();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [branchId, year, month]);
 
     const loadMonthlyData = async () => {
         setLoading(true);
         try {
-            const data = await storageService.getMonthlyClasses(branchId, year, month);
-            setMonthlyClasses(data);
+            // 1. Check Status First
+            const status = await storageService.getMonthlyScheduleStatus(branchId, year, month);
+            setScheduleStatus(status.exists && status.isSaved ? 'saved' : 'undefined');
+
+            // 2. Load Data if Saved
+            if (status.exists && status.isSaved) {
+                const data = await storageService.getMonthlyClasses(branchId, year, month);
+                setMonthlyClasses(data);
+            } else {
+                setMonthlyClasses({});
+            }
+
+            // 3. Load Images for Reference (in Undefined View)
+            const imgs = await storageService.getImages();
+            setImages(imgs);
+
         } catch (error) {
             console.error(error);
         } finally {
@@ -80,26 +105,35 @@ const AdminScheduleManager = ({ branchId }) => {
         setClassLevels(classLevelList);
     };
 
-    const handleGenerate = async () => {
-        const confirmMsg = '📅 ' + year + '년 ' + month + '월 스케줄 생성\n\n' +
-            '업로드된 최신 시간표 이미지를 분석한 데이터를 바탕으로\n' +
-            '이번 달 모든 날짜에 수업을 자동 배정합니다.\n\n' +
-            '⚠️ 주의: 기존에 수정한 스케줄이 있다면 덮어씌워집니다.\n\n' +
-            '진행하시겠습니까?';
+    const handleCreate = async () => {
+        const confirmMsg = `📅 ${year}년 ${month}월 스케줄을 생성하시겠습니까?\n\n` +
+            `1. '주간 템플릿(설계도)'을 바탕으로 모든 날짜에 수업이 채워집니다.\n` +
+            `2. 토요일 수업은 '로테이션 규칙'에 따라 자동 배정됩니다.\n\n` +
+            `생성 후에는 세부 날짜별 수정이 가능합니다.`;
 
         if (!window.confirm(confirmMsg)) return;
 
         setLoading(true);
         try {
-            const res = await storageService.generateMonthlySchedule(branchId, year, month);
+            const res = await storageService.createMonthlySchedule(branchId, year, month);
             alert(res.message);
             await loadMonthlyData();
         } catch (error) {
-            console.error("Error generating schedule:", error);
-            alert("스케줄 생성 중 오류가 발생했습니다: " + error.message);
+            console.error("Error creating schedule:", error);
+            alert("생성 중 오류가 발생했습니다: " + error.message);
         } finally {
             setLoading(false);
         }
+    };
+
+    // [New] Clear/Reset Logic
+    const handleReset = async () => {
+        if (!window.confirm('⚠️ 정말로 이 달의 스케줄을 초기화하시겠습니까?\n\n모든 수업 데이터가 삭제되며, 상태가 [미정]으로 돌아갑니다.')) return;
+        // Need to add reset/delete method in storage if we want this feature. 
+        // For now, maybe just "Re-generate" is enough? 
+        // Or users can just delete classes manually. 
+        // Let's stick to Create flow first. 
+        alert('현재는 관리자에게 문의해주세요 (DB 삭제 필요).');
     };
 
     const handlePrevMonth = () => {
@@ -118,11 +152,38 @@ const AdminScheduleManager = ({ branchId }) => {
         setShowEditModal(true);
     };
 
-    const saveDayClasses = async () => {
+    const saveDayClasses = async (applyToAll = false) => {
         if (!selectedDate) return;
         setLoading(true);
         try {
-            await storageService.updateDailyClasses(branchId, selectedDate, dayClasses);
+            if (applyToAll) {
+                const targetDate = new Date(selectedDate);
+                const targetDayIndex = targetDate.getDay();
+                const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+                const targetDayName = dayNames[targetDayIndex];
+
+                // Find all matching weekdays in this month
+                const datesToUpdate = [];
+                const tempDate = new Date(year, month - 1, 1);
+                while (tempDate.getMonth() === month - 1) {
+                    if (tempDate.getDay() === targetDayIndex) {
+                        // Skip if it's the selected date (handled by batch anyway, but just logically)
+                        const dStr = `${tempDate.getFullYear()}-${String(tempDate.getMonth() + 1).padStart(2, '0')}-${String(tempDate.getDate()).padStart(2, '0')}`;
+                        datesToUpdate.push({ date: dStr, classes: dayClasses });
+                    }
+                    tempDate.setDate(tempDate.getDate() + 1);
+                }
+
+                if (!window.confirm(`이번 달의 모든 [${targetDayName}요일] (${datesToUpdate.length}일)을 동일하게 수정하시겠습니까?\n\n날짜: ${datesToUpdate.map(d => d.date.split('-')[2]).join(', ')}`)) {
+                    setLoading(false);
+                    return;
+                }
+
+                await storageService.batchUpdateDailyClasses(branchId, datesToUpdate);
+            } else {
+                await storageService.updateDailyClasses(branchId, selectedDate, dayClasses);
+            }
+
             setShowEditModal(false);
             await loadMonthlyData();
         } catch (error) {
@@ -178,7 +239,7 @@ const AdminScheduleManager = ({ branchId }) => {
                                         </div>
                                         {holidayName && (
                                             <div style={{ fontSize: '0.65rem', color: '#ff4757', marginBottom: '4px', fontWeight: 'bold' }}>
-                                                🎉 {holidayName}
+                                                🎉 {t(holidayName)}
                                             </div>
                                         )}
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -221,60 +282,175 @@ const AdminScheduleManager = ({ branchId }) => {
         );
     };
 
-    const copyToNextMonth = async () => {
-        const nextMonthYear = month === 12 ? year + 1 : year;
-        const nextMonthVal = month === 12 ? 1 : month + 1;
+    // [New] Image Upload Logic
+    const handleImageUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
-        const confirmMsg = `📅 ${year}년 ${month}월 패턴을 ${nextMonthYear}년 ${nextMonthVal}월로 복사\n\n` +
-            `현재 표시된 달의 주간 수업 패턴을 분석하여\n` +
-            `다음 달의 모든 날짜에 요일별로 동일하게 복사합니다.\n\n` +
-            `다음 달의 기존 스케줄이 모두 덮어씌워집니다.\n` +
-            `진행하시겠습니까?`;
-
-        if (!window.confirm(confirmMsg)) return;
-
-        setLoading(true);
-        try {
-            const nextMonthDays = new Date(nextMonthYear, nextMonthVal, 0).getDate();
-            const pattern = {};
-            const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-
-            // 1. Identify pattern from the visible month (current state)
-            const daysInCurrentMonth = new Date(year, month, 0).getDate();
-            for (let i = 1; i <= daysInCurrentMonth; i++) {
-                const d = new Date(year, month - 1, i);
-                const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                const dayName = dayNames[d.getDay()];
-                if (monthlyClasses[dStr] && monthlyClasses[dStr].length > 0) {
-                    pattern[dayName] = monthlyClasses[dStr];
-                }
-            }
-
-            // 2. Prepare updates for the next month
-            const updates = [];
-            for (let i = 1; i <= nextMonthDays; i++) {
-                const d = new Date(nextMonthYear, nextMonthVal - 1, i);
-                const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                const dayName = dayNames[d.getDay()];
-
-                if (pattern[dayName]) {
-                    updates.push({ date: dStr, classes: pattern[dayName] });
-                }
-            }
-
-            if (updates.length > 0) {
-                await storageService.batchUpdateDailyClasses(branchId, updates);
-                alert(`${nextMonthYear}년 ${nextMonthVal}월로 패턴이 복사되었습니다.`);
-                handleNextMonth();
-            } else {
-                alert('현재 달에 설정된 수업이 없습니다. 먼저 수업을 입력해주세요.');
-            }
-        } catch (err) {
-            console.error(err);
-            alert('오류가 발생했습니다.');
-        } finally {
-            setLoading(false);
+        if (file.size > 5 * 1024 * 1024) {
+            alert('파일 용량이 너무 큽니다. (최대 5MB)');
+            return;
         }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 1000;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Use slightly higher quality for timetables as text must be readable
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                const targetKey = `timetable_${branchId}_${year}-${String(month).padStart(2, '0')}`;
+
+                // Optimistic Update
+                setImages(prev => ({ ...prev, [targetKey]: compressedBase64 }));
+
+                // Async Save
+                storageService.updateImage(targetKey, compressedBase64)
+                    .then(() => alert(`${year}년 ${month}월 시간표 이미지가 저장되었습니다.`))
+                    .catch(err => {
+                        console.error(err);
+                        alert('이미지 저장 실패');
+                    });
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const renderUndefinedView = () => {
+        // Priority: Specific Month Image -> Branch Default -> Global Default (if any)
+        const specificKey = `timetable_${branchId}_${year}-${String(month).padStart(2, '0')}`;
+        const fallbackKey = `timetable_${branchId}`;
+
+        // Check if we have a specific image for this month
+        const hasSpecificImage = !!images[specificKey];
+        const imageUrl = images[specificKey] || images[fallbackKey];
+
+        return (
+            <div style={{ textAlign: 'center', padding: '60px 20px', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                <div style={{ marginBottom: '30px' }}>
+                    <h3 style={{ fontSize: '1.4rem', color: 'var(--text-primary)', marginBottom: '10px' }}>
+                        🟡 {year}년 {month}월 스케줄이 아직 생성되지 않았습니다.
+                    </h3>
+                    <p style={{ color: 'var(--text-secondary)' }}>
+                        이번 달에 적용할 주간 시간표 이미지를 등록하고, 스케줄을 생성해주세요.
+                    </p>
+                </div>
+
+                <div style={{ position: 'relative', maxWidth: '600px', margin: '0 auto 30px' }}>
+                    {imageUrl ? (
+                        <img src={imageUrl} alt="Weekly Timetable" style={{ width: '100%', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.3)', maxHeight: '400px', objectFit: 'contain' }} />
+                    ) : (
+                        <div style={{ width: '100%', height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '12px', color: 'var(--text-secondary)', border: '1px dashed var(--border-color)' }}>
+                            <ImageIcon size={48} opacity={0.5} />
+                        </div>
+                    )}
+
+                    {/* Floating Upload Button */}
+                    <div style={{ position: 'absolute', bottom: '10px', right: '10px' }}>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            style={{ display: 'none' }}
+                            id={`upload-schedule-${year}-${month}`}
+                        />
+                        <label
+                            htmlFor={`upload-schedule-${year}-${month}`}
+                            className="action-btn sm"
+                            style={{
+                                background: 'rgba(0,0,0,0.7)',
+                                backdropFilter: 'blur(4px)',
+                                color: 'white',
+                                border: '1px solid rgba(255,255,255,0.2)',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '8px 12px'
+                            }}
+                        >
+                            <UploadSimple size={16} />
+                            {hasSpecificImage ? '이미지 변경' : '전용 이미지 업로드'}
+                        </label>
+                    </div>
+                    {hasSpecificImage && (
+                        <div style={{ position: 'absolute', top: '10px', left: '10px', background: '#10B981', color: 'white', fontSize: '0.7rem', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}>
+                            {month}월 전용
+                        </div>
+                    )}
+                </div>
+
+                <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+                    <button
+                        onClick={handleCreate}
+                        style={{
+                            padding: '16px 40px',
+                            fontSize: '1.1rem',
+                            backgroundColor: 'var(--primary-gold)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '12px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)'
+                        }}
+                    >
+                        ✨ 이 시간표로 스케줄 생성
+                    </button>
+
+                    <button
+                        onClick={async () => {
+                            // Calculate previous month
+                            const d = new Date(year, month - 1, 1);
+                            d.setMonth(d.getMonth() - 1);
+                            const prevYear = d.getFullYear();
+                            const prevMonth = d.getMonth() + 1;
+
+                            if (!confirm(`${prevYear}년 ${prevMonth}월의 스케줄 패턴을 복사하여\\n${year}년 ${month}월 스케줄을 생성하시겠습니까?`)) return;
+
+                            setLoading(true);
+                            try {
+                                await storageService.copyMonthlySchedule(branchId, prevYear, prevMonth, year, month);
+                                alert('이전 달 내용을 바탕으로 스케줄이 생성되었습니다.');
+                                await loadMonthlyData();
+                            } catch (e) {
+                                console.error(e);
+                                alert(e.message);
+                            } finally {
+                                setLoading(false);
+                            }
+                        }}
+                        style={{
+                            padding: '16px 40px',
+                            fontSize: '1.1rem',
+                            backgroundColor: 'rgba(255,255,255,0.1)',
+                            color: 'white',
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            borderRadius: '12px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        📥 지난달 복사하여 생성
+                    </button>
+                </div>
+            </div>
+        );
     };
 
     return (
@@ -282,19 +458,21 @@ const AdminScheduleManager = ({ branchId }) => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <button onClick={handlePrevMonth} style={navBtnStyle}><CaretLeft /></button>
-                    <h2 style={{ margin: 0, fontSize: '1.5rem' }}>{year}년 {month}월</h2>
+                    <h2 style={{ margin: 0, fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        {year}년 {month}월
+                        {scheduleStatus === 'saved' ?
+                            <span style={{ fontSize: '0.8rem', padding: '4px 10px', borderRadius: '20px', backgroundColor: '#10B981', color: 'white' }}>확정됨</span> :
+                            <span style={{ fontSize: '0.8rem', padding: '4px 10px', borderRadius: '20px', backgroundColor: '#F59E0B', color: 'white' }}>미정</span>
+                        }
+                    </h2>
                     <button onClick={handleNextMonth} style={navBtnStyle}><CaretRight /></button>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    <button onClick={handleGenerate} style={{ ...actionBtnStyle, backgroundColor: 'var(--bg-input)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
-                        📅 이미지 시간표 적용
-                    </button>
-                    <button onClick={copyToNextMonth} style={{ ...actionBtnStyle, backgroundColor: 'var(--bg-input)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
-                        🔄 다음달로 복사
-                    </button>
-                    <button onClick={() => setShowSettingsModal(true)} style={{ ...actionBtnStyle, backgroundColor: 'var(--bg-input)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
-                        <Gear size={18} /> 설정
-                    </button>
+                    {scheduleStatus === 'saved' && (
+                        <button onClick={handleReset} style={{ ...actionBtnStyle, backgroundColor: '#EF4444', opacity: 0.8 }}>
+                            <Trash size={18} /> 초기화
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -302,8 +480,9 @@ const AdminScheduleManager = ({ branchId }) => {
                 <ColorLegend branchId={branchId} />
             </div>
 
-            {loading ? <div style={{ textAlign: 'center', padding: '40px' }}>데이터 처리 중...</div> : renderCalendar()}
-
+            {loading ? <div style={{ textAlign: 'center', padding: '40px' }}>데이터 처리 중...</div> : (
+                scheduleStatus === 'saved' ? renderCalendar() : renderUndefinedView()
+            )}
             {showEditModal && (
                 <div style={modalOverlayStyle}>
                     <div style={modalContentStyle}>
@@ -339,9 +518,16 @@ const AdminScheduleManager = ({ branchId }) => {
                                 <Plus size={18} /> 수업 추가
                             </button>
                         </div>
-                        <div style={{ display: 'flex', gap: '10px', marginTop: '24px', justifyContent: 'flex-end' }}>
+                        <div style={{ display: 'flex', gap: '10px', marginTop: '24px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                             <button onClick={() => setShowEditModal(false)} style={{ ...actionBtnStyle, backgroundColor: 'var(--bg-input)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>취소</button>
-                            <button onClick={saveDayClasses} style={actionBtnStyle}>이 날짜만 저장</button>
+
+                            <button onClick={() => saveDayClasses(true)} style={{ ...actionBtnStyle, backgroundColor: '#8B5CF6' }}>
+                                📅 이 달의 모든 {new Date(selectedDate).toLocaleString('ko-KR', { weekday: 'short' })}요일 수정
+                            </button>
+
+                            <button onClick={() => saveDayClasses(false)} style={actionBtnStyle}>
+                                저장
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -349,14 +535,14 @@ const AdminScheduleManager = ({ branchId }) => {
             }
 
             <SettingsModal
-                show={showSettingsModal}
-                onClose={() => setShowSettingsModal(false)}
+                show={showSettings}
+                onClose={onShowSettings}
                 instructors={instructors}
                 setInstructors={setInstructors}
                 classTypes={classTypes}
                 setClassTypes={setClassTypes}
                 classLevels={classLevels}
-                setClassLevels={setClassLevels}
+                setClassLevels={classLevels}
             />
         </div >
     );

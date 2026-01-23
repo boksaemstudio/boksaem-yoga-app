@@ -5,10 +5,21 @@ const InstallGuideModal = ({ onClose }) => {
     const [tab, setTab] = useState('android'); // 'android' or 'ios'
 
     return (
-        <div className="modal-overlay" onClick={onClose} style={{ zIndex: 3000, background: 'rgba(0,0,0,0.92)' }}>
+        <div
+            className="modal-overlay"
+            onClick={onClose}
+            onTouchStart={(e) => {
+                // Allow closing by touching background, but ensure it doesn't drill through
+                if (e.target === e.currentTarget) {
+                    onClose();
+                }
+            }}
+            style={{ zIndex: 3000, background: 'rgba(0,0,0,0.92)', touchAction: 'none' }}
+        >
             <div
                 className="modal-content glass-panel"
                 onClick={e => e.stopPropagation()}
+                onTouchStart={e => e.stopPropagation()}
                 style={{
                     width: '90%',
                     maxWidth: '1200px',
@@ -40,9 +51,11 @@ const InstallGuideModal = ({ onClose }) => {
                             홈 화면에 추가하여 더 빠르고 편리하게 이용하세요.
                         </p>
                     </div>
-                    <button onClick={onClose} style={{ padding: '10px', color: 'rgba(255,255,255,0.5)', transition: '0.2s' }} className="hover-bright">
-                        <X size={32} weight="bold" />
-                    </button>
+                    <div style={{ display: 'flex', gap: '15px' }}>
+                        <button onClick={onClose} style={{ padding: '10px', color: 'rgba(255,255,255,0.5)', transition: '0.2s' }} className="hover-bright">
+                            <X size={32} weight="bold" />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Tabs */}

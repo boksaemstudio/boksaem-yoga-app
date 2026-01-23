@@ -4,10 +4,13 @@ class AIService {
     constructor(apiKey) {
         if (!apiKey) throw new Error("API Key is missing for AIService");
         this.client = new GoogleGenerativeAI(apiKey);
-        this.model = this.client.getGenerativeModel({ model: "gemini-1.5-flash" });
+        this.model = this.client.getGenerativeModel({
+            model: "gemini-1.5-flash",
+            generationConfig: { maxOutputTokens: 300 }
+        });
         this.jsonModel = this.client.getGenerativeModel({
             model: "gemini-1.5-flash",
-            generationConfig: { responseMimeType: "application/json" }
+            generationConfig: { responseMimeType: "application/json", maxOutputTokens: 500 }
         });
         this.langMap = { 'ko': 'Korean', 'en': 'English', 'ru': 'Russian', 'zh': 'Chinese (Simplified)', 'ja': 'Japanese' };
     }
@@ -68,14 +71,17 @@ class AIService {
             Recommend 3 simple yoga poses for a member at home.
             Context: Weather is ${weather || 'Neutral'}, Time is ${timeOfDay || 12}:00.
             
+            **Philosophy**: Focus on the **sensation** of the joints and muscles, not the look of the pose. Connect with the breath.
+
             Instructions:
             1. Poses should be beginner-friendly.
-            2. Output strictly in JSON format.
-            3. Language: **${targetLang}**.
+            2. Instruction should mention specific body parts (e.g., "Feel the spine lengthening", "Listen to your breath").
+            3. Output strictly in JSON format.
+            4. Language: **${targetLang}**.
 
             Output Format:
             [
-              { "name": "Pose Name", "benefit": "Short benefit", "instruction": "1-sentence instruction", "emoji": "🧘" },
+              { "name": "Pose Name", "benefit": "Short benefit", "instruction": "1-sentence instruction on sensation/breath", "emoji": "🧘" },
               ... (3 items)
             ]
         `;
@@ -97,10 +103,14 @@ class AIService {
         const prompt = `
             You are the friendly and wise AI director of '복샘요가'.
             The member's membership involves expiration or low credits. Write a short, warm encouragement message to bring them back.
+            
+            **Philosophy**: "It is time to meet yourself again. Focus on your breath and body."
+
             Context: Name: ${member.name}, Summary: ${stats || "No recent records"}
             Instructions:
             1. Write very briefly (1-2 sentences) for a Push Notification.
-            2. Language: **${targetLang}**.
+            2. Focus on the value of **time for oneself** and **inner silence**, not just 'exercising'.
+            3. Language: **${targetLang}**.
             Output ONLY the message text.
         `;
 

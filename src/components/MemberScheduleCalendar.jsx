@@ -6,6 +6,7 @@ import { getTagColor } from '../utils/colors';
 import { useLanguage } from '../hooks/useLanguage';
 import { useAttendanceStats } from '../hooks/useAttendanceStats';
 import { getTodayKST } from '../utils/dates';
+import { getTranslatedClass } from '../utils/classMapping';
 
 const MemberScheduleCalendar = ({ branchId, attendanceLogs = [] }) => {
     const today = new Date();
@@ -236,7 +237,7 @@ const CalendarCell = React.memo(({ date, monthlyClasses, attendanceLogs, branchI
                             marginBottom: '2px'
                         }}>
                             {attendedClass && <div style={{ position: 'absolute', right: '4px', top: '8px', width: '4px', height: '4px', borderRadius: '50%', background: '#3498db' }} />}
-                            <span style={{ fontWeight: '600', lineHeight: '1.2' }}>{cls.time} {t(`class_${cls.title}`) !== `class_${cls.title}` ? t(`class_${cls.title}`) : cls.title}</span>
+                            <span style={{ fontWeight: '600', lineHeight: '1.2' }}>{cls.time} {getTranslatedClass(cls.title, t)}</span>
                             {(cls.instructor || cls.level) && (
                                 <span style={{ fontSize: '0.85em', opacity: 0.9, lineHeight: '1.2', display: 'block' }}>
                                     {cls.level ? `Lv.${cls.level} ` : ''}{cls.instructor}
@@ -316,7 +317,7 @@ const StatsSection = React.memo(({ stats, t }) => (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
             {Object.entries(stats).sort((a, b) => b[1] - a[1]).map(([subject, count]) => {
                 const colors = getTagColor(subject);
-                const translatedSubject = t(`class_${subject}`) !== `class_${subject}` ? t(`class_${subject}`) : subject;
+                const translatedSubject = getTranslatedClass(subject, t);
                 return (
                     <div key={subject} style={{
                         padding: '6px 12px',

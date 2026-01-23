@@ -3,7 +3,7 @@ import { getFirestore } from "firebase/firestore";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
 const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    apiKey: "AIzaSyCTjDayI1tiZO15eynRzKqrDK3TKj3D-yw",
     authDomain: "boksaem-yoga.firebaseapp.com",
     projectId: "boksaem-yoga",
     storageBucket: "boksaem-yoga.firebasestorage.app",

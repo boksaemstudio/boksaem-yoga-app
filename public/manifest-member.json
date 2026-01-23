@@ -1,6 +1,6 @@
 {
-    "name": "나의요가",
-    "short_name": "나의요가",
+    "name": "내요가",
+    "short_name": "내요가",
     "description": "복샘요가 회원 전용 서비스",
     "start_url": "/member",
     "display": "standalone",

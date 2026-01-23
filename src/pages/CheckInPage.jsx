@@ -4,7 +4,7 @@ import { storageService } from '../services/storage';
 import { STUDIO_CONFIG, getAllBranches, getBranchName } from '../studioConfig';
 import logoWide from '../assets/logo_wide.png';
 import { MapPin, Sun, Cloud, CloudRain, Snowflake, Lightning, Moon, CornersOut, CornersIn, Fire, Plant, Leaf, Sparkle, Waves, Boat, Barbell, Plus, DownloadSimple } from '@phosphor-icons/react';
-import { useLanguage } from '../hooks/useLanguage';
+
 
 import bgMorning from '../assets/bg_morning.png';
 import bgAfternoon from '../assets/bg_afternoon.png';
@@ -52,7 +52,7 @@ const DigitalClock = React.memo(() => {
     );
 });
 
-const TopBar = React.memo(({ weather, currentBranch, branches, handleBranchChange, toggleFullscreen, isFullscreen, language, handleInstallClick }) => {
+const TopBar = React.memo(({ weather, currentBranch, branches, handleBranchChange, toggleFullscreen, isFullscreen, language }) => {
     const locale = language === 'ko' ? 'ko-KR' : (language === 'en' ? 'en-US' : (language === 'ru' ? 'ru-RU' : (language === 'zh' ? 'zh-CN' : 'ja-JP')));
     const now = new Date();
 
@@ -121,25 +121,7 @@ const TopBar = React.memo(({ weather, currentBranch, branches, handleBranchChang
 
             {/* Right: Action Buttons Grouped */}
             <div className="top-actions-right" style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                <button
-                    className="install-btn"
-                    onClick={handleInstallClick}
-                    style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        borderRadius: '50%',
-                        width: '44px',
-                        height: '44px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        color: 'white',
-                        transition: 'all 0.3s ease'
-                    }}
-                >
-                    <DownloadSimple size={24} />
-                </button>
+
 
                 <button
                     className="fullscreen-btn"
@@ -180,7 +162,10 @@ const CheckInPage = () => {
     const [showKioskInstallGuide, setShowKioskInstallGuide] = useState(false);
     const [showInstallGuide, setShowInstallGuide] = useState(false);
     const [deferredPrompt, setDeferredPrompt] = useState(null);
-    const { language } = useLanguage();
+    const [keypadLocked, setKeypadLocked] = useState(false); // [FIX] Prevent ghost touches
+    // [FIX] Always use Korean for Check-in Page as requested
+    // const { language } = useLanguage();
+    const language = 'ko';
 
     // Use a slow timer for background period updates (every 5 minutes)
     const [period, setPeriod] = useState(() => {
@@ -197,32 +182,46 @@ const CheckInPage = () => {
         const handleBeforeInstallPrompt = (e) => {
             e.preventDefault();
             setDeferredPrompt(e);
+            window.deferredPrompt = e; // [FIX] Persist globally
+            console.log("Install prompt captured");
         };
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+        // Check if already captured before mount
+        if (window.deferredPrompt) {
+            setDeferredPrompt(window.deferredPrompt);
+        }
+
         return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     }, []);
 
+
+
+    // Correctly proceeding with logic...
+
     const handleInstallClick = () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then((choiceResult) => {
+        const promptEvent = deferredPrompt || window.deferredPrompt;
+        if (promptEvent) {
+            promptEvent.prompt();
+            promptEvent.userChoice.then((choiceResult) => {
                 if (choiceResult.outcome === 'accepted') {
-                    console.log('Kiosk accepted the install prompt');
+                    console.log('User accepted the install prompt');
                 }
                 setDeferredPrompt(null);
+                window.deferredPrompt = null;
             });
         } else {
-            setShowKioskInstallGuide(true);
+            setShowInstallGuide(true);
         }
     };
 
-    const fetchWeather = async () => {
+    const fetchWeatherAndAI = async () => {
         try {
             const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.9780&current_weather=true');
             const data = await res.json();
             const currentWeatherData = data.current_weather;
             setWeather(currentWeatherData);
-            // Load AI after weather is ready
+            // AI standby loading will be handled by loadAIExperience which checks cache
             loadAIExperience("방문 회원", null, null, currentWeatherData);
         } catch (err) {
             console.log('Weather fetch failed', err);
@@ -231,7 +230,14 @@ const CheckInPage = () => {
     };
 
     useEffect(() => {
-        fetchWeather();
+        // [KIOSK MODE] Initialize without heavy real-time listeners for max performance
+        storageService.initialize({ mode: 'kiosk' });
+
+        // Pre-fetch class info for today to speed up AI context later
+        storageService.getCurrentClass(currentBranch).catch(() => { });
+
+        // Initial fetch
+        fetchWeatherAndAI();
 
         // Background / Period Slow Timer
         const periodTimer = setInterval(() => {
@@ -243,14 +249,11 @@ const CheckInPage = () => {
             setPeriod(newPeriod);
         }, 5 * 60 * 1000); // 5 minutes
 
-        // Auto-refresh Weather & AI Standby Message every 20 minutes
-        // [PROTECTED LOGIC - DO NOT CHANGE]
-        // This keeps the greeting fresh (Time/Weather changes) without heavy loops.
-        // Do NOT remove this, and do NOT increase frequency. This is the "Truth".
+        // Auto-refresh Weather & AI Standby Message every 60 minutes (User requested 1-2h)
         const refreshTimer = setInterval(() => {
-            console.log("Refreshing Weather & AI context...");
-            fetchWeather(); // This triggers loadAIExperience with fresh data
-        }, 20 * 60 * 1000);
+            console.log("Refreshing Weather & AI context (Hourly)...");
+            fetchWeatherAndAI();
+        }, 60 * 60 * 1000);
 
 
         // 자동 전체화면 유도 (브라우저 정책상 첫 클릭/터치가 필요함)
@@ -275,35 +278,172 @@ const CheckInPage = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Reload AI when language changes
+    // Reload AI when significant state changes
     useEffect(() => {
-        console.log(`[CheckInPage] Language changed to: ${language}, reloading AI...`);
+        // [STABILITY] Don't clear aiExperience here (prevents flickering)
+        // loadAIExperience will handle the "is loading" state internally ONLY if no cache exists
         loadAIExperience("방문 회원", null, null, weather);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [language]);
+    }, [language, currentBranch]);
 
     const loadAIExperience = async (memberName = "방문 회원", credits = null, remainingDays = null, currentWeatherData = null) => {
+        const isStandby = memberName === "방문 회원" || memberName === "visitor";
+
         try {
             const now = new Date();
             const hour = now.getHours();
             const days = ['일', '월', '화', '수', '목', '금', '토'];
             const day = days[now.getDay()];
 
+            // [BUSINESS HOURS] Only use AI between 7am-11pm
+            const isBusinessHours = hour >= 7 && hour < 23;
+
+            if (!isBusinessHours) {
+                // Use fixed message outside business hours
+                const fallbackMsg = "오늘도 매트 위에서 나를 만나는 소중한 시간입니다.";
+                setAiExperience({
+                    message: fallbackMsg,
+                    bgTheme: "dawn",
+                    colorTone: "#FDFCF0",
+                    isFallback: true
+                });
+                return;
+            }
+
             // Find upcoming class to inform AI
             const classInfo = await storageService.getCurrentClass(currentBranch);
+            const classTitle = classInfo?.title || "자율수련";
+            const weatherCode = currentWeatherData?.weathercode || weather?.weathercode || '0';
+
+            // [STATIC STANDBY LOGIC] Context-Aware Message Generator
+            if (isStandby) {
+                let staticMsg = "";
+
+                // 1. Weather Context (Priority 1)
+                // Codes: 0-3(Clear/Cloudy), 51-67/80-82(Rain), 71-77/85-86(Snow)
+                const wCode = parseInt(weatherCode);
+                const isRainy = wCode >= 51 && wCode <= 67 || wCode >= 80 && wCode <= 82;
+                const isSnowy = wCode >= 71 && wCode <= 77 || wCode >= 85 && wCode <= 86;
+
+                if (isRainy && Math.random() > 0.3) {
+                    const rainMsgs = [
+                        "비 오는 날, 매트 위에서 차분함을 느껴보세요.",
+                        "빗소리와 함께 내면의 소리에 귀 기울여 보세요.",
+                        "촉촉한 공기가 수련의 깊이를 더해줍니다.",
+                        "흐린 날일수록 마음의 빛은 더 선명해집니다.",
+                        "비에 씻겨나가듯, 걱정도 내려놓으세요."
+                    ];
+                    staticMsg = rainMsgs[Math.floor(Math.random() * rainMsgs.length)];
+                } else if (isSnowy && Math.random() > 0.3) {
+                    const snowMsgs = [
+                        "눈 내리는 날, 고요한 수련을 시작합니다.",
+                        "차가운 공기 속, 몸의 온기를 채워보세요.",
+                        "하얀 세상처럼 마음도 깨끗하게 비워내는 시간.",
+                        "포근한 스튜디오에서 겨울의 낭만을 즐기세요."
+                    ];
+                    staticMsg = snowMsgs[Math.floor(Math.random() * snowMsgs.length)];
+                }
+
+                // 2. Class Context (Priority 2 - if no weather msg selected)
+                if (!staticMsg && classTitle && classTitle !== "자율수련" && Math.random() > 0.5) {
+                    if (classTitle.includes("플라잉")) {
+                        const flyingMsgs = [
+                            "중력을 거스르며 자유로움을 느끼는 시간.",
+                            "해먹에 몸을 맡기고 척추의 편안함을 찾으세요.",
+                            "날개를 펴듯, 몸과 마음을 활짝 열어보세요.",
+                            "공중에서의 휴식, 플라잉 요가가 기다립니다."
+                        ];
+                        staticMsg = flyingMsgs[Math.floor(Math.random() * flyingMsgs.length)];
+                    } else if (classTitle.includes("테라피") || classTitle.includes("힐링")) {
+                        const healingMsgs = [
+                            "지친 몸을 위로하는 치유의 시간입니다.",
+                            "부드러운 움직임으로 긴장을 풀어주세요.",
+                            "나를 돌보는 가장 따뜻한 방법, 테라피 요가.",
+                            "오늘 하루 수고한 몸에게 휴식을 선물하세요."
+                        ];
+                        staticMsg = healingMsgs[Math.floor(Math.random() * healingMsgs.length)];
+                    } else if (classTitle.includes("명상") || classTitle.includes("빈야사")) {
+                        const flowMsgs = [
+                            "호흡과 움직임이 하나 되는 몰입의 순간.",
+                            "흐르는 땀방울만큼 마음은 맑아집니다.",
+                            "움직임 속에서 정적인 평화를 찾아보세요.",
+                            "나만의 리듬을 찾아가는 여정이 시작됩니다."
+                        ];
+                        staticMsg = flowMsgs[Math.floor(Math.random() * flowMsgs.length)];
+                    }
+                }
+
+                // 3. Time Context (Priority 3 - Default Large Pool)
+                if (!staticMsg) {
+                    let timeMsgs = [];
+                    if (hour >= 6 && hour < 11) { // Morning
+                        timeMsgs = [
+                            "상쾌한 아침, 건강한 에너지를 깨우세요.",
+                            "새로운 하루, 매트 위에서 시작하는 다짐.",
+                            "아침의 고요함이 하루의 균형을 잡아줍니다.",
+                            "오늘 당신의 하루는 빛날 것입니다.",
+                            "맑은 정신으로 맞이하는 아침 수련.",
+                            "가장 먼저 나를 만나는 이 시간이 소중합니다."
+                        ];
+                    } else if (hour >= 11 && hour < 14) { // Lunch
+                        timeMsgs = [
+                            "오후를 위한 활력, 잠시 쉬어가세요.",
+                            "나른함을 깨우고 몸에 생기를 불어넣습니다.",
+                            "바쁜 일상 속, 나를 위한 작은 쉼표.",
+                            "점심 시간, 짧지만 깊은 충전의 시간입니다.",
+                            "몸을 가볍게 비우고 마음을 채우세요."
+                        ];
+                    } else if (hour >= 14 && hour < 18) { // Afternoon
+                        timeMsgs = [
+                            "오후의 햇살처럼 따뜻한 에너지를 만드세요.",
+                            "지친 오후, 굳은 어깨와 마음을 활짝 펴세요.",
+                            "남은 하루를 완주할 힘을 얻어가는 시간.",
+                            "지금 이 순간, 오롯이 나에게 집중합니다.",
+                            "긴장을 풀고 호흡 깊이 들이마시세요."
+                        ];
+                    } else if (hour >= 18 && hour < 21) { // Evening
+                        timeMsgs = [
+                            "오늘 하루의 무게를 매트에 내려놓으세요.",
+                            "수고한 당신, 이제 온전히 쉴 시간입니다.",
+                            "복잡한 생각은 비우고 내면을 채우세요.",
+                            "하루를 마무리하는 가장 아름다운 의식.",
+                            "고요한 저녁, 나를 다독이는 따뜻한 수련.",
+                            "오늘도 잘 견뎌낸 나에게 감사를 전합니다."
+                        ];
+                    } else { // Night (21+)
+                        timeMsgs = [
+                            "깊은 밤, 달빛처럼 은은한 평화를 찾으세요.",
+                            "하루의 끝, 내일의 나를 위한 재충전.",
+                            "편안한 잠을 위한 깊은 이완의 시간.",
+                            "도시의 소음은 잊고 내 숨소리에 집중하세요.",
+                            "고요함 속에서 만나는 진정한 휴식."
+                        ];
+                    }
+                    staticMsg = timeMsgs[Math.floor(Math.random() * timeMsgs.length)];
+                }
+
+                setAiExperience({
+                    message: staticMsg,
+                    bgTheme: (hour >= 6 && hour < 18) ? "day" : "night",
+                    colorTone: "#FDFCF0",
+                    isFallback: true
+                });
+                return; // Stop here, no API call
+            }
 
             const exp = await storageService.getAIExperience(
                 memberName,
                 0,
                 day,
                 hour,
-                classInfo?.title || null,
+                classTitle,
                 currentWeatherData || weather,
                 credits,
                 remainingDays,
-                language, // Use dynamic language
-                null, // diligence is null for standby/visitor
-                memberName === "방문 회원" || memberName === "visitor" ? 'visitor' : 'member'
+                language,
+                null,
+                isStandby ? 'visitor' : 'member',
+                'checkin'
             );
 
             if (exp) {
@@ -315,10 +455,18 @@ const CheckInPage = () => {
                     cleanMsg = cleanMsg.trim();
                 }
 
-                setAiExperience({
+                const finalData = {
                     ...exp,
-                    message: cleanMsg || exp.message // Fallback to original if replace failed or empty
-                });
+                    message: cleanMsg || exp.message
+                };
+
+                setAiExperience(finalData);
+
+                // [CACHE SAVE]
+                if (isStandby) {
+                    const cacheKey = `ai_standby_${currentBranch}_${hour}_${day}_${classTitle}_${weatherCode}`;
+                    localStorage.setItem('ai_standby_cache', JSON.stringify({ key: cacheKey, data: finalData }));
+                }
             }
         } catch (e) {
             console.error("AI Experience load failed", e);
@@ -372,44 +520,18 @@ const CheckInPage = () => {
         }
     };
 
-    const loadWelcomeMessage = async (member, currentBranchId) => {
-        try {
-            const now = new Date();
-            const hour = now.getHours();
-            const days = ['일', '월', '화', '수', '목', '금', '토'];
-            const day = days[now.getDay()];
 
-            // Get context for the welcome message
-            const classInfo = await storageService.getCurrentClass(currentBranchId);
-            const daysRemaining = member.endDate ? getDaysRemaining(member.endDate) : null;
-
-            const exp = await storageService.getAIExperience(
-                member.name,
-                member.attendanceCount || 0,
-                day,
-                hour,
-                classInfo?.title || null,
-                null, // weather (not available here yet, passing null)
-                member.credits,
-                daysRemaining,
-                language, // Use selected language instead of hardcoded 'ko'
-                member.diligence // Pass diligence object
-            );
-            return exp?.message;
-        } catch (e) {
-            console.error("Welcome message load failed", e);
-            return null;
-        }
-    };
 
     const handleSubmit = async (code) => {
         const pinCode = code || pin;
-        if (pinCode.length !== 4) return;
+        if (pinCode.length !== 4 || loading) return; // Prevent double submission
 
+        console.log(`[CheckIn] Starting submission for PIN: ${pinCode}`);
         setLoading(true);
         try {
             // [OPTIMIZED] find member first to start AI generation early
             const members = await storageService.findMembersByPhone(pinCode);
+            console.log(`[CheckIn] Members found: ${members.length}`);
 
             if (members.length === 0) {
                 setMessage({ type: 'error', text: '회원 정보를 찾을 수 없습니다.' });
@@ -419,94 +541,127 @@ const CheckInPage = () => {
             }
 
             if (members.length > 1) {
+                console.log(`[CheckIn] Multiple members found, showing selection modal`);
                 setDuplicateMembers(members);
                 setShowSelectionModal(true);
                 return;
             }
 
             const member = members[0];
+            console.log(`[CheckIn] Single member selected: ${member.name} (${member.id})`);
 
-            // [STRATEGY] Run Check-in and AI Message generation in PARALLEL
-            const checkInPromise = storageService.checkInById(member.id, currentBranch);
-
-            // Start loading welcome message immediately since we know the member
-            const welcomePromise = loadWelcomeMessage(member, currentBranch);
-
-            const result = await checkInPromise;
+            // [FIX] Show result IMMEDIATELY without waiting for AI
+            const result = await storageService.checkInById(member.id, currentBranch);
 
             if (result.success) {
-                // Show success UI immediately with a temporary subtext
+                // Show success with static message (no AI)
                 showCheckInSuccess(result, null);
-
-                // Wait for AI message (it might already be done or still loading)
-                welcomePromise.then(welcomeMsg => {
-                    if (welcomeMsg) {
-                        setMessage(prev => (prev && prev.member?.id === result.member.id) ? {
-                            ...prev,
-                            subText: welcomeMsg.replace(/^.*님,\s*/, '').trim()
-                        } : prev);
-                    }
-                });
             } else {
-                setMessage({ type: 'error', text: result.message });
-                setPin('');
-                startDismissTimer(2000);
+                handleCheckInError(result.message);
             }
         } catch (err) {
-            console.error("Check-in error:", err);
-            setMessage({ type: 'error', text: '출석 처리 중 오류가 발생했습니다: ' + (err.message || String(err)) });
-            setPin('');
-            startDismissTimer(2000);
+            handleCheckInError(err.message || String(err));
         } finally {
             setLoading(false);
         }
     };
 
+    const handleCheckInError = (errorStr) => {
+        console.error("[CheckIn] Error caught:", errorStr);
+        let displayMsg = '출석 처리 중 오류가 발생했습니다.';
+        const lowerErr = errorStr.toLowerCase();
+
+        if (lowerErr.includes("insufficient credits")) {
+            displayMsg = "잔여 횟수가 부족합니다. (0회)";
+        } else if (lowerErr.includes("membership expired")) {
+            const dateMatch = errorStr.match(/\((.*?)\)/);
+            const date = dateMatch ? dateMatch[1] : '';
+            displayMsg = date ? `회원권 만료일(${date})이 지났습니다.` : "회원권이 만료되었습니다.";
+        } else if (lowerErr.includes("not-found")) {
+            displayMsg = "회원 정보를 찾을 수 없습니다.";
+        } else {
+            displayMsg += ` (${errorStr})`;
+        }
+
+        setMessage({ type: 'error', text: displayMsg });
+        setPin('');
+        startDismissTimer(3000);
+    };
+
     const handleSelectMember = async (memberId) => {
+        if (loading) return;
         setShowSelectionModal(false);
         setLoading(true);
         try {
             const member = duplicateMembers.find(m => m.id === memberId);
+            console.log(`[CheckIn] Selected member from modal: ${member?.name} (${memberId})`);
 
-            // [STRATEGY] Parallelize for selected member
-            const checkInPromise = storageService.checkInById(memberId, currentBranch);
-            const welcomePromise = loadWelcomeMessage(member, currentBranch);
-
-            const result = await checkInPromise;
+            // [FIX] Immediate result for selected member
+            const result = await storageService.checkInById(memberId, currentBranch);
+            console.log(`[CheckIn] SelectMember Result: ${result.success ? 'Success' : 'Fail'}`);
 
             if (result.success) {
                 showCheckInSuccess(result, null);
-                welcomePromise.then(welcomeMsg => {
-                    if (welcomeMsg) {
-                        setMessage(prev => (prev && prev.member?.id === result.member.id) ? {
-                            ...prev,
-                            subText: welcomeMsg.replace(/^.*님,\s*/, '').trim()
-                        } : prev);
-                    }
-                });
             } else {
-                setMessage({ type: 'error', text: result.message });
-                setPin('');
-                startDismissTimer(2000);
+                handleCheckInError(result.message);
             }
-        } catch {
-            setMessage({ type: 'error', text: '출석 처리 중 오류가 발생했습니다.' });
-            setPin('');
-            startDismissTimer(2000);
+        } catch (err) {
+            handleCheckInError(err.message || String(err));
         } finally {
             setLoading(false);
         }
     };
 
     const showCheckInSuccess = (result) => {
-        // [STRICT TABLET UX] No AI, No Emotion, Just Declaration.
-        const staticDeclaration = "오늘의 수련이 시작됩니다.";
+        console.log(`[CheckIn] Showing success for: ${result.member?.name}`);
+
+        // [PERSONALIZED FORMULA] No AI, just logic
+        const member = result.member;
+        const streak = member.streak || 0;
+        const credits = member.credits || 0;
+        const attCount = member.attendanceCount || 0;
+        const today = new Date();
+        const endDate = member.endDate ? new Date(member.endDate) : null;
+        let daysLeft = 999;
+
+        if (endDate) {
+            today.setHours(0, 0, 0, 0);
+            endDate.setHours(0, 0, 0, 0);
+            daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+        }
+
+        let finalMsg = "오늘의 수련이 시작됩니다.";
+
+        // Priority Logic matches context
+        if (streak >= 10) {
+            finalMsg = `${streak}일 연속 수련 중입니다. 놀라운 꾸준함입니다!`;
+        } else if (streak >= 3) {
+            finalMsg = `${streak}일째 수련을 이어가고 계시네요. 좋은 흐름입니다.`;
+        } else if (daysLeft <= 7 && daysLeft >= 0) {
+            finalMsg = `회원권 만료가 ${daysLeft}일 남았습니다.`;
+        } else if (credits <= 3 && credits > 0) {
+            finalMsg = `잔여 횟수가 ${credits}회 남았습니다.`;
+        } else if (attCount >= 100) {
+            finalMsg = `${attCount}번째 수련입니다. 항상 함께해 주셔서 감사합니다.`;
+        } else if (attCount === 1) {
+            finalMsg = "복샘요가에 오신 것을 환영합니다! 첫 수련을 응원합니다.";
+        } else {
+            // Random Fallback
+            const fallbacks = [
+                "호흡에 집중하며 나를 만나는 시간입니다.",
+                "매트 위에서 평온함을 찾으시길 바랍니다.",
+                "오늘도 건강한 하루 되세요.",
+                "몸과 마음이 하나되는 순간입니다.",
+                "수련을 통해 내면의 평화를 느껴보세요."
+            ];
+            finalMsg = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+        }
 
         setMessage({
             type: 'success',
             member: result.member,
             text: `${result.member.name}님`,
-            subText: staticDeclaration,
+            subText: finalMsg,
             details: (
                 <div className="attendance-info" style={{
                     marginTop: '30px',
@@ -527,7 +682,12 @@ const CheckInPage = () => {
                         <div style={{ textAlign: 'center' }}>
                             <div style={{ fontSize: '1.2rem', opacity: 0.6, marginBottom: '8px' }}>잔여 일수</div>
                             <div style={{ fontSize: '3rem', fontWeight: 800, color: '#4CAF50' }}>
-                                {result.member.endDate ? (getDaysRemaining(result.member.endDate) >= 0 ? `D-${getDaysRemaining(result.member.endDate)}` : '만료') : '-'}
+                                {(() => {
+                                    if (!result.member.endDate) return <span style={{ fontSize: '2rem' }}>무제한</span>;
+                                    const days = getDaysRemaining(result.member.endDate);
+                                    if (days < 0) return <span style={{ color: '#FF5252' }}>만료</span>;
+                                    return `D-${days}`;
+                                })()}
                             </div>
                         </div>
                         <div style={{ width: '1px', background: 'rgba(255,255,255,0.1)' }} />
@@ -536,7 +696,7 @@ const CheckInPage = () => {
                         <div style={{ textAlign: 'center' }}>
                             <div style={{ fontSize: '1.2rem', opacity: 0.6, marginBottom: '8px' }}>연속 수련</div>
                             <div style={{ fontSize: '3rem', fontWeight: 800, color: '#FF6B6B', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                <span>🔥</span> {result.member.streak > 1 ? `${result.member.streak}일` : (result.attendanceCount + '회')}
+                                <span>🔥</span> {result.member.streak > 1 ? `${result.member.streak}일` : (result.member.attendanceCount || result.attendanceCount || 0) + '회'}
                             </div>
                         </div>
                     </div>
@@ -549,9 +709,11 @@ const CheckInPage = () => {
 
     const getDaysRemaining = (endDate) => {
         if (!endDate) return null;
+        const end = new Date(endDate);
+        if (isNaN(end.getTime())) return null;
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const end = new Date(endDate);
         end.setHours(0, 0, 0, 0);
         const diffTime = end - today;
         return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -560,9 +722,19 @@ const CheckInPage = () => {
     const startDismissTimer = (duration = 5000) => {
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => {
-            setMessage(null);
+            handleModalClose(() => setMessage(null));
             setPin(''); // [FIX] Ensure PIN is clear when returning to standby
         }, duration);
+    };
+
+    // [FIX] Centralized modal close handler with ghost touch prevention
+    const handleModalClose = (closeAction) => {
+        setKeypadLocked(true);
+        closeAction();
+        // Buffer time to ignore any lingering touch/click events (ghost touches)
+        setTimeout(() => {
+            setKeypadLocked(false);
+        }, 350);
     };
 
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '/member')}&bgcolor=ffffff&color=2c2c2c&margin=10`;
@@ -620,7 +792,7 @@ const CheckInPage = () => {
                 toggleFullscreen={toggleFullscreen}
                 isFullscreen={isFullscreen}
                 language={language}
-                handleInstallClick={handleInstallClick}
+
             />
 
             <div className="checkin-content" style={{
@@ -663,14 +835,15 @@ const CheckInPage = () => {
                                     onClick={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
-                                        setMessage(null);
+                                        handleModalClose(() => setMessage(null));
                                         setPin('');
                                         if (timerRef.current) clearTimeout(timerRef.current);
                                     }}
                                     onTouchStart={(e) => {
                                         // Prevents "ghost clicks" on elements behind the message
+                                        if (e.cancelable) e.preventDefault();
                                         e.stopPropagation();
-                                        setMessage(null);
+                                        handleModalClose(() => setMessage(null));
                                         setPin('');
                                         if (timerRef.current) clearTimeout(timerRef.current);
                                     }}
@@ -683,9 +856,9 @@ const CheckInPage = () => {
                                     <p className="message-dismiss-text" style={{ fontSize: '1.2rem', opacity: 0.7 }}>화면을 터치하면 바로 닫힙니다</p>
                                 </div>
                             ) : (
-                                <div className="instruction-text">
+                                <div className={`instruction-text ${loading ? 'loading' : ''}`}>
                                     {aiExperience ? (
-                                        <>
+                                        <div>
                                             <span className="outfit-font" style={{
                                                 fontSize: 'clamp(1.8rem, 4.5vh, 2.6rem)',
                                                 fontWeight: 700,
@@ -694,13 +867,24 @@ const CheckInPage = () => {
                                                 color: '#FFFFFF',
                                                 textShadow: '0 2px 4px rgba(0,0,0,0.8)',
                                                 wordBreak: 'keep-all',
-                                                lineHeight: 1.2
+                                                lineHeight: 1.2,
+                                                opacity: loading ? 0.3 : 1
                                             }}>
                                                 {aiExperience.message}
                                             </span>
-                                        </>
+                                            {loading && (
+                                                <div className="mini-loader" style={{
+                                                    fontSize: '1.1rem',
+                                                    color: 'var(--primary-gold)',
+                                                    fontWeight: 'bold',
+                                                    marginTop: '-10px'
+                                                }}>
+                                                    수련 정보를 확인하고 있습니다...
+                                                </div>
+                                            )}
+                                        </div>
                                     ) : (
-                                        <div style={{ opacity: 0.5 }}>AI가 수련의 에너지를 분석 중입니다...</div>
+                                        <div style={{ opacity: 0.5 }}>요가 수련의 에너지를 연결하고 있습니다...</div>
                                     )}
                                 </div>
                             )}
@@ -709,8 +893,10 @@ const CheckInPage = () => {
 
                     {!message && (
                         <div
-                            className="qr-box glass-panel"
+                            className="qr-box" // Removed glass-panel
                             style={{
+                                background: 'rgba(0,0,0,0.6)', // Simple background
+                                borderRadius: '20px',
                                 padding: '20px 30px',
                                 cursor: 'pointer',
                                 display: 'flex',
@@ -719,7 +905,7 @@ const CheckInPage = () => {
                                 gap: '25px',
                                 alignSelf: 'center',
                                 border: '1px solid rgba(255, 215, 0, 0.4)',
-                                touchAction: 'none' // Disable double-tap zoom for speed
+                                touchAction: 'none'
                             }}
                             onTouchStart={handleQRInteraction}
                             onMouseDown={(e) => {
@@ -734,20 +920,20 @@ const CheckInPage = () => {
                                 display: 'flex',
                                 flexDirection: 'column',
                                 justifyContent: 'center',
-                                marginTop: '-8px' // Moved text up slightly for better alignment
+                                marginTop: '-5px' // Adjusted alignment
                             }}>
-                                <h3 style={{ fontSize: '1.9rem', color: 'var(--primary-gold)', marginBottom: '8px', fontWeight: 900, lineHeight: 1 }}>
-                                    나의요가
+                                <h3 style={{ fontSize: '1.9rem', color: 'var(--primary-gold)', marginBottom: '16px', fontWeight: 900, lineHeight: 1 }}>
+                                    내 요가
                                 </h3>
                                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '5px' }}>
                                     <li style={{ fontSize: '1.2rem', color: 'rgba(255, 255, 255, 0.95)', display: 'flex', alignItems: 'center', gap: '8px', lineHeight: 1.1 }}>
-                                        ✓ 잔여횟수 확인
+                                        ✓ 잔여 횟수 확인
                                     </li>
                                     <li style={{ fontSize: '1.2rem', color: 'rgba(255, 255, 255, 0.95)', display: 'flex', alignItems: 'center', gap: '8px', lineHeight: 1.1 }}>
-                                        ✓ 수업일정 보기
+                                        ✓ 수업 일정 보기
                                     </li>
                                     <li style={{ fontSize: '1.2rem', color: 'rgba(255, 255, 255, 0.95)', display: 'flex', alignItems: 'center', gap: '8px', lineHeight: 1.1 }}>
-                                        ✓ 맞춤알림 받기
+                                        ✓ 맞춤 알림 받기
                                     </li>
                                 </ul>
                             </div>
@@ -755,7 +941,7 @@ const CheckInPage = () => {
                     )}
                 </div>
 
-                <div className="checkin-keypad-section glass-panel" style={{ position: 'relative' }}>
+                <div className="checkin-keypad-section" style={{ position: 'relative', background: 'transparent', boxShadow: 'none', border: 'none' }}>
                     {pin.length === 0 && !message && (
                         <div className="keypad-floating-instruction">
                             전화번호 뒤 4자리를 입력하세요
@@ -765,116 +951,97 @@ const CheckInPage = () => {
                         onKeyPress={handleKeyPress}
                         onClear={handleClear}
                         onSubmit={handleSubmit}
-                        disabled={loading}
+                        disabled={loading || keypadLocked || !!message || showSelectionModal || showInstallGuide || showKioskInstallGuide}
                     />
                 </div>
             </div>
 
-            {showSelectionModal && (
-                <div className="modal-overlay">
-                    <div className="modal-content glass-panel" style={{ width: '95%', maxWidth: '1000px', padding: '40px' }}>
-                        <h2 style={{ fontSize: '2.5rem', marginBottom: '30px', textAlign: 'center' }}>회원 선택</h2>
-                        <div className="member-grid" style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                            gap: '25px',
-                            marginTop: '20px'
-                        }}>
-                            {duplicateMembers.map(m => (
-                                <button
-                                    key={m.id}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleSelectMember(m.id);
-                                    }}
-                                    className="member-card"
-                                    style={{
-                                        padding: '30px',
-                                        fontSize: '1.8rem',
-                                        borderRadius: '24px',
-                                        background: 'rgba(255,255,255,0.1)',
-                                        color: 'white',
-                                        border: '2px solid rgba(255,255,255,0.2)',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        gap: '12px',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    <span style={{ fontWeight: '800' }}>{m.name}</span>
-                                    <span style={{ fontSize: '1.2rem', opacity: 0.8, background: 'rgba(0,0,0,0.3)', padding: '5px 15px', borderRadius: '50px' }}>
-                                        {getBranchName(m.homeBranch)}
-                                    </span>
-                                </button>
-                            ))}
-                        </div>
-                        <button
-                            onClick={() => setShowSelectionModal(false)}
-                            style={{
-                                marginTop: '40px',
-                                background: 'transparent',
-                                border: '2px solid rgba(255,255,255,0.3)',
-                                color: 'rgba(255,255,255,0.8)',
-                                padding: '15px 40px',
-                                borderRadius: '50px',
-                                fontSize: '1.5rem',
-                                width: '100%'
-                            }}
-                        >
-                            취소
-                        </button>
-                    </div>
-                </div>
-            )}
-            {/* PWA Install Guide for Admin Kiosk */}
-            {showKioskInstallGuide && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0, left: 0, right: 0, bottom: 0,
-                        backgroundColor: 'rgba(0,0,0,0.92)', // Slightly darker for contrast without blur
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 10000
-                    }}
-                    onClick={() => setShowKioskInstallGuide(false)}
-                >
+            {
+                showSelectionModal && (
                     <div
-                        style={{
-                            backgroundColor: 'rgba(30, 30, 30, 0.95)',
-                            padding: '40px',
-                            borderRadius: '30px',
-                            maxWidth: '450px',
-                            width: '90%',
-                            textAlign: 'center',
-                            border: '1px solid rgba(212, 175, 55, 0.3)',
-                            boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
+                        className="modal-overlay"
+                        onClick={(e) => e.stopPropagation()}
+                        onTouchStart={(e) => {
+                            if (e.cancelable) e.preventDefault();
+                            e.stopPropagation();
                         }}
-                        onClick={e => e.stopPropagation()}
+                        style={{ zIndex: 3000, touchAction: 'none' }} // Ensure it's on top and blocks gestures
                     >
-                        <h3 style={{ fontSize: '1.8rem', color: 'var(--primary-gold)', marginBottom: '20px' }}>키오스크 모드 설치</h3>
-                        <p style={{ color: 'white', lineHeight: '1.8', fontSize: '1.1rem', marginBottom: '30px' }}>
-                            이 화면을 앱처럼 사용하시려면 <br />
-                            <strong>'홈 화면에 추가'</strong>를 선택해 주세요.<br />
-                            (관리자 전용)
-                        </p>
-                        <button
-                            className="action-btn primary"
-                            style={{ width: '100%', height: '60px', fontSize: '1.2rem', borderRadius: '15px' }}
-                            onClick={() => setShowKioskInstallGuide(false)}
-                        >
-                            확인
-                        </button>
+                        <div className="modal-content glass-panel" style={{ width: '95%', maxWidth: '1000px', padding: '40px' }}>
+                            <h2 style={{ fontSize: '2.5rem', marginBottom: '30px', textAlign: 'center' }}>회원 선택</h2>
+                            <div className="member-grid" style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                                gap: '25px',
+                                marginTop: '20px'
+                            }}>
+                                {duplicateMembers.map(m => (
+                                    <button
+                                        key={m.id}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleSelectMember(m.id);
+                                        }}
+                                        onTouchStart={(e) => {
+                                            if (e.cancelable) e.preventDefault();
+                                            e.stopPropagation();
+                                            handleSelectMember(m.id);
+                                        }}
+                                        className="member-card"
+                                        style={{
+                                            padding: '30px',
+                                            fontSize: '1.8rem',
+                                            borderRadius: '24px',
+                                            background: 'rgba(255,255,255,0.1)',
+                                            color: 'white',
+                                            border: '2px solid rgba(255,255,255,0.2)',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: '12px',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        <span style={{ fontWeight: '800' }}>{m.name}</span>
+                                        <span style={{ fontSize: '1.2rem', opacity: 0.8, background: 'rgba(0,0,0,0.3)', padding: '5px 15px', borderRadius: '50px' }}>
+                                            {getBranchName(m.homeBranch)}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                            <button
+                                onClick={() => handleModalClose(() => setShowSelectionModal(false))}
+                                style={{
+                                    marginTop: '40px',
+                                    background: 'transparent',
+                                    border: '2px solid rgba(255,255,255,0.3)',
+                                    color: 'rgba(255,255,255,0.8)',
+                                    padding: '15px 40px',
+                                    borderRadius: '50px',
+                                    fontSize: '1.5rem',
+                                    width: '100%'
+                                }}
+                            >
+                                취소
+                            </button>
+                        </div>
                     </div>
-                </div>
-            )}
-            {/* 회원용 설치 안내 모달 복구 */}
-            {showInstallGuide && (
-                <InstallGuideModal onClose={() => setShowInstallGuide(false)} />
-            )}
-        </div>
+                )
+            }
+            {/* PWA Install Guide for Admin Kiosk */}
+            {/* Combined Install Guide with Retry Logic */}
+            {
+                (showKioskInstallGuide || showInstallGuide) && (
+                    <InstallGuideModal
+                        onClose={() => handleModalClose(() => {
+                            setShowKioskInstallGuide(false);
+                            setShowInstallGuide(false);
+                        })}
+                        onRetry={handleInstallClick}
+                    />
+                )
+            }
+        </div >
     );
 };
 

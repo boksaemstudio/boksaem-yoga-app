@@ -1,62 +1,69 @@
 import React from 'react';
-import { storageService } from '../services/storage';
 
 class ErrorBoundary extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { hasError: false, error: null };
+        this.state = { hasError: false, error: null, errorInfo: null };
     }
 
     static getDerivedStateFromError(error) {
-        // Update state so the next render will show the fallback UI.
+        // Chunk Load Error: Reload the page automatically once if a new deployment happened
+        if (error?.message?.includes('Failed to fetch dynamically imported module') ||
+            error?.message?.includes('Importing a module script failed')) {
+
+            // Check if we already tried reloading to avoid infinite loops
+            const isReloaded = sessionStorage.getItem('chunk_reload');
+            if (!isReloaded) {
+                sessionStorage.setItem('chunk_reload', 'true');
+                window.location.reload();
+                return { hasError: false }; // Technically we reload, but valid return
+            }
+        }
+
+        // UI 업데이트를 위해 다음 렌더링에서 폴백 UI가 보이도록 상태를 업데이트 합니다.
         return { hasError: true, error };
     }
 
     componentDidCatch(error, errorInfo) {
-        // Log the error to our custom storage service
-        storageService.logError(error, {
-            componentStack: errorInfo.componentStack,
-            source: 'ErrorBoundary'
-        });
+        // Clear reload flag if it wasn't a chunk error or if we showed the error UI
+        if (!error?.message?.includes('Failed to fetch dynamically imported module')) {
+            sessionStorage.removeItem('chunk_reload');
+        }
+
+        // 에러 리포팅 서비스에 에러를 기록할 수도 있습니다.
+        console.error("Uncaught error caught by ErrorBoundary:", error, errorInfo);
+        this.setState({ error, errorInfo });
     }
 
     render() {
         if (this.state.hasError) {
-            // You can render any custom fallback UI
+            // 폴백 UI를 커스텀하여 렌더링할 수 있습니다.
             return (
-                <div style={{
-                    height: '100vh',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: '#121212',
-                    color: '#ffffff',
-                    fontFamily: 'sans-serif',
-                    padding: '20px',
-                    textAlign: 'center'
-                }}>
-                    <h1 style={{ marginBottom: '20px', color: '#ff6b6b' }}>잠시 문제가 발생했습니다.</h1>
-                    <p style={{ marginBottom: '40px', color: '#aaaaaa', maxWidth: '400px' }}>
-                        앱 실행 중 예기치 않은 오류가 감지되었습니다.<br />
-                        오류 내용은 개발자에게 자동으로 보고되었습니다.
-                    </p>
-                    <button
-                        onClick={() => window.location.reload()}
-                        style={{
-                            padding: '12px 24px',
-                            fontSize: '1rem',
-                            backgroundColor: '#4e54c8',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold',
-                            boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
-                        }}
-                    >
-                        앱 새로고침
-                    </button>
+                <div style={{ padding: '40px', color: '#ff6b6b', background: '#121212', height: '100vh', overflow: 'auto', fontFamily: 'monospace' }}>
+                    <h1 style={{ marginBottom: '20px' }}>⚠️ 시스템 오류 발생</h1>
+                    <p style={{ color: 'white', marginBottom: '10px' }}>관리자 페이지 로딩 중 문제가 발생했습니다.</p>
+
+                    <div style={{ background: 'rgba(255,107,107,0.1)', border: '1px solid #ff6b6b', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+                        <h3 style={{ margin: '0 0 10px 0' }}>{this.state.error && this.state.error.toString()}</h3>
+                        <pre style={{ fontSize: '0.8rem', opacity: 0.7, whiteSpace: 'pre-wrap' }}>
+                            {this.state.errorInfo && this.state.errorInfo.componentStack}
+                        </pre>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button
+                            onClick={() => window.location.reload()}
+                            style={{ padding: '12px 24px', background: '#ff6b6b', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                        >
+                            새로고침 (F5)
+                        </button>
+                        <button
+                            onClick={() => window.location.href = '/'}
+                            style={{ padding: '12px 24px', background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', cursor: 'pointer' }}
+                        >
+                            홈으로 이동
+                        </button>
+                    </div>
                 </div>
             );
         }
