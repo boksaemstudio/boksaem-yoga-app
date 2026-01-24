@@ -1,5 +1,6 @@
 import React from 'react';
 import { Icons } from '../CommonIcons';
+import rys200Logo from '../../assets/RYS200.png';
 
 const MembershipInfo = ({ member, daysRemaining, t }) => {
     const IconMap = {
@@ -38,6 +39,7 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
                     )
                 )}
                 <span style={{ background: 'rgba(255,255,255,0.1)', color: 'white', padding: '3px 10px', borderRadius: '5px', fontSize: '0.75rem' }}>{member.phone}</span>
+                <img src={rys200Logo} alt="RYS200" style={{ height: '49px', width: 'auto', marginLeft: 'auto', filter: 'brightness(0) invert(1)' }} />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>

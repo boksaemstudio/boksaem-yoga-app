@@ -11,6 +11,7 @@ import bgAfternoon from '../assets/bg_afternoon.png';
 import bgEvening from '../assets/bg_evening.png';
 import bgNight from '../assets/bg_night.png';
 import InstallGuideModal from '../components/InstallGuideModal';
+import rys200Logo from '../assets/RYS200.png';
 
 
 const getWeatherIcon = (code, isNight) => {
@@ -813,7 +814,8 @@ const CheckInPage = () => {
                 }}>
                     {!message && (
                         <header className="info-header" style={{ marginBottom: '40px' }}>
-                            <div className="logo-container">
+                            <div className="logo-container" style={{ display: 'flex', alignItems: 'center', gap: '15px', justifyContent: 'center' }}>
+                                <img src={rys200Logo} alt="RYS200" style={{ height: '90px', width: 'auto', filter: 'brightness(0) invert(1)' }} />
                                 <img src={logoWide} alt="logo" />
                             </div>
                         </header>

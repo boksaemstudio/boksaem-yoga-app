@@ -25,6 +25,7 @@ let cachedAttendance = [];
 let cachedNotices = [];
 let cachedMessages = [];
 let cachedImages = {};
+let pendingImageWrites = {}; // Buffer for optimistic updates
 let cachedDailyClasses = {};
 let listeners = [];
 
@@ -35,11 +36,23 @@ const notifyListeners = () => {
 export const storageService = {
   async initialize({ mode = 'full' } = {}) {
     console.log(`Initializing Firebase Storage Service (Mode: ${mode})...`);
+    // [FIX] Check for existing session (e.g. Admin) before forcing Anonymous login
     try {
-      await signInAnonymously(auth);
-      console.log("Secure session established (Anonymous Auth).");
+      await new Promise((resolve) => {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+          unsubscribe();
+          resolve(user);
+        });
+      });
+
+      if (!auth.currentUser) {
+        await signInAnonymously(auth);
+        console.log("Secure session established (Anonymous Auth).");
+      } else {
+        console.log("Existing session restored:", auth.currentUser.email || "Anonymous");
+      }
     } catch (authError) {
-      console.error("Auth failed:", authError);
+      console.error("Auth initialization failed:", authError);
     }
 
     const safelySubscribe = (queryOrRef, cacheUpdater, name) => {
@@ -71,6 +84,9 @@ export const storageService = {
       "Attendance"
     );
 
+    // [NEW] Real-time Member Sync
+    this._setupMemberListener(); // Ensure this is called!
+
     safelySubscribe(
       query(collection(db, 'notices'), orderBy("date", "desc")),
       (snapshot) => cachedNotices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
@@ -86,11 +102,26 @@ export const storageService = {
     safelySubscribe(
       collection(db, 'images'),
       (snapshot) => {
+        console.log("[Storage] Image listener fired. Pending writes:", Object.keys(pendingImageWrites));
         const imgs = {};
         snapshot.docs.forEach(doc => {
           imgs[doc.id] = doc.data().url || doc.data().base64;
         });
+
+        // [FIX] Merge pending writes to prevent UI reversion if listener fires with stale data
+        const now = Date.now();
+        Object.entries(pendingImageWrites).forEach(([id, data]) => {
+          if (now - data.timestamp < 10000) { // Keep pending for 10s
+            console.log(`[Storage] Applying pending write for ${id}`);
+            imgs[id] = data.base64;
+          } else {
+            console.log(`[Storage] Expired pending write for ${id}`);
+            delete pendingImageWrites[id]; // Cleanup old pending writes
+          }
+        });
+
         cachedImages = imgs;
+        console.log("[Storage] cachedImages updated. Keys:", Object.keys(cachedImages));
       },
       "Images"
     );
@@ -129,19 +160,42 @@ export const storageService = {
 
   getMembers() { return cachedMembers; },
   async loadAllMembers() {
+    // If cache is populated, return it (Fast)
+    if (cachedMembers.length > 0) return cachedMembers;
+
+    // Fallback: Explicit fetch if cache is empty (Robustness)
     try {
-      const getAllMembers = httpsCallable(functions, 'getAllMembersAdminV2Call');
-      const result = await getAllMembers();
-      cachedMembers = result.data.members || [];
-      // notifyListeners(); // [FIX] Prevent infinite loop in AdminDashboard
+      console.log("[Storage] Cache empty, force fetching members...");
+      const snapshot = await getDocs(collection(db, 'members'));
+      const members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      // Update cache only if listener hasn't already (race condition check)
+      if (cachedMembers.length === 0) {
+        cachedMembers = members;
+      }
       return cachedMembers;
     } catch (e) {
-      console.warn("Using fallback for getAllMembers:", e);
-      const snapshot = await getDocs(collection(db, 'members'));
-      cachedMembers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      // notifyListeners(); // [FIX] Prevent infinite loop
-      return cachedMembers;
+      console.error("Force fetch members failed:", e);
+      return [];
     }
+  },
+
+  _setupMemberListener() {
+    console.log("[Storage] Starting Member Listener...");
+    onSnapshot(
+      collection(db, 'members'),
+      (snapshot) => {
+        const members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        cachedMembers = members;
+        console.log(`[Storage] Members updated via listener: ${members.length}`);
+
+        // Notify UI
+        listeners.forEach(cb => cb());
+      },
+      (error) => {
+        console.error("[Storage] Member listener error:", error);
+      }
+    );
   },
 
   /**
@@ -307,7 +361,7 @@ export const storageService = {
 
   async getDailyYoga(language = 'ko') {
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-    const cacheKey = `daily_yoga_${today}_${language}`;
+    const cacheKey = `daily_yoga_${today}_${language}_v2`; // v2 added to invalidate old 3-pose cache
     const cached = this._safeGetItem(cacheKey);
 
     if (cached) return JSON.parse(cached);
@@ -323,11 +377,12 @@ export const storageService = {
     } catch (e) {
       console.warn("Daily Yoga fetch failed:", e);
       // Return hardcoded fallback if everything fails
-      return [
+      const fallbackData = [
         { name: "Child's Pose", benefit: language === 'ko' ? "휴식 및 이완" : "Rest", instruction: language === 'ko' ? "이마를 매트에 대고 편안하게 쉽니다." : "Rest forehead on mat.", emoji: "👶" },
-        { name: "Cat-Cow", benefit: language === 'ko' ? "척추 유연성" : "Spine Flex", instruction: language === 'ko' ? "숨을 마시며 등을 펴고, 내쉬며 둥글게 맙니다." : "Inhale arch, exhale round.", emoji: "🐈" },
-        { name: "Down Dog", benefit: language === 'ko' ? "전신 스트레칭" : "Full Body", instruction: language === 'ko' ? "엉덩이를 높이 들어 ㅅ자를 만듭니다." : "Lift hips high.", emoji: "🐕" }
+        { name: "Cat-Cow", benefit: language === 'ko' ? "척추 유연성" : "Spine Flex", instruction: language === 'ko' ? "숨을 마시며 등을 펴고, 내쉬며 둥글게 맙니다." : "Inhale arch, exhale round.", emoji: "🐈" }
       ];
+      fallbackData.isFallback = true;
+      return fallbackData;
     }
   },
 
@@ -463,52 +518,128 @@ export const storageService = {
     try {
       console.log(`Copying schedule from ${fromYear}-${fromMonth} to ${toYear}-${toMonth}`);
 
-      // 1. Fetch Source Month Data (Daily Classes)
-      // Since we can't easily query by prefix without index, we iterate days of source month.
-      const sourceClassesByDay = {}; // { 'Monday': [ {time, title...} ], 'Tuesday': ... }
-      // This "By Day" logic is tricky because source month might have different classes for 1st Monday vs 2nd Monday.
-      // Simplest "Copy" logic: Take the "Weekly Template" implied by the source month?
-      // Or just take the *Last Week* of source month as the template?
-      // User said: "Copy logic from previous month so I can upload next month".
-      // They likely mean: "Take the schedule I set up (which might deviate from template) and apply it to next month".
+      // Helper to get day name
+      const getDayName = (date) => ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
 
-      // Strategy: Extract a "Derived Template" from the *first full week* (or representative week) of the source month.
-      // Let's grab the 2nd week (usually stable).
-      const sourceDate = new Date(fromYear, fromMonth - 1, 8); // 8th is always in 2nd week or late 1st.
-      // Actually, let's just collect ALL classes and find the most common pattern for each weekday? Too complex.
-      // Let's just use the `weekly_templates` stored in Firestore? 
-      // User says "I manually edited Jan". Manual edits update `daily_classes`, NOT `weekly_templates`.
-      // So we should capture the 'latest state' of the week.
+      // 1. Scan Source Month Data
+      // We need to fetch ALL classes from the source month to analyze patterns.
+      const sourceDays = [];
+      const daysInSourceMonth = new Date(fromYear, fromMonth, 0).getDate();
 
-      // Simple Approach: Read days 8-14 (One week) of Source Month.
-      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-      const derivedTemplate = [];
-
-      for (let d = 8; d <= 14; d++) {
+      // Fetch all potential days in parallel (batching might be needed if month is huge, but 31 days is fine)
+      const fetchPromises = [];
+      for (let d = 1; d <= daysInSourceMonth; d++) {
         const dStr = `${fromYear}-${String(fromMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const docRef = doc(db, 'daily_classes', `${branchId}_${dStr}`);
-        const snap = await getDoc(docRef);
-        if (snap.exists()) {
-          const dateObj = new Date(fromYear, fromMonth - 1, d);
-          const dayName = dayNames[dateObj.getDay()];
-          const classes = snap.data().classes || [];
-          classes.forEach(c => {
-            derivedTemplate.push({
-              ...c,
-              startTime: c.time,
-              className: c.title,
-              days: [dayName] // Map to this day
-            });
-          });
+        fetchPromises.push(getDoc(doc(db, 'daily_classes', `${branchId}_${dStr}`)).then(snap => ({ day: d, date: new Date(fromYear, fromMonth - 1, d), exists: snap.exists(), data: snap.data() })));
+      }
+
+      const results = await Promise.all(fetchPromises);
+      const validDays = results.filter(r => r.exists && r.data.classes && r.data.classes.length > 0);
+
+      if (validDays.length === 0) {
+        throw new Error("지난 달 데이터가 전혀 없어 복사할 수 없습니다. 먼저 지난 달 스케줄을 확인해주세요.");
+      }
+
+      // 2. Extract "Best Template" for Weekdays (Mon-Fri)
+      // Strategy: Group by Week #, score by number of classes. Pick the week with max classes.
+      const weeks = {};
+      validDays.forEach(r => {
+        const dayIdx = r.date.getDay();
+        if (dayIdx === 0 || dayIdx === 6) return; // Skip weekends for template
+
+        // Calculate approximate week number (1-5)
+        const weekNum = Math.ceil(r.day / 7);
+        if (!weeks[weekNum]) weeks[weekNum] = [];
+        weeks[weekNum].push(r);
+      });
+
+      // Find the week with the most 'full' days (max logic)
+      let bestWeekNum = null;
+      let maxScore = -1;
+
+      Object.entries(weeks).forEach(([weekNum, days]) => {
+        // Score = number of classes in that week
+        const score = days.reduce((acc, curr) => acc + (curr.data.classes.length || 0), 0);
+        if (score > maxScore) {
+          maxScore = score;
+          bestWeekNum = weekNum;
+        }
+      });
+
+      // Valid weekday template map: "월" -> [Classes], "화" -> [Classes]...
+      const weekdayTemplate = {};
+      if (bestWeekNum && weeks[bestWeekNum]) {
+        weeks[bestWeekNum].forEach(r => {
+          weekdayTemplate[getDayName(r.date)] = r.data.classes;
+        });
+      } else {
+        // Fallback: If no good week found, just try to collect *any* weekday data
+        validDays.forEach(r => {
+          const name = getDayName(r.date);
+          if (name !== '토' && name !== '일' && !weekdayTemplate[name]) {
+            weekdayTemplate[name] = r.data.classes;
+          }
+        });
+      }
+
+      // 3. Collect Saturdays (Sequential)
+      const sourceSaturdays = validDays
+        .filter(r => r.date.getDay() === 6)
+        .sort((a, b) => a.day - b.day)
+        .map(r => r.data.classes);
+
+      // 4. Generate Target Month
+      const updates = [];
+      const daysInTargetMonth = new Date(toYear, toMonth, 0).getDate();
+      let saturdayIndex = 0;
+
+      for (let d = 1; d <= daysInTargetMonth; d++) {
+        const targetDate = new Date(toYear, toMonth - 1, d);
+        const dayName = getDayName(targetDate);
+        const dateStr = `${toYear}-${String(toMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        let classesToCopy = [];
+
+        if (dayName === '토') {
+          // Rotation Logic: 1st -> 1st, 2nd -> 2nd... loop if needed
+          if (sourceSaturdays.length > 0) {
+            classesToCopy = sourceSaturdays[saturdayIndex % sourceSaturdays.length];
+            saturdayIndex++;
+          }
+        } else if (dayName === '일') {
+          // Treat Sunday like weekdays (Template) or skip if not in template
+          classesToCopy = weekdayTemplate['일'] || [];
+        } else {
+          // Weekdays (Mon-Fri) -> Use Best Template
+          classesToCopy = weekdayTemplate[dayName] || [];
+        }
+
+        // Clean up classes
+        if (classesToCopy && classesToCopy.length > 0) {
+          const cleanedClasses = classesToCopy.map(cls => ({
+            time: cls.time,
+            title: cls.title,
+            instructor: cls.instructor,
+            status: 'normal',
+            level: cls.level || '',
+            duration: cls.duration || 60
+          }));
+          updates.push({ date: dateStr, classes: cleanedClasses });
         }
       }
 
-      if (derivedTemplate.length === 0) {
-        throw new Error("지난 달(8일~14일) 데이터가 없어 복사할 수 없습니다. 템플릿 생성을 이용해주세요.");
+      if (updates.length > 0) {
+        await this.batchUpdateDailyClasses(branchId, updates);
+
+        // Save Metadata
+        const metaDocId = `${branchId}_${toYear}_${toMonth}`;
+        await setDoc(doc(db, 'monthly_schedules', metaDocId), {
+          branchId, year: toYear, month: toMonth, isSaved: true, createdAt: new Date().toISOString(), createdBy: auth.currentUser?.email || 'admin'
+        });
+
+        return { success: true, message: `지난달 데이터를 기반으로 새 스케줄이 생성되었습니다.\n(평일: ${bestWeekNum || 1}주차 패턴, 토요일: 순차 적용)` };
       }
 
-      // 2. Generate Target Month using this Derived Template
-      return this._generateScheduleFromTemplate(branchId, toYear, toMonth, derivedTemplate);
+      return { success: false, message: "복사할 데이터가 없습니다." };
 
     } catch (e) {
       console.error("Copy schedule failed:", e);
@@ -516,56 +647,49 @@ export const storageService = {
     }
   },
 
-  async _generateScheduleFromTemplate(branchId, year, month, template) {
-    const date = new Date(year, month - 1, 1);
-    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-    const updates = [];
-    let saturdayCount = 0;
+  async deleteMonthlySchedule(branchId, year, month) {
+    try {
+      console.log(`Deleting schedule for ${branchId} ${year}-${month}`);
 
-    while (date.getMonth() === month - 1) {
-      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-      const dayIndex = date.getDay();
-      const dayName = dayNames[dayIndex];
+      // 1. Find all daily classes for this month
+      const startStr = `${year}-${String(month).padStart(2, '0')}-01`;
+      const endStr = `${year}-${String(month).padStart(2, '0')}-31`;
 
-      let dailyClasses = template.filter(cls => cls.days.includes(dayName)).map(cls => ({
-        time: cls.startTime || cls.time,
-        title: cls.className || cls.title,
-        instructor: cls.instructor,
-        status: 'normal',
-        level: cls.level || '',
-        duration: cls.duration || 60
-      }));
+      const q = query(
+        collection(db, 'daily_classes'),
+        where('branchId', '==', branchId),
+        where('date', '>=', startStr),
+        where('date', '<=', endStr)
+      );
 
-      // Rotation Logic (Preserve)
-      if (dayIndex === 6) {
-        saturdayCount++;
-        dailyClasses = dailyClasses.map(cls => {
-          if (cls.title?.includes('하타') && cls.time === '10:00') {
-            const rotation = ['원장', '효정', '한아', '정연', '원장'];
-            const instructor = rotation[saturdayCount - 1] || '원장';
-            return { ...cls, instructor };
-          }
-          return cls;
-        });
-      }
+      const snapshot = await getDocs(q);
 
-      dailyClasses.sort((a, b) => a.time.localeCompare(b.time));
+      // 2. Batch Delete
+      const batch = await import("firebase/firestore").then(mod => mod.writeBatch(db));
+      let count = 0;
 
-      if (dailyClasses.length > 0) {
-        updates.push({ date: dateStr, classes: dailyClasses });
-      }
-      date.setDate(date.getDate() + 1);
-    }
-
-    if (updates.length > 0) {
-      await this.batchUpdateDailyClasses(branchId, updates);
-      const metaDocId = `${branchId}_${year}_${month}`;
-      await setDoc(doc(db, 'monthly_schedules', metaDocId), {
-        branchId, year, month, isSaved: true, createdAt: new Date().toISOString(), createdBy: auth.currentUser?.email || 'admin'
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+        count++;
       });
-      return { success: true, message: "복사 및 생성이 완료되었습니다." };
+
+      // 3. Delete Metadata
+      const metaDocId = `${branchId}_${year}_${month}`;
+      batch.delete(doc(db, 'monthly_schedules', metaDocId));
+
+      // 4. Delete Image (if exists)
+      // Since we don't know the exact image key without checking, we could guess key format.
+      // But updateImage will overwrite anyway. Let's just focus on data reset.
+      // Optionally could reset image but might be unsafe if user wants to keep image.
+      // User request is "Init Schedule", usually means data.
+
+      if (count > 0 || snapshot.empty) await batch.commit();
+
+      return { success: true, count };
+    } catch (e) {
+      console.error("Delete schedule failed:", e);
+      throw e;
     }
-    return { success: false, message: "복사할 데이터가 없습니다." };
   },
 
   subscribe(callback) {
@@ -573,10 +697,11 @@ export const storageService = {
     return () => { listeners = listeners.filter(l => l !== callback); };
   },
 
-  getImages() { return cachedImages; },
+
   getNotices() { return [...cachedNotices].sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0)); },
   getAttendance() { return [...cachedAttendance].sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0)); },
   getPushHistory() { return [...cachedMessages].sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0)); },
+  getMembers() { return [...cachedMembers]; }, // [OPTIMIZATION] Sync getter
   getAllPushTokens() { return []; /* Placeholder if needed, or implement fetching fcm_tokens */ },
 
   async getPricing() {
@@ -883,18 +1008,39 @@ export const storageService = {
 
   async getImages() {
     // [FIX] Return cachedImages (populated by listener from 'images' collection)
-    // Legacy 'settings/images' is no longer the write target for updateImage setDoc logic
+    // If cache is empty, fetch directly from Firestore as a fallback
+    if (Object.keys(cachedImages).length === 0) {
+      try {
+        console.log("[Storage] cachedImages empty, fetching from Firestore...");
+        const snapshot = await getDocs(collection(db, 'images'));
+        const imgs = {};
+        snapshot.docs.forEach(doc => {
+          imgs[doc.id] = doc.data().url || doc.data().base64;
+        });
+        cachedImages = imgs; // Update cache
+        console.log("[Storage] Fetched images from Firestore. Keys:", Object.keys(imgs));
+        return imgs;
+      } catch (e) {
+        console.warn("[Storage] Failed to fetch images from Firestore:", e);
+        return {};
+      }
+    }
     return cachedImages;
   },
 
   async updateImage(id, base64) {
     try {
       if (!base64 || !id) throw new Error("Invalid image data");
-      
-      // [FIX] Update cache immediately to prevent UI from reverting if refreshData() is called before listener fires
+
+      console.log(`[Storage] updateImage called for ${id}. Length: ${base64.length}`);
+      // [FIX] Update cache immediately and add to pending buffer
       cachedImages[id] = base64;
-      
+      pendingImageWrites[id] = { base64, timestamp: Date.now() };
+      // Notify listeners immediately to reflect local change
+      notifyListeners();
+
       await setDoc(doc(db, 'images', id), { base64, updatedAt: new Date().toISOString() }, { merge: true });
+      console.log(`[Storage] SetDoc complete for ${id}`);
       return true;
     } catch (e) {
       console.error("Update image failed:", e);

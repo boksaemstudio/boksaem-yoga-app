@@ -113,9 +113,19 @@ const MemberProfile = () => {
 
     // PWA Install State
     const [installPrompt, setInstallPrompt] = useState(null);
-    const [isIOS, setIsIOS] = useState(false);
-    const [isInStandaloneMode, setIsInStandaloneMode] = useState(false);
-    const [isInAppBrowser, setIsInAppBrowser] = useState(false);
+    const [isIOS, setIsIOS] = useState(() => {
+        if (typeof window === 'undefined') return false;
+        return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+    });
+    const [isInStandaloneMode, setIsInStandaloneMode] = useState(() => {
+        if (typeof window === 'undefined') return false;
+        return window.matchMedia('(display-mode: standalone)').matches ||
+            (window.navigator && window.navigator.standalone);
+    });
+    const [isInAppBrowser, setIsInAppBrowser] = useState(() => {
+        if (typeof window === 'undefined') return false;
+        return /kakaotalk|naver|instagram|line/i.test(window.navigator.userAgent.toLowerCase());
+    });
 
     // Login States
     const [name, setName] = useState('');
@@ -146,7 +156,7 @@ const MemberProfile = () => {
                 storageService.getMemberById(memberId),
                 storageService.getAttendanceByMemberId(memberId),
                 storageService.getNotices(),
-                Promise.resolve(storageService.getImages()) // Sync call wrapped
+                storageService.getImages()
             ]);
 
             if (memberData) {
@@ -272,19 +282,7 @@ const MemberProfile = () => {
     }, []);
 
     useEffect(() => {
-        try {
-            const userAgent = window.navigator.userAgent.toLowerCase();
-            setIsIOS(/iphone|ipad|ipod/.test(userAgent));
-
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                (window.navigator && window.navigator.standalone);
-            setIsInStandaloneMode(!!isStandalone);
-
-            const inApp = /kakaotalk|naver|instagram|line/i.test(userAgent);
-            setIsInAppBrowser(inApp);
-        } catch (e) {
-            console.warn('Agent check failed', e);
-        }
+        // [Optimized] Agent checks moved to useState initialization for immediate feedback without flash.
 
         const handleBeforeInstallPrompt = (e) => {
             e.preventDefault();
@@ -293,9 +291,10 @@ const MemberProfile = () => {
 
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-        const unsubscribe = storageService.subscribe(() => {
+        const unsubscribe = storageService.subscribe(async () => {
             setNotices(storageService.getNotices());
-            setImages(storageService.getImages());
+            const imgs = await storageService.getImages();
+            setImages(imgs);
             if (member) {
                 storageService.getMemberById(member.id).then(m => {
                     if (m) setMember(m);
@@ -545,7 +544,7 @@ const MemberProfile = () => {
 
             {/* 2. Overlays (z-index: 3-4) */}
             <div className="bg-aura" style={{ position: 'fixed', zIndex: 3, pointerEvents: 'none' }} />
-            {/* InteractiveParticles is handled component-wise if imported */}
+            <InteractiveParticles />
             <div className="profile-overlay" style={{ background: 'rgba(0,0,0,0.1)', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 4 }} />
 
             {/* 3. Content Container (z-index: 10 - Must be higher than overlays) */}
@@ -599,6 +598,8 @@ const MemberProfile = () => {
                                     </div>
                                 </div>
 
+                                <SocialLinks t={t} />
+
                                 <PWAInstallPrompts
                                     isInStandaloneMode={isInStandaloneMode}
                                     isInAppBrowser={isInAppBrowser}
@@ -607,8 +608,6 @@ const MemberProfile = () => {
                                     handleInstallClick={handleInstallClick}
                                     t={t}
                                 />
-
-                                <SocialLinks t={t} />
                             </div>
                         </div>
                     )}

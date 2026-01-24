@@ -105,35 +105,44 @@ const AdminScheduleManager = ({ branchId, showSettings, onShowSettings }) => {
         setClassLevels(classLevelList);
     };
 
-    const handleCreate = async () => {
-        const confirmMsg = `📅 ${year}년 ${month}월 스케줄을 생성하시겠습니까?\n\n` +
-            `1. '주간 템플릿(설계도)'을 바탕으로 모든 날짜에 수업이 채워집니다.\n` +
-            `2. 토요일 수업은 '로테이션 규칙'에 따라 자동 배정됩니다.\n\n` +
-            `생성 후에는 세부 날짜별 수정이 가능합니다.`;
+    // [Removed handleCreate as per user request to only allow Copy]
 
-        if (!window.confirm(confirmMsg)) return;
+    // [New] Clear/Reset Logic
+    const handleReset = async () => {
+        if (!window.confirm('⚠️ 정말로 이 달의 스케줄을 초기화하시겠습니까?\n\n모든 수업 데이터가 삭제되며, 상태가 [미정]으로 돌아갑니다.')) return;
 
         setLoading(true);
         try {
-            const res = await storageService.createMonthlySchedule(branchId, year, month);
-            alert(res.message);
-            await loadMonthlyData();
+            await storageService.deleteMonthlySchedule(branchId, year, month);
+            alert('스케줄이 초기화되었습니다.');
+            await loadMonthlyData(); // Refresh UI
         } catch (error) {
-            console.error("Error creating schedule:", error);
-            alert("생성 중 오류가 발생했습니다: " + error.message);
+            console.error("Reset failed:", error);
+            alert("초기화 중 오류가 발생했습니다: " + error.message);
         } finally {
             setLoading(false);
         }
     };
 
-    // [New] Clear/Reset Logic
-    const handleReset = async () => {
-        if (!window.confirm('⚠️ 정말로 이 달의 스케줄을 초기화하시겠습니까?\n\n모든 수업 데이터가 삭제되며, 상태가 [미정]으로 돌아갑니다.')) return;
-        // Need to add reset/delete method in storage if we want this feature. 
-        // For now, maybe just "Re-generate" is enough? 
-        // Or users can just delete classes manually. 
-        // Let's stick to Create flow first. 
-        alert('현재는 관리자에게 문의해주세요 (DB 삭제 필요).');
+    // [New] Standard Schedule Creation
+    const handleCreateStandard = async () => {
+        const confirmMsg = `📅 ${year}년 ${month}월에 '표준 시간표(기본)'를 적용하시겠습니까?\n\n` +
+            `기본 설정된(1월 기준) 시간표 패턴으로 생성됩니다.`;
+
+        if (!window.confirm(confirmMsg)) return;
+
+        setLoading(true);
+        try {
+            // Uses createMonthlySchedule which falls back to DEFAULT_SCHEDULE_TEMPLATE
+            const res = await storageService.createMonthlySchedule(branchId, year, month);
+            alert(res.message || "표준 시간표가 생성되었습니다.");
+            await loadMonthlyData();
+        } catch (error) {
+            console.error("Error creating standard schedule:", error);
+            alert("생성 중 오류가 발생했습니다: " + error.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handlePrevMonth = () => {
@@ -311,19 +320,30 @@ const AdminScheduleManager = ({ branchId, showSettings, onShowSettings }) => {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Use slightly higher quality for timetables as text must be readable
-                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                // Use balanced quality (0.6)
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                const kbSize = Math.round(compressedBase64.length / 1024);
                 const targetKey = `timetable_${branchId}_${year}-${String(month).padStart(2, '0')}`;
 
+                console.log(`[ImageUpload] Original: ${file.size / 1024}KB, Compressed: ${kbSize}KB`);
+
                 // Optimistic Update
+                const previousImage = images[targetKey];
                 setImages(prev => ({ ...prev, [targetKey]: compressedBase64 }));
 
-                // Async Save
+                // Async Save & Verify
                 storageService.updateImage(targetKey, compressedBase64)
-                    .then(() => alert(`${year}년 ${month}월 시간표 이미지가 저장되었습니다.`))
+                    .then(async () => {
+                        // [VERIFICATION] Explicitly check if it exists in DB
+                        const verifyImg = await storageService.getImages();
+                        // Note: getImages returns cache from listener, which might be slightly delayed. 
+                        // Let's rely on the promise resolution of updateImage which implies write complete.
+                        alert(`${year}년 ${month}월 시간표가 저장되었습니다.\n(전송 크기: ${kbSize}KB)`);
+                    })
                     .catch(err => {
-                        console.error(err);
-                        alert('이미지 저장 실패');
+                        console.error("Image upload failed:", err);
+                        alert(`저장 실패: ${err.message}\n(크기: ${kbSize}KB)`);
+                        setImages(prev => ({ ...prev, [targetKey]: previousImage }));
                     });
             };
             img.src = event.target.result;
@@ -396,21 +416,24 @@ const AdminScheduleManager = ({ branchId, showSettings, onShowSettings }) => {
                 </div>
 
                 <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+                    {/* [User Request] Removed 'Create from Template' button to avoid confusion with Image Generation */}
+
                     <button
-                        onClick={handleCreate}
+                        onClick={handleCreateStandard}
                         style={{
-                            padding: '16px 40px',
-                            fontSize: '1.1rem',
-                            backgroundColor: 'var(--primary-gold)',
+                            padding: '16px 25px',
+                            fontSize: '1rem',
+                            backgroundColor: '#4b5563', // Grey for standard
                             color: 'white',
                             border: 'none',
                             borderRadius: '12px',
                             fontWeight: 'bold',
                             cursor: 'pointer',
-                            boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)'
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
                         }}
                     >
-                        ✨ 이 시간표로 스케줄 생성
+                        ✨ 표준 시간표 생성 (기본)
                     </button>
 
                     <button

@@ -21,7 +21,8 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
 
         // Legacy Members Data
         (members || []).forEach(m => {
-            if (m.regDate && m.amount) {
+            const amt = Number(m.amount) || 0;
+            if (m.regDate && amt > 0) {
                 // If this member transaction is already in 'sales' (by some ID check?), skip. 
                 // Since strictly disparate now (new vs old), just add.
                 // Filter by Branch
@@ -30,7 +31,7 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
                 allItems.push({
                     id: m.id,
                     date: m.regDate, // 'YYYY-MM-DD'
-                    amount: Number(m.amount) || 0,
+                    amount: amt,
                     name: m.name,
                     type: 'legacy',
                     item: m.subject || '수강권'
@@ -44,7 +45,7 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
             // If sales record doesn't have branch, we might need to lookup member? 
             // Assume 'sales' records belong to the branch where the admin is logged in?
             // Or we need to fetch member branch.
-            // For now, let's assume we show all or if we can find member.
+            // For now, let's assume we show all or filter if we have branch data.
             // *Optimization*: Let's assume for now we show all or filter if we have branch data.
             // 'sales' doc doesn't have 'branch'. We should probably add it.
             // For this iteration, let's include all sales (or rely on admin seeing their logic).
@@ -83,15 +84,32 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
         });
 
         // Dedup: Filter out 'legacy' items if a 'register' item exists for same member same day
-        // Actually, simpler: Just show AllItems for now. The overlapping window is small (just today).
-        // Let's rely on Sales only? No, old data is needed.
-        // Let's just Sort.
+        const uniqueItems = [];
 
-        allItems.sort((a, b) => new Date(b.date) - new Date(a.date));
+        // Prioritize Sales Data (already in allItems, later in array? No, currently mixed)
+        // Let's sort strictly first: Sales > Legacy?
+        // Actually, let's just filter legacy if sale exists.
+
+        const salesKeys = new Set(
+            allItems
+                .filter(i => i.type !== 'legacy')
+                .map(i => `${i.name}-${i.date}`) // Key by Name + Date (Weak but likely sufficient)
+        );
+
+        allItems.forEach(item => {
+            if (item.type === 'legacy') {
+                const key = `${item.name}-${item.date}`;
+                if (salesKeys.has(key)) return; // Skip legacy if sale exists
+            }
+            uniqueItems.push(item);
+        });
+
+        uniqueItems.sort((a, b) => new Date(b.date) - new Date(a.date));
+        const finalItems = uniqueItems;
 
         // 2. Monthly Stats (for Calendar)
         // Filter for current Month
-        const monthlyItems = allItems.filter(i => i.date.startsWith(monthStr));
+        const monthlyItems = finalItems.filter(i => i.date.startsWith(monthStr));
 
         const daily = {};
         const daysInMonth = new Date(year, month, 0).getDate();
@@ -125,7 +143,7 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
         const lastWeek = new Date(today); lastWeek.setDate(today.getDate() - 7);
         const lastWeekStr = lastWeek.toLocaleDateString('sv-SE');
 
-        const getDailyTotal = (dStr) => allItems.filter(i => i.date === dStr).reduce((sum, i) => sum + i.amount, 0);
+        const getDailyTotal = (dStr) => finalItems.filter(i => i.date === dStr).reduce((sum, i) => sum + i.amount, 0);
 
         const statYesterday = getDailyTotal(yesterdayStr);
         const statDayBefore = getDailyTotal(dayBeforeStr);

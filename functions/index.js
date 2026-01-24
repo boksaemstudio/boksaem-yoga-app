@@ -584,7 +584,39 @@ async function generateReEngagementMessage(member, attendanceStats, language = '
     }
 }
 
-// V2 함수: 만료 예정 회원 체크 (Optimized: Batched & Low AI Usage)
+// Helper: Create Pending Approval & Notify Admin
+const createPendingApproval = async (type, targetMemberIds, title, body, data = {}) => {
+    const db = admin.firestore();
+    try {
+        await db.collection('pending_approvals').add({
+            type,
+            targetMemberIds, // Array of member IDs
+            title,
+            body,
+            data,
+            status: 'pending',
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Notify Admin about new pending item
+        const adminTokensSnap = await db.collection("fcm_tokens").where("type", "==", "admin").get();
+        if (!adminTokensSnap.empty) {
+            const adminTokens = adminTokensSnap.docs.map(d => d.id);
+            await admin.messaging().sendEachForMulticast({
+                tokens: adminTokens,
+                notification: {
+                    title: "🔔 승인 대기 알림",
+                    body: "AI가 생성한 새로운 발송 대기 메시지가 있습니다. 승인해주세요."
+                }
+            });
+        }
+        console.log(`Created pending approval [${type}] for ${targetMemberIds.length} members.`);
+    } catch (e) {
+        console.error("Failed to create pending approval:", e);
+    }
+};
+
+// V2 함수: 만료 예정 회원 체크 (Optimized: Created Pending Approval)
 exports.checkExpiringMembersV2 = onSchedule({
     schedule: 'every day 13:00',
     timeZone: 'Asia/Seoul',
@@ -608,7 +640,6 @@ exports.checkExpiringMembersV2 = onSchedule({
         console.log(`Found ${snapshot.size} members expiring today. Generating content...`);
 
         // 1. Generate ONE common message per language to avoid N AI calls
-        // (Cost: 5 AI Calls total, instead of N calls)
         const supportedLangs = ['ko', 'en', 'ru', 'zh', 'ja'];
         const messagesByLang = {};
 
@@ -641,59 +672,32 @@ exports.checkExpiringMembersV2 = onSchedule({
             }
         }
 
-        // 2. Group Tokens by Language
-        const tokensByLang = { 'ko': [], 'en': [], 'ru': [], 'zh': [], 'ja': [] };
+        // 2. Group Members by Language for Batch Creation
+        const membersByLang = { 'ko': [], 'en': [], 'ru': [], 'zh': [], 'ja': [] };
 
-        // Fetch all tokens for these members (Batch Query where possible, but 'in' limit is 30)
-        // Since snapshot size might be large, we fetch tokens for EACH member or optimize further.
-        // For < 100 members, individual queries are "okay" compared to AI calls, but let's query all tokens and filter in memory if size is manageable, 
-        // OR loop query. Given Firestore costs, N reads for tokens is unavoidable unless we denormalize tokens onto member (bad idea).
-        // Let's stick to N reads for Tokens, but eliminate AI N calls.
+        snapshot.docs.forEach(doc => {
+            const m = doc.data();
+            const lang = m.language || 'ko';
+            if (membersByLang[lang]) membersByLang[lang].push(doc.id);
+            else membersByLang['ko'].push(doc.id);
+        });
 
-        let tokenCount = 0;
-
-        for (const doc of snapshot.docs) {
-            const member = doc.data();
-            const memberId = doc.id;
-            const lang = member.language || 'ko';
-
-            const tokensSnap = await db.collection("fcm_tokens").where("memberId", "==", memberId).get();
-            if (!tokensSnap.empty) {
-                tokensSnap.forEach(tDoc => {
-                    const t = tDoc.id;
-                    if (tokensByLang[lang]) tokensByLang[lang].push(t);
-                    else tokensByLang['ko'].push(t); // Default safety
-                    tokenCount++;
-                });
-            }
-        }
-
-        // 3. Batched Sending (500 max per batch)
-        let successTotal = 0;
-        let failureTotal = 0;
-
+        // 3. Create Pending Approvals per Language Group
         for (const lang of supportedLangs) {
-            const tokens = tokensByLang[lang];
+            const memberIds = membersByLang[lang];
             const body = messagesByLang[lang];
-            if (!tokens || tokens.length === 0) continue;
 
-            const chunkSize = 500;
-            for (let i = 0; i < tokens.length; i += chunkSize) {
-                const chunk = tokens.slice(i, i + chunkSize);
-                const response = await admin.messaging().sendEachForMulticast({
-                    tokens: chunk,
-                    notification: {
-                        title: "복샘요가 알림", // Or localized title
-                        body: body
-                    },
-                    data: { url: "/member" }
-                });
-                successTotal += response.successCount;
-                failureTotal += response.failureCount;
+            if (memberIds && memberIds.length > 0) {
+                // Create Approval Request
+                await createPendingApproval(
+                    'expiration',
+                    memberIds,
+                    "복샘요가 알림", // Title
+                    body,            // Body
+                    { lang, date: targetDateStr } // Extra data
+                );
             }
         }
-
-        console.log(`Sent batched expiration alerts. Success: ${successTotal}, Failure: ${failureTotal}`);
 
     } catch (error) {
         console.error("Error in scheduled expiration check:", error);
@@ -701,7 +705,7 @@ exports.checkExpiringMembersV2 = onSchedule({
     return null;
 });
 
-// V2 함수: 낮은 크레딧 알림
+// V2 함수: 낮은 크레딧 알림 (Approval Required)
 exports.checkLowCreditsV2 = onDocumentUpdated({
     document: "members/{memberId}",
     secrets: ["GEMINI_KEY"]
@@ -737,15 +741,19 @@ exports.checkLowCreditsV2 = onDocumentUpdated({
 
         const body = aiMessage || fallbackBody;
 
+        // CHECK if push token exists BEFORE creating approval? 
+        // No, let admin decide, or check here. Checking here is better UX.
         const tokensSnap = await db.collection("fcm_tokens").where("memberId", "==", memberId).get();
         if (!tokensSnap.empty) {
-            const tokens = tokensSnap.docs.map(t => t.id);
-            await admin.messaging().sendEachForMulticast({
-                tokens,
-                notification: { title: "나의요가 알림", body },
-                data: { url: "/member" }
-            });
-            console.log(`AI re-engagement alert sent to ${newData.name}`);
+            // Create Pending Approval
+            await createPendingApproval(
+                'low_credits',
+                [memberId],
+                "나의요가 알림",
+                body,
+                { credits: 0, prevCredits: oldData.credits }
+            );
+            console.log(`Created pending approval [low_credits] for ${newData.name}`);
         }
     } catch (e) {
         console.error(e);

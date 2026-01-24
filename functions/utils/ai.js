@@ -5,11 +5,11 @@ class AIService {
         if (!apiKey) throw new Error("API Key is missing for AIService");
         this.client = new GoogleGenerativeAI(apiKey);
         this.model = this.client.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-2.0-flash",
             generationConfig: { maxOutputTokens: 300 }
         });
         this.jsonModel = this.client.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-2.0-flash",
             generationConfig: { responseMimeType: "application/json", maxOutputTokens: 500 }
         });
         this.langMap = { 'ko': 'Korean', 'en': 'English', 'ru': 'Russian', 'zh': 'Chinese (Simplified)', 'ja': 'Japanese' };
@@ -68,7 +68,7 @@ class AIService {
     async generateHomeYoga(weather, timeOfDay, langCode) {
         const targetLang = this.getLangName(langCode);
         const prompt = `
-            Recommend 3 simple yoga poses for a member at home.
+            Recommend 2 simple yoga poses for a member at home.
             Context: Weather is ${weather || 'Neutral'}, Time is ${timeOfDay || 12}:00.
             
             **Philosophy**: Focus on the **sensation** of the joints and muscles, not the look of the pose. Connect with the breath.
@@ -82,7 +82,7 @@ class AIService {
             Output Format:
             [
               { "name": "Pose Name", "benefit": "Short benefit", "instruction": "1-sentence instruction on sensation/breath", "emoji": "🧘" },
-              ... (3 items)
+              ... (2 items)
             ]
         `;
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { storageService } from '../services/storage';
 import { STUDIO_CONFIG, getBranchName } from '../studioConfig';
 import { useNavigate } from 'react-router-dom';
-import { Users, ClockCounterClockwise, Plus, PlusCircle, Image as ImageIcon, Calendar, Megaphone, BellRinging, X, Check, Funnel, Trash, NotePencil, FloppyDisk, ChatCircleText, PencilLine, CalendarPlus, Ticket, Tag, House, SignOut, ChartBar, Export, Gear } from '@phosphor-icons/react';
+import { Users, ClockCounterClockwise, Plus, PlusCircle, Image as ImageIcon, Calendar, Megaphone, BellRinging, X, Check, Funnel, Trash, NotePencil, FloppyDisk, ChatCircleText, PencilLine, CalendarPlus, Ticket, Tag, House, SignOut, ChartBar, Export, Gear, FileCsv, Info } from '@phosphor-icons/react';
 import AdminScheduleManager from '../components/AdminScheduleManager';
 import AdminRevenue from '../components/AdminRevenue';
 import AdminPriceManager from '../components/AdminPriceManager';
@@ -43,6 +43,64 @@ const ColorLegend = ({ branchId }) => {
     );
 };
 
+// [Helper] Robust Date Parsing
+const parseDate = (dateStr) => {
+    if (!dateStr) return null;
+    // Handle "yyyy.mm.dd", "yyyy-mm-dd", "yyyy/mm/dd"
+    const standardStr = dateStr.replace(/\./g, '-').replace(/\//g, '-');
+    const date = new Date(standardStr);
+    return isNaN(date.getTime()) ? null : date;
+};
+
+// [Helper] Standardized Filter Logic (External to ensure consistent behavior)
+const isMemberActive = (m) => {
+    // Treat 0 or "0" as 0. Treat empty/null as invalid.
+    const credits = Number(m.credits || 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Comparison at start of day
+
+    // Case 1: Unlimited Date (No End Date) - Usually implies subscription
+    if (!m.endDate) {
+        return credits > 0;
+    }
+
+    // Case 2: Has End Date
+    const endDate = parseDate(m.endDate);
+
+    // If date is invalid, logic:
+    // User complaint "Active 0" implies valid members are being dropped.
+    // If parseDate fails, it returns null.
+    if (!endDate) return false;
+
+    endDate.setHours(0, 0, 0, 0);
+
+    // Check if future/today AND credits >= 0
+    return endDate >= today && credits >= 0;
+};
+
+const isMemberExpiring = (m) => {
+    const endDateObj = parseDate(m.endDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    /* [USER FEEDBACK] Remove 'Too Old' filter so all inactive members show up in Expiring box
+    if (endDateObj) {
+        const twoMonthsAgo = new Date(today);
+        twoMonthsAgo.setMonth(today.getMonth() - 2);
+        if (endDateObj < twoMonthsAgo) return false;
+    }
+    */
+
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
+
+    const isExpiringSoon = endDateObj && endDateObj >= today && endDateObj <= nextWeek;
+    const isExpired = endDateObj && endDateObj < today;
+    const noCredits = Number(m.credits || 0) <= 0;
+
+    return isExpiringSoon || isExpired || noCredits;
+};
+
 const AdminDashboard = () => {
 
     const [activeTab, setActiveTab] = useState('members');
@@ -55,6 +113,7 @@ const AdminDashboard = () => {
     const [loadingInsight, setLoadingInsight] = useState(false);
     const [currentBranch, setCurrentBranch] = useState(() => storageService.getCurrentBranch());
     const [images, setImages] = useState({});
+    const [optimisticImages, setOptimisticImages] = useState({}); // [FIX] Local override for immediate UI updates
     const [todayClasses, setTodayClasses] = useState([]);
 
     // Modals
@@ -113,6 +172,7 @@ const AdminDashboard = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
     const [summary, setSummary] = useState({
+        totalMembers: 0,
         activeMembers: 0,
         todayAttendance: 0,
         todayRegistration: 0,
@@ -132,6 +192,38 @@ const AdminDashboard = () => {
     const [sendPush] = useState(true);
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [showInstallGuide, setShowInstallGuide] = useState(false);
+
+    // [NEW] AI Push Approval State
+    const [pendingApprovals, setPendingApprovals] = useState([]);
+
+    useEffect(() => {
+        const unsubscribe = storageService.getPendingApprovals((items) => {
+            setPendingApprovals(items);
+        });
+        return () => unsubscribe && unsubscribe();
+    }, []);
+
+    const handleApprovePush = async (id, title) => {
+        if (confirm(`'${title}' 메시지 발송을 승인하시겠습니까?`)) {
+            try {
+                await storageService.approvePush(id);
+                // No need to alert, list update handles visual feedback
+            } catch (e) {
+                alert("승인 처리 중 오류 발생: " + e.message);
+            }
+        }
+    };
+
+    const handleRejectPush = async (id) => {
+        if (confirm("이 발송 건을 삭제(거절)하시겠습니까?")) {
+            try {
+                await storageService.rejectPush(id);
+            } catch (e) {
+                alert("삭제 처리 중 오류 발생: " + e.message);
+            }
+        }
+    };
+
     // Auth Logout
     const navigate = useNavigate();
     const handleLogout = async () => {
@@ -141,10 +233,29 @@ const AdminDashboard = () => {
         }
     };
 
+    // [OPTIMIZATION] Pre-calculate today's attendees O(M)
+    const todayAttendedMemberIds = useMemo(() => {
+        const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+        const ids = new Set();
+        logs.forEach(l => {
+            if (!l.timestamp) return;
+            const logDate = new Date(l.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            if (logDate === todayStr && (currentBranch === 'all' || l.branchId === currentBranch)) {
+                ids.add(l.memberId);
+            }
+        });
+        return ids;
+    }, [logs, currentBranch]);
+
     // 필터링된 멤버 목록을 메모이제이션하여 성능 최적화
     const filteredMembers = useMemo(() => {
         const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
         const todayObj = new Date(todayStr);
+
+        // Helper logic duplicated from refreshData for consistency
+        // [FIX] Use shared logic to ensure consistency with stats
+        const checkIsActive = (m) => isMemberActive(m);
+        const checkIsExpiring = (m) => isMemberExpiring(m);
 
         return members.filter(m => {
             if (currentBranch !== 'all' && m.homeBranch !== currentBranch) return false;
@@ -153,37 +264,14 @@ const AdminDashboard = () => {
                 (m.phone || '').includes(searchTerm);
             if (!matchesSearch) return false;
 
-            if (filterType === 'active') {
-                const isExpired = m.endDate && new Date(m.endDate) < todayObj;
-                if (isExpired || m.credits <= 0) return false;
-            } else if (filterType === 'registration') {
-                if (m.regDate !== todayStr) return false;
-            } else if (filterType === 'attendance') {
-                const attendedToday = logs.some(l => {
-                    if (!l.timestamp) return false;
-                    const logKST = new Date(l.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-                    return l.memberId === m.id && logKST === todayStr && (currentBranch === 'all' || l.branchId === currentBranch);
-                });
-                if (!attendedToday) return false;
-            } else if (filterType === 'expiring') {
-                const endDateObj = m.endDate ? new Date(m.endDate) : null;
-                const twoMonthsAgo = new Date();
-                twoMonthsAgo.setMonth(twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2));
+            if (filterType === 'active') return checkIsActive(m);
+            if (filterType === 'registration') return m.regDate === todayStr;
+            if (filterType === 'attendance') return todayAttendedMemberIds.has(m.id);
+            if (filterType === 'expiring') return checkIsExpiring(m);
 
-                if (endDateObj && endDateObj < twoMonthsAgo) return false;
-
-                const nextWeek = new Date(todayObj);
-                nextWeek.setDate(nextWeek.getDate() + 7);
-
-                const isExpiringSoon = endDateObj && endDateObj >= todayObj && endDateObj <= nextWeek;
-                const isExpired = endDateObj && endDateObj < todayObj;
-                const noCredits = m.credits <= 0;
-
-                return isExpiringSoon || isExpired || noCredits;
-            }
-            return true;
-        });
-    }, [members, searchTerm, filterType, currentBranch, logs]);
+            return true; // 'all'
+        }).sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+    }, [members, searchTerm, filterType, currentBranch, todayAttendedMemberIds]);
 
     useEffect(() => {
         const handleBeforeInstallPrompt = (e) => {
@@ -306,7 +394,7 @@ const AdminDashboard = () => {
 
         setIsSubmitting(true);
         try {
-            await storageService.addMember({
+            const res = await storageService.addMember({
                 name: newMember.name,
                 phone: newMember.phone,
                 credits: newMember.credits,
@@ -319,6 +407,20 @@ const AdminDashboard = () => {
                 endDate: newMember.endDate,
                 notes: '' // Initialize notes
             });
+
+            // [FIX] Create Sales Record for New Registration
+            if (newMember.amount > 0) {
+                await storageService.addSalesRecord({
+                    memberId: res.id, // Use the returned ID
+                    memberName: newMember.name,
+                    type: 'register',
+                    item: newMember.subject,
+                    amount: newMember.amount,
+                    paymentMethod: newMember.paymentMethod,
+                    date: new Date().toISOString(),
+                    branchId: newMember.branch
+                });
+            }
 
             setShowAddModal(false);
             refreshData();
@@ -353,16 +455,30 @@ const AdminDashboard = () => {
     }, []);
 
 
+    // AI Usage State
+    const [aiUsage, setAiUsage] = useState({ count: 0, limit: 2000 });
+
     const refreshData = async () => {
+        // [OPTIMIZATION] Members are now sync via real-time listener (with fallback)
         const currentMembers = await storageService.loadAllMembers();
+
+
         const currentLogs = storageService.getAttendance();
         const currentNotices = storageService.getNotices();
-        const currentImages = storageService.getImages();
+        const currentImages = await storageService.getImages();
         try {
             const tokens = await storageService.getAllPushTokens();
             setPushTokens(tokens);
         } catch (err) {
             console.error('Failed to fetch push tokens:', err);
+        }
+
+        // Fetch AI Usage
+        try {
+            const usage = await storageService.getAiUsage();
+            setAiUsage(usage);
+        } catch (e) {
+            console.warn("Failed to fetch AI usage", e);
         }
 
         const currentSales = await storageService.getSales();
@@ -378,69 +494,67 @@ const AdminDashboard = () => {
             : currentLogs.filter(l => l.branchId === currentBranch);
         calculateStats(branchLogs, currentMembers);
 
-        const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-        const currentMonth = today.substring(0, 7);
+        const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+        const today = new Date(todayStr); // Keep Date object for other comparisons
+        const currentMonth = todayStr.substring(0, 7);
 
         const isMemberInBranch = (m) => currentBranch === 'all' || m.homeBranch === currentBranch;
 
-        const activeMembers = currentMembers.filter(m => {
-            if (!isMemberInBranch(m)) return false;
-            if (!m.endDate) return m.credits > 0;
-            return new Date(m.endDate) >= new Date(today) && m.credits >= 0;
-        }).length;
+        // [FIX] Build attended member IDs for today
+        const attendedMemberIds = new Set();
+        branchLogs.forEach(l => {
+            if (!l.timestamp) return;
+            const logDate = new Date(l.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            if (logDate === todayStr) {
+                attendedMemberIds.add(l.memberId);
+            }
+        });
 
-        const attendedMemberIds = new Set(currentLogs
-            .filter(l => {
-                if (!l.timestamp) return false;
-                const logDate = new Date(l.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-                return logDate === today && (currentBranch === 'all' || l.branchId === currentBranch);
-            })
-            .map(l => l.memberId)
-        );
-        const todayAttendance = currentMembers.filter(m => isMemberInBranch(m) && attendedMemberIds.has(m.id)).length;
+        // Defined helpers for consistent filtering
+        const checkIsAttended = (m) => {
+            return attendedMemberIds.has(m.id);
+        };
 
-        const todayRegistration = currentMembers.filter(m =>
-            m.regDate === today && (currentBranch === 'all' || m.homeBranch === currentBranch)
-        ).length;
+        const checkIsRegistered = (m) => {
+            return m.regDate === todayStr;
+        };
 
+        // Standardized Count Logic
+        const totalMembers = currentMembers.filter(m => isMemberInBranch(m)).length;
+        const activeMembers = currentMembers.filter(m => isMemberInBranch(m) && isMemberActive(m)).length;
+        const todayAttendance = currentMembers.filter(m => isMemberInBranch(m) && checkIsAttended(m)).length;
+        const todayRegistration = currentMembers.filter(m => isMemberInBranch(m) && checkIsRegistered(m)).length;
+        const expiringMembersCount = currentMembers.filter(m => isMemberInBranch(m) && isMemberExpiring(m)).length;
+
+
+        // [FIX] Use robust date parsing for Revenue
         const todayRevenue = currentSales
             .filter(s => {
                 if (!s.timestamp) return false;
-                const sDate = new Date(s.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-                return sDate === today && (currentBranch === 'all' || s.branchId === currentBranch);
+                const sDate = parseDate(s.timestamp); // Use helper
+                if (!sDate) return false;
+
+                // Compare YYYY-MM-DD
+                const sDateStr = sDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                return sDateStr === todayStr && (currentBranch === 'all' || s.branchId === currentBranch);
             })
             .reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
 
         const monthlyRevenue = currentSales
             .filter(s => {
                 if (!s.timestamp) return false;
-                const sDate = new Date(s.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-                return sDate.startsWith(currentMonth) && (currentBranch === 'all' || s.branchId === currentBranch);
+                const sDate = parseDate(s.timestamp); // Use helper
+                if (!sDate) return false;
+
+                const sDateStr = sDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                return sDateStr.startsWith(currentMonth) && (currentBranch === 'all' || s.branchId === currentBranch);
             })
             .reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
 
-        const expiringMembersCount = currentMembers.filter(m => {
-            if (currentBranch !== 'all' && m.homeBranch !== currentBranch) return false;
 
-            const todayObj = new Date();
-            const endDateObj = m.endDate ? new Date(m.endDate) : null;
-
-            if (endDateObj) {
-                const twoMonthsAgo = new Date();
-                twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
-                if (endDateObj < twoMonthsAgo) return false;
-            }
-
-            const nextWeek = new Date();
-            nextWeek.setDate(nextWeek.getDate() + 7);
-            const isExpiringSoon = endDateObj && endDateObj >= todayObj && endDateObj <= nextWeek;
-            const isExpired = endDateObj && endDateObj < todayObj;
-            const noCredits = m.credits <= 0;
-
-            return isExpiringSoon || isExpired || noCredits;
-        }).length;
 
         setSummary({
+            totalMembers,
             activeMembers,
             todayAttendance,
             todayRegistration,
@@ -554,7 +668,7 @@ const AdminDashboard = () => {
         const reader = new FileReader();
         reader.onload = (event) => {
             const img = new Image();
-            img.onload = () => {
+            img.onload = async () => {
                 // Setup canvas for compression
                 const canvas = document.createElement('canvas');
                 const MAX_WIDTH = 900; // Reduced from 1200
@@ -577,8 +691,19 @@ const AdminDashboard = () => {
                 if (target === 'notice') {
                     setNewNotice({ ...newNotice, image: compressedBase64 });
                 } else {
-                    storageService.updateImage(target, compressedBase64);
-                    setImages(prev => ({ ...prev, [target]: compressedBase64 }));
+                    try {
+                        console.log(`[Admin] Uploading image for ${target}...`);
+                        // [FIX] Set optimistic state IMMEDIATELY and persist it in this component
+                        setOptimisticImages(prev => ({ ...prev, [target]: compressedBase64 }));
+
+                        await storageService.updateImage(target, compressedBase64);
+                        console.log(`[Admin] Upload success for ${target}`);
+                        // Redundant but safe: update main images state too
+                        setImages(prev => ({ ...prev, [target]: compressedBase64 }));
+                    } catch (err) {
+                        console.error(`[Admin] Upload failed for ${target}:`, err);
+                        alert("이미지 업로드에 실패했습니다. (5MB 이하인지 확인해주세요)");
+                    }
                 }
             };
             img.src = event.target.result;
@@ -737,9 +862,13 @@ const AdminDashboard = () => {
         }
     };
 
-    const selectExpiringMembers = () => {
-        setFilterType(filterType === 'expiring' ? 'all' : 'expiring');
+    const handleToggleFilter = (type) => {
+        setFilterType(prev => prev === type ? 'all' : type);
         setCurrentPage(1);
+    };
+
+    const selectExpiringMembers = () => {
+        handleToggleFilter('expiring');
     };
 
     // --- RENDER ---
@@ -760,6 +889,26 @@ const AdminDashboard = () => {
                     </button>
                 </div>
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
+                    {/* [RESTORED] AI Status Indicator */}
+                    <div style={{
+                        padding: '6px 10px',
+                        borderRadius: '6px',
+                        background: 'rgba(212, 175, 55, 0.1)',
+                        border: '1px solid rgba(212, 175, 55, 0.3)',
+                        color: 'var(--primary-gold)',
+                        fontSize: '0.7rem',
+                        fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                    }}>
+                        <span>✨ AI 분석</span>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4CD964', boxShadow: '0 0 5px #4CD964' }}></span>
+                        <span style={{ fontSize: '0.65rem', opacity: 0.8, marginLeft: '4px', paddingLeft: '4px', borderLeft: '1px solid rgba(212,175,55,0.3)' }}>
+                            {aiUsage.count}/{aiUsage.limit}
+                        </span>
+                    </div>
+
                     <button
                         onClick={handleSubscribePush}
                         className={`action-btn sm ${pushEnabled ? 'primary' : ''}`}
@@ -940,6 +1089,210 @@ const AdminDashboard = () => {
                             </button>
                         </div>
 
+                        {/* 마이그레이션 파일 업로드 섹션 */}
+                        <div style={{ marginBottom: '20px' }}>
+                            <input
+                                type="file"
+                                id="migration-csv-upload"
+                                accept=".csv"
+                                style={{ display: 'none' }}
+                                onChange={async (e) => {
+                                    const file = e.target.files[0];
+                                    if (!file) return;
+
+                                    if (!window.confirm(`⚠️ 경고: [${file.name}] 파일로 마이그레이션을 진행합니다.\n\n기존 회원 데이터가 모두 삭제되고 선택한 파일의 데이터로 대체됩니다.\n\n계속하시겠습니까?`)) {
+                                        e.target.value = '';
+                                        return;
+                                    }
+
+                                    const progressDiv = document.createElement('div');
+                                    progressDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); color: white; padding: 30px; border-radius: 16px; z-index: 10000; min-width: 300px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.5);';
+                                    progressDiv.innerHTML = '<div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">마이그레이션 데이터 읽는 중...</div><div id="progress-text" style="color: #D4AF37; margin-top: 10px;">잠시만 기다려주세요...</div>';
+                                    document.body.appendChild(progressDiv);
+
+                                    try {
+                                        const text = await new Promise((resolve, reject) => {
+                                            const reader = new FileReader();
+                                            reader.onload = (event) => resolve(event.target.result);
+                                            reader.onerror = (error) => reject(error);
+                                            reader.readAsText(file);
+                                        });
+
+                                        const { runMigration } = await import('../utils/migrator.js');
+
+                                        progressDiv.querySelector('div:first-child').textContent = '마이그레이션 진행 중...';
+
+                                        const result = await runMigration(text, (msg) => {
+                                            const progressText = document.getElementById('progress-text');
+                                            if (progressText) progressText.textContent = msg;
+                                        });
+
+                                        document.body.removeChild(progressDiv);
+                                        e.target.value = '';
+
+                                        if (result.success) {
+                                            alert(`✅ 마이그레이션 성공!\n\n총 ${result.count}명의 회원이 등록되었습니다.\n페이지를 새로고침합니다.`);
+                                            window.location.reload();
+                                        } else {
+                                            alert(`❌ 마이그레이션 실패:\n${result.error?.message || JSON.stringify(result.error)}`);
+                                        }
+                                    } catch (err) {
+                                        console.error(err);
+                                        if (document.body.contains(progressDiv)) document.body.removeChild(progressDiv);
+                                        e.target.value = '';
+                                        alert('파일 처리 중 오류가 발생했습니다.');
+                                    }
+                                }}
+                            />
+                            <label
+                                htmlFor="migration-csv-upload"
+                                className="action-btn"
+                                style={{
+                                    width: '100%',
+                                    height: '54px',
+                                    fontSize: '1.2rem',
+                                    borderRadius: '12px',
+                                    fontWeight: 'bold',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px',
+                                    background: '#8E44AD',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 8px 24px rgba(142, 68, 173, 0.4)',
+                                    marginBottom: '0'
+                                }}
+                            >
+                                <FileCsv size={24} weight="bold" /> CSV 파일 선택하여 마이그레이션 실행
+                            </label>
+                        </div>
+
+                        {/* 구 임시 마이그레이션 버튼 (삭제 대상) */}
+                        <div style={{ marginBottom: '20px' }}>
+                            <button
+                                onClick={async () => {
+                                    if (!window.confirm('⚠️ 경고: 기존 회원 데이터가 모두 삭제되고 새로운 CSV 데이터로 대체됩니다.\n\n계속하시겠습니까?')) {
+                                        return;
+                                    }
+
+                                    const startTime = Date.now();
+                                    const progressDiv = document.createElement('div');
+                                    progressDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); color: white; padding: 30px; border-radius: 16px; z-index: 10000; min-width: 300px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.5);';
+                                    progressDiv.innerHTML = '<div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">마이그레이션 진행 중...</div><div id="progress-text" style="color: #D4AF37; margin-top: 10px;">시작 중...</div>';
+                                    document.body.appendChild(progressDiv);
+
+                                    try {
+                                        const { runMigration } = await import('../utils/migrator.js');
+                                        const result = await runMigration((msg) => {
+                                            const progressText = document.getElementById('progress-text');
+                                            if (progressText) progressText.textContent = msg;
+                                        });
+
+                                        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+
+                                        if (result.success) {
+                                            progressDiv.innerHTML = `
+                                                <div style="font-size: 1.3rem; font-weight: bold; color: #4CAF50; margin-bottom: 15px;">✅ 마이그레이션 완료!</div>
+                                                <div style="color: #D4AF37; margin-bottom: 10px;">총 ${result.count}명의 회원이 등록되었습니다.</div>
+                                                <div style="color: #888; font-size: 0.9rem;">소요 시간: ${elapsed}초</div>
+                                                <button onclick="this.parentElement.remove(); window.location.reload();" style="margin-top: 20px; padding: 12px 24px; background: #D4AF37; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">확인 및 새로고침</button>
+                                            `;
+                                        } else {
+                                            progressDiv.innerHTML = `
+                                                <div style="font-size: 1.3rem; font-weight: bold; color: #f44336; margin-bottom: 15px;">❌ 오류 발생</div>
+                                                <div style="color: #fff; margin-bottom: 10px;">${result.error?.message || '알 수 없는 오류'}</div>
+                                                <button onclick="this.parentElement.remove();" style="margin-top: 20px; padding: 12px 24px; background: #f44336; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">닫기</button>
+                                            `;
+                                        }
+                                    } catch (error) {
+                                        progressDiv.innerHTML = `
+                                            <div style="font-size: 1.3rem; font-weight: bold; color: #f44336; margin-bottom: 15px;">❌ 오류 발생</div>
+                                            <div style="color: #fff; margin-bottom: 10px;">${error.message}</div>
+                                            <button onclick="this.parentElement.remove();" style="margin-top: 20px; padding: 12px 24px; background: #f44336; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">닫기</button>
+                                        `;
+                                    }
+                                }}
+                                className="action-btn"
+                                style={{
+                                    display: 'none',
+                                    width: '100%',
+                                    height: '54px',
+                                    fontSize: '1.2rem',
+                                    borderRadius: '12px',
+                                    fontWeight: 'bold',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px',
+                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    border: 'none',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
+                                }}
+                            >
+                                🔄 CSV 데이터 마이그레이션 실행
+                            </button>
+                        </div>
+
+
+                        {/* AI Automation & Approvals Section */}
+                        <div className="dashboard-card" style={{
+                            marginBottom: '24px',
+                            background: 'rgba(20, 20, 20, 0.6)',
+                            border: '1px solid rgba(76, 217, 100, 0.3)',
+                            padding: '0'
+                        }}>
+                            <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <div style={{ background: '#4CD964', width: '6px', height: '18px', borderRadius: '3px' }}></div>
+                                    <h3 style={{ fontSize: '0.95rem', fontWeight: 'bold', color: '#4CD964', letterSpacing: '0.05em', margin: 0 }}>AI 자동화 승인 센터</h3>
+                                </div>
+                                <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '4px' }}>
+                                    안전장치 작동중 🔒
+                                </div>
+                            </div>
+
+                            <div style={{ padding: '16px 20px' }}>
+                                <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', lineHeight: '1.5', margin: '0 0 16px 0' }}>
+                                    AI가 매일 13시에 만료 예정 및 미수강 회원을 자동으로 체크하여 메시지를 작성합니다.<br />
+                                    작성된 메시지는 이곳에 보관되며, <strong>원장님이 확인 후 [승인] 버튼을 눌러야만 회원에게 발송</strong>됩니다.
+                                </p>
+
+                                {pendingApprovals.length === 0 ? (
+                                    <div style={{ textAlign: 'center', padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem' }}>
+                                        현재 승인 대기 중인 메시지가 없습니다. ✅
+                                    </div>
+                                ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        {pendingApprovals.map(item => (
+                                            <div key={item.id} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                                    <span style={{ fontSize: '0.8rem', color: '#4CD964', fontWeight: 'bold', background: 'rgba(76, 217, 100, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>
+                                                        {item.type === 'expiration' ? '만료 예정' : item.type === 'low_credits' ? '수강권 소진' : item.type}
+                                                    </span>
+                                                    <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>
+                                                        대상: {item.targetMemberIds?.length || 0}명
+                                                    </span>
+                                                </div>
+                                                <h4 style={{ margin: '0 0 4px 0', fontSize: '0.9rem', color: 'white' }}>{item.title}</h4>
+                                                <p style={{ margin: '0 0 12px 0', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)' }}>{item.body}</p>
+
+                                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                                    <button onClick={() => handleRejectPush(item.id)} style={{ padding: '6px 12px', background: 'rgba(255, 59, 48, 0.1)', color: '#FF3B30', border: '1px solid rgba(255, 59, 48, 0.3)', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}>
+                                                        거절(삭제)
+                                                    </button>
+                                                    <button onClick={() => handleApprovePush(item.id, item.title)} style={{ padding: '6px 12px', background: 'rgba(76, 217, 100, 0.2)', color: '#4CD964', border: '1px solid rgba(76, 217, 100, 0.4)', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                                                        승인(발송)
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                         {/* AI Insight Card (Factual - Admin Context) */}
                         <div className="dashboard-card ai-glow" style={{
                             marginBottom: '24px',
@@ -969,25 +1322,51 @@ const AdminDashboard = () => {
                         </div>
                         {/* Summary Grid */}
                         <div className="stats-grid">
+                            <div className={`dashboard-card interactive ${filterType === 'all' ? 'highlight' : ''}`}
+                                onClick={() => handleToggleFilter('all')}>
+                                <span className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    전체 회원
+                                    <div className="tooltip-container" onClick={e => e.stopPropagation()}>
+                                        <Info size={14} style={{ opacity: 0.7 }} />
+                                        <span className="tooltip-text">현재 지점에 등록된<br />모든 회원 (삭제/탈퇴 제외)</span>
+                                    </div>
+                                </span>
+                                <span className="card-value">{summary.totalMembers}명</span>
+                            </div>
                             <div className={`dashboard-card interactive ${filterType === 'active' ? 'highlight' : ''}`}
-                                onClick={() => setFilterType(filterType === 'active' ? 'all' : 'active')}>
-                                <span className="card-label">활성 회원</span>
+                                onClick={() => handleToggleFilter('active')}>
+                                <span className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    활성 회원
+                                    <div className="tooltip-container" onClick={e => e.stopPropagation()}>
+                                        <Info size={14} style={{ opacity: 0.7 }} />
+                                        <span className="tooltip-text">잔여 횟수 1회 이상이며<br />만료일이 지나지 않은 회원</span>
+                                    </div>
+                                </span>
                                 <span className="card-value gold">{summary.activeMembers}명</span>
                             </div>
                             <div className={`dashboard-card interactive ${filterType === 'attendance' ? 'highlight' : ''}`}
-                                onClick={() => setFilterType(filterType === 'attendance' ? 'all' : 'attendance')}>
+                                onClick={() => handleToggleFilter('attendance')}>
                                 <span className="card-label">오늘 출석</span>
                                 <span className="card-value">{summary.todayAttendance}명</span>
                             </div>
                             <div className={`dashboard-card interactive ${filterType === 'registration' ? 'highlight' : ''}`}
-                                onClick={() => setFilterType(filterType === 'registration' ? 'all' : 'registration')}>
+                                onClick={() => handleToggleFilter('registration')}>
                                 <span className="card-label">오늘 등록</span>
                                 <span className="card-value success">{summary.todayRegistration}명</span>
                             </div>
                             <div className={`dashboard-card interactive ${filterType === 'expiring' ? 'highlight' : ''}`}
                                 onClick={selectExpiringMembers}
                                 style={{ transition: 'all 0.3s ease' }}>
-                                <span className="card-label">만료/미수강</span>
+                                <span className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    만료/미수강
+                                    <div className="tooltip-container" onClick={e => e.stopPropagation()}>
+                                        <Info size={14} style={{ opacity: 0.7 }} />
+                                        <span className="tooltip-text" style={{ width: '220px', left: '-100px' }}>
+                                            잔여 횟수 0회 또는 만료일 경과<br />
+                                            (만료 임박 7일 이내 포함)
+                                        </span>
+                                    </div>
+                                </span>
                                 <span className="card-value error">{summary.expiringMembersCount}명</span>
                             </div>
                         </div>
@@ -1068,6 +1447,18 @@ const AdminDashboard = () => {
                                     <span style={{ marginLeft: '6px', fontSize: '0.9rem' }}>{selectedMemberIds.length}명 푸시 전송</span>
                                 </button>
                             )}
+                        </div>
+
+
+                        {/* List Criteria Display */}
+                        <div style={{ padding: '0 4px', marginBottom: '10px', fontSize: '0.9rem', color: 'var(--text-tertiary)' }}>
+                            현재 <strong style={{ color: 'var(--primary-gold)' }}>
+                                {filterType === 'all' && '전체 회원'}
+                                {filterType === 'active' && '활성 회원'}
+                                {filterType === 'attendance' && '오늘 출석 회원'}
+                                {filterType === 'registration' && '오늘 등록 회원'}
+                                {filterType === 'expiring' && '만료/미수강 회원'}
+                            </strong> 목록을 <strong style={{ color: 'var(--text-secondary)' }}>이름 가나다순</strong>으로 보고 계십니다.
                         </div>
 
                         {/* Member List */}
@@ -1304,8 +1695,8 @@ const AdminDashboard = () => {
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                                         <h4 style={{ margin: 0, color: 'var(--primary-gold)' }}>{curMonth}월 (현재)</h4>
                                                         <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '12px', overflow: 'hidden', minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed rgba(255,255,255,0.1)' }}>
-                                                            {curImage ? (
-                                                                <img src={curImage} alt="Current" style={{ width: '100%', display: 'block' }} />
+                                                            {(optimisticImages[curKey] || curImage) ? (
+                                                                <img src={optimisticImages[curKey] || curImage} alt="Current" style={{ width: '100%', display: 'block' }} />
                                                             ) : (
                                                                 <span style={{ color: 'var(--text-secondary)' }}>이미지 없음</span>
                                                             )}
@@ -1320,8 +1711,8 @@ const AdminDashboard = () => {
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                                         <h4 style={{ margin: 0, color: '#a1a1aa' }}>{nextMonth}월 (다음달)</h4>
                                                         <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '12px', overflow: 'hidden', minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed rgba(255,255,255,0.1)' }}>
-                                                            {nextImage ? (
-                                                                <img src={nextImage} alt="Next" style={{ width: '100%', display: 'block' }} />
+                                                            {(optimisticImages[nextKey] || nextImage) ? (
+                                                                <img src={optimisticImages[nextKey] || nextImage} alt="Next" style={{ width: '100%', display: 'block' }} />
                                                             ) : (
                                                                 <div style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                                                                     <p>등록된 이미지가 없습니다.</p>

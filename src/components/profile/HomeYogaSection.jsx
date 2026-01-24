@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { storageService } from '../../services/storage';
 
-const HomeYogaCards = ({ language }) => {
+const HomeYogaCards = ({ language, onDataLoad }) => {
     const [poses, setPoses] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -11,6 +11,7 @@ const HomeYogaCards = ({ language }) => {
             try {
                 const data = await storageService.getDailyYoga(language);
                 setPoses(data);
+                if (onDataLoad) onDataLoad(data);
             } catch (e) {
                 console.warn(e);
             } finally {
@@ -25,7 +26,7 @@ const HomeYogaCards = ({ language }) => {
 
     return (
         <>
-            {poses.map((pose, idx) => (
+            {poses.slice(0, 2).map((pose, idx) => (
                 <div key={idx} style={{
                     minWidth: '200px',
                     background: 'rgba(255,255,255,0.05)',
@@ -52,17 +53,19 @@ const HomeYogaCards = ({ language }) => {
 };
 
 const HomeYogaSection = ({ language, t }) => {
+    const [poses, setPoses] = useState(null);
+
     return (
         <div style={{ marginBottom: '25px', padding: '15px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
             <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: 'var(--primary-gold)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                🧘 {t('homeYogaTitle') || "오늘의 3분 홈트"}
+                🧘 {(poses && poses.isFallback) ? (t('homeYogaBasicTitle') || "기본 추천 요가") : (t('homeYogaTitle') || "오늘의 AI 추천 요가")}
                 <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', marginLeft: '8px', fontWeight: 'normal' }}>
-                    {t('homeYogaSub')}
+                    {(poses && poses.isFallback) ? "서비스 연결이 원활하지 않아 기본 코스를 안내합니다." : t('homeYogaSub')}
                 </span>
             </h3>
 
             <div className="home-yoga-scroll" style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '5px', scrollSnapType: 'x mandatory' }}>
-                <HomeYogaCards language={language} />
+                <HomeYogaCards language={language} onDataLoad={setPoses} />
             </div>
         </div>
     );

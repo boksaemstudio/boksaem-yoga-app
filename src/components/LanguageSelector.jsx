@@ -38,7 +38,7 @@ const LanguageSelector = ({ variant = 'default' }) => {
                     }}
                 >
                     {languages.map(lang => (
-                        <option key={lang.code} value={lang.code} style={{ color: 'black' }}>
+                        <option key={lang.code} value={lang.code} style={{ color: '#000000', backgroundColor: '#ffffff' }}>
                             {lang.label}
                         </option>
                     ))}
@@ -86,7 +86,7 @@ const LanguageSelector = ({ variant = 'default' }) => {
                     }}
                 >
                     {languages.map(lang => (
-                        <option key={lang.code} value={lang.code} style={{ color: 'black' }}>
+                        <option key={lang.code} value={lang.code} style={{ color: '#000000', backgroundColor: '#ffffff' }}>
                             {lang.label}
                         </option>
                     ))}

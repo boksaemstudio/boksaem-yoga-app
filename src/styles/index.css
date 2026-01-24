@@ -402,7 +402,9 @@ select option {
 }
 
 .dashboard-card.highlight {
-  border-left: 3px solid var(--primary-gold);
+  border: 2px solid var(--primary-gold) !important;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.4) !important;
+  background: rgba(255, 215, 0, 0.05);
 }
 
 .card-label {
@@ -1473,4 +1475,50 @@ h6 {
 select option {
   background-color: var(--bg-surface-opaque);
   color: var(--text-primary);
+}
+/* Tooltip Styles */
+.tooltip-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: help;
+}
+
+.tooltip-text {
+  visibility: hidden;
+  width: 200px;
+  background-color: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 8px;
+  position: absolute;
+  z-index: 100;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -100px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  font-weight: normal;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.tooltip-text::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(0,0,0,0.9) transparent transparent transparent;
+}
+
+.tooltip-container:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
 }
