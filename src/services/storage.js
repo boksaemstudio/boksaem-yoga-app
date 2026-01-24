@@ -18,6 +18,7 @@ import {
 } from "firebase/firestore";
 import { STUDIO_CONFIG } from '../studioConfig';
 import { messaging, getToken } from "../firebase";
+import * as scheduleService from './scheduleService'; // [Refactor]
 
 // Local cache for sync-like access
 let cachedMembers = [];
@@ -386,392 +387,40 @@ export const storageService = {
     }
   },
 
+
+  // [Refactoring] Delegated to ScheduleService
   async getMonthlyClasses(branchId, year, month) {
-    if (!branchId) return {};
-
-    // [LEGACY SUPPORT]
-    // We do NOT check for metadata existence here anymore.
-    // We just try to fetch daily classes. If they exist, we return them.
-    // This allows January (legacy) data to be shown even if 'monthly_schedules' doc is missing.
-
-    const startStr = `${year}-${String(month).padStart(2, '0')}-01`;
-    const endStr = `${year}-${String(month).padStart(2, '0')}-31`;
-
-    const q = query(
-      collection(db, 'daily_classes'),
-      where('branchId', '==', branchId),
-      where('date', '>=', startStr),
-      where('date', '<=', endStr)
-    );
-
-    try {
-      const snapshot = await getDocs(q);
-      const monthlyData = {};
-      snapshot.docs.forEach(doc => {
-        monthlyData[doc.data().date] = doc.data().classes;
-      });
-      return monthlyData;
-    } catch (e) {
-      console.warn("Failed to fetch monthly classes:", e);
-      return {};
-    }
+    return scheduleService.getMonthlyClasses(branchId, year, month);
   },
 
   async getMonthlyScheduleStatus(branchId, year, month) {
-    try {
-      const metaDocId = `${branchId}_${year}_${month}`;
-      const metaRef = doc(db, 'monthly_schedules', metaDocId);
-      const metaSnap = await getDoc(metaRef);
-
-      if (metaSnap.exists()) {
-        return { exists: true, isSaved: metaSnap.data().isSaved };
-      }
-
-      // [FALLBACK] Check if 'daily_classes' exist for a sample day (e.g. 1st day)
-      // This supports legacy data created before metadata feature
-      // Try checking the 1st day of the month
-      const sampleDate = `${year}-${String(month).padStart(2, '0')}-01`;
-      const dailyRef = doc(db, 'daily_classes', `${branchId}_${sampleDate}`);
-      const dailySnap = await getDoc(dailyRef);
-
-      if (dailySnap.exists()) {
-        return { exists: true, isSaved: true, isLegacy: true };
-      }
-
-      // Try checking a few more days just in case 1st is empty/holiday
-      // Or better, simple query? (Query might be expensive if no index, but exact match on ID prefix not possible easily)
-      // Let's check 2nd and 3rd too.
-      for (let d = 2; d <= 5; d++) {
-        const dStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const dRef = doc(db, 'daily_classes', `${branchId}_${dStr}`);
-        const dSnap = await getDoc(dRef);
-        if (dSnap.exists()) return { exists: true, isSaved: true, isLegacy: true };
-      }
-
-      return { exists: false, isSaved: false };
-    } catch (e) {
-      console.warn("Status check failed:", e);
-      return { exists: false, isSaved: false };
-    }
+    return scheduleService.getMonthlyScheduleStatus(branchId, year, month);
   },
 
   async updateDailyClasses(branchId, date, classes) {
-    try {
-      const docRef = doc(db, 'daily_classes', `${branchId}_${date}`);
-      await setDoc(docRef, {
-        branchId,
-        date,
-        classes,
-        updatedAt: new Date().toISOString()
-      });
-      return { success: true };
-    } catch (e) {
-      console.error("Update daily classes failed:", e);
-      throw e;
-    }
+    return scheduleService.updateDailyClasses(branchId, date, classes);
   },
 
   async batchUpdateDailyClasses(branchId, updates) {
-    try {
-      const batch = await import("firebase/firestore").then(mod => mod.writeBatch(db));
-      updates.forEach(update => {
-        const docRef = doc(db, 'daily_classes', `${branchId}_${update.date}`);
-        batch.set(docRef, {
-          branchId,
-          date: update.date,
-          classes: update.classes,
-          updatedAt: new Date().toISOString()
-        });
-      });
-      await batch.commit();
-      return { success: true };
-    } catch (e) {
-      console.error("Batch update failed:", e);
-      throw e;
-    }
+    return scheduleService.batchUpdateDailyClasses(branchId, updates);
   },
 
-  // [NEW] Smart Creation Logic
   async createMonthlySchedule(branchId, year, month) {
-    console.log(`[Schedule] Creating for ${branchId} ${year}-${month}`);
-    try {
-      // 1. Fetch Weekly Template (Blueprint) from Firestore
-      // ... (existing logic)
-      const templateRef = doc(db, 'weekly_templates', branchId);
-      const templateSnap = await getDoc(templateRef);
-
-      let template = [];
-      if (templateSnap.exists()) {
-        template = templateSnap.data().classes || [];
-      } else {
-        console.warn("Weekly template not found in Firestore, using config fallback.");
-        template = STUDIO_CONFIG.DEFAULT_SCHEDULE_TEMPLATE[branchId] || [];
-      }
-      return this._generateScheduleFromTemplate(branchId, year, month, template);
-    } catch (e) {
-      console.error("Create monthly schedule failed:", e);
-      throw e;
-    }
+    return scheduleService.createMonthlySchedule(branchId, year, month);
   },
 
   async copyMonthlySchedule(branchId, fromYear, fromMonth, toYear, toMonth) {
-    try {
-      console.log(`Copying schedule from ${fromYear}-${fromMonth} to ${toYear}-${toMonth}`);
-
-      // Helper to get day name
-      const getDayName = (date) => ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
-
-      // 1. Scan Source Month Data
-      // We need to fetch ALL classes from the source month to analyze patterns.
-      const sourceDays = [];
-      const daysInSourceMonth = new Date(fromYear, fromMonth, 0).getDate();
-
-      // Fetch all potential days in parallel (batching might be needed if month is huge, but 31 days is fine)
-      const fetchPromises = [];
-      for (let d = 1; d <= daysInSourceMonth; d++) {
-        const dStr = `${fromYear}-${String(fromMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        fetchPromises.push(getDoc(doc(db, 'daily_classes', `${branchId}_${dStr}`)).then(snap => ({ day: d, date: new Date(fromYear, fromMonth - 1, d), exists: snap.exists(), data: snap.data() })));
-      }
-
-      const results = await Promise.all(fetchPromises);
-      const validDays = results.filter(r => r.exists && r.data.classes && r.data.classes.length > 0);
-
-      if (validDays.length === 0) {
-        throw new Error("지난 달 데이터가 전혀 없어 복사할 수 없습니다. 먼저 지난 달 스케줄을 확인해주세요.");
-      }
-
-      // 2. Extract "Best Template" for Weekdays (Mon-Fri)
-      // Strategy: Group by Week #, score by number of classes. Pick the week with max classes.
-      const weeks = {};
-      validDays.forEach(r => {
-        const dayIdx = r.date.getDay();
-        if (dayIdx === 0 || dayIdx === 6) return; // Skip weekends for template
-
-        // Calculate approximate week number (1-5)
-        const weekNum = Math.ceil(r.day / 7);
-        if (!weeks[weekNum]) weeks[weekNum] = [];
-        weeks[weekNum].push(r);
-      });
-
-      // Find the week with the most 'full' days (max logic)
-      let bestWeekNum = null;
-      let maxScore = -1;
-
-      Object.entries(weeks).forEach(([weekNum, days]) => {
-        // Score = number of classes in that week
-        const score = days.reduce((acc, curr) => acc + (curr.data.classes.length || 0), 0);
-        if (score > maxScore) {
-          maxScore = score;
-          bestWeekNum = weekNum;
-        }
-      });
-
-      // Valid weekday template map: "월" -> [Classes], "화" -> [Classes]...
-      const weekdayTemplate = {};
-      if (bestWeekNum && weeks[bestWeekNum]) {
-        weeks[bestWeekNum].forEach(r => {
-          weekdayTemplate[getDayName(r.date)] = r.data.classes;
-        });
-      } else {
-        // Fallback: If no good week found, just try to collect *any* weekday data
-        validDays.forEach(r => {
-          const name = getDayName(r.date);
-          if (name !== '토' && name !== '일' && !weekdayTemplate[name]) {
-            weekdayTemplate[name] = r.data.classes;
-          }
-        });
-      }
-
-      // 3. Collect Saturdays (Sequential)
-      const sourceSaturdays = validDays
-        .filter(r => r.date.getDay() === 6)
-        .sort((a, b) => a.day - b.day)
-        .map(r => r.data.classes);
-
-      // 4. Generate Target Month
-      const updates = [];
-      const daysInTargetMonth = new Date(toYear, toMonth, 0).getDate();
-      let saturdayIndex = 0;
-
-      for (let d = 1; d <= daysInTargetMonth; d++) {
-        const targetDate = new Date(toYear, toMonth - 1, d);
-        const dayName = getDayName(targetDate);
-        const dateStr = `${toYear}-${String(toMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        let classesToCopy = [];
-
-        if (dayName === '토') {
-          // Rotation Logic: 1st -> 1st, 2nd -> 2nd... loop if needed
-          if (sourceSaturdays.length > 0) {
-            classesToCopy = sourceSaturdays[saturdayIndex % sourceSaturdays.length];
-            saturdayIndex++;
-          }
-        } else if (dayName === '일') {
-          // Treat Sunday like weekdays (Template) or skip if not in template
-          classesToCopy = weekdayTemplate['일'] || [];
-        } else {
-          // Weekdays (Mon-Fri) -> Use Best Template
-          classesToCopy = weekdayTemplate[dayName] || [];
-        }
-
-        // Clean up classes
-        if (classesToCopy && classesToCopy.length > 0) {
-          const cleanedClasses = classesToCopy.map(cls => ({
-            time: cls.time,
-            title: cls.title,
-            instructor: cls.instructor,
-            status: 'normal',
-            level: cls.level || '',
-            duration: cls.duration || 60
-          }));
-          updates.push({ date: dateStr, classes: cleanedClasses });
-        }
-      }
-
-      if (updates.length > 0) {
-        await this.batchUpdateDailyClasses(branchId, updates);
-
-        // Save Metadata
-        const metaDocId = `${branchId}_${toYear}_${toMonth}`;
-        await setDoc(doc(db, 'monthly_schedules', metaDocId), {
-          branchId, year: toYear, month: toMonth, isSaved: true, createdAt: new Date().toISOString(), createdBy: auth.currentUser?.email || 'admin'
-        });
-
-        return { success: true, message: `지난달 데이터를 기반으로 새 스케줄이 생성되었습니다.\n(평일: ${bestWeekNum || 1}주차 패턴, 토요일: 순차 적용)` };
-      }
-
-      return { success: false, message: "복사할 데이터가 없습니다." };
-
-    } catch (e) {
-      console.error("Copy schedule failed:", e);
-      throw e;
-    }
+    return scheduleService.copyMonthlySchedule(branchId, fromYear, fromMonth, toYear, toMonth);
   },
 
   async deleteMonthlySchedule(branchId, year, month) {
-    try {
-      console.log(`Deleting schedule for ${branchId} ${year}-${month}`);
-
-      // 1. Find all daily classes for this month
-      const startStr = `${year}-${String(month).padStart(2, '0')}-01`;
-      const endStr = `${year}-${String(month).padStart(2, '0')}-31`;
-
-      const q = query(
-        collection(db, 'daily_classes'),
-        where('branchId', '==', branchId),
-        where('date', '>=', startStr),
-        where('date', '<=', endStr)
-      );
-
-      const snapshot = await getDocs(q);
-
-      // 2. Batch Delete
-      const batch = await import("firebase/firestore").then(mod => mod.writeBatch(db));
-      let count = 0;
-
-      snapshot.docs.forEach((doc) => {
-        batch.delete(doc.ref);
-        count++;
-      });
-
-      // 3. Delete Metadata
-      const metaDocId = `${branchId}_${year}_${month}`;
-      batch.delete(doc(db, 'monthly_schedules', metaDocId));
-
-      // 4. Delete Image (if exists)
-      // Since we don't know the exact image key without checking, we could guess key format.
-      // But updateImage will overwrite anyway. Let's just focus on data reset.
-      // Optionally could reset image but might be unsafe if user wants to keep image.
-      // User request is "Init Schedule", usually means data.
-
-      if (count > 0 || snapshot.empty) await batch.commit();
-
-      return { success: true, count };
-    } catch (e) {
-      console.error("Delete schedule failed:", e);
-      throw e;
-    }
+    return scheduleService.deleteMonthlySchedule(branchId, year, month);
   },
 
-  subscribe(callback) {
-    listeners.push(callback);
-    return () => { listeners = listeners.filter(l => l !== callback); };
-  },
-
-
-  getNotices() { return [...cachedNotices].sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0)); },
-  getAttendance() { return [...cachedAttendance].sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0)); },
-  getPushHistory() { return [...cachedMessages].sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0)); },
-  getMembers() { return [...cachedMembers]; }, // [OPTIMIZATION] Sync getter
-  getAllPushTokens() { return []; /* Placeholder if needed, or implement fetching fcm_tokens */ },
-
-  async getPricing() {
-    try {
-      const docSnap = await getDoc(doc(db, 'settings', 'pricing'));
-      if (docSnap.exists()) return docSnap.data().config;
-      return STUDIO_CONFIG.PRICING;
-    } catch (e) {
-      console.warn("Failed to load pricing:", e);
-      return STUDIO_CONFIG.PRICING;
-    }
-  },
-
-  async savePricing(newPricing) {
-    try {
-      await setDoc(doc(db, 'settings', 'pricing'), { config: newPricing, updatedAt: new Date().toISOString() }, { merge: true });
-      return true;
-    } catch (e) {
-      console.error("Failed to save pricing:", e);
-      return false;
-    }
-  },
-
-  async getInstructors() {
-    try {
-      const docSnap = await getDoc(doc(db, 'settings', 'instructors'));
-      if (docSnap.exists() && docSnap.data().list) return docSnap.data().list;
-
-      // Fallback: Extract from DEFAULT_SCHEDULE_TEMPLATE
-      const instructors = new Set();
-      Object.values(STUDIO_CONFIG.DEFAULT_SCHEDULE_TEMPLATE).forEach(schedule => {
-        schedule.forEach(cls => {
-          if (cls.instructor) instructors.add(cls.instructor);
-        });
-      });
-      return Array.from(instructors).sort();
-    } catch (e) {
-      console.warn("Failed to load instructors:", e);
-      return ['원장', '한아', '정연', '미선', '희정', '보윤', '소영', '은혜', '혜실', '세연', 'anu', '송미', '다나', '리안', '성희', '효원', '희연'];
-    }
-  },
-
-  async getClassTypes() {
-    try {
-      const docSnap = await getDoc(doc(db, 'settings', 'classTypes'));
-      if (docSnap.exists() && docSnap.data().list) return docSnap.data().list;
-
-      // Fallback
-      const types = new Set();
-      Object.values(STUDIO_CONFIG.DEFAULT_SCHEDULE_TEMPLATE).forEach(schedule => {
-        schedule.forEach(cls => {
-          if (cls.className) types.add(cls.className);
-        });
-      });
-      return Array.from(types).sort();
-    } catch (e) {
-      console.warn("Failed to load class types:", e);
-      return ['하타', '마이솔', '아쉬탕가', '인요가', '하타+인', '하타인텐시브', '임신부요가', '플라잉', '키즈플라잉', '빈야사', '인양요가', '힐링', '로우플라잉'];
-    }
-  },
-
-  async getClassLevels() {
-    try {
-      const docSnap = await getDoc(doc(db, 'settings', 'classLevels'));
-      if (docSnap.exists() && docSnap.data().list) return docSnap.data().list;
-      return ['0.5', '1', '1.5', '2'];
-    } catch {
-      return ['0.5', '1', '1.5', '2'];
-    }
-  },
+  // Delegated Config Getters
+  async getInstructors() { return scheduleService.getInstructors(); },
+  async getClassTypes() { return scheduleService.getClassTypes(); },
+  async getClassLevels() { return scheduleService.getClassLevels(); },
   async getMemberById(id) {
     const docSnap = await getDoc(doc(db, 'members', id));
     return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
@@ -792,7 +441,7 @@ export const storageService = {
   // Kiosk branch management (localStorage-based for tablet persistence)
   getKioskBranch() {
     const stored = this._safeGetItem('kiosk_branch');
-    return stored || 'mapo'; // Default to mapo
+    return stored || STUDIO_CONFIG.BRANCH_IDS.MAPO; // Default to mapo
   },
 
   setKioskBranch(branchId) {
@@ -1145,6 +794,24 @@ export const storageService = {
     } catch (e) {
       console.error("Add manual attendance failed:", e);
       return { success: false, message: e.message };
+    }
+  },
+
+  // [Monitoring] Get Error Logs
+  getErrorLogs: async (limitCount = 50) => {
+    try {
+      // Ensure 'error_logs' collection exists or is queryable.
+      // Note: Composite index might be needed for 'timestamp desc'.
+      const q = query(
+        collection(db, 'error_logs'),
+        orderBy('timestamp', 'desc'),
+        limit(limitCount)
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      console.error("Error fetching error logs:", error);
+      return [];
     }
   }
 };

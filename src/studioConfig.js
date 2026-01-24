@@ -17,6 +17,12 @@ export const STUDIO_CONFIG = {
         // { id: 'gangnam', name: '강남점' }
     ],
 
+    // [New] Branch Constants for Code Usage
+    BRANCH_IDS: {
+        GWANGHEUNGCHANG: 'gwangheungchang',
+        MAPO: 'mapo'
+    },
+
     // 3. 브랜딩 및 테마 (기본값)
     THEME: {
         PRIMARY_COLOR: "#D4AF37", // Gold
