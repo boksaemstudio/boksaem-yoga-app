@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { X, User, Calendar, CreditCard, ClockCounterClockwise, Chats, CheckSquare, Square } from '@phosphor-icons/react';
+import React, { useState, useEffect, useRef } from 'react';
+import { onSnapshot, doc, collection, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
+import { db } from '../firebase';
+import { X, User, Calendar, CreditCard, ClockCounterClockwise, Chats, CheckSquare, Square, BellRinging } from '@phosphor-icons/react';
 import RegistrationTab from './admin/member-detail/RegistrationTab';
 import AttendanceTab from './admin/member-detail/AttendanceTab';
 import SalesHistoryTab from './admin/member-detail/SalesHistoryTab';
@@ -7,10 +9,87 @@ import MessagesTab from './admin/member-detail/MessagesTab';
 import { storageService } from '../services/storage';
 import CustomDatePicker from './common/CustomDatePicker';
 
-const AdminMemberDetailModal = ({ member, onClose, pricingConfig, onUpdateMember, onAddSalesRecord }) => {
+const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberLogs, onClose, pricingConfig, onUpdateMember, onAddSalesRecord, pushTokens = [] }) => {
+    // [FIX] Use local state for immediate UI updates
+    const [localMember, setLocalMember] = useState(initialMember);
+    const member = localMember || initialMember;
+
+    // Sync prop changes to local state
+    useEffect(() => {
+        setLocalMember(initialMember);
+    }, [initialMember]);
+
     const [activeTab, setActiveTab] = useState('info');
 
     const [editData, setEditData] = useState({ ...member });
+    const [memberLogs, setMemberLogs] = useState(propMemberLogs || []);
+    const [logLimit, setLogLimit] = useState(50);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const isSubmittingRef = useRef(false);
+
+    // [REAL-TIME] Dedicated listener for the viewed member to ensure header/stats are always fresh
+    useEffect(() => {
+        if (!member?.id) return;
+
+        console.log(`[AdminMemberDetailModal] Setting up real-time listener for member: ${member.id}`);
+        const unsub = onSnapshot(doc(db, 'members', member.id), (snap) => {
+            if (snap.exists()) {
+                const updatedData = { id: snap.id, ...snap.data() };
+                console.log(`[AdminMemberDetailModal] Real-time data received for ${updatedData.name}`);
+                setLocalMember(updatedData);
+            }
+        }, (err) => {
+            console.error("[AdminMemberDetailModal] Member listener error:", err);
+        });
+
+        return () => {
+            console.log(`[AdminMemberDetailModal] Cleaning up listener for ${member.id}`);
+            unsub();
+        };
+    }, [member?.id]);
+
+    // [REAL-TIME] Dedicated listener for attendance logs to ensure list is always fresh
+    useEffect(() => {
+        if (!member?.id) return;
+
+        console.log(`[AdminMemberDetailModal] Setting up logs listener for: ${member.id}`);
+        const q = query(
+            collection(db, 'attendance'),
+            where('memberId', '==', member.id),
+            orderBy('timestamp', 'desc'),
+            firestoreLimit(logLimit)
+        );
+
+        const unsubAt = onSnapshot(q, (snap) => {
+            const history = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            console.log(`[AdminMemberDetailModal] Real-time logs updated: ${history.length} records`);
+            setMemberLogs(history);
+
+            // [FIX] Auto-calculate dates if member is still 'TBD' but has attendance logs
+            if (member.endDate === 'TBD' && history.length > 0) {
+                console.log('[AdminMemberDetailModal] Auto-fixing TBD dates based on real-time logs');
+                const sortedLogs = [...history].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                const earliestLog = sortedLogs[0];
+                const attendanceDate = new Date(earliestLog.timestamp);
+                const startDateStr = attendanceDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+
+                const durationMonths = member.duration || 3;
+                const endDate = new Date(attendanceDate);
+                endDate.setMonth(endDate.getMonth() + durationMonths);
+                const endDateStr = endDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+
+                storageService.updateMember(member.id, {
+                    startDate: startDateStr,
+                    endDate: endDateStr
+                }).catch(e => console.error("TBD Fix failed:", e));
+                // Local state will update via the other member listener
+            }
+        }, (err) => {
+            console.error("[AdminMemberDetailModal] Logs listener error:", err);
+        });
+
+        return () => unsubAt();
+    }, [member?.id, member.endDate, member.duration, logLimit]);
 
     // Selective Save State
     const [showChangeModal, setShowChangeModal] = useState(false);
@@ -107,23 +186,88 @@ const AdminMemberDetailModal = ({ member, onClose, pricingConfig, onUpdateMember
     };
 
     const handleManualAttendance = async (dateStr, timeStr, branchId) => {
+        if (isSubmitting || isSubmittingRef.current) return; // Prevent double submission
+        isSubmittingRef.current = true;
+        setIsSubmitting(true);
         try {
             // Combine date and time to ISO string
             const timestamp = new Date(`${dateStr}T${timeStr || '12:00'}`).toISOString();
-            await storageService.addManualAttendance(member.id, timestamp, branchId);
-            alert('수동 출석처리가 완료되었습니다.');
-            // Refresh logs if needed (handled by listener usually, but modal might need explicit refresh if using local state)
+            const result = await storageService.addManualAttendance(member.id, timestamp, branchId);
+
+            if (result.success) {
+                // If this is the first attendance for a TBD member, calculate dates
+                if (member.startDate === 'TBD') {
+                    const attendanceDate = new Date(timestamp);
+                    const startDateStr = attendanceDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+
+                    const durationMonths = member.duration || 3;
+                    const endDate = new Date(attendanceDate);
+                    endDate.setMonth(endDate.getMonth() + durationMonths);
+                    const endDateStr = endDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+
+                    const updateData = {
+                        startDate: startDateStr,
+                        endDate: endDateStr
+                    };
+
+                    await storageService.updateMember(member.id, updateData);
+
+                    // [FIX] Update local member state immediately to reflect changes in UI
+                    setLocalMember(prev => ({
+                        ...prev,
+                        ...updateData
+                    }));
+
+                    // Notify parent to refresh list with correct arguments
+                    if (onUpdateMember) {
+                        onUpdateMember(member.id, updateData);
+                    }
+                }
+
+                setLocalMember(prev => ({
+                    ...prev,
+                    credits: (Number(prev.credits) || 0) - 1
+                }));
+
+                // [FIX] Always notify parent to refresh member data (credits, usage) and potentially lists
+                if (onUpdateMember) {
+                    // StartDate update might have happened above, but we need to ensure credit sync too.
+                    // We pass the latest member state we expect.
+                    // Or simply trigger it. onUpdateMember(member.id, { ...changes })
+                    // We just passed 'credits' change roughly.
+                    onUpdateMember(member.id, {
+                        credits: (Number(member.credits) || 0) - 1,
+                        lastAttendance: timestamp
+                    });
+                }
+
+                alert('수동 출석처리가 완료되었습니다.');
+            } else {
+                alert('출석 처리에 실패했습니다: ' + (result.message || '알 수 없는 오류'));
+            }
         } catch (e) {
             console.error(e);
             alert('출석 처리에 실패했습니다.');
+        } finally {
+            isSubmittingRef.current = false;
+            setIsSubmitting(false);
         }
     };
+
 
     const handleDeleteAttendance = async (logId) => {
         if (!confirm('정말 삭제하시겠습니까? 횟수가 반환됩니다.')) return;
         try {
             await storageService.deleteAttendance(logId);
-            alert('출석 기록이 삭제되었습니다.');
+            alert('출석 기록이 삭제되었습니다. 횟수가 본래대로 복원되었습니다.');
+            // [FIX] Restore credit locally for immediate feedback
+            setLocalMember(prev => ({
+                ...prev,
+                credits: (Number(prev.credits) || 0) + 1
+            }));
+            // Refresh logs
+            const logs = await storageService.getAttendanceByMemberId(member.id);
+            setMemberLogs(logs);
         } catch (e) {
             console.error(e);
             alert('삭제에 실패했습니다.');
@@ -151,15 +295,32 @@ const AdminMemberDetailModal = ({ member, onClose, pricingConfig, onUpdateMember
                     background: '#27272a'
                 }}>
                     <div>
-                        <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
-                            {member.name} <span style={{ fontSize: '0.9rem', color: '#a1a1aa', fontWeight: 'normal' }}>{member.phone}</span>
+                        <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'white', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {member.name}
+                            <span style={{ fontSize: '0.9rem', color: '#a1a1aa', fontWeight: 'normal' }}>{member.phone}</span>
+                            {pushTokens.some(t => t.memberId === member.id) && (
+                                <div style={{
+                                    display: 'flex', alignItems: 'center', gap: '4px',
+                                    background: 'rgba(16, 185, 129, 0.15)', color: '#10B981',
+                                    padding: '2px 8px', borderRadius: '6px', fontSize: '0.7rem',
+                                    fontWeight: 'bold', border: '1px solid rgba(16, 185, 129, 0.3)'
+                                }}>
+                                    <BellRinging size={12} weight="fill" /> 푸시 ON
+                                </div>
+                            )}
                         </h2>
                         <div style={{ fontSize: '0.8rem', color: determineStatusColor(member), display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                            <span>{member.membershipType} | </span>
+                            <span>{getMembershipTypeLabel(member.membershipType)} | </span>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '12px' }}>
                                 <span style={{ fontWeight: 'bold' }}>{member.credits}회 남음</span>
                             </div>
-                            <span> | ~{member.endDate}</span>
+                            <span> | {
+                                member.endDate === 'TBD'
+                                    ? '첫 출석 시 기간 확정'
+                                    : member.endDate
+                                        ? `~ ${member.endDate}`
+                                        : '만료일 미설정'
+                            }</span>
                         </div>
                     </div>
                     <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'white', padding: '10px' }}>
@@ -203,10 +364,13 @@ const AdminMemberDetailModal = ({ member, onClose, pricingConfig, onUpdateMember
                     {activeTab === 'attendance' && (
                         <div className="fade-in">
                             <AttendanceTab
-                                logs={[]}
+                                logs={memberLogs}
                                 member={member}
                                 onAdd={handleManualAttendance}
                                 onDelete={handleDeleteAttendance}
+                                isSubmitting={isSubmitting}
+                                logLimit={logLimit}
+                                setLogLimit={setLogLimit}
                             />
                         </div>
                     )}
@@ -227,7 +391,7 @@ const AdminMemberDetailModal = ({ member, onClose, pricingConfig, onUpdateMember
                     )}
                     {activeTab === 'messages' && (
                         <div className="fade-in">
-                            <MessagesTab />
+                            <MessagesTab memberId={member.id} />
                         </div>
                     )}
                 </div>
@@ -353,7 +517,27 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig }) => {
             <h4 style={{ color: 'var(--primary-gold)', margin: 0, fontSize: '0.9rem' }}>• 수강권 기간 관리 (관리자 수정용)</h4>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <InputGroup label="시작일" value={editData.startDate || ''} onChange={v => setEditData({ ...editData, startDate: v })} type="date" />
+                <InputGroup
+                    label="시작일"
+                    value={editData.startDate || ''}
+                    onChange={v => {
+                        const updates = { startDate: v };
+                        // [NEW] Smart End Date Calculation when Start Date is manually changed/assigned
+                        if (v && v !== 'TBD' && editData.duration) {
+                            const start = new Date(v);
+                            const end = new Date(start);
+                            end.setMonth(end.getMonth() + (Number(editData.duration) || 1));
+                            end.setDate(end.getDate() - 1);
+                            const newEndDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+
+                            if (confirm(`시작일 변경에 따라 종료일을 ${newEndDate}로 자동 조정하시겠습니까?`)) {
+                                updates.endDate = newEndDate;
+                            }
+                        }
+                        setEditData({ ...editData, ...updates });
+                    }}
+                    type="date"
+                />
                 <InputGroup label="종료일" value={editData.endDate || ''} onChange={v => setEditData({ ...editData, endDate: v })} type="date" />
             </div>
 
@@ -422,13 +606,37 @@ const inputStyle = {
 };
 
 const determineStatusColor = (member) => {
+    if (member.endDate === 'TBD') return 'var(--primary-gold)';
     if (!member.endDate) return '#ef4444';
+    const credits = Number(member.credits || 0);
     const end = new Date(member.endDate);
     const today = new Date();
-    if (end < today) return '#ef4444';
+    today.setHours(0, 0, 0, 0);
+
+    if (end < today || credits <= 0) return '#ef4444';
     const diff = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
-    if (diff <= 7) return '#f59e0b';
+    if (diff <= 7 || credits <= 3) return '#f59e0b';
     return '#10b981';
+};
+
+const getMembershipTypeLabel = (type) => {
+    const labels = {
+        'general': '일반',
+        'intensive': '심화',
+        'kids': '키즈',
+        'pregnancy': '임산부',
+        'sat_hatha': '토요하타',
+        'ttc': 'TTC'
+    };
+    return labels[type] || type;
+};
+
+const determineStatusText = (member) => {
+    if (member.endDate === 'TBD') return '첫 출석 대기';
+    const end = new Date(member.endDate);
+    const today = new Date();
+    if (end < today) return '기간 만료';
+    return '이용 중';
 };
 
 export default AdminMemberDetailModal;

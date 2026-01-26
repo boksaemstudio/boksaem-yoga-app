@@ -24,3 +24,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Secrets
+service-account-key.json
+functions/service-account-key.json

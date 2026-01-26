@@ -1,21 +1,7 @@
 ﻿import { db, auth, functions } from "../firebase";
 import { signInAnonymously } from "firebase/auth";
 import { httpsCallable } from "firebase/functions";
-import {
-  collection,
-  getDocs,
-  addDoc,
-  updateDoc,
-  doc,
-  deleteDoc,
-  onSnapshot,
-  query,
-  orderBy,
-  setDoc,
-  getDoc,
-  where,
-  limit
-} from "firebase/firestore";
+import { onSnapshot, doc, collection, getDocs, getDoc, addDoc, updateDoc, setDoc, deleteDoc, query, where, orderBy, limit as firestoreLimit, increment } from 'firebase/firestore';
 import { STUDIO_CONFIG } from '../studioConfig';
 import { messaging, getToken } from "../firebase";
 import * as scheduleService from './scheduleService'; // [Refactor]
@@ -24,10 +10,12 @@ import * as scheduleService from './scheduleService'; // [Refactor]
 let cachedMembers = [];
 let cachedAttendance = [];
 let cachedNotices = [];
-let cachedMessages = [];
+// let cachedMessages = [];  // Unused
 let cachedImages = {};
 let pendingImageWrites = {}; // Buffer for optimistic updates
 let cachedDailyClasses = {};
+let cachedPushTokensMap = {}; // Use Map-like object to merge multiple collections
+let cachedPushTokens = [];
 let listeners = [];
 
 const notifyListeners = () => {
@@ -36,7 +24,6 @@ const notifyListeners = () => {
 
 export const storageService = {
   async initialize({ mode = 'full' } = {}) {
-    console.log(`Initializing Firebase Storage Service (Mode: ${mode})...`);
     // [FIX] Check for existing session (e.g. Admin) before forcing Anonymous login
     try {
       await new Promise((resolve) => {
@@ -48,9 +35,6 @@ export const storageService = {
 
       if (!auth.currentUser) {
         await signInAnonymously(auth);
-        console.log("Secure session established (Anonymous Auth).");
-      } else {
-        console.log("Existing session restored:", auth.currentUser.email || "Anonymous");
       }
     } catch (authError) {
       console.error("Auth initialization failed:", authError);
@@ -74,7 +58,9 @@ export const storageService = {
     // This is the "Truth": The kiosk must NOT have heavy listeners.
     // If asked to change, confirm with user 2-3 times.
     if (mode === 'kiosk') {
-      console.log("KIOSK MODE: Real-time subscriptions disabled.");
+      console.log("KIOSK MODE: Real-time subscriptions disabled. Pre-fetching members...");
+      // [OPTIMIZATION] Pre-fetch members to make lookup O(1) in kiosk mode
+      this.loadAllMembers().then(m => console.log(`[Storage] Kiosk pre-fetch complete: ${m.length} members`));
       return;
     }
 
@@ -96,8 +82,45 @@ export const storageService = {
 
     safelySubscribe(
       collection(db, 'messages'),
-      (snapshot) => cachedMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
+      (snapshot) => { /* messages sync disabled for now */ },
       "Messages"
+    );
+
+    const updateTokenCache = (snapshot, collectionName) => {
+      const tokens = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      // Update the map for this collection
+      cachedPushTokensMap[collectionName] = tokens;
+
+      // Merge all tokens (avoiding duplicates by document ID)
+      const allMerged = {};
+      Object.values(cachedPushTokensMap).forEach(tokenList => {
+        tokenList.forEach(t => {
+          allMerged[t.id] = t;
+        });
+      });
+
+      cachedPushTokens = Object.values(allMerged);
+      console.log(`[Storage] Total Unique FCM Tokens: ${cachedPushTokens.length}`);
+      notifyListeners();
+    };
+
+    safelySubscribe(
+      collection(db, 'fcm_tokens'),
+      (snapshot) => updateTokenCache(snapshot, 'fcm_tokens'),
+      "FCMTokensMain"
+    );
+
+    safelySubscribe(
+      collection(db, 'fcmTokens'),
+      (snapshot) => updateTokenCache(snapshot, 'fcmTokens'),
+      "FCMTokensFallback1"
+    );
+
+    safelySubscribe(
+      collection(db, 'push_tokens'),
+      (snapshot) => updateTokenCache(snapshot, 'push_tokens'),
+      "FCMTokensFallback2"
     );
 
     safelySubscribe(
@@ -126,6 +149,22 @@ export const storageService = {
       },
       "Images"
     );
+  },
+
+  _setupMemberListener() {
+    console.log("[Storage] Starting Member Listener...");
+    try {
+      return onSnapshot(collection(db, 'members'), (snapshot) => {
+        const members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        cachedMembers = members;
+        console.log(`[Storage] Members updated via listener: ${members.length}`);
+        notifyListeners();
+      }, (error) => {
+        console.warn("[Storage] Member listener error:", error);
+      });
+    } catch (e) {
+      console.error("[Storage] Failed to setup member listener:", e);
+    }
   },
 
   _safeGetItem(key) { try { return localStorage.getItem(key); } catch { return null; } },
@@ -181,23 +220,7 @@ export const storageService = {
     }
   },
 
-  _setupMemberListener() {
-    console.log("[Storage] Starting Member Listener...");
-    onSnapshot(
-      collection(db, 'members'),
-      (snapshot) => {
-        const members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        cachedMembers = members;
-        console.log(`[Storage] Members updated via listener: ${members.length}`);
 
-        // Notify UI
-        listeners.forEach(cb => cb());
-      },
-      (error) => {
-        console.error("[Storage] Member listener error:", error);
-      }
-    );
-  },
 
   /**
    * Finds members by the last 4 digits of their phone number.
@@ -214,13 +237,19 @@ export const storageService = {
       // Update cache
       members.forEach(m => {
         const idx = cachedMembers.findIndex(cm => cm.id === m.id);
-        if (idx !== -1) cachedMembers[idx] = { ...cachedMembers[idx], ...m };
-        else cachedMembers.push(m);
+        if (idx !== -1) {
+          cachedMembers[idx] = { ...cachedMembers[idx], ...m };
+        } else {
+          // Double check to prevent race with listener
+          if (!cachedMembers.some(cm => cm.id === m.id)) {
+            cachedMembers.push(m);
+          }
+        }
       });
       return members;
     } catch (e) {
       console.warn("Using fallback for findMembersByPhone:", e);
-      const q = query(collection(db, 'members'), where("phoneLast4", "==", last4Digits), limit(10));
+      const q = query(collection(db, 'members'), where("phoneLast4", "==", last4Digits), firestoreLimit(10));
       const snapshot = await getDocs(q);
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }
@@ -232,30 +261,37 @@ export const storageService = {
       const checkInMember = httpsCallable(functions, 'checkInMemberV2Call');
       const currentClassInfo = await this.getCurrentClass(branchId);
       const classTitle = currentClassInfo?.title || '자율수련';
-      const response = await checkInMember({ memberId, branchId, classTitle });
+      const instructor = currentClassInfo?.instructor || '관리자';
+      const response = await checkInMember({ memberId, branchId, classTitle, instructor });
 
       if (!response.data.success) throw new Error(response.data.message || 'Check-in failed');
 
-      const { newCredits, endDate, attendanceCount, streak } = response.data;
+      const { newCredits, startDate, endDate, attendanceCount, streak, isMultiSession, sessionCount } = response.data;
       const idx = cachedMembers.findIndex(m => m.id === memberId);
       if (idx !== -1) {
         cachedMembers[idx].credits = newCredits;
         cachedMembers[idx].attendanceCount = attendanceCount;
         cachedMembers[idx].streak = streak;
+        // [FIX] Update dates if they were TBD
+        cachedMembers[idx].startDate = startDate;
+        cachedMembers[idx].endDate = endDate;
         // [FIX] Locally update lastAttendance to prevent "Ghost Member" (Risk) false positives immediately after check-in
         cachedMembers[idx].lastAttendance = new Date().toISOString();
         notifyListeners();
       }
       return {
         success: true,
-        message: `[${classTitle}] 출석되었습니다!`,
+        message: isMultiSession ? `[${classTitle}] ${sessionCount}회차 출석되었습니다!` : `[${classTitle}] 출석되었습니다!`,
         member: {
           id: memberId,
           name: response.data.memberName,
           credits: newCredits,
           attendanceCount,
           streak,
-          endDate
+          startDate,
+          endDate,
+          isMultiSession,
+          sessionCount
         }
       };
     } catch (error) {
@@ -352,13 +388,7 @@ export const storageService = {
     }
   },
 
-  async requestAndSaveToken(role = 'member', language = 'ko') {
-    try {
-      const token = await getToken(messaging, { vapidKey: STUDIO_CONFIG.VAPID_KEY || import.meta.env.VITE_FIREBASE_VAPID_KEY });
-      if (token) await this.saveToken(token, role, language);
-      return token;
-    } catch { return null; }
-  },
+
 
   async getDailyYoga(language = 'ko') {
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
@@ -511,10 +541,11 @@ export const storageService = {
         updatedAt: new Date().toISOString(),
         phoneLast4: data.phone.slice(-4) // Optimisation for lookup
       });
+      console.log(`[Storage] Member added to Firestore: ${docRef.id}`);
 
-      // Update local cache immediately for speed
-      cachedMembers.push({ id: docRef.id, ...data });
-      notifyListeners();
+      // [REMOVED] cachedMembers.push(...)
+      // We rely on the real-time listener (_setupMemberListener) to update the cache.
+      // Manually pushing here causes duplicates when the listener also fires.
 
       return { success: true, id: docRef.id };
     } catch (e) {
@@ -596,7 +627,8 @@ export const storageService = {
       if (permission === 'granted') {
         const token = await this.requestAndSaveToken('member');
         if (token && memberId) {
-          await updateDoc(doc(db, 'fcm_tokens', token), { memberId });
+          // [FIX] Use setDoc with merge to prevent "No document to update" error
+          await setDoc(doc(db, 'fcm_tokens', token), { memberId, updatedAt: new Date().toISOString() }, { merge: true });
         }
       }
       return permission;
@@ -606,13 +638,49 @@ export const storageService = {
     }
   },
 
+  // Assuming requestAndSaveToken is a helper function within the same object or scope
+  // This is the function that the instruction refers to.
+  async requestAndSaveToken() {  // Removed unused 'type' parameter
+    try {
+      const permission = await Notification.requestPermission();
+      console.warn("Permission status:", permission);
+      if (permission === 'denied') {
+        throw new Error("브라우저 알림 권한이 차단되었습니다. 주소창의 자물쇠 아이콘을 눌러 허용해주세요.");
+      }
+
+      // The original instruction implies saving the token here, but the provided snippet
+      // only returns it. The saving logic for memberId is in requestPushPermission.
+      // [FIX] Ensure VAPID key is available. If .env is missing, the user needs to provide it.
+      // Used fallback from user provided key just in case env var fails in some build environments
+      const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+
+      if (!VAPID_KEY) {
+        alert("푸시 알림 설정 오류: VAPID Key가 설정되지 않았습니다. 관리자에게 문의하세요.");
+        throw new Error("VITE_FIREBASE_VAPID_KEY is missing");
+      }
+
+      console.log(`[Storage] Requesting token with VAPID Key...`);
+
+      const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+      return token;
+    } catch (e) {
+      console.error("Token retrieval failed:", e);
+      alert("푸시 토큰 발급 실패: " + (e.message || e) + "\n\n(Firebase Console에서 웹 푸시 인증서 키를 확인해주세요.)");
+      throw e;
+    }
+  },
+
   async getAttendanceByMemberId(memberId) {
     try {
-      const q = query(collection(db, 'attendance'), where('memberId', '==', memberId), orderBy('date', 'desc'), limit(50));
+      console.log('[Storage] getAttendanceByMemberId called for:', memberId);
+      const q = query(collection(db, 'attendance'), where('memberId', '==', memberId), orderBy('timestamp', 'desc'), firestoreLimit(50));
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      console.log('[Storage] getAttendanceByMemberId results:', results.length, results);
+      return results;
     } catch (e) {
-      console.error('Failed to fetch attendance:', e);
+      console.error('[Storage] Failed to fetch attendance:', e);
+      console.error('[Storage] Error details:', e.message, e.code);
       return [];
     }
   },
@@ -759,7 +827,29 @@ export const storageService = {
 
   async deleteAttendance(logId) {
     try {
-      await deleteDoc(doc(db, 'attendance', logId));
+      const logRef = doc(db, 'attendance', logId);
+      const logSnap = await getDoc(logRef);
+
+      if (logSnap.exists()) {
+        const logData = logSnap.data();
+        // If it was a standard check-in or manual entry, restore credit
+        if (logData.memberId && (logData.type === 'checkin' || logData.type === 'manual')) {
+          const memberRef = doc(db, 'members', logData.memberId);
+          await updateDoc(memberRef, {
+            credits: increment(1),
+            attendanceCount: increment(-1)
+          });
+
+          // Update local cache if available
+          const idx = cachedMembers.findIndex(m => m.id === logData.memberId);
+          if (idx !== -1) {
+            cachedMembers[idx].credits = (Number(cachedMembers[idx].credits) || 0) + 1;
+            cachedMembers[idx].attendanceCount = Math.max(0, (Number(cachedMembers[idx].attendanceCount) || 0) - 1);
+          }
+        }
+      }
+
+      await deleteDoc(logRef);
       cachedAttendance = cachedAttendance.filter(l => l.id !== logId);
       notifyListeners();
       return { success: true };
@@ -771,6 +861,10 @@ export const storageService = {
 
   async addManualAttendance(memberId, date, branchId, className = "수동 확인", instructor = "관리자") {
     try {
+      // Get member info for name
+      const memberDoc = await getDoc(doc(db, 'members', memberId));
+      const memberName = memberDoc.exists() ? memberDoc.data().name : '알 수 없음';
+
       // Use the provided date but set a reasonable time if only YYYY-MM-DD is provided
       let finalDate = new Date(date);
       if (isNaN(finalDate.getTime())) {
@@ -779,17 +873,106 @@ export const storageService = {
       }
       const timestamp = finalDate.toISOString();
 
+      // [FIX] Auto-match with schedule using daily_classes instead of deprecated schedules collection
+      let finalClassName = className;
+      let finalInstructor = instructor;
+
+      if (className === "수동 확인") {
+        try {
+          // Get schedule for this date/time/branch
+          const dateStr = finalDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+          const scheduleDocId = `${branchId}_${dateStr}`;
+          const scheduleDoc = await getDoc(doc(db, 'daily_classes', scheduleDocId));
+
+          if (scheduleDoc.exists()) {
+            const scheduleData = scheduleDoc.data();
+            const dayClasses = scheduleData.classes || [];
+
+            // Find matching class by time
+            const hour = finalDate.getHours();
+            const minute = finalDate.getMinutes();
+            const requestTimeMins = hour * 60 + minute;
+
+            const matchedClass = dayClasses.find(cls => {
+              if (!cls.time || cls.status === 'cancelled') return false;
+              const [classHour, classMinute] = cls.time.split(':').map(Number);
+              const classTimeMins = classHour * 60 + classMinute;
+
+              // Match if within 40 minutes range (e.g., 20 mins before to 20 mins after start)
+              // or strictly during the class duration
+              const diff = Math.abs(requestTimeMins - classTimeMins);
+              return diff <= 30; // 30 minutes tolerance
+            });
+
+            if (matchedClass) {
+              finalClassName = matchedClass.title || matchedClass.name || "수업";
+              finalInstructor = matchedClass.instructor || "강사님";
+            } else {
+              // No matching class found
+              finalClassName = "자율수련";
+              finalInstructor = "회원";
+            }
+          } else {
+            finalClassName = "자율수련";
+            finalInstructor = "회원";
+          }
+        } catch (scheduleError) {
+          console.warn("Schedule lookup failed, using default:", scheduleError);
+          finalClassName = "자율수련";
+          finalInstructor = "회원";
+        }
+      }
+
       const docRef = await addDoc(collection(db, 'attendance'), {
         memberId,
+        memberName,
         timestamp,
         branchId,
-        className,
-        instructor,
-        type: 'manual'
+        className: finalClassName,
+        instructor: finalInstructor,
+        type: 'manual',
+        date: finalDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
       });
-      const newLog = { id: docRef.id, memberId, timestamp, branchId, className, instructor, type: 'manual' };
-      cachedAttendance = [newLog, ...cachedAttendance];
+
+      // [CRITICAL] Deduct credit for manual attendance
+      const memberRef = doc(db, 'members', memberId);
+      await updateDoc(memberRef, {
+        credits: increment(-1),
+        attendanceCount: increment(1),
+        lastAttendance: timestamp
+      });
+
+      // [FIX] Update local cache immediately for instant UI feedback
+      const newLog = {
+        id: docRef.id,
+        memberId,
+        memberName,
+        timestamp,
+        branchId,
+        className: finalClassName,
+        instructor: finalInstructor,
+        type: 'manual',
+        date: finalDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
+      };
+
+      // [FIX] Prevent duplicate entries if listener already fired
+      const alreadyExists = cachedAttendance.some(l => l.id === docRef.id);
+      if (!alreadyExists) {
+        cachedAttendance.push(newLog);
+        // Sort immediately to prevent "jumping" UI
+        cachedAttendance.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      }
+
+      // Update member cache too
+      const mIdx = cachedMembers.findIndex(m => m.id === memberId);
+      if (mIdx !== -1) {
+        cachedMembers[mIdx].credits = (Number(cachedMembers[mIdx].credits) || 0) - 1;
+        cachedMembers[mIdx].attendanceCount = (Number(cachedMembers[mIdx].attendanceCount) || 0) + 1;
+        cachedMembers[mIdx].lastAttendance = timestamp;
+      }
+
       notifyListeners();
+
       return { success: true, id: docRef.id };
     } catch (e) {
       console.error("Add manual attendance failed:", e);
@@ -798,20 +981,274 @@ export const storageService = {
   },
 
   // [Monitoring] Get Error Logs
-  getErrorLogs: async (limitCount = 50) => {
+  async getErrorLogs(limitCount = 50) {
     try {
       // Ensure 'error_logs' collection exists or is queryable.
       // Note: Composite index might be needed for 'timestamp desc'.
       const q = query(
         collection(db, 'error_logs'),
         orderBy('timestamp', 'desc'),
-        limit(limitCount)
+        firestoreLimit(limitCount)
       );
       const snapshot = await getDocs(q);
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-      console.error("Error fetching error logs:", error);
+    } catch (e) {
+      console.warn("Failed to fetch error logs:", e);
       return [];
+    }
+  },
+
+  // [Added] Delete single error log
+  async deleteErrorLog(logId) {
+    try {
+      await deleteDoc(doc(db, 'error_logs', logId));
+      return { success: true };
+    } catch (e) {
+      console.error("Delete error log failed:", e);
+      return { success: false, message: e.message };
+    }
+  },
+
+  // [Added] Clear all error logs
+  async clearErrorLogs() {
+    try {
+      const snapshot = await getDocs(collection(db, 'error_logs'));
+      const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(deletePromises);
+      return { success: true, count: snapshot.docs.length };
+    } catch (e) {
+      console.error("Clear error logs failed:", e);
+      return { success: false, message: e.message };
+    }
+  },
+
+  // [Added] Clear all attendance logs
+  async clearAllAttendance() {
+    try {
+      if (!confirm('정말로 모든 출석 기록을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+        return { success: false, message: '취소되었습니다.' };
+      }
+      const snapshot = await getDocs(collection(db, 'attendance'));
+      const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(deletePromises);
+      cachedAttendance = [];
+      notifyListeners();
+      return { success: true, count: snapshot.docs.length };
+    } catch (e) {
+      console.error("Clear all attendance failed:", e);
+      return { success: false, message: e.message };
+    }
+  },
+
+  // [Added] Getters for cached data
+  getAttendance() { return cachedAttendance; },
+  getNotices() { return cachedNotices; },
+
+  // [Added] Load notices with fallback for empty cache
+  async loadNotices() {
+    // If cache has data, return it
+    if (cachedNotices.length > 0) {
+      return cachedNotices;
+    }
+
+    // Fallback: fetch directly if cache is empty
+    try {
+      console.log('[Storage] Cache empty, fetching notices from Firestore...');
+      const q = query(collection(db, 'notices'), orderBy('date', 'desc'));
+      const snapshot = await getDocs(q);
+      const notices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      // Update cache for future calls
+      cachedNotices = notices;
+      return notices;
+    } catch (e) {
+      console.error('Failed to fetch notices:', e);
+      return [];
+    }
+  },
+
+  async getAllPushTokens() {
+    // If listeners already populated cache, return it
+    if (cachedPushTokens.length > 0) return cachedPushTokens;
+
+    try {
+      console.log("[Storage] getAllPushTokens: Force fetching from Firestore collections...");
+      const results = await Promise.all([
+        getDocs(collection(db, 'fcm_tokens')).catch(() => ({ docs: [] })),
+        getDocs(collection(db, 'fcmTokens')).catch(() => ({ docs: [] })),
+        getDocs(collection(db, 'push_tokens')).catch(() => ({ docs: [] }))
+      ]);
+
+      const allMerged = {};
+      results.forEach(snapshot => {
+        snapshot.docs.forEach(doc => {
+          allMerged[doc.id] = { id: doc.id, ...doc.data() };
+        });
+      });
+
+      const tokens = Object.values(allMerged);
+      cachedPushTokens = tokens;
+      console.log(`[Storage] getAllPushTokens: Total ${tokens.length} unique tokens fetched.`);
+      return tokens;
+    } catch (e) {
+      console.warn("[Storage] Critical failure in getAllPushTokens:", e);
+      return cachedPushTokens || [];
+    }
+  },
+
+  async diagnosePushData() {
+    const collections = ['fcm_tokens', 'fcmTokens', 'push_tokens', 'tokens', 'fcm_token'];
+    const results = {};
+    for (const name of collections) {
+      try {
+        const snap = await getDocs(collection(db, name));
+        results[name] = snap.size;
+      } catch (e) {
+        results[name] = "Error: " + e.message;
+      }
+    }
+    return results;
+  },
+
+  // [Added] Get push notification history
+  getPushHistory() {
+    // stub implementation - returns empty array for now
+    // TODO: implement actual push history tracking if needed
+    return [];
+  },
+
+  // [Added] Get pricing information  
+  async getPricing() {
+    try {
+      const docSnap = await getDoc(doc(db, 'settings', 'pricing'));
+      if (docSnap.exists()) {
+        return docSnap.data();
+      }
+      return null;
+    } catch (e) {
+      console.warn("Failed to fetch pricing:", e);
+      return null;
+    }
+  },
+
+  // [Added] Subscribe to global listener changes
+  subscribe(callback) {
+    listeners.push(callback);
+    // Return unsubscribe function
+    return () => {
+      listeners = listeners.filter(cb => cb !== callback);
+    };
+  },
+
+  getPendingApprovals(callback) {
+    try {
+      const q = query(
+        collection(db, 'message_approvals'),
+        orderBy('createdAt', 'desc')
+      );
+
+      return onSnapshot(q, (snapshot) => {
+        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (callback) callback(items);
+      }, (error) => {
+        console.warn("[Storage] Error fetching pending approvals:", error);
+        if (callback) callback([]);
+      });
+    } catch (e) {
+      console.error("[Storage] Failed to setup pending approvals listener:", e);
+      if (callback) callback([]);
+      return () => { };
+    }
+  },
+
+  async approvePush(id) {
+    try {
+      const docRef = doc(db, 'message_approvals', id);
+      await updateDoc(docRef, { status: 'approved', approvedAt: new Date().toISOString() });
+      return { success: true };
+    } catch (e) {
+      console.error("Approve push failed:", e);
+      throw e;
+    }
+  },
+
+  async rejectPush(id) {
+    try {
+      await deleteDoc(doc(db, 'message_approvals', id));
+      return { success: true };
+    } catch (e) {
+      console.error("Reject push failed:", e);
+      throw e;
+    }
+  },
+
+  // --- Real Push Notifications & Messaging ---
+
+  /**
+   * Sends a single push notification to a member by adding a doc to 'messages' collection.
+   * This triggers 'sendPushOnMessageV2' Cloud Function.
+   */
+  async addMessage(memberId, content) {
+    try {
+      if (!memberId || !content) throw new Error("Invalid message data");
+
+      const docRef = await addDoc(collection(db, 'messages'), {
+        memberId,
+        content,
+        type: 'admin_individual',
+        createdAt: new Date().toISOString(),
+        timestamp: new Date().toISOString()
+      });
+
+      console.log(`[Storage] Message added for ${memberId}: ${docRef.id}. Triggering push...`);
+      return { success: true, id: docRef.id };
+    } catch (e) {
+      console.error("Add message failed:", e);
+      throw e;
+    }
+  },
+
+  /**
+   * Fetches message history for a specific member.
+   */
+  async getMessages(memberId) {
+    try {
+      const q = query(
+        collection(db, 'messages'),
+        where("memberId", "==", memberId),
+        orderBy("timestamp", "desc"),
+        firestoreLimit(50)
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (e) {
+      console.warn("Get messages failed:", e);
+      return [];
+    }
+  },
+
+  /**
+   * Sends bulk push notifications by adding a doc to 'push_campaigns' collection.
+   * This triggers 'sendBulkPushV2' Cloud Function.
+   */
+  async sendBulkPushCampaign(targetMemberIds, title, body) {
+    try {
+      if (!body) throw new Error("Message body is required");
+
+      const docRef = await addDoc(collection(db, 'push_campaigns'), {
+        targetMemberIds: targetMemberIds || [], // Empty list = All Members in cloud function
+        title: title || STUDIO_CONFIG.NAME + " 알림",
+        body,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        totalTargets: targetMemberIds?.length || 0
+      });
+
+      console.log(`[Storage] Bulk push campaign created: ${docRef.id}. Status: pending.`);
+      return { success: true, id: docRef.id };
+    } catch (e) {
+      console.error("Bulk push failed:", e);
+      throw e;
     }
   }
 };

@@ -7,9 +7,7 @@ const InstallGuideModal = ({ onClose }) => {
     return (
         <div
             className="modal-overlay"
-            onClick={onClose}
-            onTouchStart={(e) => {
-                // Allow closing by touching background, but ensure it doesn't drill through
+            onClick={(e) => {
                 if (e.target === e.currentTarget) {
                     onClose();
                 }

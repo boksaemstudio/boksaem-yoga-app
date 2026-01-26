@@ -2,7 +2,7 @@ import React from 'react';
 import LanguageSelector from '../LanguageSelector';
 import { Icons } from '../CommonIcons';
 import { STUDIO_CONFIG } from '../../studioConfig';
-import rys200Logo from '../../assets/RYS200.png';
+// import rys200Logo from '../../assets/RYS200.png';  // Unused
 
 const ProfileHeader = ({ logo, langLabelIndex, langLabels, t, logout }) => {
     return (

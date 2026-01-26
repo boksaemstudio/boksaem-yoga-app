@@ -45,11 +45,16 @@ const RequireAuth = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    return storageService.onAuthStateChanged((u) => {
-      // Check if user is an admin (has email). Anonymous users are NOT admins.
-      setUser(u && u.email ? u : null);
+    const unsubscribe = storageService.onAuthStateChanged((currentUser) => {
+      // For Admin, only allow non-anonymous users
+      if (currentUser && !currentUser.isAnonymous) {
+        setUser(currentUser);
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
+    return () => unsubscribe();
   }, []);
 
   if (loading) return <LoadingScreen />;
@@ -57,6 +62,8 @@ const RequireAuth = ({ children }) => {
 
   return children;
 };
+
+import NotificationListener from './components/common/NotificationListener';
 
 function App() {
   useEffect(() => {
@@ -67,6 +74,7 @@ function App() {
   return (
     <BrowserRouter>
       <div className="app">
+        <NotificationListener />
         <Routes>
           <Route
             path="/"

@@ -18,6 +18,34 @@ const ErrorLogsTab = () => {
         }
     };
 
+    const handleDelete = async (logId) => {
+        if (!confirm('이 에러 로그를 삭제하시겠습니까?')) return;
+
+        try {
+            await storageService.deleteErrorLog(logId);
+            setLogs(logs.filter(log => log.id !== logId));
+        } catch (error) {
+            alert('삭제 실패: ' + error.message);
+        }
+    };
+
+    const handleClearAll = async () => {
+        if (!confirm(`모든 에러 로그 (${logs.length}건)를 삭제하시겠습니까?`)) return;
+
+        try {
+            setLoading(true);
+            const result = await storageService.clearErrorLogs();
+            if (result.success) {
+                setLogs([]);
+                alert(`${result.count}건의 에러 로그가 삭제되었습니다.`);
+            }
+        } catch (error) {
+            alert('삭제 실패: ' + error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         loadLogs();
     }, []);
@@ -25,12 +53,39 @@ const ErrorLogsTab = () => {
     return (
         <div className="dashboard-card" style={{ border: '1px solid rgba(244, 63, 94, 0.3)', background: 'rgba(20, 20, 20, 0.8)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h3 className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#F43F5E' }}>
-                    <Warning size={20} /> 서버 에러 로그 (최근 50건)
+                <h3 className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#F43F5E', margin: 0 }}>
+                    <Warning size={22} weight="fill" /> 서버 에러 로그 (최근 50건)
                 </h3>
-                <button onClick={loadLogs} className="action-btn sm">
-                    <ArrowClockwise size={16} /> 새로고침
-                </button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    {logs.length > 0 && (
+                        <button
+                            onClick={handleClearAll}
+                            className="action-btn"
+                            style={{
+                                background: 'rgba(244, 63, 94, 0.2)',
+                                border: '1px solid #F43F5E',
+                                color: '#F43F5E',
+                                fontWeight: '800',
+                                padding: '8px 16px',
+                                borderRadius: '8px',
+                                fontSize: '0.85rem'
+                            }}
+                        >
+                            <Trash size={18} weight="bold" /> 전체 삭제
+                        </button>
+                    )}
+                    <button
+                        onClick={loadLogs}
+                        className="action-btn"
+                        style={{
+                            padding: '8px 12px',
+                            background: 'rgba(255,255,255,0.05)',
+                            borderRadius: '8px'
+                        }}
+                    >
+                        <ArrowClockwise size={18} />
+                    </button>
+                </div>
             </div>
 
             {loading ? (
@@ -50,11 +105,30 @@ const ErrorLogsTab = () => {
                             borderRadius: '4px',
                             fontSize: '0.9rem'
                         }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', alignItems: 'center' }}>
                                 <span style={{ fontWeight: 'bold', color: '#F43F5E' }}>{log.errorType || 'Error'}</span>
-                                <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>
-                                    {log.timestamp ? new Date(log.timestamp).toLocaleString() : 'No Date'}
-                                </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>
+                                        {log.timestamp ? new Date(log.timestamp).toLocaleString() : 'No Date'}
+                                    </span>
+                                    <button
+                                        onClick={() => handleDelete(log.id)}
+                                        style={{
+                                            background: 'rgba(244, 63, 94, 0.2)',
+                                            border: '1px solid rgba(244, 63, 94, 0.5)',
+                                            borderRadius: '4px',
+                                            padding: '4px 8px',
+                                            cursor: 'pointer',
+                                            color: '#F43F5E',
+                                            fontSize: '0.75rem',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        onMouseOver={(e) => e.target.style.background = 'rgba(244, 63, 94, 0.3)'}
+                                        onMouseOut={(e) => e.target.style.background = 'rgba(244, 63, 94, 0.2)'}
+                                    >
+                                        <Trash size={14} />
+                                    </button>
+                                </div>
                             </div>
                             <div style={{ marginBottom: '8px', color: '#FFF' }}>{log.message}</div>
                             {log.stack && (

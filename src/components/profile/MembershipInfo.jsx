@@ -56,7 +56,17 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
                 <div>
                     <div style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '4px', color: 'white' }}>{t('expiryDate')}</div>
                     <div style={{ fontSize: '1rem', color: 'white' }}>
-                        {member.endDate ? new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(member.endDate)) : t('unlimited')}
+                        {(() => {
+                            if (!member.endDate || member.endDate === 'unlimited') return t('unlimited');
+                            if (member.endDate === 'TBD') return '첫 출석 시 확정';
+                            const date = new Date(member.endDate);
+                            if (isNaN(date.getTime())) return member.endDate; // Invalid date string, just show it
+                            try {
+                                return new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }).format(date);
+                            } catch {
+                                return member.endDate;
+                            }
+                        })()}
                     </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>

@@ -4,7 +4,7 @@ import { getTranslatedClass } from '../../utils/classMapping';
 import { getHolidayName } from '../../utils/holidays';
 import { Icons } from '../CommonIcons';
 
-const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete }) => {
+const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, logLimit, setLogLimit }) => {
     const [viewMode, setViewMode] = React.useState('list'); // 'list' or 'calendar'
     const [currentDate, setCurrentDate] = React.useState(new Date());
 
@@ -195,13 +195,21 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete }) 
 
                 {viewMode === 'list' ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {logs.slice(0, 30).map((log, idx) => {
+                        {logs.map((log, idx) => {
                             const date = new Date(log.timestamp);
+                            const isValidDate = !isNaN(date.getTime());
+
                             return (
                                 <div key={log.id} style={{ padding: '15px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div>
                                         <div style={{ fontSize: '0.8rem', color: 'var(--primary-gold)' }}>
-                                            {new Intl.DateTimeFormat(language === 'ko' ? 'ko-KR' : (language === 'en' ? 'en-US' : (language === 'ru' ? 'ru-RU' : (language === 'zh' ? 'zh-CN' : 'ja-JP'))), { year: 'numeric', month: '2-digit', day: '2-digit' }).format(date)} {date.toLocaleTimeString(language === 'ko' ? 'ko-KR' : (language === 'en' ? 'en-US' : (language === 'ru' ? 'ru-RU' : (language === 'zh' ? 'zh-CN' : 'ja-JP'))), { hour12: false, hour: '2-digit', minute: '2-digit' })}
+                                            {isValidDate ? (
+                                                <>
+                                                    {new Intl.DateTimeFormat(language === 'ko' ? 'ko-KR' : (language === 'en' ? 'en-US' : (language === 'ru' ? 'ru-RU' : (language === 'zh' ? 'zh-CN' : 'ja-JP'))), { year: 'numeric', month: '2-digit', day: '2-digit' }).format(date)} {date.toLocaleTimeString(language === 'ko' ? 'ko-KR' : (language === 'en' ? 'en-US' : (language === 'ru' ? 'ru-RU' : (language === 'zh' ? 'zh-CN' : 'ja-JP'))), { hour12: false, hour: '2-digit', minute: '2-digit' })}
+                                                </>
+                                            ) : (
+                                                <span>Invalid Date</span>
+                                            )}
                                         </div>
                                         <div style={{ fontSize: '1rem', fontWeight: 'bold', color: 'white' }}>
                                             {log.className || "자율 수련"}
@@ -227,9 +235,31 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete }) 
                                 </div>
                             );
                         })}
-                        {logs.length > 30 && (
-                            <div style={{ textAlign: 'center', padding: '10px', opacity: 0.5, fontSize: '0.85rem' }}>
-                                최근 30개의 기록만 표시됩니다.
+
+                        {/* Pagination: Load More Button */}
+                        {setLogLimit && logs.length >= logLimit && (
+                            <button
+                                onClick={() => setLogLimit(prev => prev + 10)}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    color: 'var(--primary-gold)',
+                                    border: '1px dashed rgba(212, 175, 55, 0.5)',
+                                    borderRadius: '12px',
+                                    marginTop: '10px',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold',
+                                    fontSize: '0.9rem',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                ▿ {t('loadMoreAttendance') || '과거 수련 내역 더보기'} (10개 추가)
+                            </button>
+                        )}
+                        {logs.length === 0 && (
+                            <div style={{ textAlign: 'center', padding: '40px 0', opacity: 0.3 }}>
+                                {t('noAttendanceHistory') || '수련 기록이 없습니다.'}
                             </div>
                         )}
                     </div>

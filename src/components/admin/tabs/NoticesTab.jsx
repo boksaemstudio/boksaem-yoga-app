@@ -48,7 +48,7 @@ const NoticesTab = ({ notices, setShowNoticeModal, refreshData }) => {
                                 <button
                                     onClick={() => handleDeleteNotice(notice.id)}
                                     className="action-btn"
-                                    style={{ minWidth: 'auto', padding: '8px', color: 'rgba(255,107,107,0.7)', backgroundColor: 'transparent' }}
+                                    style={{ flex: 'none', width: 'auto', minWidth: 'auto', padding: '8px', color: 'rgba(255,107,107,0.7)', backgroundColor: 'transparent' }}
                                     title="공지 삭제"
                                 >
                                     <Trash size={20} />

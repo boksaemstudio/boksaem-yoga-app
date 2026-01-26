@@ -3,7 +3,13 @@ import { storageService } from '../services/storage';
 import { useAdminData } from '../hooks/useAdminData'; // [Refactor]
 import { STUDIO_CONFIG, getBranchName } from '../studioConfig';
 import { useNavigate } from 'react-router-dom';
-import { Users, ClockCounterClockwise, Plus, PlusCircle, Image as ImageIcon, Calendar, Megaphone, BellRinging, X, Check, Funnel, Trash, NotePencil, FloppyDisk, ChatCircleText, PencilLine, CalendarPlus, Ticket, Tag, House, SignOut, ChartBar, Export, Gear, FileCsv, Info } from '@phosphor-icons/react';
+import {
+    Users, ClockCounterClockwise, Plus, PlusCircle, Image as ImageIcon,
+    Calendar, Megaphone, BellRinging, X, Check, Funnel, Trash,
+    NotePencil, FloppyDisk, ChatCircleText, PencilLine, CalendarPlus,
+    Ticket, Tag, House, SignOut, ChartBar, Export, Gear, FileCsv,
+    Info, Warning
+} from '@phosphor-icons/react';
 import AdminScheduleManager from '../components/AdminScheduleManager';
 import AdminRevenue from '../components/AdminRevenue';
 import AdminPriceManager from '../components/AdminPriceManager';
@@ -110,8 +116,8 @@ const isMemberExpiring = (m) => {
     nextWeek.setDate(today.getDate() + 7);
 
     const isExpiringSoon = endDateObj && endDateObj >= today && endDateObj <= nextWeek;
-    const isExpired = endDateObj && endDateObj < today;
-    const noCredits = Number(m.credits || 0) <= 0;
+    const isExpired = endDateObj && endDateObj < today && endDateObj >= new Date(new Date().setDate(new Date().getDate() - 30));
+    const noCredits = Number(m.credits || 0) <= 1;
 
     return isExpiringSoon || isExpired || noCredits;
 };
@@ -123,7 +129,7 @@ const AdminDashboard = () => {
     const {
         currentBranch, setCurrentBranch,
         members, sales, logs, notices, stats,
-        aiInsight, loadingInsight,
+        // aiInsight, loadingInsight,  // Unused
         images, optimisticImages, setOptimisticImages,
         todayClasses, pushTokens, aiUsage,
         pendingApprovals, summary,
@@ -147,15 +153,17 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         const loadPricing = async () => {
-            const data = await storageService.getPricing();
-            if (data) setPricingConfig(data);
+            if (activeTab === 'pricing') {
+                const data = await storageService.getPricing();
+                if (data) setPricingConfig(data);
+            }
         };
         loadPricing();
-    }, [activeTab]); // Reload when tab changes (especially returning from pricing tab)
+    }, [activeTab]);
 
     // Editing State
     const [selectedMember, setSelectedMember] = useState(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    // const [isSubmitting, setIsSubmitting] = useState(false);  // Unused
 
 
     const [scheduleSubTab, setScheduleSubTab] = useState('monthly');
@@ -207,12 +215,41 @@ const AdminDashboard = () => {
     // 필터링된 멤버 목록을 메모이제이션하여 성능 최적화
     const filteredMembers = useMemo(() => {
         const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-        const todayObj = new Date(todayStr);
+        // const todayObj = new Date(todayStr);  // Unused
 
         // Helper logic duplicated from refreshData for consistency
         // [FIX] Use shared logic to ensure consistency with stats
         const checkIsActive = (m) => isMemberActive(m);
         const checkIsExpiring = (m) => isMemberExpiring(m);
+
+        if (filterType === 'attendance') {
+            const attendanceList = [];
+
+            // Show ALL logs for today (allow multiple attendances per member)
+            logs.forEach(l => {
+                if (!l.timestamp) return;
+                const logDate = new Date(l.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+
+                if (logDate === todayStr && (currentBranch === 'all' || l.branchId === currentBranch)) {
+                    const member = members.find(m => m.id === l.memberId);
+                    // Even if member is deleted, show the log if possible (or skip)
+                    if (member) {
+                        attendanceList.push({
+                            ...member,
+                            logId: l.id, // Use log ID for unique key if possible
+                            // Override member data with specific log data
+                            attendanceTime: new Date(l.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                            attendanceClass: l.className,
+                            instructorName: l.instructor, // Add instructor info
+                            originalLog: l
+                        });
+                    }
+                }
+            });
+
+            // Sort by attendance time desc
+            return attendanceList.sort((a, b) => b.attendanceTime.localeCompare(a.attendanceTime));
+        }
 
         return members.filter(m => {
             if (currentBranch !== 'all' && m.homeBranch !== currentBranch) return false;
@@ -223,12 +260,12 @@ const AdminDashboard = () => {
 
             if (filterType === 'active') return checkIsActive(m);
             if (filterType === 'registration') return m.regDate === todayStr;
-            if (filterType === 'attendance') return todayAttendedMemberIds.has(m.id);
+            // if (filterType === 'attendance') handled above
             if (filterType === 'expiring') return checkIsExpiring(m);
 
             return true; // 'all'
         }).sort((a, b) => a.name.localeCompare(b.name, 'ko'));
-    }, [members, searchTerm, filterType, currentBranch, todayAttendedMemberIds]);
+    }, [members, logs, searchTerm, filterType, currentBranch, todayAttendedMemberIds, isMemberActive, isMemberExpiring]);
 
     useEffect(() => {
         const handleBeforeInstallPrompt = (e) => {
@@ -294,11 +331,13 @@ const AdminDashboard = () => {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Compress to JPEG with 0.5 quality (Reduced from 0.7 to be safer for Firestore 1MB limit)
-                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
+                // Compress to JPEG with 0.8 quality (High quality for text readability)
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
 
                 if (target === 'notice') {
-                    setNewNotice({ ...newNotice, image: compressedBase64 });
+                    // TODO: setNewNotice is not defined - needs to be added to state
+                    // setNewNotice({ ...newNotice, image: compressedBase64 });
+                    console.warn('Notice image upload not implemented');
                 } else {
                     try {
                         console.log(`[Admin] Uploading image for ${target}...`);
@@ -334,8 +373,10 @@ const AdminDashboard = () => {
         try {
             await storageService.addSalesRecord(salesData);
             // Refresh sales data
-            const updatedSales = await storageService.getSales();
-            setSales(updatedSales);
+            // const updatedSales = await storageService.getSales();
+            // TODO: setSales is not defined - handled by useAdminData hook
+            // setSales(updatedSales);
+            await refreshData();  // Use refreshData instead
             return true;
         } catch (error) {
             console.error('Error adding sales record:', error);
@@ -505,9 +546,27 @@ const AdminDashboard = () => {
                     <Megaphone size={22} weight={activeTab === 'notices' ? "fill" : "regular"} />
                     <span>공지</span>
                 </button>
-                <button onClick={() => setActiveTab('push_history')} className={`nav-tab-item ${activeTab === 'push_history' ? 'active' : ''}`}>
+                <button onClick={() => setActiveTab('push_history')} className={`nav-tab-item ${activeTab === 'push_history' ? 'active' : ''}`} style={{ position: 'relative' }}>
                     <BellRinging size={22} weight={activeTab === 'push_history' ? "fill" : "regular"} />
                     <span>알림기록</span>
+                    {pendingApprovals.length > 0 && (
+                        <span style={{
+                            position: 'absolute',
+                            top: '5px',
+                            right: '5px',
+                            background: '#F43F5E',
+                            color: 'white',
+                            fontSize: '0.6rem',
+                            padding: '2px 5px',
+                            borderRadius: '10px',
+                            fontWeight: 'bold',
+                            border: '1.5px solid #121214',
+                            minWidth: '18px',
+                            textAlign: 'center'
+                        }}>
+                            {pendingApprovals.length}
+                        </span>
+                    )}
                 </button>
                 <button onClick={() => setActiveTab('error_logs')} className={`nav-tab-item ${activeTab === 'error_logs' ? 'active' : ''}`}>
                     <Warning size={22} weight={activeTab === 'error_logs' ? "fill" : "regular"} color="#F43F5E" />
@@ -518,74 +577,129 @@ const AdminDashboard = () => {
             {/* Main Content Area */}
             <div>
                 {activeTab === 'push_history' && (
-                    <div className="dashboard-card">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                            <h3 className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <BellRinging size={20} /> 알림 발송 기록
-                            </h3>
-                            <button className="action-btn sm" onClick={() => refreshData()}>새로고침</button>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                            {storageService.getPushHistory().length === 0 ? (
-                                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-tertiary)' }}>
-                                    발송 기록이 없습니다.
-                                </div>
-                            ) : (
-                                storageService.getPushHistory().map((item, idx) => {
-                                    const member = item.memberId ? members.find(m => m.id === item.memberId) : null;
-                                    const status = item.pushStatus || {};
-                                    return (
-                                        <div key={idx} style={{
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                        {/* [NEW] AI Approval Pending Section */}
+                        {pendingApprovals.length > 0 && (
+                            <div className="dashboard-card" style={{ border: '1px solid var(--primary-gold)', background: 'rgba(212, 175, 55, 0.05)' }}>
+                                <h3 className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-gold)', marginBottom: '16px' }}>
+                                    <BellRinging size={20} weight="fill" /> AI 발송 제안 (승인 대기)
+                                </h3>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {pendingApprovals.map((item) => (
+                                        <div key={item.id} style={{
                                             padding: '16px',
                                             borderRadius: '12px',
-                                            background: 'rgba(255,255,255,0.02)',
-                                            border: '1px solid rgba(255,255,255,0.05)',
+                                            background: 'rgba(255,255,255,0.03)',
+                                            border: '1px solid rgba(212,175,55,0.2)',
                                             display: 'flex',
                                             flexDirection: 'column',
-                                            gap: '8px'
+                                            gap: '10px'
                                         }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    <span style={{
-                                                        padding: '4px 8px',
-                                                        borderRadius: '6px',
-                                                        fontSize: '0.65rem',
-                                                        background: item.type === 'notice' ? 'rgba(0,122,255,0.2)' : 'rgba(212,175,55,0.2)',
-                                                        color: item.type === 'notice' ? '#007AFF' : 'var(--primary-gold)',
-                                                        fontWeight: 'bold'
-                                                    }}>
-                                                        {item.type === 'notice' ? '공지사항' : '개별메시지'}
-                                                    </span>
-                                                    <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>
-                                                        {item.type === 'notice' ? item.title : (member ? `${member.name}님께` : '회원 알림')}
-                                                    </span>
+                                                <div>
+                                                    <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>{item.memberName}님께 제안</div>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--primary-gold)', marginTop: '2px' }}>사유: {item.reason || '관리 필요 회원'}</div>
                                                 </div>
-                                                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-                                                    {item.timestamp ? new Date(item.timestamp).toLocaleString('ko-KR') : item.date}
-                                                </span>
+                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                    <button
+                                                        onClick={() => handleRejectPush(item.id)}
+                                                        className="action-btn sm"
+                                                        style={{ width: 'auto', background: 'rgba(244, 63, 94, 0.1)', color: '#F43F5E', border: '1px solid rgba(244, 63, 94, 0.2)' }}
+                                                    >삭제</button>
+                                                    <button
+                                                        onClick={() => handleApprovePush(item.id, item.title || '안부 메시지')}
+                                                        className="action-btn sm primary"
+                                                        style={{ width: 'auto', boxShadow: '0 4px 12px var(--primary-gold-glow)' }}
+                                                    >승인 발송</button>
+                                                </div>
                                             </div>
-                                            <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: '4px 0' }}>
-                                                {item.content || item.body}
-                                            </p>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                                                <div style={{ display: 'flex', gap: '12px', fontSize: '0.75rem' }}>
-                                                    {status.sent ? (
-                                                        <>
-                                                            <span style={{ color: '#4CD964' }}>✅ 발송완료</span>
-                                                            <span style={{ color: 'var(--text-secondary)' }}>성공: {status.successCount || 0}</span>
-                                                            {status.failureCount > 0 && (
-                                                                <span style={{ color: '#FF3B30' }}>실패: {status.failureCount}</span>
-                                                            )}
-                                                        </>
-                                                    ) : (
-                                                        <span style={{ color: 'var(--text-tertiary)' }}>⏳ 발송 대기 중...</span>
-                                                    )}
-                                                </div>
+                                            <div style={{
+                                                padding: '12px',
+                                                background: 'rgba(0,0,0,0.2)',
+                                                borderRadius: '8px',
+                                                fontSize: '0.85rem',
+                                                color: 'var(--text-secondary)',
+                                                lineHeight: '1.5',
+                                                whiteSpace: 'pre-wrap',
+                                                borderLeft: '3px solid var(--primary-gold)'
+                                            }}>
+                                                {item.body || item.content}
                                             </div>
                                         </div>
-                                    );
-                                })
-                            )}
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="dashboard-card">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                <h3 className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                                    <ClockCounterClockwise size={20} /> 알림 발송 기록
+                                </h3>
+                                <button className="action-btn sm" style={{ flex: 'none', width: 'auto' }} onClick={() => refreshData()}>새로고침</button>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                {storageService.getPushHistory().length === 0 ? (
+                                    <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-tertiary)' }}>
+                                        발송 기록이 없습니다.
+                                    </div>
+                                ) : (
+                                    storageService.getPushHistory().map((item, idx) => {
+                                        const member = item.memberId ? members.find(m => m.id === item.memberId) : null;
+                                        const status = item.pushStatus || {};
+                                        return (
+                                            <div key={idx} style={{
+                                                padding: '16px',
+                                                borderRadius: '12px',
+                                                background: 'rgba(255,255,255,0.02)',
+                                                border: '1px solid rgba(255,255,255,0.05)',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '8px'
+                                            }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <span style={{
+                                                            padding: '4px 8px',
+                                                            borderRadius: '6px',
+                                                            fontSize: '0.65rem',
+                                                            background: item.type === 'notice' ? 'rgba(0,122,255,0.2)' : 'rgba(212,175,55,0.2)',
+                                                            color: item.type === 'notice' ? '#007AFF' : 'var(--primary-gold)',
+                                                            fontWeight: 'bold'
+                                                        }}>
+                                                            {item.type === 'notice' ? '공지사항' : '개별메시지'}
+                                                        </span>
+                                                        <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>
+                                                            {item.type === 'notice' ? item.title : (member ? `${member.name}님께` : '회원 알림')}
+                                                        </span>
+                                                    </div>
+                                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                                                        {item.timestamp ? new Date(item.timestamp).toLocaleString('ko-KR') : item.date}
+                                                    </span>
+                                                </div>
+                                                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: '4px 0' }}>
+                                                    {item.content || item.body}
+                                                </p>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                                                    <div style={{ display: 'flex', gap: '12px', fontSize: '0.75rem' }}>
+                                                        {status.sent ? (
+                                                            <>
+                                                                <span style={{ color: '#4CD964' }}>✅ 발송완료</span>
+                                                                <span style={{ color: 'var(--text-secondary)' }}>성공: {status.successCount || 0}</span>
+                                                                {status.failureCount > 0 && (
+                                                                    <span style={{ color: '#FF3B30' }}>실패: {status.failureCount}</span>
+                                                                )}
+                                                            </>
+                                                        ) : (
+                                                            <span style={{ color: 'var(--text-tertiary)' }}>⏳ 발송 대기 중...</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}
@@ -781,6 +895,8 @@ const AdminDashboard = () => {
                         logs={logs}
                         currentLogPage={currentLogPage}
                         setCurrentLogPage={setCurrentLogPage}
+                        members={members}
+                        onMemberClick={handleOpenEdit}
                     />
                 )}
                 {activeTab === 'error_logs' && (
@@ -938,11 +1054,11 @@ const AdminDashboard = () => {
 
             {/* --- MODALS --- */}
             <MemberAddModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} onSuccess={refreshData} />
-            <MemberNoteModal isOpen={showNoteModal} onClose={() => setShowNoteModal(false)} member={selectedMember} onSuccess={refreshData} />
+            <MemberNoteModal isOpen={showNoteModal} onClose={() => setShowNoteModal(false)} member={selectedMember && members.find(m => m.id === selectedMember.id) || selectedMember} onSuccess={refreshData} />
             <NoticeModal isOpen={showNoticeModal} onClose={() => setShowNoticeModal(false)} onSuccess={refreshData} />
             <BulkMessageModal isOpen={showBulkMessageModal} onClose={() => setShowBulkMessageModal(false)} selectedMemberIds={selectedMemberIds} />
-            <MessageModal isOpen={showMessageModal} onClose={() => setShowMessageModal(false)} member={selectedMember} />
-            <ExtensionModal isOpen={showExtendModal} onClose={() => setShowExtendModal(false)} member={selectedMember} onSuccess={refreshData} />
+            <MessageModal isOpen={showMessageModal} onClose={() => setShowMessageModal(false)} member={selectedMember && members.find(m => m.id === selectedMember.id) || selectedMember} />
+            <ExtensionModal isOpen={showExtendModal} onClose={() => setShowExtendModal(false)} member={selectedMember && members.find(m => m.id === selectedMember.id) || selectedMember} onSuccess={refreshData} />
 
             <TimeTableModal isOpen={showTimeModal} onClose={() => setShowTimeModal(false)} images={images} setOptimisticImages={setOptimisticImages} optimisticImages={optimisticImages} />
             <PriceTableModal isOpen={showPriceModal} onClose={() => setShowPriceModal(false)} images={images} setOptimisticImages={setOptimisticImages} optimisticImages={optimisticImages} />
@@ -950,11 +1066,13 @@ const AdminDashboard = () => {
 
             {showEditModal && selectedMember && (
                 <AdminMemberDetailModal
-                    member={selectedMember}
+                    member={members.find(m => m.id === selectedMember.id) || selectedMember}
+                    memberLogs={logs.filter(log => log.memberId === selectedMember.id)}
                     onClose={() => setShowEditModal(false)}
                     pricingConfig={pricingConfig}
                     onUpdateMember={handleMemberModalUpdate}
                     onAddSalesRecord={handleAddSalesRecord}
+                    pushTokens={pushTokens}
                 />
             )}
         </div>

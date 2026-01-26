@@ -175,6 +175,9 @@ export const translations = {
         ticket: "수강권",
         noTimetableImage: "이미지 시간표가 등록되지 않았습니다.",
         noNewNotices: "새로운 소식이 없습니다.",
+        loadMoreAttendance: "과거 수련 내역 더보기",
+        noAttendanceHistory: "수련 기록이 없습니다.",
+        loadMoreMessages: "이전 메시지 더보기",
     },
     en: {
         loginTitle: "A Quiet Time to Meet Myself",
@@ -321,6 +324,9 @@ export const translations = {
         ticket: "Pass",
         noTimetableImage: "No timetable image registered.",
         noNewNotices: "No new notices.",
+        loadMoreAttendance: "Load more attendance history",
+        noAttendanceHistory: "No attendance history found.",
+        loadMoreMessages: "Load more messages",
     },
     ru: {
         loginTitle: "Тихое время для встречи с собой",
@@ -467,6 +473,9 @@ export const translations = {
         ticket: "Абонемент",
         noTimetableImage: "Картинка расписания не зарегистрирована.",
         noNewNotices: "Новых уведомлений нет.",
+        loadMoreAttendance: "Показать больше истории посещений",
+        noAttendanceHistory: "История посещений не найдена.",
+        loadMoreMessages: "Загрузить больше сообщений",
     },
     zh: {
         loginTitle: "与自己相处的宁静时刻",
@@ -613,6 +622,9 @@ export const translations = {
         ticket: "课制",
         noTimetableImage: "未注册图片课表。",
         noNewNotices: "暂无新消息。",
+        loadMoreAttendance: "查查看更多考勤记录",
+        noAttendanceHistory: "暂无考勤记录。",
+        loadMoreMessages: "加载更多消息",
     },
     ja: {
         loginTitle: "自分と向き合う静かな時間",
@@ -759,5 +771,8 @@ export const translations = {
         ticket: "受講券",
         noTimetableImage: "画像時間割が登録されていません。",
         noNewNotices: "新しいお知らせはありません。",
+        loadMoreAttendance: "過去の出席履歴をもっと見る",
+        noAttendanceHistory: "出席履歴がありません。",
+        loadMoreMessages: "以前のメッセージをもっと見る",
     }
 };

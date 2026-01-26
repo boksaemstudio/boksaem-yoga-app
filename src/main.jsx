@@ -6,10 +6,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 import { LanguageProvider } from './context/LanguageContext'
 
 try {
-  console.log("🚀 Starting React app...");
-
   const root = ReactDOM.createRoot(document.getElementById('root'));
-  console.log("✅ Root created");
 
   root.render(
     <React.StrictMode>
@@ -21,7 +18,16 @@ try {
     </React.StrictMode>,
   );
 
-  console.log("✅ Render called");
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then(registration => {
+        }).catch(registrationError => {
+          console.log('SW registration failed: ', registrationError);
+        });
+    });
+  }
 } catch (fatalError) {
   console.error("❌ Fatal Application Error:", fatalError);
   document.getElementById('root').innerHTML = `

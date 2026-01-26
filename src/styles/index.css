@@ -50,10 +50,24 @@
   --radius-lg: 32px;
   --radius-full: 999px;
 
-  --font-main: "Pretendard", sans-serif;
-  --font-heading: "Outfit", sans-serif;
+  --font-main: "Pretendard", -apple-system, sans-serif;
+  --font-heading: "Outfit", "Pretendard", -apple-system, sans-serif;
   --transition: none;
   /* Completely disabled for immediate response */
+}
+
+/* Global Font Override for form elements */
+input,
+select,
+button,
+textarea {
+  font-family: var(--font-main) !important;
+}
+
+/* Date Picker Icon Color for Dark Theme */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
 }
 
 * {
@@ -63,6 +77,12 @@
   /* Prevent ghost cursors/carets in non-input areas */
   caret-color: transparent;
   outline: none !important;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 /* Enable caret only where needed and use brand gold */
@@ -70,6 +90,8 @@ input,
 textarea,
 [contenteditable="true"] {
   caret-color: var(--primary-gold) !important;
+  -webkit-user-select: auto;
+  user-select: auto;
 }
 
 body {
@@ -1476,6 +1498,7 @@ select option {
   background-color: var(--bg-surface-opaque);
   color: var(--text-primary);
 }
+
 /* Tooltip Styles */
 .tooltip-container {
   position: relative;
@@ -1504,7 +1527,7 @@ select option {
   font-weight: normal;
   pointer-events: none;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 .tooltip-text::after {
@@ -1515,7 +1538,7 @@ select option {
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: rgba(0,0,0,0.9) transparent transparent transparent;
+  border-color: rgba(0, 0, 0, 0.9) transparent transparent transparent;
 }
 
 .tooltip-container:hover .tooltip-text {

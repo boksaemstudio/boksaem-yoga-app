@@ -53,17 +53,21 @@ const KeyButton = React.memo(({ onPress, disabled, children, special, className,
     const lastEventTime = React.useRef(0);
 
     const handleProtectedPress = (e) => {
+        // Prevent default for touch events to stop "ghost" mouse events
+        if (e.type === 'touchstart' && e.cancelable) {
+            e.preventDefault();
+        }
+
         const now = Date.now();
-        // Increased to 280ms per user request to reliably block phantom mouse clicks; adjusted from 350ms
-        if (now - lastEventTime.current < 280) {
-            if (e.cancelable) e.preventDefault();
+        // Use a persistent timestamp to block all events within 250ms of each other
+        // This handles both rapid finger taps and ghost mouse events after touch.
+        if (now - lastEventTime.current < 250) {
+            if (e.stopPropagation) e.stopPropagation();
             return;
         }
         lastEventTime.current = now;
 
-        // Ensure event isolation
         if (e.stopPropagation) e.stopPropagation();
-
         onPress(e);
     };
 

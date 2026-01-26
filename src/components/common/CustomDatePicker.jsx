@@ -168,7 +168,7 @@ const CustomDatePicker = ({ value, onChange, placeholder = "날짜 선택" }) =>
                     cursor: 'pointer', fontFamily: 'Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif'
                 }}
             >
-                <span>{value || placeholder}</span>
+                <span>{value === 'TBD' ? '첫 출석 시 확정' : (value || placeholder)}</span>
                 <CalendarIcon size={20} color="#a1a1aa" />
             </div>
 

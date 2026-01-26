@@ -28,6 +28,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         totalMembers: 0,
         activeMembers: 0,
         todayAttendance: 0,
+        totalAttendanceToday: 0,
         todayRegistration: 0,
         totalRevenueToday: 0,
         monthlyRevenue: 0,
@@ -36,21 +37,35 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
     // Helper: Is Member Active? (Domain Logic)
     const isMemberActive = useCallback((m) => {
-        if (!m.endDate) return false;
+        const credits = Number(m.credits || 0);
         const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-        return m.endDate >= todayStr && m.credits > 0;
+
+        // If no endDate, check only credits
+        if (!m.endDate) {
+            return credits > 0;
+        }
+
+        // If has endDate, must be future/today AND have credits >= 0
+        return m.endDate >= todayStr && credits >= 0;
     }, []);
 
     // Helper: Is Member Expiring?
     const isMemberExpiring = useCallback((m) => {
-        if (!m.endDate) return false;
+        // If no endDate, just check credits
+        const credits = Number(m.credits || 0);
+        const hasNoCredits = credits <= 1;
+
+        if (!m.endDate) return hasNoCredits;
+
         const today = new Date();
+        today.setHours(0, 0, 0, 0);
         const end = new Date(m.endDate);
         const diffDays = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
-        const isExpiringSoon = diffDays >= 0 && diffDays <= 7;
-        const isExpired = diffDays < 0 && diffDays > -30;
-        const noCredits = m.credits <= 1;
-        return isExpiringSoon || isExpired || noCredits;
+
+        const isExpiringSoon = diffDays <= 7 && diffDays >= -30;
+        // [Logic] Imminent (0-7 days) or Recently Expired (within 30 days)
+
+        return isExpiringSoon || hasNoCredits;
     }, []);
 
     const calculateStats = useCallback((logs) => {
@@ -133,11 +148,14 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
         const currentSales = await storageService.getSales();
 
-        setMembers(currentMembers);
-        setLogs(currentLogs);
-        setNotices(currentNotices);
-        setImages(currentImages);
-        setSales(currentSales);
+        // [FIX] Ensure Unique Members by ID (Prevent UI Duplicates)
+        const uniqueMembers = Array.from(new Map(currentMembers.map(m => [m.id, m])).values());
+
+        setMembers(uniqueMembers);
+        setLogs([...currentLogs]); // Force new reference
+        setNotices([...currentNotices]);
+        setImages({ ...currentImages }); // Force new object for images too
+        setSales([...currentSales]);
 
         // Branch Filtering for Stats
         const branchLogs = currentBranch === 'all'
@@ -162,11 +180,21 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         const checkIsAttended = (m) => attendedMemberIds.has(m.id);
         const checkIsRegistered = (m) => m.regDate === todayStr;
 
-        const totalMembers = currentMembers.filter(m => isMemberInBranch(m)).length;
-        const activeMembers = currentMembers.filter(m => isMemberInBranch(m) && isMemberActive(m)).length;
-        const todayAttendance = currentMembers.filter(m => isMemberInBranch(m) && checkIsAttended(m)).length;
-        const todayRegistration = currentMembers.filter(m => isMemberInBranch(m) && checkIsRegistered(m)).length;
-        const expiringMembersCount = currentMembers.filter(m => isMemberInBranch(m) && isMemberExpiring(m)).length;
+        const totalMembers = uniqueMembers.filter(m => isMemberInBranch(m)).length;
+        const activeMembers = uniqueMembers.filter(m => isMemberInBranch(m) && isMemberActive(m)).length;
+
+        // [Logic] Unique individuals attended
+        const todayAttendance = uniqueMembers.filter(m => isMemberInBranch(m) && checkIsAttended(m)).length;
+
+        // [New] Total attendance counts (includes duplicates/family)
+        const totalAttendanceToday = branchLogs.filter(l => {
+            if (!l.timestamp) return false;
+            const logDate = new Date(l.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            return logDate === todayStr;
+        }).length;
+
+        const todayRegistration = uniqueMembers.filter(m => isMemberInBranch(m) && checkIsRegistered(m)).length;
+        const expiringMembersCount = uniqueMembers.filter(m => isMemberInBranch(m) && isMemberExpiring(m)).length;
 
         const todayRevenue = currentSales
             .filter(s => {
@@ -190,6 +218,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             totalMembers,
             activeMembers,
             todayAttendance,
+            totalAttendanceToday,
             todayRegistration,
             totalRevenueToday: todayRevenue,
             monthlyRevenue,
@@ -266,7 +295,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         if (activeTab === 'members' && summary.activeMembers > 0) {
             loadAIInsight(members, logs, summary, todayClasses);
         }
-    }, [activeTab, summary.activeMembers]); // Depend on stable summary stats
+    }, [activeTab, summary.activeMembers, loadAIInsight, members, logs, todayClasses]);
 
 
     return {

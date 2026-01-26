@@ -3,6 +3,7 @@
     "short_name": "나의요가",
     "description": "나의요가 관리 및 회원 서비스",
     "start_url": "/",
+    "gcm_sender_id": "103953800507",
     "display": "standalone",
     "background_color": "#121212",
     "theme_color": "#D4AF37",

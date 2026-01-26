@@ -233,12 +233,14 @@ const AdminScheduleManager = ({ branchId, showSettings, onShowSettings }) => {
                                 onClick={() => date && handleDateClick(dateStr)}
                                 style={{
                                     minHeight: '100px',
-                                    backgroundColor: date ? (isToday ? 'rgba(212,175,55,0.1)' : (holidayName ? 'rgba(255,71,87,0.05)' : 'var(--bg-card)')) : 'transparent',
-                                    border: date ? (holidayName ? '1px solid rgba(255,71,87,0.3)' : '1px solid var(--border-color)') : 'none',
+                                    backgroundColor: date ? (isToday ? 'rgba(212,175,55,0.08)' : (holidayName ? 'rgba(255,71,87,0.05)' : 'var(--bg-card)')) : 'transparent',
+                                    border: date ? (isToday ? '2px solid var(--primary-gold)' : (holidayName ? '1px solid rgba(255,71,87,0.3)' : '1px solid var(--border-color)')) : 'none',
+                                    boxShadow: isToday ? '0 0 15px rgba(212, 175, 55, 0.2)' : 'none',
                                     borderRadius: '8px',
                                     padding: '6px',
                                     cursor: date ? 'pointer' : 'default',
-                                    position: 'relative'
+                                    position: 'relative',
+                                    zIndex: isToday ? 2 : 1
                                 }}
                             >
                                 {date && (
@@ -320,12 +322,11 @@ const AdminScheduleManager = ({ branchId, showSettings, onShowSettings }) => {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Use balanced quality (0.6)
-                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                // Use high quality (0.8) to prevent text blur
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
                 const kbSize = Math.round(compressedBase64.length / 1024);
                 const targetKey = `timetable_${branchId}_${year}-${String(month).padStart(2, '0')}`;
 
-                console.log(`[ImageUpload] Original: ${file.size / 1024}KB, Compressed: ${kbSize}KB`);
 
                 // Optimistic Update
                 const previousImage = images[targetKey];

@@ -7,6 +7,9 @@ const RecentAttendance = ({ logs, language, t, setActiveTab }) => {
     const lastLog = logs[0];
     const date = new Date(lastLog.timestamp);
 
+    // [FIX] Prevent RangeError: Invalid time value
+    if (isNaN(date.getTime())) return null;
+
     return (
         <div className="glass-panel" style={{ padding: '20px', marginBottom: '20px', background: 'rgba(24, 24, 27, 0.9)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>

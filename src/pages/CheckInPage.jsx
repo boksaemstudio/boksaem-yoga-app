@@ -495,11 +495,15 @@ const CheckInPage = () => {
     };
 
     const handleQRInteraction = (e) => {
-        // [OPTIMIZED] Instant reaction for QR guide
-        if (e.type === 'touchstart' && e.cancelable) {
-            e.preventDefault();
+        // [FIX] Robust touch handling to prevent "open then close" ghost clicks
+        if (e.type === 'touchstart') {
+            e.preventDefault(); // Stop mouse emulation
         }
-        setShowInstallGuide(true);
+        e.stopPropagation(); // Stop bubbling
+
+        // Toggle logic or Ensure Open
+        // If modal logic is buggy (auto-close), force it open with a small delay to bypass race conditions
+        setTimeout(() => setShowInstallGuide(true), 10);
     };
 
     const handleBranchChange = (branchId) => {
@@ -602,7 +606,7 @@ const CheckInPage = () => {
             console.log(`[CheckIn] SelectMember Result: ${result.success ? 'Success' : 'Fail'}`);
 
             if (result.success) {
-                showCheckInSuccess(result, null);
+                showCheckInSuccess(result);
             } else {
                 handleCheckInError(result.message);
             }
@@ -684,8 +688,15 @@ const CheckInPage = () => {
                             <div style={{ fontSize: '1.2rem', opacity: 0.6, marginBottom: '8px' }}>잔여 일수</div>
                             <div style={{ fontSize: '3rem', fontWeight: 800, color: '#4CAF50' }}>
                                 {(() => {
-                                    if (!result.member.endDate) return <span style={{ fontSize: '2rem' }}>무제한</span>;
+                                    // [FIX] More robust date handling for "Start on First Attendance" or "Unlimited"
+                                    if (!result.member.endDate || result.member.endDate === 'TBD') {
+                                        return <span style={{ fontSize: '2rem' }}>확정 전</span>;
+                                    }
+                                    if (result.member.endDate === 'unlimited') {
+                                        return <span style={{ fontSize: '2rem' }}>무제한</span>;
+                                    }
                                     const days = getDaysRemaining(result.member.endDate);
+                                    if (days === null) return <span style={{ fontSize: '2rem' }}>확정 전</span>;
                                     if (days < 0) return <span style={{ color: '#FF5252' }}>만료</span>;
                                     return `D-${days}`;
                                 })()}
@@ -705,11 +716,11 @@ const CheckInPage = () => {
             )
         });
         setPin('');
-        startDismissTimer(4500); // [ADJUSTED] 4.5s is the sweet spot (Readability vs Flow)
+        startDismissTimer(5000); // [ADJUSTED] 5s as requested
     };
 
     const getDaysRemaining = (endDate) => {
-        if (!endDate) return null;
+        if (!endDate || endDate === 'TBD' || endDate === 'unlimited') return null;
         const end = new Date(endDate);
         if (isNaN(end.getTime())) return null;
 
@@ -814,9 +825,10 @@ const CheckInPage = () => {
                 }}>
                     {!message && (
                         <header className="info-header" style={{ marginBottom: '40px' }}>
-                            <div className="logo-container" style={{ display: 'flex', alignItems: 'center', gap: '15px', justifyContent: 'center' }}>
-                                <img src={rys200Logo} alt="RYS200" style={{ height: '90px', width: 'auto', filter: 'brightness(0) invert(1)' }} />
-                                <img src={logoWide} alt="logo" />
+                            <div className="logo-container" style={{ display: 'flex', alignItems: 'center', gap: '20px', justifyContent: 'center' }}>
+                                {/* [ADJUSTED] Logo sizes: RYS200 (77px), Main Logo (81px) */}
+                                <img src={rys200Logo} alt="RYS200" style={{ height: '77px', width: 'auto', filter: 'brightness(0) invert(1)', opacity: 0.8 }} />
+                                <img src={logoWide} alt="logo" style={{ height: '81px', width: 'auto' }} />
                             </div>
                         </header>
                     )}
@@ -834,15 +846,8 @@ const CheckInPage = () => {
                             {message ? (
                                 <div
                                     className={`message-box ${message.type}`}
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        handleModalClose(() => setMessage(null));
-                                        setPin('');
-                                        if (timerRef.current) clearTimeout(timerRef.current);
-                                    }}
                                     onTouchStart={(e) => {
-                                        // Prevents "ghost clicks" on elements behind the message
+                                        // Prevents "ghost 터치" on elements behind the message
                                         if (e.cancelable) e.preventDefault();
                                         e.stopPropagation();
                                         handleModalClose(() => setMessage(null));
@@ -981,10 +986,6 @@ const CheckInPage = () => {
                                     <button
                                         key={m.id}
                                         onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleSelectMember(m.id);
-                                        }}
-                                        onTouchStart={(e) => {
                                             if (e.cancelable) e.preventDefault();
                                             e.stopPropagation();
                                             handleSelectMember(m.id);

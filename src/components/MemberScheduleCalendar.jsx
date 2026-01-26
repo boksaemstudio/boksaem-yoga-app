@@ -140,7 +140,15 @@ const MemberScheduleCalendar = ({ branchId, attendanceLogs = [] }) => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <button onClick={handlePrevMonth} style={navBtnStyle}><CaretLeft /></button>
                 <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'white' }}>
-                    {new Intl.DateTimeFormat(language === 'ko' ? 'ko-KR' : (language === 'en' ? 'en-US' : (language === 'ru' ? 'ru-RU' : (language === 'zh' ? 'zh-CN' : 'ja-JP'))), { year: 'numeric', month: 'long' }).format(new Date(year, month - 1))}
+                    {(() => {
+                        try {
+                            const date = new Date(year, month - 1);
+                            if (isNaN(date.getTime())) return `${year}.${month}`;
+                            return new Intl.DateTimeFormat(language === 'ko' ? 'ko-KR' : (language === 'en' ? 'en-US' : (language === 'ru' ? 'ru-RU' : (language === 'zh' ? 'zh-CN' : 'ja-JP'))), { year: 'numeric', month: 'long' }).format(date);
+                        } catch (e) {
+                            return `${year}.${month}`;
+                        }
+                    })()}
                 </h3>
                 <button onClick={handleNextMonth} style={navBtnStyle}><CaretRight /></button>
             </div>
@@ -169,18 +177,55 @@ const CalendarCell = React.memo(({ date, monthlyClasses, attendanceLogs, branchI
     const classes = monthlyClasses[dateStr] || [];
     const isToday = dateStr === todayKST;
 
-    // Check attendance (filter by branchId)
-    const isAttended = attendanceLogs.some(log => {
+    // -----------------------------------------------------------------
+    // [NEW] Advanced Matching Logic (Time Proximity & Multi-Attendance)
+    // -----------------------------------------------------------------
+    const dailyLogs = attendanceLogs.filter(log => {
         if (!log.timestamp) return false;
-        const logKST = new Date(log.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+        const d = new Date(log.timestamp);
+        if (isNaN(d.getTime())) return false; // [FIX] Prevent RangeError: Invalid time value
+        const logKST = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
         return logKST === dateStr && log.branchId === branchId;
     });
 
-    // Check if holiday
-    const holidayName = getHolidayName(dateStr);
+    const consumedLogIds = new Set();
 
-    // Check if holiday/all cancelled
-    const isAllCancelled = classes.length > 0 && classes.every(c => c.status === 'cancelled');
+    // Pre-match scheduled classes
+    const matchedClasses = classes.map(cls => {
+        if (cls.status === 'cancelled') return { ...cls, matchCount: 0 };
+
+        const [clsH, clsM] = cls.time.split(':').map(Number);
+        const clsTotalMins = clsH * 60 + clsM;
+
+        // Find all logs that match this class name AND are within 2 hours of class time
+        const matches = dailyLogs.filter(log => {
+            if (consumedLogIds.has(log.id)) return false;
+
+            // Name check
+            const nameMatch = log.className && (cls.title.includes(log.className) || log.className.includes(cls.title));
+            if (!nameMatch) return false;
+
+            // Time proximity check (2 hours window)
+            const logDate = new Date(log.timestamp);
+            const logTotalMins = logDate.getHours() * 60 + logDate.getMinutes();
+            const diff = Math.abs(clsTotalMins - logTotalMins);
+
+            return diff <= 120; // 2 hours
+        });
+
+        // Mark matched logs as consumed
+        matches.forEach(m => consumedLogIds.add(m.id));
+
+        return { ...cls, matchCount: matches.length };
+    });
+
+    // Unmatched logs (Autonomous Practice)
+    const unmatchedLogs = dailyLogs.filter(log => !consumedLogIds.has(log.id));
+
+    // [FIX] Restore missing definitions that caused ReferenceError
+    const holidayName = getHolidayName(dateStr);
+    const isAttended = dailyLogs.length > 0;
+    const isAllCancelled = classes.length > 0 && classes.every(cls => cls.status === 'cancelled');
 
     return (
         <div
@@ -206,16 +251,9 @@ const CalendarCell = React.memo(({ date, monthlyClasses, attendanceLogs, branchI
             )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {/* Scheduled Classes */}
-                {classes.map((cls, idx) => {
+                {matchedClasses.map((cls, idx) => {
                     const colors = getTagColor(cls.title, dateStr, cls.instructor);
-                    // Find if this specific class was attended (filter by branchId)
-                    const attendedClass = attendanceLogs.find(log => {
-                        if (!log.timestamp) return false;
-                        const logDate = new Date(log.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-                        if (logDate !== dateStr) return false;
-                        if (log.branchId !== branchId) return false;
-                        return log.className && (cls.title.includes(log.className) || log.className.includes(cls.title));
-                    });
+                    const isMatched = cls.matchCount > 0;
 
                     return (
                         <div key={idx} style={{
@@ -226,17 +264,33 @@ const CalendarCell = React.memo(({ date, monthlyClasses, attendanceLogs, branchI
                                 cls.status === 'changed' ? 'rgba(255, 165, 2, 0.15)' : colors.bg,
                             color: cls.status === 'cancelled' ? '#ff6b81' :
                                 cls.status === 'changed' ? '#ffa502' : colors.text,
-                            border: attendedClass ? '2px solid #3498db' : (cls.status === 'cancelled' ? 'none' : `1px solid ${colors.border}`),
+                            border: isMatched ? '2px solid #3498db' : (cls.status === 'cancelled' ? 'none' : `1px solid ${colors.border}`),
                             textDecoration: cls.status === 'cancelled' ? 'line-through' : 'none',
-                            fontWeight: attendedClass ? 'bold' : 'normal',
-                            boxShadow: attendedClass ? '0 0 8px rgba(52, 152, 219, 0.5)' : 'none',
+                            fontWeight: isMatched ? 'bold' : 'normal',
+                            boxShadow: isMatched ? '0 0 8px rgba(52, 152, 219, 0.5)' : 'none',
                             position: 'relative',
                             display: 'flex',
                             flexDirection: 'column',
                             gap: '2px',
                             marginBottom: '2px'
                         }}>
-                            {attendedClass && <div style={{ position: 'absolute', right: '4px', top: '8px', width: '4px', height: '4px', borderRadius: '50%', background: '#3498db' }} />}
+                            {isMatched && (
+                                <div style={{
+                                    position: 'absolute',
+                                    right: '4px',
+                                    top: '4px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '2px'
+                                }}>
+                                    {cls.matchCount > 1 && (
+                                        <span style={{ fontSize: '0.7rem', color: '#3498db', fontWeight: '900' }}>
+                                            x{cls.matchCount}
+                                        </span>
+                                    )}
+                                    <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#3498db' }} />
+                                </div>
+                            )}
                             <span style={{ fontWeight: '600', lineHeight: '1.2' }}>{cls.time} {getTranslatedClass(cls.title, t)}</span>
                             {(cls.instructor || cls.level) && (
                                 <span style={{ fontSize: '0.85em', opacity: 0.9, lineHeight: '1.2', display: 'block' }}>
@@ -248,34 +302,24 @@ const CalendarCell = React.memo(({ date, monthlyClasses, attendanceLogs, branchI
                 })}
 
                 {/* Autonomous Practice (자율수련) or Unmatched Attendance */}
-                {attendanceLogs
-                    .filter(log => {
-                        const logDate = new Date(log.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-                        if (logDate !== dateStr) return false;
-                        if (log.branchId !== branchId) return false;
-                        const matched = classes.some(cls => log.className && (cls.title.includes(log.className) || log.className.includes(cls.title)));
-                        return !matched || log.className === '자율수련' || log.className === '자율수업';
-                    })
-                    .map((log, idx) => (
-                        <div key={`auto-${idx}`} style={{
-                            fontSize: '0.75rem',
-                            padding: '3px 6px',
-                            borderRadius: '6px',
-                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                            color: '#3498db',
-                            border: '2px solid #3498db',
-                            fontWeight: 'bold',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                        }}>
-                            <span style={{ fontSize: '0.6rem' }}>●</span>
-                            <span style={{ fontSize: '0.6rem' }}>●</span>
-                            {new Date(log.timestamp).toLocaleTimeString(language === 'ko' ? 'ko-KR' : language, { hour: '2-digit', minute: '2-digit', hour12: false })}
-                            {' '}{t('auto_practice')}
-                        </div>
-                    ))
-                }
+                {unmatchedLogs.map((log, idx) => (
+                    <div key={`auto-${idx}`} style={{
+                        fontSize: '0.75rem',
+                        padding: '3px 6px',
+                        borderRadius: '6px',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        color: '#3498db',
+                        border: '2px solid #3498db',
+                        fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                    }}>
+                        <span style={{ fontSize: '0.6rem' }}>●</span>
+                        {new Date(log.timestamp).toLocaleTimeString(language === 'ko' ? 'ko-KR' : language, { hour: '2-digit', minute: '2-digit', hour12: false })}
+                        {' '}{log.className === '자율수련' || log.className === '자율수업' ? t('auto_practice') : getTranslatedClass(log.className, t)}
+                    </div>
+                ))}
 
                 {classes.length === 0 && !isAllCancelled && (
                     <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.2)' }}></span>

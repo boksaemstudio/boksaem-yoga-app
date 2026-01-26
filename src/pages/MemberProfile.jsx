@@ -1,4 +1,6 @@
 import React, { useState, useEffect, cloneElement } from 'react';
+import { onSnapshot, doc, collection, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
+import { db } from '../firebase';
 import { storageService } from '../services/storage';
 import { Icons } from '../components/CommonIcons';
 import { Megaphone } from '@phosphor-icons/react';
@@ -61,10 +63,11 @@ const safeSessionStorage = {
     }
 };
 const getDaysRemaining = (endDate) => {
-    if (!endDate) return 0;
+    if (!endDate || endDate === 'TBD' || endDate === 'unlimited') return 0;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const end = new Date(endDate);
+    if (isNaN(end.getTime())) return 0;
     end.setHours(0, 0, 0, 0);
     const diff = end - today;
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
@@ -103,26 +106,32 @@ const MemberProfile = () => {
     }, [language, member?.id, member?.language]);
 
     const [logs, setLogs] = useState([]);
+    const [logLimit, setLogLimit] = useState(10);
     const [notices, setNotices] = useState([]);
     const [images, setImages] = useState({});
     const [weatherData, setWeatherData] = useState(null); // Changed to object { key, temp }
     const [aiExperience, setAiExperience] = useState(null);
     const [aiAnalysis, setAiAnalysis] = useState(null);
 
-    const [pushStatus, setPushStatus] = useState('default');
+    const [pushStatus, setPushStatus] = useState(() => {
+        if (typeof Notification === 'undefined') return 'default';
+        if (Notification.permission === 'denied') return 'denied';
+        if (Notification.permission === 'granted') return 'granted';
+        return 'default';
+    });
 
     // PWA Install State
     const [installPrompt, setInstallPrompt] = useState(null);
-    const [isIOS, setIsIOS] = useState(() => {
+    const [isIOS] = useState(() => {
         if (typeof window === 'undefined') return false;
         return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
     });
-    const [isInStandaloneMode, setIsInStandaloneMode] = useState(() => {
+    const [isInStandaloneMode] = useState(() => {
         if (typeof window === 'undefined') return false;
         return window.matchMedia('(display-mode: standalone)').matches ||
             (window.navigator && window.navigator.standalone);
     });
-    const [isInAppBrowser, setIsInAppBrowser] = useState(() => {
+    const [isInAppBrowser] = useState(() => {
         if (typeof window === 'undefined') return false;
         return /kakaotalk|naver|instagram|line/i.test(window.navigator.userAgent.toLowerCase());
     });
@@ -155,7 +164,7 @@ const MemberProfile = () => {
             const [memberData, history, noticeData, imagesData] = await Promise.all([
                 storageService.getMemberById(memberId),
                 storageService.getAttendanceByMemberId(memberId),
-                storageService.getNotices(),
+                storageService.loadNotices(),
                 storageService.getImages()
             ]);
 
@@ -165,35 +174,25 @@ const MemberProfile = () => {
                 setNotices(noticeData || []);
                 setImages(imagesData || {});
 
-                // Set initial state from member data
                 setScheduleBranch(memberData.homeBranch || 'gwangheungchang');
-
-                // Trigger background fetch
                 fetchWeather();
 
-                // Check push permission status
-                if ('Notification' in window) {
-                    const permission = Notification.permission;
-                    const isEnabled = localStorage.getItem('push_enabled');
-                    if (permission === 'granted' && isEnabled !== 'false') {
-                        setPushStatus('granted');
-                    } else if (permission === 'denied') {
-                        setPushStatus('denied');
-                    } else {
-                        setPushStatus('default');
-                    }
-                }
-
-                // AI load (with weather or without)
                 if (!weatherData) {
                     loadAIExperience(memberData, history);
                 }
 
-                // [OPTIMIZATION] Trigger AI Analysis Immediately (Prefetch)
                 const now = new Date();
                 storageService.getAIAnalysis(memberData.name, history.length, history, now.getHours(), language, 'member')
                     .then(analysis => setAiAnalysis(analysis))
                     .catch(() => setAiAnalysis({ message: t('analysisPending'), isError: true }));
+
+                // [Fix] Push Token Self-Healing: If permission already granted, re-sync with server
+                // This recovers badges even if the fcm_tokens collection was wiped.
+                if (Notification.permission === 'granted' || localStorage.getItem('push_enabled') === 'true') {
+                    console.log("[Push Check] Syncing lost tokens for current device...");
+                    storageService.requestPushPermission(memberId).catch(err => console.warn(err));
+                    setPushStatus('granted');
+                }
             } else {
                 setError(t('errorMemberNotFound') || "회원 정보를 찾을 수 없습니다.");
                 safeSessionStorage.removeItem('member');
@@ -205,6 +204,41 @@ const MemberProfile = () => {
             setLoading(false);
         }
     };
+
+    // [REAL-TIME] Real-time Listener for Member and Attendance
+    useEffect(() => {
+        const savedMember = safeSessionStorage.getItem('member');
+        if (!savedMember) return;
+        const memberId = JSON.parse(savedMember).id;
+        // v1.0.5 - Clean and verified
+
+
+        const unsubMember = onSnapshot(doc(db, 'members', memberId), (snap) => {
+            if (snap.exists()) {
+                const data = { id: snap.id, ...snap.data() };
+                console.log("[MemberProfile] Real-time member update received");
+                setMember(data);
+                safeSessionStorage.setItem('member', JSON.stringify(data));
+            }
+        });
+
+        const q = query(
+            collection(db, 'attendance'),
+            where('memberId', '==', memberId),
+            orderBy('timestamp', 'desc'),
+            firestoreLimit(logLimit)
+        );
+        const unsubAttendance = onSnapshot(q, (snap) => {
+            const history = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            console.log(`[MemberProfile] Real-time attendance update: ${history.length} records`);
+            setLogs(history);
+        });
+
+        return () => {
+            if (unsubMember) unsubMember();
+            if (unsubAttendance) unsubAttendance();
+        };
+    }, [logLimit]);
 
     const loadAIExperience = async (m, attendanceData = null, wData = null) => {
         if (!m) return;
@@ -222,7 +256,8 @@ const MemberProfile = () => {
         try {
             // [FIX] Calculate diligence data for personalized AI
             const streak = attendanceData ? storageService.getMemberStreak(m.id, attendanceData) : 0;
-            const lastAtt = attendanceData && attendanceData.length > 0 ? attendanceData[0].date : null;
+            // [FIX] Use timestamp instead of date (which is typically undefined in attendance logs)
+            const lastAtt = attendanceData && attendanceData.length > 0 ? (attendanceData[0].timestamp || attendanceData[0].date) : null;
 
             const exp = await storageService.getAIExperience(
                 m.name,
@@ -420,11 +455,23 @@ const MemberProfile = () => {
         else if (month >= 6 && month <= 8) seasonMsg = t('season_summer');
         else if (month >= 9 && month <= 11) seasonMsg = t('season_autumn');
         else seasonMsg = t('season_winter');
-
         return timeMsg + seasonMsg;
     };
 
     const handlePushRequest = async () => {
+        if (pushStatus === 'denied') {
+            const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            let msg = "알림 권한이 차단되어 있습니다.\n\n";
+
+            if (isPWA) {
+                msg += "[앱 알림 켜는 법]\n1. 휴대폰 '설정' > '애플리케이션' (또는 앱)\n2. 목록에서 이 앱(또는 Chrome) 선택\n3. '알림'을 찾아 '허용' 해주세요.\n4. 앱을 껐다 켜주세요.";
+            } else {
+                msg += "[해제 방법]\n1. 주소창 자물쇠 아이콘 클릭\n2. '설정' 또는 '권한' 클릭\n3. '알림'을 '허용'으로 변경";
+            }
+            alert(msg);
+            return;
+        }
+
         const status = await storageService.requestPushPermission(member.id);
         if (status === 'granted') {
             setPushStatus('granted');
@@ -432,7 +479,7 @@ const MemberProfile = () => {
             alert(t('pushEnabled'));
         } else if (status === 'denied') {
             setPushStatus('denied');
-            alert(t('pushBlocked'));
+            alert("알림 권한이 차단되었습니다. 휴대폰 설정 또는 브라우저 설정에서 알림을 허용해주세요.");
         }
     };
 
@@ -445,18 +492,48 @@ const MemberProfile = () => {
         }
     };
 
+
+
     if (loading) return <div className="loading-screen"><div className="spinner"></div></div>;
 
     if (!member) {
         return (
             <div style={{
                 minHeight: '100vh',
-                backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url(${memberBg})`,
-                backgroundSize: 'cover', backgroundPosition: 'center',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                padding: '20px', color: 'white', overflowY: 'auto'
+                position: 'relative',
+                overflowX: 'hidden',
+                overflowY: 'auto',
+                background: '#000000',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '20px'
             }}>
-                <div style={{ animation: 'slideUp 0.8s ease-out', textAlign: 'center', width: '100%', maxWidth: '360px' }}>
+                {/* Background layers identical to profile for seamless transition */}
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url(${memberBg})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        zIndex: 1
+                    }}
+                />
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.1)', zIndex: 4, pointerEvents: 'none' }} />
+
+                <div style={{
+                    position: 'relative',
+                    zIndex: 10,
+                    animation: 'slideUp 0.8s ease-out',
+                    textAlign: 'center',
+                    width: '100%',
+                    maxWidth: '360px'
+                }}>
                     <div style={{ marginBottom: '40px' }}>
                         <img src={logo} alt={STUDIO_CONFIG.NAME} style={{ width: '85px', height: 'auto', opacity: 0.9, filter: 'brightness(0) invert(1) drop-shadow(0 0 15px rgba(255, 255, 255, 0.4))', marginBottom: '25px' }} />
                         <h2 style={{ fontSize: '1.4rem', fontWeight: '800', marginBottom: '10px', color: 'var(--primary-gold)' }}>{t('loginTitle')}</h2>
@@ -564,6 +641,8 @@ const MemberProfile = () => {
                     {/* HOME TAB */}
                     {activeTab === 'home' && (
                         <div className="fade-in">
+
+
                             <div className="glass-panel" style={{ padding: '24px', marginBottom: '20px', background: 'rgba(20, 20, 20, 0.9)', border: '1px solid rgba(255,255,255,0.15)' }}>
                                 <MembershipInfo member={member} daysRemaining={daysRemaining} t={t} />
 
@@ -593,7 +672,10 @@ const MemberProfile = () => {
                                         </div>
                                         {pushStatus === 'granted' ?
                                             <button onClick={handlePushDisable} style={{ background: '#10B981', color: 'white', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', border: 'none' }}>ON</button> :
-                                            <button onClick={handlePushRequest} style={{ background: 'rgba(255,255,255,0.1)', color: 'white', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', border: 'none' }}>OFF</button>
+                                            (pushStatus === 'denied' ?
+                                                <button onClick={handlePushRequest} style={{ background: '#EF4444', color: 'white', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', border: 'none' }}>차단됨</button> :
+                                                <button onClick={handlePushRequest} style={{ background: 'rgba(255,255,255,0.1)', color: 'white', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', border: 'none' }}>OFF</button>
+                                            )
                                         }
                                     </div>
                                 </div>
@@ -608,6 +690,7 @@ const MemberProfile = () => {
                                     handleInstallClick={handleInstallClick}
                                     t={t}
                                 />
+
                             </div>
                         </div>
                     )}
@@ -621,6 +704,8 @@ const MemberProfile = () => {
                                 language={language}
                                 t={t}
                                 aiAnalysis={aiAnalysis}
+                                logLimit={logLimit}
+                                setLogLimit={setLogLimit}
                             />
                         </div>
                     )}
@@ -863,6 +948,9 @@ const MemberProfile = () => {
 
             {/* Bottom Navigation */}
             <ProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} t={t} />
+            <div style={{ padding: '40px 20px', textAlign: 'center', opacity: 0.1, fontSize: '0.6rem', color: 'white' }}>
+                v1.0.5 | boksaem-yoga
+            </div>
         </div>
     );
 };

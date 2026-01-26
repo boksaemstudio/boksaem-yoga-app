@@ -1,9 +1,10 @@
 import React from 'react';
 import { Plus, Check, BellRinging, NotePencil, Info, FileCsv, ChatCircleText } from '@phosphor-icons/react';
 import { getBranchName } from '../../../studioConfig';
+// import { storageService } from '../../../services/storage';  // Unused
 
 const MembersTab = ({
-    members,
+    // members,  // Unused
     filteredMembers,
     summary,
     searchTerm,
@@ -24,14 +25,14 @@ const MembersTab = ({
 }) => {
     return (
         <>
-            <div style={{ marginBottom: '20px' }}>
-                <button onClick={() => setShowAddModal(true)} className="action-btn primary" style={{ width: '100%', height: '54px', fontSize: '1.2rem', borderRadius: '12px', boxShadow: '0 8px 24px var(--primary-gold-glow)', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
+                <button onClick={() => setShowAddModal(true)} className="action-btn primary" style={{ flex: 'none', width: 'auto', minWidth: '350px', height: '54px', fontSize: '1.2rem', borderRadius: '12px', boxShadow: '0 8px 24px var(--primary-gold-glow)', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                     <Plus size={24} weight="bold" /> 신규 회원 등록하기
                 </button>
             </div>
 
             {/* 마이그레이션 파일 업로드 섹션 */}
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
                 <input
                     type="file"
                     id="migration-csv-upload"
@@ -89,7 +90,9 @@ const MembersTab = ({
                     htmlFor="migration-csv-upload"
                     className="action-btn"
                     style={{
-                        width: '100%',
+                        flex: 'none',
+                        width: 'auto',
+                        minWidth: '350px',
                         height: '54px',
                         fontSize: '1.2rem',
                         borderRadius: '12px',
@@ -136,7 +139,7 @@ const MembersTab = ({
                 <div className={`dashboard-card interactive ${filterType === 'attendance' ? 'highlight' : ''}`}
                     onClick={() => handleToggleFilter('attendance')}>
                     <span className="card-label">오늘 출석</span>
-                    <span className="card-value">{summary.todayAttendance}명</span>
+                    <span className="card-value">{summary.todayAttendance}명 / <span style={{ fontSize: '1rem', opacity: 0.8 }}>{summary.totalAttendanceToday}회</span></span>
                 </div>
                 <div className={`dashboard-card interactive ${filterType === 'registration' ? 'highlight' : ''}`}
                     onClick={() => handleToggleFilter('registration')}>
@@ -147,12 +150,11 @@ const MembersTab = ({
                     onClick={selectExpiringMembers}
                     style={{ transition: 'all 0.3s ease' }}>
                     <span className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        만료/미수강
+                        만료/횟수 임박
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
                             <span className="tooltip-text" style={{ width: '220px', left: '-100px' }}>
-                                잔여 횟수 0회 또는 만료일 경과<br />
-                                (만료 임박 7일 이내 포함)
+                                잔여 1회 이하 또는 만료 전 7일 ~ 만료 후 1개월 이내 회원
                             </span>
                         </div>
                     </span>
@@ -220,7 +222,7 @@ const MembersTab = ({
                     {filterType === 'active' && '활성 회원'}
                     {filterType === 'attendance' && '오늘 출석 회원'}
                     {filterType === 'registration' && '오늘 등록 회원'}
-                    {filterType === 'expiring' && '만료/미수강 회원'}
+                    {filterType === 'expiring' && '만료/횟수 임박 회원'}
                 </strong> 목록을 <strong style={{ color: 'var(--text-secondary)' }}>이름 가나다순</strong>으로 보고 계십니다.
             </div>
 
@@ -256,7 +258,7 @@ const MembersTab = ({
                             ) : (
                                 paginated.map(member => (
                                     <div
-                                        key={member.id}
+                                        key={member.logId || member.id}
                                         className="member-list-item"
                                         onClick={() => handleOpenEdit(member)}
                                         style={{ cursor: 'pointer' }}
@@ -274,7 +276,26 @@ const MembersTab = ({
                                                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{member.phone}</span>
                                                 <span className="badge" style={{ fontSize: '0.7rem' }}>{getBranchName(member.homeBranch)}</span>
                                                 {pushTokens.some(t => t.memberId === member.id) && (
-                                                    <BellRinging size={16} weight="fill" color="var(--accent-success)" title="푸시 알림 수신 중" />
+                                                    <div style={{
+                                                        display: 'flex', alignItems: 'center', gap: '4px',
+                                                        background: 'rgba(16, 185, 129, 0.15)', color: '#10B981',
+                                                        padding: '2px 8px', borderRadius: '6px', fontSize: '0.7rem',
+                                                        fontWeight: 'bold', border: '1px solid rgba(16, 185, 129, 0.3)'
+                                                    }}>
+                                                        <BellRinging size={12} weight="fill" /> 푸시 ON
+                                                    </div>
+                                                )}
+                                                {member.attendanceTime && (
+                                                    <span style={{
+                                                        fontSize: '0.75rem',
+                                                        color: 'rgba(0,0,0,0.85)',
+                                                        background: 'var(--primary-gold)',
+                                                        padding: '2px 8px',
+                                                        borderRadius: '6px',
+                                                        fontWeight: '700'
+                                                    }}>
+                                                        {member.attendanceClass} ({member.attendanceTime})
+                                                    </span>
                                                 )}
                                             </div>
                                             <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
@@ -283,14 +304,10 @@ const MembersTab = ({
                                                 <span style={{ color: member.credits <= 3 ? 'var(--accent-error)' : 'var(--text-primary)', fontWeight: 'bold' }}>잔여 {member.credits}회</span>
                                                 <span style={{ opacity: 0.3 }}>|</span>
                                                 <span style={{
-                                                    background: member.endDate && new Date(member.endDate) < new Date(new Date().setDate(new Date().getDate() + 7)) ? 'rgba(244, 63, 94, 0.2)' : 'rgba(212, 175, 55, 0.2)',
-                                                    color: member.endDate && new Date(member.endDate) < new Date(new Date().setDate(new Date().getDate() + 7)) ? 'var(--accent-error)' : 'var(--primary-gold)',
-                                                    padding: '2px 8px',
-                                                    borderRadius: '4px',
-                                                    fontWeight: 'bold',
+                                                    color: member.endDate && new Date(member.endDate) < new Date(new Date().setDate(new Date().getDate() + 7)) ? 'var(--accent-error)' : 'var(--text-tertiary)',
                                                     fontSize: '0.85rem'
                                                 }}>
-                                                    종료일: {member.endDate || '무제한'}
+                                                    종료일: {member.endDate === 'TBD' ? '첫 출석 시 확정' : (member.endDate || '무제한')}
                                                 </span>
                                             </div>
                                             {member.notes && (

@@ -12,7 +12,6 @@ const firebaseConfig = {
 };
 
 export const app = initializeApp(firebaseConfig);
-console.log("Firebase initialized with project:", firebaseConfig.projectId);
 export const db = getFirestore(app);
 export const messaging = getMessaging(app);
 import { getAuth } from "firebase/auth";
