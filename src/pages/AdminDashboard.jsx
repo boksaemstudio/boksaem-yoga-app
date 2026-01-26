@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { storageService } from '../services/storage';
 import { useAdminData } from '../hooks/useAdminData'; // [Refactor]
-import { STUDIO_CONFIG, getBranchName } from '../studioConfig';
+import { STUDIO_CONFIG } from '../studioConfig';
 import { useNavigate } from 'react-router-dom';
 import {
     Users, ClockCounterClockwise, Plus, PlusCircle, Image as ImageIcon,
@@ -64,62 +64,56 @@ const ColorLegend = ({ branchId }) => {
     );
 };
 
-// [Helper] Robust Date Parsing
-const parseDate = (dateStr) => {
-    if (!dateStr) return null;
-    // Handle "yyyy.mm.dd", "yyyy-mm-dd", "yyyy/mm/dd"
-    const standardStr = dateStr.replace(/\./g, '-').replace(/\//g, '-');
-    const date = new Date(standardStr);
-    return isNaN(date.getTime()) ? null : date;
-};
+// [Helper] Robust Date Parsing (Unused locally now, but maybe useful? Linter says delete)
+// const parseDate = (dateStr) => { ... }
 
-// [Helper] Standardized Filter Logic (External to ensure consistent behavior)
-const isMemberActive = (m) => {
-    // Treat 0 or "0" as 0. Treat empty/null as invalid.
-    const credits = Number(m.credits || 0);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Comparison at start of day
+// [Refactor] Logic moved to useAdminData or provided by simple functions if local only
+// Removing local definitions of isMemberActive and isMemberExpiring as they are imported from useAdminData
 
-    // Case 1: Unlimited Date (No End Date) - Usually implies subscription
-    if (!m.endDate) {
-        return credits > 0;
-    }
+const isMemberDormant = (m, logs, isMemberActiveFn) => {
+    // 1. Check if member is deleted/inactive? (Optional, but "Dormant" usually implies they are still valid members who just stopped coming)
+    // Let's include all members who have credits but stopped coming.
+    // If credits == 0, they are Expired, not just Dormant. But they can be both.
+    // Let's focus on "Active but not attending".
 
-    // Case 2: Has End Date
-    const endDate = parseDate(m.endDate);
-
-    // If date is invalid, logic:
-    // User complaint "Active 0" implies valid members are being dropped.
-    // If parseDate fails, it returns null.
-    if (!endDate) return false;
-
-    endDate.setHours(0, 0, 0, 0);
-
-    // Check if future/today AND credits >= 0
-    return endDate >= today && credits >= 0;
-};
-
-const isMemberExpiring = (m) => {
-    const endDateObj = parseDate(m.endDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    /* [USER FEEDBACK] Remove 'Too Old' filter so all inactive members show up in Expiring box
-    if (endDateObj) {
-        const twoMonthsAgo = new Date(today);
-        twoMonthsAgo.setMonth(today.getMonth() - 2);
-        if (endDateObj < twoMonthsAgo) return false;
-    }
+    /* 
+       Definition:
+       - Has credits > 0 (Active)
+       - No attendance for 14 days
     */
+    const active = isMemberActiveFn ? isMemberActiveFn(m) : (Number(m.credits || 0) > 0);
+    if (!active) return false;
 
-    const nextWeek = new Date(today);
-    nextWeek.setDate(today.getDate() + 7);
+    const today = new Date();
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(today.getDate() - 14);
 
-    const isExpiringSoon = endDateObj && endDateObj >= today && endDateObj <= nextWeek;
-    const isExpired = endDateObj && endDateObj < today && endDateObj >= new Date(new Date().setDate(new Date().getDate() - 30));
-    const noCredits = Number(m.credits || 0) <= 1;
+    let lastAttDate = null;
 
-    return isExpiringSoon || isExpired || noCredits;
+    if (m.lastAttendance) {
+        lastAttDate = new Date(m.lastAttendance);
+    } else if (m.attendanceCount > 0) {
+        // Fallback: If no lastAttendance field but has count, try to find in loaded logs
+        // Note: 'logs' passed here might be limited. 
+        // If not found in recent logs, assume it was long ago -> Dormant.
+        const lastLog = logs.find(l => l.memberId === m.id);
+        if (lastLog) {
+            lastAttDate = new Date(lastLog.timestamp || lastLog.date);
+        } else {
+            // Not in recent logs -> Likely Dormant
+            return true;
+        }
+    } else {
+        // Attendance Count 0
+        // Check Reg Date
+        if (m.regDate) {
+            const regDate = new Date(m.regDate);
+            return regDate < twoWeeksAgo;
+        }
+        return false;
+    }
+
+    return lastAttDate && lastAttDate < twoWeeksAgo;
 };
 
 const AdminDashboard = () => {
@@ -199,18 +193,7 @@ const AdminDashboard = () => {
     };
 
     // [OPTIMIZATION] Pre-calculate today's attendees O(M)
-    const todayAttendedMemberIds = useMemo(() => {
-        const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-        const ids = new Set();
-        logs.forEach(l => {
-            if (!l.timestamp) return;
-            const logDate = new Date(l.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-            if (logDate === todayStr && (currentBranch === 'all' || l.branchId === currentBranch)) {
-                ids.add(l.memberId);
-            }
-        });
-        return ids;
-    }, [logs, currentBranch]);
+    // const todayAttendedMemberIds = useMemo(...) // Unused now
 
     // 필터링된 멤버 목록을 메모이제이션하여 성능 최적화
     const filteredMembers = useMemo(() => {
@@ -262,10 +245,20 @@ const AdminDashboard = () => {
             if (filterType === 'registration') return m.regDate === todayStr;
             // if (filterType === 'attendance') handled above
             if (filterType === 'expiring') return checkIsExpiring(m);
+            if (filterType === 'dormant') return isMemberDormant(m, logs, isMemberActive);
 
             return true; // 'all'
         }).sort((a, b) => a.name.localeCompare(b.name, 'ko'));
-    }, [members, logs, searchTerm, filterType, currentBranch, todayAttendedMemberIds, isMemberActive, isMemberExpiring]);
+    }, [members, logs, searchTerm, filterType, currentBranch, isMemberActive, isMemberExpiring]);
+
+    const dormantCount = useMemo(() => {
+        return members.filter(m => {
+            if (currentBranch !== 'all' && m.homeBranch !== currentBranch) return false;
+            return isMemberDormant(m, logs, isMemberActive);
+        }).length;
+    }, [members, logs, currentBranch, isMemberActive]);
+
+    const extendedSummary = { ...summary, dormantMembersCount: dormantCount };
 
     useEffect(() => {
         const handleBeforeInstallPrompt = (e) => {
@@ -740,7 +733,7 @@ const AdminDashboard = () => {
                     <MembersTab
                         members={members}
                         filteredMembers={filteredMembers}
-                        summary={summary}
+                        summary={extendedSummary}
                         searchTerm={searchTerm}
                         setSearchTerm={setSearchTerm}
                         filterType={filterType}
@@ -903,158 +896,19 @@ const AdminDashboard = () => {
                     <ErrorLogsTab />
                 )}
                 {/* Legacy Logs Content (Hidden) */}
-                {false && activeTab === 'logs' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                        {/* Summary of Today's Classes */}
-                        {todayClasses.length > 0 && (
-                            <div className="dashboard-card" style={{ border: '1px solid rgba(212,175,55,0.2)' }}>
-                                <h3 className="card-label" style={{ marginBottom: '15px', color: 'var(--primary-gold)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <ClockCounterClockwise size={18} /> 오늘 수업별 출석 요약
-                                </h3>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-                                    {todayClasses.map((cls, idx) => (
-                                        <div key={idx} style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-                                                <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{cls.className}</div>
-                                                <span style={{
-                                                    fontSize: '0.65rem',
-                                                    padding: '2px 6px',
-                                                    borderRadius: '4px',
-                                                    background: cls.branchId === 'gwangheungchang' ? 'rgba(212, 175, 55, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                                                    color: cls.branchId === 'gwangheungchang' ? 'var(--primary-gold)' : 'var(--text-secondary)',
-                                                    fontWeight: 'bold',
-                                                    border: `1px solid ${cls.branchId === 'gwangheungchang' ? 'rgba(212, 175, 55, 0.3)' : 'rgba(255, 255, 255, 0.15)'}`
-                                                }}>
-                                                    {getBranchName(cls.branchId)}
-                                                </span>
-                                            </div>
-                                            <div style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '8px' }}>{cls.instructor} 강사님</div>
-                                            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px' }}>
-                                                <span style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--primary-gold)', lineHeight: 1 }}>{cls.count}</span>
-                                                <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>명 참여</span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {(() => {
-                            const filteredLogs = logs.filter(l => currentBranch === 'all' || l.branchId === currentBranch);
-                            const itemsPerLogPage = 20;
-                            const totalLogPages = Math.ceil(filteredLogs.length / itemsPerLogPage);
-                            const startLogIndex = (currentLogPage - 1) * itemsPerLogPage;
-                            const currentLogs = filteredLogs.slice(startLogIndex, startLogIndex + itemsPerLogPage);
-                            const todayStr = new Date().toDateString();
-
-                            return (
-                                <div className="dashboard-card">
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                                        <h3 className="card-label">전체 출석 이력</h3>
-                                        <span style={{ color: 'var(--text-secondary)' }}>총 {filteredLogs.length}건</span>
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                        {currentLogs.length === 0 ? (
-                                            <div style={{ padding: '40px', textAlign: 'center', opacity: 0.5 }}>출석 기록이 없습니다.</div>
-                                        ) : (
-                                            currentLogs.map(log => {
-                                                const member = members.find(m => m.id === log.memberId);
-                                                const isToday = new Date(log.timestamp).toDateString() === todayStr;
-
-                                                return (
-                                                    <div key={log.id} style={{
-                                                        padding: '12px 16px',
-                                                        borderBottom: '1px solid var(--border-color)',
-                                                        display: 'flex',
-                                                        justifyContent: 'space-between',
-                                                        alignItems: 'center',
-                                                        background: isToday ? 'rgba(212, 175, 55, 0.1)' : 'transparent',
-                                                        borderLeft: isToday ? '4px solid var(--primary-gold)' : '4px solid transparent',
-                                                        borderRadius: '4px'
-                                                    }}>
-                                                        <div>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                <span style={{ fontWeight: 'bold', color: 'var(--text-primary)', fontSize: '1rem' }}>
-                                                                    {log.memberName || (member ? member.name : '알 수 없음')}
-                                                                </span>
-                                                                {isToday && <span style={{ fontSize: '0.7rem', background: 'var(--primary-gold)', color: 'black', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>TODAY</span>}
-                                                            </div>
-                                                            <div style={{ marginTop: '4px', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                                <span>{getBranchName(log.branchId)}</span>
-                                                                <span style={{ opacity: 0.3 }}>|</span>
-                                                                <span style={{ color: 'var(--primary-gold)' }}>{log.className || (member?.subject) || '일반'}</span>
-                                                                {log.instructor && (
-                                                                    <>
-                                                                        <span style={{ opacity: 0.3 }}>|</span>
-                                                                        <span style={{ color: 'var(--accent-success)' }}>{log.instructor} 강사님</span>
-                                                                    </>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                        <div style={{ textAlign: 'right' }}>
-                                                            <div style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 'bold' }}>
-                                                                {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                            </div>
-                                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                                                                {new Date(log.timestamp).toLocaleDateString()}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })
-                                        )}
-                                    </div>
-
-                                    {/* Pagination for Logs */}
-                                    {totalLogPages > 1 && (
-                                        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '20px' }}>
-                                            <button
-                                                onClick={() => setCurrentLogPage(p => Math.max(1, p - 1))}
-                                                disabled={currentLogPage === 1}
-                                                style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--bg-surface)', border: '1px solid var(--border-color)', color: 'white', opacity: currentLogPage === 1 ? 0.3 : 1 }}
-                                            >
-                                                &lt;
-                                            </button>
-
-                                            {/* Simple Pagination Logic: Show range around current page */}
-                                            {(() => {
-                                                let start = Math.max(1, currentLogPage - 2);
-                                                let end = Math.min(totalLogPages, start + 4);
-                                                if (end - start < 4) start = Math.max(1, end - 4);
-
-                                                return Array.from({ length: end - start + 1 }, (_, i) => start + i).map(page => (
-                                                    <button key={page} onClick={() => setCurrentLogPage(page)}
-                                                        style={{
-                                                            width: '32px', height: '32px', borderRadius: '8px',
-                                                            background: currentLogPage === page ? 'var(--primary-gold)' : 'var(--bg-surface)',
-                                                            color: currentLogPage === page ? '#000' : 'var(--text-secondary)',
-                                                            fontWeight: 'bold', border: '1px solid var(--border-color)'
-                                                        }}>
-                                                        {page}
-                                                    </button>
-                                                ));
-                                            })()}
-
-                                            <button
-                                                onClick={() => setCurrentLogPage(p => Math.min(totalLogPages, p + 1))}
-                                                disabled={currentLogPage === totalLogPages}
-                                                style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--bg-surface)', border: '1px solid var(--border-color)', color: 'white', opacity: currentLogPage === totalLogPages ? 0.3 : 1 }}
-                                            >
-                                                &gt;
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })()}
-                    </div>
-                )}
+                {/* Legacy Logs Content Removed */}
             </div>
 
 
             {/* --- MODALS --- */}
             <MemberAddModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} onSuccess={refreshData} />
-            <MemberNoteModal isOpen={showNoteModal} onClose={() => setShowNoteModal(false)} member={selectedMember && members.find(m => m.id === selectedMember.id) || selectedMember} onSuccess={refreshData} />
+            <MemberNoteModal
+                isOpen={showNoteModal}
+                onClose={() => setShowNoteModal(false)}
+                key={selectedMember?.id || 'note-modal-empty'}
+                member={selectedMember && members.find(m => m.id === selectedMember.id) || selectedMember}
+                onSuccess={refreshData}
+            />
             <NoticeModal isOpen={showNoticeModal} onClose={() => setShowNoticeModal(false)} onSuccess={refreshData} />
             <BulkMessageModal isOpen={showBulkMessageModal} onClose={() => setShowBulkMessageModal(false)} selectedMemberIds={selectedMemberIds} />
             <MessageModal isOpen={showMessageModal} onClose={() => setShowMessageModal(false)} member={selectedMember && members.find(m => m.id === selectedMember.id) || selectedMember} />

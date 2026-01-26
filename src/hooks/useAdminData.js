@@ -166,7 +166,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
         // Stats Calculation
         const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-        const today = new Date(todayStr);
+        // const today = new Date(todayStr); // Unused
         const currentMonth = todayStr.substring(0, 7);
         const isMemberInBranch = (m) => currentBranch === 'all' || m.homeBranch === currentBranch;
 

@@ -1,15 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FloppyDisk } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 
 const MemberNoteModal = ({ isOpen, onClose, member, onSuccess }) => {
-    const [noteText, setNoteText] = useState('');
-
-    useEffect(() => {
-        if (member) {
-            setNoteText(member.notes || '');
-        }
-    }, [member]);
+    // Initialize state from props. Parent should use key={member.id} to reset state on change.
+    const [noteText, setNoteText] = useState(member?.notes || '');
 
     if (!isOpen || !member) return null;
 

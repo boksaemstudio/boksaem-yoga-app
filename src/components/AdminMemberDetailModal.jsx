@@ -631,12 +631,6 @@ const getMembershipTypeLabel = (type) => {
     return labels[type] || type;
 };
 
-const determineStatusText = (member) => {
-    if (member.endDate === 'TBD') return '첫 출석 대기';
-    const end = new Date(member.endDate);
-    const today = new Date();
-    if (end < today) return '기간 만료';
-    return '이용 중';
-};
+
 
 export default AdminMemberDetailModal;

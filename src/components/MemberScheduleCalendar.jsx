@@ -145,7 +145,7 @@ const MemberScheduleCalendar = ({ branchId, attendanceLogs = [] }) => {
                             const date = new Date(year, month - 1);
                             if (isNaN(date.getTime())) return `${year}.${month}`;
                             return new Intl.DateTimeFormat(language === 'ko' ? 'ko-KR' : (language === 'en' ? 'en-US' : (language === 'ru' ? 'ru-RU' : (language === 'zh' ? 'zh-CN' : 'ja-JP'))), { year: 'numeric', month: 'long' }).format(date);
-                        } catch (e) {
+                        } catch {
                             return `${year}.${month}`;
                         }
                     })()}

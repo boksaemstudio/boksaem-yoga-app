@@ -336,7 +336,7 @@ const AdminScheduleManager = ({ branchId, showSettings, onShowSettings }) => {
                 storageService.updateImage(targetKey, compressedBase64)
                     .then(async () => {
                         // [VERIFICATION] Explicitly check if it exists in DB
-                        const verifyImg = await storageService.getImages();
+                        await storageService.getImages();
                         // Note: getImages returns cache from listener, which might be slightly delayed. 
                         // Let's rely on the promise resolution of updateImage which implies write complete.
                         alert(`${year}년 ${month}월 시간표가 저장되었습니다.\n(전송 크기: ${kbSize}KB)`);

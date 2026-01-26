@@ -160,6 +160,21 @@ const MembersTab = ({
                     </span>
                     <span className="card-value error">{summary.expiringMembersCount}명</span>
                 </div>
+                {/* [NEW] Dormant Members Card */}
+                <div className={`dashboard-card interactive ${filterType === 'dormant' ? 'highlight' : ''}`}
+                    onClick={() => handleToggleFilter('dormant')}
+                    style={{ transition: 'all 0.3s ease', background: filterType === 'dormant' ? 'var(--primary-gold)' : 'linear-gradient(135deg, rgba(30, 30, 60, 0.4), rgba(50, 50, 80, 0.6))', border: filterType === 'dormant' ? 'none' : '1px solid rgba(100, 100, 255, 0.2)' }}>
+                    <span className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: filterType === 'dormant' ? 'black' : '#A0A0FF' }}>
+                        잠든 회원
+                        <div className="tooltip-container" onClick={e => e.stopPropagation()}>
+                            <Info size={14} style={{ opacity: 0.7 }} />
+                            <span className="tooltip-text" style={{ width: '220px', left: '-100px' }}>
+                                14일 이상 미출석한 활성 회원 (안부 문자 대상)
+                            </span>
+                        </div>
+                    </span>
+                    <span className="card-value" style={{ color: filterType === 'dormant' ? 'black' : '#E0E0FF' }}>{summary.dormantMembersCount || 0}명</span>
+                </div>
             </div>
 
             {/* Revenue Card (Visual Bar Chart Simulated) */}
@@ -181,8 +196,8 @@ const MembersTab = ({
             </div>
 
             {/* Search & Bulk Actions */}
-            <div className="search-row" style={{ display: 'flex', gap: '10px', marginBottom: '16px', alignItems: 'center' }}>
-                <div style={{ position: 'relative', flex: 1 }}>
+            <div className="search-row" style={{ display: 'flex', gap: '10px', marginBottom: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
                     <input
                         className="search-input"
                         placeholder="🔍 이름 또는 전화번호 검색..."
@@ -195,6 +210,31 @@ const MembersTab = ({
                         autoCorrect="off"
                     />
                 </div>
+
+                {/* [NEW] Quick Copy Message for Dormant Members */}
+                {filterType === 'dormant' && (
+                    <button
+                        onClick={() => {
+                            const msg = "회원님, 매트 위에서 뵙고 싶어요! 🌿\n\n최근 수련하신 지 시간이 좀 흘렀네요.\n부담 없이 가벼운 마음으로 다시 시작해보시는 건 어떨까요?\n\n따뜻한 차 한 잔과 함께 기다릴게요. 😊\n- 복샘요가";
+                            navigator.clipboard.writeText(msg).then(() => alert('안부 메시지가 복사되었습니다!\n원하는 회원에게 발송해주세요.'));
+                        }}
+                        className="action-btn"
+                        style={{
+                            width: 'auto',
+                            padding: '0 16px',
+                            height: '42px',
+                            borderRadius: '8px',
+                            background: 'rgba(100, 100, 255, 0.1)',
+                            color: '#A0A0FF',
+                            border: '1px solid rgba(100, 100, 255, 0.3)',
+                            fontSize: '0.85rem'
+                        }}
+                    >
+                        <ChatCircleText size={18} weight="bold" />
+                        <span style={{ marginLeft: '6px' }}>안부인사 복사</span>
+                    </button>
+                )}
+
                 {selectedMemberIds.length > 0 && (
                     <button
                         onClick={() => setShowBulkMessageModal(true)}
@@ -273,6 +313,27 @@ const MembersTab = ({
                                         <div style={{ flex: 1, marginLeft: '10px', width: '100%' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px', flexWrap: 'wrap' }}>
                                                 <strong style={{ fontWeight: 800, fontSize: '1.1rem' }}>{member.name}</strong>
+                                                {filterType === 'dormant' && (() => {
+                                                    const today = new Date();
+                                                    let lastDate = member.lastAttendance ? new Date(member.lastAttendance) : (member.regDate ? new Date(member.regDate) : null);
+
+                                                    // Handle case where lastAttendance might be missing but we want to show *something*
+                                                    if (!lastDate) return <span className="badge" style={{ background: 'var(--gray-700)', color: '#bbb' }}>기록 없음</span>;
+
+                                                    const diffTime = Math.abs(today - lastDate);
+                                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                                                    return (
+                                                        <span className="badge" style={{
+                                                            background: 'rgba(255, 59, 48, 0.15)',
+                                                            color: '#FF3B30',
+                                                            border: '1px solid rgba(255, 59, 48, 0.3)',
+                                                            fontSize: '0.75rem'
+                                                        }}>
+                                                            {diffDays}일째 미출석
+                                                        </span>
+                                                    );
+                                                })()}
                                                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{member.phone}</span>
                                                 <span className="badge" style={{ fontSize: '0.7rem' }}>{getBranchName(member.homeBranch)}</span>
                                                 {pushTokens.some(t => t.memberId === member.id) && (

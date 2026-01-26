@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { X, Plus } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 import timeTable1 from '../../../assets/timetable_gwangheungchang.png';
@@ -31,7 +31,7 @@ const handleImageUpload = (e, target, setOptimisticImages) => {
             setOptimisticImages(prev => ({ ...prev, [target]: compressedBase64 }));
             try {
                 await storageService.updateImage(target, compressedBase64);
-            } catch (err) {
+            } catch {
                 alert("이미지 업로드에 실패했습니다.");
             }
         };

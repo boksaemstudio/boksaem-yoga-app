@@ -26,6 +26,33 @@ class Particle {
                 'rgba(221, 160, 221,'  // Plum
             ];
             this.color = calmColors[Math.floor(Math.random() * calmColors.length)];
+        } else if (this.mode === 'burning') {
+            // Burning mode: Fast, energetic, fiery colors for high streak
+            this.vx = (Math.random() - 0.5) * 1.5;
+            this.vy = (Math.random() - 0.5) * 1.5;
+            this.radius = Math.random() * 3 + 1;
+            this.baseOpacity = Math.random() * 0.5 + 0.5; // Brighter
+
+            const fireColors = [
+                'rgba(255, 69, 0,',   // Red Orange
+                'rgba(255, 215, 0,',  // Gold
+                'rgba(255, 140, 0,',  // Dark Orange
+                'rgba(255, 255, 255,' // White core
+            ];
+            this.color = fireColors[Math.floor(Math.random() * fireColors.length)];
+        } else if (this.mode === 'stillness') {
+            // Stillness mode: Very slow, gray/misty for dormant
+            this.vx = (Math.random() - 0.5) * 0.05;
+            this.vy = (Math.random() - 0.5) * 0.05;
+            this.radius = Math.random() * 2 + 0.5;
+            this.baseOpacity = Math.random() * 0.2 + 0.1; // Faint
+
+            const mistColors = [
+                'rgba(200, 200, 200,', // Light Gray
+                'rgba(100, 100, 120,', // Blueish Gray
+                'rgba(255, 255, 255,'  // White
+            ];
+            this.color = mistColors[Math.floor(Math.random() * mistColors.length)];
         } else {
             // Cyber mode: Faster, smaller, energetic particles
             this.vx = (Math.random() - 0.5) * 0.8;
@@ -45,7 +72,7 @@ class Particle {
 
         this.opacity = this.baseOpacity;
         this.twinkleDir = Math.random() > 0.5 ? 1 : -1;
-        this.twinkleSpeed = this.mode === 'calm' ? 0.003 + Math.random() * 0.005 : 0.005 + Math.random() * 0.01;
+        this.twinkleSpeed = (this.mode === 'calm' || this.mode === 'stillness') ? 0.003 + Math.random() * 0.005 : 0.005 + Math.random() * 0.01;
     }
 
     update() {

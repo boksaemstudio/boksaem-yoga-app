@@ -82,7 +82,7 @@ export const storageService = {
 
     safelySubscribe(
       collection(db, 'messages'),
-      (snapshot) => { /* messages sync disabled for now */ },
+      ( /* snapshot */) => { /* messages sync disabled for now */ },
       "Messages"
     );
 

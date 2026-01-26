@@ -22,7 +22,7 @@ try {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/firebase-messaging-sw.js')
-        .then(registration => {
+        .then(() => {
         }).catch(registrationError => {
           console.log('SW registration failed: ', registrationError);
         });

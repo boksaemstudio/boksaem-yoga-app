@@ -19,7 +19,7 @@ const HomeYogaCards = ({ language, onDataLoad }) => {
             }
         };
         loadPoses();
-    }, [language]);
+    }, [language, onDataLoad]);
 
     if (loading) return <div style={{ color: 'gray', fontSize: '0.8rem', padding: '10px' }}>AI 추천 로딩 중...</div>;
     if (!poses) return null;

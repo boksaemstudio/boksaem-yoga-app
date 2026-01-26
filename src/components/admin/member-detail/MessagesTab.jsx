@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { storageService } from '../../../services/storage';
-import { onSnapshot, collection, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
+import { onSnapshot, collection, query, where, limit as firestoreLimit } from 'firebase/firestore';
 import { db } from '../../../firebase';
 
 const MessagesTab = ({ memberId }) => {

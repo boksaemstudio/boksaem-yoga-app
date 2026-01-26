@@ -621,7 +621,36 @@ const MemberProfile = () => {
 
             {/* 2. Overlays (z-index: 3-4) */}
             <div className="bg-aura" style={{ position: 'fixed', zIndex: 3, pointerEvents: 'none' }} />
-            <InteractiveParticles />
+            {(() => {
+                // [VISUALIZATION] Determine Particle Mode based on user activity
+                let mode = 'calm';
+                if (logs && logs.length > 0) {
+                    const lastLog = logs[0];
+                    const lastDate = new Date(lastLog.timestamp || lastLog.date);
+                    const daysSinceLast = (new Date() - lastDate) / (1000 * 60 * 60 * 24);
+
+                    if (daysSinceLast > 14) {
+                        mode = 'stillness'; // Dormant
+                    } else {
+                        // Check for high activity (Burning)
+                        // Simple check: 3+ logs in last 7 days OR total logs >= 8 (visible limit)
+                        const oneWeekAgo = new Date();
+                        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                        const recentLogs = logs.filter(l => new Date(l.timestamp || l.date) > oneWeekAgo);
+
+                        if (recentLogs.length >= 3 || logs.length >= 8) {
+                            mode = 'burning';
+                        }
+                    }
+                } else if (member && member.regDate) {
+                    // New member check
+                    const regDate = new Date(member.regDate);
+                    const daysSinceReg = (new Date() - regDate) / (1000 * 60 * 60 * 24);
+                    if (daysSinceReg > 14) mode = 'stillness';
+                }
+
+                return <InteractiveParticles mode={mode} />;
+            })()}
             <div className="profile-overlay" style={{ background: 'rgba(0,0,0,0.1)', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 4 }} />
 
             {/* 3. Content Container (z-index: 10 - Must be higher than overlays) */}

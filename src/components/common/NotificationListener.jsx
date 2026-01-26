@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { onMessage } from 'firebase/messaging';
 import { messaging } from '../../firebase';
-import { CheckCircle, BellRinging, X } from '@phosphor-icons/react';
+import { BellRinging, X } from '@phosphor-icons/react';
 
 const NotificationListener = () => {
     const [toast, setToast] = useState(null);
