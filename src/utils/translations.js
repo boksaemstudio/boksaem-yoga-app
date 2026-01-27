@@ -10,7 +10,7 @@ export const translations = {
         phoneLabel: "전화번호 뒤 4자리",
         phonePlaceholder: "번호 4자리를 입력해주세요",
         checkRecordBtn: "나의 수련 여정 보기",
-        loginFooter: "전통 요가의 깊이를 현대의 편리함으로 담았습니다.",
+        loginFooter: "수련 데이터가 쌓일수록 AI가 당신의 요가 수련을 깊이 있게 분석해 드립니다.",
 
         // Header
         logout: "로그아웃",

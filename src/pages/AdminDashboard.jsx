@@ -128,7 +128,9 @@ const AdminDashboard = () => {
         todayClasses, pushTokens, aiUsage,
         pendingApprovals, summary,
         handleApprovePush, handleRejectPush,
-        refreshData, isMemberActive, isMemberExpiring
+        refreshData, isMemberActive, isMemberExpiring,
+        // New exports
+        revenueTrend, memberStatusDist, getDormantSegments
     } = useAdminData(activeTab, storageService.getCurrentBranch());
 
     // Modals
@@ -749,6 +751,7 @@ const AdminDashboard = () => {
                         setShowAddModal={setShowAddModal}
                         setShowBulkMessageModal={setShowBulkMessageModal}
                         pushTokens={pushTokens}
+                        getDormantSegments={getDormantSegments} // [New]
                     />
                 )}
 
@@ -875,7 +878,7 @@ const AdminDashboard = () => {
 
 
                 {activeTab === 'stats' && (
-                    <StatsTab stats={stats} />
+                    <StatsTab stats={stats} revenueTrend={revenueTrend} memberStatusDist={memberStatusDist} />
                 )}
 
                 {activeTab === 'notices' && (

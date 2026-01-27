@@ -27,6 +27,7 @@ import AttendanceHistory from '../components/profile/AttendanceHistory';
 import RecentAttendance from '../components/profile/RecentAttendance';
 import ProfileTabs from '../components/profile/ProfileTabs';
 import { profileStyles } from '../components/profile/profileStyles';
+import MyStatsChart from '../components/profile/MyStatsChart';
 
 const ENCOURAGING_MESSAGES = [
     "오늘의 수련이 회원님의 지친 몸과 마음을 따뜻하게 안아줄 거예요. 오늘도 즐거운 하루 되세요! ✨",
@@ -674,6 +675,9 @@ const MemberProfile = () => {
 
                             <div className="glass-panel" style={{ padding: '24px', marginBottom: '20px', background: 'rgba(20, 20, 20, 0.9)', border: '1px solid rgba(255,255,255,0.15)' }}>
                                 <MembershipInfo member={member} daysRemaining={daysRemaining} t={t} />
+
+                                {/* [New] Personal Yoga Journey Chart */}
+                                <MyStatsChart logs={logs} />
 
                                 <AISection
                                     aiExperience={aiExperience}

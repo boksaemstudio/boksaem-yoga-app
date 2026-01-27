@@ -177,6 +177,17 @@ const CheckInPage = () => {
         return 'night';
     });
 
+    // [New] Auto-reset input after 20s of inactivity
+    useEffect(() => {
+        if (pin.length > 0) {
+            const timer = setTimeout(() => {
+                setPin('');
+                setMessage(null);
+            }, 20000);
+            return () => clearTimeout(timer);
+        }
+    }, [pin]);
+
     const branches = getAllBranches();
 
     useEffect(() => {

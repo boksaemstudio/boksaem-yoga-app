@@ -289,14 +289,125 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         }
     };
 
-    // Derived Logic for Insight
-    // We expose a manual trigger or effect for AI insight to avoid automatic calls on every render
+    // [Feature 1] Chart Data States
+    const [revenueTrend, setRevenueTrend] = useState([]);
+    const [memberStatusDist, setMemberStatusDist] = useState([]);
+
     useEffect(() => {
         if (activeTab === 'members' && summary.activeMembers > 0) {
             loadAIInsight(members, logs, summary, todayClasses);
         }
     }, [activeTab, summary.activeMembers, loadAIInsight, members, logs, todayClasses]);
 
+    // [Feature 1] Calculate Chart Data (Memoized or inside refreshData)
+    const calculateChartData = useCallback((currentSales, uniqueMembers, isMemberActiveFn) => {
+        // 1. Revenue Trend (Last 6 Months)
+        const trends = [];
+        const today = new Date();
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const key = `${yyyy}-${mm}`;
+
+            const monthRevenue = currentSales
+                .filter(s => {
+                    if (!s.timestamp) return false;
+                    const sDate = s.timestamp.substring(0, 7); // "YYYY-MM"
+                    return sDate === key && (currentBranch === 'all' || s.branchId === currentBranch);
+                })
+                .reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
+
+            trends.push({ month: `${mm}월`, amount: monthRevenue, fullKey: key });
+        }
+        setRevenueTrend(trends);
+
+        // 2. Member Status Distribution
+        // Active: Currently attending (Active & Attended within 14 days)
+        // Dormant: Active but no attendance > 14 days
+        // Expired: No credits or expired date
+        let activeCount = 0;
+        let dormantCount = 0;
+        let expiredCount = 0;
+
+        const twoWeeksAgo = new Date();
+        twoWeeksAgo.setDate(today.getDate() - 14);
+
+        uniqueMembers.filter(m => currentBranch === 'all' || m.homeBranch === currentBranch).forEach(m => {
+            const isActive = isMemberActiveFn(m);
+            if (!isActive) {
+                expiredCount++;
+            } else {
+                // Check dormancy
+                let lastAttDate = m.lastAttendance ? new Date(m.lastAttendance) : null;
+                // If no lastAttendance, check join date? Or assume dormant if old reg?
+                // Simple logic: if Active and lastAtt < 14 days ago -> Active, else Dormant
+                if (lastAttDate && lastAttDate >= twoWeeksAgo) {
+                    activeCount++;
+                } else if (m.regDate && new Date(m.regDate) >= twoWeeksAgo && !lastAttDate) {
+                    // New member (joined < 14 days) but no attendance yet -> Treat as Active (New)
+                    activeCount++;
+                } else {
+                    dormantCount++;
+                }
+            }
+        });
+
+        setMemberStatusDist([
+            { name: '활동중', value: activeCount },
+            { name: '주춤(잠듦)', value: dormantCount },
+            { name: '만료', value: expiredCount }
+        ]);
+
+    }, [currentBranch]);
+
+    // Hook into refreshData to trigger chart calc
+    useEffect(() => {
+        if (members.length > 0) {
+            calculateChartData(sales, members, isMemberActive);
+        }
+    }, [calculateStats, members, sales, calculateChartData, isMemberActive]);
+
+
+    // [Added] AI Quota Check
+    const checkAIQuota = useCallback(() => {
+        return aiUsage.count < aiUsage.limit;
+    }, [aiUsage]);
+
+    // [Added] Filtered Members by Branch
+    const filteredMembers = members.filter(m => currentBranch === 'all' || m.homeBranch === currentBranch);
+
+    // [Added] Dormant Segments Logic
+    const getDormantSegments = useCallback((targetMembers) => {
+        const now = new Date();
+        const segments = { '14d': [], '1m': [], '3m': [], '6m': [], 'all': [] };
+
+        targetMembers.forEach(m => {
+            if (isMemberActive(m)) return; // Skip active members
+
+            // Check Last Attendance
+            let lastDate = m.lastAttendance ? new Date(m.lastAttendance) : null;
+            if (!lastDate && m.regDate) {
+                // If no attendance, use Reg Date if older than 14 days
+                const reg = new Date(m.regDate);
+                if ((now - reg) > 1000 * 60 * 60 * 24 * 14) lastDate = reg;
+            }
+
+            if (!lastDate) return;
+
+            const diffTime = now - lastDate;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays >= 14) {
+                segments['all'].push(m);
+                if (diffDays >= 180) segments['6m'].push(m);
+                else if (diffDays >= 90) segments['3m'].push(m);
+                else if (diffDays >= 30) segments['1m'].push(m);
+                else segments['14d'].push(m);
+            }
+        });
+        return segments;
+    }, [isMemberActive]);
 
     return {
         // State
@@ -306,6 +417,8 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         logs,
         notices,
         stats,
+        revenueTrend,   // [New]
+        memberStatusDist, // [New]
         aiInsight,
         loadingInsight,
         images,
@@ -326,6 +439,8 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         handleApprovePush,
         handleRejectPush,
         isMemberActive,
-        isMemberExpiring
+        checkAIQuota,
+        filteredMembers,
+        getDormantSegments // [New]
     };
 };

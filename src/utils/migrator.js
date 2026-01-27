@@ -157,6 +157,21 @@ export const runMigration = async (csvText, progressCallback) => {
                 }
             }
 
+            // [Updated] Explicit Remaining Credits & Attendance Count
+            // If CSV has '잔여횟수', use it. Otherwise, fallback to total parsed from purchase history.
+            const explicitRemaining = m['잔여횟수'] ? parseInt(m['잔여횟수'], 10) : null;
+            if (explicitRemaining !== null && !isNaN(explicitRemaining)) {
+                credits = explicitRemaining;
+            }
+
+            // [Updated] Attendance Count Migration
+            // If CSV has '출석횟수' or '누적출석', use it.
+            let attendanceCount = 0;
+            const explicitAttendance = m['출석횟수'] || m['누적출석'];
+            if (explicitAttendance) {
+                attendanceCount = parseInt(explicitAttendance, 10) || 0;
+            }
+
             return {
                 name: m['이름'],
                 phone: m['휴대폰'] || m['전화'],
@@ -165,6 +180,10 @@ export const runMigration = async (csvText, progressCallback) => {
                 membershipType,
                 credits,
                 totalCredits,
+                // If totalCredits (parsed) is less than remaining (migrated), fix total to match remaining
+                // to prevent "15/10" remaining display oddities.
+                // However, usually total >= remaining. If total is 0 (parsed fail) but remaining is 10, trust remaining.
+                attendanceCount,
                 startDate,
                 endDate,
                 regDate,
