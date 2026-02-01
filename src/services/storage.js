@@ -1562,6 +1562,7 @@ export const storageService = {
           phone,
           phoneLast4,
           branchId,
+          homeBranch: branchId,
           credits,
           startDate: row['판매일자'] || row['등록일자'] || '',
           endDate: endDate || '',
