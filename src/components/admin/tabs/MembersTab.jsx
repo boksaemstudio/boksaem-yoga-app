@@ -1,5 +1,5 @@
-import React from 'react';
-import { Plus, Check, BellRinging, NotePencil, Info, FileCsv, ChatCircleText } from '@phosphor-icons/react';
+
+import { Plus, Check, BellRinging, NotePencil, Info, ChatCircleText } from '@phosphor-icons/react';
 import { getBranchName } from '../../../studioConfig';
 
 const MembersTab = ({

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { storageService } from '../services/storage';
-import { CaretLeft, CaretRight, Plus, Trash, X, Gear, Image as ImageIcon, UploadSimple } from '@phosphor-icons/react';
+import { CaretLeft, CaretRight, Plus, Trash, X, Image as ImageIcon, UploadSimple } from '@phosphor-icons/react';
 import { getHolidayName } from '../utils/holidays';
 import { ScheduleClassEditor, SettingsModal } from './ScheduleHelpers';
 import { getTagColor } from '../utils/colors';

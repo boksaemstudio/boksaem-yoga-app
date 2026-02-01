@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { X, Plus } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 import timeTable1 from '../../../assets/timetable_gwangheungchang.png';

@@ -3,6 +3,7 @@ import globals from 'globals';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
+import prettier from 'eslint-config-prettier';
 
 export default [
   { ignores: ['dist'] },
@@ -37,4 +38,32 @@ export default [
       'react/prop-types': 'off',
     },
   },
+  {
+    files: ['test_*.js', '*.config.js', 'check_*.cjs', 'functions/**/*.js', 'scripts/**/*.js', 'check_*.js', 'debug_*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      'no-undef': 'off', // Or keep enabled and rely on globals
+      'no-unused-vars': 'off'
+    }
+  },
+  {
+    files: ['public/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        importScripts: 'readonly',
+        firebase: 'readonly',
+        clients: 'readonly',
+      }
+    },
+    rules: {
+      'no-undef': 'off',
+      'no-unused-vars': 'off'
+    }
+  },
+  prettier,
 ];

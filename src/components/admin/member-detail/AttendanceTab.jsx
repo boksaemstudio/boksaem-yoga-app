@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import CustomDatePicker from '../../common/CustomDatePicker';
 import AttendanceHistory from '../../profile/AttendanceHistory';
 import { translations } from '../../../utils/translations';

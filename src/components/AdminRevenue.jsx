@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { CaretLeft, CaretRight, ChartLine, CaretUp, CaretDown, Calendar as CalendarIcon, Money } from '@phosphor-icons/react';
+import { useState, useMemo } from 'react';
+import { CaretLeft, CaretRight, Calendar as CalendarIcon } from '@phosphor-icons/react';
 
 const AdminRevenue = ({ members, sales, currentBranch }) => {
     const [currentDate, setCurrentDate] = useState(new Date());

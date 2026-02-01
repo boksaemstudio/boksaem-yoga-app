@@ -1,12 +1,12 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { ClockCounterClockwise } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 
 const SalesHistoryTab = ({ memberId, member }) => {
-    const [history, setHistory] = React.useState([]);
-    const [loading, setLoading] = React.useState(true);
+    const [history, setHistory] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const fetchHistory = async () => {
             try {
                 setLoading(true);

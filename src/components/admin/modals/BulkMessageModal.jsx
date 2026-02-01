@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { storageService } from '../../../services/storage';
 import { STUDIO_CONFIG } from '../../../studioConfig';
 
@@ -7,8 +7,9 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, initialMessage =
     const [sendPush] = useState(true);
 
     // [New] Populate message when modal opens or initialMessage changes
-    React.useEffect(() => {
+    useEffect(() => {
         if (isOpen) {
+            // eslint-disable-next-line
             setBulkMessageText(initialMessage);
         }
     }, [isOpen, initialMessage]);

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 class Particle {
     constructor(canvas, mouseRef, mode = 'cyber') {

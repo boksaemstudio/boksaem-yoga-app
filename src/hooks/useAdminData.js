@@ -1,13 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { storageService } from '../services/storage';
-import { STUDIO_CONFIG } from '../studioConfig';
+
 
 // Helper for consistent date parsing
-const parseDate = (dateStr) => {
-    if (!dateStr) return null;
-    const d = new Date(dateStr);
-    return isNaN(d.getTime()) ? null : d;
-};
+
 
 export const useAdminData = (activeTab, initialBranch = 'all') => {
     const [currentBranch, setCurrentBranch] = useState(initialBranch);
@@ -196,23 +192,70 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         const todayRegistration = uniqueMembers.filter(m => isMemberInBranch(m) && checkIsRegistered(m)).length;
         const expiringMembersCount = uniqueMembers.filter(m => isMemberInBranch(m) && isMemberExpiring(m)).length;
 
-        const todayRevenue = currentSales
-            .filter(s => {
-                const sDate = parseDate(s.timestamp);
-                if (!sDate) return false;
-                const sDateStr = sDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-                return sDateStr === todayStr && (currentBranch === 'all' || s.branchId === currentBranch);
-            })
-            .reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
+        // [Unified Revenue Logic] Match AdminRevenue.jsx
+        // 1. Prepare All Items (Legacy + Sales)
+        const allRevenueItems = [];
 
-        const monthlyRevenue = currentSales
-            .filter(s => {
-                const sDate = parseDate(s.timestamp);
-                if (!sDate) return false;
-                const sDateStr = sDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-                return sDateStr.startsWith(currentMonth) && (currentBranch === 'all' || s.branchId === currentBranch);
-            })
-            .reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
+        // Legacy Members Data
+        uniqueMembers.forEach(m => {
+            const amt = Number(m.amount) || 0;
+            if (m.regDate && amt > 0) {
+                if (currentBranch !== 'all' && m.homeBranch !== currentBranch) return;
+                allRevenueItems.push({
+                    id: m.id,
+                    date: m.regDate, // 'YYYY-MM-DD'
+                    amount: amt,
+                    name: m.name,
+                    type: 'legacy'
+                });
+            }
+        });
+
+        // New Sales Data
+        currentSales.forEach(s => {
+            if (currentBranch !== 'all' && (uniqueMembers.find(m => m.id === s.memberId)?.homeBranch !== currentBranch && s.branchId !== currentBranch)) {
+                 // Try to check s.branchId first, fallback to member lookup (though s.branchId should exist on new sales)
+                 if (s.branchId && s.branchId !== currentBranch) return;
+                 // If no s.branchId, check member. If member not found or other branch, skip?
+                 // For safety with old sales records without branchId:
+                 if (!s.branchId && uniqueMembers.find(m => m.id === s.memberId)?.homeBranch !== currentBranch) return;
+            }
+
+            if (!s.date) return;
+            const dateStr = s.date.split('T')[0];
+
+            allRevenueItems.push({
+                id: s.id,
+                date: dateStr,
+                amount: Number(s.amount) || 0,
+                name: s.memberName,
+                type: s.type || 'register'
+            });
+        });
+
+        // Deduplication: Filter out 'legacy' items if a 'sales' item exists for same Name + Date
+        const salesKeys = new Set(
+            allRevenueItems
+                .filter(i => i.type !== 'legacy')
+                .map(i => `${i.name}-${i.date}`)
+        );
+
+        const finalRevenueItems = allRevenueItems.filter(item => {
+            if (item.type === 'legacy') {
+                const key = `${item.name}-${item.date}`;
+                if (salesKeys.has(key)) return false;
+            }
+            return true;
+        });
+
+        // Calculate Totals using finalRevenueItems
+        const todayRevenue = finalRevenueItems
+            .filter(i => i.date === todayStr)
+            .reduce((sum, i) => sum + i.amount, 0);
+
+        const monthlyRevenue = finalRevenueItems
+            .filter(i => i.date.startsWith(currentMonth))
+            .reduce((sum, i) => sum + i.amount, 0);
 
         const newSummary = {
             totalMembers,
@@ -297,7 +340,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         if (activeTab === 'members' && summary.activeMembers > 0) {
             loadAIInsight(members, logs, summary, todayClasses);
         }
-    }, [activeTab, summary.activeMembers, loadAIInsight, members, logs, todayClasses]);
+    }, [activeTab, summary, loadAIInsight, members, logs, todayClasses]);
 
     // [Feature 1] Calculate Chart Data (Memoized or inside refreshData)
     const calculateChartData = useCallback((currentSales, uniqueMembers, isMemberActiveFn) => {

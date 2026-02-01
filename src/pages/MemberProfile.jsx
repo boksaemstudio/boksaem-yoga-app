@@ -1,4 +1,4 @@
-import React, { useState, useEffect, cloneElement } from 'react';
+import { useState, useEffect } from 'react';
 import { onSnapshot, doc, collection, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { storageService } from '../services/storage';
@@ -1084,26 +1084,6 @@ const MemberProfile = () => {
     );
 };
 
-const NavItem = ({ active, onClick, icon, label }) => (
-    <button onClick={onClick} style={{
-        background: 'none',
-        border: 'none',
-        color: active ? 'var(--primary-gold)' : 'rgba(255,255,255,0.4)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '4px',
-        padding: '8px',
-        borderRadius: '16px',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        transform: active ? 'scale(1.1) translateY(-2px)' : 'scale(1)',
-    }}>
-        {cloneElement(icon, {
-            weight: active ? 'fill' : 'regular',
-            style: { filter: active ? 'drop-shadow(0 0 8px rgba(212, 175, 55, 0.5))' : 'none' }
-        })}
-        <span style={{ fontSize: '0.65rem', fontWeight: active ? '800' : '600' }}>{label}</span>
-    </button>
-);
+
 
 export default MemberProfile;

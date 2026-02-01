@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import Keypad from '../components/Keypad';
 import { storageService } from '../services/storage';
-import { STUDIO_CONFIG, getAllBranches, getBranchName } from '../studioConfig';
+import { getAllBranches, getBranchName } from '../studioConfig';
 import logoWide from '../assets/logo_wide.png';
-import { MapPin, Sun, Cloud, CloudRain, Snowflake, Lightning, Moon, CornersOut, CornersIn, Fire, Plant, Leaf, Sparkle, Waves, Boat, Barbell, Plus, DownloadSimple } from '@phosphor-icons/react';
+import { MapPin, Sun, Cloud, CloudRain, Snowflake, Lightning, Moon, CornersOut, CornersIn } from '@phosphor-icons/react';
 import { getDaysRemaining } from '../utils/dates';
 
 import bgMorning from '../assets/bg_morning.png';
@@ -26,7 +26,7 @@ const getWeatherIcon = (code, isNight) => {
 };
 
 // [OPTIMIZED] Self-contained Clock to prevent full-page re-renders
-const DigitalClock = React.memo(() => {
+const DigitalClock = memo(() => {
     const [time, setTime] = useState(new Date());
 
     useEffect(() => {
@@ -52,8 +52,9 @@ const DigitalClock = React.memo(() => {
         </div>
     );
 });
+DigitalClock.displayName = 'DigitalClock';
 
-const TopBar = React.memo(({ weather, currentBranch, branches, handleBranchChange, toggleFullscreen, isFullscreen, language }) => {
+const TopBar = memo(({ weather, currentBranch, branches, handleBranchChange, toggleFullscreen, isFullscreen, language }) => {
     const locale = language === 'ko' ? 'ko-KR' : (language === 'en' ? 'en-US' : (language === 'ru' ? 'ru-RU' : (language === 'zh' ? 'zh-CN' : 'ja-JP')));
     const now = new Date();
 
@@ -148,6 +149,7 @@ const TopBar = React.memo(({ weather, currentBranch, branches, handleBranchChang
         </div>
     );
 });
+TopBar.displayName = 'TopBar';
 
 const CheckInPage = () => {
     const [pin, setPin] = useState('');

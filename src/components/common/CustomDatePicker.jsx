@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { CaretLeft, CaretRight, Calendar as CalendarIcon } from '@phosphor-icons/react';
 import { getHolidayName } from '../../utils/holidays';
 

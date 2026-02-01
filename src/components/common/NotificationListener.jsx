@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { onMessage } from 'firebase/messaging';
 import { messaging } from '../../firebase';
 import { BellRinging, X } from '@phosphor-icons/react';

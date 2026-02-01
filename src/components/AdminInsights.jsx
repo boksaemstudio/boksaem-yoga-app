@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { Warning, Sparkle, MoonStars, CaretRight } from '@phosphor-icons/react';
+import { useMemo } from 'react';
+import { Warning, Sparkle, MoonStars } from '@phosphor-icons/react';
 
 const AdminInsights = ({ members, briefing, currentBranch = 'all', filterType, onFilterSelect }) => {
     const stats = useMemo(() => {

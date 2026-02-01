@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Icons } from '../CommonIcons';
 
 const PWAInstallPrompts = ({ isInStandaloneMode, isInAppBrowser, isIOS, installPrompt, handleInstallClick, t }) => {
@@ -48,7 +48,7 @@ const PWAInstallPrompts = ({ isInStandaloneMode, isInAppBrowser, isIOS, installP
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem', fontWeight: '500' }}>
                                 <span style={{ background: 'rgba(212, 175, 55, 0.3)', color: 'white', width: '16px', height: '16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem' }}>2</span>
-                                '홈 화면에 추가' 선택
+                                &apos;홈 화면에 추가&apos; 선택
                             </div>
                         </div>
                     ) : (

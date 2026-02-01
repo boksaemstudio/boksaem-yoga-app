@@ -1,4 +1,4 @@
-import React from 'react';
+
 import {
     User, Calendar, Ticket, CaretRight,
     InstagramLogo, YoutubeLogo,

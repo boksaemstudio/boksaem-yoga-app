@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { onSnapshot, doc, collection, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { X, User, Calendar, CreditCard, ClockCounterClockwise, Chats, CheckSquare, Square, BellRinging } from '@phosphor-icons/react';

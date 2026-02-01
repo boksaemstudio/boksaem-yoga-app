@@ -1,4 +1,3 @@
-import React from 'react';
 import { Icons } from '../CommonIcons';
 import rys200Logo from '../../assets/RYS200.png';
 

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { storageService } from '../services/storage';
-import InteractiveParticles from '../components/InteractiveParticles';
+
 import memberBg from '../assets/zen_yoga_bg.png';
 import logo from '../assets/logo.png';
 

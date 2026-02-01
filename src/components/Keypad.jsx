@@ -1,5 +1,4 @@
-import React from 'react';
-import { Backspace } from '@phosphor-icons/react';
+import { memo } from 'react';
 import './Keypad.css';
 
 
@@ -49,7 +48,7 @@ const Keypad = ({ onKeyPress, onClear, disabled }) => {
 };
 
 // Extracted Button Component with memo for performance
-const KeyButton = React.memo(({ onPress, disabled, children, special, className, style }) => {
+const KeyButton = memo(({ onPress, disabled, children, special, className, style }) => {
     return (
         <button
             className={`keypad-btn ${className || ''} ${special || ''}`}
@@ -71,5 +70,6 @@ const KeyButton = React.memo(({ onPress, disabled, children, special, className,
         </button>
     );
 });
+KeyButton.displayName = 'KeyButton';
 
 export default Keypad;

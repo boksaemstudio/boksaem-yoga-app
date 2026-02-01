@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { storageService } from '../services/storage';
 import { STUDIO_CONFIG, getBranchName } from '../studioConfig';
 import { Plus, PencilLine, Trash, X } from '@phosphor-icons/react';
@@ -9,7 +9,7 @@ const AdminPriceManager = () => {
     const [editingCategoryKey, setEditingCategoryKey] = useState(null);
     const [editingCategory, setEditingCategory] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const optionsEndRef = React.useRef(null);
+    const optionsEndRef = useRef(null);
 
     const scrollToBottom = () => {
         if (optionsEndRef.current) {

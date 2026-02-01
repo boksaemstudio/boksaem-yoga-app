@@ -1,4 +1,4 @@
-import React, { cloneElement } from 'react';
+import { cloneElement } from 'react';
 import { Icons } from '../CommonIcons';
 
 const NavItem = ({ active, onClick, icon, label }) => (

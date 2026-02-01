@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ClockCounterClockwise, Trash, Sparkle } from '@phosphor-icons/react';
 import { getBranchName } from '../../../studioConfig';
 import { storageService } from '../../../services/storage';

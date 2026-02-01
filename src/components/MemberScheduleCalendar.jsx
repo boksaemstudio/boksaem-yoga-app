@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
 import { storageService } from '../services/storage';
 import { CaretLeft, CaretRight, CheckCircle } from '@phosphor-icons/react';
 import { getHolidayName } from '../utils/holidays';
@@ -37,7 +37,7 @@ const MemberScheduleCalendar = ({ branchId, attendanceLogs = [] }) => {
         loadMonthlyData();
     }, [loadMonthlyData]);
 
-    const scrollRef = React.useRef(null);
+    const scrollRef = useRef(null);
     const [isDown, setIsDown] = useState(false);
     const [startX, setStartX] = useState(0);
     const [scrollLeft, setScrollLeft] = useState(0);
@@ -168,7 +168,7 @@ const MemberScheduleCalendar = ({ branchId, attendanceLogs = [] }) => {
 };
 
 // Extract CalendarCell as a memoized component
-const CalendarCell = React.memo(({ date, monthlyClasses, attendanceLogs, branchId, todayKST, t, language }) => {
+const CalendarCell = memo(({ date, monthlyClasses, attendanceLogs, branchId, todayKST, t, language }) => {
     if (!date) {
         return <div style={{ minHeight: '85px' }} />;
     }
@@ -332,7 +332,7 @@ const CalendarCell = React.memo(({ date, monthlyClasses, attendanceLogs, branchI
 CalendarCell.displayName = 'CalendarCell';
 
 // Extract ColorLegend as a memoized component
-const ColorLegend = React.memo(({ t }) => (
+const ColorLegend = memo(({ t }) => (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '15px', padding: '10px', background: 'rgba(255,255,255,0.02)', borderRadius: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)' }}>
             <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'rgba(255, 255, 255, 1)', border: '1px solid #dcdcdc' }}></div> {t('legend_regular')}
@@ -355,7 +355,7 @@ const ColorLegend = React.memo(({ t }) => (
 ColorLegend.displayName = 'ColorLegend';
 
 // Extract StatsSection as a memoized component
-const StatsSection = React.memo(({ stats, t }) => (
+const StatsSection = memo(({ stats, t }) => (
     <div style={{ marginTop: '24px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '16px' }}>
         <h4 style={{ margin: '0 0 12px 0', fontSize: '1rem', color: 'var(--primary-gold)' }}>{t('stats_title')}</h4>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>

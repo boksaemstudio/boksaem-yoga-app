@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Upload, CheckCircle, XCircle, WarningCircle, FileText, Trash } from '@phosphor-icons/react';
+import { useState } from 'react';
+import { Upload, CheckCircle, XCircle, WarningCircle, FileText } from '@phosphor-icons/react';
 import { parseCSV } from '../../../utils/csvParser';
 import { storageService } from '../../../services/storage';
 

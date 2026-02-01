@@ -1,4 +1,3 @@
-import React from 'react';
 import { Icons } from '../CommonIcons';
 
 const MessagesTab = ({ messages, t }) => {

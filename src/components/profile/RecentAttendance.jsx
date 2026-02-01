@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { getTranslatedClass } from '../../utils/classMapping';
 
 const RecentAttendance = ({ logs, language, t, setActiveTab }) => {

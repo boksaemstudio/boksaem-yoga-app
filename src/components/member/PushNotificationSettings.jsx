@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, BellSlash, CheckCircle, Warning, Info } from '@phosphor-icons/react';
 import { storageService } from '../../services/storage';
 

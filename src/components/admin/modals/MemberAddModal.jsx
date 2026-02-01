@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { X } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 import { STUDIO_CONFIG } from '../../../studioConfig';
@@ -458,8 +458,28 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                 <div className="form-group" style={{ background: 'rgba(212,175,55,0.08)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(212,175,55,0.2)', boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.2)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                         <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', fontWeight: 'bold' }}>결제 금액</span>
-                        <div style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--primary-gold)', letterSpacing: '-0.02em' }}>
-                            {newMember.amount.toLocaleString()}원
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <input
+                                className="form-input"
+                                style={{
+                                    fontSize: '1.4rem',
+                                    fontWeight: '900',
+                                    color: 'var(--primary-gold)',
+                                    letterSpacing: '-0.02em',
+                                    background: 'transparent',
+                                    border: 'none',
+                                    textAlign: 'right',
+                                    width: '150px',
+                                    padding: 0,
+                                    height: 'auto'
+                                }}
+                                value={newMember.amount.toLocaleString()}
+                                onChange={(e) => {
+                                    const rawValue = e.target.value.replace(/[^0-9]/g, '');
+                                    setNewMember({ ...newMember, amount: Number(rawValue) });
+                                }}
+                            />
+                            <span style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--primary-gold)' }}>원</span>
                         </div>
                     </div>
                     <div style={{ fontSize: '0.95rem', color: 'var(--text-primary)', marginTop: '12px', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px' }}>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import CustomDatePicker from '../../common/CustomDatePicker';
 
 const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMember }) => {

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Plus, Megaphone, Trash } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FloppyDisk } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 

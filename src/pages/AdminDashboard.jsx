@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { storageService } from '../services/storage';
 import { useAdminData } from '../hooks/useAdminData'; // [Refactor]
 import { STUDIO_CONFIG } from '../studioConfig';
 import { useNavigate } from 'react-router-dom';
 import {
-    Users, ClockCounterClockwise, Plus, PlusCircle, Image as ImageIcon,
-    Calendar, Megaphone, BellRinging, X, Check, Funnel, Trash,
-    NotePencil, FloppyDisk, ChatCircleText, PencilLine, CalendarPlus,
-    Ticket, Tag, House, SignOut, ChartBar, Export, Gear, FileCsv,
-    Info, Warning, Database
+    Users, ClockCounterClockwise, PlusCircle,
+    Calendar, Megaphone, BellRinging,
+    Tag, SignOut, ChartBar,
+    Warning, Database
 } from '@phosphor-icons/react';
 import AdminScheduleManager from '../components/AdminScheduleManager';
 import AdminRevenue from '../components/AdminRevenue';
@@ -37,35 +36,7 @@ import PushHistoryTab from '../components/admin/tabs/PushHistoryTab';
 import DataMigrationTab from '../components/admin/tabs/DataMigrationTab';
 import { usePWA } from '../hooks/usePWA';
 
-const ColorLegend = ({ branchId }) => {
-    const items = [
-        { label: '일반', color: '#FFFFFF', border: '#DDDDDD', branches: [STUDIO_CONFIG.BRANCH_IDS.GWANGHEUNGCHANG, STUDIO_CONFIG.BRANCH_IDS.MAPO] },
-        {
-            label: branchId === STUDIO_CONFIG.BRANCH_IDS.GWANGHEUNGCHANG ? '심화/마이솔' : '심화/마이솔/플라잉',
-            color: '#FFCC99',
-            border: '#FFB366',
-            branches: [STUDIO_CONFIG.BRANCH_IDS.GWANGHEUNGCHANG, STUDIO_CONFIG.BRANCH_IDS.MAPO]
-        },
-        { label: '키즈', color: '#FFEAA7', border: '#FFD700', branches: [STUDIO_CONFIG.BRANCH_IDS.MAPO] },
-        { label: '임산부', color: '#C4FCEF', border: '#81ECEC', branches: [STUDIO_CONFIG.BRANCH_IDS.MAPO] },
-        { label: '토요하타', color: '#E056FD', border: '#BE2EDD', branches: [STUDIO_CONFIG.BRANCH_IDS.MAPO] },
-    ];
 
-    const filteredItems = branchId
-        ? items.filter(item => item.branches.includes(branchId))
-        : items;
-
-    return (
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
-            {filteredItems.map(item => (
-                <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-                    <div style={{ width: '10px', height: '10px', borderRadius: '3px', background: item.color, border: `1px solid ${item.border}` }}></div>
-                    <span style={{ fontWeight: '500' }}>{item.label}</span>
-                </div>
-            ))}
-        </div>
-    );
-};
 
 // [Helper] Robust Date Parsing (Unused locally now, but maybe useful? Linter says delete)
 // const parseDate = (dateStr) => { ... }

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Icons } from '../CommonIcons';
 import { STUDIO_CONFIG } from '../../studioConfig';
 import { profileStyles } from './profileStyles';

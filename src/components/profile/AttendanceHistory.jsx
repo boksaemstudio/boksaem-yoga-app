@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Trash } from '@phosphor-icons/react';
 import { getTranslatedClass } from '../../utils/classMapping';
 import { getHolidayName } from '../../utils/holidays';
-import { Icons } from '../CommonIcons';
+
 
 const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, logLimit, setLogLimit }) => {
-    const [viewMode, setViewMode] = React.useState('list'); // 'list' or 'calendar'
-    const [currentDate, setCurrentDate] = React.useState(new Date());
+    const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
+    const [currentDate, setCurrentDate] = useState(new Date());
 
     const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
     const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
@@ -14,7 +14,7 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, lo
     const [loadingMsg, setLoadingMsg] = useState(t('analysisPending'));
 
     // Rotating loading messages
-    React.useEffect(() => {
+    useEffect(() => {
         if (aiAnalysis) return;
 
         const messages = language === 'ko' ? [

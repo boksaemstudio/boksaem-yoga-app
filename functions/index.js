@@ -953,7 +953,7 @@ exports.checkInMemberV2Call = onCall({ region: "asia-northeast3", cors: true }, 
             const prevRecords = recentAttendanceSnap.docs.map(doc => doc.data());
 
             let streak = 1;
-            try { streak = calculateStreak(prevRecords, todayStr); } catch (err) { }
+            try { streak = calculateStreak(prevRecords, todayStr); } catch (err) { /* ignore streak error */ }
 
             const isUnlimited = memberData.credits >= 9000;
             const memberUpdate = {
