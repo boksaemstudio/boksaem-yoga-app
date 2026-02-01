@@ -28,7 +28,7 @@ const NoticesTab = ({ notices, setShowNoticeModal, refreshData }) => {
                         <p>등록된 공지사항이 없습니다.</p>
                     </div>
                 ) : (
-                    notices.map(notice => (
+                    [...notices].sort((a, b) => new Date(b.timestamp || b.date || 0) - new Date(a.timestamp || a.date || 0)).map(notice => (
                         <div key={notice.id} className="glass-panel" style={{
                             marginBottom: '20px',
                             padding: '24px',

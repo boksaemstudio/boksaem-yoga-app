@@ -34,4 +34,11 @@ export default [
       "react-hooks/exhaustive-deps": "off"
     },
   },
+  {
+    files: ['**/*.cjs'],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.node
+    }
+  }
 ]

@@ -3,6 +3,7 @@
     "short_name": "복샘요가 출석체크",
     "description": "복샘요가 출석체크 대시보드",
     "start_url": "/",
+    "scope": "/",
     "display": "fullscreen",
     "background_color": "#121212",
     "theme_color": "#D4AF37",

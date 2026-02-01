@@ -79,12 +79,11 @@ const AISection = ({ aiExperience, weatherData, greetingVisible, t, getTradition
                             }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                                     <div style={{ fontSize: '0.7rem', color: 'var(--primary-gold)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                        <Icons.Sparkle size={14} weight="fill" />
-                                        Today's Wisdom
+                                        ✨ 오늘의 지혜
                                     </div>
                                     {isMultiSession && (
                                         <div style={{ background: 'var(--primary-gold)', color: 'black', padding: '2px 8px', borderRadius: '10px', fontSize: '0.65rem', fontWeight: '800' }}>
-                                            {sessionCount}회차 수련 passion!
+                                            {sessionCount}회차 수련 완료!
                                         </div>
                                     )}
                                 </div>

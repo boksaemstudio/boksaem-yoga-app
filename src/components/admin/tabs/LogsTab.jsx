@@ -58,7 +58,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                         <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>명 참여</span>
                                     </div>
                                     {isSelected && (
-                                        <div style={{ position: 'absolute', bottom: '-8px', right: '10px', fontSize: '0.6rem', color: 'var(--primary-gold)', background: 'var(--bg-card)', padding: '0 4px' }}>필터링 중</div>
+                                        <div style={{ position: 'absolute', bottom: '6px', right: '8px', fontSize: '0.6rem', color: 'var(--primary-gold)', background: 'rgba(0,0,0,0.4)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>필터링 중</div>
                                     )}
                                 </div>
                             )

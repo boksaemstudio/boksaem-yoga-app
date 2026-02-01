@@ -4,7 +4,7 @@ import { storageService } from '../services/storage';
 import { STUDIO_CONFIG, getAllBranches, getBranchName } from '../studioConfig';
 import logoWide from '../assets/logo_wide.png';
 import { MapPin, Sun, Cloud, CloudRain, Snowflake, Lightning, Moon, CornersOut, CornersIn, Fire, Plant, Leaf, Sparkle, Waves, Boat, Barbell, Plus, DownloadSimple } from '@phosphor-icons/react';
-
+import { getDaysRemaining } from '../utils/dates';
 
 import bgMorning from '../assets/bg_morning.png';
 import bgAfternoon from '../assets/bg_afternoon.png';
@@ -206,6 +206,20 @@ const CheckInPage = () => {
 
         return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     }, []);
+
+    // [New] Auto-close Install Guide after 5 minutes
+    useEffect(() => {
+        let timer;
+        if (showInstallGuide || showKioskInstallGuide) {
+            timer = setTimeout(() => {
+                handleModalClose(() => {
+                    setShowInstallGuide(false);
+                    setShowKioskInstallGuide(false);
+                });
+            }, 300000); // 5 minutes
+        }
+        return () => clearTimeout(timer);
+    }, [showInstallGuide, showKioskInstallGuide]);
 
 
 
@@ -730,18 +744,6 @@ const CheckInPage = () => {
         startDismissTimer(5000); // [ADJUSTED] 5s as requested
     };
 
-    const getDaysRemaining = (endDate) => {
-        if (!endDate || endDate === 'TBD' || endDate === 'unlimited') return null;
-        const end = new Date(endDate);
-        if (isNaN(end.getTime())) return null;
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        end.setHours(0, 0, 0, 0);
-        const diffTime = end - today;
-        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    };
-
     const startDismissTimer = (duration = 5000) => {
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => {
@@ -829,17 +831,17 @@ const CheckInPage = () => {
                 alignItems: 'stretch',
                 overflow: 'hidden'
             }}>
-                <div className={`checkin-info-section ${message ? 'has-message' : ''}`} style={{
+                <div className="checkin-info-section" style={{
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center'
                 }}>
                     {!message && (
                         <header className="info-header" style={{ marginBottom: '40px' }}>
-                            <div className="logo-container" style={{ display: 'flex', alignItems: 'center', gap: '20px', justifyContent: 'center' }}>
-                                {/* [ADJUSTED] Logo sizes: RYS200 (77px), Main Logo (81px) */}
-                                <img src={rys200Logo} alt="RYS200" style={{ height: '77px', width: 'auto', filter: 'brightness(0) invert(1)', opacity: 0.8 }} />
-                                <img src={logoWide} alt="logo" style={{ height: '81px', width: 'auto' }} />
+                            <div className="logo-container" style={{ display: 'flex', alignItems: 'center', gap: '35px', justifyContent: 'center' }}>
+                                {/* [ADJUSTED] Logo sizes: RYS200 (80px), Main Logo (80px) per user request */}
+                                <img src={rys200Logo} alt="RYS200" style={{ height: '80px', width: 'auto', filter: 'brightness(0) invert(1)', opacity: 0.8 }} />
+                                <img src={logoWide} alt="logo" style={{ height: '78px', width: 'auto' }} />
                             </div>
                         </header>
                     )}
@@ -853,27 +855,10 @@ const CheckInPage = () => {
                             </div>
                         )}
 
+                        {/* [FIX] Moved message modal logic to root level or use portal concept */}
                         <div className="message-container">
-                            {message ? (
-                                <div
-                                    className={`message-box ${message.type}`}
-                                    onTouchStart={(e) => {
-                                        // Prevents "ghost 터치" on elements behind the message
-                                        if (e.cancelable) e.preventDefault();
-                                        e.stopPropagation();
-                                        handleModalClose(() => setMessage(null));
-                                        setPin('');
-                                        if (timerRef.current) clearTimeout(timerRef.current);
-                                    }}
-                                >
-                                    <div className="message-content">
-                                        <div className="message-text" style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '15px' }}>{message.text}</div>
-                                        {message.subText && <div className="message-subtext" style={{ fontSize: '1.5rem', opacity: 1, marginBottom: '20px', whiteSpace: 'pre-wrap', lineHeight: '1.3' }}>{message.subText}</div>}
-                                        {message.details}
-                                    </div>
-                                    <p className="message-dismiss-text" style={{ fontSize: '1.2rem', opacity: 0.7 }}>화면을 터치하면 바로 닫힙니다</p>
-                                </div>
-                            ) : (
+                            {/* Only show instruction when no message */}
+                            {!message && (
                                 <div className={`instruction-text ${loading ? 'loading' : ''}`}>
                                     {aiExperience ? (
                                         <div>
@@ -972,7 +957,7 @@ const CheckInPage = () => {
                         disabled={loading || keypadLocked || !!message || showSelectionModal || showInstallGuide || showKioskInstallGuide}
                     />
                 </div>
-            </div>
+            </div >
 
             {
                 showSelectionModal && (
@@ -997,6 +982,7 @@ const CheckInPage = () => {
                                     <button
                                         key={m.id}
                                         onClick={(e) => {
+                                            if (loading) return;
                                             if (e.cancelable) e.preventDefault();
                                             e.stopPropagation();
                                             handleSelectMember(m.id);
@@ -1042,6 +1028,62 @@ const CheckInPage = () => {
                     </div>
                 )
             }
+
+            {/* [FIX] Message Modal as Fixed Overlay for reliable closing */}
+            {
+                message && (
+                    <div
+                        className="modal-overlay"
+                        style={{
+                            zIndex: 2500,
+                            background: 'rgba(0,0,0,0.8)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleModalClose(() => setMessage(null));
+                            setPin('');
+                            if (timerRef.current) clearTimeout(timerRef.current);
+                        }}
+                        onTouchStart={(e) => {
+                            if (e.cancelable) e.preventDefault();
+                            e.stopPropagation();
+                            handleModalClose(() => setMessage(null));
+                            setPin('');
+                            if (timerRef.current) clearTimeout(timerRef.current);
+                        }}
+                    >
+                        <div
+                            className={`message-box ${message.type}`}
+                            style={{
+                                maxWidth: '900px', // Restrict width so it looks like a modal
+                                width: '90%',
+                                height: 'auto',
+                                maxHeight: '80vh',
+                                display: 'flex', // Re-apply flex inside
+                                flexDirection: 'column'
+                            }}
+                            onClick={(e) => {
+                                // Also allow clicking inside the box to close it (per user request: "touch screen to close immediately")
+                                e.stopPropagation();
+                                handleModalClose(() => setMessage(null));
+                                setPin('');
+                                if (timerRef.current) clearTimeout(timerRef.current);
+                            }}
+                        >
+                            <div className="message-content">
+                                <div className="message-text" style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '15px' }}>{message.text}</div>
+                                {message.subText && <div className="message-subtext" style={{ fontSize: '1.5rem', opacity: 1, marginBottom: '20px', whiteSpace: 'pre-wrap', lineHeight: '1.3' }}>{message.subText}</div>}
+                                {message.details}
+                            </div>
+                            <p className="message-dismiss-text" style={{ fontSize: '1.2rem', opacity: 0.7 }}>화면을 터치하면 바로 닫힙니다</p>
+                        </div>
+                    </div>
+                )
+            }
+
             {/* PWA Install Guide for Admin Kiosk */}
             {/* Combined Install Guide with Retry Logic */}
             {
@@ -1052,11 +1094,19 @@ const CheckInPage = () => {
                             setShowInstallGuide(false);
                         })}
                         onRetry={handleInstallClick}
+                    // [New] Auto-close after 5 minutes (300s) if passed as prop, but here handled by wrapper or inside modal.
+                    // Since we can't easily change InstallGuideModal props without checking it, let's wrap it here or add a timer effect in CheckInPage that watches this state.
                     />
                 )
             }
         </div >
     );
 };
+
+// [ADD] Effect to auto-close InstallGuide after 5 minutes
+// Since we are inside the component, we can add this useEffect inside CheckInPage
+// But CheckInPage is large, let's inject it near other effects or just add a self-closing wrapper?
+// Actually, let's just add the useEffect hook in the main component body for simplicity.
+
 
 export default CheckInPage;

@@ -48,6 +48,7 @@ const ProfileTabs = ({ activeTab, setActiveTab, t }) => {
             <NavItem active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} icon={<Icons.Calendar size={26} />} label={t('tabSchedule')} />
             <NavItem active={activeTab === 'prices'} onClick={() => setActiveTab('prices')} icon={<Icons.Ticket size={26} />} label={t('tabPrices')} />
             <NavItem active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} icon={<Icons.Megaphone size={26} />} label={t('tabNotices')} />
+            <NavItem active={activeTab === 'messages'} onClick={() => setActiveTab('messages')} icon={<Icons.Chat size={26} />} label={t('tabMessages')} />
         </div>
     );
 };

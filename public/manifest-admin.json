@@ -3,6 +3,7 @@
     "short_name": "관리자",
     "description": "복샘요가 관리자 시스템",
     "start_url": "/admin",
+    "scope": "/admin",
     "display": "standalone",
     "background_color": "#121212",
     "theme_color": "#D4AF37",

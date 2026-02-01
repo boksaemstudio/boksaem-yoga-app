@@ -1,10 +1,8 @@
 import React from 'react';
 import { Plus, Check, BellRinging, NotePencil, Info, FileCsv, ChatCircleText } from '@phosphor-icons/react';
 import { getBranchName } from '../../../studioConfig';
-// import { storageService } from '../../../services/storage';  // Unused
 
 const MembersTab = ({
-    // members,  // Unused
     filteredMembers,
     summary,
     searchTerm,
@@ -22,15 +20,9 @@ const MembersTab = ({
     setShowAddModal,
     setShowBulkMessageModal,
     pushTokens,
-    getDormantSegments // [New]
+    getDormantSegments,
+    setBulkMessageInitialText
 }) => {
-    // [New] Dormant Sub-Filter Logic
-    const [dormantSubFilter, setDormantSubFilter] = React.useState('all'); // all, 14d, 1m, 3m, 6m
-
-    // Handle Sub-filter change reset
-    React.useEffect(() => {
-        if (filterType !== 'dormant') setDormantSubFilter('all');
-    }, [filterType]);
     return (
         <>
             <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
@@ -219,52 +211,13 @@ const MembersTab = ({
                     />
                 </div>
 
-                {/* [NEW] Quick Copy Message for Dormant Members */}
+                {/* [REFINED] Send Encouragement Flow for Dormant */}
                 {filterType === 'dormant' && (
                     <button
                         onClick={() => {
                             const msg = "회원님, 매트 위에서 뵙고 싶어요! 🌿\n\n최근 수련하신 지 시간이 좀 흘렀네요.\n부담 없이 가벼운 마음으로 다시 시작해보시는 건 어떨까요?\n\n따뜻한 차 한 잔과 함께 기다릴게요. 😊\n- 복샘요가";
-                            navigator.clipboard.writeText(msg).then(() => alert('안부 메시지가 복사되었습니다!\n원하는 회원에게 발송해주세요.'));
-                        }}
-                        className="action-btn"
-                        style={{
-                            width: 'auto',
-                            padding: '0 16px',
-                            height: '42px',
-                            borderRadius: '8px',
-                            background: 'rgba(100, 100, 255, 0.1)',
-                            color: '#A0A0FF',
-                            border: '1px solid rgba(100, 100, 255, 0.3)',
-                            fontSize: '0.85rem'
-                        }}
-                    >
-                        <ChatCircleText size={18} weight="bold" />
-                        <span style={{ marginLeft: '6px' }}>안부인사 복사</span>
-                    </button>
-                )}
-
-                {/* [NEW] Send Encouragement Button for Dormant */}
-                {filterType === 'dormant' && (
-                    <button
-                        onClick={() => {
-                            // Select valid dormant members (exclude 6m)
-                            let toSelect = filteredMembers; // Default
-                            if (getDormantSegments) {
-                                const segments = getDormantSegments(filteredMembers);
-                                // If specific filter active, use that (unless it's 6m, then warn)
-                                if (dormantSubFilter !== 'all') {
-                                    if (dormantSubFilter === '6m') {
-                                        alert('6개월 이상 미출석 회원은 발송 대상에서 제외됩니다.');
-                                        return;
-                                    }
-                                    toSelect = segments[dormantSubFilter] || [];
-                                } else {
-                                    // All dormant: exclude 6m
-                                    const sixMonthIds = new Set(segments['6m'].map(m => m.id));
-                                    toSelect = filteredMembers.filter(m => !sixMonthIds.has(m.id));
-                                }
-                            }
-                            selectFilteredMembers(toSelect);
+                            setBulkMessageInitialText(msg);
+                            selectFilteredMembers(filteredMembers);
                             setShowBulkMessageModal(true);
                         }}
                         className="action-btn"
@@ -304,33 +257,6 @@ const MembersTab = ({
                 )}
             </div>
 
-            {/* [New] Dormant Sub-Filters UI */}
-            {filterType === 'dormant' && (
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', overflowX: 'auto', paddingBottom: '4px' }}>
-                    {['all', '14d', '1m', '3m', '6m'].map(sub => (
-                        <button
-                            key={sub}
-                            onClick={() => { setDormantSubFilter(sub); setCurrentPage(1); }}
-                            className={`action-btn sm ${dormantSubFilter === sub ? 'active' : ''}`}
-                            style={{
-                                background: dormantSubFilter === sub ? 'var(--primary-gold)' : 'rgba(255,255,255,0.05)',
-                                color: dormantSubFilter === sub ? 'black' : 'var(--text-secondary)',
-                                border: dormantSubFilter === sub ? 'none' : '1px solid var(--border-color)',
-                                whiteSpace: 'nowrap',
-                                minWidth: 'auto',
-                                opacity: sub === '6m' ? 0.7 : 1
-                            }}
-                        >
-                            {sub === 'all' && '전체'}
-                            {sub === '14d' && '2주~1개월'}
-                            {sub === '1m' && '1개월~3개월'}
-                            {sub === '3m' && '3개월~6개월'}
-                            {sub === '6m' && '6개월 이상 (제외)'}
-                        </button>
-                    ))}
-                </div>
-            )}
-
             {/* List Criteria Display */}
             <div style={{ padding: '0 4px', marginBottom: '10px', fontSize: '0.9rem', color: 'var(--text-tertiary)' }}>
                 현재 <strong style={{ color: 'var(--primary-gold)' }}>
@@ -339,6 +265,7 @@ const MembersTab = ({
                     {filterType === 'attendance' && '오늘 출석 회원'}
                     {filterType === 'registration' && '오늘 등록 회원'}
                     {filterType === 'expiring' && '만료/횟수 임박 회원'}
+                    {filterType === 'dormant' && '잠든 회원'}
                 </strong> 목록을 <strong style={{ color: 'var(--text-secondary)' }}>이름 가나다순</strong>으로 보고 계십니다.
             </div>
 
@@ -348,9 +275,7 @@ const MembersTab = ({
                     let filtered = filteredMembers;
                     if (filterType === 'dormant' && getDormantSegments) {
                         const segments = getDormantSegments(filteredMembers);
-                        if (dormantSubFilter !== 'all') {
-                            filtered = segments[dormantSubFilter] || [];
-                        }
+                        filtered = segments['all'] || [];
                     }
 
                     const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -360,20 +285,7 @@ const MembersTab = ({
                     return (
                         <>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 4px 8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                                <div onClick={() => {
-                                    // [Logic] Exclude 6m members when selecting all in dormant mode
-                                    let toSelect = filtered;
-                                    if (filterType === 'dormant' && getDormantSegments) {
-                                        const segments = getDormantSegments(filteredMembers);
-                                        const sixMonthIds = new Set(segments['6m'].map(m => m.id));
-                                        toSelect = filtered.filter(m => !sixMonthIds.has(m.id)); // Exclude 6m
-
-                                        if (toSelect.length !== filtered.length) {
-                                            alert(`알림: 6개월 이상 장기 미출석 회원(${filtered.length - toSelect.length}명)은 안부 발송 대상에서 자동 제외되었습니다.`);
-                                        }
-                                    }
-                                    selectFilteredMembers(toSelect);
-                                }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <div onClick={() => selectFilteredMembers(filtered)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     <div style={{
                                         width: '16px', height: '16px', borderRadius: '4px', border: '1px solid var(--border-color)',
                                         background: filtered.length > 0 && filtered.every(m => selectedMemberIds.includes(m.id)) ? 'var(--primary-gold)' : 'transparent',
@@ -412,7 +324,6 @@ const MembersTab = ({
                                                     const today = new Date();
                                                     let lastDate = member.lastAttendance ? new Date(member.lastAttendance) : (member.regDate ? new Date(member.regDate) : null);
 
-                                                    // Handle case where lastAttendance might be missing but we want to show *something*
                                                     if (!lastDate) return <span className="badge" style={{ background: 'var(--gray-700)', color: '#bbb' }}>기록 없음</span>;
 
                                                     const diffTime = Math.abs(today - lastDate);
@@ -431,7 +342,7 @@ const MembersTab = ({
                                                 })()}
                                                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{member.phone}</span>
                                                 <span className="badge" style={{ fontSize: '0.7rem' }}>{getBranchName(member.homeBranch)}</span>
-                                                {pushTokens.some(t => t.memberId === member.id) && (
+                                                {member.pushEnabled !== false && pushTokens.some(t => t.memberId === member.id) && (
                                                     <div style={{
                                                         display: 'flex', alignItems: 'center', gap: '4px',
                                                         background: 'rgba(16, 185, 129, 0.15)', color: '#10B981',

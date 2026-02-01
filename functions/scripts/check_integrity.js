@@ -1,16 +1,32 @@
+import admin from 'firebase-admin';
+import { createRequire } from 'module';
 
-const admin = require('firebase-admin');
-const serviceAccount = require(process.env.GOOGLE_APPLICATION_CREDENTIALS || '../service-account-key.json');
+const require = createRequire(import.meta.url);
+
+// Check if credentials are known or fallback
+const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS || '../service-account-key.json';
+let serviceAccount;
 
 try {
-    admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
-    });
+    serviceAccount = require(serviceAccountPath);
 } catch (e) {
-    if (!admin.apps.length) {
-        console.warn("Failed to initialize admin with cert, trying default:", e.message);
-        admin.initializeApp();
+    console.warn(`Warning: Could not load service account from ${serviceAccountPath}`, e.message);
+}
+
+try {
+    if (serviceAccount) {
+        if (!admin.apps.length) {
+            admin.initializeApp({
+                credential: admin.credential.cert(serviceAccount)
+            });
+        }
+    } else {
+        if (!admin.apps.length) {
+            admin.initializeApp();
+        }
     }
+} catch (e) {
+    console.warn("Failed to initialize admin:", e.message);
 }
 
 const db = admin.firestore();
@@ -114,4 +130,5 @@ async function runAudit() {
     }
 }
 
+// Top-level execution
 runAudit();

@@ -47,7 +47,7 @@ const RequireAuth = ({ children }) => {
   useEffect(() => {
     const unsubscribe = storageService.onAuthStateChanged((currentUser) => {
       // For Admin, only allow non-anonymous users
-      if (currentUser && !currentUser.isAnonymous) {
+      if (currentUser) {
         setUser(currentUser);
       } else {
         setUser(null);
@@ -64,6 +64,7 @@ const RequireAuth = ({ children }) => {
 };
 
 import NotificationListener from './components/common/NotificationListener';
+import { PWAProvider } from './context/PWAContext';
 
 function App() {
   useEffect(() => {
@@ -73,53 +74,55 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="app">
-        <NotificationListener />
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <ErrorBoundary fallback={<ErrorFallback />}>
-                <Suspense fallback={<LoadingScreen />}>
-                  <CheckInPage />
-                </Suspense>
-              </ErrorBoundary>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <ErrorBoundary fallback={<ErrorFallback />}>
-                <Suspense fallback={<LoadingScreen />}>
-                  <RequireAuth>
-                    <AdminDashboard />
-                  </RequireAuth>
-                </Suspense>
-              </ErrorBoundary>
-            }
-          />
-          <Route
-            path="/member"
-            element={
-              <ErrorBoundary fallback={<ErrorFallback />}>
-                <Suspense fallback={<LoadingScreen />}>
-                  <MemberProfile />
-                </Suspense>
-              </ErrorBoundary>
-            }
-          />
-          <Route
-            path="/login"
-            element={
-              <ErrorBoundary fallback={<ErrorFallback />}>
-                <Suspense fallback={<LoadingScreen />}>
-                  <LoginPage />
-                </Suspense>
-              </ErrorBoundary>
-            }
-          />
-        </Routes>
-      </div>
+      <PWAProvider>
+        <div className="app">
+          <NotificationListener />
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <ErrorBoundary fallback={<ErrorFallback />}>
+                  <Suspense fallback={<LoadingScreen />}>
+                    <CheckInPage />
+                  </Suspense>
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ErrorBoundary fallback={<ErrorFallback />}>
+                  <Suspense fallback={<LoadingScreen />}>
+                    <RequireAuth>
+                      <AdminDashboard />
+                    </RequireAuth>
+                  </Suspense>
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path="/member"
+              element={
+                <ErrorBoundary fallback={<ErrorFallback />}>
+                  <Suspense fallback={<LoadingScreen />}>
+                    <MemberProfile />
+                  </Suspense>
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                <ErrorBoundary fallback={<ErrorFallback />}>
+                  <Suspense fallback={<LoadingScreen />}>
+                    <LoginPage />
+                  </Suspense>
+                </ErrorBoundary>
+              }
+            />
+          </Routes>
+        </div>
+      </PWAProvider>
     </BrowserRouter>
   );
 }

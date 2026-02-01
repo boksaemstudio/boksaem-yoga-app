@@ -50,41 +50,18 @@ const Keypad = ({ onKeyPress, onClear, disabled }) => {
 
 // Extracted Button Component with memo for performance
 const KeyButton = React.memo(({ onPress, disabled, children, special, className, style }) => {
-    const lastEventTime = React.useRef(0);
-
-    const handleProtectedPress = (e) => {
-        // Prevent default for touch events to stop "ghost" mouse events
-        if (e.type === 'touchstart' && e.cancelable) {
-            e.preventDefault();
-        }
-
-        const now = Date.now();
-        // Use a persistent timestamp to block all events within 250ms of each other
-        // This handles both rapid finger taps and ghost mouse events after touch.
-        if (now - lastEventTime.current < 250) {
-            if (e.stopPropagation) e.stopPropagation();
-            return;
-        }
-        lastEventTime.current = now;
-
-        if (e.stopPropagation) e.stopPropagation();
-        onPress(e);
-    };
-
     return (
         <button
             className={`keypad-btn ${className || ''} ${special || ''}`}
-            onTouchStart={handleProtectedPress}
-            onMouseDown={(e) => {
-                // Ignore if it's not the primary button or if it's a simulated event from touch
-                if (e.button !== 0) return;
-
-                // If it's a mouse event following a touch event, it will be blocked by the 300ms threshold above.
-                handleProtectedPress(e);
+            onClick={(e) => {
+                if (navigator.vibrate) {
+                    navigator.vibrate(10);
+                }
+                onPress(e);
             }}
             disabled={disabled}
             style={{
-                touchAction: 'none',
+                touchAction: 'manipulation',
                 userSelect: 'none',
                 WebkitUserSelect: 'none',
                 ...style

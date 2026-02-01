@@ -612,6 +612,11 @@ export const storageService = {
     try {
       const token = await getToken(messaging, { vapidKey: STUDIO_CONFIG.VAPID_KEY || import.meta.env.VITE_FIREBASE_VAPID_KEY });
       if (token) {
+        // [SYNC] Find memberId for this token and mark as pushEnabled: false
+        const tokenSnap = await getDoc(doc(db, 'fcm_tokens', token));
+        if (tokenSnap.exists() && tokenSnap.data().memberId) {
+          await updateDoc(doc(db, 'members', tokenSnap.data().memberId), { pushEnabled: false });
+        }
         await deleteDoc(doc(db, 'fcm_tokens', token));
       }
       return true;
@@ -629,12 +634,178 @@ export const storageService = {
         if (token && memberId) {
           // [FIX] Use setDoc with merge to prevent "No document to update" error
           await setDoc(doc(db, 'fcm_tokens', token), { memberId, updatedAt: new Date().toISOString() }, { merge: true });
+          // [SYNC] Mark member as push enabled
+          await updateDoc(doc(db, 'members', memberId), { pushEnabled: true });
         }
       }
       return permission;
     } catch (e) {
       console.error("Push permission request failed:", e);
       return 'denied';
+    }
+  },
+
+  // [NEW] Service Worker 등록 상태 확인
+  async verifyServiceWorkerRegistration() {
+    if (!('serviceWorker' in navigator)) {
+      throw new Error('이 브라우저는 푸시 알림을 지원하지 않습니다.');
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      if (!registration) {
+        throw new Error('Service Worker가 등록되지 않았습니다.');
+      }
+
+      // Service Worker 파일 확인
+      const swUrl = '/firebase-messaging-sw.js';
+      const swRegistration = await navigator.serviceWorker.getRegistration();
+
+      if (!swRegistration || !swRegistration.active) {
+        console.warn('[Storage] Service Worker is not active. Attempting re-registration...');
+        const newReg = await navigator.serviceWorker.register(swUrl, { scope: '/' });
+        await newReg.update();
+        return newReg;
+      }
+
+      return registration;
+    } catch (e) {
+      console.error('[Storage] Service Worker verification failed:', e);
+      throw new Error(`Service Worker 확인 실패: ${e.message}`);
+    }
+  },
+
+  // [NEW] 푸시 알림 상태 확인
+  async checkPushNotificationStatus() {
+    try {
+      // 1. 브라우저 지원 여부
+      if (!('Notification' in window)) {
+        return {
+          supported: false,
+          permission: 'unsupported',
+          serviceWorker: false,
+          message: '이 브라우저는 푸시 알림을 지원하지 않습니다.'
+        };
+      }
+
+      // 2. 권한 상태
+      const permission = Notification.permission;
+
+      // 3. Service Worker 상태
+      let serviceWorkerActive = false;
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        serviceWorkerActive = !!(reg && reg.active);
+      }
+
+      // 4. 토큰 존재 여부
+      let hasToken = false;
+      try {
+        const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+        if (VAPID_KEY && permission === 'granted' && serviceWorkerActive) {
+          const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+          hasToken = !!token;
+        }
+      } catch (e) {
+        console.warn('[Storage] Token check failed:', e);
+      }
+
+      return {
+        supported: true,
+        permission,
+        serviceWorker: serviceWorkerActive,
+        hasToken,
+        message: this._getPushStatusMessage(permission, serviceWorkerActive, hasToken)
+      };
+    } catch (e) {
+      console.error('[Storage] Push notification status check failed:', e);
+      return {
+        supported: false,
+        permission: 'error',
+        serviceWorker: false,
+        hasToken: false,
+        message: '푸시 알림 상태를 확인할 수 없습니다.'
+      };
+    }
+  },
+
+  _getPushStatusMessage(permission, serviceWorker, hasToken) {
+    if (permission === 'denied') {
+      return '⚠️ 알림이 차단되었습니다. 브라우저 설정에서 허용해주세요.';
+    }
+    if (permission !== 'granted') {
+      return '알림 권한이 필요합니다.';
+    }
+    if (!serviceWorker) {
+      return '⚠️ 서비스 워커가 등록되지 않았습니다.';
+    }
+    if (!hasToken) {
+      return '⚠️ 푸시 토큰이 등록되지 않았습니다.';
+    }
+    return '✅ 푸시 알림이 정상적으로 설정되었습니다.';
+  },
+
+  // [IMPROVED] 푸시 토큰 재등록
+  async reregisterPushToken(memberId) {
+    try {
+      console.log('[Storage] Starting push token reregistration...');
+
+      // 1. Service Worker 검증
+      await this.verifyServiceWorkerRegistration();
+
+      // 2. 기존 토큰 삭제 시도 (오류 무시)
+      try {
+        await this.deletePushToken();
+      } catch (e) {
+        console.warn('[Storage] Failed to delete old token (this is OK):', e);
+      }
+
+      // 3. 권한 요청
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        throw new Error('알림 권한이 거부되었습니다.');
+      }
+
+      // 4. 새 토큰 요청
+      const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+      if (!VAPID_KEY) {
+        throw new Error('VAPID Key가 설정되지 않았습니다.');
+      }
+
+      const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+      if (!token) {
+        throw new Error('토큰 발급에 실패했습니다.');
+      }
+
+      console.log('[Storage] New token obtained:', token.substring(0, 20) + '...');
+
+      // 5. memberId와 연결하여 저장
+      if (memberId) {
+        await setDoc(doc(db, 'fcm_tokens', token), {
+          memberId,
+          updatedAt: new Date().toISOString(),
+          platform: 'web',
+          role: 'member',
+          language: 'ko'
+        }, { merge: true });
+
+        await updateDoc(doc(db, 'members', memberId), {
+          pushEnabled: true,
+          fcmToken: token, // [FIX] Save token to member doc for legacy compatibility
+          lastTokenUpdate: new Date()
+        });
+
+        console.log('[Storage] Token registered for member:', memberId);
+      }
+
+      return { success: true, token, message: '푸시 알림이 성공적으로 설정되었습니다!' };
+    } catch (error) {
+      console.error('[Storage] Token reregistration failed:', error);
+      return {
+        success: false,
+        error: error.message,
+        message: `푸시 알림 설정 실패: ${error.message}`
+      };
     }
   },
 
@@ -1110,11 +1281,71 @@ export const storageService = {
     return results;
   },
 
-  // [Added] Get push notification history
-  getPushHistory() {
-    // stub implementation - returns empty array for now
-    // TODO: implement actual push history tracking if needed
-    return [];
+  async getPushHistory() {
+    try {
+      const q = query(collection(db, 'push_history'), orderBy('createdAt', 'desc'), firestoreLimit(50));
+      const snapshot = await getDocs(q);
+
+      return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          displayDate: data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate().toISOString() : data.createdAt) : new Date().toISOString(),
+          // Ensure type is compatible with UI
+          type: data.type === 'notice' ? 'campaign' : (data.type || 'individual')
+        };
+      });
+    } catch (e) {
+      console.error("Get push history failed:", e);
+      return [];
+    }
+  },
+
+  // [NEW] Get all messages (Individual + Notices) for a specific member
+  async getMessagesByMemberId(memberId) {
+    try {
+      console.log(`[Storage] Fetching messages for member: ${memberId}`);
+
+      // 1. Fetch individual messages for this member
+      const msgQuery = query(
+        collection(db, 'messages'),
+        where('memberId', '==', memberId),
+        firestoreLimit(50)
+      );
+      const msgSnap = await getDocs(msgQuery);
+      const individualMessages = msgSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        type: 'admin_individual'
+      }));
+
+      // 2. Fetch Global Notices to display in message list as well
+      const noticeQuery = query(
+        collection(db, 'notices'),
+        firestoreLimit(20)
+      );
+      const noticeSnap = await getDocs(noticeQuery);
+      const noticeMessages = noticeSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        type: 'notice',
+        content: doc.data().content, // Notices usually have content field
+        timestamp: doc.data().timestamp || doc.data().date // Normalizing timestamp
+      }));
+
+      // 3. Merge and Sort by timestamp descending
+      const allMessages = [...individualMessages, ...noticeMessages].sort((a, b) => {
+        const timeA = new Date(a.timestamp || 0).getTime();
+        const timeB = new Date(b.timestamp || 0).getTime();
+        return timeB - timeA;
+      });
+
+      return allMessages;
+    } catch (e) {
+      console.error("[Storage] getMessagesByMemberId failed:", e);
+      return [];
+    }
   },
 
   // [Added] Get pricing information  
@@ -1250,6 +1481,226 @@ export const storageService = {
       console.error("Bulk push failed:", e);
       throw e;
     }
+  },
+
+  /**
+   * CSV 회원 데이터 마이그레이션
+   * @param {Array<Object>} csvData - 파싱된 CSV 데이터
+   * @param {boolean} dryRun - true면 실제 마이그레이션 없이 검증만
+   * @param {Function} onProgress - 진행 상황 콜백 (currentIndex, total, currentMember)
+   * @returns {Promise<Object>} 마이그레이션 결과
+   */
+  async migrateMembersFromCSV(csvData, dryRun = false, onProgress = null) {
+    const {
+      extractMonthsFromProduct,
+      calculateEndDate,
+      extractEndDateFromPeriod,
+      convertToBranchId,
+      parseCredits,
+      parseAmount,
+      parseLastVisit
+    } = await import('../utils/csvParser.js');
+
+    const results = {
+      total: csvData.length,
+      success: 0,
+      failed: 0,
+      skipped: 0,
+      errors: [],
+      members: [],
+      sales: []
+    };
+
+    console.log(`[Migration] Starting CSV migration. Total rows: ${csvData.length}, Dry Run: ${dryRun}`);
+
+    // [New] If not dry run, clear all existing data first as requested by user
+    if (!dryRun) {
+      console.log('[Migration] Not a dry run. Clearing existing data first...');
+      if (onProgress) onProgress(0, 0, '기존 데이터 정리 중 (전체 삭제)...');
+      await this.cleanupAllData((current, total, colName) => {
+        if (onProgress) onProgress(0, 0, `${colName} 삭제 중...`);
+      });
+      console.log('[Migration] Cleanup complete. Proceeding with migration...');
+    }
+
+    for (let i = 0; i < csvData.length; i++) {
+      const row = csvData[i];
+
+      try {
+        // 진행 상황 콜백
+        if (onProgress) {
+          onProgress(i + 1, csvData.length, row['이름']);
+        }
+
+        // 필수 필드 검증
+        if (!row['이름'] || !row['휴대폰1']) {
+          results.skipped++;
+          results.errors.push({ row: i + 1, name: row['이름'], error: '필수 필드 누락 (이름 또는 전화번호)' });
+          continue;
+        }
+
+        // 회원 데이터 변환
+        const branchId = convertToBranchId(row['회원번호']);
+        const credits = parseCredits(row['남은횟수']);
+        const phone = row['휴대폰1'].trim();
+        const phoneLast4 = phone.slice(-4);
+
+        // 만기일자 계산
+        let endDate = row['만기일자'] || '';
+        if (!endDate && row['이용기간']) {
+          // 이용기간에서 종료일 추출
+          endDate = extractEndDateFromPeriod(row['이용기간']);
+        }
+        if (!endDate && row['판매일자'] && row['마지막 판매']) {
+          // 상품명에서 기간 추출하여 계산
+          const months = extractMonthsFromProduct(row['마지막 판매']);
+          endDate = calculateEndDate(row['판매일자'], months);
+        }
+
+        const memberData = {
+          name: row['이름'].trim(),
+          phone,
+          phoneLast4,
+          branchId,
+          credits,
+          startDate: row['판매일자'] || row['등록일자'] || '',
+          endDate: endDate || '',
+          attendanceCount: 0,
+          lastAttendance: parseLastVisit(row['마지막출입']) || '',
+          createdAt: row['등록일자'] ? new Date(row['등록일자']).toISOString() : new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          streak: 0,
+          pushEnabled: false
+        };
+
+        // Dry Run 모드가 아니면 실제 마이그레이션
+        if (!dryRun) {
+          // 중복 전화번호 체크
+          const existingQuery = query(
+            collection(db, 'members'),
+            where('phone', '==', phone)
+          );
+          const existingSnap = await getDocs(existingQuery);
+
+          let memberId;
+          if (existingSnap.empty) {
+            // 새 회원 추가
+            const docRef = await addDoc(collection(db, 'members'), memberData);
+            memberId = docRef.id;
+            console.log(`[Migration] Added new member: ${memberData.name} (${memberId})`);
+          } else {
+            // 기존 회원 업데이트
+            memberId = existingSnap.docs[0].id;
+            const existingData = existingSnap.docs[0].data();
+
+            // [Fix] Ensure createdAt is never undefined
+            const existingCreatedAt = existingData.createdAt || existingData.updatedAt || new Date().toISOString();
+
+            await updateDoc(doc(db, 'members', memberId), {
+              ...memberData,
+              createdAt: existingCreatedAt // 기존 가입일 유지
+            });
+            console.log(`[Migration] Updated existing member: ${memberData.name} (${memberId})`);
+          }
+
+          // 판매 기록 추가 (판매금액이 0이 아닌 경우)
+          const amount = parseAmount(row['판매금액']);
+          if (amount > 0 && row['판매일자']) {
+            const salesData = {
+              memberId,
+              memberName: memberData.name,
+              amount,
+              productName: row['마지막 판매'] || '',
+              branchId,
+              timestamp: new Date(row['판매일자']).toISOString()
+            };
+            await addDoc(collection(db, 'sales'), salesData);
+            results.sales.push(salesData);
+            console.log(`[Migration] Added sales record: ${memberData.name} - ${amount}원`);
+          }
+        }
+
+        results.members.push(memberData);
+        results.success++;
+
+      } catch (error) {
+        results.failed++;
+        results.errors.push({
+          row: i + 1,
+          name: row['이름'],
+          error: error.message
+        });
+        console.error(`[Migration] Error at row ${i + 1}:`, error);
+      }
+    }
+
+    console.log(`[Migration] Complete. Success: ${results.success}, Failed: ${results.failed}, Skipped: ${results.skipped}`);
+
+    // 캐시 갱신 (실제 마이그레이션인 경우)
+    if (!dryRun) {
+      await this.loadAllMembers();
+      notifyListeners();
+    }
+
+    return results;
+  },
+
+  /**
+   * [DANGER] Clears all non-core data (members, sales, attendance, push, etc.) for a fresh start.
+   * Keeps: notices, timetable, prices, images.
+   */
+  async cleanupAllData(onProgress = null) {
+    const { getDocs, collection, writeBatch } = await import("firebase/firestore");
+
+    // Collections to definitely DELETE
+    const collectionsToClear = [
+      'members',
+      'sales',
+      'attendance',
+      'push_campaigns',
+      'push_history',
+      'notifications',
+      'messages',
+      'message_approvals',
+      'fcm_tokens',
+      'fcmTokens',
+      'push_tokens'
+    ];
+
+    let totalDeleted = 0;
+    const stats = {};
+
+    for (const colName of collectionsToClear) {
+      console.log(`[Storage] Clearing collection: ${colName}...`);
+      try {
+        const snapshot = await getDocs(collection(db, colName));
+        const docs = snapshot.docs;
+        stats[colName] = docs.length;
+
+        if (docs.length === 0) continue;
+
+        // Firestore batch limit is 500
+        for (let i = 0; i < docs.length; i += 500) {
+          const batch = writeBatch(db);
+          const chunk = docs.slice(i, i + 500);
+          chunk.forEach(d => batch.delete(d.ref));
+          await batch.commit();
+
+          totalDeleted += chunk.length;
+          if (onProgress) onProgress(totalDeleted, docs.length, colName);
+        }
+      } catch (e) {
+        console.warn(`[Cleanup] Failed to clear ${colName}:`, e);
+      }
+    }
+
+    console.log(`[Storage] Cleanup complete. Deleted ${totalDeleted} documents.`);
+
+    // Refresh cash
+    await this.loadAllMembers();
+    notifyListeners();
+
+    return { totalDeleted, stats };
   }
 };
 

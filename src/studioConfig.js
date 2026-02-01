@@ -29,6 +29,11 @@ export const STUDIO_CONFIG = {
         ACCENT_COLOR: "#FF6B6B",  // Coral
     },
 
+    // [New] 기능 활성화 제어
+    FEATURES: {
+        ENABLE_DATA_MIGRATION: true // 출시 전 마지막 마이그레이션 완료 후 false로 변경하면 관리자 탭에서 사라집니다.
+    },
+
     // 4. 소셜 미디어 링크
     SOCIAL: {
         Instagram_Gwangheungchang: "https://www.instagram.com/boksaemyoga_ghc",

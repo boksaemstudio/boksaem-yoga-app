@@ -8,6 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "test:assets": "node scripts/verify_assets.js",
+    "test:stress": "node scripts/test_stress_simulation.js",
     "deploy": "npm run build && firebase deploy --force"
   },
   "dependencies": {

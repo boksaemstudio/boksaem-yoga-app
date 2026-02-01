@@ -13,7 +13,8 @@ const NotificationListener = () => {
             // 1. Show custom Toast
             const { title, body } = payload.notification || {};
             if (title) {
-                setToast({ title, body, visible: true });
+                const url = payload.data?.url;
+                setToast({ title, body, url, visible: true });
 
                 // Hide after 5 seconds
                 setTimeout(() => {
@@ -61,12 +62,22 @@ const NotificationListener = () => {
             animation: 'slideDown 0.3s ease-out'
         }}>
             <BellRinging size={28} color="#FFD700" weight="fill" style={{ marginTop: '2px', flexShrink: 0 }} />
-            <div style={{ flex: 1 }}>
+            <div
+                onClick={() => {
+                    if (toast.url) window.location.href = toast.url;
+                    setToast(null);
+                }}
+                style={{ flex: 1, cursor: toast.url ? 'pointer' : 'default' }}
+            >
                 <h4 style={{ margin: '0 0 4px 0', fontSize: '0.95rem', fontWeight: 'bold', color: '#FFD700' }}>{toast.title}</h4>
                 <p style={{ margin: 0, fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)', lineHeight: '1.4' }}>{toast.body}</p>
             </div>
             <button
-                onClick={() => setToast(null)}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setToast(null);
+                }}
+                aria-label="Close notification"
                 style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', padding: '4px', cursor: 'pointer' }}
             >
                 <X size={20} />

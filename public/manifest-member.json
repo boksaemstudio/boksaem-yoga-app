@@ -3,6 +3,7 @@
     "short_name": "내요가",
     "description": "복샘요가 회원 전용 서비스",
     "start_url": "/member",
+    "scope": "/member",
     "display": "standalone",
     "background_color": "#121212",
     "theme_color": "#D4AF37",

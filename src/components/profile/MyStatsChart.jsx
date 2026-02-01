@@ -45,13 +45,11 @@ const MyStatsChart = ({ logs }) => {
                             data={finalData}
                             cx="50%"
                             cy="50%"
-                            innerRadius={50}
-                            outerRadius={70}
+                            innerRadius={55}
+                            outerRadius={90}
                             fill="#8884d8"
                             paddingAngle={5}
                             dataKey="value"
-                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                            labelLine={false}
                         >
                             {finalData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -60,8 +58,18 @@ const MyStatsChart = ({ logs }) => {
                         <Tooltip
                             contentStyle={{ backgroundColor: '#1e1e1e', borderColor: '#444', color: '#fff', borderRadius: '8px' }}
                             itemStyle={{ color: '#fff' }}
+                            formatter={(value) => [`${value}회`, '수련 횟수']}
                         />
-                        <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                        <Legend
+                            verticalAlign="bottom"
+                            height={36}
+                            iconType="circle"
+                            formatter={(value, entry) => {
+                                const total = finalData.reduce((acc, cur) => acc + cur.value, 0);
+                                const percent = ((entry.payload.value / total) * 100).toFixed(0);
+                                return <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem' }}>{value} {percent}%</span>;
+                            }}
+                        />
                     </PieChart>
                 </ResponsiveContainer>
             </div>

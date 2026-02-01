@@ -45,11 +45,9 @@ export const runMigration = async (csvText, progressCallback) => {
 
         if (progressCallback) progressCallback("기존 데이터 삭제 중...");
 
-        if (progressCallback) progressCallback("기존 데이터 삭제 중...");
-
         // 1. Delete all existing member-related data (Clean Slate)
         // Keep: daily_classes, notices, monthly_schedules
-        const collectionsToWipe = ['members', 'attendance', 'sales', 'messages', 'fcm_tokens', 'pending_approvals'];
+        const collectionsToWipe = ['members', 'attendance', 'sales', 'messages', 'fcm_tokens', 'pending_approvals', 'push_campaigns'];
         const batchLimit = 400; // Safe batch limit
 
         for (const colName of collectionsToWipe) {

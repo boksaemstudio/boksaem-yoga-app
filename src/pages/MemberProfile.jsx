@@ -28,17 +28,10 @@ import RecentAttendance from '../components/profile/RecentAttendance';
 import ProfileTabs from '../components/profile/ProfileTabs';
 import { profileStyles } from '../components/profile/profileStyles';
 import MyStatsChart from '../components/profile/MyStatsChart';
+import MessagesTab from '../components/profile/MessagesTab';
+import { getDaysRemaining } from '../utils/dates';
 
-const ENCOURAGING_MESSAGES = [
-    "오늘의 수련이 회원님의 지친 몸과 마음을 따뜻하게 안아줄 거예요. 오늘도 즐거운 하루 되세요! ✨",
-    "매트 위, 고요한 숨결 속에서 참된 자아(Atman)를 만나는 시간을 가져보세요. ✨",
-    "조급해하지 마세요. 지금 이 순간의 호흡만으로도 당신은 이미 충분합니다. 🧘‍♀️",
-    "맑은 숨과 고운 마음. 수련의 여정 자체가 당신의 빛나는 증거입니다. ✨",
-    "오늘 하루도 수고한 나에게 정성스러운 프라나(Prana)를 선물해주세요. 🌿",
-    "느려도 괜찮습니다. 자신만의 리듬으로 깊어지는 수련의 맛을 느껴보세요. 😊",
-    "차분한 호흡 끝에 찾아오는 샨티(Shanti, 평화)의 마음을 향유하세요. 🕉️"
-];
-
+// Safe localStorage wrapper with error handling
 const safeSessionStorage = {
     getItem: (key) => {
         try {
@@ -63,19 +56,6 @@ const safeSessionStorage = {
         }
     }
 };
-const getDaysRemaining = (endDate) => {
-    if (!endDate || endDate === 'TBD' || endDate === 'unlimited') return 0;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const end = new Date(endDate);
-    if (isNaN(end.getTime())) return 0;
-    end.setHours(0, 0, 0, 0);
-    const diff = end - today;
-    return Math.ceil(diff / (1000 * 60 * 60 * 24));
-};
-
-// Unused helper functions removed
-
 
 const MemberProfile = () => {
     const [member, setMember] = useState(null);
@@ -89,6 +69,27 @@ const MemberProfile = () => {
     // Added for schedule view
     const [scheduleView, setScheduleView] = useState('calendar');
     const [scheduleMonth, setScheduleMonth] = useState('current'); // 'current' or 'next'
+
+    const handleNotificationToggle = async (e) => {
+        if (e.target.checked) {
+            try {
+                const result = await storageService.reregisterPushToken(member.id);
+                if (result.success) {
+                    setPushStatus('granted');
+                    alert('푸시 알림이 설정되었습니다.');
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error("Push registration failed", error);
+                alert('알림 설정 실패: ' + error.message);
+            }
+        } else {
+            if (window.confirm('푸시 알림을 끄시겠습니까? (브라우저 설정에서 차단해야 완벽하게 꺼집니다)')) {
+                setPushStatus('denied');
+            }
+        }
+    };
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -106,6 +107,43 @@ const MemberProfile = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [language, member?.id, member?.language]);
 
+    // [Deep Link] Parse 'tab' from URL to auto-navigate
+    useEffect(() => {
+        const handleLocationChange = () => {
+            const params = new URLSearchParams(window.location.search);
+            const tab = params.get('tab');
+            if (tab && ['home', 'history', 'schedule', 'prices', 'notices', 'messages'].includes(tab)) {
+                console.log(`[DeepLink] Navigating to tab: ${tab}`);
+                setActiveTab(tab);
+
+                // [FIX] Clear the query param after use so browser reload returns to home
+                // Use a short delay to ensure React state has processed it
+                setTimeout(() => {
+                    const newUrl = window.location.pathname;
+                    window.history.replaceState({}, '', newUrl);
+                }, 100);
+            }
+        };
+
+        // Initial check
+        handleLocationChange();
+
+        // Listen for history changes (replaceState doesn't trigger popstate, but our SW uses client.navigate)
+        window.addEventListener('popstate', handleLocationChange);
+
+        // [ENHANCEMENT] Special listener for deep links if app is already open
+        const interval = setInterval(() => {
+            if (window.location.search.includes('tab=')) {
+                handleLocationChange();
+            }
+        }, 1000);
+
+        return () => {
+            window.removeEventListener('popstate', handleLocationChange);
+            clearInterval(interval);
+        };
+    }, []);
+
     const [logs, setLogs] = useState([]);
     const [logLimit, setLogLimit] = useState(10);
     const [notices, setNotices] = useState([]);
@@ -113,6 +151,7 @@ const MemberProfile = () => {
     const [weatherData, setWeatherData] = useState(null); // Changed to object { key, temp }
     const [aiExperience, setAiExperience] = useState(null);
     const [aiAnalysis, setAiAnalysis] = useState(null);
+    const [messages, setMessages] = useState([]);
 
     const [pushStatus, setPushStatus] = useState(() => {
         if (typeof Notification === 'undefined') return 'default';
@@ -162,17 +201,33 @@ const MemberProfile = () => {
             setLoading(true);
 
             // [PERFORMANCE] Parallel Data Loading
-            const [memberData, history, noticeData, imagesData] = await Promise.all([
+            const [memberData, history, noticeData, imagesData, messagesData] = await Promise.all([
                 storageService.getMemberById(memberId),
                 storageService.getAttendanceByMemberId(memberId),
                 storageService.loadNotices(),
-                storageService.getImages()
+                storageService.getImages(),
+                storageService.getMessagesByMemberId(memberId)
             ]);
 
             if (memberData) {
                 setMember(memberData);
-                setLogs(history || []);
-                setNotices(noticeData || []);
+                // [FIX] Sort history by timestamp descending (newest first)
+                const sortedHistory = (history || []).sort((a, b) => {
+                    const timeA = new Date(a.timestamp || a.date || 0).getTime();
+                    const timeB = new Date(b.timestamp || b.date || 0).getTime();
+                    return timeB - timeA;
+                });
+                setLogs(sortedHistory);
+                setMessages(messagesData || []);
+
+                // [FIX] Sort notices explicitly by timestamp/date descending (newest first)
+                const sortedNotices = (noticeData || []).sort((a, b) => {
+                    const dateA = new Date(a.timestamp || a.date || 0);
+                    const dateB = new Date(b.timestamp || b.date || 0);
+                    return dateB - dateA; // Descending (newest first)
+                });
+                setNotices(sortedNotices);
+
                 setImages(imagesData || {});
 
                 setScheduleBranch(memberData.homeBranch || 'gwangheungchang');
@@ -240,6 +295,29 @@ const MemberProfile = () => {
             if (unsubAttendance) unsubAttendance();
         };
     }, [logLimit]);
+
+    // [REAL-TIME] Unified Message History Listener for Member Profile
+    useEffect(() => {
+        if (!member?.id) return;
+
+        console.log(`[MemberProfile] Setting up message listener for: ${member.id}`);
+        const q = query(
+            collection(db, 'messages'),
+            where("memberId", "==", member.id),
+            firestoreLimit(20)
+        );
+
+        const unsub = onSnapshot(q, (snap) => {
+            const msgs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            // Sort by timestamp desc
+            msgs.sort((a, b) => new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt));
+            setMessages(msgs);
+        }, (err) => {
+            console.error("[MemberProfile] Message listener error:", err);
+        });
+
+        return () => unsub();
+    }, [member?.id]);
 
     const loadAIExperience = async (m, attendanceData = null, wData = null) => {
         if (!m) return;
@@ -328,7 +406,10 @@ const MemberProfile = () => {
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
         const unsubscribe = storageService.subscribe(async () => {
-            setNotices(storageService.getNotices());
+            // [FIX] Sort notices explicitly by timestamp descending in real-time update
+            const freshNotices = storageService.getNotices();
+            setNotices([...freshNotices].sort((a, b) => new Date(b.timestamp || b.date || 0) - new Date(a.timestamp || a.date || 0)));
+
             const imgs = await storageService.getImages();
             setImages(imgs);
             if (member) {
@@ -336,14 +417,57 @@ const MemberProfile = () => {
                     if (m) setMember(m);
                 });
                 storageService.getAttendanceByMemberId(member.id).then(h => {
-                    setLogs(h);
+                    const sortedH = [...h].sort((a, b) => new Date(b.timestamp || b.date || 0) - new Date(a.timestamp || a.date || 0));
+                    setLogs(sortedH);
                 });
             }
         });
 
+        // [REAL-TIME] Dedicated Messages Listener
+        let msgUnsub = () => { };
+        if (member?.id) {
+            console.log(`[MemberProfile] Setting up real-time message listener for: ${member.id}`);
+            const q = query(
+                collection(db, 'messages'),
+                where('memberId', '==', member.id),
+                orderBy('timestamp', 'desc'),
+                firestoreLimit(30)
+            );
+            msgUnsub = onSnapshot(q, async (snap) => {
+                const individualMessages = snap.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    type: 'admin_individual'
+                }));
+
+                // For messages tab, we still want to show both notices and individual messages
+                // So we combine them here as well
+                const currentNotices = storageService.getNotices();
+                const noticeMessages = currentNotices.slice(0, 10).map(n => ({
+                    ...n,
+                    type: 'notice',
+                    content: n.content,
+                    timestamp: n.timestamp || n.date
+                }));
+
+                const allMessages = [...individualMessages, ...noticeMessages].sort((a, b) => {
+                    const timeA = new Date(a.timestamp || 0).getTime();
+                    const timeB = new Date(b.timestamp || 0).getTime();
+                    return timeB - timeA;
+                });
+
+                setMessages(allMessages);
+            }, (err) => {
+                console.warn("[MemberProfile] Message listener failed (likely pending index):", err);
+                // Fallback to getMessagesByMemberId if listener fails
+                storageService.getMessagesByMemberId(member.id).then(setMessages);
+            });
+        }
+
         return () => {
             window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
             unsubscribe();
+            msgUnsub();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [member?.id]);
@@ -397,6 +521,9 @@ const MemberProfile = () => {
             if (result.success) {
                 safeSessionStorage.setItem('member', JSON.stringify(result.member));
                 loadMemberData(result.member.id);
+
+                // [Fix] Reset token on every login to ensure delivery
+                storageService.requestPushPermission(result.member.id).catch(err => console.warn(err));
             } else {
                 setError(result.message);
                 setLoading(false);
@@ -457,40 +584,6 @@ const MemberProfile = () => {
         else if (month >= 9 && month <= 11) seasonMsg = t('season_autumn');
         else seasonMsg = t('season_winter');
         return timeMsg + seasonMsg;
-    };
-
-    const handlePushRequest = async () => {
-        if (pushStatus === 'denied') {
-            const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-            let msg = "알림 권한이 차단되어 있습니다.\n\n";
-
-            if (isPWA) {
-                msg += "[앱 알림 켜는 법]\n1. 휴대폰 '설정' > '애플리케이션' (또는 앱)\n2. 목록에서 이 앱(또는 Chrome) 선택\n3. '알림'을 찾아 '허용' 해주세요.\n4. 앱을 껐다 켜주세요.";
-            } else {
-                msg += "[해제 방법]\n1. 주소창 자물쇠 아이콘 클릭\n2. '설정' 또는 '권한' 클릭\n3. '알림'을 '허용'으로 변경";
-            }
-            alert(msg);
-            return;
-        }
-
-        const status = await storageService.requestPushPermission(member.id);
-        if (status === 'granted') {
-            setPushStatus('granted');
-            localStorage.setItem('push_enabled', 'true');
-            alert(t('pushEnabled'));
-        } else if (status === 'denied') {
-            setPushStatus('denied');
-            alert("알림 권한이 차단되었습니다. 휴대폰 설정 또는 브라우저 설정에서 알림을 허용해주세요.");
-        }
-    };
-
-    const handlePushDisable = async () => {
-        if (window.confirm(t('pushDisabledConfirm'))) {
-            await storageService.deletePushToken();
-            setPushStatus('default');
-            localStorage.setItem('push_enabled', 'false');
-            alert(t('pushDisabled'));
-        }
     };
 
 
@@ -696,20 +789,21 @@ const MemberProfile = () => {
                                     setActiveTab={setActiveTab}
                                 />
 
-                                {/* Settings */}
-                                <div className="glass-panel" style={{ padding: '20px', background: 'rgba(20, 20, 20, 0.8)' }}>
+                                {/* Push Notification Settings (Simple Toggle) */}
+                                <div className="glass-panel" style={{ padding: '20px', background: 'rgba(20, 20, 20, 0.8)', marginBottom: '20px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <Icons.BellRinging size={20} color="var(--primary-gold)" />
-                                            <span style={{ color: 'white', fontWeight: 500 }}>{t('notificationSetting')}</span>
+                                            <Icons.Bell size={20} color="var(--primary-gold)" />
+                                            <span style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)' }}>푸시 알림 설정</span>
                                         </div>
-                                        {pushStatus === 'granted' ?
-                                            <button onClick={handlePushDisable} style={{ background: '#10B981', color: 'white', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', border: 'none' }}>ON</button> :
-                                            (pushStatus === 'denied' ?
-                                                <button onClick={handlePushRequest} style={{ background: '#EF4444', color: 'white', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', border: 'none' }}>차단됨</button> :
-                                                <button onClick={handlePushRequest} style={{ background: 'rgba(255,255,255,0.1)', color: 'white', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', border: 'none' }}>OFF</button>
-                                            )
-                                        }
+                                        <label className="switch">
+                                            <input
+                                                type="checkbox"
+                                                checked={pushStatus === 'granted'}
+                                                onChange={handleNotificationToggle}
+                                            />
+                                            <span className="slider round"></span>
+                                        </label>
                                     </div>
                                 </div>
 
@@ -976,6 +1070,8 @@ const MemberProfile = () => {
                             </div>
                         </div>
                     )}
+
+                    {activeTab === 'messages' && <MessagesTab messages={messages} t={t} />}
                 </div>
             </div> {/* End of profile-container */}
 

@@ -7,10 +7,8 @@ const InstallGuideModal = ({ onClose }) => {
     return (
         <div
             className="modal-overlay"
-            onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                    onClose();
-                }
+            onClick={() => {
+                // Background click does nothing
             }}
             style={{ zIndex: 3000, background: 'rgba(0,0,0,0.92)', touchAction: 'none' }}
         >

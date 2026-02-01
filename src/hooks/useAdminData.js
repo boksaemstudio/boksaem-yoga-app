@@ -380,10 +380,10 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
     // [Added] Dormant Segments Logic
     const getDormantSegments = useCallback((targetMembers) => {
         const now = new Date();
-        const segments = { '14d': [], '1m': [], '3m': [], '6m': [], 'all': [] };
+        const segments = { 'all': [] };
 
         targetMembers.forEach(m => {
-            if (isMemberActive(m)) return; // Skip active members
+            if (!isMemberActive(m)) return; // Skip inactive members
 
             // Check Last Attendance
             let lastDate = m.lastAttendance ? new Date(m.lastAttendance) : null;
@@ -400,10 +400,6 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
             if (diffDays >= 14) {
                 segments['all'].push(m);
-                if (diffDays >= 180) segments['6m'].push(m);
-                else if (diffDays >= 90) segments['3m'].push(m);
-                else if (diffDays >= 30) segments['1m'].push(m);
-                else segments['14d'].push(m);
             }
         });
         return segments;
@@ -441,6 +437,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         isMemberActive,
         checkAIQuota,
         filteredMembers,
-        getDormantSegments // [New]
+        getDormantSegments, // [New]
+        isMemberExpiring
     };
 };

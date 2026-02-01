@@ -2,8 +2,8 @@ import React from 'react';
 import {
     User, Calendar, Ticket, CaretRight,
     InstagramLogo, YoutubeLogo,
-    SealCheck, BellRinging, BellSlash, House, Megaphone, Article, SignOut,
-    DownloadSimple, Export, ChatCircleDots,
+    SealCheck, BellRinging, Bell, BellSlash, House, Megaphone, Article, SignOut,
+    DownloadSimple, Export, ChatCircleDots, Chat, Ghost,
     Fire, Plant, Leaf, Sparkle, Waves, Boat, Barbell, Globe
 } from '@phosphor-icons/react';
 
@@ -12,8 +12,8 @@ import {
 export const Icons = {
     User, Calendar, Ticket, CaretRight,
     InstagramLogo, YoutubeLogo,
-    SealCheck, BellRinging, BellSlash, House, Megaphone, Article, SignOut,
-    DownloadSimple, Export, ChatCircleDots,
+    SealCheck, BellRinging, Bell, BellSlash, House, Megaphone, Article, SignOut,
+    DownloadSimple, Export, ChatCircleDots, Chat, Ghost,
     Fire, Plant, Leaf, Sparkle, Waves, Boat, Barbell, Globe,
 
     Sprout: (props) => (

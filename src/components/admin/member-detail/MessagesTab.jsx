@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { storageService } from '../../../services/storage';
-import { onSnapshot, collection, query, where, limit as firestoreLimit } from 'firebase/firestore';
+import { onSnapshot, collection, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
 import { db } from '../../../firebase';
 
 const MessagesTab = ({ memberId }) => {
@@ -17,7 +17,7 @@ const MessagesTab = ({ memberId }) => {
         const q = query(
             collection(db, 'messages'),
             where("memberId", "==", memberId),
-            // orderBy("timestamp", "desc"), // [FIX] Remove orderBy temporarily to avoid index issues
+            orderBy("timestamp", "desc"),
             firestoreLimit(msgLimit)
         );
 

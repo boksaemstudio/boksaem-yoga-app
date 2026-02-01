@@ -43,7 +43,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
         });
 
         return () => {
-            console.log(`[AdminMemberDetailModal] Cleaning up listener for ${member.id}`);
+            // console.log(`[AdminMemberDetailModal] Cleaning up listener for ${member.id}`);
             unsub();
         };
     }, [member?.id]);
@@ -62,7 +62,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
 
         const unsubAt = onSnapshot(q, (snap) => {
             const history = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            console.log(`[AdminMemberDetailModal] Real-time logs updated: ${history.length} records`);
+            // console.log(`[AdminMemberDetailModal] Real-time logs updated: ${history.length} records`);
             setMemberLogs(history);
 
             // [FIX] Auto-calculate dates if member is still 'TBD' but has attendance logs
@@ -298,7 +298,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                         <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'white', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                             {member.name}
                             <span style={{ fontSize: '0.9rem', color: '#a1a1aa', fontWeight: 'normal' }}>{member.phone}</span>
-                            {pushTokens.some(t => t.memberId === member.id) && (
+                            {member.pushEnabled !== false && pushTokens.some(t => t.memberId === member.id) && (
                                 <div style={{
                                     display: 'flex', alignItems: 'center', gap: '4px',
                                     background: 'rgba(16, 185, 129, 0.15)', color: '#10B981',
@@ -428,6 +428,16 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                                         background: selectedChangeKeys.has(change.key) ? 'rgba(212,175,55,0.1)' : 'rgba(255,255,255,0.05)',
                                         border: selectedChangeKeys.has(change.key) ? '1px solid var(--primary-gold)' : '1px solid transparent',
                                         cursor: 'pointer'
+                                    }}
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            const next = new Set(selectedChangeKeys);
+                                            if (next.has(change.key)) next.delete(change.key);
+                                            else next.add(change.key);
+                                            setSelectedChangeKeys(next);
+                                        }
                                     }}
                                 >
                                     <div style={{ color: selectedChangeKeys.has(change.key) ? 'var(--primary-gold)' : '#52525b' }}>

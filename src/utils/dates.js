@@ -87,13 +87,17 @@ export const getDaysDifference = (startDate, endDate) => {
 /**
  * 오늘부터 특정 날짜까지의 남은 일수 계산
  * @param {string} endDate - 'YYYY-MM-DD' 형식의 종료 날짜
- * @returns {number} 남은 일수 (음수면 만료됨)
+ * @returns {number|null} 남은 일수 (음수면 만료됨), 또는 null/0 for invalid cases
  */
 export const getDaysRemaining = (endDate) => {
-    if (!endDate) return null;
+    // Handle special cases
+    if (!endDate || endDate === 'TBD' || endDate === 'unlimited') return null;
+
+    const end = new Date(endDate);
+    if (isNaN(end.getTime())) return null;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const end = new Date(endDate);
     end.setHours(0, 0, 0, 0);
     const diffTime = end - today;
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));

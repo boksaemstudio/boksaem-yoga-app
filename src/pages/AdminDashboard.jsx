@@ -8,7 +8,7 @@ import {
     Calendar, Megaphone, BellRinging, X, Check, Funnel, Trash,
     NotePencil, FloppyDisk, ChatCircleText, PencilLine, CalendarPlus,
     Ticket, Tag, House, SignOut, ChartBar, Export, Gear, FileCsv,
-    Info, Warning
+    Info, Warning, Database
 } from '@phosphor-icons/react';
 import AdminScheduleManager from '../components/AdminScheduleManager';
 import AdminRevenue from '../components/AdminRevenue';
@@ -33,6 +33,9 @@ import StatsTab from '../components/admin/tabs/StatsTab';
 import NoticesTab from '../components/admin/tabs/NoticesTab';
 import LogsTab from '../components/admin/tabs/LogsTab';
 import ErrorLogsTab from '../components/admin/tabs/ErrorLogsTab';
+import PushHistoryTab from '../components/admin/tabs/PushHistoryTab';
+import DataMigrationTab from '../components/admin/tabs/DataMigrationTab';
+import { usePWA } from '../hooks/usePWA';
 
 const ColorLegend = ({ branchId }) => {
     const items = [
@@ -143,6 +146,8 @@ const AdminDashboard = () => {
     const [showExtendModal, setShowExtendModal] = useState(false);
     const [showNoteModal, setShowNoteModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [bulkMessageInitialText, setBulkMessageInitialText] = useState('');
+    const { installApp } = usePWA();
 
     // Dynamic Pricing State
     const [pricingConfig, setPricingConfig] = useState(STUDIO_CONFIG.PRICING); // Default fallback
@@ -159,11 +164,12 @@ const AdminDashboard = () => {
 
     // Editing State
     const [selectedMember, setSelectedMember] = useState(null);
+    // const [subTab, setSubTab] = useState('notices'); // notices | history
     // const [isSubmitting, setIsSubmitting] = useState(false);  // Unused
 
 
     const [scheduleSubTab, setScheduleSubTab] = useState('monthly');
-    const [showScheduleSettings, setShowScheduleSettings] = useState(false);
+    // const [showScheduleSettings, setShowScheduleSettings] = useState(false);
 
 
 
@@ -180,7 +186,6 @@ const AdminDashboard = () => {
         return saved === 'true' && Notification.permission === 'granted';
     });
     const [currentLogPage, setCurrentLogPage] = useState(1);
-    const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [showInstallGuide, setShowInstallGuide] = useState(false);
 
 
@@ -188,7 +193,8 @@ const AdminDashboard = () => {
     // Auth Logout
     const navigate = useNavigate();
     const handleLogout = async () => {
-        if (confirm('관리자 모드를 종료하시겠습니까?')) {
+        const isAgentMode = window.__AGENT_ADMIN_MODE__ === true;
+        if (isAgentMode || confirm('관리자 모드를 종료하시겠습니까?')) {
             await storageService.logoutAdmin();
             navigate('/login');
         }
@@ -262,25 +268,9 @@ const AdminDashboard = () => {
 
     const extendedSummary = { ...summary, dormantMembersCount: dormantCount };
 
-    useEffect(() => {
-        const handleBeforeInstallPrompt = (e) => {
-            e.preventDefault();
-            setDeferredPrompt(e);
-        };
-        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-        return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    }, []);
-
-    const handleInstallClick = () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('Admin accepted the install prompt');
-                }
-                setDeferredPrompt(null);
-            });
-        } else {
+    const handleInstallClick = async () => {
+        const result = await installApp();
+        if (!result) {
             setShowInstallGuide(true);
         }
     };
@@ -567,13 +557,19 @@ const AdminDashboard = () => {
                     <Warning size={22} weight={activeTab === 'error_logs' ? "fill" : "regular"} color="#F43F5E" />
                     <span>에러로그</span>
                 </button>
+                {STUDIO_CONFIG.FEATURES?.ENABLE_DATA_MIGRATION && (
+                    <button onClick={() => setActiveTab('data_migration')} className={`nav-tab-item ${activeTab === 'data_migration' ? 'active' : ''}`}>
+                        <Database size={22} weight={activeTab === 'data_migration' ? "fill" : "regular"} color="var(--primary-gold)" />
+                        <span>데이터</span>
+                    </button>
+                )}
             </nav>
 
             {/* Main Content Area */}
-            <div>
+            <div style={{ flex: 1, padding: '20px', maxWidth: '1200px', margin: '0 auto', width: '100%', paddingBottom: '100px' }}>
                 {activeTab === 'push_history' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                        {/* [NEW] AI Approval Pending Section */}
+                        {/* AI Approval Pending Section */}
                         {pendingApprovals.length > 0 && (
                             <div className="dashboard-card" style={{ border: '1px solid var(--primary-gold)', background: 'rgba(212, 175, 55, 0.05)' }}>
                                 <h3 className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-gold)', marginBottom: '16px' }}>
@@ -625,79 +621,10 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
                         )}
-
-                        <div className="dashboard-card">
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                                <h3 className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                                    <ClockCounterClockwise size={20} /> 알림 발송 기록
-                                </h3>
-                                <button className="action-btn sm" style={{ flex: 'none', width: 'auto' }} onClick={() => refreshData()}>새로고침</button>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                {storageService.getPushHistory().length === 0 ? (
-                                    <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-tertiary)' }}>
-                                        발송 기록이 없습니다.
-                                    </div>
-                                ) : (
-                                    storageService.getPushHistory().map((item, idx) => {
-                                        const member = item.memberId ? members.find(m => m.id === item.memberId) : null;
-                                        const status = item.pushStatus || {};
-                                        return (
-                                            <div key={idx} style={{
-                                                padding: '16px',
-                                                borderRadius: '12px',
-                                                background: 'rgba(255,255,255,0.02)',
-                                                border: '1px solid rgba(255,255,255,0.05)',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                gap: '8px'
-                                            }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                        <span style={{
-                                                            padding: '4px 8px',
-                                                            borderRadius: '6px',
-                                                            fontSize: '0.65rem',
-                                                            background: item.type === 'notice' ? 'rgba(0,122,255,0.2)' : 'rgba(212,175,55,0.2)',
-                                                            color: item.type === 'notice' ? '#007AFF' : 'var(--primary-gold)',
-                                                            fontWeight: 'bold'
-                                                        }}>
-                                                            {item.type === 'notice' ? '공지사항' : '개별메시지'}
-                                                        </span>
-                                                        <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>
-                                                            {item.type === 'notice' ? item.title : (member ? `${member.name}님께` : '회원 알림')}
-                                                        </span>
-                                                    </div>
-                                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-                                                        {item.timestamp ? new Date(item.timestamp).toLocaleString('ko-KR') : item.date}
-                                                    </span>
-                                                </div>
-                                                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: '4px 0' }}>
-                                                    {item.content || item.body}
-                                                </p>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                                                    <div style={{ display: 'flex', gap: '12px', fontSize: '0.75rem' }}>
-                                                        {status.sent ? (
-                                                            <>
-                                                                <span style={{ color: '#4CD964' }}>✅ 발송완료</span>
-                                                                <span style={{ color: 'var(--text-secondary)' }}>성공: {status.successCount || 0}</span>
-                                                                {status.failureCount > 0 && (
-                                                                    <span style={{ color: '#FF3B30' }}>실패: {status.failureCount}</span>
-                                                                )}
-                                                            </>
-                                                        ) : (
-                                                            <span style={{ color: 'var(--text-tertiary)' }}>⏳ 발송 대기 중...</span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })
-                                )}
-                            </div>
-                        </div>
+                        <PushHistoryTab />
                     </div>
                 )}
+
                 {activeTab === 'revenue' && (
                     <AdminRevenue members={members} sales={sales} currentBranch={currentBranch} />
                 )}
@@ -705,7 +632,6 @@ const AdminDashboard = () => {
                 {activeTab === 'pricing' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
                         <AdminPriceManager />
-
                         <hr style={{ borderColor: 'rgba(255,255,255,0.05)', margin: '20px 0' }} />
                         <div className="dashboard-card">
                             <h3 className="card-label" style={{ marginBottom: '20px' }}>가격표 개요 (이미지)</h3>
@@ -715,7 +641,7 @@ const AdminDashboard = () => {
                                     <img src={images.price_table_1 || priceTable1} alt="가격표 1" style={{ width: '100%', borderRadius: '12px', marginBottom: '15px' }} />
                                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                         <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'price_table_1')} style={{ display: 'none' }} id="up-price-1" />
-                                        <label htmlFor="up-price-1" className="action-btn sm" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', fontSize: '0.7rem', border: 'none' }}>가격표 변경</label>
+                                        <label htmlFor="up-price-1" className="action-btn sm" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', fontSize: '0.7rem', border: 'none', cursor: 'pointer' }}>가격표 변경</label>
                                     </div>
                                 </div>
                                 <div style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
@@ -723,7 +649,7 @@ const AdminDashboard = () => {
                                     <img src={images.price_table_2 || priceTable2} alt="가격표 2" style={{ width: '100%', borderRadius: '12px', marginBottom: '15px' }} />
                                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                         <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'price_table_2')} style={{ display: 'none' }} id="up-price-2" />
-                                        <label htmlFor="up-price-2" className="action-btn sm" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', fontSize: '0.7rem', border: 'none' }}>가격표 변경</label>
+                                        <label htmlFor="up-price-2" className="action-btn sm" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', fontSize: '0.7rem', border: 'none', cursor: 'pointer' }}>가격표 변경</label>
                                     </div>
                                 </div>
                             </div>
@@ -751,59 +677,30 @@ const AdminDashboard = () => {
                         setShowAddModal={setShowAddModal}
                         setShowBulkMessageModal={setShowBulkMessageModal}
                         pushTokens={pushTokens}
-                        getDormantSegments={getDormantSegments} // [New]
+                        getDormantSegments={getDormantSegments}
+                        setBulkMessageInitialText={setBulkMessageInitialText}
                     />
                 )}
 
                 {activeTab === 'schedule' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                        {/* Settings Button - Only visible in Monthly view where the Schedule Manager is active */}
-                        {scheduleSubTab === 'monthly' && (
-                            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                <button
-                                    onClick={() => setShowScheduleSettings(!showScheduleSettings)}
-                                    style={{
-                                        padding: '8px 16px',
-                                        borderRadius: '8px',
-                                        border: '1px solid var(--border-color)',
-                                        backgroundColor: 'var(--bg-input)',
-                                        color: 'var(--text-primary)',
-                                        fontWeight: 'bold',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '6px'
-                                    }}
-                                >
-                                    <Gear size={18} /> 설정
-                                </button>
-                            </div>
-                        )}
-
-                        {/* Sub-tabs for Schedule */}
                         <div style={{ display: 'flex', gap: '10px', background: 'rgba(255,255,255,0.05)', padding: '5px', borderRadius: '12px' }}>
                             <button
                                 onClick={() => setScheduleSubTab('monthly')}
-                                style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: scheduleSubTab === 'monthly' ? 'var(--primary-gold)' : 'transparent', color: scheduleSubTab === 'monthly' ? 'black' : 'white', fontWeight: 'bold' }}
+                                style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: scheduleSubTab === 'monthly' ? 'var(--primary-gold)' : 'transparent', color: scheduleSubTab === 'monthly' ? 'black' : 'white', fontWeight: 'bold', cursor: 'pointer' }}
                             >월간 시간표</button>
                             <button
                                 onClick={() => setScheduleSubTab('weekly')}
-                                style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: scheduleSubTab === 'weekly' ? 'var(--primary-gold)' : 'transparent', color: scheduleSubTab === 'weekly' ? 'black' : 'white', fontWeight: 'bold' }}
+                                style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: scheduleSubTab === 'weekly' ? 'var(--primary-gold)' : 'transparent', color: scheduleSubTab === 'weekly' ? 'black' : 'white', fontWeight: 'bold', cursor: 'pointer' }}
                             >주간 시간표</button>
                         </div>
 
                         {scheduleSubTab === 'monthly' ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                                {STUDIO_CONFIG.BRANCHES.map((branch, index) => (
+                                {STUDIO_CONFIG.BRANCHES.map((branch) => (
                                     <div key={branch.id} className="dashboard-card">
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
-                                            <h3 style={{ fontSize: '1.8rem', fontWeight: '800', margin: 0, color: 'var(--primary-gold)', letterSpacing: '-0.05em' }}>{branch.name}</h3>
-                                        </div>
-                                        <AdminScheduleManager
-                                            branchId={branch.id}
-                                            showSettings={index === 0 && showScheduleSettings}
-                                            onShowSettings={() => setShowScheduleSettings(false)}
-                                        />
+                                        <h3 style={{ fontSize: '1.8rem', fontWeight: '800', marginBottom: '20px', color: 'var(--primary-gold)' }}>{branch.name}</h3>
+                                        <AdminScheduleManager branchId={branch.id} />
                                     </div>
                                 ))}
                             </div>
@@ -818,51 +715,41 @@ const AdminDashboard = () => {
                                         const nextDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
                                         const nextYear = nextDate.getFullYear();
                                         const nextMonth = (nextDate.getMonth() + 1).toString().padStart(2, '0');
-
                                         const curKey = `timetable_${branch.id}_${curYear}-${curMonth}`;
                                         const nextKey = `timetable_${branch.id}_${nextYear}-${nextMonth}`;
-                                        // Legacy fallback
-                                        // If specific month image not set, try generic fallback? No, let's keep it specific or use legacy as fallback for current only.
                                         const curImage = images[curKey] || images[`timetable_${branch.id}`] || (branch.id === 'gwangheungchang' ? timeTable1 : timeTable2);
                                         const nextImage = images[nextKey];
 
                                         return (
                                             <div key={branch.id} style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                                                <h3 style={{ fontSize: '1.6rem', fontWeight: '800', margin: '0 0 20px 0' }}>{branch.name}</h3>
-
+                                                <h3 style={{ fontSize: '1.6rem', fontWeight: '800', marginBottom: '20px' }}>{branch.name}</h3>
                                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                                    {/* Current Month */}
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                                         <h4 style={{ margin: 0, color: 'var(--primary-gold)' }}>{curMonth}월 (현재)</h4>
                                                         <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '12px', overflow: 'hidden', minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed rgba(255,255,255,0.1)' }}>
                                                             {(optimisticImages[curKey] || curImage) ? (
-                                                                <img src={optimisticImages[curKey] || curImage} alt="Current" style={{ width: '100%', display: 'block' }} />
+                                                                <img src={optimisticImages[curKey] || curImage} alt="Current" style={{ width: '100%' }} />
                                                             ) : (
                                                                 <span style={{ color: 'var(--text-secondary)' }}>이미지 없음</span>
                                                             )}
                                                         </div>
                                                         <div style={{ textAlign: 'right' }}>
                                                             <input type="file" accept="image/*" onChange={e => handleImageUpload(e, curKey)} style={{ display: 'none' }} id={`up-cur-${branch.id}`} />
-                                                            <label htmlFor={`up-cur-${branch.id}`} className="action-btn sm" style={{ display: 'inline-block', padding: '6px 12px', fontSize: '0.8rem', background: 'rgba(255,255,255,0.1)', cursor: 'pointer' }}>이미지 변경</label>
+                                                            <label htmlFor={`up-cur-${branch.id}`} className="action-btn sm" style={{ padding: '6px 12px', fontSize: '0.8rem', cursor: 'pointer' }}>이미지 변경</label>
                                                         </div>
                                                     </div>
-
-                                                    {/* Next Month */}
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                                         <h4 style={{ margin: 0, color: '#a1a1aa' }}>{nextMonth}월 (다음달)</h4>
                                                         <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '12px', overflow: 'hidden', minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed rgba(255,255,255,0.1)' }}>
                                                             {(optimisticImages[nextKey] || nextImage) ? (
-                                                                <img src={optimisticImages[nextKey] || nextImage} alt="Next" style={{ width: '100%', display: 'block' }} />
+                                                                <img src={optimisticImages[nextKey] || nextImage} alt="Next" style={{ width: '100%' }} />
                                                             ) : (
-                                                                <div style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                                                                    <p>등록된 이미지가 없습니다.</p>
-                                                                    <p style={{ fontSize: '0.8rem', opacity: 0.7 }}>미등록 시 현재 월 이미지가<br />계속 표시될 수 있습니다.</p>
-                                                                </div>
+                                                                <span style={{ color: 'var(--text-secondary)' }}>이미지 없음</span>
                                                             )}
                                                         </div>
                                                         <div style={{ textAlign: 'right' }}>
                                                             <input type="file" accept="image/*" onChange={e => handleImageUpload(e, nextKey)} style={{ display: 'none' }} id={`up-next-${branch.id}`} />
-                                                            <label htmlFor={`up-next-${branch.id}`} className="action-btn sm" style={{ display: 'inline-block', padding: '6px 12px', fontSize: '0.8rem', background: 'rgba(255,255,255,0.1)', cursor: 'pointer' }}>이미지 등록/변경</label>
+                                                            <label htmlFor={`up-next-${branch.id}`} className="action-btn sm" style={{ padding: '6px 12px', fontSize: '0.8rem', cursor: 'pointer' }}>이미지 등록/변경</label>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -874,8 +761,6 @@ const AdminDashboard = () => {
                         )}
                     </div>
                 )}
-
-
 
                 {activeTab === 'stats' && (
                     <StatsTab stats={stats} revenueTrend={revenueTrend} memberStatusDist={memberStatusDist} />
@@ -895,16 +780,19 @@ const AdminDashboard = () => {
                         onMemberClick={handleOpenEdit}
                     />
                 )}
+
                 {activeTab === 'error_logs' && (
                     <ErrorLogsTab />
                 )}
-                {/* Legacy Logs Content (Hidden) */}
-                {/* Legacy Logs Content Removed */}
+
+                {activeTab === 'data_migration' && STUDIO_CONFIG.FEATURES?.ENABLE_DATA_MIGRATION && (
+                    <DataMigrationTab />
+                )}
             </div>
 
 
             {/* --- MODALS --- */}
-            <MemberAddModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} onSuccess={refreshData} />
+            < MemberAddModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} onSuccess={refreshData} />
             <MemberNoteModal
                 isOpen={showNoteModal}
                 onClose={() => setShowNoteModal(false)}
@@ -913,7 +801,12 @@ const AdminDashboard = () => {
                 onSuccess={refreshData}
             />
             <NoticeModal isOpen={showNoticeModal} onClose={() => setShowNoticeModal(false)} onSuccess={refreshData} />
-            <BulkMessageModal isOpen={showBulkMessageModal} onClose={() => setShowBulkMessageModal(false)} selectedMemberIds={selectedMemberIds} />
+            <BulkMessageModal
+                isOpen={showBulkMessageModal}
+                onClose={() => { setShowBulkMessageModal(false); setBulkMessageInitialText(''); }}
+                selectedMemberIds={selectedMemberIds}
+                initialMessage={bulkMessageInitialText}
+            />
             <MessageModal isOpen={showMessageModal} onClose={() => setShowMessageModal(false)} member={selectedMember && members.find(m => m.id === selectedMember.id) || selectedMember} />
             <ExtensionModal isOpen={showExtendModal} onClose={() => setShowExtendModal(false)} member={selectedMember && members.find(m => m.id === selectedMember.id) || selectedMember} onSuccess={refreshData} />
 
@@ -921,18 +814,20 @@ const AdminDashboard = () => {
             <PriceTableModal isOpen={showPriceModal} onClose={() => setShowPriceModal(false)} images={images} setOptimisticImages={setOptimisticImages} optimisticImages={optimisticImages} />
             <InstallGuideModal isOpen={showInstallGuide} onClose={() => setShowInstallGuide(false)} />
 
-            {showEditModal && selectedMember && (
-                <AdminMemberDetailModal
-                    member={members.find(m => m.id === selectedMember.id) || selectedMember}
-                    memberLogs={logs.filter(log => log.memberId === selectedMember.id)}
-                    onClose={() => setShowEditModal(false)}
-                    pricingConfig={pricingConfig}
-                    onUpdateMember={handleMemberModalUpdate}
-                    onAddSalesRecord={handleAddSalesRecord}
-                    pushTokens={pushTokens}
-                />
-            )}
-        </div>
+            {
+                showEditModal && selectedMember && (
+                    <AdminMemberDetailModal
+                        member={members.find(m => m.id === selectedMember.id) || selectedMember}
+                        memberLogs={logs.filter(log => log.memberId === selectedMember.id)}
+                        onClose={() => setShowEditModal(false)}
+                        pricingConfig={pricingConfig}
+                        onUpdateMember={handleMemberModalUpdate}
+                        onAddSalesRecord={handleAddSalesRecord}
+                        pushTokens={pushTokens}
+                    />
+                )
+            }
+        </div >
     );
 };
 

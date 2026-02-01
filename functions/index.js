@@ -48,38 +48,108 @@ exports.sendPushOnMessageV2 = onDocumentCreated("messages/{messageId}", async (e
     if (!memberId || !content) return;
 
     try {
-        const tokensSnap = await admin.firestore().collection("fcm_tokens")
-            .where("memberId", "==", memberId)
-            .get();
+        const db = admin.firestore();
+        // [UNIFIED] Search across multiple possible collection names with source tracking
+        const collections = ["fcm_tokens", "fcmTokens", "push_tokens"];
+        let tokens = [];
+        let tokenSources = {}; // token -> collectionName
 
-        if (tokensSnap.empty) return;
+        for (const col of collections) {
+            const snap = await db.collection(col).where("memberId", "==", memberId).get();
+            snap.forEach(d => {
+                if (d.id && !tokens.includes(d.id)) {
+                    tokens.push(d.id);
+                    tokenSources[d.id] = col;
+                }
+            });
+        }
 
-        const tokens = tokensSnap.docs.map(doc => doc.id);
+        if (tokens.length === 0) {
+            console.warn(`No FCM tokens found for member ${memberId}.`);
+            await event.data.ref.update({
+                pushStatus: {
+                    sent: false,
+                    error: "No registered device found. Please search again in the app.",
+                    sentAt: admin.firestore.FieldValue.serverTimestamp()
+                }
+            });
+            return;
+        }
 
         const payload = {
             notification: {
-                title: "내요가 알림",
-                body: content,
+                title: "내요가 메시지",
+                body: content
             },
             data: {
-                url: "/member"
+                url: "https://boksaem-yoga.web.app/member?tab=messages"
             }
         };
 
         const response = await admin.messaging().sendEachForMulticast({
             tokens,
             notification: payload.notification,
-            data: payload.data
+            data: payload.data,
+            webpush: {
+                notification: {
+                    icon: "https://boksaem-yoga.web.app/logo_circle.png"
+                },
+                fcm_options: {
+                    link: "https://boksaem-yoga.web.app/member?tab=messages"
+                }
+            },
+            android: {
+                notification: {
+                    color: "#D4AF37",
+                    icon: "stock_ticker_update"
+                }
+            }
         });
-        console.log("Single push sent:", response.successCount);
 
-        // 결과 기록 추가
-        await event.data.ref.update({
-            pushStatus: {
-                sent: true,
+        // 결과 분석 및 정확한 컬렉션에서 무효 토큰 정리
+        const tokensToDelete = [];
+        response.responses.forEach((res, idx) => {
+            if (!res.success) {
+                const error = res.error;
+                if (error.code === 'messaging/invalid-registration-token' ||
+                    error.code === 'messaging/registration-token-not-registered') {
+                    tokensToDelete.push({ token: tokens[idx], col: tokenSources[tokens[idx]] });
+                }
+            }
+        });
+
+        if (tokensToDelete.length > 0) {
+            console.log(`Cleaning up ${tokensToDelete.length} stale tokens for member ${memberId} from multiple collections`);
+            const batch = admin.firestore().batch();
+            tokensToDelete.forEach(item => {
+                batch.delete(admin.firestore().collection(item.col).doc(item.token));
+            });
+            await batch.commit();
+        }
+
+        // Write to push_history
+        if (response.successCount > 0) {
+            await admin.firestore().collection('push_history').add({
+                type: 'individual',
+                title: payload.notification.title,
+                body: payload.notification.body,
+                status: 'sent',
                 successCount: response.successCount,
                 failureCount: response.failureCount,
-                sentAt: admin.firestore.FieldValue.serverTimestamp()
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                targetMemberId: memberId
+            });
+        }
+
+        // 상태 업데이트
+        await event.data.ref.update({
+            pushStatus: {
+                sent: response.successCount > 0,
+                successCount: response.successCount,
+                failureCount: response.failureCount,
+                sentAt: admin.firestore.FieldValue.serverTimestamp(),
+                details: response.successCount > 0 ? "Delivered to device" : (tokensToDelete.length > 0 ? "Tokens cleaned up (stale)" : "Failed delivery"),
+                cleanupCount: tokensToDelete.length
             }
         });
 
@@ -92,7 +162,10 @@ exports.sendPushOnMessageV2 = onDocumentCreated("messages/{messageId}", async (e
 });
 
 // V2 함수: 대량 푸시 알림 전송 (Optimized with Batching & Pagination)
-exports.sendBulkPushV2 = onDocumentCreated("push_campaigns/{campaignId}", async (event) => {
+exports.sendBulkPushV2 = onDocumentCreated({
+    document: "push_campaigns/{campaignId}",
+    secrets: ["GEMINI_KEY"]
+}, async (event) => {
     const snap = event.data;
     const campaignId = event.params.campaignId;
     const data = snap.data();
@@ -124,13 +197,27 @@ exports.sendBulkPushV2 = onDocumentCreated("push_campaigns/{campaignId}", async 
                 const body = await ai.translate(bodyOriginal, lang);
                 contentsByLang[lang] = {
                     notification: { title, body },
-                    data: { url: "/member" }
+                    data: { url: "/member?tab=messages" },
+                    webpush: {
+                        notification: { icon: "https://boksaem-yoga.web.app/logo_circle.png" },
+                        fcm_options: { link: "https://boksaem-yoga.web.app/member?tab=messages" }
+                    },
+                    android: {
+                        notification: { color: "#D4AF37", icon: "stock_ticker_update" }
+                    }
                 };
             } catch (e) {
                 console.error(`Translation failed for ${lang}, fallback to Korean/Original`);
                 contentsByLang[lang] = {
                     notification: { title: titleOriginal, body: bodyOriginal },
-                    data: { url: "/member" }
+                    data: { url: "/member?tab=messages" },
+                    webpush: {
+                        notification: { icon: "https://boksaem-yoga.web.app/logo_circle.png" },
+                        fcm_options: { link: "https://boksaem-yoga.web.app/member?tab=messages" }
+                    },
+                    android: {
+                        notification: { color: "#D4AF37", icon: "stock_ticker_update" }
+                    }
                 };
                 await logAIError(`BulkPush_Translation_${lang}`, e);
             }
@@ -150,7 +237,9 @@ exports.sendBulkPushV2 = onDocumentCreated("push_campaigns/{campaignId}", async 
             const res = await admin.messaging().sendEachForMulticast({
                 tokens,
                 notification: payload.notification,
-                data: payload.data
+                data: payload.data,
+                webpush: payload.webpush,
+                android: payload.android
             });
             return { success: res.successCount, failure: res.failureCount };
         };
@@ -452,7 +541,10 @@ exports.generatePageExperienceV2 = onCall({ region: "asia-northeast3", cors: tru
 });
 
 // V2 함수: 새로운 공지사항 생성 시 전체 회원 푸시 알림
-exports.sendPushOnNoticeV2 = onDocumentCreated("notices/{noticeId}", async (event) => {
+exports.sendPushOnNoticeV2 = onDocumentCreated({
+    document: "notices/{noticeId}",
+    secrets: ["GEMINI_KEY"]
+}, async (event) => {
     const noticeData = event.data.data();
     const titleOriginal = noticeData.title || "새로운 공지사항";
     const bodyOriginal = noticeData.content || "새로운 소식이 등록되었습니다";
@@ -460,20 +552,43 @@ exports.sendPushOnNoticeV2 = onDocumentCreated("notices/{noticeId}", async (even
     try {
         const db = admin.firestore();
         const ai = getAI();
-        const allTokensSnap = await db.collection("fcm_tokens").get();
-        if (allTokensSnap.empty) return;
-
+        const collections = ["fcm_tokens", "fcmTokens", "push_tokens"];
         const tokensByLang = {};
-        allTokensSnap.forEach(doc => {
-            const tokenData = doc.data();
-            const lang = tokenData.language || 'ko';
-            if (!tokensByLang[lang]) tokensByLang[lang] = [];
-            tokensByLang[lang].push(doc.id);
-        });
+        const tokenSources = {}; // token -> collectionName
 
-        const payloadBase = { data: { url: "/member" } };
+        for (const col of collections) {
+            const snap = await db.collection(col).get();
+            snap.forEach(doc => {
+                const tokenData = doc.data();
+                const lang = tokenData.language || 'ko';
+                if (!tokensByLang[lang]) tokensByLang[lang] = [];
+                if (!tokensByLang[lang].includes(doc.id)) {
+                    tokensByLang[lang].push(doc.id);
+                    tokenSources[doc.id] = col;
+                }
+            });
+        }
+
+        const allTokenCount = Object.values(tokensByLang).reduce((sum, arr) => sum + arr.length, 0);
+
+        if (allTokenCount === 0) {
+            console.warn("No FCM tokens found in any database collections.");
+            await event.data.ref.update({
+                pushStatus: {
+                    sent: false,
+                    error: "No registered devices found.",
+                    sentAt: admin.firestore.FieldValue.serverTimestamp()
+                }
+            });
+            return;
+        }
+
+        const payloadBase = {
+            data: { url: "https://boksaem-yoga.web.app/member?tab=notices" }
+        };
         let successTotal = 0;
         let failureTotal = 0;
+        let cleanupTotal = 0;
 
         for (const [lang, tokens] of Object.entries(tokensByLang)) {
             if (tokens.length === 0) continue;
@@ -483,8 +598,26 @@ exports.sendPushOnNoticeV2 = onDocumentCreated("notices/{noticeId}", async (even
             const body = bodyRaw.length > 100 ? bodyRaw.substring(0, 100) + "..." : bodyRaw;
 
             const payload = {
-                ...payloadBase,
-                notification: { title: `[Notice] ${title} `, body }
+                notification: {
+                    title: `${title}`,
+                    body,
+                    image: noticeData.image || noticeData.imageUrl || null
+                },
+                data: payloadBase.data,
+                webpush: {
+                    notification: {
+                        icon: "https://boksaem-yoga.web.app/logo_circle.png"
+                    },
+                    fcm_options: {
+                        link: "https://boksaem-yoga.web.app/member?tab=notices"
+                    }
+                },
+                android: {
+                    notification: {
+                        color: "#D4AF37",
+                        icon: "stock_ticker_update"
+                    }
+                }
             };
 
             const chunkSize = 500;
@@ -493,19 +626,57 @@ exports.sendPushOnNoticeV2 = onDocumentCreated("notices/{noticeId}", async (even
                 const response = await admin.messaging().sendEachForMulticast({
                     tokens: chunk,
                     notification: payload.notification,
-                    data: payload.data
+                    data: payload.data,
+                    webpush: payload.webpush,
+                    android: payload.android
                 });
+
                 successTotal += response.successCount;
                 failureTotal += response.failureCount;
+
+                // Cleanup invalid tokens from multiple collections
+                const tokensToDelete = [];
+                response.responses.forEach((res, idx) => {
+                    if (!res.success && (res.error.code === 'messaging/invalid-registration-token' || res.error.code === 'messaging/registration-token-not-registered')) {
+                        const token = chunk[idx];
+                        tokensToDelete.push({ token, col: tokenSources[token] });
+                    }
+                });
+
+                if (tokensToDelete.length > 0) {
+                    const batch = admin.firestore().batch();
+                    tokensToDelete.forEach(item => {
+                        batch.delete(admin.firestore().collection(item.col).doc(item.token));
+                    });
+                    await batch.commit();
+                    cleanupTotal += tokensToDelete.length;
+                    console.log(`[sendPushOnNoticeV2] Cleaned up ${tokensToDelete.length} stale tokens.`);
+                }
             }
+        }
+
+        // Write to push_history
+        if (successTotal > 0) {
+            await admin.firestore().collection('push_history').add({
+                type: 'notice',
+                title: `${titleOriginal}`, // Use Korean title for history
+                body: bodyOriginal.length > 100 ? bodyOriginal.substring(0, 100) + "..." : bodyOriginal,
+                status: 'sent',
+                successCount: successTotal,
+                failureCount: failureTotal,
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                target: 'all'
+            });
         }
 
         await event.data.ref.update({
             pushStatus: {
-                sent: true,
+                sent: successTotal > 0,
                 successCount: successTotal,
                 failureCount: failureTotal,
-                sentAt: admin.firestore.FieldValue.serverTimestamp()
+                sentAt: admin.firestore.FieldValue.serverTimestamp(),
+                details: successTotal > 0 ? "Delivered to some devices" : (cleanupTotal > 0 ? "Stale tokens cleaned up" : "Failed delivery"),
+                cleanupCount: cleanupTotal
             }
         });
 
