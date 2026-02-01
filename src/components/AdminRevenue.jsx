@@ -55,6 +55,7 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
             if (currentBranch !== 'all' && member && member.homeBranch !== currentBranch) return;
 
             // Check if dates match 'YYYY-MM-DD'
+            if (!s.date) return false;
             const dateStr = s.date.split('T')[0];
 
             // Avoid double counting if we just added this via 'members' loop?
