@@ -1,5 +1,5 @@
 
-import { Plus, Check, BellRinging, NotePencil, Info, ChatCircleText } from '@phosphor-icons/react';
+import { Plus, Check, BellRinging, NotePencil, Info } from '@phosphor-icons/react';
 import { getBranchName } from '../../../studioConfig';
 
 const MembersTab = ({
@@ -18,10 +18,8 @@ const MembersTab = ({
     itemsPerPage,
     handleOpenEdit,
     setShowAddModal,
-    setShowBulkMessageModal,
     pushTokens,
-    getDormantSegments,
-    setBulkMessageInitialText
+    getDormantSegments
 }) => {
     return (
         <>
@@ -131,51 +129,6 @@ const MembersTab = ({
                         autoCorrect="off"
                     />
                 </div>
-
-                {/* [REFINED] Send Encouragement Flow for Dormant */}
-                {filterType === 'dormant' && (
-                    <button
-                        onClick={() => {
-                            const msg = "회원님, 매트 위에서 뵙고 싶어요! 🌿\n\n최근 수련하신 지 시간이 좀 흘렀네요.\n부담 없이 가벼운 마음으로 다시 시작해보시는 건 어떨까요?\n\n따뜻한 차 한 잔과 함께 기다릴게요. 😊\n- 복샘요가";
-                            setBulkMessageInitialText(msg);
-                            selectFilteredMembers(filteredMembers);
-                            setShowBulkMessageModal(true);
-                        }}
-                        className="action-btn"
-                        style={{
-                            width: 'auto',
-                            padding: '0 16px',
-                            height: '42px',
-                            borderRadius: '8px',
-                            background: 'rgba(212, 175, 55, 0.2)',
-                            color: 'var(--primary-gold)',
-                            border: '1px solid var(--primary-gold)',
-                            fontSize: '0.85rem'
-                        }}
-                    >
-                        <BellRinging size={18} weight="bold" />
-                        <span style={{ marginLeft: '6px' }}>안부 보내기</span>
-                    </button>
-                )}
-
-                {selectedMemberIds.length > 0 && (
-                    <button
-                        onClick={() => setShowBulkMessageModal(true)}
-                        className="action-btn primary"
-                        style={{
-                            width: 'auto',
-                            padding: '0 16px',
-                            height: '42px',
-                            borderRadius: '8px',
-                            animation: 'pulse 2s infinite',
-                            boxShadow: '0 0 15px var(--primary-gold-glow)',
-                            border: '1px solid var(--primary-gold)'
-                        }}
-                    >
-                        <ChatCircleText size={20} weight="bold" />
-                        <span style={{ marginLeft: '6px', fontSize: '0.9rem' }}>{selectedMemberIds.length}명 푸시 전송</span>
-                    </button>
-                )}
             </div>
 
             {/* List Criteria Display */}
