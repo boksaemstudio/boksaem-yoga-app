@@ -54,7 +54,7 @@ const ErrorLogsTab = () => {
         <div className="dashboard-card" style={{ border: '1px solid rgba(244, 63, 94, 0.3)', background: 'rgba(20, 20, 20, 0.8)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h3 className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#F43F5E', margin: 0 }}>
-                    <Warning size={22} weight="fill" /> 서버 에러 로그 (최근 50건)
+                    <Warning size={22} weight="fill" /> 서버 에러 로그 (표시: {logs.length}건 / 최대 50건)
                 </h3>
                 <div style={{ display: 'flex', gap: '10px' }}>
                     {logs.length > 0 && (
