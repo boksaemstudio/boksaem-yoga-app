@@ -1,6 +1,6 @@
 import { Icons } from '../CommonIcons';
 
-const MessagesTab = ({ messages, t }) => {
+const MessagesTab = ({ messages, t, setActiveTab }) => {
     return (
         <div className="fade-in" style={{ padding: '0 5px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '25px' }}>
@@ -37,45 +37,83 @@ const MessagesTab = ({ messages, t }) => {
                 </div>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    {messages.map((msg) => (
-                        <div
-                            key={msg.id}
-                            style={{
-                                padding: '20px',
-                                background: 'rgba(255,255,255,0.05)',
-                                borderRadius: '20px',
-                                border: '1px solid rgba(255,255,255,0.08)',
-                                position: 'relative',
-                                overflow: 'hidden'
-                            }}
-                        >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                                <span style={{
-                                    fontSize: '0.75rem',
-                                    fontWeight: '700',
-                                    color: 'var(--primary-gold)',
-                                    textTransform: 'uppercase',
-                                    padding: '4px 8px',
-                                    background: 'rgba(212, 175, 55, 0.1)',
-                                    borderRadius: '8px'
+                    {messages.map((msg) => {
+                        const isNotice = msg.type === 'notice';
+                        
+                        return (
+                            <div
+                                key={msg.id}
+                                onClick={() => {
+                                    if (isNotice && setActiveTab) {
+                                        console.log('[MessagesTab] Notice clicked, navigating to notices tab with ID:', msg.noticeId || msg.id);
+                                        setActiveTab('notices', msg.noticeId || msg.id);
+                                    }
+                                }}
+                                style={{
+                                    padding: '20px',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    borderRadius: '20px',
+                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    cursor: isNotice ? 'pointer' : 'default',
+                                    transition: 'all 0.2s ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (isNotice) {
+                                        e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+                                        e.currentTarget.style.transform = 'translateY(-2px)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (isNotice) {
+                                        e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                                        e.currentTarget.style.transform = 'translateY(0)';
+                                    }
+                                }}
+                            >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                                    <span style={{
+                                        fontSize: '0.75rem',
+                                        fontWeight: '700',
+                                        color: 'var(--primary-gold)',
+                                        textTransform: 'uppercase',
+                                        padding: '4px 8px',
+                                        background: 'rgba(212, 175, 55, 0.1)',
+                                        borderRadius: '8px'
+                                    }}>
+                                        {msg.type === 'admin_individual' ? '개별' : '공지'}
+                                    </span>
+                                    <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)' }}>
+                                        {msg.timestamp || msg.createdAt ? new Date(msg.timestamp || msg.createdAt).toLocaleDateString() : ''}
+                                    </span>
+                                </div>
+                                <p style={{
+                                    margin: 0,
+                                    fontSize: '1rem',
+                                    color: 'rgba(255,255,255,0.95)',
+                                    lineHeight: '1.6',
+                                    whiteSpace: 'pre-wrap'
                                 }}>
-                                    {msg.type === 'admin_individual' ? 'Personal' : 'Notice'}
-                                </span>
-                                <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)' }}>
-                                    {msg.timestamp || msg.createdAt ? new Date(msg.timestamp || msg.createdAt).toLocaleDateString() : ''}
-                                </span>
+                                    {msg.content}
+                                </p>
+                                {isNotice && (
+                                    <div style={{
+                                        marginTop: '12px',
+                                        fontSize: '0.8rem',
+                                        color: 'var(--primary-gold)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        opacity: 0.8
+                                    }}>
+                                        <Icons.ArrowRight size={14} />
+                                        <span>소식 보기</span>
+                                    </div>
+                                )}
                             </div>
-                            <p style={{
-                                margin: 0,
-                                fontSize: '1rem',
-                                color: 'rgba(255,255,255,0.95)',
-                                lineHeight: '1.6',
-                                whiteSpace: 'pre-wrap'
-                            }}>
-                                {msg.content}
-                            </p>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
 

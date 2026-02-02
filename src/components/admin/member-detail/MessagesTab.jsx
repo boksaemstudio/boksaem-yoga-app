@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { storageService } from '../../../services/storage';
-import { onSnapshot, collection, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
+import { onSnapshot, collection, query, where, orderBy, limit as firestoreLimit, getDocs } from 'firebase/firestore';
 import { db } from '../../../firebase';
 
 const MessagesTab = ({ memberId }) => {
@@ -8,8 +8,9 @@ const MessagesTab = ({ memberId }) => {
     const [sending, setSending] = useState(false);
     const [history, setHistory] = useState([]);
     const [msgLimit, setMsgLimit] = useState(10);
+    const [notices, setNotices] = useState([]);
 
-    // [REAL-TIME] Unified Message History Listener
+    // [REAL-TIME] Individual Message History Listener
     useEffect(() => {
         if (!memberId) return;
 
@@ -22,7 +23,7 @@ const MessagesTab = ({ memberId }) => {
         );
 
         const unsub = onSnapshot(q, (snap) => {
-            const logs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const logs = snap.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'individual' }));
             // [FIX] Sort client-side
             logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             setHistory(logs);
@@ -32,6 +33,31 @@ const MessagesTab = ({ memberId }) => {
 
         return () => unsub();
     }, [memberId, msgLimit]);
+
+    // [NEW] Load Notice/Campaign Push History
+    useEffect(() => {
+        const loadNotices = async () => {
+            try {
+                const q = query(
+                    collection(db, 'push_history'),
+                    where('type', 'in', ['campaign', 'notice']),
+                    orderBy('createdAt', 'desc'),
+                    firestoreLimit(20)
+                );
+                const snapshot = await getDocs(q);
+                const noticeList = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    type: 'notice',
+                    timestamp: doc.data().createdAt?.toDate()?.toISOString() || new Date().toISOString()
+                }));
+                setNotices(noticeList);
+            } catch (err) {
+                console.error('[MessagesTab] Failed to load notices:', err);
+            }
+        };
+        loadNotices();
+    }, []);
 
     const handleSend = async () => {
         if (!message.trim() || !memberId) return;
@@ -108,48 +134,72 @@ const MessagesTab = ({ memberId }) => {
 
             {/* History */}
             <div style={{ flex: 1, overflowY: 'auto' }}>
-                <h4 style={{ color: 'var(--primary-gold)', fontSize: '0.95rem', marginBottom: '10px' }}>발송 이력</h4>
-                {history.length === 0 ? (
-                    <p style={{ color: '#52525b', textAlign: 'center', marginTop: '20px', fontSize: '0.9rem' }}>발송된 메시지가 없습니다.</p>
-                ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        {history.map(log => (
-                            <div key={log.id} style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '8px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                    <span style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>
-                                        {log.timestamp ? new Date(log.timestamp).toLocaleString() : '전송 중...'}
-                                    </span>
-                                    {log.pushStatus?.sent ? (
-                                        <span style={{ fontSize: '0.8rem', color: '#10b981' }}>✅ 수신 확인</span>
-                                    ) : (
-                                        <span style={{ fontSize: '0.8rem', color: '#f59e0b' }}>전송 완료</span>
-                                    )}
-                                </div>
-                                <div style={{ color: 'white', fontSize: '0.9rem' }}>{log.content}</div>
-                            </div>
-                        ))}
-
-                        {/* Pagination: Load More */}
-                        {history.length >= msgLimit && (
-                            <button
-                                onClick={() => setMsgLimit(prev => prev + 10)}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    background: 'rgba(255,255,255,0.05)',
-                                    color: '#a1a1aa',
-                                    border: '1px dashed rgba(255,255,255,0.2)',
+                <h4 style={{ color: 'var(--primary-gold)', fontSize: '0.95rem', marginBottom: '10px' }}>발송 이력 (개별 + 공지)</h4>
+                {(() => {
+                    // Merge and sort messages and notices
+                    const combined = [...history, ...notices];
+                    combined.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    return combined.length === 0 ? (
+                        <p style={{ color: '#52525b', textAlign: 'center', marginTop: '20px', fontSize: '0.9rem' }}>발송된 메시지가 없습니다.</p>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {combined.map(log => (
+                                <div key={log.id} style={{ 
+                                    background: log.type === 'notice' ? 'rgba(212, 175, 55, 0.1)' : 'rgba(0,0,0,0.3)', 
+                                    padding: '12px', 
                                     borderRadius: '8px',
-                                    marginTop: '5px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem'
-                                }}
-                            >
-                                ▿ 이전 메시지 더보기 (10개 추가)
-                            </button>
-                        )}
-                    </div>
-                )}
+                                    border: log.type === 'notice' ? '1px solid rgba(212, 175, 55, 0.2)' : 'none'
+                                }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                            <span style={{ 
+                                                fontSize: '0.7rem', 
+                                                color: log.type === 'notice' ? 'var(--primary-gold)' : '#3B82F6',
+                                                fontWeight: '700',
+                                                padding: '2px 6px',
+                                                background: log.type === 'notice' ? 'rgba(212, 175, 55, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                                                borderRadius: '4px'
+                                            }}>
+                                                {log.type === 'notice' ? '공지' : '개별'}
+                                            </span>
+                                            <span style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>
+                                                {log.timestamp ? new Date(log.timestamp).toLocaleString() : '전송 중...'}
+                                            </span>
+                                        </div>
+                                        {log.type === 'individual' && (
+                                            log.pushStatus?.sent ? (
+                                                <span style={{ fontSize: '0.8rem', color: '#10b981' }}>✅ 수신 확인</span>
+                                            ) : (
+                                                <span style={{ fontSize: '0.8rem', color: '#f59e0b' }}>전송 완료</span>
+                                            )
+                                        )}
+                                    </div>
+                                    <div style={{ color: 'white', fontSize: '0.9rem' }}>{log.content || log.body}</div>
+                                </div>
+                            ))}
+
+                            {/* Pagination: Load More */}
+                            {history.length >= msgLimit && (
+                                <button
+                                    onClick={() => setMsgLimit(prev => prev + 10)}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px',
+                                        background: 'rgba(255,255,255,0.05)',
+                                        color: '#a1a1aa',
+                                        border: '1px dashed rgba(255,255,255,0.2)',
+                                        borderRadius: '8px',
+                                        marginTop: '5px',
+                                        cursor: 'pointer',
+                                        fontSize: '0.85rem'
+                                    }}
+                                >
+                                    ▿ 이전 메시지 더보기 (10개 추가)
+                                </button>
+                            )}
+                        </div>
+                    );
+                })()}
             </div>
         </div>
     );

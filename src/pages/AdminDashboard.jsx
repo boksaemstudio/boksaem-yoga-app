@@ -592,7 +592,7 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
                         )}
-                        <PushHistoryTab />
+                        <PushHistoryTab onSelectMember={handleOpenEdit} setActiveTab={setActiveTab} />
                     </div>
                 )}
 

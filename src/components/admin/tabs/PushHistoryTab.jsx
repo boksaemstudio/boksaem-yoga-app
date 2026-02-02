@@ -2,18 +2,16 @@ import { useState, useEffect } from 'react';
 import { BellRinging, User, Users, Clock, CheckCircle, WarningCircle } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 
-const PushHistoryTab = () => {
+const PushHistoryTab = ({ onSelectMember, setActiveTab }) => {
     const [history, setHistory] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const fetchHistory = async () => {
-            setIsLoading(true);
-            const data = await storageService.getPushHistory();
+        const unsub = storageService.subscribeToPushHistory((data) => {
             setHistory(data);
             setIsLoading(false);
-        };
-        fetchHistory();
+        });
+        return () => unsub();
     }, []);
 
     if (isLoading) {
@@ -40,33 +38,64 @@ const PushHistoryTab = () => {
                         <p>발송 기록이 없습니다.</p>
                     </div>
                 ) : (
-                    history.map(item => (
-                        <div key={item.id} className="glass-panel" style={{
+                    history.map(item => {
+                        const isNotice = item.type === 'campaign' || item.type === 'notice';
+                        const isClickable = (item.type === 'individual' && item.targetMemberId) || isNotice;
+                        
+                        let label = '알 수 없음';
+                        if (item.type === 'campaign') label = '단체 발송';
+                        else if (item.type === 'notice') label = '공지 발송';
+                        else if (item.type === 'individual') label = `개별 발송 (${item.memberName || item.targetMemberName || '알 수 없음'})`;
+                        
+                        return (
+                        <div 
+                            key={item.id} 
+                            className="glass-panel" 
+                            onClick={() => {
+                                if (item.type === 'individual' && item.targetMemberId && onSelectMember) {
+                                    onSelectMember(item.targetMemberId);
+                                } else if (isNotice && setActiveTab) {
+                                    setActiveTab('notices');
+                                }
+                            }}
+                            style={{
                             marginBottom: '15px',
                             padding: '20px',
                             border: '1px solid rgba(255,255,255,0.05)',
                             background: 'rgba(255,255,255,0.02)',
                             borderRadius: '12px',
                             position: 'relative',
-                            transition: 'all 0.2s ease'
-                        }}>
+                            transition: 'all 0.2s ease',
+                            cursor: isClickable ? 'pointer' : 'default'
+                        }}
+                        onMouseEnter={(e) => {
+                            if (isClickable) {
+                                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                            }
+                        }}
+                        onMouseLeave={(e) => {
+                            if (isClickable) {
+                                e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                            }
+                        }}
+                        >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                     <div style={{
                                         width: '36px',
                                         height: '36px',
                                         borderRadius: '10px',
-                                        background: item.type === 'campaign' ? 'rgba(212, 175, 55, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                                        color: item.type === 'campaign' ? 'var(--primary-gold)' : '#3B82F6',
+                                        background: isNotice ? 'rgba(212, 175, 55, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                                        color: isNotice ? 'var(--primary-gold)' : '#3B82F6',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center'
                                     }}>
-                                        {item.type === 'campaign' ? <Users size={20} weight="fill" /> : <User size={20} weight="fill" />}
+                                        {isNotice ? <Users size={20} weight="fill" /> : <User size={20} weight="fill" />}
                                     </div>
                                     <div>
-                                        <div style={{ fontWeight: 700, fontSize: '1rem', color: item.type === 'campaign' ? 'var(--primary-gold)' : '#3B82F6' }}>
-                                            {item.type === 'campaign' ? '단체 발송' : `개별 발송 (${item.memberName})`}
+                                        <div style={{ fontWeight: 700, fontSize: '1rem', color: isNotice ? 'var(--primary-gold)' : '#3B82F6' }}>
+                                            {label}
                                         </div>
                                         <div style={{ fontSize: '0.75rem', opacity: 0.5, display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             <Clock size={12} /> {new Date(item.displayDate).toLocaleString()}
@@ -74,7 +103,7 @@ const PushHistoryTab = () => {
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    {item.type === 'campaign' && (
+                                    {isNotice && (
                                         <span style={{
                                             fontSize: '0.65rem',
                                             padding: '2px 8px',
@@ -82,7 +111,7 @@ const PushHistoryTab = () => {
                                             background: 'rgba(255,255,255,0.05)',
                                             border: '1px solid rgba(255,255,255,0.1)'
                                         }}>
-                                            {item.totalTargets > 0 ? `${item.totalTargets}명` : '전체'}
+                                            {item.totalTargets > 0 ? `${item.totalTargets}명` : (item.target === 'all' ? '전체' : '단체')}
                                         </span>
                                     )}
                                     <span style={{
@@ -114,7 +143,8 @@ const PushHistoryTab = () => {
                                 {item.body || item.content}
                             </div>
                         </div>
-                    ))
+                    );
+                    })
                 )}
             </div>
         </div>

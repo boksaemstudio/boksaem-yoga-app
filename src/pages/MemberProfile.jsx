@@ -61,6 +61,7 @@ const MemberProfile = () => {
     const [member, setMember] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('home');
+    const [selectedNoticeId, setSelectedNoticeId] = useState(null);
     const { language, t } = useLanguage();
 
     const [langLabelIndex, setLangLabelIndex] = useState(0);
@@ -112,16 +113,24 @@ const MemberProfile = () => {
         const handleLocationChange = () => {
             const params = new URLSearchParams(window.location.search);
             const tab = params.get('tab');
-            if (tab && ['home', 'history', 'schedule', 'prices', 'notices', 'messages'].includes(tab)) {
+            const noticeId = params.get('noticeId');
+            
+            if (noticeId) {
+                console.log(`[DeepLink] Specific notice requested: ${noticeId}`);
+                setSelectedNoticeId(noticeId);
+                setActiveTab('notices');
+            } else if (tab && ['home', 'history', 'schedule', 'prices', 'notices', 'messages'].includes(tab)) {
                 console.log(`[DeepLink] Navigating to tab: ${tab}`);
                 setActiveTab(tab);
+            }
 
-                // [FIX] Clear the query param after use so browser reload returns to home
-                // Use a short delay to ensure React state has processed it
+            // [FIX] Clear the query param after use so browser reload returns to home
+            // Use a short delay to ensure React state has processed it
+            if (tab || noticeId) {
                 setTimeout(() => {
                     const newUrl = window.location.pathname;
                     window.history.replaceState({}, '', newUrl);
-                }, 100);
+                }, 500);
             }
         };
 
@@ -984,14 +993,28 @@ const MemberProfile = () => {
                                 </div>
                                 {Array.isArray(notices) && notices.length > 0 ? (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                                        {notices.map((notice, idx) => (
-                                            <div key={notice.id || idx} className="glass-panel" style={{
+                                        {notices.map((notice, idx) => {
+                                            const isSelected = selectedNoticeId && notice.id === selectedNoticeId;
+                                            return (
+                                            <div 
+                                                key={notice.id || idx} 
+                                                ref={isSelected ? (el) => {
+                                                    if (el) {
+                                                        setTimeout(() => {
+                                                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                            setSelectedNoticeId(null);
+                                                        }, 300);
+                                                    }
+                                                } : null}
+                                                className="glass-panel" 
+                                                style={{
                                                 padding: 0,
-                                                background: 'rgba(24, 24, 27, 0.7)',
-                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                background: isSelected ? 'rgba(212, 175, 55, 0.2)' : 'rgba(24, 24, 27, 0.7)',
+                                                border: isSelected ? '2px solid var(--primary-gold)' : '1px solid rgba(255,255,255,0.1)',
                                                 borderRadius: '24px',
                                                 overflow: 'hidden',
-                                                boxShadow: '0 15px 35px rgba(0,0,0,0.3)'
+                                                boxShadow: isSelected ? '0 0 30px rgba(212, 175, 55, 0.3)' : '0 15px 35px rgba(0,0,0,0.3)',
+                                                transition: 'all 0.3s ease'
                                             }}>
                                                 {(notice.image || notice.imageUrl) ? (
                                                     <div>
@@ -1059,7 +1082,8 @@ const MemberProfile = () => {
                                                     </p>
                                                 </div>
                                             </div>
-                                        ))}
+                                         );
+                                         })}
                                     </div>
                                 ) : (
                                     <div className="glass-panel" style={{ padding: '40px 20px', textAlign: 'center', background: 'rgba(255,255,255,0.02)' }}>
@@ -1071,7 +1095,10 @@ const MemberProfile = () => {
                         </div>
                     )}
 
-                    {activeTab === 'messages' && <MessagesTab messages={messages} t={t} />}
+                    {activeTab === 'messages' && <MessagesTab messages={messages} t={t} setActiveTab={(tab, noticeId) => {
+                            setActiveTab(tab);
+                            if (noticeId) setSelectedNoticeId(noticeId);
+                        }} />}
                 </div>
             </div> {/* End of profile-container */}
 

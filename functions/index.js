@@ -129,15 +129,21 @@ exports.sendPushOnMessageV2 = onDocumentCreated("messages/{messageId}", async (e
 
         // Write to push_history
         if (response.successCount > 0) {
+            // Get member name for history
+            const memberDoc = await db.collection('members').doc(memberId).get();
+            const memberName = memberDoc.exists ? memberDoc.data().name : 'Unknown';
+            
             await admin.firestore().collection('push_history').add({
                 type: 'individual',
                 title: payload.notification.title,
                 body: payload.notification.body,
+                content: payload.notification.body,
                 status: 'sent',
                 successCount: response.successCount,
                 failureCount: response.failureCount,
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                targetMemberId: memberId
+                targetMemberId: memberId,
+                memberName: memberName
             });
         }
 
@@ -279,6 +285,23 @@ exports.sendBulkPushV2 = onDocumentCreated({
             failureCount: failureTotal,
             completedAt: admin.firestore.FieldValue.serverTimestamp()
         });
+
+        // Write to push_history for campaign
+        if (successTotal > 0) {
+            await admin.firestore().collection('push_history').add({
+                type: 'campaign',
+                title: titleOriginal,
+                body: bodyOriginal,
+                content: bodyOriginal,
+                status: 'sent',
+                successCount: successTotal,
+                failureCount: failureTotal,
+                totalTargets: isTargeted ? targetMemberIds.length : 0,
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                campaignId: campaignId
+            });
+        }
+
 
     } catch (error) {
         console.error("Error in bulk push:", error);

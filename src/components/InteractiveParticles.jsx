@@ -14,8 +14,8 @@ class Particle {
 
         if (this.mode === 'calm') {
             // Calm mode: Slower, larger, soft moving orbs
-            this.vx = (Math.random() - 0.5) * 0.2;
-            this.vy = (Math.random() - 0.5) * 0.2;
+            this.vx = (Math.random() - 0.5) * 0.5;
+            this.vy = (Math.random() - 0.5) * 0.5;
             this.radius = Math.random() * 4 + 1.5;
             this.baseOpacity = Math.random() * 0.3 + 0.2;
 
@@ -42,8 +42,8 @@ class Particle {
             this.color = fireColors[Math.floor(Math.random() * fireColors.length)];
         } else if (this.mode === 'stillness') {
             // Stillness mode: Very slow, gray/misty for dormant
-            this.vx = (Math.random() - 0.5) * 0.05;
-            this.vy = (Math.random() - 0.5) * 0.05;
+            this.vx = (Math.random() - 0.5) * 0.15;
+            this.vy = (Math.random() - 0.5) * 0.15;
             this.radius = Math.random() * 2 + 0.5;
             this.baseOpacity = Math.random() * 0.2 + 0.1; // Faint
 
@@ -55,8 +55,8 @@ class Particle {
             this.color = mistColors[Math.floor(Math.random() * mistColors.length)];
         } else {
             // Cyber mode: Faster, smaller, energetic particles
-            this.vx = (Math.random() - 0.5) * 0.8;
-            this.vy = (Math.random() - 0.5) * 0.8;
+            this.vx = (Math.random() - 0.5) * 1.2;
+            this.vy = (Math.random() - 0.5) * 1.2;
             this.radius = Math.random() * 2.5 + 0.8;
             this.baseOpacity = Math.random() * 0.4 + 0.4;
 
@@ -223,7 +223,7 @@ const InteractiveParticles = ({ mode = 'cyber', opacity = 1 }) => {
 
         const animate = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            time += 0.02;
+            time += 0.04;
 
             if (mode === 'mesh') {
                 ctx.strokeStyle = 'rgba(0, 255, 255, 0.25)';

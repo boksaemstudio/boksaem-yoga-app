@@ -1169,6 +1169,58 @@ export const storageService = {
     }
   },
 
+  // [NEW] Get Push History
+  async getPushHistory(limitCount = 50) {
+    try {
+      const q = query(
+        collection(db, 'push_history'),
+        orderBy('createdAt', 'desc'),
+        firestoreLimit(limitCount)
+      );
+      const snapshot = await getDocs(q);
+      
+      return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          displayDate: data.createdAt?.toDate?.() || data.createdAt || new Date()
+        };
+      });
+    } catch (e) {
+      console.warn('Failed to fetch push history:', e);
+      return [];
+    }
+  },
+
+  // [NEW] Subscribe to Push History
+  subscribeToPushHistory(callback, limitCount = 50) {
+    try {
+      const q = query(
+        collection(db, 'push_history'),
+        orderBy('createdAt', 'desc'),
+        firestoreLimit(limitCount)
+      );
+      return onSnapshot(q, (snapshot) => {
+        const data = snapshot.docs.map(doc => {
+          const item = doc.data();
+          return {
+            id: doc.id,
+            ...item,
+            displayDate: item.createdAt?.toDate?.() || item.createdAt || new Date()
+          };
+        });
+        callback(data);
+      }, (error) => {
+        console.warn('[Storage] Push history listener error:', error);
+      });
+    } catch (e) {
+      console.error('[Storage] Failed to subscribe to push history:', e);
+      return () => {};
+    }
+  },
+
+
   // [Added] Delete single error log
   async deleteErrorLog(logId) {
     try {
@@ -1281,26 +1333,7 @@ export const storageService = {
     return results;
   },
 
-  async getPushHistory() {
-    try {
-      const q = query(collection(db, 'push_history'), orderBy('createdAt', 'desc'), firestoreLimit(50));
-      const snapshot = await getDocs(q);
 
-      return snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          ...data,
-          displayDate: data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate().toISOString() : data.createdAt) : new Date().toISOString(),
-          // Ensure type is compatible with UI
-          type: data.type === 'notice' ? 'campaign' : (data.type || 'individual')
-        };
-      });
-    } catch (e) {
-      console.error("Get push history failed:", e);
-      return [];
-    }
-  },
 
   // [NEW] Get all messages (Individual + Notices) for a specific member
   async getMessagesByMemberId(memberId) {
