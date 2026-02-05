@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { storageService } from '../services/storage';
-import { CaretLeft, CaretRight, Plus, Trash, X, Image as ImageIcon, UploadSimple } from '@phosphor-icons/react';
+import { CaretLeft, CaretRight, Plus, Trash, X, Image as ImageIcon, UploadSimple, Gear } from '@phosphor-icons/react';
 import { getHolidayName } from '../utils/holidays';
 import { ScheduleClassEditor, SettingsModal } from './ScheduleHelpers';
 import { getTagColor } from '../utils/colors';
@@ -36,7 +36,7 @@ const ColorLegend = ({ branchId }) => {
     );
 };
 
-const AdminScheduleManager = ({ branchId, showSettings, onShowSettings }) => {
+const AdminScheduleManager = ({ branchId }) => {
     const { t } = useLanguageContext();
     const today = new Date();
     const [year, setYear] = useState(today.getFullYear());
@@ -46,6 +46,7 @@ const AdminScheduleManager = ({ branchId, showSettings, onShowSettings }) => {
     const [images, setImages] = useState({});
     const [selectedDate, setSelectedDate] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showSettings, setShowSettings] = useState(false); // [Added] Internal state for settings
     const [loading, setLoading] = useState(false);
     const [dayClasses, setDayClasses] = useState([]);
     const [instructors, setInstructors] = useState([]);
@@ -492,6 +493,9 @@ const AdminScheduleManager = ({ branchId, showSettings, onShowSettings }) => {
                     <button onClick={handleNextMonth} style={navBtnStyle}><CaretRight /></button>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    <button onClick={() => setShowSettings(true)} style={{ ...actionBtnStyle, backgroundColor: 'rgba(255,255,255,0.1)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
+                        <Gear size={18} /> 설정
+                    </button>
                     {scheduleStatus === 'saved' && (
                         <button onClick={handleReset} style={{ ...actionBtnStyle, backgroundColor: '#EF4444', opacity: 0.8 }}>
                             <Trash size={18} /> 초기화
@@ -560,7 +564,7 @@ const AdminScheduleManager = ({ branchId, showSettings, onShowSettings }) => {
 
             <SettingsModal
                 show={showSettings}
-                onClose={onShowSettings}
+                onClose={() => setShowSettings(false)}
                 instructors={instructors}
                 setInstructors={setInstructors}
                 classTypes={classTypes}
