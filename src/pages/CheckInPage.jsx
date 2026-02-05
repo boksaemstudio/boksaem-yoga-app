@@ -3,7 +3,7 @@ import Keypad from '../components/Keypad';
 import { storageService } from '../services/storage';
 import { getAllBranches, getBranchName } from '../studioConfig';
 import logoWide from '../assets/logo_wide.png';
-import { MapPin, Sun, Cloud, CloudRain, Snowflake, Lightning, Moon, CornersOut, CornersIn } from '@phosphor-icons/react';
+import { MapPin, Sun, Cloud, CloudRain, Snowflake, Lightning, Moon, CornersOut, CornersIn, Chalkboard } from '@phosphor-icons/react';
 import { getDaysRemaining } from '../utils/dates';
 
 import bgMorning from '../assets/bg_morning.png';
@@ -11,6 +11,7 @@ import bgAfternoon from '../assets/bg_afternoon.png';
 import bgEvening from '../assets/bg_evening.png';
 import bgNight from '../assets/bg_night.png';
 import InstallGuideModal from '../components/InstallGuideModal';
+import InstructorQRModal from '../components/InstructorQRModal';
 import rys200Logo from '../assets/RYS200.png';
 
 
@@ -54,9 +55,10 @@ const DigitalClock = memo(() => {
 });
 DigitalClock.displayName = 'DigitalClock';
 
-const TopBar = memo(({ weather, currentBranch, branches, handleBranchChange, toggleFullscreen, isFullscreen, language }) => {
+const TopBar = memo(({ weather, currentBranch, branches, handleBranchChange, toggleFullscreen, isFullscreen, language, onInstructorClick }) => {
     const locale = language === 'ko' ? 'ko-KR' : (language === 'en' ? 'en-US' : (language === 'ru' ? 'ru-RU' : (language === 'zh' ? 'zh-CN' : 'ja-JP')));
     const now = new Date();
+
 
     return (
         <div className="checkin-top-bar" style={{
@@ -124,6 +126,29 @@ const TopBar = memo(({ weather, currentBranch, branches, handleBranchChange, tog
             {/* Right: Action Buttons Grouped */}
             <div className="top-actions-right" style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
 
+                {/* Instructor Button */}
+                <button
+                    className="instructor-btn"
+                    onClick={onInstructorClick}
+                    aria-label="강사 앱"
+                    style={{
+                        background: 'rgba(212, 175, 55, 0.15)',
+                        border: '1px solid rgba(212, 175, 55, 0.4)',
+                        borderRadius: '22px',
+                        padding: '8px 16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        cursor: 'pointer',
+                        color: 'var(--primary-gold)',
+                        fontSize: '0.9rem',
+                        fontWeight: 500,
+                        transition: 'none'
+                    }}
+                >
+                    <Chalkboard size={20} weight="duotone" />
+                    강사
+                </button>
 
                 <button
                     className="fullscreen-btn"
@@ -164,6 +189,7 @@ const CheckInPage = () => {
     const [aiExperience, setAiExperience] = useState(null);
     const [showKioskInstallGuide, setShowKioskInstallGuide] = useState(false);
     const [showInstallGuide, setShowInstallGuide] = useState(false);
+    const [showInstructorQR, setShowInstructorQR] = useState(false);
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [keypadLocked, setKeypadLocked] = useState(false); // [FIX] Prevent ghost touches
     // [FIX] Always use Korean for Check-in Page as requested
@@ -819,7 +845,7 @@ const CheckInPage = () => {
                 toggleFullscreen={toggleFullscreen}
                 isFullscreen={isFullscreen}
                 language={language}
-
+                onInstructorClick={() => setShowInstructorQR(true)}
             />
 
             <div className="checkin-content" style={{
@@ -1101,6 +1127,12 @@ const CheckInPage = () => {
                     />
                 )
             }
+
+            {/* Instructor QR Modal */}
+            <InstructorQRModal 
+                isOpen={showInstructorQR} 
+                onClose={() => setShowInstructorQR(false)} 
+            />
         </div >
     );
 };

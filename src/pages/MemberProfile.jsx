@@ -30,6 +30,7 @@ import { profileStyles } from '../components/profile/profileStyles';
 import MyStatsChart from '../components/profile/MyStatsChart';
 import MessagesTab from '../components/profile/MessagesTab';
 import { getDaysRemaining } from '../utils/dates';
+import ImageLightbox from '../components/common/ImageLightbox';
 
 // Safe localStorage wrapper with error handling
 const safeSessionStorage = {
@@ -161,6 +162,7 @@ const MemberProfile = () => {
     const [aiExperience, setAiExperience] = useState(null);
     const [aiAnalysis, setAiAnalysis] = useState(null);
     const [messages, setMessages] = useState([]);
+    const [lightboxImage, setLightboxImage] = useState(null);
 
     const [pushStatus, setPushStatus] = useState(() => {
         if (typeof Notification === 'undefined') return 'default';
@@ -962,8 +964,9 @@ const MemberProfile = () => {
 
                                                 <img
                                                     src={displayImage}
-                                                    style={{ width: '100%', display: 'block', borderRadius: '8px' }}
+                                                    style={{ width: '100%', display: 'block', borderRadius: '8px', cursor: 'pointer' }}
                                                     alt="timetable"
+                                                    onClick={() => setLightboxImage(displayImage)}
                                                     onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                                                 />
                                                 <div style={{ display: 'none', height: '200px', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.3)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '10px' }}>{t('noTimetableImage')}</div>
@@ -978,8 +981,8 @@ const MemberProfile = () => {
                     {/* PRICES TAB */}
                     {activeTab === 'prices' && (
                         <div className="fade-in">
-                            <img src={images.price_table_1 || priceTable1} style={{ width: '100%', borderRadius: '15px', marginBottom: '15px' }} alt="price" />
-                            <img src={images.price_table_2 || priceTable2} style={{ width: '100%', borderRadius: '15px' }} alt="price" />
+                            <img src={images.price_table_1 || priceTable1} style={{ width: '100%', borderRadius: '15px', marginBottom: '15px', cursor: 'pointer' }} alt="price" onClick={() => setLightboxImage(images.price_table_1 || priceTable1)} />
+                            <img src={images.price_table_2 || priceTable2} style={{ width: '100%', borderRadius: '15px', cursor: 'pointer' }} alt="price" onClick={() => setLightboxImage(images.price_table_2 || priceTable2)} />
                         </div>
                     )}
 
@@ -1044,7 +1047,8 @@ const MemberProfile = () => {
                                                             <img
                                                                 src={notice.image || notice.imageUrl}
                                                                 alt="notice"
-                                                                style={{ width: '100%', height: 'auto', display: 'block', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+                                                                style={{ width: '100%', height: 'auto', display: 'block', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer' }}
+                                                                onClick={() => setLightboxImage(notice.image || notice.imageUrl)}
                                                             />
                                                         </div>
                                                     </div>
@@ -1104,6 +1108,14 @@ const MemberProfile = () => {
 
             {/* Bottom Navigation */}
             <ProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} t={t} />
+
+            {/* 이미지 라이트박스 모달 */}
+            {lightboxImage && (
+                <ImageLightbox
+                    src={lightboxImage}
+                    onClose={() => setLightboxImage(null)}
+                />
+            )}
             <div style={{ padding: '40px 20px', textAlign: 'center', opacity: 0.1, fontSize: '0.6rem', color: 'white' }}>
                 v1.0.5 | boksaem-yoga
             </div>

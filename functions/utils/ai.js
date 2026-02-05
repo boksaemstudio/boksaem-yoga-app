@@ -76,26 +76,43 @@ class AIService {
             Instructions:
             1. Poses should be beginner-friendly.
             2. Instruction should mention specific body parts (e.g., "Feel the spine lengthening", "Listen to your breath").
-            3. Output strictly in JSON format.
+            3. Output STRICTLY valid JSON, no markdown, no code blocks.
             4. Language: **${targetLang}**.
 
-            Output Format:
+            Output Format (exactly this structure):
             [
               { "name": "Pose Name", "benefit": "Short benefit", "instruction": "1-sentence instruction on sensation/breath", "emoji": "🧘" },
-              ... (2 items)
+              { "name": "Pose Name 2", "benefit": "Short benefit", "instruction": "1-sentence instruction", "emoji": "🧘" }
             ]
         `;
 
-        try {
-            const result = await this.jsonModel.generateContent(prompt);
-            const text = result.response.text();
-            const jsonMatch = text.match(/\[[\s\S]*\]/);
-            if (jsonMatch) return JSON.parse(jsonMatch[0]);
-            throw new Error("Invalid structure");
-        } catch (e) {
-            console.error("Home Yoga Gen Failed:", e);
-            return null; // Fallback handled in index.js
+        // Retry up to 2 times
+        for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+                const result = await this.jsonModel.generateContent(prompt);
+                const text = result.response.text();
+                // Try to extract JSON array
+                const jsonMatch = text.match(/\[[\s\S]*\]/);
+                if (jsonMatch) {
+                    const parsed = JSON.parse(jsonMatch[0]);
+                    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].name) {
+                        return parsed;
+                    }
+                }
+            } catch (e) {
+                console.warn(`Home Yoga Gen attempt ${attempt + 1} failed:`, e.message);
+            }
         }
+        
+        // Return fallback data instead of null
+        console.warn("Home Yoga Gen: Returning fallback poses");
+        return langCode === 'ko' ? [
+            { name: "고양이-소 자세", benefit: "척추 유연성", instruction: "호흡에 맞춰 척추를 부드럽게 움직여보세요", emoji: "🐱" },
+            { name: "아이 자세", benefit: "휴식과 이완", instruction: "이마를 매트에 대고 깊게 호흡하세요", emoji: "🧒" }
+        ] : [
+            { name: "Cat-Cow Pose", benefit: "Spine flexibility", instruction: "Move your spine gently with your breath", emoji: "🐱" },
+            { name: "Child's Pose", benefit: "Rest and relaxation", instruction: "Rest your forehead on the mat and breathe deeply", emoji: "🧒" }
+        ];
     }
 
     async generateReEngagement(member, stats, langCode) {
@@ -123,16 +140,27 @@ class AIService {
     }
 
     async generateExperience(prompt) {
-        try {
-            const result = await this.jsonModel.generateContent(prompt);
-            const text = result.response.text();
-            const jsonMatch = text.match(/\{[\s\S]*\}/);
-            if (jsonMatch) return JSON.parse(jsonMatch[0]);
-            throw new Error("Invalid format");
-        } catch (e) {
-            console.error("Experience Gen Failed:", e);
-            throw e;
+        // Retry up to 2 times
+        for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+                const result = await this.jsonModel.generateContent(prompt);
+                const text = result.response.text();
+                const jsonMatch = text.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    const parsed = JSON.parse(jsonMatch[0]);
+                    // Validate the structure has expected fields
+                    if (parsed && typeof parsed === 'object') {
+                        return parsed;
+                    }
+                }
+            } catch (e) {
+                console.warn(`Experience Gen attempt ${attempt + 1} failed:`, e.message);
+            }
         }
+        
+        // Return null instead of throwing - caller handles fallback
+        console.warn("Experience Gen: All attempts failed, returning null");
+        return null;
     }
 
     // Helper to get Gemini Client if needed directly

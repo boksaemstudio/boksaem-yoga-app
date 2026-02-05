@@ -512,10 +512,14 @@ exports.generatePageExperienceV2 = onCall({ region: "asia-northeast3", cors: tru
                         "bgTheme": "dawn"
                     }
                 `;
-            }
+        }
         }
 
-        return await ai.generateExperience(prompt);
+        const result = await ai.generateExperience(prompt);
+        if (!result) {
+            throw new Error("AI returned null after retries");
+        }
+        return result;
 
     } catch (error) {
         console.error("AI Generation Failed:", error);
@@ -1099,6 +1103,56 @@ exports.onAttendanceCreated = onDocumentCreated("attendance/{attendanceId}", asy
             memberId, attendanceId: event.params.attendanceId, eventType, triggeredAt: admin.firestore.FieldValue.serverTimestamp(),
             date: currentDate, context, displayMessage: messages
         });
+
+        // === [NEW] Send push notification to instructor ===
+        const instructorName = attendance.instructor;
+        if (instructorName) {
+            try {
+                // Find instructor tokens
+                const instructorTokensSnap = await db.collection('fcm_tokens')
+                    .where('role', '==', 'instructor')
+                    .where('instructorName', '==', instructorName)
+                    .get();
+
+                if (!instructorTokensSnap.empty) {
+                    const memberName = attendance.memberName || '회원';
+                    const className = attendance.className || attendance.title || '수업';
+
+                    const payload = {
+                        notification: {
+                            title: '📋 출석 알림',
+                            body: `${memberName}님이 ${className}에 출석했습니다.`
+                        },
+                        data: {
+                            type: 'attendance',
+                            memberId: memberId,
+                            memberName: memberName,
+                            className: className,
+                            timestamp: attendance.timestamp || new Date().toISOString()
+                        },
+                        webpush: {
+                            fcmOptions: { link: '/instructor' },
+                            notification: { icon: '/logo_circle.png' }
+                        }
+                    };
+
+                    const tokens = instructorTokensSnap.docs.map(doc => doc.data().token).filter(Boolean);
+                    for (const token of tokens) {
+                        try {
+                            await admin.messaging().send({ ...payload, token });
+                            console.log(`[Instructor Push] Sent to ${instructorName} for ${memberName}`);
+                        } catch (sendErr) {
+                            if (sendErr.code === 'messaging/invalid-registration-token' ||
+                                sendErr.code === 'messaging/registration-token-not-registered') {
+                                await db.collection('fcm_tokens').doc(token).delete();
+                            }
+                        }
+                    }
+                }
+            } catch (instructorPushError) {
+                console.error('[Instructor Push] Error:', instructorPushError);
+            }
+        }
     } catch (error) {
         await logAIError('PracticeEvent_Calculation', error);
     }

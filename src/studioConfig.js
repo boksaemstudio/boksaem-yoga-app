@@ -34,6 +34,27 @@ export const STUDIO_CONFIG = {
         ENABLE_DATA_MIGRATION: true // 출시 전 마지막 마이그레이션 완료 후 false로 변경하면 관리자 탭에서 사라집니다.
     },
 
+    // [New] 강사 목록 - 푸시 알림 매핑용
+    INSTRUCTORS: [
+        { id: 'wonjang', name: '원장', branches: ['gwangheungchang', 'mapo'] },
+        { id: 'seyeon', name: '세연', branches: ['mapo'] },
+        { id: 'hana', name: '한아', branches: ['gwangheungchang', 'mapo'] },
+        { id: 'songmi', name: '송미', branches: ['mapo'] },
+        { id: 'jeongyeon', name: '정연', branches: ['gwangheungchang', 'mapo'] },
+        { id: 'rian', name: '리안', branches: ['mapo'] },
+        { id: 'miseon', name: '미선', branches: ['gwangheungchang'] },
+        { id: 'boyoon', name: '보윤', branches: ['gwangheungchang'] },
+        { id: 'soyeong', name: '소영', branches: ['gwangheungchang', 'mapo'] },
+        { id: 'hyesil', name: '혜실', branches: ['gwangheungchang'] },
+        { id: 'heejung', name: '희정', branches: ['gwangheungchang'] },
+        { id: 'eunhye', name: '은혜', branches: ['gwangheungchang'] },
+        { id: 'sunghee', name: '성희', branches: ['mapo'] },
+        { id: 'hyowon', name: '효원', branches: ['mapo'] },
+        { id: 'anu', name: 'anu', branches: ['mapo'] },
+        { id: 'dana', name: '다나', branches: ['mapo'] },
+        { id: 'heeyeon', name: '희연', branches: ['mapo'] },
+    ],
+
     // 4. 소셜 미디어 링크
     SOCIAL: {
         Instagram_Gwangheungchang: "https://www.instagram.com/boksaemyoga_ghc",

@@ -9,6 +9,7 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const CheckInPage = lazy(() => import('./pages/CheckInPage'));
 const MemberProfile = lazy(() => import('./pages/MemberProfile'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
+const InstructorPage = lazy(() => import('./pages/InstructorPage'));
 
 // Loading fallback
 const LoadingScreen = () => (
@@ -116,6 +117,16 @@ function App() {
                 <ErrorBoundary fallback={<ErrorFallback />}>
                   <Suspense fallback={<LoadingScreen />}>
                     <LoginPage />
+                  </Suspense>
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path="/instructor"
+              element={
+                <ErrorBoundary fallback={<ErrorFallback />}>
+                  <Suspense fallback={<LoadingScreen />}>
+                    <InstructorPage />
                   </Suspense>
                 </ErrorBoundary>
               }

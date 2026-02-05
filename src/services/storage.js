@@ -332,6 +332,25 @@ export const storageService = {
     } catch (e) { console.error("Save token failed:", e); }
   },
 
+  // [NEW] 강사용 푸시 토큰 저장 - 출석 알림 수신용
+  async saveInstructorToken(token, instructorName, language = 'ko') {
+    if (!token || !instructorName) return;
+    try {
+      const tokenRef = doc(db, 'fcm_tokens', token);
+      await setDoc(tokenRef, {
+        token,
+        role: 'instructor',
+        instructorName,
+        language,
+        updatedAt: new Date().toISOString(),
+        platform: 'web'
+      }, { merge: true });
+      console.log(`[Storage] Instructor token saved for ${instructorName}`);
+    } catch (e) {
+      console.error("Save instructor token failed:", e);
+    }
+  },
+
   async getAIExperience(memberName, attendanceCount, day, hour, upcomingClass, weather, credits, remainingDays, language = 'ko', diligence = null, context = 'profile') {
     try {
       const genAI = httpsCallable(functions, 'generatePageExperienceV2');
@@ -852,6 +871,32 @@ export const storageService = {
     } catch (e) {
       console.error('[Storage] Failed to fetch attendance:', e);
       console.error('[Storage] Error details:', e.message, e.code);
+      return [];
+    }
+  },
+
+  // [NEW] Get attendance records by date and optionally by branch
+  async getAttendanceByDate(dateStr, branchId = null) {
+    try {
+      let q;
+      if (branchId) {
+        q = query(
+          collection(db, 'attendance'),
+          where('date', '==', dateStr),
+          where('branchId', '==', branchId),
+          orderBy('timestamp', 'desc')
+        );
+      } else {
+        q = query(
+          collection(db, 'attendance'),
+          where('date', '==', dateStr),
+          orderBy('timestamp', 'desc')
+        );
+      }
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (e) {
+      console.error('[Storage] getAttendanceByDate failed:', e);
       return [];
     }
   },

@@ -39,9 +39,10 @@ const ScheduleClassEditor = ({ cls, idx, dayClasses, setDayClasses, instructors,
                 style={{ ...editorInputStyle, width: '85px' }}
             >
                 <option value="">선생님</option>
-                {instructors.map(inst => (
-                    <option key={inst} value={inst}>{inst}</option>
-                ))}
+                {instructors.map(inst => {
+                    const name = typeof inst === 'string' ? inst : inst.name;
+                    return <option key={name} value={name}>{name}</option>;
+                })}
             </select>
             {(cls.title?.includes('플라잉') || cls.title?.includes('키즈')) && (
                 <select
@@ -87,8 +88,19 @@ const ScheduleClassEditor = ({ cls, idx, dayClasses, setDayClasses, instructors,
 
 const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes, setClassTypes, classLevels, setClassLevels }) => {
     const [newInstructor, setNewInstructor] = useState('');
+    const [newPhone, setNewPhone] = useState('');
+    const [editingIdx, setEditingIdx] = useState(null);
+    const [editPhone, setEditPhone] = useState('');
     const [newClassType, setNewClassType] = useState('');
     const [newClassLevel, setNewClassLevel] = useState('');
+
+    // Helper to normalize instructor data (support both string and object formats)
+    const normalizeInstructor = (inst) => {
+        if (typeof inst === 'string') return { name: inst, phone: '' };
+        return { name: inst.name || '', phone: inst.phone || '' };
+    };
+
+    const normalizedInstructors = (instructors || []).map(normalizeInstructor);
 
     if (!show) return null;
 
@@ -101,7 +113,14 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                         <button
                             onClick={async () => {
                                 if (window.confirm("모든 설정을 이미지 분석 기본값으로 초기화하시겠습니까?")) {
-                                    const defaultInst = ['원장', '미선', '소영', '한아', '정연', '효원', '희정', '보윤', '은혜', '혜실', '세연', 'anu', '희연', '송미', '성희', '다나', '리안'];
+                                    const defaultInst = [
+                                        { name: '원장', phone: '' }, { name: '미선', phone: '' }, { name: '소영', phone: '' },
+                                        { name: '한아', phone: '' }, { name: '정연', phone: '' }, { name: '효원', phone: '' },
+                                        { name: '희정', phone: '' }, { name: '보윤', phone: '' }, { name: '은혜', phone: '' },
+                                        { name: '혜실', phone: '' }, { name: '세연', phone: '' }, { name: 'anu', phone: '' },
+                                        { name: '희연', phone: '' }, { name: '송미', phone: '' }, { name: '성희', phone: '' },
+                                        { name: '다나', phone: '' }, { name: '리안', phone: '' }
+                                    ];
                                     const defaultTypes = ['하타', '아쉬탕가', '하타+인', '마이솔', '하타 인텐시브', '인요가', '빈야사', '힐링', '플라잉', '임신부요가', '키즈플라잉', '인양요가', '로우플라잉', '하타인텐시브'];
                                     await storageService.updateInstructors(defaultInst);
                                     await storageService.updateClassTypes(defaultTypes);
@@ -122,21 +141,32 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                 {/* 선생님 관리 */}
                 <div style={{ marginBottom: '30px' }}>
                     <h4 style={{ marginBottom: '10px', color: 'var(--primary-gold)' }}>선생님 목록</h4>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                        💡 강사를 클릭하면 전화번호를 입력할 수 있습니다
+                    </p>
                     <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
                         <input
                             type="text"
                             value={newInstructor}
                             onChange={(e) => setNewInstructor(e.target.value)}
-                            placeholder="선생님 이름 입력"
+                            placeholder="선생님 이름"
+                            style={{ ...inputStyle, flex: 1 }}
+                        />
+                        <input
+                            type="tel"
+                            value={newPhone}
+                            onChange={(e) => setNewPhone(e.target.value)}
+                            placeholder="전화번호 (선택)"
                             style={{ ...inputStyle, flex: 1 }}
                         />
                         <button
                             onClick={async () => {
                                 if (newInstructor.trim()) {
-                                    const updated = [...instructors, newInstructor.trim()];
+                                    const updated = [...normalizedInstructors, { name: newInstructor.trim(), phone: newPhone.trim() }];
                                     await storageService.updateInstructors(updated);
                                     setInstructors(updated);
                                     setNewInstructor('');
+                                    setNewPhone('');
                                 }
                             }}
                             style={actionBtnStyle}
@@ -145,19 +175,53 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                         </button>
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                        {instructors.map(inst => (
-                            <div key={inst} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', backgroundColor: 'var(--bg-input)', borderRadius: '20px' }}>
-                                <span>{inst}</span>
-                                <button
-                                    onClick={async () => {
-                                        const updated = instructors.filter(i => i !== inst);
-                                        await storageService.updateInstructors(updated);
-                                        setInstructors(updated);
-                                    }}
-                                    style={{ background: 'none', border: 'none', color: '#ff4757', cursor: 'pointer', padding: 0 }}
-                                >
-                                    <X size={16} />
-                                </button>
+                        {normalizedInstructors.map((inst, idx) => (
+                            <div key={inst.name} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', backgroundColor: 'var(--bg-input)', borderRadius: '20px' }}>
+                                {editingIdx === idx ? (
+                                    <>
+                                        <span style={{ fontWeight: 'bold' }}>{inst.name}</span>
+                                        <input
+                                            type="tel"
+                                            value={editPhone}
+                                            onChange={(e) => setEditPhone(e.target.value)}
+                                            placeholder="전화번호"
+                                            style={{ ...inputStyle, width: '120px', padding: '4px 8px', fontSize: '0.85rem' }}
+                                            autoFocus
+                                        />
+                                        <button
+                                            onClick={async () => {
+                                                const updated = [...normalizedInstructors];
+                                                updated[idx] = { ...updated[idx], phone: editPhone.trim() };
+                                                await storageService.updateInstructors(updated);
+                                                setInstructors(updated);
+                                                setEditingIdx(null);
+                                            }}
+                                            style={{ background: 'none', border: 'none', color: 'var(--primary-gold)', cursor: 'pointer', padding: 0, fontWeight: 'bold' }}
+                                        >
+                                            저장
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span
+                                            onClick={() => { setEditingIdx(idx); setEditPhone(inst.phone || ''); }}
+                                            style={{ cursor: 'pointer' }}
+                                            title={inst.phone ? `📞 ${inst.phone}` : '클릭하여 전화번호 입력'}
+                                        >
+                                            {inst.name}{inst.phone && <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginLeft: '4px' }}>📞</span>}
+                                        </span>
+                                        <button
+                                            onClick={async () => {
+                                                const updated = normalizedInstructors.filter((_, i) => i !== idx);
+                                                await storageService.updateInstructors(updated);
+                                                setInstructors(updated);
+                                            }}
+                                            style={{ background: 'none', border: 'none', color: '#ff4757', cursor: 'pointer', padding: 0 }}
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         ))}
                     </div>
