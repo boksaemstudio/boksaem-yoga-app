@@ -468,8 +468,11 @@ export const storageService = {
 
   // Delegated Config Getters
   async getInstructors() { return scheduleService.getInstructors(); },
+  async updateInstructors(list) { return scheduleService.updateInstructors(list); },
   async getClassTypes() { return scheduleService.getClassTypes(); },
+  async updateClassTypes(list) { return scheduleService.updateClassTypes(list); },
   async getClassLevels() { return scheduleService.getClassLevels(); },
+  async updateClassLevels(list) { return scheduleService.updateClassLevels(list); },
   async getMemberById(id) {
     const docSnap = await getDoc(doc(db, 'members', id));
     return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;

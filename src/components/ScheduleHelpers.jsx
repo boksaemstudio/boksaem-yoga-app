@@ -212,9 +212,11 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                                         </span>
                                         <button
                                             onClick={async () => {
-                                                const updated = normalizedInstructors.filter((_, i) => i !== idx);
-                                                await storageService.updateInstructors(updated);
-                                                setInstructors(updated);
+                                                if (window.confirm(`'${inst.name}' 선생님을 삭제하시겠습니까?`)) {
+                                                    const updated = normalizedInstructors.filter((_, i) => i !== idx);
+                                                    await storageService.updateInstructors(updated);
+                                                    setInstructors(updated);
+                                                }
                                             }}
                                             style={{ background: 'none', border: 'none', color: '#ff4757', cursor: 'pointer', padding: 0 }}
                                         >
@@ -258,9 +260,11 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                                 <span>{ct}</span>
                                 <button
                                     onClick={async () => {
-                                        const updated = classTypes.filter(c => c !== ct);
-                                        await storageService.updateClassTypes(updated);
-                                        setClassTypes(updated);
+                                        if (window.confirm(`'${ct}' 수업 종류를 삭제하시겠습니까?`)) {
+                                            const updated = classTypes.filter(c => c !== ct);
+                                            await storageService.updateClassTypes(updated);
+                                            setClassTypes(updated);
+                                        }
                                     }}
                                     style={{ background: 'none', border: 'none', color: '#ff4757', cursor: 'pointer', padding: 0 }}
                                 >
@@ -303,9 +307,11 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                             <span>Lv.{level}</span>
                             <button
                                 onClick={async () => {
-                                    const updated = classLevels.filter(l => l !== level);
-                                    await storageService.updateClassLevels(updated);
-                                    setClassLevels(updated);
+                                    if (window.confirm(`Lv.${level}을(를) 삭제하시겠습니까?`)) {
+                                        const updated = classLevels.filter(l => l !== level);
+                                        await storageService.updateClassLevels(updated);
+                                        setClassLevels(updated);
+                                    }
                                 }}
                                 style={{ background: 'none', border: 'none', color: '#ff4757', cursor: 'pointer', padding: 0 }}
                             >

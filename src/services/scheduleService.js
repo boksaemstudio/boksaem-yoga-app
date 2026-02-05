@@ -386,3 +386,33 @@ export const getClassLevels = async () => {
         return ['0.5', '1', '1.5', '2'];
     }
 };
+
+export const updateInstructors = async (list) => {
+    try {
+        await setDoc(doc(db, 'settings', 'instructors'), { list, updatedAt: new Date().toISOString() }, { merge: true });
+        return { success: true };
+    } catch (e) {
+        console.error("Failed to update instructors:", e);
+        throw e;
+    }
+};
+
+export const updateClassTypes = async (list) => {
+    try {
+        await setDoc(doc(db, 'settings', 'classTypes'), { list, updatedAt: new Date().toISOString() }, { merge: true });
+        return { success: true };
+    } catch (e) {
+        console.error("Failed to update class types:", e);
+        throw e;
+    }
+};
+
+export const updateClassLevels = async (list) => {
+    try {
+        await setDoc(doc(db, 'settings', 'classLevels'), { list, updatedAt: new Date().toISOString() }, { merge: true });
+        return { success: true };
+    } catch (e) {
+        console.error("Failed to update class levels:", e);
+        throw e;
+    }
+};

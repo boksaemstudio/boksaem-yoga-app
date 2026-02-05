@@ -215,7 +215,8 @@ const InstructorNotices = () => {
     useEffect(() => {
         const loadNotices = async () => {
             try {
-                const data = await storageService.getNotices();
+                // First try to load with fallback to Firestore if cache is empty
+                const data = await storageService.loadNotices();
                 setNotices(data || []);
             } catch (e) {
                 console.error('Failed to load notices:', e);
@@ -224,6 +225,12 @@ const InstructorNotices = () => {
             }
         };
         loadNotices();
+
+        // Subscribe to real-time changes
+        const unsubscribe = storageService.subscribe(() => {
+            setNotices(storageService.getNotices() || []);
+        });
+        return () => unsubscribe();
     }, []);
 
     if (loading) return <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>로딩 중...</div>;
@@ -272,9 +279,20 @@ const InstructorAttendance = ({ instructorName, branchId }) => {
         };
         loadAttendance();
         
-        // Refresh every 30 seconds
-        const interval = setInterval(loadAttendance, 30000);
-        return () => clearInterval(interval);
+        // Subscribe to real-time attendance changes
+        const unsubscribe = storageService.subscribe(() => {
+            const data = storageService.getAttendance();
+            const todayAttendance = data.filter(a => a.date === todayStr && a.branchId === branchId);
+            const myAttendance = todayAttendance.filter(a => a.instructor === instructorName);
+            setAttendance(myAttendance);
+        });
+
+        // Still keep interval as a safety measure for network issues
+        const interval = setInterval(loadAttendance, 60000); 
+        return () => {
+            unsubscribe();
+            clearInterval(interval);
+        };
     }, [instructorName, branchId, todayStr]);
 
     if (loading) return <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>로딩 중...</div>;
@@ -462,7 +480,9 @@ const InstructorPage = () => {
         const loadInstructors = async () => {
             try {
                 const insts = await storageService.getInstructors();
-                setInstructors(insts || []);
+                if (insts && insts.length > 0) {
+                    setInstructors(insts);
+                }
             } catch (e) {
                 console.error('Failed to load instructors:', e);
             } finally {
@@ -470,6 +490,13 @@ const InstructorPage = () => {
             }
         };
         loadInstructors();
+
+        // Subscribe to any changes in settings/instructors
+        const unsubscribe = storageService.subscribe(async () => {
+            const insts = await storageService.getInstructors();
+            setInstructors(insts || []);
+        });
+        return () => unsubscribe();
     }, []);
 
     const handleLogout = () => {
