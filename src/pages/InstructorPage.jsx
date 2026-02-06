@@ -419,6 +419,21 @@ const InstructorHome = ({ instructorName, branchId }) => {
         setPushMessage('ℹ️ 브라우저 설정에서 알림을 끌 수 있습니다.\n사이트 설정 > 알림 > 차단');
     };
 
+    // Apply Instructor Manifest
+    useEffect(() => {
+        const link = document.querySelector("link[rel~='manifest']");
+        if (link) {
+            link.href = '/manifest-instructor.json';
+            // Force browser to re-read manifest (sometimes needed)
+            link.content = '/manifest-instructor.json';
+        }
+        return () => {
+            if (link) {
+                link.href = '/manifest.json';
+            }
+        };
+    }, []);
+
     const handleInstallPWA = async () => {
         if (deferredPrompt) {
             deferredPrompt.prompt();

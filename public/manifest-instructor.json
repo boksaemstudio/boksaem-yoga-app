@@ -1,0 +1,30 @@
+{
+    "name": "복샘요가강사",
+    "short_name": "강사",
+    "description": "복샘요가 강사 전용 시스템",
+    "start_url": "/instructor",
+    "display": "standalone",
+    "background_color": "#121212",
+    "theme_color": "#D4AF37",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/복샘요가로고원형whiteBG.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/복샘요가로고원형whiteBG.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/복샘요가로고원형whiteBG.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}
