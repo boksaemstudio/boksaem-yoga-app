@@ -248,6 +248,14 @@ const InstructorNotices = () => {
                                 <h3 style={{ margin: 0, fontSize: '1rem' }}>{notice.title}</h3>
                                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{notice.createdAt?.split('T')[0] || ''}</span>
                             </div>
+                            {notice.imageUrl && (
+                                <img 
+                                    src={notice.imageUrl} 
+                                    alt={notice.title} 
+                                    style={{ width: '100%', borderRadius: '8px', marginBottom: '12px', cursor: 'pointer' }}
+                                    onClick={() => window.open(notice.imageUrl, '_blank')}
+                                />
+                            )}
                             <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap' }}>{notice.content}</p>
                         </div>
                     ))}
@@ -552,7 +560,7 @@ const InstructorPage = () => {
             }}>
                 <TabButton icon={<CalendarBlank size={24} />} label="시간표" active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} />
                 <TabButton icon={<List size={24} />} label="출석현황" active={activeTab === 'attendance'} onClick={() => setActiveTab('attendance')} />
-                <TabButton icon={<Bell size={24} />} label="공지" active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} />
+                <TabButton icon={<Bell size={24} />} label="공지사항" active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} />
                 <TabButton icon={<Gear size={24} />} label="설정" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
             </div>
         </div>
