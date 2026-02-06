@@ -29,11 +29,7 @@ function ReloadPrompt() {
       </div>
       <button 
         className="pwa-reload-button" 
-        onClick={() => {
-          updateServiceWorker(true);
-          // Safety net: Force reload if hook doesn't trigger it immediately
-          setTimeout(() => window.location.reload(), 500);
-        }}
+        onClick={() => updateServiceWorker(true)}
       >
         <ArrowsClockwise size={20} weight="bold" />
         <span>새로고침</span>
