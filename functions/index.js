@@ -1015,7 +1015,7 @@ exports.checkInMemberV2Call = onCall({
     }
     
     // [SECURITY] branchId 유효성 검증 (허용된 지점만)
-    const validBranches = ['boksaem', 'boksaem-yoga', 'main'];
+    const validBranches = ['boksaem', 'boksaem-yoga', 'main', 'gwangheungchang', 'mapo'];
     if (!validBranches.includes(branchId.toLowerCase())) {
         console.warn(`[Security] Invalid branchId attempt: ${branchId}`);
         throw new HttpsError('invalid-argument', "Invalid branch");

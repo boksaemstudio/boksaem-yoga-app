@@ -459,17 +459,20 @@ const AdminDashboard = () => {
                     >
                         {pushEnabled ? '알림ON' : '알림OFF'}
                     </button>
-                    <select
-                        className="styled-select"
-                        value={currentBranch}
-                        onChange={handleBranchChange}
-                        style={{ padding: '6px 8px', fontSize: '0.75rem', borderRadius: '6px', width: 'auto', minWidth: '70px', height: '32px' }}
-                    >
-                        <option value="all">전체</option>
-                        {STUDIO_CONFIG.BRANCHES.map(b => (
-                            <option key={b.id} value={b.id}>{b.name.replace('점', '')}</option>
-                        ))}
-                    </select>
+                    {/* 지점 선택: 회원, 매출 탭에서만 표시 */}
+                    {(activeTab === 'members' || activeTab === 'revenue') && (
+                        <select
+                            className="styled-select"
+                            value={currentBranch}
+                            onChange={handleBranchChange}
+                            style={{ padding: '6px 8px', fontSize: '0.75rem', borderRadius: '6px', width: 'auto', minWidth: '70px', height: '32px' }}
+                        >
+                            <option value="all">전체</option>
+                            {STUDIO_CONFIG.BRANCHES.map(b => (
+                                <option key={b.id} value={b.id}>{b.name.replace('점', '')}</option>
+                            ))}
+                        </select>
+                    )}
                 </div>
             </header>
 
