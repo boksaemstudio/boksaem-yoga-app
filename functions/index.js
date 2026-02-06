@@ -483,6 +483,53 @@ exports.generatePageExperienceV2 = onCall({ region: "asia-northeast3", cors: tru
                     category = "Enthusiastic Multi-Session";
                 }
 
+                // === INSTRUCTOR CONTEXT ===
+                if (request.data.context === 'instructor') {
+                    const month = new Date().getMonth() + 1;
+                    let season = '겨울';
+                    if (month >= 3 && month <= 5) season = '봄';
+                    else if (month >= 6 && month <= 8) season = '여름';
+                    else if (month >= 9 && month <= 11) season = '가을';
+                    
+                    const attendanceCount = request.data.attendanceCount || 0;
+                    const preciseTime = `${timeOfDay || 12}시`;
+                    
+                    prompt = `
+                        You are the Director (원장님) of '복샘요가' yoga studio.
+                        Create a warm, personal greeting message for one of your instructors as they start or continue their day.
+                        
+                        **Your Role**: You are a caring and supportive leader who genuinely cares about your instructors' well-being.
+                        
+                        Context:
+                        - Instructor Name: ${memberName} 선생님
+                        - Current Time: ${preciseTime}
+                        - Day of Week: ${dayOfWeek}
+                        - Season: ${season}
+                        - Weather: ${weather || '맑음'}
+                        - Today's Class Attendance Count: ${attendanceCount}명
+                        
+                        Instructions:
+                        1. Speak naturally as if you're the Director greeting your instructor in person.
+                        2. Consider the time of day (morning encouragement, afternoon energy, evening appreciation).
+                        3. Reference the season or weather naturally if relevant.
+                        4. If attendance count > 0, acknowledge their good work today.
+                        5. Keep it warm, supportive, and professional.
+                        6. Length: **1-2 short sentences maximum**.
+                        7. Language: **Korean (한국어)**.
+                        8. Tone: Warm, familial, encouraging - like a caring boss.
+                        
+                        Examples of good messages:
+                        - "민정 선생님, 오늘 아침 공기가 차갑네요. 따뜻하게 챙기시고 좋은 수업 되세요! 🧘‍♀️"
+                        - "선생님, 벌써 5명이나 출석했네요! 오늘도 열정 가득한 하루 되세요."
+                        - "금요일이에요! 한 주 동안 수고 많으셨어요. 오늘도 화이팅! 💪"
+                        
+                        Output Format (JSON ONLY):
+                        { 
+                            "message": "The greeting message in Korean", 
+                            "bgTheme": "dawn"
+                        }
+                    `;
+                } else {
                 prompt = `
                     You are the 'Yoga Wisdom Guide' of '복샘요가'. 
                     Your purpose is to provide a brief, warm, and deeply inspirational message to a member ${isCheckIn ? 'after' : 'before'} their practice.
@@ -512,9 +559,9 @@ exports.generatePageExperienceV2 = onCall({ region: "asia-northeast3", cors: tru
                         "bgTheme": "dawn"
                     }
                 `;
+                }
+            }
         }
-        }
-
         const result = await ai.generateExperience(prompt);
         if (!result) {
             throw new Error("AI returned null after retries");

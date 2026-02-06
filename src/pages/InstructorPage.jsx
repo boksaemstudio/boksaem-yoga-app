@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CalendarBlank, Bell, BellRinging, List, SignOut, User, Phone, Gear } from '@phosphor-icons/react';
+import { CalendarBlank, Bell, BellRinging, House, SignOut, User, Phone } from '@phosphor-icons/react';
 import { storageService } from '../services/storage';
 import { getMonthlyClasses } from '../services/scheduleService';
 import { getToken } from 'firebase/messaging';
@@ -247,12 +247,12 @@ const InstructorNotices = () => {
                                 <h3 style={{ margin: 0, fontSize: '1rem' }}>{notice.title}</h3>
                                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{notice.createdAt?.split('T')[0] || ''}</span>
                             </div>
-                            {notice.imageUrl && (
+                            {(notice.image || notice.imageUrl) && (
                                 <img 
-                                    src={notice.imageUrl} 
+                                    src={notice.image || notice.imageUrl} 
                                     alt={notice.title} 
                                     style={{ width: '100%', borderRadius: '8px', marginBottom: '12px', cursor: 'pointer' }}
-                                    onClick={() => window.open(notice.imageUrl, '_blank')}
+                                    onClick={() => window.open(notice.image || notice.imageUrl, '_blank')}
                                 />
                             )}
                             <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap' }}>{notice.content}</p>
@@ -264,29 +264,68 @@ const InstructorNotices = () => {
     );
 };
 
-// === Attendance Tab ===
-const InstructorAttendance = ({ instructorName, branchId }) => {
+// === Home Tab - 설정 + 출석현황 + AI 인사말 통합 ===
+const InstructorHome = ({ instructorName, branchId }) => {
+    const [pushEnabled, setPushEnabled] = useState(false);
+    const [pushLoading, setPushLoading] = useState(false);
+    const [pushMessage, setPushMessage] = useState('');
+    const [deferredPrompt, setDeferredPrompt] = useState(null);
+    const [isStandalone, setIsStandalone] = useState(false);
+    const [deviceOS, setDeviceOS] = useState('unknown');
     const [attendance, setAttendance] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [attendanceLoading, setAttendanceLoading] = useState(true);
+    const [aiGreeting, setAiGreeting] = useState('');
+    const [greetingLoading, setGreetingLoading] = useState(true);
+    
     const todayStr = new Date().toISOString().split('T')[0];
+    const hour = new Date().getHours();
 
+    useEffect(() => {
+        // Check push status
+        if ('Notification' in window) {
+            setPushEnabled(Notification.permission === 'granted');
+        }
+
+        // Detect device OS
+        const ua = navigator.userAgent.toLowerCase();
+        if (/iphone|ipad|ipod/.test(ua)) {
+            setDeviceOS('ios');
+        } else if (/android/.test(ua)) {
+            setDeviceOS('android');
+        }
+
+        // Check if installed as PWA
+        const isInstalled = window.matchMedia('(display-mode: standalone)').matches || 
+                           window.navigator.standalone === true;
+        setIsStandalone(isInstalled);
+
+        // Capture beforeinstallprompt for Android
+        const handleBeforeInstall = (e) => {
+            e.preventDefault();
+            setDeferredPrompt(e);
+        };
+        window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+        };
+    }, []);
+
+    // Load attendance
     useEffect(() => {
         const loadAttendance = async () => {
             try {
-                // Get today's attendance records
                 const data = await storageService.getAttendanceByDate(todayStr, branchId);
-                // Filter for this instructor's classes
                 const myAttendance = (data || []).filter(a => a.instructor === instructorName);
                 setAttendance(myAttendance);
             } catch (e) {
                 console.error('Failed to load attendance:', e);
             } finally {
-                setLoading(false);
+                setAttendanceLoading(false);
             }
         };
         loadAttendance();
-        
-        // Subscribe to real-time attendance changes
+
         const unsubscribe = storageService.subscribe(() => {
             const data = storageService.getAttendance();
             const todayAttendance = data.filter(a => a.date === todayStr && a.branchId === branchId);
@@ -294,82 +333,71 @@ const InstructorAttendance = ({ instructorName, branchId }) => {
             setAttendance(myAttendance);
         });
 
-        // Still keep interval as a safety measure for network issues
-        const interval = setInterval(loadAttendance, 60000); 
+        const interval = setInterval(loadAttendance, 30000);
         return () => {
             unsubscribe();
             clearInterval(interval);
         };
     }, [instructorName, branchId, todayStr]);
 
-    if (loading) return <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>로딩 중...</div>;
-
-    return (
-        <div style={{ padding: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h2 style={{ fontSize: '1.2rem', margin: 0 }}>오늘 출석현황</h2>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{todayStr}</span>
-            </div>
-            
-            {attendance.length === 0 ? (
-                <div style={{ background: 'var(--bg-surface)', padding: '30px', borderRadius: '12px', textAlign: 'center' }}>
-                    <p style={{ color: 'var(--text-secondary)', margin: 0 }}>오늘 내 수업에 출석한 회원이 없습니다</p>
-                </div>
-            ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {attendance.map((record, idx) => (
-                        <div key={record.id || idx} style={{ background: 'var(--bg-surface)', padding: '14px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div>
-                                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{record.memberName}</div>
-                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{record.className}</div>
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                                <div style={{ color: 'var(--primary-gold)', fontWeight: 'bold' }}>{record.timestamp?.split('T')[1]?.slice(0, 5) || ''}</div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-            
-            <div style={{ marginTop: '20px', padding: '12px', background: 'rgba(212, 175, 55, 0.1)', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                💡 30초마다 자동으로 새로고침됩니다
-            </div>
-        </div>
-    );
-};
-
-// === Settings Tab with Push Notification ===
-const InstructorSettings = ({ instructorName }) => {
-    const [pushEnabled, setPushEnabled] = useState(false);
-    const [pushLoading, setPushLoading] = useState(false);
-    const [pushMessage, setPushMessage] = useState('');
-
+    // Load AI greeting
     useEffect(() => {
-        // Check if push is already enabled
-        const checkPushStatus = async () => {
-            if ('Notification' in window) {
-                setPushEnabled(Notification.permission === 'granted');
+        const loadAIGreeting = async () => {
+            try {
+                const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][new Date().getDay()];
+                
+                // Get AI greeting for instructor
+                const result = await storageService.getAIExperience(
+                    instructorName,
+                    attendance.length,
+                    dayOfWeek,
+                    hour,
+                    null,
+                    null,
+                    null,
+                    null,
+                    'ko',
+                    null,
+                    'instructor'
+                );
+                
+                // result is an object with { message, bgTheme, colorTone }
+                const greetingText = typeof result === 'string' 
+                    ? result 
+                    : (result?.message || getDefaultGreeting(instructorName, hour, dayOfWeek, attendance.length));
+                setAiGreeting(greetingText);
+            } catch (e) {
+                console.error('AI greeting failed:', e);
+                const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][new Date().getDay()];
+                setAiGreeting(getDefaultGreeting(instructorName, hour, dayOfWeek, attendance.length));
+            } finally {
+                setGreetingLoading(false);
             }
         };
-        checkPushStatus();
-    }, []);
+        
+        if (!attendanceLoading) {
+            loadAIGreeting();
+        }
+    }, [instructorName, attendance.length, attendanceLoading, hour]);
+
+    const getDefaultGreeting = (name, h, day) => {
+        const timeGreeting = h < 12 ? '좋은 아침이에요' : h < 17 ? '오늘도 좋은 오후예요' : '수고하셨어요';
+        const dayContext = day === '월' ? '새로운 한 주의 시작!' : 
+                          day === '금' ? '즐거운 금요일!' : 
+                          (day === '토' || day === '일') ? '행복한 주말!' : '';
+        return `${name} 선생님, ${timeGreeting}! 🧘‍♀️${dayContext ? ' ' + dayContext : ''}`;
+    };
 
     const handleEnablePush = async () => {
         setPushLoading(true);
         setPushMessage('');
-        
         try {
-            // Request notification permission
             const permission = await Notification.requestPermission();
-            
             if (permission === 'granted') {
-                // Get FCM token
                 const token = await getToken(messaging, {
                     vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
                 });
-                
                 if (token) {
-                    // Save token with instructor role
                     await storageService.saveInstructorToken(token, instructorName);
                     setPushEnabled(true);
                     setPushMessage('✅ 알림이 활성화되었습니다!');
@@ -387,99 +415,193 @@ const InstructorSettings = ({ instructorName }) => {
         }
     };
 
+    const handleDisablePush = () => {
+        setPushMessage('ℹ️ 브라우저 설정에서 알림을 끌 수 있습니다.\n사이트 설정 > 알림 > 차단');
+    };
+
+    const handleInstallPWA = async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                setIsStandalone(true);
+            }
+            setDeferredPrompt(null);
+        }
+    };
+
     return (
         <div style={{ padding: '16px' }}>
-            <h2 style={{ fontSize: '1.2rem', marginBottom: '20px' }}>설정</h2>
-            
+            {/* AI Greeting Section */}
+            <div style={{ 
+                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.05) 100%)', 
+                padding: '20px', 
+                borderRadius: '16px', 
+                marginBottom: '20px',
+                border: '1px solid rgba(212, 175, 55, 0.2)'
+            }}>
+                {greetingLoading ? (
+                    <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>✨ 인사말 준비중...</div>
+                ) : (
+                    <p style={{ 
+                        margin: 0, 
+                        fontSize: '1.1rem', 
+                        lineHeight: 1.6,
+                        color: 'var(--text-primary)',
+                        textAlign: 'center'
+                    }}>
+                        {aiGreeting}
+                    </p>
+                )}
+            </div>
+
+            {/* Today's Attendance Section */}
+            <div style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '12px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ margin: 0, fontSize: '1rem' }}>📋 오늘 출석현황</h3>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{todayStr}</span>
+                </div>
+                
+                {attendanceLoading ? (
+                    <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '20px' }}>로딩 중...</div>
+                ) : attendance.length === 0 ? (
+                    <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                        오늘 내 수업에 출석한 회원이 없습니다
+                    </div>
+                ) : (
+                    <>
+                        <div style={{ 
+                            background: 'rgba(212, 175, 55, 0.1)', 
+                            padding: '12px', 
+                            borderRadius: '8px', 
+                            marginBottom: '12px',
+                            textAlign: 'center'
+                        }}>
+                            <span style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--primary-gold)' }}>{attendance.length}</span>
+                            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginLeft: '8px' }}>명 출석</span>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto' }}>
+                            {attendance.map((record, idx) => (
+                                <div key={record.id || idx} style={{ 
+                                    background: 'rgba(255,255,255,0.03)', 
+                                    padding: '10px 14px', 
+                                    borderRadius: '8px', 
+                                    display: 'flex', 
+                                    justifyContent: 'space-between', 
+                                    alignItems: 'center' 
+                                }}>
+                                    <div>
+                                        <div style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{record.memberName}</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{record.className}</div>
+                                    </div>
+                                    <div style={{ color: 'var(--primary-gold)', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                                        {record.timestamp?.split('T')[1]?.slice(0, 5) || ''}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                )}
+            </div>
+
             {/* Push Notification Section */}
             <div style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '12px', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                    {pushEnabled ? <BellRinging size={28} color="var(--primary-gold)" weight="fill" /> : <Bell size={28} color="var(--text-secondary)" />}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                    {pushEnabled ? <BellRinging size={24} color="var(--primary-gold)" weight="fill" /> : <Bell size={24} color="var(--text-secondary)" />}
                     <div>
                         <h3 style={{ margin: 0, fontSize: '1rem' }}>출석 알림</h3>
-                        <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                            회원이 내 수업에 출석하면 알림을 받습니다
+                        <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                            회원 출석 시 알림 받기
                         </p>
                     </div>
                 </div>
                 
                 {pushEnabled ? (
-                    <div style={{ padding: '12px', background: 'rgba(76, 175, 80, 0.2)', borderRadius: '8px', color: '#4CAF50', textAlign: 'center' }}>
-                        ✓ 알림이 활성화되어 있습니다
-                    </div>
+                    <button
+                        onClick={handleDisablePush}
+                        style={{
+                            width: '100%', padding: '10px', borderRadius: '8px', border: 'none',
+                            background: 'rgba(76, 175, 80, 0.2)', color: '#4CAF50',
+                            fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+                        }}
+                    >
+                        <BellRinging size={18} weight="fill" />
+                        알림 ON
+                    </button>
                 ) : (
                     <button
                         onClick={handleEnablePush}
                         disabled={pushLoading}
                         style={{
-                            width: '100%', padding: '14px', borderRadius: '10px', border: 'none',
+                            width: '100%', padding: '12px', borderRadius: '8px', border: 'none',
                             background: pushLoading ? 'var(--bg-input)' : 'var(--primary-gold)',
                             color: pushLoading ? 'var(--text-secondary)' : 'black',
-                            fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+                            fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer'
                         }}
                     >
-                        <BellRinging size={20} />
-                        {pushLoading ? '설정 중...' : '알림 허용하기'}
+                        {pushLoading ? '설정 중...' : '🔔 알림 허용하기'}
                     </button>
                 )}
                 
                 {pushMessage && (
-                    <p style={{ marginTop: '12px', fontSize: '0.9rem', textAlign: 'center', color: pushMessage.includes('✅') ? '#4CAF50' : '#ff4757' }}>
+                    <p style={{ marginTop: '8px', fontSize: '0.85rem', textAlign: 'center', color: pushMessage.includes('✅') ? '#4CAF50' : 'var(--text-secondary)', whiteSpace: 'pre-line' }}>
                         {pushMessage}
                     </p>
                 )}
             </div>
 
-            {/* Add to Home Screen Section */}
-            <div style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '12px', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                    <Gear size={28} color="var(--text-secondary)" />
-                    <div>
-                        <h3 style={{ margin: 0, fontSize: '1rem' }}>홈 화면에 추가</h3>
-                        <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                            앱처럼 빠르게 접속할 수 있어요
-                        </p>
-                    </div>
+            {/* PWA Install Section - Only on mobile and not installed */}
+            {!isStandalone && (deviceOS === 'ios' || deviceOS === 'android') && (
+                <div style={{ background: 'var(--bg-surface)', padding: '16px', borderRadius: '12px', marginBottom: '16px' }}>
+                    <h3 style={{ margin: '0 0 12px', fontSize: '1rem' }}>📲 홈 화면에 추가</h3>
+                    
+                    {deviceOS === 'android' && deferredPrompt ? (
+                        <button
+                            onClick={handleInstallPWA}
+                            style={{
+                                width: '100%', padding: '12px', borderRadius: '8px', border: 'none',
+                                background: 'var(--primary-gold)', color: 'black',
+                                fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer'
+                            }}
+                        >
+                            홈 화면에 설치하기
+                        </button>
+                    ) : (
+                        <div style={{ 
+                            background: 'rgba(212, 175, 55, 0.1)', 
+                            padding: '12px', 
+                            borderRadius: '8px',
+                            fontSize: '0.85rem',
+                            color: 'var(--text-secondary)',
+                            textAlign: 'center'
+                        }}>
+                            {deviceOS === 'ios' 
+                                ? 'Safari 공유 버튼 ↑ → "홈 화면에 추가"'
+                                : 'Chrome 메뉴 ⋮ → "홈 화면에 추가"'}
+                        </div>
+                    )}
                 </div>
-                
-                <div style={{ 
-                    background: 'rgba(212, 175, 55, 0.1)', 
-                    borderRadius: '10px', 
-                    padding: '16px',
-                    fontSize: '0.85rem',
-                    lineHeight: 1.8,
-                    color: 'var(--text-secondary)'
-                }}>
-                    <div style={{ marginBottom: '12px' }}>
-                        <strong style={{ color: 'var(--primary-gold)' }}>📱 iPhone/iPad:</strong><br/>
-                        Safari에서 <span style={{ color: 'white' }}>공유 버튼 ↑</span> → &quot;홈 화면에 추가&quot;
-                    </div>
-                    <div style={{ marginBottom: '12px' }}>
-                        <strong style={{ color: 'var(--primary-gold)' }}>🤖 Android:</strong><br/>
-                        Chrome 메뉴 (⋮) → &quot;홈 화면에 추가&quot;
-                    </div>
-                    <div>
-                        <strong style={{ color: 'var(--primary-gold)' }}>💻 PC:</strong><br/>
-                        Chrome 주소창 오른쪽 설치 아이콘 클릭
-                    </div>
-                </div>
-            </div>
+            )}
 
-            {/* Logged in info */}
-            <div style={{ background: 'var(--bg-surface)', padding: '16px', borderRadius: '12px' }}>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                    로그인: <span style={{ color: 'var(--primary-gold)' }}>{instructorName}</span> 선생님
-                </p>
+            {/* Login info */}
+            <div style={{ 
+                textAlign: 'center', 
+                fontSize: '0.85rem', 
+                color: 'var(--text-secondary)',
+                padding: '8px'
+            }}>
+                {instructorName} 선생님으로 로그인됨
             </div>
         </div>
     );
 };
 
+
 const InstructorPage = () => {
     const [instructorName, setInstructorName] = useState(localStorage.getItem('instructorName') || '');
     const [instructors, setInstructors] = useState([]);
-    const [activeTab, setActiveTab] = useState('schedule');
+    const [activeTab, setActiveTab] = useState('home');
     const [branchId] = useState('gwangheungchang');
     const [loading, setLoading] = useState(true);
 
@@ -546,10 +668,9 @@ const InstructorPage = () => {
 
             {/* Content Area */}
             <div style={{ position: 'relative', zIndex: 1, minHeight: 'calc(100vh - 160px)' }}>
+                {activeTab === 'home' && <InstructorHome instructorName={instructorName} branchId={branchId} />}
                 {activeTab === 'schedule' && <InstructorSchedule instructorName={instructorName} branchId={branchId} />}
-                {activeTab === 'attendance' && <InstructorAttendance instructorName={instructorName} branchId={branchId} />}
                 {activeTab === 'notices' && <InstructorNotices />}
-                {activeTab === 'settings' && <InstructorSettings instructorName={instructorName} />}
             </div>
 
             {/* Bottom Navigation */}
@@ -557,10 +678,9 @@ const InstructorPage = () => {
                 position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--bg-surface)',
                 display: 'flex', justifyContent: 'space-around', padding: '12px 0', borderTop: '1px solid var(--border-color)'
             }}>
+                <TabButton icon={<House size={24} />} label="홈" active={activeTab === 'home'} onClick={() => setActiveTab('home')} />
                 <TabButton icon={<CalendarBlank size={24} />} label="시간표" active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} />
-                <TabButton icon={<List size={24} />} label="출석현황" active={activeTab === 'attendance'} onClick={() => setActiveTab('attendance')} />
                 <TabButton icon={<Bell size={24} />} label="공지" active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} />
-                <TabButton icon={<Gear size={24} />} label="설정" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
             </div>
         </div>
     );
