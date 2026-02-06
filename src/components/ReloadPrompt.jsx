@@ -12,10 +12,22 @@ function ReloadPrompt() {
       console.log('SW Registered: ' + r);
       // [NEW] Check for updates every 10 minutes
       if (r) {
+        // 1. Check immediately on load
+        r.update();
+
+        // 2. Check every 10 minutes
         setInterval(() => {
-          console.log('Checking for SW update...');
+          console.log('Checking for SW update (Interval)...');
           r.update();
-        }, 10 * 60 * 1000); 
+        }, 10 * 60 * 1000);
+
+        // 3. Check when window comes back to foreground
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                console.log('Checking for SW update (Visibility)...');
+                r.update();
+            }
+        });
       }
     },
     onRegisterError(error) {
