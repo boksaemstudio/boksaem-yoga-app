@@ -865,7 +865,7 @@ const MemberProfile = () => {
                                             onChange={handleNotificationToggle}
                                             style={{ opacity: 0, width: 0, height: 0 }}
                                         />
-                                        <span className="slider" style={{
+                                        <span className="premium-slider-track" style={{
                                             position: 'absolute',
                                             cursor: 'pointer',
                                             top: 0, 

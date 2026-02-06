@@ -25,6 +25,7 @@ const MyStatsChart = ({ logs }) => {
             borderRadius: '16px',
             padding: '20px',
             marginTop: '20px',
+            marginBottom: '20px',
             border: '1px solid rgba(255, 255, 255, 0.05)'
         }}>
             <h3 style={{
