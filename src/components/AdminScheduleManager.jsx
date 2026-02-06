@@ -56,6 +56,12 @@ const AdminScheduleManager = ({ branchId }) => {
     // const [newClassType, setNewClassType] = useState('');
 
     useEffect(() => {
+        // [Critical Fix] Reset selection and modal when branch/month changes to prevent data pollution
+        setShowEditModal(false);
+        setSelectedDate(null);
+        setDayClasses([]);
+        setScheduleStatus('undefined'); // Reset status initially
+
         loadMonthlyData();
         loadMasterData();
 
@@ -234,8 +240,9 @@ const AdminScheduleManager = ({ branchId }) => {
                                 onClick={() => date && handleDateClick(dateStr)}
                                 style={{
                                     minHeight: '100px',
-                                    backgroundColor: date ? (isToday ? 'rgba(212,175,55,0.08)' : (holidayName ? 'rgba(255,71,87,0.05)' : 'var(--bg-card)')) : 'transparent',
-                                    border: date ? (isToday ? '2px solid var(--primary-gold)' : (holidayName ? '1px solid rgba(255,71,87,0.3)' : '1px solid var(--border-color)')) : 'none',
+                                    // [Refining] Holiday background removed to prevent confusion with cancelled status
+                                    backgroundColor: date ? (isToday ? 'rgba(212,175,55,0.08)' : 'var(--bg-card)') : 'transparent',
+                                    border: date ? (isToday ? '2px solid var(--primary-gold)' : '1px solid var(--border-color)') : 'none',
                                     boxShadow: isToday ? '0 0 15px rgba(212, 175, 55, 0.2)' : 'none',
                                     borderRadius: '8px',
                                     padding: '6px',
@@ -257,20 +264,31 @@ const AdminScheduleManager = ({ branchId }) => {
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                             {classes.map((cls, idx) => {
                                                 const colors = getTagColor(cls.title, dateStr, cls.instructor);
+                                                const isCancelled = cls.status === 'cancelled';
                                                 return (
                                                     <div key={idx} style={{
-                                                        fontSize: '0.8rem', // Increased font size
+                                                        fontSize: '0.8rem',
                                                         padding: '4px 6px',
                                                         borderRadius: '6px',
-                                                        backgroundColor: cls.status === 'cancelled' ? '#ff4757' : colors.bg,
-                                                        color: cls.status === 'cancelled' ? 'white' : colors.text, // Ensure text contrast
-                                                        border: cls.status === 'cancelled' ? 'none' : `1px solid ${colors.border}`,
-                                                        textDecoration: cls.status === 'cancelled' ? 'line-through' : 'none',
+                                                        backgroundColor: colors.bg,
+                                                        color: colors.text,
+                                                        border: `1px solid ${colors.border}`,
                                                         fontWeight: '500',
                                                         display: 'flex',
-                                                        flexDirection: 'column', // Stack vertically
-                                                        gap: '2px', // Space between time/title and instructor
-                                                        marginTop: '2px'
+                                                        flexDirection: 'column',
+                                                        gap: '2px',
+                                                        marginTop: '2px',
+                                                        position: 'relative',
+                                                        overflow: 'hidden',
+                                                        // Red X diagonal lines for cancelled classes
+                                                        ...(isCancelled && {
+                                                            background: `
+                                                                linear-gradient(to top right, transparent calc(50% - 1.5px), #ff4757 calc(50% - 1.5px), #ff4757 calc(50% + 1.5px), transparent calc(50% + 1.5px)),
+                                                                linear-gradient(to top left, transparent calc(50% - 1.5px), #ff4757 calc(50% - 1.5px), #ff4757 calc(50% + 1.5px), transparent calc(50% + 1.5px)),
+                                                                ${colors.bg}
+                                                            `,
+                                                            opacity: 0.7
+                                                        })
                                                     }}>
                                                         <span style={{ fontWeight: 'bold' }}>
                                                             {cls.time} {cls.title}
@@ -570,7 +588,7 @@ const AdminScheduleManager = ({ branchId }) => {
                 classTypes={classTypes}
                 setClassTypes={setClassTypes}
                 classLevels={classLevels}
-                setClassLevels={classLevels}
+                setClassLevels={setClassLevels}
             />
         </div >
     );

@@ -302,6 +302,8 @@ export const storageService = {
   async getCurrentClass(branchId) {
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
     const cacheKey = `${branchId}_${today}`;
+    
+    // [LOGIC] 1. Fetch Classes for Today
     if (!cachedDailyClasses[cacheKey]) {
       try {
         const docRef = doc(db, 'daily_classes', cacheKey);
@@ -310,17 +312,101 @@ export const storageService = {
         else cachedDailyClasses[cacheKey] = [];
       } catch { return null; }
     }
-    const classes = cachedDailyClasses[cacheKey] || [];
+    
+    // [LOGIC] 2. Sort Classes by Time
+    const classes = (cachedDailyClasses[cacheKey] || [])
+      .filter(c => c.status !== 'cancelled')
+      .sort((a, b) => a.time.localeCompare(b.time));
+
+    if (classes.length === 0) return null;
+
     const now = new Date();
-    const currentTime = now.getHours() * 60 + now.getMinutes();
-    for (const cls of classes) {
-      if (cls.status === 'cancelled') continue;
-      const [startHour, startMin] = cls.time.split(':').map(Number);
-      const startTimeInMins = startHour * 60 + startMin;
-      if (currentTime >= startTimeInMins - 20 && currentTime < startTimeInMins + (cls.duration || 60)) {
-        return { title: cls.title, instructor: cls.instructor };
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    let selectedClass = null;
+    let logicReason = "No Match";
+
+    // === [SMART MATCHING ALGORITHM] ===
+    // Priority 1: Next Class Incoming (30 mins before start) -> "Next Instructor's Territory"
+    // Priority 2: Ongoing Class (Start <= Now < End) -> "Current Instructor's Territory"
+    // Priority 3: Early Bird (60 mins before start IF no previous class blocking) -> "Allowed Early Entry"
+
+    for (let i = 0; i < classes.length; i++) {
+      const cls = classes[i];
+      const duration = cls.duration || 60;
+      const [h, m] = cls.time.split(':').map(Number);
+      const startMinutes = h * 60 + m;
+      const endMinutes = startMinutes + duration;
+
+      // Rule 1: 30-min Pre-class Zone (High Priority)
+      // If we are within 30 mins before a class starts, it belongs to THIS class.
+      // Even if the previous class is running late, the new arrival is likely for this new class.
+      if (currentMinutes >= startMinutes - 30 && currentMinutes < startMinutes) {
+        selectedClass = cls;
+        logicReason = `Upcoming (30min rule): ${cls.time}`;
+        break; // Found highest priority, stop.
+      }
+
+      // Rule 2: Ongoing Class
+      if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
+        // If we already selected a "Next Class" via Rule 1 in a previous iteration? 
+        // No, because Rule 1 looks at "Future" relative to "Now".
+        // If we are HERE, it means we are INSIDE this class time.
+        // BUT wait, could we be in the overlapping 30m window of the NEXT class?
+        // -> Loop order matters. Sort by time asc.
+        // Let's check if the NEXT class (i+1) claims this time via Rule 1.
+        
+        const nextCls = classes[i+1];
+        if (nextCls) {
+           const [nh, nm] = nextCls.time.split(':').map(Number);
+           const nextStart = nh * 60 + nm;
+           if (currentMinutes >= nextStart - 30) {
+              // Overlap! The next class is starting soon (<30m).
+              // User policy: "Assign to NEXT instructor".
+              selectedClass = nextCls;
+              logicReason = `Overlap Priority (Next Class): ${nextCls.time}`;
+              break; 
+           }
+        }
+
+        selectedClass = cls;
+        logicReason = `Ongoing: ${cls.time}`;
+        break; 
+      }
+
+      // Rule 3: 1-Hour Early Bird (Empty Gap)
+      // Only valid if we are NOT in the range of the previous class.
+      // Since we iterate sorted, and we haven't matched Rule 1 or 2 yet for 'cls',
+      // we check if we are in the [Start - 60, Start - 30) window.
+      if (currentMinutes >= startMinutes - 60 && currentMinutes < startMinutes - 30) {
+         // Ensure no previous class is blocking this slot
+         const prevCls = classes[i-1];
+         let isBlocked = false;
+         if (prevCls) {
+            const [ph, pm] = prevCls.time.split(':').map(Number);
+            const prevEnd = (ph * 60 + pm) + (prevCls.duration || 60);
+            if (currentMinutes < prevEnd) {
+               isBlocked = true; // Still in previous class time
+            }
+         }
+
+         if (!isBlocked) {
+            selectedClass = cls;
+            logicReason = `Early Bird (60min): ${cls.time}`;
+            break;
+         }
       }
     }
+
+    if (selectedClass) {
+       console.log(`[SmartAttendance] Matched: ${selectedClass.title} (${logicReason})`);
+       return { 
+         title: selectedClass.title, 
+         instructor: selectedClass.instructor,
+         debugReason: logicReason // For UI display if needed
+       };
+    }
+
     return null;
   },
 

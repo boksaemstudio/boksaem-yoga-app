@@ -668,12 +668,50 @@ const AdminDashboard = () => {
 
                         {scheduleSubTab === 'monthly' ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                                {STUDIO_CONFIG.BRANCHES.map((branch) => (
-                                    <div key={branch.id} className="dashboard-card">
-                                        <h3 style={{ fontSize: '1.8rem', fontWeight: '800', marginBottom: '20px', color: 'var(--primary-gold)' }}>{branch.name}</h3>
-                                        <AdminScheduleManager branchId={branch.id} />
-                                    </div>
-                                ))}
+                                {STUDIO_CONFIG.BRANCHES.map((branch) => {
+                                    // 지점별 테마 색상 및 스타일 정의
+                                    const isGwang = branch.id === 'gwangheungchang';
+                                    const themeColor = isGwang ? 'var(--primary-gold)' : '#60a5fa'; // 골드 vs 블루
+                                    const bgTint = isGwang ? 'rgba(212, 175, 55, 0.05)' : 'rgba(96, 165, 250, 0.05)';
+
+                                    return (
+                                        <div key={branch.id} className="dashboard-card" style={{ 
+                                            position: 'relative',
+                                            border: `1px solid ${isGwang ? 'rgba(212, 175, 55, 0.3)' : 'rgba(96, 165, 250, 0.3)'}`,
+                                            background: `linear-gradient(180deg, ${bgTint} 0%, rgba(20, 20, 25, 0.5) 100%)`
+                                        }}>
+                                            <div style={{ 
+                                                display: 'flex', 
+                                                justifyContent: 'space-between', 
+                                                alignItems: 'center', 
+                                                marginBottom: '20px',
+                                                borderBottom: `1px solid ${isGwang ? 'rgba(212, 175, 55, 0.1)' : 'rgba(96, 165, 250, 0.1)'}`,
+                                                paddingBottom: '10px'
+                                            }}>
+                                                <h3 style={{ 
+                                                    fontSize: '1.8rem', 
+                                                    fontWeight: '800', 
+                                                    color: themeColor,
+                                                    textShadow: `0 0 10px ${isGwang ? 'rgba(212,175,55,0.3)' : 'rgba(96,165,250,0.3)'}`
+                                                }}>
+                                                    {branch.name}
+                                                </h3>
+                                                <div style={{
+                                                    padding: '4px 12px',
+                                                    borderRadius: '20px',
+                                                    background: isGwang ? 'rgba(212, 175, 55, 0.1)' : 'rgba(96, 165, 250, 0.1)',
+                                                    border: `1px solid ${isGwang ? 'rgba(212, 175, 55, 0.2)' : 'rgba(96, 165, 250, 0.2)'}`,
+                                                    color: themeColor,
+                                                    fontSize: '0.8rem',
+                                                    fontWeight: 'bold'
+                                                }}>
+                                                    {isGwang ? '본점' : '지점'}
+                                                </div>
+                                            </div>
+                                            <AdminScheduleManager branchId={branch.id} />
+                                        </div>
+                                    );
+                                })}
                             </div>
                         ) : (
                             <div className="dashboard-card">

@@ -1,10 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { CalendarBlank, Bell, BellRinging, House, SignOut, User, Phone } from '@phosphor-icons/react';
 import { storageService } from '../services/storage';
 import { getMonthlyClasses } from '../services/scheduleService';
+import { isHoliday, getHolidayName } from '../utils/holidays';
 import { getToken } from 'firebase/messaging';
 import { messaging } from '../firebase';
 import CosmicParticles from '../components/common/CosmicParticles';
+
+// === Helper for Default Greeting ===
+const getDefaultGreeting = (name, h, day) => {
+    const timeGreeting = h < 12 ? '좋은 아침이에요' : h < 17 ? '오늘도 좋은 오후예요' : '수고하셨어요';
+    const dayContext = day === '월' ? '새로운 한 주의 시작!' : 
+                      day === '금' ? '즐거운 금요일!' : 
+                      (day === '토' || day === '일') ? '행복한 주말!' : '';
+    return `${name} 선생님, ${timeGreeting} 🧘‍♀️ ${dayContext}`;
+};
 
 // === Instructor Login Component ===
 const InstructorLogin = ({ onLogin, instructors }) => {
@@ -88,7 +98,7 @@ const InstructorLogin = ({ onLogin, instructors }) => {
 };
 
 // === Instructor Schedule Tab ===
-const InstructorSchedule = ({ instructorName, branchId }) => {
+const InstructorSchedule = ({ instructorName }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [monthlyData, setMonthlyData] = useState({});
     const [selectedDate, setSelectedDate] = useState(null);
@@ -96,50 +106,146 @@ const InstructorSchedule = ({ instructorName, branchId }) => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth() + 1;
 
+    // Defined branches to fetch
+    const branches = useMemo(() => [
+        { id: 'gwangheungchang', name: '광흥창점', color: 'var(--primary-gold)' },
+        { id: 'mapo', name: '마포점', color: '#FF6B6B' } // Using Coral for Mapo distinct color
+    ], []);
+
     useEffect(() => {
         const loadData = async () => {
-            const data = await getMonthlyClasses(branchId, year, month);
-            setMonthlyData(data);
+            const promises = branches.map(b => getMonthlyClasses(b.id, year, month));
+            const results = await Promise.all(promises);
+            
+            const merged = {};
+            
+            results.forEach((data, idx) => {
+                const branch = branches[idx];
+                Object.entries(data).forEach(([date, classes]) => {
+                    if (!merged[date]) merged[date] = [];
+                    // Add branch info to each class
+                    const classesWithBranch = classes.map(cls => ({
+                        ...cls,
+                        branchName: branch.name,
+                        branchColor: branch.color
+                    }));
+                    merged[date] = [...merged[date], ...classesWithBranch];
+                });
+            });
+            
+            setMonthlyData(merged);
         };
         loadData();
-    }, [branchId, year, month]);
+    }, [year, month, branches]);
 
     const daysInMonth = new Date(year, month, 0).getDate();
     const firstDay = new Date(year, month - 1, 1).getDay();
     const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
 
-    const hasMyClass = (dateStr) => {
+    const getBranchStatus = (dateStr) => {
         const classes = monthlyData[dateStr] || [];
-        return classes.some(cls => cls.instructor === instructorName);
+        const myClasses = classes.filter(cls => 
+            cls.instructor === instructorName && 
+            cls.status !== 'cancelled' // Exclude cancelled classes from visual indicators
+        );
+        return {
+            hasGhc: myClasses.some(cls => cls.branchName === '광흥창점' || cls.branchId === 'gwangheungchang'),
+            hasMapo: myClasses.some(cls => cls.branchName === '마포점' || cls.branchId === 'mapo'),
+            hasAny: myClasses.length > 0
+        };
     };
 
     const renderCalendar = () => {
         const cells = [];
-        // Empty cells before first day
         for (let i = 0; i < firstDay; i++) {
             cells.push(<div key={`empty-${i}`} style={{ padding: '8px' }}></div>);
         }
-        // Day cells
         for (let d = 1; d <= daysInMonth; d++) {
             const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-            const hasClass = hasMyClass(dateStr);
+            const { hasGhc, hasMapo } = getBranchStatus(dateStr);
             const isSelected = selectedDate === dateStr;
             const isToday = dateStr === new Date().toISOString().split('T')[0];
+            
+            // Calculate day of week (0: Sun, 6: Sat)
+            const dayOfWeek = new Date(year, month - 1, d).getDay();
+            const isRedDay = dayOfWeek === 0 || isHoliday(dateStr);
+            const isBlueDay = dayOfWeek === 6 && !isRedDay; // Holiday takes precedence over Saturday
+            
+            const holidayName = getHolidayName(dateStr);
+
+            let borderStyle = '2px solid transparent';
+            let borderColor = 'transparent';
+
+            if (hasGhc && hasMapo) {
+                borderStyle = '2px solid';
+                borderColor = 'var(--primary-gold) #FF6B6B #FF6B6B var(--primary-gold)'; // Top-Left Gold, Bottom-Right Red
+            } else if (hasGhc) {
+                borderStyle = '2px solid var(--primary-gold)';
+            } else if (hasMapo) {
+                borderStyle = '2px solid #FF6B6B';
+            }
+
+            // Text Color Logic
+            let textColor = 'var(--text-primary)';
+            if (isSelected) {
+                textColor = 'black';
+            } else if (isRedDay) {
+                textColor = '#ff4757';
+            } else if (isBlueDay) {
+                textColor = '#4a90e2';
+            }
+
+            // Holiday Name Mapping
+            const holidayMap = {
+                'holiday_new_year': '신정',
+                'holiday_lunar_new_year': '설날',
+                'holiday_samiljeol': '삼일절',
+                'holiday_childrens_day': '어린이날',
+                'holiday_buddha': '석가탄신일',
+                'holiday_memorial': '현충일',
+                'holiday_liberation': '광복절',
+                'holiday_chuseok': '추석',
+                'holiday_foundation': '개천절',
+                'holiday_hangul': '한글날',
+                'holiday_christmas': '크리스마스',
+                'holiday_election': '선거일',
+                'holiday_arbor_day': '식목일'
+            };
 
             cells.push(
                 <div
                     key={d}
                     onClick={() => setSelectedDate(dateStr)}
                     style={{
-                        padding: '8px', textAlign: 'center', cursor: 'pointer', borderRadius: '8px',
-                        background: isSelected ? 'var(--primary-gold)' : isToday ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
-                        color: isSelected ? 'black' : 'var(--text-primary)',
-                        border: hasClass ? '2px solid var(--primary-gold)' : '2px solid transparent',
-                        fontWeight: hasClass ? 'bold' : 'normal',
-                        transition: 'all 0.2s'
+                        padding: '4px', textAlign: 'center', cursor: 'pointer', borderRadius: '8px',
+                        background: isSelected ? 'var(--primary-gold)' : isToday ? 'rgba(212, 175, 55, 0.15)' : 'transparent',
+                        color: textColor,
+                        border: borderStyle,
+                        borderColor: borderColor !== 'transparent' ? borderColor : undefined,
+                        fontWeight: (hasGhc || hasMapo) ? 'bold' : 'normal',
+                        transition: 'all 0.2s',
+                        position: 'relative',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minHeight: '52px' // Increased slightly to fit holiday name
                     }}
                 >
-                    {d}
+                    <span style={{ position: 'relative', zIndex: 1, fontSize: '1rem' }}>{d}</span>
+                    {holidayName && (
+                        <span style={{ 
+                            fontSize: '0.6rem', 
+                            marginTop: '2px', 
+                            color: isSelected ? 'black' : '#ff4757',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            maxWidth: '100%',
+                            textOverflow: 'ellipsis'
+                        }}>
+                            {holidayMap[holidayName] || holidayName}
+                        </span>
+                    )}
                 </div>
             );
         }
@@ -147,34 +253,48 @@ const InstructorSchedule = ({ instructorName, branchId }) => {
     };
 
     const selectedClasses = selectedDate ? (monthlyData[selectedDate] || []) : [];
+    selectedClasses.sort((a, b) => a.time.localeCompare(b.time));
 
     return (
         <div style={{ padding: '16px' }}>
-            {/* Month Navigation */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <button onClick={() => setCurrentDate(new Date(year, month - 2, 1))} style={navBtnStyle}>◀</button>
                 <h2 style={{ margin: 0, fontSize: '1.2rem' }}>{year}년 {month}월</h2>
                 <button onClick={() => setCurrentDate(new Date(year, month, 1))} style={navBtnStyle}>▶</button>
             </div>
 
-            {/* Legend */}
-            <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                <span>🟡 내 수업 있는 날</span>
+            {/* Branch Legend */}
+            <div style={{ 
+                display: 'flex', 
+                gap: '12px', 
+                marginBottom: '16px', 
+                fontSize: '0.85rem', 
+                justifyContent: 'center',
+                background: 'var(--bg-surface)',
+                padding: '10px',
+                borderRadius: '8px'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary-gold)' }} />
+                    <span style={{ color: 'var(--text-primary)' }}>광흥창점</span>
+                </div>
+                <div style={{ width: '1px', background: 'var(--border-color)' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF6B6B' }} />
+                    <span style={{ color: 'var(--text-primary)' }}>마포점</span>
+                </div>
             </div>
 
-            {/* Day Headers */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '8px' }}>
                 {dayNames.map(day => (
                     <div key={day} style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)', padding: '8px' }}>{day}</div>
                 ))}
             </div>
 
-            {/* Calendar Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '20px' }}>
                 {renderCalendar()}
             </div>
 
-            {/* Selected Day Classes */}
             {selectedDate && (
                 <div style={{ background: 'var(--bg-surface)', padding: '16px', borderRadius: '12px' }}>
                     <h3 style={{ marginBottom: '12px', fontSize: '1rem' }}>{selectedDate} 수업</h3>
@@ -182,22 +302,55 @@ const InstructorSchedule = ({ instructorName, branchId }) => {
                         <p style={{ color: 'var(--text-secondary)' }}>수업이 없습니다</p>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            {selectedClasses.map((cls, idx) => (
-                                <div
-                                    key={idx}
-                                    style={{
-                                        padding: '12px', borderRadius: '8px',
-                                        background: cls.instructor === instructorName ? 'rgba(212, 175, 55, 0.2)' : 'var(--bg-input)',
-                                        border: cls.instructor === instructorName ? '1px solid var(--primary-gold)' : '1px solid transparent'
-                                    }}
-                                >
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <span style={{ fontWeight: 'bold' }}>{cls.time}</span>
-                                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{cls.instructor}</span>
+                            {selectedClasses.map((cls, idx) => {
+                                const isCancelled = cls.status === 'cancelled';
+                                return (
+                                    <div
+                                        key={idx}
+                                        style={{
+                                            padding: '12px', borderRadius: '8px',
+                                            background: isCancelled ? 'rgba(255, 71, 87, 0.1)' : cls.instructor === instructorName ? 'rgba(212, 175, 55, 0.1)' : 'var(--bg-input)',
+                                            borderLeft: `4px solid ${isCancelled ? '#ff4757' : (cls.branchColor || 'var(--primary-gold)')}`,
+                                            position: 'relative',
+                                            opacity: isCancelled ? 0.7 : 1
+                                        }}
+                                    >
+                                        <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', gap: '6px' }}>
+                                            {isCancelled && (
+                                                <div style={{ 
+                                                    fontSize: '0.75rem', 
+                                                    color: '#ff4757', 
+                                                    fontWeight: 'bold', 
+                                                    border: '1px solid #ff4757', 
+                                                    padding: '2px 6px', 
+                                                    borderRadius: '4px',
+                                                    background: 'rgba(255, 71, 87, 0.1)' 
+                                                }}>
+                                                    휴강
+                                                </div>
+                                            )}
+                                            <div style={{ 
+                                                fontSize: '0.75rem', 
+                                                color: cls.branchColor, 
+                                                fontWeight: 'bold', 
+                                                border: `1px solid ${cls.branchColor}`, 
+                                                padding: '2px 6px', 
+                                                borderRadius: '4px' 
+                                            }}>
+                                                {cls.branchName}
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                            <span style={{ fontWeight: 'bold', fontSize: '1.1rem', textDecoration: isCancelled ? 'line-through' : 'none' }}>{cls.time}</span>
+                                            {cls.instructor === instructorName && !isCancelled && <span style={{ fontSize: '0.75rem', background: 'var(--primary-gold)', color: 'black', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>ME</span>}
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div style={{ fontSize: '0.95rem', textDecoration: isCancelled ? 'line-through' : 'none', color: isCancelled ? 'var(--text-secondary)' : 'var(--text-primary)' }}>{cls.title}</div>
+                                            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginRight: isCancelled ? '0' : '60px' }}>{cls.instructor}</span>
+                                        </div>
                                     </div>
-                                    <div style={{ marginTop: '4px' }}>{cls.title}</div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </div>
@@ -214,7 +367,6 @@ const InstructorNotices = () => {
     useEffect(() => {
         const loadNotices = async () => {
             try {
-                // First try to load with fallback to Firestore if cache is empty
                 const data = await storageService.loadNotices();
                 setNotices(data || []);
             } catch (e) {
@@ -225,7 +377,6 @@ const InstructorNotices = () => {
         };
         loadNotices();
 
-        // Subscribe to real-time changes
         const unsubscribe = storageService.subscribe(() => {
             setNotices(storageService.getNotices() || []);
         });
@@ -264,29 +415,25 @@ const InstructorNotices = () => {
     );
 };
 
-// === Home Tab - 설정 + 출석현황 + AI 인사말 통합 ===
-const InstructorHome = ({ instructorName, branchId }) => {
+// === Home Tab ===
+const InstructorHome = ({ instructorName, attendance, attendanceLoading }) => {
     const [pushEnabled, setPushEnabled] = useState(false);
     const [pushLoading, setPushLoading] = useState(false);
     const [pushMessage, setPushMessage] = useState('');
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [isStandalone, setIsStandalone] = useState(false);
     const [deviceOS, setDeviceOS] = useState('unknown');
-    const [attendance, setAttendance] = useState([]);
-    const [attendanceLoading, setAttendanceLoading] = useState(true);
-    const [aiGreeting, setAiGreeting] = useState('');
-    const [greetingLoading, setGreetingLoading] = useState(true);
+    
+    // [NEW] Smart Logic Debug State
+    const [currentMatch, setCurrentMatch] = useState(null);
     
     const todayStr = new Date().toISOString().split('T')[0];
-    const hour = new Date().getHours();
 
     useEffect(() => {
-        // Check push status
         if ('Notification' in window) {
             setPushEnabled(Notification.permission === 'granted');
         }
 
-        // Detect device OS
         const ua = navigator.userAgent.toLowerCase();
         if (/iphone|ipad|ipod/.test(ua)) {
             setDeviceOS('ios');
@@ -294,12 +441,10 @@ const InstructorHome = ({ instructorName, branchId }) => {
             setDeviceOS('android');
         }
 
-        // Check if installed as PWA
         const isInstalled = window.matchMedia('(display-mode: standalone)').matches || 
                            window.navigator.standalone === true;
         setIsStandalone(isInstalled);
 
-        // Capture beforeinstallprompt for Android
         const handleBeforeInstall = (e) => {
             e.preventDefault();
             setDeferredPrompt(e);
@@ -311,82 +456,26 @@ const InstructorHome = ({ instructorName, branchId }) => {
         };
     }, []);
 
-    // Load attendance
+    // [NEW] Periodic check for current logic status
     useEffect(() => {
-        const loadAttendance = async () => {
-            try {
-                const data = await storageService.getAttendanceByDate(todayStr, branchId);
-                const myAttendance = (data || []).filter(a => a.instructor === instructorName);
-                setAttendance(myAttendance);
-            } catch (e) {
-                console.error('Failed to load attendance:', e);
-            } finally {
-                setAttendanceLoading(false);
+        const checkLogic = async () => {
+            // Check Mapo as default for display example (or could iterate both)
+            const branchId = 'mapo'; 
+            const match = await storageService.getCurrentClass(branchId);
+            
+            // If no match in Mapo, try GHC
+            if (!match) {
+                 const match2 = await storageService.getCurrentClass('gwangheungchang');
+                 if (match2) setCurrentMatch({ ...match2, branch: '광흥창점' });
+                 else setCurrentMatch(null);
+            } else {
+                 setCurrentMatch({ ...match, branch: '마포점' });
             }
         };
-        loadAttendance();
-
-        const unsubscribe = storageService.subscribe(() => {
-            const data = storageService.getAttendance();
-            const todayAttendance = data.filter(a => a.date === todayStr && a.branchId === branchId);
-            const myAttendance = todayAttendance.filter(a => a.instructor === instructorName);
-            setAttendance(myAttendance);
-        });
-
-        const interval = setInterval(loadAttendance, 30000);
-        return () => {
-            unsubscribe();
-            clearInterval(interval);
-        };
-    }, [instructorName, branchId, todayStr]);
-
-    // Load AI greeting
-    useEffect(() => {
-        const loadAIGreeting = async () => {
-            try {
-                const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][new Date().getDay()];
-                
-                // Get AI greeting for instructor
-                const result = await storageService.getAIExperience(
-                    instructorName,
-                    attendance.length,
-                    dayOfWeek,
-                    hour,
-                    null,
-                    null,
-                    null,
-                    null,
-                    'ko',
-                    null,
-                    'instructor'
-                );
-                
-                // result is an object with { message, bgTheme, colorTone }
-                const greetingText = typeof result === 'string' 
-                    ? result 
-                    : (result?.message || getDefaultGreeting(instructorName, hour, dayOfWeek, attendance.length));
-                setAiGreeting(greetingText);
-            } catch (e) {
-                console.error('AI greeting failed:', e);
-                const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][new Date().getDay()];
-                setAiGreeting(getDefaultGreeting(instructorName, hour, dayOfWeek, attendance.length));
-            } finally {
-                setGreetingLoading(false);
-            }
-        };
-        
-        if (!attendanceLoading) {
-            loadAIGreeting();
-        }
-    }, [instructorName, attendance.length, attendanceLoading, hour]);
-
-    const getDefaultGreeting = (name, h, day) => {
-        const timeGreeting = h < 12 ? '좋은 아침이에요' : h < 17 ? '오늘도 좋은 오후예요' : '수고하셨어요';
-        const dayContext = day === '월' ? '새로운 한 주의 시작!' : 
-                          day === '금' ? '즐거운 금요일!' : 
-                          (day === '토' || day === '일') ? '행복한 주말!' : '';
-        return `${name} 선생님, ${timeGreeting}! 🧘‍♀️${dayContext ? ' ' + dayContext : ''}`;
-    };
+        checkLogic();
+        const interval = setInterval(checkLogic, 30000); // Update every 30s
+        return () => clearInterval(interval);
+    }, []);
 
     const handleEnablePush = async () => {
         setPushLoading(true);
@@ -419,107 +508,92 @@ const InstructorHome = ({ instructorName, branchId }) => {
         setPushMessage('ℹ️ 브라우저 설정에서 알림을 끌 수 있습니다.\n사이트 설정 > 알림 > 차단');
     };
 
-    // Apply Instructor Manifest
-    useEffect(() => {
-        const link = document.querySelector("link[rel~='manifest']");
-        if (link) {
-            link.href = '/manifest-instructor.json';
-            // Force browser to re-read manifest (sometimes needed)
-            link.content = '/manifest-instructor.json';
-        }
-        return () => {
-            if (link) {
-                link.href = '/manifest.json';
-            }
-        };
-    }, []);
-
     const handleInstallPWA = async () => {
         if (deferredPrompt) {
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                setIsStandalone(true);
-            }
+            if (outcome === 'accepted') setIsStandalone(true);
             setDeferredPrompt(null);
         }
     };
 
+    // Split attendance by branch
+    const ghcAttendance = attendance.filter(r => r.branchName === '광흥창점' || r.branchId === 'gwangheungchang');
+    const mapoAttendance = attendance.filter(r => r.branchName === '마포점' || r.branchId === 'mapo');
+
+    const renderAttendanceList = (list, title, color) => (
+        <div style={{ marginTop: '16px', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px' }}>
+            <h4 style={{ margin: '0 0 10px', fontSize: '0.9rem', color: color, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: color }} />
+                {title} <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>({list.length}명)</span>
+            </h4>
+            {list.length === 0 ? (
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic', paddingLeft: '14px' }}>출석한 회원이 없습니다</div>
+            ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {list.map((record, idx) => (
+                        <div key={record.id || idx} style={{ 
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                            padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px',
+                            borderLeft: `2px solid ${color}`
+                        }}>
+                            <div>
+                                <div style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{record.memberName}</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{record.className}</div>
+                            </div>
+                            <div style={{ color: 'var(--primary-gold)', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                                {record.timestamp?.split('T')[1]?.slice(0, 5) || ''}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+
     return (
         <div style={{ padding: '16px' }}>
-            {/* AI Greeting Section */}
-            <div style={{ 
-                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.05) 100%)', 
-                padding: '20px', 
-                borderRadius: '16px', 
-                marginBottom: '20px',
-                border: '1px solid rgba(212, 175, 55, 0.2)'
-            }}>
-                {greetingLoading ? (
-                    <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>✨ 인사말 준비중...</div>
+            {/* Logic Status Monitor */}
+            <div style={{ background: 'rgba(20, 20, 30, 0.6)', border: '1px solid rgba(255,255,255,0.1)', padding: '16px', borderRadius: '12px', marginBottom: '16px' }}>
+                <h3 style={{ margin: '0 0 8px', fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    🕒 현재 출석 매칭 시스템
+                </h3>
+                {currentMatch ? (
+                    <div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--primary-gold)', marginBottom: '4px' }}>
+                            {currentMatch.instructor} 선생님 ({currentMatch.branch})
+                        </div>
+                        <div style={{ fontSize: '0.9rem', color: 'white' }}>{currentMatch.title}</div>
+                        <div style={{ fontSize: '0.8rem', color: '#4CAF50', marginTop: '6px', fontFamily: 'monospace' }}>
+                            ✅ 로직: {currentMatch.debugReason}
+                        </div>
+                    </div>
                 ) : (
-                    <p style={{ 
-                        margin: 0, 
-                        fontSize: '1.1rem', 
-                        lineHeight: 1.6,
-                        color: 'var(--text-primary)',
-                        textAlign: 'center'
-                    }}>
-                        {aiGreeting}
-                    </p>
+                    <div>
+                        <div style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>현재 진행/대기 중인 수업 없음</div>
+                        <div style={{ fontSize: '0.8rem', color: 'gray', marginTop: '4px' }}>자율수련 모드로 동작 중</div>
+                    </div>
                 )}
             </div>
 
-            {/* Today's Attendance Section */}
+            {/* Attendance */}
             <div style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '12px', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                     <h3 style={{ margin: 0, fontSize: '1rem' }}>📋 오늘 출석현황</h3>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{todayStr}</span>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{todayStr} ({attendance.length}명)</span>
                 </div>
                 
                 {attendanceLoading ? (
                     <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '20px' }}>로딩 중...</div>
-                ) : attendance.length === 0 ? (
-                    <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
-                        오늘 내 수업에 출석한 회원이 없습니다
-                    </div>
                 ) : (
                     <>
-                        <div style={{ 
-                            background: 'rgba(212, 175, 55, 0.1)', 
-                            padding: '12px', 
-                            borderRadius: '8px', 
-                            marginBottom: '12px',
-                            textAlign: 'center'
-                        }}>
-                            <span style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--primary-gold)' }}>{attendance.length}</span>
-                            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginLeft: '8px' }}>명 출석</span>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto' }}>
-                            {attendance.map((record, idx) => (
-                                <div key={record.id || idx} style={{ 
-                                    background: 'rgba(255,255,255,0.03)', 
-                                    padding: '10px 14px', 
-                                    borderRadius: '8px', 
-                                    display: 'flex', 
-                                    justifyContent: 'space-between', 
-                                    alignItems: 'center' 
-                                }}>
-                                    <div>
-                                        <div style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{record.memberName}</div>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{record.className}</div>
-                                    </div>
-                                    <div style={{ color: 'var(--primary-gold)', fontWeight: 'bold', fontSize: '0.9rem' }}>
-                                        {record.timestamp?.split('T')[1]?.slice(0, 5) || ''}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                        {renderAttendanceList(ghcAttendance, '광흥창점', 'var(--primary-gold)')}
+                        {renderAttendanceList(mapoAttendance, '마포점', '#FF6B6B')}
                     </>
                 )}
             </div>
 
-            {/* Push Notification Section */}
+            {/* Push Notification */}
             <div style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '12px', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
                     {pushEnabled ? <BellRinging size={24} color="var(--primary-gold)" weight="fill" /> : <Bell size={24} color="var(--text-secondary)" />}
@@ -532,94 +606,65 @@ const InstructorHome = ({ instructorName, branchId }) => {
                 </div>
                 
                 {pushEnabled ? (
-                    <button
-                        onClick={handleDisablePush}
-                        style={{
-                            width: '100%', padding: '10px', borderRadius: '8px', border: 'none',
-                            background: 'rgba(76, 175, 80, 0.2)', color: '#4CAF50',
-                            fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
-                        }}
-                    >
-                        <BellRinging size={18} weight="fill" />
-                        알림 ON
+                    <button onClick={handleDisablePush} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: 'none', background: 'rgba(76, 175, 80, 0.2)', color: '#4CAF50', fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        <BellRinging size={18} weight="fill" /> 알림 ON
                     </button>
                 ) : (
-                    <button
-                        onClick={handleEnablePush}
-                        disabled={pushLoading}
-                        style={{
-                            width: '100%', padding: '12px', borderRadius: '8px', border: 'none',
-                            background: pushLoading ? 'var(--bg-input)' : 'var(--primary-gold)',
-                            color: pushLoading ? 'var(--text-secondary)' : 'black',
-                            fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer'
-                        }}
-                    >
+                    <button onClick={handleEnablePush} disabled={pushLoading} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: 'none', background: pushLoading ? 'var(--bg-input)' : 'var(--primary-gold)', color: pushLoading ? 'var(--text-secondary)' : 'black', fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer' }}>
                         {pushLoading ? '설정 중...' : '🔔 알림 허용하기'}
                     </button>
                 )}
                 
                 {pushMessage && (
-                    <p style={{ marginTop: '8px', fontSize: '0.85rem', textAlign: 'center', color: pushMessage.includes('✅') ? '#4CAF50' : 'var(--text-secondary)', whiteSpace: 'pre-line' }}>
-                        {pushMessage}
-                    </p>
+                    <p style={{ marginTop: '8px', fontSize: '0.85rem', textAlign: 'center', color: pushMessage.includes('✅') ? '#4CAF50' : 'var(--text-secondary)', whiteSpace: 'pre-line' }}>{pushMessage}</p>
                 )}
             </div>
 
-            {/* PWA Install Section - Only on mobile and not installed */}
+            {/* PWA Install */}
             {!isStandalone && (deviceOS === 'ios' || deviceOS === 'android') && (
                 <div style={{ background: 'var(--bg-surface)', padding: '16px', borderRadius: '12px', marginBottom: '16px' }}>
                     <h3 style={{ margin: '0 0 12px', fontSize: '1rem' }}>📲 홈 화면에 추가</h3>
-                    
                     {deviceOS === 'android' && deferredPrompt ? (
-                        <button
-                            onClick={handleInstallPWA}
-                            style={{
-                                width: '100%', padding: '12px', borderRadius: '8px', border: 'none',
-                                background: 'var(--primary-gold)', color: 'black',
-                                fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer'
-                            }}
-                        >
+                        <button onClick={handleInstallPWA} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: 'none', background: 'var(--primary-gold)', color: 'black', fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer' }}>
                             홈 화면에 설치하기
                         </button>
                     ) : (
-                        <div style={{ 
-                            background: 'rgba(212, 175, 55, 0.1)', 
-                            padding: '12px', 
-                            borderRadius: '8px',
-                            fontSize: '0.85rem',
-                            color: 'var(--text-secondary)',
-                            textAlign: 'center'
-                        }}>
-                            {deviceOS === 'ios' 
-                                ? 'Safari 공유 버튼 ↑ → "홈 화면에 추가"'
-                                : 'Chrome 메뉴 ⋮ → "홈 화면에 추가"'}
+                        <div style={{ background: 'rgba(212, 175, 55, 0.1)', padding: '12px', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                            {deviceOS === 'ios' ? 'Safari 공유 버튼 ↑ → "홈 화면에 추가"' : 'Chrome 메뉴 ⋮ → "홈 화면에 추가"'}
                         </div>
                     )}
                 </div>
             )}
 
-            {/* Login info */}
-            <div style={{ 
-                textAlign: 'center', 
-                fontSize: '0.85rem', 
-                color: 'var(--text-secondary)',
-                padding: '8px'
-            }}>
+            <div style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)', padding: '8px' }}>
                 {instructorName} 선생님으로 로그인됨
             </div>
         </div>
     );
 };
 
-
+// === Main Page ===
 const InstructorPage = () => {
     const [instructorName, setInstructorName] = useState(localStorage.getItem('instructorName') || '');
     const [instructors, setInstructors] = useState([]);
     const [activeTab, setActiveTab] = useState('home');
-    const [branchId] = useState('gwangheungchang');
     const [loading, setLoading] = useState(true);
 
+    // AI Greeting State (Global)
+    const [aiGreeting, setAiGreeting] = useState('');
+    
+    // Attendance State (Global)
+    const [attendance, setAttendance] = useState([]);
+    const [attendanceLoading, setAttendanceLoading] = useState(true);
+    const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+    const hour = new Date().getHours();
+
+    const branches = useMemo(() => [
+        { id: 'gwangheungchang', name: '광흥창점' },
+        { id: 'mapo', name: '마포점' }
+    ], []);
+
+    // Load Instructors
     useEffect(() => {
         const loadInstructors = async () => {
             try {
@@ -634,18 +679,98 @@ const InstructorPage = () => {
             }
         };
         loadInstructors();
-
-        // Subscribe to any changes in settings/instructors
-        const unsubscribe = storageService.subscribe(async () => {
-            const insts = await storageService.getInstructors();
-            setInstructors(insts || []);
-        });
-        return () => unsubscribe();
     }, []);
+
+    // Load Attendance (Global)
+    useEffect(() => {
+        if (!instructorName) return;
+
+        const loadAttendance = async () => {
+            try {
+                const promises = branches.map(b => storageService.getAttendanceByDate(todayStr, b.id));
+                const results = await Promise.all(promises);
+                
+                let allAttendance = [];
+                results.forEach((data, idx) => {
+                    const branchName = branches[idx].name;
+                    const branchId = branches[idx].id;
+                    const branchRecords = (data || []).map(r => ({ ...r, branchName, branchId }));
+                    allAttendance = [...allAttendance, ...branchRecords];
+                });
+
+                const myAttendance = allAttendance.filter(a => a.instructor === instructorName);
+                myAttendance.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                setAttendance(myAttendance);
+            } catch (e) {
+                console.error('Failed to load attendance:', e);
+            } finally {
+                setAttendanceLoading(false);
+            }
+        };
+        loadAttendance();
+
+        const interval = setInterval(loadAttendance, 30000);
+        return () => clearInterval(interval);
+    }, [instructorName, todayStr, branches]);
+
+    // Initialize AI Greeting (Instant + Fetch)
+    useEffect(() => {
+        if (!instructorName) return;
+
+        const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][new Date().getDay()];
+        
+        // 1. Try Cache First for instant display
+        const cacheKey = `ai_greeting_${instructorName}_${todayStr}_${hour}`;
+        const cached = localStorage.getItem(cacheKey);
+        
+        if (cached) {
+            setAiGreeting(cached);
+        } else {
+            // If no cache, set default instant message (to avoid "Loading...")
+            setAiGreeting(getDefaultGreeting(instructorName, hour, dayOfWeek));
+        }
+
+        // 2. Fetch fresh AI message in background (only if we have meaningful attendance data or no cache)
+        const fetchAI = async () => {
+            if (attendanceLoading) return; // Wait for attendance count
+            
+            try {
+                // If we have cache and it's fresh enough (e.g. same session), maybe skip?
+                // For now, always re-fetch to be fresh with attendance count changes.
+                // But to avoid flickering, only update if different? 
+                // Let's just fetch and update logic.
+                
+                const result = await storageService.getAIExperience(
+                    instructorName,
+                    attendance.length,
+                    dayOfWeek,
+                    hour,
+                    null, null, null, null, 'ko', null, 'instructor'
+                );
+                
+                const greetingText = typeof result === 'string' 
+                    ? result 
+                    : (result?.message || getDefaultGreeting(instructorName, hour, dayOfWeek, attendance.length));
+                
+                setAiGreeting(greetingText);
+                localStorage.setItem(cacheKey, greetingText);
+            } catch (e) {
+                console.error('AI greeting background fetch failed:', e);
+            }
+        };
+
+        if (!attendanceLoading) {
+            fetchAI();
+        }
+
+    }, [instructorName, attendance.length, attendanceLoading, hour, todayStr]);
 
     const handleLogout = () => {
         localStorage.removeItem('instructorName');
         setInstructorName('');
+        setAiGreeting('');
+        setAttendance([]);
     };
 
     if (loading) {
@@ -668,30 +793,42 @@ const InstructorPage = () => {
     return (
         <div style={{ minHeight: '100vh', background: 'transparent', paddingBottom: '80px', position: 'relative' }}>
             <CosmicParticles />
+            
             {/* Header */}
             <div style={{ background: 'rgba(20, 20, 25, 0.9)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', position: 'relative', zIndex: 2, backdropFilter: 'blur(10px)' }}>
                 <div>
-                    <h1 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--primary-gold)' }}>복샘요가 강사</h1>
+                    <h1 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--primary-gold)' }}>복샘요가 강사</h1>
                     <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{instructorName} 선생님</p>
                 </div>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                        <SignOut size={24} color="var(--text-secondary)" />
-                    </button>
-                </div>
+                <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                    <SignOut size={24} color="var(--text-secondary)" />
+                </button>
+            </div>
+
+            {/* AI Greeting (Top of Content) */}
+            <div style={{ 
+                position: 'relative', zIndex: 1,
+                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.05) 100%)', 
+                padding: '16px 20px', 
+                borderBottom: '1px solid rgba(212, 175, 55, 0.1)'
+            }}>
+                <p style={{ margin: 0, fontSize: '1rem', lineHeight: 1.5, color: 'var(--text-primary)', textAlign: 'center', fontStyle: 'italic' }}>
+                    &quot;{aiGreeting}&quot;
+                </p>
             </div>
 
             {/* Content Area */}
-            <div style={{ position: 'relative', zIndex: 1, minHeight: 'calc(100vh - 160px)' }}>
-                {activeTab === 'home' && <InstructorHome instructorName={instructorName} branchId={branchId} />}
-                {activeTab === 'schedule' && <InstructorSchedule instructorName={instructorName} branchId={branchId} />}
+            <div style={{ position: 'relative', zIndex: 1, minHeight: 'calc(100vh - 220px)' }}>
+                {activeTab === 'home' && <InstructorHome instructorName={instructorName} attendance={attendance} attendanceLoading={attendanceLoading} />}
+                {activeTab === 'schedule' && <InstructorSchedule instructorName={instructorName} />}
                 {activeTab === 'notices' && <InstructorNotices />}
             </div>
 
             {/* Bottom Navigation */}
             <div style={{
                 position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--bg-surface)',
-                display: 'flex', justifyContent: 'space-around', padding: '12px 0', borderTop: '1px solid var(--border-color)'
+                display: 'flex', justifyContent: 'space-around', padding: '8px 0', borderTop: '1px solid var(--border-color)',
+                zIndex: 10
             }}>
                 <TabButton icon={<House size={24} />} label="홈" active={activeTab === 'home'} onClick={() => setActiveTab('home')} />
                 <TabButton icon={<CalendarBlank size={24} />} label="시간표" active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} />
@@ -705,8 +842,20 @@ const TabButton = ({ icon, label, active, onClick }) => (
     <button
         onClick={onClick}
         style={{
-            background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
-            color: active ? 'var(--primary-gold)' : 'var(--text-secondary)', cursor: 'pointer'
+            background: 'none', 
+            border: 'none', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            gap: '4px',
+            color: active ? 'var(--primary-gold)' : 'var(--text-secondary)', 
+            cursor: 'pointer',
+            padding: '12px 20px',
+            minWidth: '64px',
+            touchAction: 'manipulation',
+            userSelect: 'none',
+            WebkitTapHighlightColor: 'transparent',
+            transition: 'transform 0.1s, opacity 0.1s'
         }}
     >
         {icon}
