@@ -123,26 +123,30 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
     }, [loadingInsight]);
 
     const refreshData = useCallback(async () => {
-        const currentMembers = await storageService.loadAllMembers();
+        console.time('[Admin] refreshData');
+        
+        // [PERF] Parallel data loading for faster initial render
+        const [currentMembers, currentImages, tokensResult, usageResult, currentSales] = await Promise.all([
+            storageService.loadAllMembers(),
+            storageService.getImages(),
+            storageService.getAllPushTokens().catch(err => {
+                console.error('Failed to fetch push tokens:', err);
+                return [];
+            }),
+            storageService.getAiUsage().catch(e => {
+                console.warn("Failed to fetch AI usage", e);
+                return { count: 0, limit: 2000 };
+            }),
+            storageService.getSales()
+        ]);
+        
+        // Get cached data (sync, no await needed)
         const currentLogs = storageService.getAttendance();
         const currentNotices = storageService.getNotices();
-        const currentImages = await storageService.getImages();
-
-        try {
-            const tokens = await storageService.getAllPushTokens();
-            setPushTokens(tokens);
-        } catch (err) {
-            console.error('Failed to fetch push tokens:', err);
-        }
-
-        try {
-            const usage = await storageService.getAiUsage();
-            setAiUsage(usage);
-        } catch (e) {
-            console.warn("Failed to fetch AI usage", e);
-        }
-
-        const currentSales = await storageService.getSales();
+        
+        // Set state from parallel results
+        setPushTokens(tokensResult);
+        setAiUsage(usageResult);
 
         // [FIX] Ensure Unique Members by ID (Prevent UI Duplicates)
         const uniqueMembers = Array.from(new Map(currentMembers.map(m => [m.id, m])).values());
@@ -152,6 +156,8 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         setNotices([...currentNotices]);
         setImages({ ...currentImages }); // Force new object for images too
         setSales([...currentSales]);
+        
+        console.timeEnd('[Admin] refreshData');
 
         // Branch Filtering for Stats
         const branchLogs = currentBranch === 'all'

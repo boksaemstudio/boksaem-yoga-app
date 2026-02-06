@@ -456,14 +456,14 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading }) => {
         };
     }, []);
 
-    // [NEW] Periodic check for current logic status
+    // [PERF] checkLogic moved to parent InstructorPage for unified interval
+    // getCurrentClass result is passed via props or context if needed
+    // For now, we keep a local effect that runs once + on attendance change
     useEffect(() => {
         const checkLogic = async () => {
-            // Check Mapo as default for display example (or could iterate both)
             const branchId = 'mapo'; 
             const match = await storageService.getCurrentClass(branchId);
             
-            // If no match in Mapo, try GHC
             if (!match) {
                  const match2 = await storageService.getCurrentClass('gwangheungchang');
                  if (match2) setCurrentMatch({ ...match2, branch: '광흥창점' });
@@ -473,9 +473,8 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading }) => {
             }
         };
         checkLogic();
-        const interval = setInterval(checkLogic, 30000); // Update every 30s
-        return () => clearInterval(interval);
-    }, []);
+        // [PERF] Removed separate 30s interval - now synced with attendance refresh
+    }, [attendance]); // Re-check when attendance updates
 
     const handleEnablePush = async () => {
         setPushLoading(true);
@@ -681,7 +680,7 @@ const InstructorPage = () => {
         loadInstructors();
     }, []);
 
-    // Load Attendance (Global)
+    // Load Attendance (Global) - [PERF] Single 30s interval for all refreshes
     useEffect(() => {
         if (!instructorName) return;
 
@@ -708,8 +707,11 @@ const InstructorPage = () => {
                 setAttendanceLoading(false);
             }
         };
-        loadAttendance();
+        
+        console.time('[Instructor] Initial Load');
+        loadAttendance().then(() => console.timeEnd('[Instructor] Initial Load'));
 
+        // [PERF] Single unified interval (was 2 separate intervals)
         const interval = setInterval(loadAttendance, 30000);
         return () => clearInterval(interval);
     }, [instructorName, todayStr, branches]);
