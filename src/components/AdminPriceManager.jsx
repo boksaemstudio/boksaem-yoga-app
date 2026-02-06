@@ -143,14 +143,38 @@ const AdminPriceManager = () => {
 
     return (
         <div style={{ paddingBottom: '80px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
                 <h3 className="section-title" style={{ margin: 0 }}>가격표 관리</h3>
                 <button
                     onClick={handleAddNewCategory}
-                    className="action-btn primary"
-                    style={{ padding: '8px 16px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    className="action-btn"
+                    style={{ 
+                        width: 'auto', 
+                        padding: '10px 24px', 
+                        flexShrink: 0,
+                        background: 'linear-gradient(135deg, #FFD700 0%, #D4AF37 100%)', // Premium Gold Gradient
+                        color: '#000', 
+                        fontWeight: '800',
+                        fontSize: '0.95rem',
+                        border: 'none',
+                        boxShadow: '0 4px 15px rgba(212, 175, 55, 0.4)', // Gold Glow
+                        borderRadius: '30px', 
+                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                    }}
+                    onMouseOver={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(212, 175, 55, 0.6)';
+                    }}
+                    onMouseOut={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(212, 175, 55, 0.4)';
+                    }}
                 >
-                    <Plus size={18} weight="bold" /> 새 회원권 추가
+                    <Plus size={20} weight="black" /> 새 가격표 추가
                 </button>
             </div>
 

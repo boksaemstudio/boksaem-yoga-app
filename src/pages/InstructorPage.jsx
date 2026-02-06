@@ -279,25 +279,27 @@ const InstructorSchedule = ({ instructorName }) => {
                 <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '10px', textAlign: 'center' }}>
                     📅 지점별 일정 확인
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '24px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div style={{ 
-                            width: '14px', 
-                            height: '14px', 
-                            borderRadius: '4px', 
-                            background: 'var(--primary-gold)',
-                            boxShadow: '0 0 8px rgba(212, 175, 55, 0.4)'
+                            width: '24px', 
+                            height: '24px', 
+                            borderRadius: '6px', 
+                            background: 'transparent',
+                            border: '3px solid var(--primary-gold)',
+                            boxShadow: '0 0 10px rgba(212, 175, 55, 0.2)'
                         }} />
                         <span style={{ color: 'white', fontSize: '1rem', fontWeight: 'bold' }}>광흥창점</span>
                     </div>
                     <div style={{ width: '1px', background: 'rgba(255, 255, 255, 0.2)' }} />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div style={{ 
-                            width: '14px', 
-                            height: '14px', 
-                            borderRadius: '4px', 
-                            background: '#FF6B6B',
-                            boxShadow: '0 0 8px rgba(255, 107, 107, 0.4)'
+                            width: '24px', 
+                            height: '24px', 
+                            borderRadius: '6px', 
+                            background: 'transparent',
+                            border: '3px solid #FF6B6B',
+                            boxShadow: '0 0 10px rgba(255, 107, 107, 0.2)'
                         }} />
                         <span style={{ color: 'white', fontSize: '1rem', fontWeight: 'bold' }}>마포점</span>
                     </div>
