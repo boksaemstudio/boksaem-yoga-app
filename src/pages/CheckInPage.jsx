@@ -193,6 +193,7 @@ const CheckInPage = () => {
     const [showInstructorQR, setShowInstructorQR] = useState(false);
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [keypadLocked, setKeypadLocked] = useState(false); // [FIX] Prevent ghost touches
+    const [isOnline, setIsOnline] = useState(navigator.onLine); // [NETWORK] Connectivity state
     // [FIX] Always use Korean for Check-in Page as requested
     // const { language } = useLanguage();
     const language = 'ko';
@@ -344,6 +345,26 @@ const CheckInPage = () => {
         loadAIExperience("방문 회원", null, null, weather);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [language, currentBranch]);
+
+    // [NETWORK] Monitor online/offline status
+    useEffect(() => {
+        const handleOnline = () => {
+            console.log('[Network] Connection restored');
+            setIsOnline(true);
+        };
+        const handleOffline = () => {
+            console.log('[Network] Connection lost');
+            setIsOnline(false);
+        };
+        
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+        
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
 
     const loadAIExperience = async (memberName = "방문 회원", credits = null, remainingDays = null, currentWeatherData = null) => {
         const isStandby = memberName === "방문 회원" || memberName === "visitor";
@@ -589,6 +610,14 @@ const CheckInPage = () => {
         const pinCode = code || pin;
         if (pinCode.length !== 4 || loading) return; // Prevent double submission
 
+        // [NETWORK] Check connectivity before attempting server call
+        if (!navigator.onLine) {
+            setMessage({ type: 'error', text: '⚠️ 네트워크 연결을 확인해주세요' });
+            setPin('');
+            startDismissTimer(3000);
+            return;
+        }
+
         console.log(`[CheckIn] Starting submission for PIN: ${pinCode}`);
         setLoading(true);
         try {
@@ -634,7 +663,12 @@ const CheckInPage = () => {
         let displayMsg = '출석 처리 중 오류가 발생했습니다.';
         const lowerErr = errorStr.toLowerCase();
 
-        if (lowerErr.includes("insufficient credits")) {
+        // [NETWORK] Network-specific error messages (check first for better UX)
+        if (lowerErr.includes('시간 초과') || lowerErr.includes('timeout')) {
+            displayMsg = '⏱️ 서버 응답 시간 초과 - 다시 시도해주세요';
+        } else if (lowerErr.includes('network') || lowerErr.includes('fetch') || lowerErr.includes('failed to fetch')) {
+            displayMsg = '🌐 네트워크 오류 - 연결을 확인해주세요';
+        } else if (lowerErr.includes("insufficient credits")) {
             displayMsg = "잔여 횟수가 부족합니다. (0회)";
         } else if (lowerErr.includes("membership expired")) {
             const dateMatch = errorStr.match(/\((.*?)\)/);
@@ -807,6 +841,29 @@ const CheckInPage = () => {
             flexDirection: 'column',
             background: '#000'
         }}>
+            {/* [NETWORK] Offline Warning Banner */}
+            {!isOnline && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    background: 'linear-gradient(90deg, #ff4757, #ff6b81)',
+                    color: 'white',
+                    padding: '14px',
+                    textAlign: 'center',
+                    fontWeight: 'bold',
+                    fontSize: '1.1rem',
+                    zIndex: 9999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
+                    boxShadow: '0 4px 20px rgba(255, 71, 87, 0.5)'
+                }}>
+                    ⚠️ 네트워크 연결이 끊겼습니다 - 출석 처리가 불가능합니다
+                </div>
+            )}
             {/* Background Image with optimized rendering */}
             <div className="bg-container" style={{
                 position: 'fixed',

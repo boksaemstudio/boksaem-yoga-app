@@ -21,6 +21,17 @@ let listeners = [];
 // [PERF] O(1) lookup index for phone last 4 digits
 let phoneLast4Index = {}; // { "1234": [member1, member2], ... }
 
+// [NETWORK] Timeout wrapper for Cloud Function calls
+// Prevents infinite waiting when network is slow or disconnected
+const withTimeout = (promise, timeoutMs = 10000, errorMsg = '서버 응답 시간 초과') => {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => 
+      setTimeout(() => reject(new Error(errorMsg)), timeoutMs)
+    )
+  ]);
+};
+
 const notifyListeners = () => {
   listeners.forEach(callback => callback());
 };
@@ -281,7 +292,12 @@ export const storageService = {
     console.warn(`[Storage] Cache miss for ${last4Digits}, calling Cloud Function...`);
     try {
       const getSecureMember = httpsCallable(functions, 'getSecureMemberV2Call');
-      const result = await getSecureMember({ phoneLast4: last4Digits });
+      // [NETWORK] Apply timeout to prevent infinite waiting
+      const result = await withTimeout(
+        getSecureMember({ phoneLast4: last4Digits }),
+        10000,
+        '회원 조회 시간 초과 - 네트워크를 확인해주세요'
+      );
       const members = result.data.members || [];
       // Update cache and index
       members.forEach(m => {
@@ -315,7 +331,12 @@ export const storageService = {
       const currentClassInfo = await this.getCurrentClass(branchId);
       const classTitle = currentClassInfo?.title || '자율수련';
       const instructor = currentClassInfo?.instructor || '관리자';
-      const response = await checkInMember({ memberId, branchId, classTitle, instructor });
+      // [NETWORK] Apply timeout to prevent infinite waiting on slow networks
+      const response = await withTimeout(
+        checkInMember({ memberId, branchId, classTitle, instructor }),
+        10000,
+        '출석 처리 시간 초과 - 다시 시도해주세요'
+      );
 
       if (!response.data.success) throw new Error(response.data.message || 'Check-in failed');
 
