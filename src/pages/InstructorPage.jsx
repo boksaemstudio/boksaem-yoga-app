@@ -270,23 +270,37 @@ const InstructorSchedule = ({ instructorName }) => {
 
             {/* Branch Legend */}
             <div style={{ 
-                display: 'flex', 
-                gap: '12px', 
-                marginBottom: '16px', 
-                fontSize: '0.85rem', 
-                justifyContent: 'center',
-                background: 'var(--bg-surface)',
-                padding: '10px',
-                borderRadius: '8px'
+                marginBottom: '20px', 
+                background: 'rgba(255, 255, 255, 0.05)',
+                padding: '16px',
+                borderRadius: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary-gold)' }} />
-                    <span style={{ color: 'var(--text-primary)' }}>광흥창점</span>
+                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '10px', textAlign: 'center' }}>
+                    📅 지점별 일정 확인
                 </div>
-                <div style={{ width: '1px', background: 'var(--border-color)' }} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF6B6B' }} />
-                    <span style={{ color: 'var(--text-primary)' }}>마포점</span>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ 
+                            width: '14px', 
+                            height: '14px', 
+                            borderRadius: '4px', 
+                            background: 'var(--primary-gold)',
+                            boxShadow: '0 0 8px rgba(212, 175, 55, 0.4)'
+                        }} />
+                        <span style={{ color: 'white', fontSize: '1rem', fontWeight: 'bold' }}>광흥창점</span>
+                    </div>
+                    <div style={{ width: '1px', background: 'rgba(255, 255, 255, 0.2)' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ 
+                            width: '14px', 
+                            height: '14px', 
+                            borderRadius: '4px', 
+                            background: '#FF6B6B',
+                            boxShadow: '0 0 8px rgba(255, 107, 107, 0.4)'
+                        }} />
+                        <span style={{ color: 'white', fontSize: '1rem', fontWeight: 'bold' }}>마포점</span>
+                    </div>
                 </div>
             </div>
 
@@ -558,7 +572,26 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading }) => {
     return (
         <div style={{ padding: '16px' }}>
             {/* Logic Status Monitor */}
-            <div style={{ background: 'rgba(20, 20, 30, 0.6)', border: '1px solid rgba(255,255,255,0.1)', padding: '16px', borderRadius: '12px', marginBottom: '16px' }}>
+            <div style={{ 
+                background: 'linear-gradient(145deg, rgba(30, 30, 40, 0.9), rgba(20, 20, 30, 0.95))', 
+                border: '2px solid var(--primary-gold)', 
+                boxShadow: '0 0 20px rgba(212, 175, 55, 0.2)', // Soft gold glow
+                padding: '16px', 
+                borderRadius: '16px', // Slightly more rounded
+                marginBottom: '16px',
+                position: 'relative',
+                overflow: 'hidden'
+            }}>
+                <div style={{ // Subtle shine effect overlay
+                    position: 'absolute',
+                    top: '-50%',
+                    left: '-50%',
+                    width: '200%',
+                    height: '200%',
+                    background: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%)',
+                    pointerEvents: 'none',
+                    transform: 'translate(0, 0)'
+                }} />
                 <h3 style={{ margin: '0 0 8px', fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     🕒 현재 출석 매칭 시스템
                 </h3>

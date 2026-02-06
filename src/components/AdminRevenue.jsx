@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { CaretLeft, CaretRight, Calendar as CalendarIcon } from '@phosphor-icons/react';
+import { getHolidayName } from '../utils/holidays';
 
 const AdminRevenue = ({ members, sales, currentBranch }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -118,10 +119,29 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
             const dKey = `${monthStr}-${String(d).padStart(2, '0')}`;
             const dateObj = new Date(year, month - 1, d);
             const dayOfWeek = dateObj.getDay(); // 0=Sun
+            // [Feature] Holiday Logic
+            const holidayRaw = getHolidayName(dKey);
+            // Simple mapping for display
+            const holidayMap = {
+                'holiday_new_year': '신정',
+                'holiday_lunar_new_year': '설날',
+                'holiday_samiljeol': '삼일절',
+                'holiday_childrens_day': '어린이날',
+                'holiday_buddha': '석가탄신일',
+                'holiday_memorial': '현충일',
+                'holiday_liberation': '광복절',
+                'holiday_chuseok': '추석',
+                'holiday_foundation': '개천절',
+                'holiday_hangul': '한글날',
+                'holiday_christmas': '크리스', // Shortened for space
+                'holiday_election': '선거일'
+            };
+
             daily[dKey] = {
                 date: dKey, amount: 0, count: 0,
                 isSunday: dayOfWeek === 0,
-                isSaturday: dayOfWeek === 6
+                isSaturday: dayOfWeek === 6,
+                holidayName: holidayRaw ? (holidayMap[holidayRaw] || '공휴일') : null
             };
         }
 
@@ -267,10 +287,15 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
                         }}>
                             <div style={{
                                 fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '4px',
-                                color: day.isSunday ? '#ef4444' : (day.isSaturday ? '#3b82f6' : '#d4d4d8')
+                                color: (day.isSunday || day.holidayName) ? '#ef4444' : (day.isSaturday ? '#3b82f6' : '#d4d4d8')
                             }}>
                                 {parseInt(day.date.split('-')[2])}
                             </div>
+                            {day.holidayName && (
+                                <div style={{ fontSize: '0.65rem', color: '#ef4444', marginBottom: '4px', fontWeight: 'bold', lineHeight: 1.2 }}>
+                                    {day.holidayName}
+                                </div>
+                            )}
                             {day.amount > 0 && (
                                 <div style={{ fontSize: '0.8rem', color: '#f59e0b', fontWeight: '600', marginBottom: '2px' }}>
                                     {formatCurrency(day.amount)}

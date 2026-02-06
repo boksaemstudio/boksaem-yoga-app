@@ -824,7 +824,7 @@ const MemberProfile = () => {
 
                                 {/* Push Notification Settings (Simple Toggle) */}
                                 <div className="glass-panel" style={{ padding: '20px', background: 'rgba(20, 20, 20, 0.8)', marginBottom: '20px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '15px' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                             <Icons.Bell size={20} color="var(--primary-gold)" />
                                             <span style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)' }}>푸시 알림 설정</span>
