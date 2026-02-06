@@ -19,7 +19,7 @@ export default defineConfig({
         importScripts: ['/firebase-messaging-sw.js'],
       },
       devOptions: {
-        enabled: true // Enable PWA in dev for testing
+        enabled: false // Disable PWA in dev to prevent constant "New version" loops
       }
     })
   ],

@@ -18,6 +18,47 @@ function ReloadPrompt() {
 
   if (closed || !needRefresh) return null;
 
+  const handleRefresh = async () => {
+    console.log('ReloadPrompt: Refresh requested by user.');
+    
+    // Set a flag to detect if we just reloaded and it failed
+    sessionStorage.setItem('sw_update_attempt', 'true');
+
+    try {
+      await updateServiceWorker(true);
+      console.log('ReloadPrompt: updateServiceWorker called.');
+      
+      // Fallback: If page doesn't reload within 3 seconds, force it.
+      // Increased from 1s to 3s to allow SW enough time to activate.
+      setTimeout(() => {
+         console.warn('ReloadPrompt: Timeout waiting for controller change, forcing reload.');
+         window.location.reload();
+      }, 3000);
+    } catch (err) {
+      console.error('ReloadPrompt: Failed to update service worker:', err);
+      // Force reload on error
+      window.location.reload();
+    }
+  };
+
+  // Check for update loop on mount
+  if (needRefresh) {
+    const lastAttempt = sessionStorage.getItem('sw_update_attempt');
+    if (lastAttempt) {
+        console.warn('ReloadPrompt: Detected probable update loop. Unregistering SW to recover.');
+        sessionStorage.removeItem('sw_update_attempt');
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then((registrations) => {
+                for (const registration of registrations) {
+                    registration.unregister();
+                }
+                window.location.reload();
+            });
+        }
+        return null; // Don't show the prompt while we nuke it
+    }
+  }
+
   return (
     <div className="pwa-reload-toast">
       <div className="pwa-reload-content">
@@ -29,7 +70,7 @@ function ReloadPrompt() {
       </div>
       <button 
         className="pwa-reload-button" 
-        onClick={() => updateServiceWorker(true)}
+        onClick={handleRefresh}
       >
         <ArrowsClockwise size={20} weight="bold" />
         <span>새로고침</span>

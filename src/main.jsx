@@ -49,44 +49,11 @@ try {
     // We could forward this to an error reporting service here.
   });
 
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', async () => {
-      try {
-        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-
-        // [CRITICAL] Force update to get latest VAPID key fix
-        await registration.update();
-
-        // If there's a waiting SW, activate it immediately
-        if (registration.waiting) {
-          console.log('[SW] New version available, activating...');
-          registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-
-          // Reload page once to use new SW
-          if (!sessionStorage.getItem('sw_updated')) {
-            sessionStorage.setItem('sw_updated', 'true');
-            window.location.reload();
-          }
-        }
-
-        // Listen for updates
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('[SW] Update found, reloading...');
-              newWorker.postMessage({ type: 'SKIP_WAITING' });
-              window.location.reload();
-            }
-          });
-        });
-
-        console.log('[SW] Service Worker registered and updated');
-      } catch (error) {
-        console.error('[SW] Registration/update failed:', error);
-      }
-    });
-  }
+  /* 
+   * [PWA CONFLICT REMOVED] 
+   * Manual SW registration removed because it conflicts with vite-plugin-pwa (ReloadPrompt.jsx).
+   * The plugin handles registration and updates properly.
+   */
 } catch (fatalError) {
   console.error("❌ Fatal Application Error:", fatalError);
   document.getElementById('root').innerHTML = `
