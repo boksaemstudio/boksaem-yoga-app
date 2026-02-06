@@ -27,32 +27,17 @@ function ReloadPrompt() {
           <span className="pwa-reload-subtitle">앱을 업데이트해주세요.</span>
         </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <button 
-          className="pwa-reload-button" 
-          onClick={() => updateServiceWorker(true)}
-        >
-          <ArrowsClockwise size={20} weight="bold" />
-          <span>새로고침</span>
-        </button>
-        <button
-          onClick={() => setClosed(true)}
-          style={{
-            background: 'rgba(255,255,255,0.1)',
-            border: 'none',
-            borderRadius: '50%',
-            width: '32px',
-            height: '32px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            color: 'rgba(255,255,255,0.7)'
-          }}
-        >
-          <X size={18} />
-        </button>
-      </div>
+      <button 
+        className="pwa-reload-button" 
+        onClick={() => {
+          updateServiceWorker(true);
+          // Safety net: Force reload if hook doesn't trigger it immediately
+          setTimeout(() => window.location.reload(), 500);
+        }}
+      >
+        <ArrowsClockwise size={20} weight="bold" />
+        <span>새로고침</span>
+      </button>
 
       <style>{`
         .pwa-reload-toast {
