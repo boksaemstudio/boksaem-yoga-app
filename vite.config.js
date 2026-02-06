@@ -7,13 +7,13 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'prompt', // "New content available, click to reload"
+      registerType: 'autoUpdate', // Silent update
       includeAssets: ['favicon.png', 'apple-touch-icon.png', 'logo_circle.png', '*.svg'],
       manifest: false, // We handle manifest manually in index.html for dynamic/multi-role support
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         cleanupOutdatedCaches: true,
-        skipWaiting: false, // Wait for user to click "Reload"
+        skipWaiting: true, // Auto-activate new SW
         clientsClaim: true,
         // [CRITICAL] Import Firebase Messaging SW to enable Push Notifications
         importScripts: ['/firebase-messaging-sw.js'],
