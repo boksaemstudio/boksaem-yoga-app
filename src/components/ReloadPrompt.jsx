@@ -10,6 +10,13 @@ function ReloadPrompt() {
   } = useRegisterSW({
     onRegistered(r) {
       console.log('SW Registered: ' + r);
+      // [NEW] Check for updates every 10 minutes
+      if (r) {
+        setInterval(() => {
+          console.log('Checking for SW update...');
+          r.update();
+        }, 10 * 60 * 1000); 
+      }
     },
     onRegisterError(error) {
       console.log('SW registration error', error);
