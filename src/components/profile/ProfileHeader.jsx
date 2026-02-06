@@ -10,13 +10,10 @@ const ProfileHeader = ({ logo, langLabelIndex, langLabels, t, logout }) => {
                 <span style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'white' }}>{STUDIO_CONFIG.NAME}</span>
             </div>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <div className="pulse-gold" style={{
+                <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    background: 'rgba(255,255,255,0.1)',
-                    padding: '4px 8px',
-                    borderRadius: '20px',
-                    border: '1px solid rgba(255,255,255,0.1)'
+                    padding: '4px 8px'
                 }}>
                     <span key={langLabelIndex} style={{
                         fontSize: '0.8rem',

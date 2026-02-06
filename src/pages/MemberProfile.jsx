@@ -673,13 +673,10 @@ const MemberProfile = () => {
 
                         {/* Language Selector in Login (Unified Style) */}
                         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
-                            <div className="pulse-gold" style={{
+                            <div style={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                background: 'rgba(255,255,255,0.1)',
-                                padding: '4px 8px',
-                                borderRadius: '20px',
-                                border: '1px solid rgba(255,255,255,0.1)'
+                                padding: '4px 8px'
                             }}>
                                 <span key={langLabelIndex} style={{
                                     fontSize: '0.8rem',
@@ -822,22 +819,78 @@ const MemberProfile = () => {
                                     setActiveTab={setActiveTab}
                                 />
 
-                                {/* Push Notification Settings (Simple Toggle) */}
-                                <div className="glass-panel" style={{ padding: '20px', background: 'rgba(20, 20, 20, 0.8)', marginBottom: '20px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '15px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <Icons.Bell size={20} color="var(--primary-gold)" />
-                                            <span style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)' }}>푸시 알림 설정</span>
+                                <div className="glass-panel" style={{
+                                    padding: '25px 30px',
+                                    background: 'linear-gradient(145deg, rgba(25, 25, 25, 0.9), rgba(15, 15, 15, 0.95))',
+                                    marginBottom: '20px',
+                                    borderRadius: '24px',
+                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                        <div style={{
+                                            width: '44px',
+                                            height: '44px',
+                                            borderRadius: '50%',
+                                            background: pushStatus === 'granted' ? 'rgba(212, 175, 55, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            border: `1px solid ${pushStatus === 'granted' ? 'rgba(212, 175, 55, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
+                                            transition: 'all 0.3s ease'
+                                        }}>
+                                            {pushStatus === 'granted' ? (
+                                                <Icons.BellRinging size={22} weight="fill" color="var(--primary-gold)" />
+                                            ) : (
+                                                <Icons.BellSlash size={22} color="rgba(255,255,255,0.4)" />
+                                            )}
                                         </div>
-                                        <label className="switch">
-                                            <input
-                                                type="checkbox"
-                                                checked={pushStatus === 'granted'}
-                                                onChange={handleNotificationToggle}
-                                            />
-                                            <span className="slider round"></span>
-                                        </label>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>
+                                                푸시 알림
+                                            </span>
+                                            <span style={{ fontSize: '0.85rem', color: pushStatus === 'granted' ? 'var(--primary-gold)' : 'rgba(255,255,255,0.4)', transition: 'color 0.3s' }}>
+                                                {pushStatus === 'granted' ? '알림이 켜져 있습니다' : '알림이 꺼져 있습니다'}
+                                            </span>
+                                        </div>
                                     </div>
+                                    
+                                    <label className="premium-switch" style={{ position: 'relative', display: 'inline-block', width: '56px', height: '30px' }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={pushStatus === 'granted'}
+                                            onChange={handleNotificationToggle}
+                                            style={{ opacity: 0, width: 0, height: 0 }}
+                                        />
+                                        <span className="slider" style={{
+                                            position: 'absolute',
+                                            cursor: 'pointer',
+                                            top: 0, 
+                                            left: 0,
+                                            right: 0,
+                                            bottom: 0,
+                                            backgroundColor: pushStatus === 'granted' ? 'rgba(212, 175, 55, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+                                            transition: '0.4s',
+                                            borderRadius: '34px',
+                                            border: `1px solid ${pushStatus === 'granted' ? 'var(--primary-gold)' : 'rgba(255, 255, 255, 0.2)'}`
+                                        }}>
+                                            <span style={{
+                                                position: 'absolute',
+                                                content: '""',
+                                                height: '22px',
+                                                width: '22px',
+                                                left: pushStatus === 'granted' ? '30px' : '4px',
+                                                bottom: '3px',
+                                                backgroundColor: pushStatus === 'granted' ? 'var(--primary-gold)' : 'rgba(255, 255, 255, 0.4)',
+                                                transition: '0.4s cubic-bezier(0.4, 0.0, 0.2, 1)',
+                                                borderRadius: '50%',
+                                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                            }}></span>
+                                        </span>
+                                    </label>
                                 </div>
 
                                 <SocialLinks t={t} />
