@@ -405,7 +405,7 @@ const checkAIQuota = async () => {
 };
 
 // V2 함수: Gemini AI를 활용한 맞춤형 페이지 경험
-exports.generatePageExperienceV2 = onCall({ region: "asia-northeast3", cors: true, secrets: ["GEMINI_KEY"] }, async (request) => {
+exports.generatePageExperienceV2 = onCall({ region: "asia-northeast3", cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com'], secrets: ["GEMINI_KEY"] }, async (request) => {
     await checkAIQuota();
 
     let { memberName, weather, timeOfDay, dayOfWeek, upcomingClass, language = 'ko', role = 'member' } = request.data;
@@ -896,7 +896,7 @@ exports.checkLowCreditsV2 = onDocumentUpdated({
     }
 });
 
-exports.translateNoticesV2 = onCall({ region: "asia-northeast3", cors: true, secrets: ["GEMINI_KEY"] }, async (request) => {
+exports.translateNoticesV2 = onCall({ region: "asia-northeast3", cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com'], secrets: ["GEMINI_KEY"] }, async (request) => {
     const { notices, language = 'ko' } = request.data;
     try {
         const ai = getAI();
@@ -1001,10 +1001,32 @@ exports.maintainMemberSearchFields = onDocumentWritten("members/{memberId}", asy
 
 /**
  * [SECURE] 비즈니스 로직 서버 이관: 출석 체크 및 크레딧 차감
+ * [SECURITY PATCH] 2026-02-06: CORS 제한 및 호출 검증 추가
  */
-exports.checkInMemberV2Call = onCall({ region: "asia-northeast3", cors: true }, async (request) => {
+exports.checkInMemberV2Call = onCall({ 
+    region: "asia-northeast3", 
+    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com']
+}, async (request) => {
     const { memberId, branchId, classTitle, instructor } = request.data;
-    if (!memberId || !branchId) throw new HttpsError('invalid-argument', "Missing parameters");
+    
+    // [SECURITY] 입력 검증
+    if (!memberId || typeof memberId !== 'string' || !branchId || typeof branchId !== 'string') {
+        throw new HttpsError('invalid-argument', "Missing or invalid parameters");
+    }
+    
+    // [SECURITY] branchId 유효성 검증 (허용된 지점만)
+    const validBranches = ['boksaem', 'boksaem-yoga', 'main'];
+    if (!validBranches.includes(branchId.toLowerCase())) {
+        console.warn(`[Security] Invalid branchId attempt: ${branchId}`);
+        throw new HttpsError('invalid-argument', "Invalid branch");
+    }
+    
+    // [SECURITY] 호출 소스 로깅 (의심스러운 활동 감지용)
+    const referer = request.rawRequest?.headers?.referer || 'unknown';
+    const clientIP = request.rawRequest?.headers?.['x-forwarded-for'] || request.rawRequest?.ip || 'unknown';
+    if (!referer.includes('boksaem-yoga')) {
+        console.warn(`[Security] Suspicious check-in source: ${referer} from ${clientIP}`);
+    }
 
     const db = admin.firestore();
     const memberRef = db.collection('members').doc(memberId);
@@ -1079,7 +1101,7 @@ exports.checkInMemberV2Call = onCall({ region: "asia-northeast3", cors: true }, 
 /**
  * [NEW] Daily Home Yoga Recommendation
  */
-exports.generateDailyYogaV2 = onCall({ region: "asia-northeast3", cors: true, secrets: ["GEMINI_KEY"] }, async (request) => {
+exports.generateDailyYogaV2 = onCall({ region: "asia-northeast3", cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com'], secrets: ["GEMINI_KEY"] }, async (request) => {
     const { weather, timeOfDay, language = 'ko' } = request.data;
     try {
         const ai = getAI();
@@ -1095,11 +1117,47 @@ exports.generateDailyYogaV2 = onCall({ region: "asia-northeast3", cors: true, se
     }
 });
 
-exports.getSecureMemberV2Call = onCall({ cors: true }, async (request) => {
+exports.getSecureMemberV2Call = onCall({ 
+    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com']
+}, async (request) => {
     const { phoneLast4 } = request.data;
-    if (!phoneLast4) throw new Error("Missing phoneLast4");
+    
+    // [SECURITY] 입력 검증 강화: 정확히 4자리 숫자만 허용
+    if (!phoneLast4 || typeof phoneLast4 !== 'string' || !/^\d{4}$/.test(phoneLast4)) {
+        throw new HttpsError('invalid-argument', 'Invalid PIN format');
+    }
+    
     const db = admin.firestore();
+    
+    // [SECURITY] Rate Limiting: IP별 1분에 최대 10회 호출 제한
+    const clientIdentifier = request.rawRequest?.headers?.['x-forwarded-for'] || 
+                             request.rawRequest?.ip || 
+                             'unknown';
+    const rateLimitRef = db.collection('rate_limits').doc(`pin_${clientIdentifier.replace(/[^a-zA-Z0-9]/g, '_')}`);
+    
     try {
+        const rateLimitDoc = await rateLimitRef.get();
+        const now = Date.now();
+        const windowMs = 60000; // 1분
+        const maxAttempts = 10;
+        
+        if (rateLimitDoc.exists) {
+            const data = rateLimitDoc.data();
+            if (now - data.windowStart < windowMs && data.attempts >= maxAttempts) {
+                console.warn(`[Security] Rate limit exceeded for ${clientIdentifier}`);
+                throw new HttpsError('resource-exhausted', 'Too many attempts. Please wait 1 minute.');
+            }
+        }
+        
+        // 시도 횟수 기록
+        await rateLimitRef.set({
+            windowStart: rateLimitDoc.exists && now - rateLimitDoc.data().windowStart < windowMs 
+                ? rateLimitDoc.data().windowStart : now,
+            attempts: rateLimitDoc.exists && now - rateLimitDoc.data().windowStart < windowMs
+                ? admin.firestore.FieldValue.increment(1) : 1,
+            lastAttempt: now
+        }, { merge: true });
+        
         const snapshot = await db.collection('members').where('phoneLast4', '==', phoneLast4).limit(10).get();
         if (snapshot.empty) return { members: [] };
         const members = snapshot.docs.map(doc => {
@@ -1112,7 +1170,8 @@ exports.getSecureMemberV2Call = onCall({ cors: true }, async (request) => {
         });
         return { members };
     } catch (e) {
-        throw new Error(e.message);
+        if (e.code) throw e; // HttpsError는 그대로 전달
+        throw new HttpsError('internal', e.message);
     }
 });
 
@@ -1252,7 +1311,7 @@ function generateEventMessage(eventType, context) {
 
 
 
-exports.getAllMembersAdminV2Call = onCall({ region: "asia-northeast3", cors: true }, async (request) => {
+exports.getAllMembersAdminV2Call = onCall({ region: "asia-northeast3", cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com'] }, async (request) => {
     // [SECURITY] Strict check for non-anonymous admin user
     if (!request.auth || !request.auth.token.email) {
         throw new HttpsError('unauthenticated', 'Permission denied. Admin authentication required.');
