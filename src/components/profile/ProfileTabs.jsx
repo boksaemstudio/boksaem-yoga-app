@@ -48,9 +48,9 @@ const ProfileTabs = ({ activeTab, setActiveTab, t }) => {
             <NavItem active={activeTab === 'history'} onClick={() => setActiveTab('history')} icon={<Icons.Article size={26} />} label={t('tabHistory')} />
             <NavItem active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} icon={<Icons.Calendar size={26} />} label={t('tabSchedule')} />
             
-            {/* Meditation Tab - Navigates to new page (Using window.location to ensure PWA standalone maintains fullscreen) */}
-            <NavItem active={false} onClick={() => {
-                window.location.href = '/meditation';
+            {/* Meditation Tab - Integrated as a regular tab to maintain PWA context */}
+            <NavItem active={activeTab === 'meditation'} onClick={() => {
+                setActiveTab('meditation');
             }} icon={<Icons.Flower size={26} />} label="명상" />
 
             <NavItem active={activeTab === 'prices'} onClick={() => setActiveTab('prices')} icon={<Icons.Ticket size={26} />} label={t('tabPrices')} />

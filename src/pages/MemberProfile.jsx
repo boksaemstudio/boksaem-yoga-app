@@ -7,6 +7,7 @@ import { Megaphone } from '@phosphor-icons/react';
 import logo from '../assets/logo.png';
 import memberBg from '../assets/zen_yoga_bg.png';
 import MemberScheduleCalendar from '../components/MemberScheduleCalendar';
+import MeditationPage from './MeditationPage';
 import timeTable1 from '../assets/timetable_gwangheungchang.png';
 import timeTable2 from '../assets/timetable_mapo.png';
 import priceTable1 from '../assets/price_table_1.png';
@@ -1047,6 +1048,13 @@ const MemberProfile = () => {
                                     })()
                                 )}
                             </div>
+                        </div>
+                    )}
+
+                    {/* MEDITATION TAB */}
+                    {activeTab === 'meditation' && (
+                        <div className="fade-in">
+                            <MeditationPage onClose={() => setActiveTab('home')} />
                         </div>
                     )}
 

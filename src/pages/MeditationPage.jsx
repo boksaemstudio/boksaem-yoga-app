@@ -147,10 +147,11 @@ const AI_SESSION_MESSAGES = {
     ]
 };
 
-const MeditationPage = () => {
+const MeditationPage = ({ onClose }) => {
     const navigate = useNavigate();
     
-    // Flow State
+    // Stable Refs for cleanup without re-triggering effects
+    const cameraStreamRef = useRef(null);
     const [step, setStep] = useState('diagnosis'); 
     
     // Context State
@@ -180,6 +181,8 @@ const MeditationPage = () => {
     const [aiPrescription, setAiPrescription] = useState(null);
     const [aiSessionMessageIndex, setAiSessionMessageIndex] = useState(0);
     const [lastSpokenMessage, setLastSpokenMessage] = useState("");
+    const [chatHistory, setChatHistory] = useState([]); // 대화 내역 저장
+    const [currentAIChat, setCurrentAIChat] = useState(null); // 현재 AI 질문 및 옵션
 
     // Refs
     const timerRef = useRef(null);
@@ -194,7 +197,7 @@ const MeditationPage = () => {
     const oscRightRef = useRef(null);
     const gainNodeRef = useRef(null);
 
-    // Stop Session (useCallback for stability)
+    // Stop Session (useCallback for stability - removed stream dependency to fix V3 crash)
     const stopSession = useCallback(() => {
         clearInterval(timerRef.current); 
         clearInterval(messageIntervalRef.current);
@@ -206,7 +209,14 @@ const MeditationPage = () => {
             if (sourceRef.current.mediaStream) sourceRef.current.mediaStream.getTracks().forEach(track => track.stop());
             sourceRef.current = null;
         }
-        if (cameraStream) { cameraStream.getTracks().forEach(track => track.stop()); setCameraStream(null); }
+        
+        // Use Ref for camera cleanup
+        if (cameraStreamRef.current) { 
+            cameraStreamRef.current.getTracks().forEach(track => track.stop()); 
+            cameraStreamRef.current = null;
+            setCameraStream(null); 
+        }
+
         if (audioContextRef.current) { audioContextRef.current.close().catch(e => console.error(e)); audioContextRef.current = null; }
 
         setIsPlaying(false);
@@ -217,7 +227,8 @@ const MeditationPage = () => {
         setMicVolume(0);
         setPrescriptionReason('');
         setWeatherContext(null);
-    }, [cameraStream]);
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+    }, []);
 
     // Initial Load with Auto Weather Detection
     useEffect(() => {
@@ -315,30 +326,49 @@ const MeditationPage = () => {
     // 🤖 REAL-TIME AI API CALLS
     // ==========================================
     
-    // Fetch AI-generated question (Real-time from Gemini)
-    const fetchAIQuestion = async () => {
+    // Fetch AI-generated question (Enhanced for multi-turn chat)
+    const fetchAIQuestion = async (history = []) => {
         setIsAILoading(true);
         try {
-            const result = await generateMeditationGuidance({
-                type: 'question',
-                timeContext: timeContext
+            const genGuidance = httpsCallable(functions, 'generateMeditationGuidance');
+            const result = await genGuidance({ 
+                type: 'question', 
+                timeContext: timeContext || 'afternoon',
+                chatHistory: history 
             });
-            if (result.data && result.data.question) {
-                setCurrentQuestion({
-                    q: result.data.question,
-                    sub: result.data.subtext || '',
-                    insight: result.data.insight || ''
-                });
+            
+            if (result.data) {
+                setCurrentAIChat(result.data);
+                // 심리 분석이 완료된 경우
+                if (result.data.isFinalAnalysis) {
+                    const diag = DIAGNOSIS_OPTIONS.find(o => o.id === result.data.mappedDiagnosis) || DIAGNOSIS_OPTIONS[0];
+                    setSelectedDiagnosis(diag);
+                    fetchAIPrescription(diag);
+                }
             }
         } catch (error) {
-            console.error('AI Question fetch failed:', error);
-            // Fallback to static question
-            const questions = SPECIALIST_QUESTIONS[timeContext];
-            setCurrentQuestion(questions[Math.floor(Math.random() * questions.length)]);
+            console.error('AI Question failed:', error);
+            // 에러 발생 시 수동 선택 화면으로 전환
+            setStep('diagnosis_manual');
         } finally {
             setIsAILoading(false);
         }
     };
+
+    const handleChatResponse = async (answer) => {
+        const newHistory = [...chatHistory, 
+            { role: 'user', content: answer }
+        ];
+        setChatHistory(newHistory);
+        await fetchAIQuestion(newHistory);
+    };
+
+    // 진단 단계 진입 시 초기 질문 로드
+    useEffect(() => {
+        if (step === 'diagnosis' && chatHistory.length === 0) {
+            fetchAIQuestion();
+        }
+    }, [step]);
 
     // Fetch AI-generated prescription reason
     const fetchAIPrescription = async (diagnosisId, weatherId, modeId, intType) => {
@@ -379,11 +409,13 @@ const MeditationPage = () => {
                 setAiMessage(result.data.message);
                 setAiSessionMessageIndex(prev => prev + 1);
                 
-                // TTC Voice Guidance
+                // TTC Voice Guidance - LOWER VOLUME and handle speak trigger
                 if (ttcEnabled && window.speechSynthesis) {
+                    window.speechSynthesis.cancel(); // Stop previous
                     const utterance = new SpeechSynthesisUtterance(result.data.message);
                     utterance.lang = 'ko-KR';
-                    utterance.rate = 0.8; // Calmer, slower voice
+                    utterance.volume = 0.3; // Much lower volume
+                    utterance.rate = 0.85; 
                     window.speechSynthesis.speak(utterance);
                 }
             }
@@ -396,9 +428,11 @@ const MeditationPage = () => {
             setAiSessionMessageIndex(prev => prev + 1);
 
             if (ttcEnabled && window.speechSynthesis) {
+                window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(msg);
                 utterance.lang = 'ko-KR';
-                utterance.rate = 0.8;
+                utterance.volume = 0.3;
+                utterance.rate = 0.85;
                 window.speechSynthesis.speak(utterance);
             }
         }
@@ -535,6 +569,7 @@ const MeditationPage = () => {
                 if (audioCtx.state === 'suspended') await audioCtx.resume();
                 
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                cameraStreamRef.current = stream; // Update Ref
                 setCameraStream(stream);
             } catch (err) {
                 console.error("Camera Error:", err);
@@ -575,10 +610,10 @@ const MeditationPage = () => {
         analyserRef.current.getByteFrequencyData(dataArrayRef.current);
         let sum = 0;
         // Focus on lower frequencies (breath range)
-        for (let i = 0; i < 10; i++) { sum += dataArrayRef.current[i]; }
-        const average = sum / 10;
-        // Increased sensitivity for breathing
-        setMicVolume(Math.min((average * 4) / 100, 2.0));
+        for (let i = 0; i < 15; i++) { sum += dataArrayRef.current[i]; }
+        const average = sum / 15;
+        // Increased sensitivity for breathing and low volume
+        setMicVolume(Math.min((average * 6) / 100, 2.5));
     };
 
     const startTimer = () => {
@@ -633,8 +668,10 @@ const MeditationPage = () => {
     // 🎨 RENDER
     // ==========================================
 
-    // 1. Diagnosis Step (Specialist Question)
+    // 1. Diagnosis Step (Conversational AI)
     if (step === 'diagnosis') {
+        const lastAIResponse = currentAIChat?.question || "안녕하세요. 오늘 당신의 마음을 함께 들여다볼 AI 명상 가이드입니다.";
+        
         return (
             <div style={{
                 position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 2000,
@@ -642,29 +679,78 @@ const MeditationPage = () => {
                 backgroundImage: 'radial-gradient(circle at 50% 30%, #1a1a2e 0%, #000000 70%)'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
-                    <button onClick={() => navigate(-1)} style={{ padding: '10px', color: 'white', background: 'none', border: 'none' }}>
+                    <button onClick={() => onClose ? onClose() : navigate(-1)} style={{ padding: '10px', color: 'white', background: 'none', border: 'none' }}>
                         <ArrowLeft size={24} />
                     </button>
                     <h1 style={{ flex: 1, textAlign: 'center', fontSize: '1.1rem', fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginRight: '44px' }}>
-                        명상 전문 AI
+                        AI 심리 분석 & 명상
+                    </h1>
+                </div>
+
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingBottom: '40px' }}>
+                    <div style={{ 
+                        background: 'rgba(255,255,255,0.05)', borderRadius: '25px', padding: '30px', 
+                        width: '100%', maxWidth: '400px', textAlign: 'center', position: 'relative',
+                        border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
+                    }}>
+                        {isAILoading ? (
+                            <div style={{ padding: '40px 0' }}>
+                                <div style={{ fontSize: '2rem', animation: 'bounce 1s infinite', marginBottom: '20px' }}>💭</div>
+                                <p style={{ color: 'var(--primary-gold)', fontWeight: 600 }}>당신의 이야기를 분석 중입니다...</p>
+                            </div>
+                        ) : (
+                            <>
+                                <div style={{ color: 'white', fontSize: '1.25rem', fontWeight: 700, lineHeight: 1.5, wordBreak: 'keep-all', marginBottom: '30px' }}>
+                                    {lastAIResponse}
+                                </div>
+                                
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+                                    {(currentAIChat?.options || ["네, 시작할게요", "조금 지쳤어요", "편안해요"]).map((opt, i) => (
+                                        <button 
+                                            key={i} 
+                                            onClick={() => handleChatResponse(opt)}
+                                            style={{
+                                                padding: '16px', borderRadius: '15px', border: 'none',
+                                                background: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 600,
+                                                cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left'
+                                            }}
+                                            onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.2)'}
+                                            onMouseLeave={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
+                                        >
+                                            {opt}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </div>
+                    
+                    <button onClick={() => setStep('diagnosis_manual')} style={{ marginTop: '25px', background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.3)', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.85rem' }}>
+                        건너뛰고 직접 선택하기
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // 1-b. Manual Diagnosis Step (Fallback)
+    if (step === 'diagnosis_manual') {
+        return (
+            <div style={{
+                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 2000,
+                display: 'flex', flexDirection: 'column', padding: '20px',
+                backgroundImage: 'radial-gradient(circle at 50% 30%, #1a1a2e 0%, #000000 70%)'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
+                    <button onClick={() => setStep('diagnosis')} style={{ padding: '10px', color: 'white', background: 'none', border: 'none' }}>
+                        <ArrowLeft size={24} />
+                    </button>
+                    <h1 style={{ flex: 1, textAlign: 'center', fontSize: '1.1rem', fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginRight: '44px' }}>
+                        명상 선택
                     </h1>
                 </div>
 
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: '30px' }}>
-                    {currentQuestion && (
-                        <div style={{ textAlign: 'center', marginBottom: '40px', maxWidth: '340px' }}>
-                            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white', marginBottom: '15px', lineHeight: 1.5 }}>
-                                {currentQuestion.q}
-                            </h2>
-                            <p style={{ color: 'var(--primary-gold)', fontSize: '0.9rem', marginBottom: '10px', fontStyle: 'italic' }}>
-                                {currentQuestion.sub}
-                            </p>
-                            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>
-                                💡 {currentQuestion.insight}
-                            </p>
-                        </div>
-                    )}
-
                     <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '25px', fontSize: '0.95rem' }}>
                         지금 느껴지는 상태를 선택해주세요
                     </p>
@@ -781,7 +867,12 @@ const MeditationPage = () => {
                         <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '5px 0' }} />
 
                         <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.85)', lineHeight: 1.7, wordBreak: 'keep-all', textAlign: 'center' }}>
-                            {prescriptionReason}
+                            {currentAIChat?.isFinalAnalysis ? (
+                                <div style={{ padding: '5px' }}>
+                                    <div style={{ color: 'var(--primary-gold)', fontWeight: 700, marginBottom: '8px' }}>나의 심리 분석</div>
+                                    {currentAIChat.analysisSummary}
+                                </div>
+                            ) : prescriptionReason}
                         </div>
 
                         {/* Analysis Variables for Transparency */}
@@ -894,11 +985,12 @@ const MeditationPage = () => {
                         position: 'absolute',
                         width: '300px', height: '300px',
                         borderRadius: '50%',
-                        background: `radial-gradient(circle, ${activeMode?.color}40 0%, transparent 70%)`,
+                        backgroundImage: `radial-gradient(circle, ${activeMode?.color}40 0%, transparent 70%)`,
                         filter: 'blur(40px)',
                         zIndex: 0,
                         transform: interactionType === 'v2' ? `scale(${breathingScale})` : undefined,
-                        transition: interactionType === 'v2' ? 'transform 0.1s ease-out' : undefined
+                        boxShadow: interactionType === 'v2' ? `0 0 ${micVolume * 60}px ${activeMode?.color}40` : 'none',
+                        transition: interactionType === 'v2' ? 'transform 0.1s ease-out, box-shadow 0.1s ease-out' : undefined
                     }} />
                     <div className={`breathing-circle-inner ${isPlaying ? 'animate-inner' : 'paused'}`} style={{
                         position: 'absolute',
@@ -907,8 +999,9 @@ const MeditationPage = () => {
                         background: `radial-gradient(circle, ${activeMode?.color}60 0%, transparent 70%)`,
                         filter: 'blur(20px)',
                         zIndex: 0,
-                        transform: interactionType === 'v2' ? `scale(${breathingScale * 0.8})` : undefined,
-                        transition: interactionType === 'v2' ? 'transform 0.1s ease-out' : undefined
+                        transform: interactionType === 'v2' ? `scale(${breathingScale * 0.85})` : undefined,
+                        border: interactionType === 'v2' ? `${Math.min(micVolume * 4, 10)}px solid ${activeMode?.color}60` : 'none',
+                        transition: interactionType === 'v2' ? 'transform 0.1s ease-out, border 0.1s ease-out' : undefined
                     }} />
                 </>
             )}
@@ -926,16 +1019,24 @@ const MeditationPage = () => {
                     </p>
                 </div>
 
-                <div style={{ fontSize: '4.5rem', fontWeight: 200, color: 'white', fontVariantNumeric: 'tabular-nums', letterSpacing: '-2px', textShadow: '0 0 30px rgba(255,255,255,0.3)' }}>
+                <div style={{ fontSize: '4.5rem', fontWeight: 200, color: 'white', fontVariantNumeric: 'tabular-nums', letterSpacing: '-2px', textShadow: '0 0 30px rgba(255,255,255,0.3)', marginBottom: '10px' }}>
                     {formatTime(timeLeft)}
                 </div>
 
-                {/* Privacy Notice */}
-                {(interactionType === 'v2' || interactionType === 'v3') && (
-                    <div style={{ marginTop: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>
-                        <LockKey size={12} weight="fill" color="#4ade80" /> 데이터는 기기 내에서만 처리됩니다
-                    </div>
-                )}
+                {/* Privacy Notice or TTC Indicator */}
+                <div style={{ height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {ttcEnabled ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--primary-gold)', fontSize: '0.8rem', fontWeight: 'bold', animation: 'pulse 2s infinite' }}>
+                            <SpeakerHigh size={16} weight="fill" /> 음성 안내가 진행 중입니다
+                        </div>
+                    ) : (
+                        (interactionType === 'v2' || interactionType === 'v3') && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>
+                                <LockKey size={12} weight="fill" color="#4ade80" /> 데이터는 기기 내에서만 처리됩니다
+                            </div>
+                        )
+                    )}
+                </div>
                 
                 {permissionError && (
                     <div style={{ marginTop: '20px', padding: '10px', background: 'rgba(255,0,0,0.2)', color: '#ff6b6b', borderRadius: '8px', fontSize: '0.9rem' }}>
@@ -972,26 +1073,35 @@ const MeditationPage = () => {
                     {soundEnabled ? <SpeakerHigh size={28} /> : <SpeakerSlash size={28} />}
                 </button>
 
-                {/* TTC Toggle Button */}
-                <button onClick={() => {
-                    const next = !ttcEnabled;
-                    setTtcEnabled(next);
-                    if (next && window.speechSynthesis) {
-                        // Quick confirmation voice
-                        const utterance = new SpeechSynthesisUtterance("음성 안내를 시작합니다.");
-                        utterance.lang = 'ko-KR';
-                        window.speechSynthesis.speak(utterance);
-                    }
-                }} style={{
-                    position: 'absolute', right: '-80px', width: '50px', height: '50px', borderRadius: '50%',
-                    background: ttcEnabled ? 'var(--primary-gold)' : 'rgba(255,255,255,0.1)', border: 'none', 
-                    color: ttcEnabled ? '#000' : 'white',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                    fontSize: '0.65rem', fontWeight: 'bold', gap: '2px'
+                {/* TTC Toggle Button - Repositioned and stylized */}
+                <div style={{ 
+                    position: 'absolute', right: '0', bottom: '100px', 
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px'
                 }}>
-                    <SpeakerHigh size={20} weight={ttcEnabled ? "fill" : "regular"} />
-                    TTC
-                </button>
+                    <button onClick={() => {
+                        const next = !ttcEnabled;
+                        setTtcEnabled(next);
+                        if (next && window.speechSynthesis) {
+                            window.speechSynthesis.cancel();
+                            const utterance = new SpeechSynthesisUtterance("음성 안내를 시작합니다.");
+                            utterance.lang = 'ko-KR';
+                            utterance.volume = 0.3;
+                            window.speechSynthesis.speak(utterance);
+                            if (isPlaying) fetchAISessionMessage();
+                        } else if (!next && window.speechSynthesis) {
+                            window.speechSynthesis.cancel();
+                        }
+                    }} style={{
+                        width: '50px', height: '50px', borderRadius: '15px',
+                        background: ttcEnabled ? 'var(--primary-gold)' : 'rgba(255,255,255,0.15)', border: 'none', 
+                        color: ttcEnabled ? '#000' : 'white',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                        transition: 'all 0.3s ease', boxShadow: ttcEnabled ? '0 0 20px rgba(212,175,55,0.4)' : 'none'
+                    }}>
+                        <SpeakerHigh size={26} weight={ttcEnabled ? "fill" : "regular"} />
+                    </button>
+                    <span style={{ fontSize: '0.7rem', color: ttcEnabled ? 'var(--primary-gold)' : 'rgba(255,255,255,0.4)', fontWeight: 'bold', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>TTC ON</span>
+                </div>
             </div>
 
             <style>{`

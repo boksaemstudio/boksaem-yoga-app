@@ -1375,37 +1375,40 @@ exports.generateMeditationGuidance = onCall({
         let result = null;
 
         // ===============================
-        // TYPE 1: DIAGNOSTIC QUESTION
+        // TYPE 1: DIAGNOSTIC QUESTION (Enhanced for Conversation)
         // ===============================
         if (type === 'question') {
+            const { chatHistory = [] } = request.data;
             const timeKorean = timeContext === 'morning' ? '아침' : timeContext === 'afternoon' ? '오후' : '밤';
             
+            const historyText = chatHistory.length > 0 
+                ? chatHistory.map(m => `${m.role === 'user' ? 'Client' : 'AI'}: ${m.content}`).join('\n')
+                : 'No previous conversation.';
+
             prompt = `
-                You are a **Meditation Specialist AI** for '복샘요가'.
-                Your expertise: Understanding human psychology through brief, insightful questions.
+                You are a **Meditation Specialist & Psychological Counselor AI** for '복샘요가'.
+                Your expertise: Deep psychological profiling through warm, empathetic conversation.
                 
-                Generate ONE diagnostic question to understand the user's IMMEDIATE mental state.
+                Your Goal: Conduct a brief chat (2-3 turns) to understand the user's emotional and physical state deeply.
                 
                 Context:
                 - Time of day: ${timeKorean}
-                - Purpose: Understand their current emotional/physical state to prescribe the right meditation.
+                - Current Conversation History:
+                ${historyText}
                 
                 Requirements:
-                1. The question should probe their IMMEDIATE state, not general wellness.
-                2. Include a brief insight about what the answer reveals.
-                3. Be warm but professional - like a trusted meditation teacher.
-                4. Don't be generic ("How are you?"). Be specific and insightful.
-                
-                Good examples:
-                - Morning: "눈을 떴을 때 첫 번째로 든 생각이 무엇이었나요?" (reveals morning anxiety level)
-                - Afternoon: "지금 어깨를 만져보세요. 단단한가요, 부드러운가요?" (reveals physical tension)
-                - Night: "오늘 가장 길게 느껴진 순간은 언제였나요?" (reveals emotional weight)
+                1. If this is the start (no history), ask a warm opening question about their current state.
+                2. If there is history, acknowledge their response with empathy and ask ONE follow-up question to dig deeper (e.g., if they mention stress, ask where they feel it in their body).
+                3. Total conversation should be brief. If you've asked 2-3 questions already, set "isFinalAnalysis" to true and provide a summary.
+                4. Be gentle, professional, and insightful. Avoid generic questions.
                 
                 Output Format (JSON ONLY):
                 {
-                    "question": "The Korean question text",
-                    "subtext": "Warm guiding subtext in Korean",
-                    "insight": "Brief insight about what the answer reveals (Korean)"
+                    "question": "The AI's response or follow-up question in Korean",
+                    "options": ["3-4 short selectable response options in Korean"],
+                    "isFinalAnalysis": true/false (Set true if you have enough info),
+                    "analysisSummary": "If isFinalAnalysis is true, provide a 1-2 sentence psychological summary and encouragement in Korean",
+                    "mappedDiagnosis": "If isFinalAnalysis is true, map to one of: stress, stiff, anxious, tired, overthink, frustrated, low_energy, distracted"
                 }
             `;
             
@@ -1413,14 +1416,19 @@ exports.generateMeditationGuidance = onCall({
         }
 
         // ===============================
-        // TYPE 2: PRESCRIPTION REASON
+        // TYPE 2: PRESCRIPTION REASON (Enhanced with Analysis)
         // ===============================
         else if (type === 'prescription') {
+            const { analysisSummary = "", mappedDiagnosis = "stress" } = request.data;
             const diagnosisLabels = {
-                stress: '머리가 복잡함',
-                stiff: '몸이 찌뿌둥함', 
-                anxious: '마음이 불안함',
-                tired: '무기력함'
+                stress: '스트레스로 가득한',
+                stiff: '몸이 굳어있는', 
+                anxious: '불안함이 느껴지는',
+                tired: '에너지가 고갈된',
+                overthink: '생각이 너무 많은',
+                frustrated: '답답하고 화가 난',
+                low_energy: '의욕이 저하된',
+                distracted: '집중이 어려운'
             };
             const weatherLabels = { sun: '맑음', cloud: '흐림', rain: '비', snow: '눈' };
             const modeLabels = { '3min': '3분 숨 고르기', '7min': '7분 마음 정돈', '15min': '15분 깊은 이완' };
@@ -1428,36 +1436,31 @@ exports.generateMeditationGuidance = onCall({
             const timeLabels = { morning: '아침', afternoon: '오후', night: '밤' };
 
             prompt = `
-                You are a **Meditation Specialist AI** for '복샘요가'.
-                Your expertise: Prescribing meditation based on scientific evidence and personal context.
+                You are a **Meditation Specialist & Scientist** for '복샘요가'.
+                Your expertise: Crafting personalized meditation journeys based on psychological analysis.
                 
-                Generate a PRESCRIPTION REASON explaining WHY this specific meditation is perfect for them NOW.
+                Generate a PRESCRIPTION REASON. You MUST build upon the previous analysis.
+                
+                User Analysis Summary: ${analysisSummary}
+                Target State: ${diagnosisLabels[mappedDiagnosis] || '휴식이 필요한'}
                 
                 Context:
                 - Time: ${timeLabels[timeContext]}
                 - Weather: ${weatherLabels[weather]}
-                - Current State: ${diagnosisLabels[diagnosis]}
                 - Prescribed Course: ${modeLabels[mode]}
                 - Interaction Type: ${interactionLabels[interactionType]}
                 
                 Requirements:
-                1. Be SPECIFIC about why THIS combination is ideal.
-                2. Include 1-2 scientific facts (brainwaves, neuroscience) but explain simply.
-                3. Be warm and supportive, like a trusted guide.
-                4. Keep it to 2-3 sentences maximum.
-                5. Don't be generic. Reference the specific context.
-                
-                Scientific facts to use:
-                - 6Hz Theta waves: Deep relaxation, access to subconscious
-                - 8Hz Alpha-Theta border: Creativity and calm alertness
-                - 10Hz Alpha: Relaxed alertness, stress reduction
-                - Rain sounds: White noise effect, blocks distracting thoughts
-                - Breath focus: Activates parasympathetic nervous system
+                1. Start by briefly acknowledging the psychological state found in the analysis.
+                2. Explain WHY the selected course (${modeLabels[mode]}) and interaction (${interactionLabels[interactionType]}) will help.
+                3. Mention a specific brainwave or physiological benefit (e.g., 8Hz Alpha for calm, 6Hz Theta for deep release, or parasympathetic activation for stiff bodies).
+                4. Tone: Extremely empathetic, professional, and authoritative yet warm.
+                5. Max 3-4 sentences.
                 
                 Output Format (JSON ONLY):
                 {
-                    "reason": "The Korean prescription reason (2-3 sentences)",
-                    "brainwaveNote": "Brief scientific note about the brainwave frequency being used"
+                    "reason": "The Korean prescription reason",
+                    "brainwaveNote": "Scientific note about the frequency (e.g. 8Hz Alpha-Theta)"
                 }
             `;
             
