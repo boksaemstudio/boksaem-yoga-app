@@ -105,7 +105,7 @@ const AdminDashboard = () => {
         refreshData, isMemberActive, isMemberExpiring,
         // New exports
         revenueTrend, memberStatusDist, getDormantSegments
-    } = useAdminData(activeTab, storageService.getCurrentBranch());
+    } = useAdminData(activeTab, 'all');
 
     // Modals
     const [showAddModal, setShowAddModal] = useState(false);
