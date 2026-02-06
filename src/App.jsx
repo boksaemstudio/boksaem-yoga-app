@@ -10,6 +10,7 @@ const CheckInPage = lazy(() => import('./pages/CheckInPage'));
 const MemberProfile = lazy(() => import('./pages/MemberProfile'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const InstructorPage = lazy(() => import('./pages/InstructorPage'));
+const MeditationPage = lazy(() => import('./pages/MeditationPage'));
 
 // Loading fallback
 const LoadingScreen = () => (
@@ -129,6 +130,16 @@ function App() {
                 <ErrorBoundary fallback={<ErrorFallback />}>
                   <Suspense fallback={<LoadingScreen />}>
                     <InstructorPage />
+                  </Suspense>
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path="/meditation"
+              element={
+                <ErrorBoundary fallback={<ErrorFallback />}>
+                  <Suspense fallback={<LoadingScreen />}>
+                    <MeditationPage />
                   </Suspense>
                 </ErrorBoundary>
               }

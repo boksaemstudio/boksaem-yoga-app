@@ -172,8 +172,9 @@ const MemberProfile = () => {
         return 'default';
     });
 
-    // PWA Install State
+    // PWA Install State (Unused for now - commented out for lint clean)
     const [installPrompt, setInstallPrompt] = useState(null);
+    /*
     const [isIOS] = useState(() => {
         if (typeof window === 'undefined') return false;
         return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
@@ -187,6 +188,7 @@ const MemberProfile = () => {
         if (typeof window === 'undefined') return false;
         return /kakaotalk|naver|instagram|line/i.test(window.navigator.userAgent.toLowerCase());
     });
+    */
 
     // Login States
     const [name, setName] = useState('');
@@ -200,6 +202,7 @@ const MemberProfile = () => {
     // Destructure styles
     const { authInput: authInputStyle, authButton: authButtonStyle, viewToggle: viewToggleStyle } = profileStyles;
 
+    /*
     const handleInstallClick = () => {
         if (!installPrompt) return;
         installPrompt.prompt();
@@ -207,6 +210,7 @@ const MemberProfile = () => {
             setInstallPrompt(null);
         });
     };
+    */
 
     const loadMemberData = async (memberId) => {
         try {

@@ -1341,3 +1341,237 @@ exports.sendSelfTestPush = onCall(async (request) => {
         throw new HttpsError('internal', error.message || 'Unknown error');
     }
 });
+
+// ==========================================
+// 🧘 REAL-TIME AI MEDITATION GUIDANCE
+// ==========================================
+
+/**
+ * Real-time AI Meditation Cloud Function
+ * Generates personalized meditation questions and session guidance
+ * using Gemini AI based on time, weather, and emotional state.
+ */
+exports.generateMeditationGuidance = onCall({
+    region: "asia-northeast3",
+    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173'],
+    secrets: ["GEMINI_KEY"]
+}, async (request) => {
+    await checkAIQuota();
+
+    const { 
+        type, // 'question' | 'prescription' | 'session_message'
+        timeContext, // 'morning' | 'afternoon' | 'night'
+        weather, // 'sun' | 'cloud' | 'rain' | 'snow'
+        diagnosis, // 'stress' | 'stiff' | 'anxious' | 'tired'
+        mode, // '3min' | '7min' | '15min'
+        interactionType, // 'v1' | 'v2' | 'v3'
+        messageIndex, // For session messages - which message in the sequence
+        memberId // Optional - for personalized history (future)
+    } = request.data;
+
+    try {
+        const ai = getAI();
+        let prompt = "";
+        let result = null;
+
+        // ===============================
+        // TYPE 1: DIAGNOSTIC QUESTION
+        // ===============================
+        if (type === 'question') {
+            const timeKorean = timeContext === 'morning' ? '아침' : timeContext === 'afternoon' ? '오후' : '밤';
+            
+            prompt = `
+                You are a **Meditation Specialist AI** for '복샘요가'.
+                Your expertise: Understanding human psychology through brief, insightful questions.
+                
+                Generate ONE diagnostic question to understand the user's IMMEDIATE mental state.
+                
+                Context:
+                - Time of day: ${timeKorean}
+                - Purpose: Understand their current emotional/physical state to prescribe the right meditation.
+                
+                Requirements:
+                1. The question should probe their IMMEDIATE state, not general wellness.
+                2. Include a brief insight about what the answer reveals.
+                3. Be warm but professional - like a trusted meditation teacher.
+                4. Don't be generic ("How are you?"). Be specific and insightful.
+                
+                Good examples:
+                - Morning: "눈을 떴을 때 첫 번째로 든 생각이 무엇이었나요?" (reveals morning anxiety level)
+                - Afternoon: "지금 어깨를 만져보세요. 단단한가요, 부드러운가요?" (reveals physical tension)
+                - Night: "오늘 가장 길게 느껴진 순간은 언제였나요?" (reveals emotional weight)
+                
+                Output Format (JSON ONLY):
+                {
+                    "question": "The Korean question text",
+                    "subtext": "Warm guiding subtext in Korean",
+                    "insight": "Brief insight about what the answer reveals (Korean)"
+                }
+            `;
+            
+            result = await ai.generateExperience(prompt);
+        }
+
+        // ===============================
+        // TYPE 2: PRESCRIPTION REASON
+        // ===============================
+        else if (type === 'prescription') {
+            const diagnosisLabels = {
+                stress: '머리가 복잡함',
+                stiff: '몸이 찌뿌둥함', 
+                anxious: '마음이 불안함',
+                tired: '무기력함'
+            };
+            const weatherLabels = { sun: '맑음', cloud: '흐림', rain: '비', snow: '눈' };
+            const modeLabels = { '3min': '3분 숨 고르기', '7min': '7분 마음 정돈', '15min': '15분 깊은 이완' };
+            const interactionLabels = { v1: '고요한 안내', v2: '호흡의 파도', v3: '거울 명상' };
+            const timeLabels = { morning: '아침', afternoon: '오후', night: '밤' };
+
+            prompt = `
+                You are a **Meditation Specialist AI** for '복샘요가'.
+                Your expertise: Prescribing meditation based on scientific evidence and personal context.
+                
+                Generate a PRESCRIPTION REASON explaining WHY this specific meditation is perfect for them NOW.
+                
+                Context:
+                - Time: ${timeLabels[timeContext]}
+                - Weather: ${weatherLabels[weather]}
+                - Current State: ${diagnosisLabels[diagnosis]}
+                - Prescribed Course: ${modeLabels[mode]}
+                - Interaction Type: ${interactionLabels[interactionType]}
+                
+                Requirements:
+                1. Be SPECIFIC about why THIS combination is ideal.
+                2. Include 1-2 scientific facts (brainwaves, neuroscience) but explain simply.
+                3. Be warm and supportive, like a trusted guide.
+                4. Keep it to 2-3 sentences maximum.
+                5. Don't be generic. Reference the specific context.
+                
+                Scientific facts to use:
+                - 6Hz Theta waves: Deep relaxation, access to subconscious
+                - 8Hz Alpha-Theta border: Creativity and calm alertness
+                - 10Hz Alpha: Relaxed alertness, stress reduction
+                - Rain sounds: White noise effect, blocks distracting thoughts
+                - Breath focus: Activates parasympathetic nervous system
+                
+                Output Format (JSON ONLY):
+                {
+                    "reason": "The Korean prescription reason (2-3 sentences)",
+                    "brainwaveNote": "Brief scientific note about the brainwave frequency being used"
+                }
+            `;
+            
+            result = await ai.generateExperience(prompt);
+        }
+
+        // ===============================
+        // TYPE 3: SESSION MESSAGE
+        // ===============================
+        else if (type === 'session_message') {
+            const interactionContext = {
+                v1: 'voice-guided meditation (eyes closed)',
+                v2: 'breath-reactive meditation (microphone tracking breath)',
+                v3: 'posture-coaching meditation (camera analyzing posture)'
+            };
+            
+            const phaseIndex = messageIndex % 10; // Cycle through 10 phases
+            const phases = [
+                'opening_settle', // 0: Initial settling
+                'breath_awareness', // 1: Focus on breath
+                'body_scan', // 2: Scan for tension
+                'deepening', // 3: Going deeper
+                'mid_encouragement', // 4: Encouragement
+                'present_moment', // 5: Here and now
+                'release', // 6: Letting go
+                'gratitude', // 7: Self-appreciation
+                'emerging', // 8: Coming back
+                'closing' // 9: Final words
+            ];
+            
+            prompt = `
+                You are a **Meditation Guide AI** for '복샘요가'.
+                Your role: Guiding users through their meditation session with real-time messages.
+                
+                Generate ONE guidance message for this phase of their meditation.
+                
+                Context:
+                - Interaction Type: ${interactionContext[interactionType]}
+                - Current Phase: ${phases[phaseIndex]} (${phaseIndex}/9)
+                - Session Duration: ${mode}
+                - Original Diagnosis: ${diagnosis}
+                
+                Phase Descriptions:
+                - opening_settle: Help them settle into the meditation, find comfortable position
+                - breath_awareness: Guide attention to natural breathing rhythm
+                - body_scan: Notice areas of tension or sensation
+                - deepening: Go deeper into relaxation state
+                - mid_encouragement: Encourage them, they're doing well
+                - present_moment: Focus on the "here and now"
+                - release: Let go of tension, thoughts, worries
+                - gratitude: Appreciate themselves for taking this time
+                - emerging: Gently start to come back to awareness
+                - closing: Final words of wisdom or appreciation
+                
+                Requirements:
+                1. EXACTLY 1 sentence. Short and impactful.
+                2. Warm, gentle, supportive tone.
+                3. If interaction is v2/v3, occasionally reference the sensor (breath/posture).
+                4. Don't rush. Match the meditative pace.
+                5. Use "당신" or no pronoun (not "너").
+                
+                Output Format (JSON ONLY):
+                {
+                    "message": "The Korean guidance message (1 sentence)"
+                }
+            `;
+            
+            result = await ai.generateExperience(prompt);
+        }
+
+        if (!result) {
+            throw new Error("AI returned null");
+        }
+
+        // Log successful meditation AI usage
+        await admin.firestore().collection('meditation_ai_logs').add({
+            type,
+            timeContext,
+            weather,
+            diagnosis,
+            mode,
+            interactionType,
+            messageIndex: messageIndex || null,
+            memberId: memberId || null,
+            success: true,
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        return result;
+
+    } catch (error) {
+        console.error("Meditation AI Generation Failed:", error);
+        await logAIError('MeditationAI', error);
+
+        // Fallback responses by type
+        const fallbacks = {
+            question: {
+                question: "지금 이 순간, 마음은 어떤 색깔인가요?",
+                subtext: "색깔로 표현해보면 지금 상태가 더 명확해져요.",
+                insight: "색깔은 무의식적 감정 상태를 반영합니다."
+            },
+            prescription: {
+                reason: "지금 당신에게 가장 필요한 것은 잠시 멈추고 호흡에 집중하는 것입니다. 함께 시작해볼까요?",
+                brainwaveNote: "알파파가 긴장된 뇌를 이완시켜 드릴게요."
+            },
+            session_message: {
+                message: "지금 이 순간에 머무르세요. 당신은 잘하고 있어요."
+            }
+        };
+
+        return {
+            ...fallbacks[type] || fallbacks.session_message,
+            isFallback: true,
+            error: error.message
+        };
+    }
+});

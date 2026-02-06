@@ -4,7 +4,7 @@ import {
     InstagramLogo, YoutubeLogo,
     SealCheck, BellRinging, Bell, BellSlash, House, Megaphone, Article, SignOut,
     DownloadSimple, Export, ChatCircleDots, Chat, Ghost, ArrowRight,
-    Fire, Plant, Leaf, Sparkle, Waves, Boat, Barbell, Globe
+    Fire, Plant, Leaf, Sparkle, Waves, Boat, Barbell, Globe, Flower
 } from '@phosphor-icons/react';
 
 // [STABILITY FIX] Standardized Icon Set
@@ -14,7 +14,7 @@ export const Icons = {
     InstagramLogo, YoutubeLogo,
     SealCheck, BellRinging, Bell, BellSlash, House, Megaphone, Article, SignOut,
     DownloadSimple, Export, ChatCircleDots, Chat, Ghost, ArrowRight,
-    Fire, Plant, Leaf, Sparkle, Waves, Boat, Barbell, Globe,
+    Fire, Plant, Leaf, Sparkle, Waves, Boat, Barbell, Globe, Flower,
 
     Sprout: (props) => (
         <svg width={props.size || 20} height={props.size || 20} viewBox="0 0 256 256" fill="currentColor" {...props}>

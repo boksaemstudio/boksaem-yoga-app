@@ -1,4 +1,5 @@
 import { cloneElement } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icons } from '../CommonIcons';
 
 const NavItem = ({ active, onClick, icon, label }) => (
@@ -24,6 +25,7 @@ const NavItem = ({ active, onClick, icon, label }) => (
 );
 
 const ProfileTabs = ({ activeTab, setActiveTab, t }) => {
+    const navigate = useNavigate();
     return (
         <div style={{
             position: 'fixed',
@@ -45,6 +47,12 @@ const ProfileTabs = ({ activeTab, setActiveTab, t }) => {
             <NavItem active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<Icons.House size={26} />} label={t('tabHome')} />
             <NavItem active={activeTab === 'history'} onClick={() => setActiveTab('history')} icon={<Icons.Article size={26} />} label={t('tabHistory')} />
             <NavItem active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} icon={<Icons.Calendar size={26} />} label={t('tabSchedule')} />
+            
+            {/* Meditation Tab - Navigates to new page (Using window.location to ensure PWA standalone maintains fullscreen) */}
+            <NavItem active={false} onClick={() => {
+                window.location.href = '/meditation';
+            }} icon={<Icons.Flower size={26} />} label="명상" />
+
             <NavItem active={activeTab === 'prices'} onClick={() => setActiveTab('prices')} icon={<Icons.Ticket size={26} />} label={t('tabPrices')} />
             <NavItem active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} icon={<Icons.Megaphone size={26} />} label={t('tabNotices')} />
             <NavItem active={activeTab === 'messages'} onClick={() => setActiveTab('messages')} icon={<Icons.Chat size={26} />} label={t('tabMessages')} />
