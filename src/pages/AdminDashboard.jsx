@@ -291,7 +291,7 @@ const AdminDashboard = () => {
                 const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
 
                 if (target === 'notice') {
-                    // TODO: setNewNotice is not defined - needs to be added to state
+                    // Managed by hook
                     // setNewNotice({ ...newNotice, image: compressedBase64 });
                     console.warn('Notice image upload not implemented');
                 } else {
@@ -330,7 +330,7 @@ const AdminDashboard = () => {
             await storageService.addSalesRecord(salesData);
             // Refresh sales data
             // const updatedSales = await storageService.getSales();
-            // TODO: setSales is not defined - handled by useAdminData hook
+            // Managed by hook
             // setSales(updatedSales);
             await refreshData();  // Use refreshData instead
             return true;

@@ -21,7 +21,7 @@ import ProfileHeader from '../components/profile/ProfileHeader';
 import AISection from '../components/profile/AISection';
 import MembershipInfo from '../components/profile/MembershipInfo';
 import HomeYogaSection from '../components/profile/HomeYogaSection';
-import PWAInstallPrompts from '../components/profile/PWAInstallPrompts';
+
 import SocialLinks from '../components/profile/SocialLinks';
 import AttendanceHistory from '../components/profile/AttendanceHistory';
 import RecentAttendance from '../components/profile/RecentAttendance';
@@ -62,6 +62,7 @@ const MemberProfile = () => {
     const [member, setMember] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('home');
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, message: '', onConfirm: null });
     const [selectedNoticeId, setSelectedNoticeId] = useState(null);
     const { language, t } = useLanguage();
 
@@ -599,7 +600,28 @@ const MemberProfile = () => {
 
 
 
-    if (loading) return <div className="loading-screen"><div className="spinner"></div></div>;
+    if (loading) return (
+        <div style={{ padding: '20px', minHeight: '100vh', background: '#08080A' }}>
+             {/* Skeleton Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', paddingTop: 'env(safe-area-inset-top)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                     <div className="skeleton" style={{ width: '30px', height: '30px', borderRadius: '50%' }} />
+                     <div className="skeleton" style={{ width: '100px', height: '24px' }} />
+                </div>
+                <div className="skeleton" style={{ width: '80px', height: '32px' }} />
+            </div>
+
+            {/* Skeleton Content */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div className="skeleton" style={{ width: '100%', height: '180px', borderRadius: '20px' }} />
+                <div className="skeleton" style={{ width: '100%', height: '100px', borderRadius: '20px' }} />
+                <div className="skeleton" style={{ width: '100%', height: '100px', borderRadius: '20px' }} />
+            </div>
+
+             {/* Skeleton Bottom Nav */}
+            <div style={{ position: 'fixed', bottom: 'calc(20px + env(safe-area-inset-bottom))', left: '20px', right: '20px', height: '75px', borderRadius: '25px', background: 'rgba(20,20,20,0.8)', border: '1px solid rgba(255,255,255,0.1)' }} />
+        </div>
+    );
 
     if (!member) {
         return (
@@ -678,14 +700,14 @@ const MemberProfile = () => {
 
                         <div style={{ textAlign: 'left', marginBottom: '4px' }}>
                             <label style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginLeft: '12px' }}>{t('nameLabel')}</label>
-                            <input style={{ ...authInputStyle, marginTop: '4px', imeMode: 'active' }} placeholder={t('namePlaceholder')} value={name} onChange={e => setName(e.target.value)} lang="ko" inputMode="text" autoComplete="name" spellCheck="false" autoCorrect="off" />
+                            <input style={{ ...authInputStyle, marginTop: '4px' }} placeholder={t('namePlaceholder')} value={name} onChange={e => setName(e.target.value)} lang="ko" type="text" inputMode="text" autoComplete="name" spellCheck="false" enterKeyHint="next" />
                         </div>
                         <div style={{ textAlign: 'left', marginBottom: '8px' }}>
                             <label style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginLeft: '12px' }}>{t('phoneLabel')}</label>
-                            <input style={{ ...authInputStyle, marginTop: '4px' }} placeholder={t('phonePlaceholder')} value={phone} onChange={e => setPhone(e.target.value)} maxLength={4} type="tel" autoComplete="tel-suffix" />
+                            <input style={{ ...authInputStyle, marginTop: '4px' }} placeholder={t('phonePlaceholder')} value={phone} onChange={e => setPhone(e.target.value)} maxLength={4} type="tel" inputMode="numeric" pattern="[0-9]*" autoComplete="tel-local-suffix" enterKeyHint="go" />
                         </div>
                         {error && <p style={{ color: 'var(--accent-error)', fontSize: '0.9rem', marginBottom: '10px' }}>{error}</p>}
-                        <button type="submit" style={{ ...authButtonStyle, marginTop: '10px' }}>{t('checkRecordBtn')}</button>
+                        <button type="submit" disabled={loading} style={{ ...authButtonStyle, marginTop: '10px' }}>{t('checkRecordBtn')}</button>
                     </form>
                     <p style={{ marginTop: '30px', fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
                         {t('loginFooter')}
@@ -701,7 +723,7 @@ const MemberProfile = () => {
 
     return (
         <div className="member-profile-wrapper" style={{
-            minHeight: '100vh',
+            minHeight: '100dvh',
             position: 'relative',
             overflowX: 'hidden',
             overflowY: 'auto',
@@ -759,7 +781,7 @@ const MemberProfile = () => {
             <div className="profile-overlay" style={{ background: 'rgba(0,0,0,0.1)', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 4 }} />
 
             {/* 3. Content Container (z-index: 10 - Must be higher than overlays) */}
-            <div className="profile-container" style={{ paddingBottom: '120px', position: 'relative', zIndex: 10 }}>
+            <div className="profile-container" style={{ paddingBottom: 'calc(130px + env(safe-area-inset-bottom))', position: 'relative', zIndex: 10 }}>
                 {/* Header */}
                 <ProfileHeader
                     logo={logo}
@@ -820,14 +842,7 @@ const MemberProfile = () => {
 
                                 <SocialLinks t={t} />
 
-                                <PWAInstallPrompts
-                                    isInStandaloneMode={isInStandaloneMode}
-                                    isInAppBrowser={isInAppBrowser}
-                                    isIOS={isIOS}
-                                    installPrompt={installPrompt}
-                                    handleInstallClick={handleInstallClick}
-                                    t={t}
-                                />
+
 
                             </div>
                         </div>
@@ -996,11 +1011,11 @@ const MemberProfile = () => {
                                 </div>
                                 {Array.isArray(notices) && notices.length > 0 ? (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                                        {notices.map((notice, idx) => {
+                                        {notices.map((notice) => {
                                             const isSelected = selectedNoticeId && notice.id === selectedNoticeId;
                                             return (
                                             <div 
-                                                key={notice.id || idx} 
+                                                key={notice.id} 
                                                 ref={isSelected ? (el) => {
                                                     if (el) {
                                                         setTimeout(() => {
@@ -1024,7 +1039,7 @@ const MemberProfile = () => {
                                                         {/* Header (Title & Date) - Now above image */}
                                                         <div style={{ padding: '24px 24px 15px' }}>
                                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '15px' }}>
-                                                                <h3 style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--primary-gold)', margin: 0, lineHeight: '1.3', wordBreak: 'keep-all' }}>
+                                                                <h3 style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--primary-gold)', margin: 0, lineHeight: '1.3', wordBreak: 'keep-all', userSelect: 'text', WebkitUserSelect: 'text' }}>
                                                                     {notice.title}
                                                                 </h3>
                                                                 <span style={{
@@ -1080,7 +1095,9 @@ const MemberProfile = () => {
                                                         color: 'rgba(255,255,255,0.9)',
                                                         lineHeight: '1.8',
                                                         whiteSpace: 'pre-wrap',
-                                                        wordBreak: 'break-all'
+                                                        wordBreak: 'break-all',
+                                                        userSelect: 'text',
+                                                        WebkitUserSelect: 'text'
                                                     }}>
                                                         {notice.content}
                                                     </p>
@@ -1109,6 +1126,16 @@ const MemberProfile = () => {
             {/* Bottom Navigation */}
             <ProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} t={t} />
 
+            {/* Confirm/Alert Modal */}
+            {confirmModal.isOpen && (
+                <CustomGlassModal
+                    message={confirmModal.message}
+                    isConfirm={confirmModal.isConfirm}
+                    onConfirm={confirmModal.onConfirm}
+                    onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                />
+            )}
+
             {/* 이미지 라이트박스 모달 */}
             {lightboxImage && (
                 <ImageLightbox
@@ -1124,5 +1151,49 @@ const MemberProfile = () => {
 };
 
 
+
+// [LUXURY] Glassmorphic Modal Component
+const CustomGlassModal = ({ message, isConfirm, onConfirm, onCancel }) => (
+    <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+        background: 'rgba(0,0,0,0.8)', 
+        zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        animation: 'fadeIn 0.2s ease-out'
+    }}>
+        <div style={{
+            background: 'rgba(25, 25, 28, 0.95)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '24px',
+            padding: '30px',
+            width: '85%',
+            maxWidth: '320px',
+            textAlign: 'center',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+            transform: 'scale(1)',
+            animation: 'scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+        }}>
+           <h3 style={{ color: 'white', fontSize: '1.1rem', marginBottom: '20px', fontWeight: '600', lineHeight: '1.5' }}>
+               {message}
+           </h3>
+           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+               {isConfirm && (
+                   <button onClick={onCancel} style={{
+                       padding: '12px 24px', borderRadius: '14px', border: 'none',
+                       background: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: '600', flex: 1
+                   }}>
+                       취소
+                   </button>
+               )}
+               <button onClick={onConfirm || onCancel} style={{
+                   padding: '12px 24px', borderRadius: '14px', border: 'none',
+                   background: 'var(--primary-gold)', color: 'black', fontWeight: '700', flex: 1,
+                   boxShadow: '0 4px 15px rgba(255, 215, 0, 0.2)'
+               }}>
+                   확인
+               </button>
+           </div>
+        </div>
+    </div>
+);
 
 export default MemberProfile;

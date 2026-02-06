@@ -65,6 +65,7 @@ const RequireAuth = ({ children }) => {
 };
 
 import NotificationListener from './components/common/NotificationListener';
+import ReloadPrompt from './components/ReloadPrompt';
 import { PWAProvider } from './context/PWAContext';
 
 function App() {
@@ -78,6 +79,7 @@ function App() {
       <PWAProvider>
         <div className="app">
           <NotificationListener />
+          <ReloadPrompt />
           <Routes>
             <Route
               path="/"

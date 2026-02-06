@@ -413,8 +413,7 @@ const AdminScheduleManager = ({ branchId }) => {
                             htmlFor={`upload-schedule-${year}-${month}`}
                             className="action-btn sm"
                             style={{
-                                background: 'rgba(0,0,0,0.7)',
-                                backdropFilter: 'blur(4px)',
+                                background: 'rgba(0,0,0,0.85)',
                                 color: 'white',
                                 border: '1px solid rgba(255,255,255,0.2)',
                                 cursor: 'pointer',
@@ -530,7 +529,10 @@ const AdminScheduleManager = ({ branchId }) => {
                 scheduleStatus === 'saved' ? renderCalendar() : renderUndefinedView()
             )}
             {showEditModal && (
-                <div style={modalOverlayStyle}>
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                }}>
                     <div style={modalContentStyle}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                             <h3 style={{ margin: 0 }}>{selectedDate} 수업 관리</h3>
@@ -603,10 +605,7 @@ const actionBtnStyle = {
     padding: '8px 16px', borderRadius: '8px', border: 'none', backgroundColor: 'var(--primary-gold)', color: 'white',
     fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center'
 };
-const modalOverlayStyle = {
-    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
-};
+
 const modalContentStyle = {
     backgroundColor: 'var(--bg-surface)', padding: '24px', borderRadius: '16px', width: '90%', maxWidth: '700px',
     color: 'var(--text-primary)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)'

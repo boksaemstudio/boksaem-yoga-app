@@ -22,8 +22,7 @@ const InstructorQRModal = ({ isOpen, onClose }) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                zIndex: 9999,
-                backdropFilter: 'blur(10px)'
+                zIndex: 9999
             }}
             onClick={onClose}
         >

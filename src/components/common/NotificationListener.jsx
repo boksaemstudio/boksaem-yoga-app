@@ -58,10 +58,9 @@ const NotificationListener = () => {
             minWidth: '320px',
             maxWidth: '90vw',
             border: '1px solid rgba(255,215,0,0.3)',
-            backdropFilter: 'blur(10px)',
             animation: 'slideDown 0.3s ease-out'
         }}>
-            <BellRinging size={28} color="#FFD700" weight="fill" style={{ marginTop: '2px', flexShrink: 0 }} />
+            <BellRinging size={28} color="var(--primary-gold)" weight="fill" style={{ marginTop: '2px', flexShrink: 0 }} />
             <div
                 onClick={() => {
                     if (toast.url) window.location.href = toast.url;
@@ -69,7 +68,7 @@ const NotificationListener = () => {
                 }}
                 style={{ flex: 1, cursor: toast.url ? 'pointer' : 'default' }}
             >
-                <h4 style={{ margin: '0 0 4px 0', fontSize: '0.95rem', fontWeight: 'bold', color: '#FFD700' }}>{toast.title}</h4>
+                <h4 style={{ margin: '0 0 4px 0', fontSize: '0.95rem', fontWeight: 'bold', color: 'var(--primary-gold)' }}>{toast.title}</h4>
                 <p style={{ margin: 0, fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)', lineHeight: '1.4' }}>{toast.body}</p>
             </div>
             <button

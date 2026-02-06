@@ -33,7 +33,6 @@ const AISection = ({ aiExperience, weatherData, greetingVisible, t, getTradition
                     background: aiExperience?.colorTone || 'rgba(212, 175, 55, 0.1)',
                     opacity: 1, // Increased for better look
                     borderRadius: '15px',
-                    filter: 'blur(30px)',
                     zIndex: -1
                 }}
             />
@@ -64,8 +63,7 @@ const AISection = ({ aiExperience, weatherData, greetingVisible, t, getTradition
                             <div style={{
                                 marginTop: '16px',
                                 padding: '16px',
-                                background: 'rgba(255,255,255,0.07)',
-                                backdropFilter: 'blur(15px)',
+                                background: 'rgba(255,255,255,0.08)',
                                 border: '1px solid rgba(212, 175, 55, 0.2)',
                                 borderLeft: '4px solid var(--primary-gold)',
                                 borderRadius: '8px 16px 16px 8px',

@@ -14,7 +14,7 @@ export const BADGES = {
     PASSION: { id: 'passion', label: '열정 요기', icon: 'Fire', color: '#FF4500', desc: '주 3회 이상 꾸준히 수련중!' },
     STEADY: { id: 'steady', label: '성실 요기', icon: 'Plant', color: '#4CAF50', desc: '규칙적인 수련 흐름을 유지중입니다.' },
     STARTER: { id: 'starter', label: '새싹 요기', icon: 'Leaf', color: '#8BC34A', desc: '요가 여정의 아름다운 시작!' },
-    WELCOME_BACK: { id: 'welcome_back', label: '반가운 요기', icon: 'Sparkle', color: '#FFD700', desc: '다시 매트 위에 오신 것을 환영해요!' },
+    WELCOME_BACK: { id: 'welcome_back', label: '반가운 요기', icon: 'Sparkle', color: 'var(--primary-gold)', desc: '다시 매트 위에 오신 것을 환영해요!' },
     FLOWING: { id: 'flowing', label: '몰입 요기', icon: 'Waves', color: '#2196F3', desc: '물 흐르듯 자연스러운 수련 페이스!' },
     ON_TRACK: { id: 'on_track', label: '순항 요기', icon: 'Boat', color: '#00BCD4', desc: '등록하신 횟수를 알맞게 사용하고 계십니다.' },
     NEED_BOOST: { id: 'need_boost', label: '응원 필요', icon: 'Barbell', color: '#FF9800', desc: '조금 더 자주 만나요 우리!' }

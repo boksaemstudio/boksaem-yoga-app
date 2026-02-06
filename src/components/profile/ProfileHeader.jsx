@@ -1,10 +1,10 @@
 import LanguageSelector from '../LanguageSelector';
 import { STUDIO_CONFIG } from '../../studioConfig';
-// import rys200Logo from '../../assets/RYS200.png';  // Unused
+
 
 const ProfileHeader = ({ logo, langLabelIndex, langLabels, t, logout }) => {
     return (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 10px', paddingTop: 'max(20px, env(safe-area-inset-top))' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <img src={logo} alt="Logo" style={{ width: '30px', height: 'auto', filter: 'brightness(0) invert(1)' }} />
                 <span style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'white' }}>{STUDIO_CONFIG.NAME}</span>

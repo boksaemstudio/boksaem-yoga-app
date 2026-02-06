@@ -280,8 +280,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
         <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
             background: 'rgba(0,0,0,0.8)', zIndex: 1100,
-            display: 'flex', justifyContent: 'center', alignItems: 'center',
-            backdropFilter: 'blur(5px)'
+            display: 'flex', justifyContent: 'center', alignItems: 'center'
         }}>
             <div style={{
                 width: '100%', height: '100%', maxWidth: '600px',
@@ -506,8 +505,22 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig }) => {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            <InputGroup label="이름" value={editData.name} onChange={v => setEditData({ ...editData, name: v })} />
-            <InputGroup label="전화번호" value={editData.phone} onChange={v => setEditData({ ...editData, phone: v })} />
+            <InputGroup
+                label="이름"
+                value={editData.name}
+                onChange={v => setEditData({ ...editData, name: v })}
+                lang="ko"
+                autoComplete="off"
+            />
+            <InputGroup
+                label="전화번호"
+                value={editData.phone}
+                onChange={v => setEditData({ ...editData, phone: v })}
+                type="tel"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                autoComplete="off"
+            />
 
             {/* Membership Type & Subject */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
@@ -583,13 +596,14 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig }) => {
 };
 
 // Updated InputGroup
-const InputGroup = ({ label, value, onChange, type = 'text', options = [] }) => (
+const InputGroup = ({ label, value, onChange, type = 'text', options = [], ...props }) => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
         <label style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>{label}</label>
-        {type === 'text' && (
+        {(type === 'text' || type === 'tel') && (
             <input
-                type="text" value={value} onChange={e => onChange(e.target.value)}
+                type={type} value={value} onChange={e => onChange(e.target.value)}
                 style={inputStyle}
+                {...props}
             />
         )}
         {type === 'date' && (

@@ -135,8 +135,7 @@ const ImageLightbox = ({ src, onClose }) => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    zIndex: 10001,
-                    backdropFilter: 'blur(10px)'
+                    zIndex: 10001
                 }}
             >
                 <X size={24} color="white" weight="bold" />

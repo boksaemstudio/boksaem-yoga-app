@@ -40,7 +40,7 @@ const InstructorLogin = ({ onLogin, instructors }) => {
 
     return (
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', position: 'relative', zIndex: 1 }}>
-            <div style={{ background: 'rgba(20, 20, 25, 0.85)', padding: '40px', borderRadius: '20px', maxWidth: '400px', width: '100%', textAlign: 'center', backdropFilter: 'blur(15px)', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
+            <div style={{ background: 'rgba(20, 20, 25, 0.95)', padding: '40px', borderRadius: '20px', maxWidth: '400px', width: '100%', textAlign: 'center', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
                 {/* Logo */}
                 <img 
                     src="/logo_circle.png" 
@@ -777,7 +777,7 @@ const InstructorPage = () => {
 
     if (loading) {
         return (
-            <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ minHeight: '100dvh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ textAlign: 'center', color: 'var(--primary-gold)' }}>로딩 중...</div>
             </div>
         );
@@ -797,7 +797,7 @@ const InstructorPage = () => {
             <CosmicParticles />
             
             {/* Header */}
-            <div style={{ background: 'rgba(20, 20, 25, 0.9)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', position: 'relative', zIndex: 2, backdropFilter: 'blur(10px)' }}>
+            <div style={{ background: 'rgba(20, 20, 25, 0.95)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', position: 'relative', zIndex: 2 }}>
                 <div>
                     <h1 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--primary-gold)' }}>복샘요가 강사</h1>
                     <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{instructorName} 선생님</p>

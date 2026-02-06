@@ -42,6 +42,13 @@ try {
   );
 
 
+  // [SAFETY] Global Async Error Handler
+  window.addEventListener('unhandledrejection', (event) => {
+    console.warn('[Global Safety] Unhandled Promise Rejection:', event.reason);
+    // Prevent default if you want to suppress console error, but usually better to log it.
+    // We could forward this to an error reporting service here.
+  });
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
       try {

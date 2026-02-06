@@ -835,7 +835,7 @@ const CheckInPage = () => {
         <div className="checkin-wrapper" style={{
             position: 'relative',
             width: '100%',
-            height: '100vh',
+            height: '100dvh',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',

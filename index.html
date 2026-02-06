@@ -3,13 +3,28 @@
 
 <head>
   <meta charset="UTF-8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   <meta name="google" content="notranslate" />
   <link rel="icon" type="image/png" href="/favicon.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#D4AF37" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
+  <meta name="theme-color" content="#08080A" />
   <link rel="apple-touch-icon" href="/logo_circle.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <!-- SEO & Open Graph (카카오톡/문자 공유 미리보기) -->
+  <meta name="description" content="나를 만나는 시간, 복샘요가 회원 전용 앱입니다. 출석체크와 수련 기록을 관리하세요.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="복샘요가 (Boksaem Yoga)">
+  <meta property="og:description" content="나를 만나는 시간, 복샘요가입니다. 간편하게 출석하고 수련을 기록해보세요.">
+  <meta property="og:image" content="/pwa-icon-512.png">
+  <meta property="og:site_name" content="복샘요가">
+  <meta property="og:locale" content="ko_KR">
+
   <script>
     // 경로에 따른 PWA 설정 동적 변경 로직
     (function () {
@@ -39,16 +54,10 @@
 
       document.title = appTitle;
 
-      // [PWA] Service Worker 등록 (캐시 초기화용)
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function () {
-          navigator.serviceWorker.register('/sw.js').then(function (registration) {
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-          }, function (err) {
-            console.log('ServiceWorker registration failed: ', err);
-          });
-        });
-      }
+      
+      // [PWA] Service Worker registration is now handled by vite-plugin-pwa
+      // Manual registration removed to avoid conflicts.
+
     })();
   </script>
   <title>복샘요가</title>

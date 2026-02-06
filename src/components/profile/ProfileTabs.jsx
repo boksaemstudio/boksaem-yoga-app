@@ -27,12 +27,11 @@ const ProfileTabs = ({ activeTab, setActiveTab, t }) => {
     return (
         <div style={{
             position: 'fixed',
-            bottom: '20px',
+            bottom: 'calc(20px + env(safe-area-inset-bottom))',
             left: '20px',
             right: '20px',
             height: '75px',
-            background: 'rgba(20, 20, 23, 0.85)',
-            backdropFilter: 'blur(15px)',
+            background: 'rgba(20, 20, 23, 0.95)',
             borderRadius: '25px',
             display: 'flex',
             justifyContent: 'space-around',

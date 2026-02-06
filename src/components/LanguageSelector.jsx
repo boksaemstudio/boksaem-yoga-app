@@ -33,7 +33,6 @@ const LanguageSelector = ({ variant = 'default' }) => {
                         fontSize: '0.8rem',
                         cursor: 'pointer',
                         outline: 'none',
-                        backdropFilter: 'blur(10px)',
                         minWidth: '90px'
                     }}
                 >
