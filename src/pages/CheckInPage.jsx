@@ -124,7 +124,7 @@ const TopBar = memo(({ weather, currentBranch, branches, handleBranchChange, tog
             </div>
 
             {/* Right: Action Buttons Grouped */}
-            <div className="top-actions-right" style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+            <div className="top-actions-right" style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', gap: '40px' }}>
 
                 {/* Instructor Button */}
                 <button

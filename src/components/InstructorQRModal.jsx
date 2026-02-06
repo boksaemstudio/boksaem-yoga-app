@@ -1,14 +1,11 @@
 import { X, QrCode } from '@phosphor-icons/react';
+import { QRCodeSVG } from 'qrcode.react';
 
 const InstructorQRModal = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
     
     // Get the instructor app URL
     const instructorUrl = `${window.location.origin}/instructor`;
-    
-    // Generate QR code using QR Server API (more reliable)
-    // Increased size for better visibility
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(instructorUrl)}&bgcolor=ffffff&color=2c2c2c&margin=10`;
 
     return (
         <div 
@@ -77,10 +74,12 @@ const InstructorQRModal = ({ isOpen, onClose }) => {
                     display: 'inline-block',
                     marginBottom: '24px'
                 }}>
-                    <img 
-                        src={qrCodeUrl} 
-                        alt="강사 앱 QR 코드" 
-                        style={{ width: '280px', height: '280px', display: 'block' }}
+                    <QRCodeSVG 
+                        value={instructorUrl} 
+                        size={250}
+                        fgColor="#000000"
+                        bgColor="#ffffff"
+                        level="M"
                     />
                 </div>
 
@@ -91,7 +90,7 @@ const InstructorQRModal = ({ isOpen, onClose }) => {
                     lineHeight: 1.5,
                     fontWeight: 500
                 }}>
-                    강사 선택 후<br/>
+                    QR 코드를 스캔하신 후<br/>
                     <span style={{ color: 'var(--primary-gold)', fontWeight: 700 }}>전화번호 뒷 4자리</span>를 입력하세요
                 </div>
             </div>

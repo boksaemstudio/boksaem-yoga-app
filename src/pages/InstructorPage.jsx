@@ -173,8 +173,8 @@ const InstructorSchedule = ({ instructorName }) => {
             
             const holidayName = getHolidayName(dateStr);
 
-            let borderStyle = '2px solid transparent';
-            let borderColor = 'transparent';
+            let borderStyle = 'none';
+            let borderColor = undefined;
 
             if (hasGhc && hasMapo) {
                 borderStyle = '2px solid';
@@ -183,6 +183,11 @@ const InstructorSchedule = ({ instructorName }) => {
                 borderStyle = '2px solid var(--primary-gold)';
             } else if (hasMapo) {
                 borderStyle = '2px solid #FF6B6B';
+            }
+            
+            // [DEBUG] Log if border is applied unexpectedly
+            if ((hasGhc || hasMapo) && !monthlyData[dateStr]?.length) {
+                 console.warn(`[Calendar] Border applied but no classes found for ${dateStr}? GHC:${hasGhc}, MAPO:${hasMapo}`);
             }
 
             // Text Color Logic
