@@ -525,32 +525,25 @@ const InstructorPage = () => {
         <div style={{ minHeight: '100vh', background: 'transparent', paddingBottom: '80px', position: 'relative' }}>
             <CosmicParticles />
             {/* Header */}
-            <div style={{ background: 'rgba(20, 20, 25, 0.9)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', position: 'relative', zIndex: 1, backdropFilter: 'blur(10px)' }}>
+            <div style={{ background: 'rgba(20, 20, 25, 0.9)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', position: 'relative', zIndex: 2, backdropFilter: 'blur(10px)' }}>
                 <div>
                     <h1 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--primary-gold)' }}>복샘요가 강사</h1>
                     <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{instructorName} 선생님</p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <select
-                        value={branchId}
-                        onChange={(e) => setBranchId(e.target.value)}
-                        style={{ background: 'var(--bg-input)', border: 'none', color: 'var(--text-primary)', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem' }}
-                    >
-                        {STUDIO_CONFIG.BRANCHES.map(b => (
-                            <option key={b.id} value={b.id}>{b.name}</option>
-                        ))}
-                    </select>
                     <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
                         <SignOut size={24} color="var(--text-secondary)" />
                     </button>
                 </div>
             </div>
 
-            {/* Content */}
-            {activeTab === 'schedule' && <InstructorSchedule instructorName={instructorName} branchId={branchId} />}
-            {activeTab === 'attendance' && <InstructorAttendance instructorName={instructorName} branchId={branchId} />}
-            {activeTab === 'notices' && <InstructorNotices />}
-            {activeTab === 'settings' && <InstructorSettings instructorName={instructorName} />}
+            {/* Content Area */}
+            <div style={{ position: 'relative', zIndex: 1, minHeight: 'calc(100vh - 160px)' }}>
+                {activeTab === 'schedule' && <InstructorSchedule instructorName={instructorName} branchId={branchId} />}
+                {activeTab === 'attendance' && <InstructorAttendance instructorName={instructorName} branchId={branchId} />}
+                {activeTab === 'notices' && <InstructorNotices />}
+                {activeTab === 'settings' && <InstructorSettings instructorName={instructorName} />}
+            </div>
 
             {/* Bottom Navigation */}
             <div style={{
