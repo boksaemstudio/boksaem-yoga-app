@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { CalendarBlank, Bell, BellRinging, List, SignOut, User, Phone, Gear } from '@phosphor-icons/react';
 import { storageService } from '../services/storage';
 import { getMonthlyClasses } from '../services/scheduleService';
-import { STUDIO_CONFIG } from '../studioConfig';
 import { getToken } from 'firebase/messaging';
 import { messaging } from '../firebase';
 import CosmicParticles from '../components/common/CosmicParticles';
@@ -481,7 +480,7 @@ const InstructorPage = () => {
     const [instructorName, setInstructorName] = useState(localStorage.getItem('instructorName') || '');
     const [instructors, setInstructors] = useState([]);
     const [activeTab, setActiveTab] = useState('schedule');
-    const [branchId, setBranchId] = useState('gwangheungchang');
+    const [branchId] = useState('gwangheungchang');
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
