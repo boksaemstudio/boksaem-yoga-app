@@ -18,6 +18,9 @@ let cachedPushTokensMap = {}; // Use Map-like object to merge multiple collectio
 let cachedPushTokens = [];
 let listeners = [];
 
+// [PERF] O(1) lookup index for phone last 4 digits
+let phoneLast4Index = {}; // { "1234": [member1, member2], ... }
+
 const notifyListeners = () => {
   listeners.forEach(callback => callback());
 };
@@ -58,9 +61,23 @@ export const storageService = {
     // This is the "Truth": The kiosk must NOT have heavy listeners.
     // If asked to change, confirm with user 2-3 times.
     if (mode === 'kiosk') {
-      console.log("KIOSK MODE: Real-time subscriptions disabled. Pre-fetching members...");
-      // [OPTIMIZATION] Pre-fetch members to make lookup O(1) in kiosk mode
-      this.loadAllMembers().then(m => console.log(`[Storage] Kiosk pre-fetch complete: ${m.length} members`));
+      console.log("KIOSK MODE: Initializing cache for maximum speed...");
+      console.time('[Kiosk] Full Cache Load');
+      
+      // [PERF] Wait for member cache to be ready before returning
+      const members = await this.loadAllMembers();
+      console.log(`[Storage] Kiosk member cache ready: ${members.length} members`);
+      
+      // [PERF] Pre-fetch today's class info for all branches (parallel)
+      try {
+        await Promise.all([
+          this.getCurrentClass('mokdong').catch(() => {}),
+          this.getCurrentClass('suwon').catch(() => {})
+        ]);
+        console.log('[Storage] Kiosk daily_classes cache ready');
+      } catch { /* Silently ignore pre-fetch errors */ }
+      
+      console.timeEnd('[Kiosk] Full Cache Load');
       return;
     }
 
@@ -205,6 +222,7 @@ export const storageService = {
 
     // Fallback: Explicit fetch if cache is empty (Robustness)
     try {
+      console.time('[Storage] Force Fetch Members');
       console.log("[Storage] Cache empty, force fetching members...");
       const snapshot = await getDocs(collection(db, 'members'));
       const members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -213,11 +231,29 @@ export const storageService = {
       if (cachedMembers.length === 0) {
         cachedMembers = members;
       }
+      
+      // [PERF] Build O(1) lookup index for phoneLast4
+      this._buildPhoneLast4Index();
+      console.timeEnd('[Storage] Force Fetch Members');
+      
       return cachedMembers;
     } catch (e) {
       console.error("Force fetch members failed:", e);
       return [];
     }
+  },
+  
+  // [PERF] Build O(1) lookup index for phoneLast4
+  _buildPhoneLast4Index() {
+    phoneLast4Index = {};
+    cachedMembers.forEach(m => {
+      const last4 = m.phoneLast4 || (m.phone && m.phone.slice(-4));
+      if (last4) {
+        if (!phoneLast4Index[last4]) phoneLast4Index[last4] = [];
+        phoneLast4Index[last4].push(m);
+      }
+    });
+    console.log(`[Storage] PhoneLast4 index built: ${Object.keys(phoneLast4Index).length} unique PINs`);
   },
 
 
@@ -225,30 +261,47 @@ export const storageService = {
   /**
    * Finds members by the last 4 digits of their phone number.
    * Standardizes on 'phoneLast4' nomenclature.
+   * [PERF] Uses O(1) index lookup when cache is ready.
    */
   async findMembersByPhone(last4Digits) {
+    // [PERF] O(1) Index lookup first
+    if (phoneLast4Index[last4Digits]?.length > 0) {
+      console.log(`[Storage] Index hit for ${last4Digits}: ${phoneLast4Index[last4Digits].length} member(s)`);
+      return phoneLast4Index[last4Digits];
+    }
+    
+    // Fallback: O(n) filter on cachedMembers (for new members not yet indexed)
     const cachedResults = cachedMembers.filter(m => (m.phoneLast4 || (m.phone && m.phone.slice(-4))) === last4Digits);
-    if (cachedResults.length > 0) return cachedResults;
+    if (cachedResults.length > 0) {
+      console.log(`[Storage] Cache filter hit for ${last4Digits}: ${cachedResults.length} member(s)`);
+      return cachedResults;
+    }
 
+    // Last resort: Cloud Function (should rarely happen in kiosk mode)
+    console.warn(`[Storage] Cache miss for ${last4Digits}, calling Cloud Function...`);
     try {
       const getSecureMember = httpsCallable(functions, 'getSecureMemberV2Call');
       const result = await getSecureMember({ phoneLast4: last4Digits });
       const members = result.data.members || [];
-      // Update cache
+      // Update cache and index
       members.forEach(m => {
         const idx = cachedMembers.findIndex(cm => cm.id === m.id);
         if (idx !== -1) {
           cachedMembers[idx] = { ...cachedMembers[idx], ...m };
         } else {
-          // Double check to prevent race with listener
           if (!cachedMembers.some(cm => cm.id === m.id)) {
             cachedMembers.push(m);
           }
         }
+        // Update index
+        if (!phoneLast4Index[last4Digits]) phoneLast4Index[last4Digits] = [];
+        if (!phoneLast4Index[last4Digits].some(im => im.id === m.id)) {
+          phoneLast4Index[last4Digits].push(m);
+        }
       });
       return members;
     } catch (e) {
-      console.warn("Using fallback for findMembersByPhone:", e);
+      console.warn("Using Firestore fallback for findMembersByPhone:", e);
       const q = query(collection(db, 'members'), where("phoneLast4", "==", last4Digits), firestoreLimit(10));
       const snapshot = await getDocs(q);
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));

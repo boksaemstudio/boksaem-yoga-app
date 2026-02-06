@@ -180,6 +180,7 @@ const CheckInPage = () => {
     const [pin, setPin] = useState('');
     const [message, setMessage] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [isReady, setIsReady] = useState(false); // [PERF] Cache ready state
     const timerRef = useRef(null);
     const [currentBranch, setCurrentBranch] = useState(() => storageService.getKioskBranch());
     const [duplicateMembers, setDuplicateMembers] = useState([]);
@@ -284,13 +285,17 @@ const CheckInPage = () => {
     };
 
     useEffect(() => {
-        // [KIOSK MODE] Initialize without heavy real-time listeners for max performance
-        storageService.initialize({ mode: 'kiosk' });
+        // [KIOSK MODE] Initialize with cache warming for maximum speed
+        const initKiosk = async () => {
+            console.time('[CheckIn] Total Init');
+            await storageService.initialize({ mode: 'kiosk' });
+            setIsReady(true);
+            console.timeEnd('[CheckIn] Total Init');
+            console.log('[CheckIn] 🚀 Kiosk ready - keypad enabled');
+        };
+        initKiosk();
 
-        // Pre-fetch class info for today to speed up AI context later
-        storageService.getCurrentClass(currentBranch).catch(() => { });
-
-        // Initial fetch
+        // Initial fetch (weather & AI - can run in parallel)
         fetchWeatherAndAI();
 
         // Background / Period Slow Timer
@@ -973,7 +978,36 @@ const CheckInPage = () => {
                 </div>
 
                 <div className="checkin-keypad-section" style={{ position: 'relative', background: 'transparent', boxShadow: 'none', border: 'none' }}>
-                    {pin.length === 0 && !message && (
+                    {/* [PERF] Loading overlay while cache is warming */}
+                    {!isReady && (
+                        <div style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: 'rgba(0,0,0,0.7)',
+                            borderRadius: '24px',
+                            zIndex: 100
+                        }}>
+                            <div style={{
+                                width: '50px',
+                                height: '50px',
+                                border: '4px solid rgba(255,215,0,0.3)',
+                                borderTop: '4px solid var(--primary-gold)',
+                                borderRadius: '50%',
+                                animation: 'spin 1s linear infinite'
+                            }} />
+                            <p style={{ marginTop: '20px', color: 'var(--primary-gold)', fontSize: '1.2rem', fontWeight: 600 }}>
+                                출석 시스템 준비 중...
+                            </p>
+                        </div>
+                    )}
+                    {pin.length === 0 && !message && isReady && (
                         <div className="keypad-floating-instruction">
                             전화번호 뒤 4자리를 입력하세요
                         </div>
@@ -982,7 +1016,7 @@ const CheckInPage = () => {
                         onKeyPress={handleKeyPress}
                         onClear={handleClear}
                         onSubmit={handleSubmit}
-                        disabled={loading || keypadLocked || !!message || showSelectionModal || showInstallGuide || showKioskInstallGuide}
+                        disabled={loading || keypadLocked || !!message || showSelectionModal || showInstallGuide || showKioskInstallGuide || !isReady}
                     />
                 </div>
             </div >

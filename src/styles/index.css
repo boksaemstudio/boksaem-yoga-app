@@ -702,10 +702,11 @@ select option {
 }
 
 /* reusable glass panel */
+/* [PERF] backdrop-filter removed for older tablet performance */
 .glass-panel {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+  background: rgba(35, 35, 35, 0.95); /* Opaque fallback */
+  /* backdrop-filter: var(--glass-blur); */
+  /* -webkit-backdrop-filter: var(--glass-blur); */
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   border-radius: var(--radius-lg);
@@ -1008,14 +1009,15 @@ select option {
 }
 
 /* QR Box - MORE PROMINENT */
+/* [PERF] backdrop-filter removed for older tablet performance */
 .qr-box {
   display: flex;
   align-items: center;
   gap: 15px;
   padding: 12px 20px;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.85); /* More opaque fallback */
+  /* backdrop-filter: blur(8px); */
+  /* -webkit-backdrop-filter: blur(8px); */
   border: 1px solid rgba(255, 215, 0, 0.4);
   border-radius: var(--radius-lg);
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
@@ -1344,6 +1346,7 @@ h6 {
 }
 
 /* Moving Background Aura */
+/* [PERF] Animation disabled for older tablet performance */
 .bg-aura {
   position: fixed;
   top: -50%;
@@ -1352,7 +1355,7 @@ h6 {
   height: 200%;
   background: radial-gradient(circle at center, rgba(212, 175, 55, 0.03) 0%, transparent 50%);
   z-index: -1;
-  animation: rotateAura 30s linear infinite;
+  /* animation: rotateAura 30s linear infinite; */
   pointer-events: none;
 }
 
