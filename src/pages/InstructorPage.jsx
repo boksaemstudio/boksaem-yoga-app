@@ -237,7 +237,7 @@ const InstructorNotices = () => {
 
     return (
         <div style={{ padding: '16px' }}>
-            <h2 style={{ fontSize: '1.2rem', marginBottom: '16px' }}>공지사항</h2>
+            <h2 style={{ fontSize: '1.2rem', marginBottom: '16px' }}>공지</h2>
             {notices.length === 0 ? (
                 <p style={{ color: 'var(--text-secondary)' }}>공지사항이 없습니다</p>
             ) : (
@@ -560,7 +560,7 @@ const InstructorPage = () => {
             }}>
                 <TabButton icon={<CalendarBlank size={24} />} label="시간표" active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} />
                 <TabButton icon={<List size={24} />} label="출석현황" active={activeTab === 'attendance'} onClick={() => setActiveTab('attendance')} />
-                <TabButton icon={<Bell size={24} />} label="공지사항" active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} />
+                <TabButton icon={<Bell size={24} />} label="공지" active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} />
                 <TabButton icon={<Gear size={24} />} label="설정" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
             </div>
         </div>

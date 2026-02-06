@@ -22,7 +22,7 @@ export const translations = {
         tabHistory: "수련기록",
         tabSchedule: "시간표",
         tabPrices: "수강료",
-        tabNotices: "공지사항",
+        tabNotices: "공지",
         tabMessages: "메시지",
 
         // Home
@@ -61,8 +61,8 @@ export const translations = {
         // Notices
         homeYogaTitle: "오늘의 3분 홈트",
         homeYogaSub: "요가원에 못 오신다면 딱 이것만!",
-        noticesTitle: "요가원 공지사항",
-        noNotices: "새로운 공지사항이 없습니다.",
+        noticesTitle: "요가원 공지",
+        noNotices: "새로운 공지가 없습니다.",
         recent: "최근",
         messagesTitle: "메시지함",
         noMessages: "수신된 메시지가 없습니다.",
