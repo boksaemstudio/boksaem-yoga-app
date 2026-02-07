@@ -434,7 +434,55 @@ const MeditationPage = ({ onClose }) => {
         }
     }, [ttcEnabled, stopAllAudio]);
 
+    // ✅ fetchAIPrescription - fetchAIQuestion보다 먼저 정의 (TDZ 방지)
+    const fetchAIPrescription = async (diagnosisId, weatherId, modeId, intType, analysisSummary = "") => {
+        setIsAILoading(true);
+        try {
+            const result = await generateMeditationGuidance({
+                type: 'prescription',
+                memberName: memberName,
+                timeContext: timeContext,
+                weather: weatherId,
+                diagnosis: diagnosisId,
+                analysisSummary: analysisSummary,
+                mode: modeId === 'breath' ? '3min' : (modeId === 'calm' ? '7min' : '15min'),
+                interactionType: intType
+            });
+            if (result.data) {
+                if (result.data.prescriptionReason) {
+                    result.data.prescriptionReason = result.data.prescriptionReason.replace(/OO님/g, `${memberName}님`);
+                }
+                if (result.data.message) {
+                    result.data.message = result.data.message.replace(/OO님/g, `${memberName}님`);
+                }
+                setAiPrescription(result.data);
+                const reason = result.data.prescriptionReason || result.data.message || '';
+                setPrescriptionReason(reason);
+                if (result.data.audioContent) {
+                    playAudio(result.data.audioContent);
+                }
+            }
+        } catch (error) {
+            console.error('AI Prescription fetch failed:', error);
+        } finally {
+            setIsAILoading(false);
+        }
+    };
 
+    // ✅ prescription step 진입 시 처방 로드
+    useEffect(() => {
+        if (step === 'prescription' && prescriptionReason && !aiPrescription) {
+            try {
+                const params = JSON.parse(prescriptionReason);
+                if (params.diagnosisId) {
+                    console.log("📋 Loading prescription with params:", params);
+                    fetchAIPrescription(params.diagnosisId, params.weatherId, params.modeId, params.intType, params.summary);
+                }
+            } catch (e) {
+                console.log("📋 prescriptionReason is not JSON, skipping auto-load");
+            }
+        }
+    }, [step, prescriptionReason, aiPrescription]);
 
     const fetchAIQuestion = async (history = []) => {
         if (aiRequestLock) return; 
@@ -560,61 +608,6 @@ const MeditationPage = ({ onClose }) => {
         handleChatResponse(text);
     };
 
-    // ... (fetchAIPrescription)
-    const fetchAIPrescription = async (diagnosisId, weatherId, modeId, intType, analysisSummary = "") => {
-        setIsAILoading(true);
-        try {
-            const result = await generateMeditationGuidance({
-                type: 'prescription',
-                memberName: memberName, // ✅ Personalize
-                timeContext: timeContext,
-                weather: weatherId,
-                diagnosis: diagnosisId, // 백엔드 수정으로 이제 diagnosis로 전달 가능
-                analysisSummary: analysisSummary, // 대화 요약 정보 추가
-                mode: modeId === 'breath' ? '3min' : (modeId === 'calm' ? '7min' : '15min'),
-                interactionType: intType
-            });
-            if (result.data) {
-                // ✅ Personalization Safety
-                if (result.data.prescriptionReason) {
-                    result.data.prescriptionReason = result.data.prescriptionReason.replace(/OO님/g, `${memberName}님`);
-                }
-                if (result.data.message) {
-                    result.data.message = result.data.message.replace(/OO님/g, `${memberName}님`);
-                }
-
-                setAiPrescription(result.data);
-                // 백엔드에서 message 필드를 줄 수도 있으므로 처리
-                const reason = result.data.prescriptionReason || result.data.message || '';
-                setPrescriptionReason(reason);
-                
-                // Play Cloud Audio ONLY
-                if (result.data.audioContent) {
-                    playAudio(result.data.audioContent);
-                }
-            }
-        } catch (error) {
-            console.error('AI Prescription fetch failed:', error);
-        } finally {
-            setIsAILoading(false);
-        }
-    };
-
-    // ✅ prescription step 진입 시 처방 로드 (TDZ 방지용 useEffect)
-    useEffect(() => {
-        if (step === 'prescription' && prescriptionReason && !aiPrescription) {
-            try {
-                const params = JSON.parse(prescriptionReason);
-                if (params.diagnosisId) {
-                    console.log("📋 Loading prescription with params:", params);
-                    fetchAIPrescription(params.diagnosisId, params.weatherId, params.modeId, params.intType, params.summary);
-                }
-            } catch (e) {
-                // prescriptionReason이 JSON이 아닌 경우 (직접 설정된 문자열)
-                console.log("📋 prescriptionReason is not JSON, skipping auto-load");
-            }
-        }
-    }, [step, prescriptionReason, aiPrescription]);
 
     // Fetch AI session message (during meditation)
     const fetchAISessionMessage = async () => {
