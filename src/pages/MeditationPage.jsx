@@ -434,42 +434,7 @@ const MeditationPage = ({ onClose }) => {
         }
     }, [ttcEnabled, stopAllAudio]);
 
-    // ✅ fetchAIPrescription - fetchAIQuestion보다 먼저 정의 (TDZ 방지)
-    const fetchAIPrescription = async (diagnosisId, weatherId, modeId, intType, analysisSummary = "") => {
-        setIsAILoading(true);
-        try {
-            const result = await generateMeditationGuidance({
-                type: 'prescription',
-                memberName: memberName,
-                timeContext: timeContext,
-                weather: weatherId,
-                diagnosis: diagnosisId,
-                analysisSummary: analysisSummary,
-                mode: modeId === 'breath' ? '3min' : (modeId === 'calm' ? '7min' : '15min'),
-                interactionType: intType
-            });
-            if (result.data) {
-                if (result.data.prescriptionReason) {
-                    result.data.prescriptionReason = result.data.prescriptionReason.replace(/OO님/g, `${memberName}님`);
-                }
-                if (result.data.message) {
-                    result.data.message = result.data.message.replace(/OO님/g, `${memberName}님`);
-                }
-                setAiPrescription(result.data);
-                const reason = result.data.prescriptionReason || result.data.message || '';
-                setPrescriptionReason(reason);
-                if (result.data.audioContent) {
-                    playAudio(result.data.audioContent);
-                }
-            }
-        } catch (error) {
-            console.error('AI Prescription fetch failed:', error);
-        } finally {
-            setIsAILoading(false);
-        }
-    };
-
-    // ✅ prescription step 로딩은 컴포넌트 렌더링 시 처리 (아래 참조)
+    // ✅ fetchAIPrescription 로직은 isFinalAnalysis 블록에 인라인으로 구현됨
 
     const fetchAIQuestion = async (history = []) => {
         if (aiRequestLock) return; 
