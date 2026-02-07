@@ -169,7 +169,7 @@ const MeditationPage = ({ onClose }) => {
     const [timeLeft, setTimeLeft] = useState(0);
     const [aiMessage, setAiMessage] = useState("");
     const [soundEnabled, setSoundEnabled] = useState(true); 
-    const [ttcEnabled, setTtcEnabled] = useState(false); // TTC (Text To Calm) Voice Guidance
+    const [ttcEnabled, setTtcEnabled] = useState(true); // TTC (Text To Calm) Voice Guidance - Default ON
     
     // Audio/Video State
     const [micVolume, setMicVolume] = useState(0);
@@ -438,6 +438,32 @@ const MeditationPage = ({ onClose }) => {
         }
     };
 
+    // 🗣️ TTS (Text To Calm) Logic
+    const speak = useCallback((text) => {
+        if (!text || typeof window === 'undefined' || !ttcEnabled) return;
+        window.speechSynthesis.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ko-KR';
+        utterance.rate = 0.9; // Calm pace
+        utterance.pitch = 0.85; // Lower pitch for comfort
+        utterance.volume = 0.6; 
+
+        // Try to find a Korean voice
+        const voices = window.speechSynthesis.getVoices();
+        const krVoice = voices.find(v => v.lang.includes('ko') || v.lang.includes('KO'));
+        if (krVoice) utterance.voice = krVoice;
+
+        window.speechSynthesis.speak(utterance);
+    }, [ttcEnabled]);
+
+    // Auto-speak new AI questions
+    useEffect(() => {
+        if (currentAIChat?.question && !isAILoading && step === 'diagnosis') {
+            speak(currentAIChat.question);
+        }
+    }, [currentAIChat, isAILoading, step, speak]);
+
     const getAudioContext = () => {
         if (!audioContextRef.current) {
             audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -668,108 +694,153 @@ const MeditationPage = ({ onClose }) => {
     // 🎨 RENDER
     // ==========================================
 
-    // 1. Diagnosis Step (Conversational AI)
+    // 1. Diagnosis Step (Conversational AI - KakaoTalk Style)
     if (step === 'diagnosis') {
-        const lastAIResponse = currentAIChat?.question || "안녕하세요. 오늘 당신의 마음을 함께 들여다볼 AI 명상 가이드입니다.";
-        
         return (
             <div style={{
-                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 2000,
-                display: 'flex', flexDirection: 'column', padding: '20px',
-                backgroundImage: 'radial-gradient(circle at 50% 30%, #1a1a2e 0%, #000000 70%)'
+                position: 'fixed', inset: 0, background: '#b2c7d9', zIndex: 2000, // KakaoTalk Blue
+                display: 'flex', flexDirection: 'column'
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
-                    <button onClick={() => onClose ? onClose() : navigate(-1)} style={{ padding: '10px', color: 'white', background: 'none', border: 'none' }}>
-                        <ArrowLeft size={24} />
-                    </button>
-                    <h1 style={{ flex: 1, textAlign: 'center', fontSize: '1.1rem', fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginRight: '44px' }}>
-                        AI 심리 분석 & 명상
-                    </h1>
-                </div>
-
-                <div style={{ 
-                    flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', 
-                    paddingBottom: 'calc(40px + env(safe-area-inset-bottom))', overflowY: 'auto', width: '100%'
+                {/* 1. Header (Translucent) */}
+                <div style={{
+                    padding: '10px 15px', paddingTop: 'max(10px, env(safe-area-inset-top))',
+                    display: 'flex', alignItems: 'center', background: 'rgba(178, 199, 217, 0.95)',
+                    borderBottom: '1px solid rgba(0,0,0,0.05)', backdropFilter: 'blur(5px)',
+                    zIndex: 10
                 }}>
-                    <div style={{ 
-                        background: 'rgba(255,255,255,0.05)', borderRadius: '25px', padding: '20px', 
-                        width: '100%', maxWidth: '500px', textAlign: 'center', position: 'relative',
-                        border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
-                    }}>
-{isAILoading && chatHistory.length === 0 ? (
-                            <div style={{ padding: '40px 0' }}>
-                                <div style={{ fontSize: '2rem', animation: 'bounce 1s infinite', marginBottom: '20px' }}>💭</div>
-                                <p style={{ color: 'var(--primary-gold)', fontWeight: 600 }}>당신의 이야기를 분석 중입니다...</p>
-                            </div>
-                        ) : (
-                            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                {/* Chat Bubbles */}
-                                {chatHistory.map((msg, idx) => (
-                                    <div key={idx} style={{ 
-                                        alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                                        background: msg.role === 'user' ? 'rgba(212, 175, 55, 0.2)' : 'rgba(255,255,255,0.08)',
-                                        color: msg.role === 'user' ? 'var(--primary-gold)' : 'white',
-                                        padding: '12px 18px', borderRadius: '18px',
-                                        border: msg.role === 'user' ? '1px solid var(--primary-gold)' : '1px solid rgba(255,255,255,0.1)',
-                                        maxWidth: '85%', lineHeight: 1.5, wordBreak: 'keep-all', fontSize: '0.95rem',
-                                        borderBottomRightRadius: msg.role === 'user' ? '4px' : '18px',
-                                        borderBottomLeftRadius: msg.role === 'user' ? '18px' : '4px'
-                                    }}>
-                                        {msg.content}
-                                    </div>
-                                ))}
-                                
-                                {/* Latest AI Message (if not waiting for user or loading next question) */}
-                                {currentAIChat?.question && !isAILoading && (
-                                    <div style={{ 
-                                        alignSelf: 'flex-start',
-                                        background: 'rgba(255,255,255,0.08)', color: 'white',
-                                        padding: '12px 18px', borderRadius: '18px',
-                                        border: '1px solid rgba(255,255,255,0.1)',
-                                        maxWidth: '85%', lineHeight: 1.5, wordBreak: 'keep-all', fontSize: '1.05rem', fontWeight: 600,
-                                        borderBottomLeftRadius: '4px'
-                                    }}>
-                                        {currentAIChat.question}
-                                    </div>
-                                )}
-
-                                {isAILoading && chatHistory.length > 0 && (
-                                    <div style={{ alignSelf: 'flex-start', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', paddingLeft: '10px' }}>
-                                        작성 중...
-                                    </div>
-                                )}
-                                
-                                <div style={{ height: '10px' }}></div>
-
-                                {/* Options */}
-                                {!isAILoading && (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', marginTop: '10px' }}>
-                                        {(currentAIChat?.options || ["네, 시작할게요", "조금 지쳤어요", "편안해요"]).map((opt, i) => (
-                                            <button 
-                                                key={i} 
-                                                onClick={() => handleChatResponse(opt)}
-                                                style={{
-                                                    padding: '16px', borderRadius: '15px', border: 'none',
-                                                    background: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 600,
-                                                    cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left',
-                                                    animation: `fadeIn 0.5s ease-out ${i * 0.1}s backwards`
-                                                }}
-                                                onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.2)'}
-                                                onMouseLeave={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
-                                            >
-                                                {opt}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                    
-                    <button onClick={() => setStep('diagnosis_manual')} style={{ marginTop: '25px', background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.3)', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.85rem' }}>
-                        건너뛰고 직접 선택하기
+                    <button onClick={() => { window.speechSynthesis.cancel(); if(onClose) onClose(); else navigate(-1); }} style={{ padding: '8px', border: 'none', background: 'none', cursor: 'pointer' }}>
+                        <ArrowLeft size={22} color="#000" />
                     </button>
+                    <div style={{ marginLeft: '10px', display: 'flex', flexDirection: 'column' }}>
+                         <span style={{ fontSize: '1rem', fontWeight: 600, color: '#000' }}>복순 (마음 챙김이)</span>
+                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <SpeakerHigh size={12} color="#555" weight="fill" />
+                            <span style={{ fontSize: '0.7rem', color: '#555' }}>음성 대화 중</span>
+                         </div>
+                    </div>
                 </div>
+
+                {/* 2. Chat Area (Scrollable) */}
+                <div style={{
+                    flex: 1, overflowY: 'auto', padding: '20px 15px',
+                    paddingBottom: '160px', // Space for bottom input
+                    display: 'flex', flexDirection: 'column', gap: '15px'
+                }}>
+                    {/* Date Divider */}
+                    <div style={{ alignSelf: 'center', background: 'rgba(0,0,0,0.1)', padding: '4px 12px', borderRadius: '12px', fontSize: '0.75rem', color: 'white', marginBottom: '10px' }}>
+                        {new Date().toLocaleDateString()}
+                    </div>
+
+                    {/* Chat Bubbles */}
+                    {chatHistory.map((msg, idx) => {
+                        const isMe = msg.role === 'user';
+                        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                        return (
+                            <div key={idx} style={{
+                                display: 'flex',
+                                justifyContent: isMe ? 'flex-end' : 'flex-start',
+                                alignItems: 'flex-start',
+                                gap: '8px'
+                            }}>
+                                {/* Avatar (AI) */}
+                                {!isMe && (
+                                    <div style={{
+                                        width: '40px', height: '40px', borderRadius: '16px',
+                                        background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        overflow: 'hidden', border: '1px solid rgba(0,0,0,0.05)', flexShrink: 0
+                                    }}>
+                                         <img src="/pwa-192x192.png" alt="Boksoon" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display='none'; e.target.parentNode.innerText='🧘‍♀️'; }} />
+                                    </div>
+                                )}
+
+                                <div style={{ display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: '6px' }}>
+                                     {!isMe && <div style={{ position:'absolute', marginTop:'-22px', marginLeft:'48px', fontSize:'0.8rem', color:'#555' }}>복순</div>}
+                                    
+                                     <div style={{
+                                         background: isMe ? '#FEE500' : 'white',
+                                         color: '#000',
+                                         padding: '10px 14px',
+                                         borderRadius: isMe ? '12px 0px 12px 12px' : '0px 12px 12px 12px',
+                                         maxWidth: '75vw', fontSize: '0.95rem', lineHeight: '1.5',
+                                         boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                         wordBreak: 'break-word',
+                                         marginTop: !isMe ? '20px' : '0'
+                                     }}>
+                                         {msg.content}
+                                     </div>
+                                     <span style={{ fontSize: '0.7rem', color: '#555', marginBottom: '2px', minWidth: '55px', textAlign: isMe ? 'right' : 'left' }}>
+                                         {timeStr}
+                                     </span>
+                                </div>
+                            </div>
+                        );
+                    })}
+
+                    {/* Latest AI Question */}
+                    {currentAIChat?.question && !isAILoading && (
+                         <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', gap: '8px' }}>
+                             <div style={{
+                                 width: '40px', height: '40px', borderRadius: '16px',
+                                 background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                 overflow: 'hidden', border: '1px solid rgba(0,0,0,0.05)', flexShrink: 0
+                             }}>
+                                  <img src="/pwa-192x192.png" alt="Boksoon" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display='none'; e.target.parentNode.innerText='🧘‍♀️'; }} />
+                             </div>
+                             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', gap: '6px' }}>
+                                 <div style={{
+                                     background: 'white', color: '#000',
+                                     padding: '10px 14px',
+                                     borderRadius: '0px 12px 12px 12px',
+                                     maxWidth: '75vw', fontSize: '0.95rem', lineHeight: '1.5',
+                                     boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                     marginTop: '20px'
+                                 }}>
+                                     {currentAIChat.question}
+                                 </div>
+                                 <span style={{ fontSize: '0.7rem', color: '#555', marginBottom: '2px' }}>
+                                     {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                 </span>
+                             </div>
+                         </div>
+                    )}
+
+                    {isAILoading && (
+                         <div style={{ alignSelf: 'center', background: 'rgba(0,0,0,0.05)', padding: '6px 12px', borderRadius: '12px', fontSize: '0.8rem', color: '#555', marginTop: '10px' }}>
+                             {chatHistory.length === 0 ? "복순이가 준비하고 있어요..." : "복순이가 답장을 쓰고 있어요..."}
+                         </div>
+                    )}
+                </div>
+
+                {/* 3. Fixed Bottom Options */}
+                {!isAILoading && (
+                    <div style={{
+                        position: 'absolute', bottom: 0, left: 0, right: 0,
+                        background: 'white', borderTop: '1px solid #eee',
+                        padding: '15px', paddingBottom: 'calc(15px + env(safe-area-inset-bottom))',
+                        display: 'flex', flexDirection: 'column', gap: '10px',
+                        animation: 'slideUp 0.3s ease-out',
+                        zIndex: 20
+                    }}>
+                        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '5px', scrollbarWidth: 'none' }}>
+                            {(currentAIChat?.options || ["네, 시작할게요", "조금 지쳤어요", "편안해요"]).map((opt, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => { window.speechSynthesis.cancel(); handleChatResponse(opt); }}
+                                    style={{
+                                        flex: '1 0 auto',
+                                        background: '#FEE500', color: '#3b1e1e', // Kakao Yellow
+                                        border: 'none', padding: '12px 20px', borderRadius: '20px',
+                                        fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                    }}
+                                >
+                                    {opt}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
