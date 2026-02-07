@@ -504,8 +504,15 @@ const MeditationPage = ({ onClose }) => {
                             setTimeout(() => setStep('prescription'), 2000);
                         });
                     } else {
-                        // TTS 비활성화 시 짧은 대기 후 전환
-                        speakFallback(transitionMsg);
+                        // TTS 비활성화 시 짧은 대기 후 전환 (inline TTS to avoid hoisting issue)
+                        if (ttcEnabled && typeof window !== 'undefined' && window.speechSynthesis) {
+                            window.speechSynthesis.cancel();
+                            const utterance = new SpeechSynthesisUtterance(transitionMsg);
+                            utterance.lang = 'ko-KR';
+                            utterance.rate = 1.0;
+                            utterance.volume = 0.8;
+                            window.speechSynthesis.speak(utterance);
+                        }
                         setTimeout(() => setStep('prescription'), 3000);
                     }
 
