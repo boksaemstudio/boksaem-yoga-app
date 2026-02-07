@@ -480,48 +480,27 @@ const MeditationPage = ({ onClose }) => {
                         setTimeLeft(defaultMode.time);
                     }
                     
-                    // ✅ 자연스러운 전환 멘트 추가
+                    // ✅ 자연스러운 전환 멘트 (TTS는 Cloud Audio로)
                     const transitionMsg = `${memberName}님, 그럼 이제 명상으로 함께 가볼까요?`;
                     setCurrentAIChat({ 
                         message: transitionMsg, 
                         options: ["네, 갈게요"],
-                        isTransition: true // ✅ 전환 메시지 플래그
+                        isTransition: true
                     });
                     
-                    // ✅ TTS 종료 후 화면 전환 (음성 완료 대기)
-                    if (ttcEnabled && result.data.audioContent) {
-                        const transitionAudio = new Audio(`data:audio/mp3;base64,${result.data.audioContent}`);
-                        transitionAudio.volume = 0.9;
-                        currentAudioRef.current = transitionAudio;
-                        
-                        transitionAudio.onended = () => {
-                            console.log("✅ Transition TTS ended, moving to prescription");
-                            setTimeout(() => setStep('prescription'), 500);
-                        };
-                        
-                        transitionAudio.play().catch(e => {
-                            console.warn('Transition audio failed:', e);
-                            setTimeout(() => setStep('prescription'), 2000);
-                        });
-                    } else {
-                        // TTS 비활성화 시 짧은 대기 후 전환 (inline TTS to avoid hoisting issue)
-                        if (ttcEnabled && typeof window !== 'undefined' && window.speechSynthesis) {
-                            window.speechSynthesis.cancel();
-                            const utterance = new SpeechSynthesisUtterance(transitionMsg);
-                            utterance.lang = 'ko-KR';
-                            utterance.rate = 1.0;
-                            utterance.volume = 0.8;
-                            window.speechSynthesis.speak(utterance);
-                        }
-                        setTimeout(() => setStep('prescription'), 3000);
-                    }
-
+                    // ✅ 화면 전환 및 처방 가져오기 (setTimeout으로 TDZ 방지)
                     const wId = weatherContext?.id || 'sun';
                     const mId = activeMode?.id || defaultMode.id;
                     const iType = interactionType || 'v1';
                     const summary = result.data.analysisSummary || result.data.message || "";
-
-                    fetchAIPrescription(diag.id, wId, mId, iType, summary);
+                    
+                    setTimeout(() => {
+                        setStep('prescription');
+                        // fetchAIPrescription은 이 시점에 이미 정의되어 있음
+                        if (typeof fetchAIPrescription === 'function') {
+                            fetchAIPrescription(diag.id, wId, mId, iType, summary);
+                        }
+                    }, 3000);
                 }
             }
         } catch (error) {
