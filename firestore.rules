@@ -144,5 +144,72 @@ service cloud.firestore {
       allow read: if isStaff();
       allow write: if false; // Only Cloud Functions
     }
+
+    // ========================================
+    // 🗓️ Monthly Schedules - 월간 스케줄 메타데이터
+    // Staff read, Admin write
+    // ========================================
+    match /monthly_schedules/{scheduleId} {
+      allow read: if isStaff();
+      allow write: if isAdmin();
+    }
+
+    // ========================================
+    // 📋 Weekly Templates - 주간 스케줄 템플릿
+    // Staff read, Admin write
+    // ========================================
+    match /weekly_templates/{templateId} {
+      allow read: if isStaff();
+      allow write: if isAdmin();
+    }
+    // ========================================
+    // ⚙️ Settings - 환경 설정 (강사 목록, 수업 종류 등)
+    // Public/Auth read, Admin write
+    // ========================================
+    match /settings/{settingId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // ========================================
+    // 🧘 Member Diligence - 성실도 점수
+    // Staff read, System write (via function)
+    // ========================================
+    match /member_diligence/{memberId} {
+      allow read: if isStaff();
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // ========================================
+    // 🐛 Client Error Logs
+    // Anyone can create (for logging), Admin read
+    // ========================================
+    match /error_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if true; // Allow anonymous error logging
+      allow update, delete: if isAdmin();
+    }
+
+    // ========================================
+    // 📢 Push History & Approvals
+    // Admin only
+    // ========================================
+    match /push_history/{historyId} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /message_approvals/{approvalId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ========================================
+    // 🛡️ System & Backend Collections
+    // Admin read, System write (via Admin SDK)
+    // ========================================
+    match /rate_limits/{docId} { allow read: if isAdmin(); }
+    match /meditation_ai_logs/{docId} { allow read: if isAdmin(); }
+    match /practice_events/{docId} { allow read: if isAdmin(); }
+    match /ai_quota/{docId} { allow read: if isAdmin(); }
+    match /pending_approvals/{docId} { allow read, write: if isAdmin(); }
   }
 }

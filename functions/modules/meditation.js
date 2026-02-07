@@ -20,23 +20,26 @@ const generateInternalAudio = async (text, type = 'default') => {
         const client = new TextToSpeechClient();
 
         const voiceConfigs = {
-            default: { languageCode: 'ko-KR', name: 'ko-KR-Wavenet-A', ssmlGender: 'FEMALE' },
-            meditation: { languageCode: 'ko-KR', name: 'ko-KR-Wavenet-B', ssmlGender: 'FEMALE' },
-            fast: { languageCode: 'ko-KR', name: 'ko-KR-Standard-A', ssmlGender: 'FEMALE' }
+            // 채팅용: Neural2-B (사용자 요청)
+            chat: { languageCode: 'ko-KR', name: 'ko-KR-Neural2-B', ssmlGender: 'FEMALE' },
+            // 명상용: Chirp3-HD-Aoede (사용자 요청)
+            meditation: { languageCode: 'ko-KR', name: 'ko-KR-Chirp3-HD-Aoede', ssmlGender: 'FEMALE' },
+            // 기본값
+            default: { languageCode: 'ko-KR', name: 'ko-KR-Neural2-B', ssmlGender: 'FEMALE' }
         };
 
-        const voice = voiceConfigs[type] || voiceConfigs.default;
+        const voice = voiceConfigs[type] || voiceConfigs.chat; // Default to chat (Neural2)
 
         const [response] = await client.synthesizeSpeech({
             input: { text },
             voice,
-            audioConfig: { audioEncoding: 'MP3', speakingRate: 0.9 }
+            audioConfig: { audioEncoding: 'MP3', speakingRate: type === 'meditation' ? 0.9 : 1.0 }
         });
 
         return response.audioContent?.toString('base64') || null;
     } catch (error) {
         console.error('[Audio] Generation failed:', error);
-        return null;
+        return null; // Return null on failure instead of crashing
     }
 };
 
@@ -45,19 +48,20 @@ const generateInternalAudio = async (text, type = 'default') => {
  */
 exports.generateMeditationGuidance = onCall({
     region: "asia-northeast3",
-    cors: true
+    cors: true,
+    minInstances: 1 // ✅ Cold Start 방지
 }, async (request) => {
     console.log("🧘 Meditation Guidance Request:", JSON.stringify(request.data));
     await checkAIQuota();
 
     const { 
         type, // 'question' | 'prescription' | 'session_message'
+        memberName, // ✅ User name for personalization
         timeContext,
         weather,
         mode,
         interactionType,
-        messageIndex,
-        memberId
+        messageIndex
     } = request.data;
 
     try {
@@ -69,33 +73,44 @@ exports.generateMeditationGuidance = onCall({
         if (type === 'question') {
             const { chatHistory = [] } = request.data;
             const turnCount = chatHistory.length;
-            const isClosing = turnCount >= 7;
-            const MUST_FINISH = turnCount >= 10;
+            const isClosing = turnCount >= 10; // ✅ 대화 지속 허용 (5 → 10)
+            const MUST_FINISH = turnCount >= 15; // ✅ 더 길게 대화 (8 → 15)
 
             const historyText = chatHistory.length > 0 
                 ? chatHistory.map(m => `${m.role === 'user' ? 'Client' : 'AI'}: ${m.content}`).join('\n')
                 : 'No previous conversation.';
 
+            // ✅ 사용자 대화 지속 의도 탐지
+            const lastUserMsg = chatHistory.filter(m => m.role === 'user').pop()?.content || '';
+            const wantsContinue = /(더 |좊더|들어줘|이야기|계속|말해줘|듣고 싶|휴식|쉬고)/i.test(lastUserMsg);
+
             prompt = `
-                You are a Holistic Wellness Master AI named '복순(Boksoon)' for '복샘요가'.
-                Identity: Warm life mentor, expert in yoga & psychology.
-                
-                CONVERSATION HISTORY:
-                ${historyText}
-                
-                TURN: ${turnCount + 1}
-                ${isClosing ? 'Start pushing toward analysis.' : ''}
-                ${MUST_FINISH ? 'MUST SET isFinalAnalysis: true AND PROVIDE DIAGNOSIS NOW.' : ''}
-                
-                If user says "Start", "Yes", "Let's do it" -> SET 'isFinalAnalysis: true' IMMEDIATELY.
-                
-                Output Format (JSON ONLY):
-                {
-                    "message": "Your response (Korean, conversational)",
-                    "isFinalAnalysis": boolean,
-                    "analysisSummary": "Short summary of diagnosis",
-                    "mappedDiagnosis": "stress/stiff/anxious/tired/overthink/low_energy..."
-                }
+Role: Holistic Wellness Counselor (Korean, 해요체).
+USER: ${memberName || '회원'}
+
+## STRICT RULES:
+- NEVER ask for user's name (you already know it: "${memberName || '회원'}")
+- NEVER introduce yourself or mention your name
+- Use "${memberName || '회원'}님" naturally (but not every message)
+- Each response MUST be unique and empathetic - NO repetitive phrases
+- Keep responses SHORT (under 40 Korean characters)
+
+## CONVERSATION MODE:
+${wantsContinue ? '- User wants MORE conversation. DO NOT end. Continue empathetically for 3-5 more turns.' : ''}
+${isClosing && !wantsContinue ? '- Gently guide toward meditation.' : ''}
+${MUST_FINISH ? '- SET isFinalAnalysis: true AND mappedDiagnosis.' : ''}
+
+CONVERSATION HISTORY:
+${historyText}
+
+JSON Output:
+{
+    "message": "Response (Korean, polite, <40 chars)",
+    "isFinalAnalysis": boolean,
+    "analysisSummary": "If final, summary of user state",
+    "mappedDiagnosis": "stress/stiff/anxious/tired/overthink/low_energy",
+    "options": ["Reply 1", "Reply 2", "Reply 3"]
+}
             `;
             
             result = await ai.generateExperience(prompt);
@@ -103,21 +118,27 @@ exports.generateMeditationGuidance = onCall({
 
         // TYPE 2: PRESCRIPTION REASON
         else if (type === 'prescription') {
-            const { analysisSummary = "", mappedDiagnosis = "stress" } = request.data;
+            const diagId = request.data.diagnosis || request.data.mappedDiagnosis || "stress";
+            const analysis = request.data.analysisSummary || "";
             const weatherLabels = { sun: '맑음', cloud: '흐림', rain: '비', snow: '눈' };
 
             prompt = `
-                Generate a personalized meditation prescription.
-                Diagnosis: ${mappedDiagnosis}
-                Analysis: ${analysisSummary}
-                Weather: ${weatherLabels[weather] || weather}
-                Time: ${timeContext}
-                
-                Output Format (JSON ONLY):
-                {
-                    "prescriptionReason": "Why this meditation (Korean, 2 sentences)",
-                    "brainwaveNote": "Scientific note about benefits"
-                }
+Role: Wellness Counselor (Korean, 해요체). Target: Prescription for ${diagId}.
+USER: ${memberName || '회원'}
+Context: ${analysis}
+Weather: ${weatherLabels[weather] || weather}, Time: ${timeContext}.
+
+## STRICT RULES:
+- NEVER introduce yourself or mention your name
+- Address user as "${memberName || '회원'}님" naturally
+- Be unique and empathetic - NO repetitive phrases
+
+JSON Output:
+{
+    "message": "Specific guidance (Korean, polite, max 50 chars)",
+    "prescriptionReason": "Brief reason in 2 sentences",
+    "brainwaveNote": "Benefit note in 1 sentence"
+}
             `;
             
             result = await ai.generateExperience(prompt);
@@ -134,17 +155,18 @@ exports.generateMeditationGuidance = onCall({
             else if (messageIndex >= 8) currentPhase = 'closing_and_waking';
             
             prompt = `
-                You are a Meditation Course Instructor AI.
-                Context: ${interactionContext[interactionType]}, Phase: ${currentPhase}.
-                Message Index: ${messageIndex}
-                
-                Generate ONE short guidance message in Korean (max 30 chars).
-                Be warm, encouraging, and context-appropriate.
-                
-                Output Format (JSON ONLY):
-                {
-                    "message": "Guidance message (Korean, max 30 chars)"
-                }
+Role: Meditation Instructor. Context: ${interactionContext[interactionType]}. Phase: ${currentPhase}.
+USER: ${memberName || '회원'}
+
+## RULES:
+- Generate ONE short guidance in Korean (해요체, max 25 chars)
+- Occasionally use "${memberName || '회원'}님" (once in few messages)
+- Be unique - NO repetitive phrases
+
+JSON Output:
+{
+    "message": "Short guidance"
+}
             `;
             
             result = await ai.generateExperience(prompt);
@@ -158,7 +180,13 @@ exports.generateMeditationGuidance = onCall({
         let audioContent = null;
         if (result.message) {
             try {
-                audioContent = await generateInternalAudio(result.message, 'meditation');
+                // Determine voice type based on context
+                let voiceType = 'chat';
+                if (type === 'session_message' || type === 'prescription') {
+                    voiceType = 'meditation';
+                }
+                
+                audioContent = await generateInternalAudio(result.message, voiceType);
             } catch (audioErr) {
                 console.error("Audio generation failed:", audioErr);
             }
@@ -196,7 +224,8 @@ exports.generateMeditationGuidance = onCall({
         const fallbacks = {
             question: {
                 message: "오늘 하루 마음이 어떠셨나요?",
-                isFinalAnalysis: false
+                isFinalAnalysis: false,
+                options: ["편안해요", "그저 그래요", "지쳤어요"]
             },
             prescription: {
                 prescriptionReason: "오늘의 명상으로 마음을 편안하게 해드릴게요.",
@@ -212,7 +241,11 @@ exports.generateMeditationGuidance = onCall({
         
         try {
             if (fb.message) {
-                audioContent = await generateInternalAudio(fb.message, 'meditation');
+                let fbVoiceType = 'chat';
+                if (type === 'session_message' || type === 'prescription') {
+                    fbVoiceType = 'meditation';
+                }
+                audioContent = await generateInternalAudio(fb.message, fbVoiceType);
             }
         } catch (fbAudioErr) {
             console.error("Fallback audio failed:", fbAudioErr);

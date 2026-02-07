@@ -14,8 +14,14 @@ class AIService {
         });
         this.jsonModel = this.client.getGenerativeModel({
             model: "gemini-3-flash-preview",
-            // Increased token limit to prevent JSON truncation
-            generationConfig: { responseMimeType: "application/json", maxOutputTokens: 1500 }
+            // Increased token limit + diversity settings
+            generationConfig: { 
+                responseMimeType: "application/json", 
+                maxOutputTokens: 1500,
+                temperature: 0.85,  // ✅ 응답 다양성 증가
+                topP: 0.95,
+                topK: 40
+            }
         });
         this.langMap = { 'ko': 'Korean', 'en': 'English', 'ru': 'Russian', 'zh': 'Chinese (Simplified)', 'ja': 'Japanese' };
     }
