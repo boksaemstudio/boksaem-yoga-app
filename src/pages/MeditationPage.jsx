@@ -619,11 +619,25 @@ const MeditationPage = ({ onClose }) => {
         }
     };
 
-    // 🗣️ TTS Wrapper (Consolidated)
+    // 🗣️ TTS Wrapper (Consolidated) - speakFallback 의존성 제거하여 TDZ 방지
     const speak = useCallback((text) => {
-        // Kept for compatibility with other parts if they call 'speak' directly
-        speakFallback(text);
-    }, [speakFallback]);
+        // 인라인 TTS 로직 (speakFallback 호출 대신)
+        if (!text || typeof window === 'undefined' || !ttcEnabled || !window.speechSynthesis) return;
+        
+        stopAllAudioRef.current?.();
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ko-KR';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        utterance.volume = 0.8;
+        
+        setTimeout(() => {
+            if (window.speechSynthesis && ttcEnabled) {
+                window.speechSynthesis.speak(utterance);
+            }
+        }, 100);
+    }, [ttcEnabled]);
 
     // 🗣️ TTS Wrapper (Consolidated)
     // Removed auto-speak useEffect to prevent duplicate audio with Cloud TTS
