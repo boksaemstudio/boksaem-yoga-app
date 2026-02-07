@@ -229,6 +229,102 @@ const MeditationPage = ({ onClose }) => {
 
 
     // Initial Load with Auto Weather Detection
+    // ==========================================
+    // 🤖 REAL-TIME AI API CALLS (Hoisted Helpers - TDZ Fix)
+    // ==========================================
+    // ✅ stopAllAudio를 useRef로 저장하여 순환 참조 방지
+    const stopAllAudioRef = useRef(null);
+    stopAllAudioRef.current = () => {
+        // ✅ 모든 오디오 소스 종합 중단
+        if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
+        
+        // Cloud TTS Audio
+        if (currentAudioRef.current) {
+            try { currentAudioRef.current.pause(); currentAudioRef.current.currentTime = 0; } catch { /* ignore */ }
+            currentAudioRef.current = null;
+        }
+        
+        // 🎵 Ambient Audio (빗소리, 파도 등)
+        if (ambientAudioRef.current) {
+            try { ambientAudioRef.current.pause(); ambientAudioRef.current.currentTime = 0; } catch { /* ignore */ }
+            ambientAudioRef.current = null;
+        }
+        
+        // 🎛️ Binaural Beats Oscillators
+        if (oscLeftRef.current) {
+            try { oscLeftRef.current.stop(); } catch { /* ignore */ }
+            oscLeftRef.current = null;
+        }
+        if (oscRightRef.current) {
+            try { oscRightRef.current.stop(); } catch { /* ignore */ }
+            oscRightRef.current = null;
+        }
+        
+        console.log("🔇 stopAllAudio: All audio sources stopped");
+    };
+
+    // 🗣️ Fallback Local TTS
+    const speakFallback = useCallback((text) => {
+        if (!text || typeof window === 'undefined' || !ttcEnabled || !window.speechSynthesis) return;
+        
+        stopAllAudioRef.current?.();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ko-KR';
+        utterance.rate = 1.0; 
+        utterance.pitch = 1.0; 
+        utterance.volume = 0.8; 
+        
+        setTimeout(() => {
+            if (window.speechSynthesis && ttcEnabled) {
+                window.speechSynthesis.speak(utterance);
+            }
+        }, 100);
+    }, [ttcEnabled]);
+
+    // 🔊 Cloud TTS Audio Player
+    const playAudio = useCallback((base64String) => {
+        if (!ttcEnabled) return;
+        if (!base64String) return;
+        
+        try {
+            stopAllAudioRef.current?.();
+            
+            const audio = new Audio(`data:audio/mp3;base64,${base64String}`);
+            audio.volume = 0.9; 
+            currentAudioRef.current = audio;
+
+            audio.onended = () => { if (currentAudioRef.current === audio) currentAudioRef.current = null; };
+            
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(e => console.error("🔊 Audio Playback Failed:", e));
+            }
+        } catch (e) {
+            console.error("🔊 Audio Error:", e);
+        }
+    }, [ttcEnabled]);
+
+    // 🗣️ TTS Wrapper (Consolidated) - speakFallback 의존성 제거하여 TDZ 방지
+    const speak = useCallback((text) => {
+        // 인라인 TTS 로직 (speakFallback 호출 대신)
+        if (!text || typeof window === 'undefined' || !ttcEnabled || !window.speechSynthesis) return;
+        
+        stopAllAudioRef.current?.();
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ko-KR';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        utterance.volume = 0.8;
+        
+        setTimeout(() => {
+            if (window.speechSynthesis && ttcEnabled) {
+                window.speechSynthesis.speak(utterance);
+            }
+        }, 100);
+    }, [ttcEnabled]);
+
     useEffect(() => {
         const hour = new Date().getHours();
         let context = 'morning';
@@ -360,81 +456,7 @@ const MeditationPage = ({ onClose }) => {
         }
     }, [soundEnabled]);
 
-    // ==========================================
-    // 🤖 REAL-TIME AI API CALLS
-    // ==========================================
-    // ✅ stopAllAudio를 useRef로 저장하여 순환 참조 방지
-    const stopAllAudioRef = useRef(null);
-    stopAllAudioRef.current = () => {
-        // ✅ 모든 오디오 소스 종합 중단
-        if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
-        
-        // Cloud TTS Audio
-        if (currentAudioRef.current) {
-            try { currentAudioRef.current.pause(); currentAudioRef.current.currentTime = 0; } catch { /* ignore */ }
-            currentAudioRef.current = null;
-        }
-        
-        // 🎵 Ambient Audio (빗소리, 파도 등)
-        if (ambientAudioRef.current) {
-            try { ambientAudioRef.current.pause(); ambientAudioRef.current.currentTime = 0; } catch { /* ignore */ }
-            ambientAudioRef.current = null;
-        }
-        
-        // 🎛️ Binaural Beats Oscillators
-        if (oscLeftRef.current) {
-            try { oscLeftRef.current.stop(); } catch { /* ignore */ }
-            oscLeftRef.current = null;
-        }
-        if (oscRightRef.current) {
-            try { oscRightRef.current.stop(); } catch { /* ignore */ }
-            oscRightRef.current = null;
-        }
-        
-        console.log("🔇 stopAllAudio: All audio sources stopped");
-    };
 
-    // 🗣️ Fallback Local TTS
-    const speakFallback = useCallback((text) => {
-        if (!text || typeof window === 'undefined' || !ttcEnabled || !window.speechSynthesis) return;
-        
-        stopAllAudioRef.current?.();
-
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ko-KR';
-        utterance.rate = 1.0; 
-        utterance.pitch = 1.0; 
-        utterance.volume = 0.8; 
-        
-        setTimeout(() => {
-            if (window.speechSynthesis && ttcEnabled) {
-                window.speechSynthesis.speak(utterance);
-            }
-        }, 100);
-    }, [ttcEnabled]);
-
-    // 🔊 Cloud TTS Audio Player
-    const playAudio = useCallback((base64String) => {
-        if (!ttcEnabled) return;
-        if (!base64String) return;
-        
-        try {
-            stopAllAudioRef.current?.();
-            
-            const audio = new Audio(`data:audio/mp3;base64,${base64String}`);
-            audio.volume = 0.9; 
-            currentAudioRef.current = audio;
-
-            audio.onended = () => { if (currentAudioRef.current === audio) currentAudioRef.current = null; };
-            
-            const playPromise = audio.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(e => console.error("🔊 Audio Playback Failed:", e));
-            }
-        } catch (e) {
-            console.error("🔊 Audio Error:", e);
-        }
-    }, [ttcEnabled]);
 
     // ✅ fetchAIPrescription 로직은 isFinalAnalysis 블록에 인라인으로 구현됨
 
@@ -619,25 +641,7 @@ const MeditationPage = ({ onClose }) => {
         }
     };
 
-    // 🗣️ TTS Wrapper (Consolidated) - speakFallback 의존성 제거하여 TDZ 방지
-    const speak = useCallback((text) => {
-        // 인라인 TTS 로직 (speakFallback 호출 대신)
-        if (!text || typeof window === 'undefined' || !ttcEnabled || !window.speechSynthesis) return;
-        
-        stopAllAudioRef.current?.();
-        
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ko-KR';
-        utterance.rate = 1.0;
-        utterance.pitch = 1.0;
-        utterance.volume = 0.8;
-        
-        setTimeout(() => {
-            if (window.speechSynthesis && ttcEnabled) {
-                window.speechSynthesis.speak(utterance);
-            }
-        }, 100);
-    }, [ttcEnabled]);
+
 
     // 🗣️ TTS Wrapper (Consolidated)
     // Removed auto-speak useEffect to prevent duplicate audio with Cloud TTS
