@@ -469,20 +469,7 @@ const MeditationPage = ({ onClose }) => {
         }
     };
 
-    // ✅ prescription step 진입 시 처방 로드
-    useEffect(() => {
-        if (step === 'prescription' && prescriptionReason && !aiPrescription) {
-            try {
-                const params = JSON.parse(prescriptionReason);
-                if (params.diagnosisId) {
-                    console.log("📋 Loading prescription with params:", params);
-                    fetchAIPrescription(params.diagnosisId, params.weatherId, params.modeId, params.intType, params.summary);
-                }
-            } catch (e) {
-                console.log("📋 prescriptionReason is not JSON, skipping auto-load");
-            }
-        }
-    }, [step, prescriptionReason, aiPrescription]);
+    // ✅ prescription step 로딩은 컴포넌트 렌더링 시 처리 (아래 참조)
 
     const fetchAIQuestion = async (history = []) => {
         if (aiRequestLock) return; 
@@ -537,23 +524,45 @@ const MeditationPage = ({ onClose }) => {
                         analysisSummary: result.data.analysisSummary || result.data.message || ""
                     });
                     
-                    // ✅ 처방 파라미터를 상태로 저장 (TDZ 방지 - fetchAIPrescription 호출 안함)
+                    // ✅ 처방 파라미터 저장
                     const wId = weatherContext?.id || 'sun';
                     const mId = activeMode?.id || defaultMode.id;
                     const iType = interactionType || 'v1';
                     const summary = result.data.analysisSummary || result.data.message || "";
                     
-                    // 처방 파라미터를 prescriptionReason에 임시 저장 (JSON 형식)
-                    setPrescriptionReason(JSON.stringify({
-                        diagnosisId: diag.id,
-                        weatherId: wId,
-                        modeId: mId,
-                        intType: iType,
-                        summary: summary
-                    }));
-                    
-                    // 3초 후 prescription 화면으로 전환 (useEffect에서 처방 로드)
-                    setTimeout(() => setStep('prescription'), 3000);
+                    // 3초 후 prescription 화면으로 전환 후 처방 직접 로드 (인라인, 함수 참조 없음)
+                    setTimeout(async () => {
+                        setStep('prescription');
+                        
+                        // ✅ 직접 Cloud Function 호출 (fetchAIPrescription 참조 안함)
+                        try {
+                            setIsAILoading(true);
+                            const prescResult = await generateMeditationGuidance({
+                                type: 'prescription',
+                                memberName: memberName,
+                                timeContext: timeContext,
+                                weather: wId,
+                                diagnosis: diag.id,
+                                analysisSummary: summary,
+                                mode: mId === 'breath' ? '3min' : (mId === 'calm' ? '7min' : '15min'),
+                                interactionType: iType
+                            });
+                            if (prescResult.data) {
+                                if (prescResult.data.prescriptionReason) {
+                                    prescResult.data.prescriptionReason = prescResult.data.prescriptionReason.replace(/OO님/g, `${memberName}님`);
+                                }
+                                if (prescResult.data.message) {
+                                    prescResult.data.message = prescResult.data.message.replace(/OO님/g, `${memberName}님`);
+                                }
+                                setAiPrescription(prescResult.data);
+                                setPrescriptionReason(prescResult.data.prescriptionReason || prescResult.data.message || '');
+                            }
+                        } catch (err) {
+                            console.error('Inline Prescription fetch failed:', err);
+                        } finally {
+                            setIsAILoading(false);
+                        }
+                    }, 3000);
                 }
             }
         } catch (error) {
