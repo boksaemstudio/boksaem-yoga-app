@@ -363,7 +363,9 @@ const MeditationPage = ({ onClose }) => {
     // ==========================================
     // 🤖 REAL-TIME AI API CALLS
     // ==========================================
-    const stopAllAudio = useCallback(() => {
+    // ✅ stopAllAudio를 useRef로 저장하여 순환 참조 방지
+    const stopAllAudioRef = useRef(null);
+    stopAllAudioRef.current = () => {
         // ✅ 모든 오디오 소스 종합 중단
         if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
         
@@ -390,13 +392,13 @@ const MeditationPage = ({ onClose }) => {
         }
         
         console.log("🔇 stopAllAudio: All audio sources stopped");
-    }, []);
+    };
 
     // 🗣️ Fallback Local TTS
     const speakFallback = useCallback((text) => {
         if (!text || typeof window === 'undefined' || !ttcEnabled || !window.speechSynthesis) return;
         
-        stopAllAudio();
+        stopAllAudioRef.current?.();
 
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'ko-KR';
@@ -409,7 +411,7 @@ const MeditationPage = ({ onClose }) => {
                 window.speechSynthesis.speak(utterance);
             }
         }, 100);
-    }, [ttcEnabled, stopAllAudio]);
+    }, [ttcEnabled]);
 
     // 🔊 Cloud TTS Audio Player
     const playAudio = useCallback((base64String) => {
@@ -417,7 +419,7 @@ const MeditationPage = ({ onClose }) => {
         if (!base64String) return;
         
         try {
-            stopAllAudio();
+            stopAllAudioRef.current?.();
             
             const audio = new Audio(`data:audio/mp3;base64,${base64String}`);
             audio.volume = 0.9; 
@@ -432,7 +434,7 @@ const MeditationPage = ({ onClose }) => {
         } catch (e) {
             console.error("🔊 Audio Error:", e);
         }
-    }, [ttcEnabled, stopAllAudio]);
+    }, [ttcEnabled]);
 
     // ✅ fetchAIPrescription 로직은 isFinalAnalysis 블록에 인라인으로 구현됨
 
@@ -547,7 +549,7 @@ const MeditationPage = ({ onClose }) => {
         if (!answer || aiRequestLock) return;
         
         // 🛑 Stop current AI voice immediately when user responds
-        stopAllAudio();
+        stopAllAudioRef.current?.();
 
         // 1. Move CURRENT AI chat to history BEFORE clearing
         let updatedHistory = [...chatHistory];
@@ -929,7 +931,7 @@ const MeditationPage = ({ onClose }) => {
                     borderBottom: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)',
                     zIndex: 10
                 }}>
-                    <button onClick={() => { stopAllAudio(); if(onClose) onClose(); else navigate(-1); }} style={{ padding: '8px', border: 'none', background: 'none', cursor: 'pointer' }}>
+                    <button onClick={() => { stopAllAudioRef.current?.(); if(onClose) onClose(); else navigate(-1); }} style={{ padding: '8px', border: 'none', background: 'none', cursor: 'pointer' }}>
                         <ArrowLeft size={22} color="white" />
                     </button>
                     <div style={{ marginLeft: '10px', display: 'flex', flexDirection: 'column' }}>
@@ -1054,7 +1056,7 @@ const MeditationPage = ({ onClose }) => {
                                 <button
                                     key={i}
                                     onClick={() => { 
-                                        stopAllAudio(); 
+                                        stopAllAudioRef.current?.(); 
                                         handleChatResponse(opt); 
                                     }}
                                     style={{
