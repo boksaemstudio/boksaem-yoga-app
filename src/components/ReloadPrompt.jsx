@@ -15,11 +15,11 @@ function ReloadPrompt() {
         // 1. Check immediately on load
         r.update();
 
-        // 2. Check every 10 minutes
+        // 2. Check every 1 minute (Aggressive update for debugging)
         setInterval(() => {
           console.log('Checking for SW update (Interval)...');
           r.update();
-        }, 10 * 60 * 1000);
+        }, 60 * 1000);
 
         // 3. Check when window comes back to foreground
         document.addEventListener('visibilitychange', () => {

@@ -687,41 +687,82 @@ const MeditationPage = ({ onClose }) => {
                     </h1>
                 </div>
 
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingBottom: '40px' }}>
+                <div style={{ 
+                    flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', 
+                    paddingBottom: 'calc(40px + env(safe-area-inset-bottom))', overflowY: 'auto', width: '100%'
+                }}>
                     <div style={{ 
-                        background: 'rgba(255,255,255,0.05)', borderRadius: '25px', padding: '30px', 
-                        width: '100%', maxWidth: '400px', textAlign: 'center', position: 'relative',
+                        background: 'rgba(255,255,255,0.05)', borderRadius: '25px', padding: '20px', 
+                        width: '100%', maxWidth: '500px', textAlign: 'center', position: 'relative',
                         border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
                     }}>
-                        {isAILoading ? (
+{isAILoading && chatHistory.length === 0 ? (
                             <div style={{ padding: '40px 0' }}>
                                 <div style={{ fontSize: '2rem', animation: 'bounce 1s infinite', marginBottom: '20px' }}>💭</div>
                                 <p style={{ color: 'var(--primary-gold)', fontWeight: 600 }}>당신의 이야기를 분석 중입니다...</p>
                             </div>
                         ) : (
-                            <>
-                                <div style={{ color: 'white', fontSize: '1.25rem', fontWeight: 700, lineHeight: 1.5, wordBreak: 'keep-all', marginBottom: '30px' }}>
-                                    {lastAIResponse}
-                                </div>
+                            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                {/* Chat Bubbles */}
+                                {chatHistory.map((msg, idx) => (
+                                    <div key={idx} style={{ 
+                                        alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                                        background: msg.role === 'user' ? 'rgba(212, 175, 55, 0.2)' : 'rgba(255,255,255,0.08)',
+                                        color: msg.role === 'user' ? 'var(--primary-gold)' : 'white',
+                                        padding: '12px 18px', borderRadius: '18px',
+                                        border: msg.role === 'user' ? '1px solid var(--primary-gold)' : '1px solid rgba(255,255,255,0.1)',
+                                        maxWidth: '85%', lineHeight: 1.5, wordBreak: 'keep-all', fontSize: '0.95rem',
+                                        borderBottomRightRadius: msg.role === 'user' ? '4px' : '18px',
+                                        borderBottomLeftRadius: msg.role === 'user' ? '18px' : '4px'
+                                    }}>
+                                        {msg.content}
+                                    </div>
+                                ))}
                                 
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-                                    {(currentAIChat?.options || ["네, 시작할게요", "조금 지쳤어요", "편안해요"]).map((opt, i) => (
-                                        <button 
-                                            key={i} 
-                                            onClick={() => handleChatResponse(opt)}
-                                            style={{
-                                                padding: '16px', borderRadius: '15px', border: 'none',
-                                                background: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 600,
-                                                cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left'
-                                            }}
-                                            onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.2)'}
-                                            onMouseLeave={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
-                                        >
-                                            {opt}
-                                        </button>
-                                    ))}
-                                </div>
-                            </>
+                                {/* Latest AI Message (if not waiting for user or loading next question) */}
+                                {currentAIChat?.question && !isAILoading && (
+                                    <div style={{ 
+                                        alignSelf: 'flex-start',
+                                        background: 'rgba(255,255,255,0.08)', color: 'white',
+                                        padding: '12px 18px', borderRadius: '18px',
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        maxWidth: '85%', lineHeight: 1.5, wordBreak: 'keep-all', fontSize: '1.05rem', fontWeight: 600,
+                                        borderBottomLeftRadius: '4px'
+                                    }}>
+                                        {currentAIChat.question}
+                                    </div>
+                                )}
+
+                                {isAILoading && chatHistory.length > 0 && (
+                                    <div style={{ alignSelf: 'flex-start', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', paddingLeft: '10px' }}>
+                                        작성 중...
+                                    </div>
+                                )}
+                                
+                                <div style={{ height: '10px' }}></div>
+
+                                {/* Options */}
+                                {!isAILoading && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', marginTop: '10px' }}>
+                                        {(currentAIChat?.options || ["네, 시작할게요", "조금 지쳤어요", "편안해요"]).map((opt, i) => (
+                                            <button 
+                                                key={i} 
+                                                onClick={() => handleChatResponse(opt)}
+                                                style={{
+                                                    padding: '16px', borderRadius: '15px', border: 'none',
+                                                    background: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 600,
+                                                    cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left',
+                                                    animation: `fadeIn 0.5s ease-out ${i * 0.1}s backwards`
+                                                }}
+                                                onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.2)'}
+                                                onMouseLeave={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
+                                            >
+                                                {opt}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         )}
                     </div>
                     
@@ -822,12 +863,13 @@ const MeditationPage = ({ onClose }) => {
     // 3. Prescription Step
     if (step === 'prescription' && selectedDiagnosis && activeMode) {
         return (
-             <div style={{
+            <div style={{
                 position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 2000,
                 display: 'flex', flexDirection: 'column', padding: '20px',
-                backgroundImage: 'radial-gradient(circle at 50% 30%, #1a1a2e 0%, #000000 70%)'
+                backgroundImage: 'radial-gradient(circle at 50% 30%, #1a1a2e 0%, #000000 70%)',
+                overflowY: 'auto', paddingBottom: 'calc(20px + env(safe-area-inset-bottom))'
             }}>
-                <div style={{ marginTop: '40px', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingBottom: '60px' }}>
+                <div style={{ marginTop: '20px', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingBottom: '40px' }}>
                     <div style={{ marginBottom: '20px', color: 'var(--primary-gold)' }}><Sparkle size={48} weight="fill" /></div>
                     <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'white', marginBottom: '30px', textAlign: 'center' }}>
                         명상 전문 AI 처방

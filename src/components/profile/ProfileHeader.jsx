@@ -1,5 +1,5 @@
-import LanguageSelector from '../LanguageSelector';
 import { STUDIO_CONFIG } from '../../studioConfig';
+import LanguageSelector from '../LanguageSelector';
 
 
 const ProfileHeader = ({ logo, langLabelIndex, langLabels, t, logout }) => {

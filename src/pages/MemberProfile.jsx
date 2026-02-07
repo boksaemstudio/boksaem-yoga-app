@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { PWAContext } from '../context/PWAContextDef';
+import { useContext, useState, useEffect } from 'react';
 import { onSnapshot, doc, collection, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { storageService } from '../services/storage';
@@ -173,8 +174,8 @@ const MemberProfile = () => {
         return 'default';
     });
 
-    // PWA Install State (Unused for now - commented out for lint clean)
-    const [installPrompt, setInstallPrompt] = useState(null);
+    // PWA Install State
+    const { deferredPrompt, installApp } = useContext(PWAContext) || {};
     /*
     const [isIOS] = useState(() => {
         if (typeof window === 'undefined') return false;
@@ -203,15 +204,6 @@ const MemberProfile = () => {
     // Destructure styles
     const { authInput: authInputStyle, authButton: authButtonStyle, viewToggle: viewToggleStyle } = profileStyles;
 
-    /*
-    const handleInstallClick = () => {
-        if (!installPrompt) return;
-        installPrompt.prompt();
-        installPrompt.userChoice.then(() => {
-            setInstallPrompt(null);
-        });
-    };
-    */
 
     const loadMemberData = async (memberId) => {
         try {
@@ -415,12 +407,7 @@ const MemberProfile = () => {
     useEffect(() => {
         // [Optimized] Agent checks moved to useState initialization for immediate feedback without flash.
 
-        const handleBeforeInstallPrompt = (e) => {
-            e.preventDefault();
-            setInstallPrompt(e);
-        };
-
-        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        // handleBeforeInstallPrompt moved to Context
 
         const unsubscribe = storageService.subscribe(async () => {
             // [FIX] Sort notices explicitly by timestamp descending in real-time update
@@ -482,7 +469,7 @@ const MemberProfile = () => {
         }
 
         return () => {
-            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+            // window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
             unsubscribe();
             msgUnsub();
         };
@@ -897,6 +884,46 @@ const MemberProfile = () => {
                                         </span>
                                     </label>
                                 </div>
+
+                                {/* [RESTORED] PWA Install Prompt - Only shows if installable */}
+                                {deferredPrompt && (
+                                    <div className="glass-panel" style={{
+                                        padding: '20px 25px',
+                                        background: 'rgba(212, 175, 55, 0.1)',
+                                        marginBottom: '20px',
+                                        borderRadius: '24px',
+                                        border: '1px solid rgba(212, 175, 55, 0.3)',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                                        animation: 'fadeIn 0.5s ease-out'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                            <div style={{
+                                                width: '44px', height: '44px', borderRadius: '50%',
+                                                background: 'var(--primary-gold)', color: 'black',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                            }}>
+                                                <Icons.DownloadSimple size={24} weight="bold" />
+                                            </div>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>앱 설치하기</span>
+                                                <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>홈 화면에 추가하여 더 편리하게 이용하세요</span>
+                                            </div>
+                                        </div>
+                                        <button 
+                                            onClick={installApp}
+                                            style={{
+                                                background: 'var(--primary-gold)', color: 'black',
+                                                border: 'none', padding: '10px 18px', borderRadius: '12px',
+                                                fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer'
+                                            }}
+                                        >
+                                            설치
+                                        </button>
+                                    </div>
+                                )}
 
                                 <SocialLinks t={t} />
 

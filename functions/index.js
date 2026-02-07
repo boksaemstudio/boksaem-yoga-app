@@ -1393,20 +1393,21 @@ exports.generateMeditationGuidance = onCall({
                 
                 Context:
                 - Time of day: ${timeKorean}
-                - Current Conversation History:
+                - Current Conversation History (Last 3 turns):
                 ${historyText}
                 
                 Requirements:
-                1. If this is the start (no history), ask a warm opening question about their current state.
-                2. If there is history, acknowledge their response with empathy and ask ONE follow-up question to dig deeper (e.g., if they mention stress, ask where they feel it in their body).
-                3. Total conversation should be brief. If you've asked 2-3 questions already, set "isFinalAnalysis" to true and provide a summary.
-                4. Be gentle, professional, and insightful. Avoid generic questions.
+                1. If this is the start (no history), ask a warm opening question about their feelings or physical state.
+                2. If the user has answered LESS THAN 2 times, you MUST ask a follow-up question. Do NOT finalize the analysis yet. Dig deeper into their emotions or body sensations.
+                3. ONLY set "isFinalAnalysis" to true if the user has answered at least 2 questions and you have a clear picture of their state.
+                4. When asking questions, provide options that are emotional and descriptive, NOT just "Start Meditation". (e.g., "My shoulders are heavy", "My mind is racing", "I feel empty").
+                5. Be gentle, professional, and insightful. act like a real counselor.
                 
                 Output Format (JSON ONLY):
                 {
                     "question": "The AI's response or follow-up question in Korean",
                     "options": ["3-4 short selectable response options in Korean"],
-                    "isFinalAnalysis": true/false (Set true if you have enough info),
+                    "isFinalAnalysis": true/false (Set true ONLY after 2+ user turns),
                     "analysisSummary": "If isFinalAnalysis is true, provide a 1-2 sentence psychological summary and encouragement in Korean",
                     "mappedDiagnosis": "If isFinalAnalysis is true, map to one of: stress, stiff, anxious, tired, overthink, frustrated, low_energy, distracted"
                 }

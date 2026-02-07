@@ -4,6 +4,7 @@ import App from './App.jsx'
 import './styles/index.css'
 import ErrorBoundary from './components/ErrorBoundary'
 import { LanguageProvider } from './context/LanguageContext'
+import { PWAProvider } from './context/PWAContext'
 
 // [Agent Admin Mode] Enable via URL parameter (?agent_admin=true) or localStorage
 if (typeof window !== 'undefined' && (window.location.search.includes('agent_admin=true') || localStorage.getItem('agent_admin_mode') === 'true')) {
@@ -35,7 +36,9 @@ try {
     <StrictMode>
       <ErrorBoundary>
         <LanguageProvider>
-          <App />
+          <PWAProvider>
+            <App />
+          </PWAProvider>
         </LanguageProvider>
       </ErrorBoundary>
     </StrictMode>,
