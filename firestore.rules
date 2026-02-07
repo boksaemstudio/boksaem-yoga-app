@@ -1,8 +1,148 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+    
+    // ========================================
+    // 🔐 복샘요가 Firestore 보안 규칙
+    // 2026-02-07 세분화된 컬렉션별 규칙 적용
+    // ========================================
+    
+    // Helper: Check if user has admin claim
+    function isAdmin() {
+      return request.auth != null && 
+             request.auth.token.admin == true;
+    }
+    
+    // Helper: Check if user is instructor or higher  
+    function isStaff() {
+      return request.auth != null && 
+             (request.auth.token.admin == true || 
+              request.auth.token.instructor == true);
+    }
+    
+    // Helper: Check if authenticated
+    function isAuth() {
+      return request.auth != null;
+    }
+    
+    // ========================================
+    // 📋 Members - 회원 정보
+    // ========================================
+    match /members/{memberId} {
+      allow read: if isStaff();
+      allow write: if isAdmin();
+    }
+    
+    // ========================================
+    // ✅ Attendance - 출석 기록
+    // Kiosk (Anonymous) can create, Staff can read
+    // ========================================
+    match /attendance/{attendanceId} {
+      allow read: if isStaff();
+      allow create: if isAuth();
+      allow update, delete: if isAdmin();
+    }
+    
+    // ========================================
+    // 📢 Notices - 공지사항
+    // Public read, Admin write
+    // ========================================
+    match /notices/{noticeId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+    
+    // ========================================
+    // 💬 Messages - 개인 메시지
+    // Member reads own, Admin writes
+    // ========================================
+    match /messages/{messageId} {
+      allow read: if isAuth() && 
+                    (isAdmin() || resource.data.memberId == request.auth.uid);
+      allow write: if isAdmin();
+    }
+    
+    // ========================================
+    // 🖼️ Images - 갤러리 이미지
+    // Public read, Admin write
+    // ========================================
+    match /images/{imageId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+    
+    // ========================================
+    // 🔔 FCM Tokens - 푸시 토큰
+    // Anyone can register, Admin can read/delete
+    // ========================================
+    match /fcm_tokens/{tokenId} {
+      allow read: if isAdmin();
+      allow create, update: if isAuth();
+      allow delete: if isAdmin();
+    }
+    
+    match /fcmTokens/{tokenId} {
+      allow read: if isAdmin();
+      allow create, update: if isAuth();
+      allow delete: if isAdmin();
+    }
+    
+    match /push_tokens/{tokenId} {
+      allow read: if isAdmin();
+      allow create, update: if isAuth();
+      allow delete: if isAdmin();
+    }
+    
+    // ========================================
+    // 💰 Sales - 매출 기록
+    // Admin only
+    // ========================================
+    match /sales/{saleId} {
+      allow read, write: if isAdmin();
+    }
+    
+    // ========================================
+    // 📅 Daily Classes - 일일 수업
+    // Staff read, Admin write
+    // ========================================
+    match /daily_classes/{classId} {
+      allow read: if isStaff();
+      allow write: if isAdmin();
+    }
+    
+    // ========================================
+    // 🤖 AI Error Logs - AI 에러 로그
+    // Admin read, Cloud Functions write only
+    // ========================================
+    match /ai_error_logs/{logId} {
+      allow read: if isAdmin();
+      allow write: if false; // Only Cloud Functions with Admin SDK
+    }
+    
+    // ========================================
+    // 📣 Push Campaigns - 푸시 캠페인
+    // Admin only
+    // ========================================
+    match /push_campaigns/{campaignId} {
+      allow read, write: if isAdmin();
+    }
+    
+    // ========================================
+    // ⚙️ App Config - 앱 설정
+    // Public read, Admin write
+    // ========================================
+    match /config/{configId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+    
+    // ========================================
+    // 📊 AI Usage Logs - AI 사용량
+    // Staff read, System write
+    // ========================================
+    match /ai_usage/{usageId} {
+      allow read: if isStaff();
+      allow write: if false; // Only Cloud Functions
     }
   }
 }
