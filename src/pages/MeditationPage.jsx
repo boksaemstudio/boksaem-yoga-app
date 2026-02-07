@@ -480,27 +480,32 @@ const MeditationPage = ({ onClose }) => {
                         setTimeLeft(defaultMode.time);
                     }
                     
-                    // ✅ 자연스러운 전환 멘트 (TTS는 Cloud Audio로)
+                    // ✅ 자연스러운 전환 멘트
                     const transitionMsg = `${memberName}님, 그럼 이제 명상으로 함께 가볼까요?`;
                     setCurrentAIChat({ 
                         message: transitionMsg, 
                         options: ["네, 갈게요"],
-                        isTransition: true
+                        isTransition: true,
+                        analysisSummary: result.data.analysisSummary || result.data.message || ""
                     });
                     
-                    // ✅ 화면 전환 및 처방 가져오기 (setTimeout으로 TDZ 방지)
+                    // ✅ 처방 파라미터를 상태로 저장 (TDZ 방지 - fetchAIPrescription 호출 안함)
                     const wId = weatherContext?.id || 'sun';
                     const mId = activeMode?.id || defaultMode.id;
                     const iType = interactionType || 'v1';
                     const summary = result.data.analysisSummary || result.data.message || "";
                     
-                    setTimeout(() => {
-                        setStep('prescription');
-                        // fetchAIPrescription은 이 시점에 이미 정의되어 있음
-                        if (typeof fetchAIPrescription === 'function') {
-                            fetchAIPrescription(diag.id, wId, mId, iType, summary);
-                        }
-                    }, 3000);
+                    // 처방 파라미터를 prescriptionReason에 임시 저장 (JSON 형식)
+                    setPrescriptionReason(JSON.stringify({
+                        diagnosisId: diag.id,
+                        weatherId: wId,
+                        modeId: mId,
+                        intType: iType,
+                        summary: summary
+                    }));
+                    
+                    // 3초 후 prescription 화면으로 전환 (useEffect에서 처방 로드)
+                    setTimeout(() => setStep('prescription'), 3000);
                 }
             }
         } catch (error) {
@@ -594,6 +599,22 @@ const MeditationPage = ({ onClose }) => {
             setIsAILoading(false);
         }
     };
+
+    // ✅ prescription step 진입 시 처방 로드 (TDZ 방지용 useEffect)
+    useEffect(() => {
+        if (step === 'prescription' && prescriptionReason && !aiPrescription) {
+            try {
+                const params = JSON.parse(prescriptionReason);
+                if (params.diagnosisId) {
+                    console.log("📋 Loading prescription with params:", params);
+                    fetchAIPrescription(params.diagnosisId, params.weatherId, params.modeId, params.intType, params.summary);
+                }
+            } catch (e) {
+                // prescriptionReason이 JSON이 아닌 경우 (직접 설정된 문자열)
+                console.log("📋 prescriptionReason is not JSON, skipping auto-load");
+            }
+        }
+    }, [step, prescriptionReason, aiPrescription]);
 
     // Fetch AI session message (during meditation)
     const fetchAISessionMessage = async () => {
