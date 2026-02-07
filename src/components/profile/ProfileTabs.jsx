@@ -1,5 +1,4 @@
 import { cloneElement } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Icons } from '../CommonIcons';
 
 const NavItem = ({ active, onClick, icon, label }) => (
@@ -25,7 +24,6 @@ const NavItem = ({ active, onClick, icon, label }) => (
 );
 
 const ProfileTabs = ({ activeTab, setActiveTab, t }) => {
-    const navigate = useNavigate();
     return (
         <div style={{
             position: 'fixed',

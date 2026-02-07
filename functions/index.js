@@ -169,8 +169,7 @@ exports.sendPushOnMessageV2 = onDocumentCreated("messages/{messageId}", async (e
 
 // V2 함수: 대량 푸시 알림 전송 (Optimized with Batching & Pagination)
 exports.sendBulkPushV2 = onDocumentCreated({
-    document: "push_campaigns/{campaignId}",
-    secrets: ["GEMINI_KEY"]
+    document: "push_campaigns/{campaignId}"
 }, async (event) => {
     const snap = event.data;
     const campaignId = event.params.campaignId;
@@ -405,13 +404,17 @@ const checkAIQuota = async () => {
 };
 
 // V2 함수: Gemini AI를 활용한 맞춤형 페이지 경험
-exports.generatePageExperienceV2 = onCall({ region: "asia-northeast3", cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com'], secrets: ["GEMINI_KEY"] }, async (request) => {
+exports.generatePageExperienceV2 = onCall({ region: "asia-northeast3", cors: true }, async (request) => {
     await checkAIQuota();
 
-    let { memberName, weather, timeOfDay, dayOfWeek, upcomingClass, language = 'ko', role = 'member' } = request.data;
+    let { memberName, weather, timeOfDay, dayOfWeek, upcomingClass, language = 'ko', role = 'member', type } = request.data;
+    const isCheckIn = request.data.context === 'checkin';
+    const category = request.data.category;
+    const preciseTime = request.data.preciseTime;
+    const diligence = request.data.diligence || {};
+    const streak = diligence.streak || 0;
 
     if (role === 'admin' && !request.auth) {
-        console.warn(`[Security] Unauthenticated access attempt for admin role. Downgrading to visitor.`);
         role = 'visitor';
     }
 
@@ -420,194 +423,62 @@ exports.generatePageExperienceV2 = onCall({ region: "asia-northeast3", cors: ['h
         const targetLang = ai.getLangName(language);
         let prompt = "";
 
-        if (request.data.type === 'analysis' || role === 'admin') {
+        // 1. SELECT PROMPT
+        if (type === 'analysis' || role === 'admin') {
             const logs = request.data.logs || [];
             const recentLogs = logs.slice(0, 10).map(l => l.className).join(", ");
             const stats = request.data.stats || {};
-
             prompt = `
                  You are the Senior Analyst of '복샘요가'. 
                  Provide a **factual, data-driven analysis** for the ${role === 'admin' ? 'Administrator' : 'Member'}.
-
-                 Context:
-                 - Member: ${memberName}
-                 - Recent Pattern: ${recentLogs}
-                 - Stats: ${JSON.stringify(stats)}
-
-                      Requirements:
-                      1. ${role === 'admin' ? 'Focus on retention risk, frequency, and factual insights.' : 'Focus on the member\'s journey inward. Emphasize their own consistent rhythm, breath, and time spent facing themselves. Do NOT compare them to others.'}
-                      2. Tone: **${role === 'admin' ? 'Factual, Concise' : 'Meditative, Encouraging, focused on Sati (Mindfulness)'}**.
-                      3. Language: **${targetLang}**.
-                      4. Output Format (JSON ONLY):
-                      {
-                          "message": "Analysis text in ${targetLang}",
-                          "bgTheme": "data",
-                          "colorTone": "#808080"
-                      }
-              `;
+                 Recent Pattern: ${recentLogs}, Stats: ${JSON.stringify(stats)}
+                 Requirements:
+                 1. Tone: ${role === 'admin' ? 'Factual, Concise' : 'Meditative, Encouraging'}.
+                 2. Length: **1-2 sentences**.
+                 Language: **${targetLang}**.
+                 Output Format (JSON ONLY): { "message": "Text...", "bgTheme": "data" }
+            `;
+        } else if (role === 'visitor' || !memberName || ["방문 회원", "방문회원", "visitor", "Guest"].includes(memberName)) {
+            prompt = `
+                 Poetic/warm greeting for a yoga visitor. 
+                 Context: ${timeOfDay}h, Weather: ${weather}.
+                 Length: **1 sentence**. Language: ${targetLang}.
+                 Format: { "message": "...", "bgTheme": "dawn" }
+            `;
+        } else if (request.data.context === 'instructor') {
+            const attendanceCount = request.data.attendanceCount || 0;
+            prompt = `
+                Director's greeting for instructor ${memberName}.
+                Context: ${timeOfDay}h, Attendance: ${attendanceCount} members.
+                Length: **1-2 sentences**. Language: Korean.
+                Format: { "message": "...", "bgTheme": "dawn" }
+            `;
         } else {
-            const isGeneric = role === 'visitor' || !memberName || ["방문 회원", "방문회원", "visitor", "Guest"].includes(memberName);
-            const preciseTime = `${timeOfDay || 12}:00`;
-            const diligence = request.data.diligence || {};
-            const streak = diligence.streak || 0;
-            const isCheckIn = request.data.context === 'checkin';
-            const appName = isCheckIn ? '복샘요가' : '내요가';
-
-            if (isGeneric) {
-                prompt = `
-                     You are the AI of '${appName}'. Create a short, poetic, and warm greeting for a yoga member.
-                     
-                     **Philosophy**: Focus inward. Ignore the outside world. Listen to your breath and feel your joints and muscles.
-
-                     Context: ${timeOfDay}h, Weather: ${weather}, Day: ${dayOfWeek}
-                     Instructions:
-                     1. Tone: Peaceful, deeply internal, focused on 'Here and Now'.
-                     2. Content: Encourage feeling the body and breath.
-                     3. Length: **EXTREMELY SHORT (EXACTLY 1 SENTENCE)**. No exceptions.
-                     4. Language: **${targetLang}**.
-                     Output Format (JSON ONLY): { "message": "Message in ${targetLang}", "bgTheme": "dawn", "colorTone": "#FDFCF0" }
-                 `;
-            } else {
-                const lastAtt = diligence.lastAttendanceAt || null;
-                let category = "Rest/No-Show";
-                if (isCheckIn) {
-                    category = "After Class (Completion)";
-                } else if (streak >= 3) {
-                    category = "Frequent Attendance (Already Enough)";
-                } else if (streak === 0 && (!lastAtt || (new Date() - new Date(lastAtt) > 7 * 24 * 60 * 60 * 1000))) {
-                    category = "Rare/Returning (Don't Force)";
-                }
-
-                const isMultiSession = request.data.isMultiSession || false;
-                if (isMultiSession) {
-                    category = "Enthusiastic Multi-Session";
-                }
-
-                // === INSTRUCTOR CONTEXT ===
-                if (request.data.context === 'instructor') {
-                    const month = new Date().getMonth() + 1;
-                    let season = '겨울';
-                    if (month >= 3 && month <= 5) season = '봄';
-                    else if (month >= 6 && month <= 8) season = '여름';
-                    else if (month >= 9 && month <= 11) season = '가을';
-                    
-                    const attendanceCount = request.data.attendanceCount || 0;
-                    const preciseTime = `${timeOfDay || 12}시`;
-                    
-                    prompt = `
-                        You are the Director (원장님) of '복샘요가' yoga studio.
-                        Create a warm, personal greeting message for one of your instructors as they start or continue their day.
-                        
-                        **Your Role**: You are a caring and supportive leader who genuinely cares about your instructors' well-being.
-                        
-                        Context:
-                        - Instructor Name: ${memberName} 선생님
-                        - Current Time: ${preciseTime}
-                        - Day of Week: ${dayOfWeek}
-                        - Season: ${season}
-                        - Weather: ${weather || '맑음'}
-                        - Today's Class Attendance Count: ${attendanceCount}명
-                        
-                        Instructions:
-                        1. Speak naturally as if you're the Director greeting your instructor in person.
-                        2. Consider the time of day (morning encouragement, afternoon energy, evening appreciation).
-                        3. Reference the season or weather naturally if relevant.
-                        4. If attendance count > 0, acknowledge their good work today.
-                        5. Keep it warm, supportive, and professional.
-                        6. Length: **1-2 short sentences maximum**.
-                        7. Language: **Korean (한국어)**.
-                        8. Tone: Warm, familial, encouraging - like a caring boss.
-                        
-                        Examples of good messages:
-                        - "민정 선생님, 오늘 아침 공기가 차갑네요. 따뜻하게 챙기시고 좋은 수업 되세요! 🧘‍♀️"
-                        - "선생님, 벌써 5명이나 출석했네요! 오늘도 열정 가득한 하루 되세요."
-                        - "금요일이에요! 한 주 동안 수고 많으셨어요. 오늘도 화이팅! 💪"
-                        
-                        Output Format (JSON ONLY):
-                        { 
-                            "message": "The greeting message in Korean", 
-                            "bgTheme": "dawn"
-                        }
-                    `;
-                } else {
-                prompt = `
-                    You are the 'Yoga Wisdom Guide' of '복샘요가'. 
-                    Your purpose is to provide a brief, warm, and deeply inspirational message to a member ${isCheckIn ? 'after' : 'before'} their practice.
-
-                    **Philosophy**: Yoga is a journey of meeting oneself. Focus on breath, joints, and the quiet mind (Shanti).
-                    
-                    Target Context:
-                    - Category: ${category}
-                    - Member: ${memberName}
-                    - Weather: ${weather}
-                    - Time: ${preciseTime}
-                    - isCheckIn: ${isCheckIn}
-
-                    Instructions:
-                    1. 'message': Create a short (1-2 sentences) message.
-                       - If After Class (${isCheckIn}): Provide a warm word of appreciation and a small piece of yoga wisdom or a focus for the rest of their day.
-                       - If Multi-Session: Acknowledge their deep commitment and passion ("Two flows in one day...").
-                       - If General: A calm declaration of state and a mindful tip.
-                    2. 'contextLog': A very short factual summary (e.g., "Deepening flow", "Double practice", "Mindful return").
-                    
-                    Language: **${targetLang}**.
-                    
-                    Output Format (JSON ONLY):
-                    { 
-                        "message": "The Inspirational Sentence", 
-                        "contextLog": "Objective Log",
-                        "bgTheme": "dawn"
-                    }
-                `;
-                }
-            }
+            prompt = `
+                'Yoga Wisdom Guide' greeting for member ${memberName}.
+                Context: ${weather}, ${timeOfDay}h, isCheckIn: ${isCheckIn}.
+                Length: **1-2 sentences**. Language: ${targetLang}.
+                Format: { "message": "...", "bgTheme": "dawn" }
+            `;
         }
+
+        // 2. GENERATE EXPERIENCE
         const result = await ai.generateExperience(prompt);
-        if (!result) {
-            throw new Error("AI returned null after retries");
-        }
-        return result;
+        if (!result) throw new Error("AI returned null");
 
-    } catch (error) {
-        console.error("AI Generation Failed:", error);
-
-        const FALLBACKS = [
-            "오늘도 매트 위에서 나를 만나는 소중한 시간입니다.",
-            "호흡 끝에 찾아오는 고요함을 즐기세요.",
-            "몸과 마음이 하나되는 시간, 요가가 시작됩니다.",
-            "수련은 나를 사랑하는 가장 정직한 방법입니다.",
-            "오늘의 움직임이 내일의 변화를 만듭니다.",
-            "매트 위에서는 오직 나에게만 집중하세요.",
-            "내안의 소리에 귀 기울이는 시간입니다.",
-            "흔들려도 괜찮습니다. 그것 또한 균형의 일부입니다.",
-            "천천히, 그리고 꾸준히 나아가는 당신을 응원합니다.",
-            "이 시간, 여기에 머무르는 연습을 시작합니다.",
-            "오늘 흘린 땀방울이 당신의 마음을 맑게 합니다.",
-            "깊은 숨을 들이마시고 무거운 마음은 내쉬세요.",
-            "나의 세계를 존중하며, 부드럽게 나아가세요.",
-            "요가는 잘하는 것이 아니라, 있는 그대로를 바라보는 것입니다.",
-            "오늘도 평온한 마음으로 매트에 섭니다.",
-            "나를 위한 따뜻한 위로, 요가 수련.",
-            "몸의 감각을 깨우고 마음의 평화를 찾으세요.",
-            "비우고 채우는 순환 속에 건강함이 깃듭니다.",
-            "당신의 수련은 오늘도 빛나고 있습니다.",
-            "고요한 움직임 속에 강한 에너지가 담겨 있습니다."
-        ];
-
-        const randomMsg = FALLBACKS[Math.floor(Math.random() * FALLBACKS.length)];
-        const fallbackMsgs = {
-            ko: { msg: randomMsg },
-            en: { msg: "Find peace on the mat today." },
-            ru: { msg: "Найдите покой на коврике сегодня." },
-            zh: { msg: "今天在瑜伽垫上寻找平静。" },
-            ja: { msg: "今日はヨガマットの上で静けさを見つけてください。" }
-        };
-        const msg = fallbackMsgs[language]?.msg || fallbackMsgs.ko.msg;
+        // 3. GENERATE AUDIO (COMBINED)
+        const audioText = result.message || "";
+        const audioContent = await generateInternalAudio(audioText);
 
         return {
-            message: msg,
+            ...result,
+            audioContent: audioContent
+        };
+    } catch (error) {
+        console.error("AI Generation Failed:", error);
+        return {
+            message: "매트 위에서 나를 만나는 소중한 시간입니다.",
             bgTheme: "sunny",
-            colorTone: "#FFFFFF",
             isFallback: true,
             error: error.message
         };
@@ -616,8 +487,7 @@ exports.generatePageExperienceV2 = onCall({ region: "asia-northeast3", cors: ['h
 
 // V2 함수: 새로운 공지사항 생성 시 전체 회원 푸시 알림
 exports.sendPushOnNoticeV2 = onDocumentCreated({
-    document: "notices/{noticeId}",
-    secrets: ["GEMINI_KEY"]
+    document: "notices/{noticeId}"
 }, async (event) => {
     const noticeData = event.data.data();
     const titleOriginal = noticeData.title || "새로운 공지사항";
@@ -806,8 +676,7 @@ const createPendingApproval = async (type, targetMemberIds, title, body, data = 
 // V2 함수: 만료 예정 회원 체크 (Optimized: Created Pending Approval)
 exports.checkExpiringMembersV2 = onSchedule({
     schedule: 'every day 13:00',
-    timeZone: 'Asia/Seoul',
-    secrets: ["GEMINI_KEY"]
+    timeZone: 'Asia/Seoul'
 }, async (event) => {
     const db = admin.firestore();
     const ai = getAI();
@@ -862,8 +731,7 @@ exports.checkExpiringMembersV2 = onSchedule({
 
 // V2 함수: 크레딧 소진 알림 (Approval Required)
 exports.checkLowCreditsV2 = onDocumentUpdated({
-    document: "members/{memberId}",
-    secrets: ["GEMINI_KEY"]
+    document: "members/{memberId}"
 }, async (event) => {
     const newData = event.data.after.data();
     const oldData = event.data.before.data();
@@ -896,7 +764,7 @@ exports.checkLowCreditsV2 = onDocumentUpdated({
     }
 });
 
-exports.translateNoticesV2 = onCall({ region: "asia-northeast3", cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com'], secrets: ["GEMINI_KEY"] }, async (request) => {
+exports.translateNoticesV2 = onCall({ region: "asia-northeast3", cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com'] }, async (request) => {
     const { notices, language = 'ko' } = request.data;
     try {
         const ai = getAI();
@@ -912,8 +780,7 @@ exports.translateNoticesV2 = onCall({ region: "asia-northeast3", cors: ['https:/
  */
 exports.sendDailyAdminReportV2 = onSchedule({
     schedule: "0 23 * * *",
-    timeZone: "Asia/Seoul",
-    secrets: ["GEMINI_KEY"]
+    timeZone: "Asia/Seoul"
 }, async (event) => {
     const db = admin.firestore();
     const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
@@ -1101,7 +968,7 @@ exports.checkInMemberV2Call = onCall({
 /**
  * [NEW] Daily Home Yoga Recommendation
  */
-exports.generateDailyYogaV2 = onCall({ region: "asia-northeast3", cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com'], secrets: ["GEMINI_KEY"] }, async (request) => {
+exports.generateDailyYogaV2 = onCall({ region: "asia-northeast3", cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com'] }, async (request) => {
     const { weather, timeOfDay, language = 'ko' } = request.data;
     try {
         const ai = getAI();
@@ -1346,16 +1213,52 @@ exports.sendSelfTestPush = onCall(async (request) => {
 // 🧘 REAL-TIME AI MEDITATION GUIDANCE
 // ==========================================
 
+const textToSpeech = require('@google-cloud/text-to-speech');
+const ttsClient = new textToSpeech.TextToSpeechClient();
+
 /**
- * Real-time AI Meditation Cloud Function
- * Generates personalized meditation questions and session guidance
- * using Gemini AI based on time, weather, and emotional state.
+ * Internal Helper: Generate Audio for AI text
+ * Updated for Hybrid Voice Strategy (Fast Chat vs High Quality Session)
  */
+const generateInternalAudio = async (text, type = 'default') => {
+    if (!text) return null;
+    try {
+        // 🚀 Hybrid Configuration logic
+        // Default: Ultra-Realistic (Session/Prescription)
+        let voiceName = 'ko-KR-Chirp3-HD-Aoede';
+        let speed = 0.92;
+        let pitch = 0.0;
+
+        // Optimized for SPEED (User Feedback: "Tiki-Taka")
+        if (type === 'question') {
+            voiceName = 'ko-KR-Neural2-B'; // Much faster latency (~200ms vs ~1.5s)
+            speed = 1.0; // Snappier conversational pace
+            pitch = -1.0; // Deep/Calm tone for Neural2
+        }
+
+        const [response] = await ttsClient.synthesizeSpeech({
+            input: { text },
+            voice: { languageCode: 'ko-KR', name: voiceName, ssmlGender: 'FEMALE' }, 
+            audioConfig: { 
+                audioEncoding: 'MP3', 
+                speakingRate: speed, 
+                pitch: pitch,
+                volumeGainDb: 1.0,  
+                effectsProfileId: ['headphone-class-device']
+            },
+        });
+        return response.audioContent.toString('base64');
+    } catch (e) {
+        console.error("Internal TTS Failed:", e);
+        return null; // Silent fail handled by frontend
+    }
+};
+
 exports.generateMeditationGuidance = onCall({
     region: "asia-northeast3",
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173'],
-    secrets: ["GEMINI_KEY"]
+    cors: true
 }, async (request) => {
+    console.log("🧘 Meditation Guidance Request:", JSON.stringify(request.data));
     await checkAIQuota();
 
     const { 
@@ -1379,38 +1282,46 @@ exports.generateMeditationGuidance = onCall({
         // ===============================
         if (type === 'question') {
             const { chatHistory = [] } = request.data;
+            const turnCount = chatHistory.length;
+            const isClosing = turnCount >= 7; // Start pushing for analysis after 7 turns
+            const MUST_FINISH = turnCount >= 9; // Must finish on the next turn
+
             const timeKorean = timeContext === 'morning' ? '아침' : timeContext === 'afternoon' ? '오후' : '밤';
-            
             const historyText = chatHistory.length > 0 
                 ? chatHistory.map(m => `${m.role === 'user' ? 'Client' : 'AI'}: ${m.content}`).join('\n')
                 : 'No previous conversation.';
 
             prompt = `
-                You are a **Meditation Specialist & Psychological Counselor AI** for '복샘요가'.
-                Your expertise: Deep psychological profiling through warm, empathetic conversation.
+                You are a **Holistic Wellness Master AI** named '복순(Boksoon)' for '복샘요가'.
+                🧠 Identity: Warm life mentor, expert in yoga & psychology.
                 
-                Your Goal: Conduct a brief chat (2-3 turns) to understand the user's emotional and physical state deeply.
+                🎯 Mission: Understand user's state and prescribe meditation. 
+                🚨 URGENCY: This is Turn #${turnCount + 1}. We must finish within 10 turns max.
                 
-                Context:
-                - Time of day: ${timeKorean}
-                - Current Conversation History (Last 3 turns):
-                ${historyText}
+                📅 Context:
+                - Time: ${timeKorean}
+                - History: ${historyText}
                 
-                Requirements:
-                1. ROLE: You are 'Boksoon (복순)', a warm, empathetic AI counselor at Boksaem Yoga.
-                2. GOAL: Do NOT start meditation immediately. meaningful conversation is priority.
-                3. LOOP PREVENTION: If the user says "Yes" or "Start", do NOT offer "Start" again. Ask "How are you feeling right now?" or "What is on your mind?"
-                4. HISTORY CHECK: Read the 'Current Conversation History'. If the user has already answered 2+ times, ONLY THEN can you set "isFinalAnalysis": true.
-                5. STRICT RULE: For the first 2 turns, providing "Start Meditation" as an option is FORBIDDEN. You must provide emotional options (e.g., "I'm stressed", "My body hurts", "Just tired").
-                6. TONE: Use casual but polite Korean (해요체). Be like a caring friend.
+                📋 Rules:
+                1. TONE: Ultra-soft, soothing, like a wise elder sister.
+                2. LENGTH: **Strictly 1 sentence.** Max 40 characters.
+                3. Endings: Use "~하네요", "~인가요?", "~볼까요?".
+                4. **EFFICIENCY**: 
+                   - Turn 1-3: Build rapport, ask open questions.
+                   - Turn 4-6: Start narrowing down the diagnosis.
+                   - Turn 7-9: ${isClosing ? 'MUST narrow down and prepare for final analysis.' : 'Keep it moving towards a conclusion.'}
+                   - Turn 10: ${MUST_FINISH ? 'YOU MUST SET isFinalAnalysis: true AND PROVIDE THE MAPPED DIAGNOSIS NOW. NO MORE QUESTIONS.' : 'End the conversation soon.'}
+                5. **USER INTENT**:
+                   - CRITICAL: If user says "Start", "Yes", "Let's do it", "Okay", or implies readiness -> SET 'isFinalAnalysis: true' IMMEDIATELY. DO NOT ASK CONFIRMATION AGAIN.
+                   - If user picks a specific option like "Deep Sleep", treat it as a final choice -> 'isFinalAnalysis: true'.
                 
                 Output Format (JSON ONLY):
                 {
-                    "question": "Boksoon's warm question in Korean",
-                    "options": ["Option 1 (Emotional)", "Option 2 (Physical)", "Option 3 (Neutral)"],
-                    "isFinalAnalysis": true/false,
-                    "analysisSummary": "Psychological summary (only if final)",
-                    "mappedDiagnosis": "stress/stiff/anxious/tired/overthink... (only if final)"
+                    "question": "Boksoon's warm question (Korean, strictly 1 sentence)",
+                    "options": ["Option 1", "Option 2", "Option 3"],
+                    "isFinalAnalysis": ${MUST_FINISH ? 'true' : 'true/false'},
+                    "analysisSummary": "Short summary of why this diagnosis was chosen",
+                    "mappedDiagnosis": "stress/stiff/anxious/tired/overthink/low_energy..."
                 }
             `;
             
@@ -1422,47 +1333,26 @@ exports.generateMeditationGuidance = onCall({
         // ===============================
         else if (type === 'prescription') {
             const { analysisSummary = "", mappedDiagnosis = "stress" } = request.data;
-            const diagnosisLabels = {
-                stress: '스트레스로 가득한',
-                stiff: '몸이 굳어있는', 
-                anxious: '불안함이 느껴지는',
-                tired: '에너지가 고갈된',
-                overthink: '생각이 너무 많은',
-                frustrated: '답답하고 화가 난',
-                low_energy: '의욕이 저하된',
-                distracted: '집중이 어려운'
-            };
             const weatherLabels = { sun: '맑음', cloud: '흐림', rain: '비', snow: '눈' };
-            const modeLabels = { '3min': '3분 숨 고르기', '7min': '7분 마음 정돈', '15min': '15분 깊은 이완' };
-            const interactionLabels = { v1: '고요한 안내', v2: '호흡의 파도', v3: '거울 명상' };
+            const modeLabels = { '3min': '3분', '7min': '7분', '15min': '15분' };
             const timeLabels = { morning: '아침', afternoon: '오후', night: '밤' };
 
             prompt = `
-                You are a **Meditation Specialist & Scientist** for '복샘요가'.
-                Your expertise: Crafting personalized meditation journeys based on psychological analysis.
+                You are a **Meditation Course Designer** for '복샘요가'.
+                Design a mini-course for the user based on: ${analysisSummary}.
                 
-                Generate a PRESCRIPTION REASON. You MUST build upon the previous analysis.
-                
-                User Analysis Summary: ${analysisSummary}
-                Target State: ${diagnosisLabels[mappedDiagnosis] || '휴식이 필요한'}
-                
-                Context:
-                - Time: ${timeLabels[timeContext]}
-                - Weather: ${weatherLabels[weather]}
-                - Prescribed Course: ${modeLabels[mode]}
-                - Interaction Type: ${interactionLabels[interactionType]}
+                Context: ${timeLabels[timeContext]}, ${weatherLabels[weather]}, Length: ${modeLabels[mode]}.
                 
                 Requirements:
-                1. Start by briefly acknowledging the psychological state found in the analysis.
-                2. Explain WHY the selected course (${modeLabels[mode]}) and interaction (${interactionLabels[interactionType]}) will help.
-                3. Mention a specific brainwave or physiological benefit (e.g., 8Hz Alpha for calm, 6Hz Theta for deep release, or parasympathetic activation for stiff bodies).
-                4. Tone: Extremely empathetic, professional, and authoritative yet warm.
-                5. Max 3-4 sentences.
+                1. **Length: Strictly 1-2 short sentences.** Max 60 characters total.
+                2. Frame it as "Presenting your course". e.g., "불안한 마음을 잠재우는 3분 호흡 코스를 준비했습니다."
+                3. Mention the benefit (e.g. relaxation, alpha waves).
+                4. Tone: Confident yet soothing.
                 
                 Output Format (JSON ONLY):
                 {
-                    "reason": "The Korean prescription reason",
-                    "brainwaveNote": "Scientific note about the frequency (e.g. 8Hz Alpha-Theta)"
+                    "reason": "The course introduction (Korean)",
+                    "brainwaveNote": "Scientific note"
                 }
             `;
             
@@ -1474,59 +1364,33 @@ exports.generateMeditationGuidance = onCall({
         // ===============================
         else if (type === 'session_message') {
             const interactionContext = {
-                v1: 'voice-guided meditation (eyes closed)',
-                v2: 'breath-reactive meditation (microphone tracking breath)',
-                v3: 'posture-coaching meditation (camera analyzing posture)'
+                v1: 'voice-guided', v2: 'breath-reactive', v3: 'posture-coaching'
             };
             
-            const phaseIndex = messageIndex % 10; // Cycle through 10 phases
-            const phases = [
-                'opening_settle', // 0: Initial settling
-                'breath_awareness', // 1: Focus on breath
-                'body_scan', // 2: Scan for tension
-                'deepening', // 3: Going deeper
-                'mid_encouragement', // 4: Encouragement
-                'present_moment', // 5: Here and now
-                'release', // 6: Letting go
-                'gratitude', // 7: Self-appreciation
-                'emerging', // 8: Coming back
-                'closing' // 9: Final words
-            ];
+            // 🧠 MINI-COURSE STRUCTURE LOGIC
+            // Total messages ~ 10-15 depending on duration. 
+            // We map the index to a phase in the "Course".
+            let currentPhase = 'deepening'; // default
+            if (messageIndex <= 1) currentPhase = 'intro_and_relax';
+            else if (messageIndex >= 8) currentPhase = 'closing_and_waking';
             
             prompt = `
-                You are a **Meditation Guide AI** for '복샘요가'.
-                Your role: Guiding users through their meditation session with real-time messages.
-                
-                Generate ONE guidance message for this phase of their meditation.
-                
-                Context:
-                - Interaction Type: ${interactionContext[interactionType]}
-                - Current Phase: ${phases[phaseIndex]} (${phaseIndex}/9)
-                - Session Duration: ${mode}
-                - Original Diagnosis: ${diagnosis}
-                
-                Phase Descriptions:
-                - opening_settle: Help them settle into the meditation, find comfortable position
-                - breath_awareness: Guide attention to natural breathing rhythm
-                - body_scan: Notice areas of tension or sensation
-                - deepening: Go deeper into relaxation state
-                - mid_encouragement: Encourage them, they're doing well
-                - present_moment: Focus on the "here and now"
-                - release: Let go of tension, thoughts, worries
-                - gratitude: Appreciate themselves for taking this time
-                - emerging: Gently start to come back to awareness
-                - closing: Final words of wisdom or appreciation
+                You are a **Meditation Course Instructor AI**.
+                This is part of a user's personalized mini-course.
+                Context: ${interactionContext[interactionType]}, Current Course Phase: ${currentPhase}.
                 
                 Requirements:
-                1. EXACTLY 1 sentence. Short and impactful.
-                2. Warm, gentle, supportive tone.
-                3. If interaction is v2/v3, occasionally reference the sensor (breath/posture).
-                4. Don't rush. Match the meditative pace.
-                5. Use "당신" or no pronoun (not "너").
+                1. **Length: Strictly 1 VERY short sentence.**
+                2. Tone: Gentle, slow-paced, whispering with gentle authority. 
+                3. Structure:
+                   - If 'intro_and_relax': Focus on settling in and leaving the world behind.
+                   - If 'deepening': Focus on the breath, body sensation, or visualization.
+                   - If 'closing_and_waking': Gently bring them back, expressing gratitude.
+                4. Use "~하세요", "~합니다", "~느껴봅니다".
                 
                 Output Format (JSON ONLY):
                 {
-                    "message": "The Korean guidance message (1 sentence)"
+                    "message": "Guidance message (Korean, max 30 chars)"
                 }
             `;
             
@@ -1534,49 +1398,106 @@ exports.generateMeditationGuidance = onCall({
         }
 
         if (!result) {
+            console.error("AI returned null for prompt:", type);
             throw new Error("AI returned null");
         }
 
-        // Log successful meditation AI usage
-        await admin.firestore().collection('meditation_ai_logs').add({
-            type,
-            timeContext,
-            weather,
-            diagnosis,
-            mode,
-            interactionType,
-            messageIndex: messageIndex || null,
-            memberId: memberId || null,
-            success: true,
-            createdAt: admin.firestore.FieldValue.serverTimestamp()
-        });
+        // 🛡️ REINFORCED VALIDATION: Ensure required fields exist
+        if (type === 'question' && !result.question) throw new Error("AI missing question field");
+        if (type === 'prescription' && !result.reason) throw new Error("AI missing reason field");
+        if (type === 'session_message' && !result.message) throw new Error("AI missing message field");
 
-        return result;
+        // ⚡ LATENCY + QUALITY OPTIMIZATION: Generate audio internally with calm voice
+        console.log("⚡ Generating calm internal audio for combined response...");
+        let textToSpeak = "";
+        if (type === 'question') textToSpeak = result.question;
+        else if (type === 'prescription') textToSpeak = result.reason;
+        else if (type === 'session_message') textToSpeak = result.message;
+
+        let audioContent = null;
+        try {
+            audioContent = await generateInternalAudio(textToSpeak, type);
+        } catch (audioErr) {
+            console.error("🔊 Internal Audio Gen Failed (Main):", audioErr);
+            // Continue without audio (User prefers silence over low quality)
+        }
+        
+        const finalResponse = {
+            ...result,
+            audioContent: audioContent
+        };
+
+        // Log successful meditation AI usage BEFORE returning
+        try {
+            await admin.firestore().collection('meditation_ai_logs').add({
+                type,
+                timeContext: timeContext || 'unknown',
+                weather: weather || 'unknown',
+                diagnosis: diagnosis || 'none',
+                mode: mode || 'none',
+                interactionType: interactionType || 'none',
+                messageIndex: messageIndex || 0,
+                memberId: memberId || 'anonymous',
+                success: true,
+                createdAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+        } catch (logStatsError) {
+             console.error("Failed to log meditation usage (non-blocking):", logStatsError);
+        }
+
+        console.log("🧘 Meditation AI Result Ready");
+        return finalResponse;
 
     } catch (error) {
         console.error("Meditation AI Generation Failed:", error);
         await logAIError('MeditationAI', error);
 
-        // Fallback responses by type
+        // Fallback responses
         const fallbacks = {
             question: {
-                question: "지금 이 순간, 마음은 어떤 색깔인가요?",
-                subtext: "색깔로 표현해보면 지금 상태가 더 명확해져요.",
-                insight: "색깔은 무의식적 감정 상태를 반영합니다."
+                question: "오늘 하루는 어떠셨나요?",
+                options: ["조금 지쳤어요", "편안해요", "머리가 복잡해요"],
+                isFallback: true
             },
             prescription: {
-                reason: "지금 당신에게 가장 필요한 것은 잠시 멈추고 호흡에 집중하는 것입니다. 함께 시작해볼까요?",
-                brainwaveNote: "알파파가 긴장된 뇌를 이완시켜 드릴게요."
+                reason: "편안하게 호흡하며 긴장을 내려놓아 보세요.",
+                isFallback: true
             },
             session_message: {
-                message: "지금 이 순간에 머무르세요. 당신은 잘하고 있어요."
+                message: "숨을 천천히 내쉬며 몸의 긴장을 풀어줍니다.",
+                isFallback: true
             }
         };
 
+        const fb = fallbacks[type] || fallbacks.session_message;
+        
+        let audioContent = null;
+        try {
+             audioContent = await generateInternalAudio(fb.question || fb.reason || fb.message);
+        } catch (fbAudioErr) {
+             console.error("🔊 Fallback Audio Gen Failed:", fbAudioErr);
+        }
+
         return {
-            ...fallbacks[type] || fallbacks.session_message,
-            isFallback: true,
+            ...fb,
+            audioContent,
             error: error.message
         };
     }
 });
+
+// (Removed duplicate TTS client and helper function definitions)
+
+exports.generateAudioGuidance = onCall({ region: "asia-northeast3", cors: true }, async (request) => {
+    try {
+        const { text } = request.data;
+        if (!text) return { audioContent: null };
+        const audio = await generateInternalAudio(text);
+        return { audioContent: audio };
+    } catch (e) {
+        return { error: e.message };
+    }
+});
+
+const { checkCapabilities } = require("./debug_capabilities");
+exports.checkCapabilities = checkCapabilities;

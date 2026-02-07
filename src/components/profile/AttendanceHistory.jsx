@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash } from '@phosphor-icons/react';
+import { Icons } from '../CommonIcons';
 import { getTranslatedClass } from '../../utils/classMapping';
 import { getHolidayName } from '../../utils/holidays';
 
@@ -228,7 +228,7 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, lo
                                                 style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', border: 'none', borderRadius: '6px', padding: '8px', cursor: 'pointer', display: 'flex' }}
                                                 title="출석 취소"
                                             >
-                                                <Trash size={16} />
+                                                <Icons.Trash size={16} />
                                             </button>
                                         )}
                                     </div>

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
-import { WarningCircle, ArrowsClockwise, X } from '@phosphor-icons/react';
+import { WarningCircle, ArrowsClockwise } from '@phosphor-icons/react';
 
 function ReloadPrompt() {
-  const [closed, setClosed] = useState(false);
+  const [closed] = useState(false);
   const {
     needRefresh: [needRefresh],
     updateServiceWorker,

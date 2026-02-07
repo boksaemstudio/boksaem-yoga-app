@@ -1,14 +1,14 @@
 import { PWAContext } from '../context/PWAContextDef';
-import { useContext, useState, useEffect } from 'react';
+import { useContext, useState, useEffect, lazy, Suspense } from 'react';
 import { onSnapshot, doc, collection, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { storageService } from '../services/storage';
 import { Icons } from '../components/CommonIcons';
-import { Megaphone } from '@phosphor-icons/react';
 import logo from '../assets/logo.png';
 import memberBg from '../assets/zen_yoga_bg.png';
 import MemberScheduleCalendar from '../components/MemberScheduleCalendar';
-import MeditationPage from './MeditationPage';
+// Lazy load MeditationPage to prevent initialization errors and reduce bundle size
+const MeditationPage = lazy(() => import('./MeditationPage'));
 import timeTable1 from '../assets/timetable_gwangheungchang.png';
 import timeTable2 from '../assets/timetable_mapo.png';
 import priceTable1 from '../assets/price_table_1.png';
@@ -102,6 +102,34 @@ const MemberProfile = () => {
         }, 3000);
         return () => clearInterval(interval);
     }, [langLabels.length]);
+
+    // 🤖 AI Preloader (Background Task for Performance)
+    useEffect(() => {
+        const preloadAI = () => {
+             // Only run if browser supports it, otherwise skip optimization
+            if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+                window.requestIdleCallback(async () => {
+                    // Wait 4s for initial render and animations to settle
+                    await new Promise(r => setTimeout(r, 4000));
+                    
+                    try {
+                        console.log("🧘 [Background] Preloading AI Engines...");
+                        // Prefetch AI modules so they are ready when user clicks 'Meditation'
+                        const modules = [
+                            import('@mediapipe/pose'),
+                            import('@tensorflow/tfjs-core'),
+                            import('@tensorflow/tfjs-backend-webgl')
+                        ];
+                        await Promise.all(modules);
+                        console.log("✨ [Background] AI Engines Cached & Ready");
+                    } catch (e) {
+                        console.debug("[Background] AI Preload deferred/failed", e);
+                    }
+                }, { timeout: 10000 });
+            }
+        };
+        preloadAI();
+    }, []);
 
     // [OPTIMIZED] Persist language preference ONLY when it actually changes
     useEffect(() => {
@@ -1079,9 +1107,20 @@ const MemberProfile = () => {
                     )}
 
                     {/* MEDITATION TAB */}
+                    {/* MEDITATION TAB - Full Screen Overlay */}
                     {activeTab === 'meditation' && (
-                        <div className="fade-in">
-                            <MeditationPage onClose={() => setActiveTab('home')} />
+                         <div className="fade-in" style={{ 
+                            position: 'fixed', 
+                            top: 0, 
+                            left: 0, 
+                            width: '100%', 
+                            height: '100%', 
+                            zIndex: 10000, 
+                            background: '#18181b' // Default dark bg to prevent transparency issues
+                        }}>
+                            <Suspense fallback={<div style={{ padding: '50px', color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>Loading Meditation AI...</div>}>
+                                <MeditationPage onClose={() => setActiveTab('home')} />
+                            </Suspense>
                         </div>
                     )}
 
@@ -1098,7 +1137,7 @@ const MemberProfile = () => {
                         <div className="fade-in">
                             <div style={{ padding: '0 5px 20px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '25px' }}>
-                                    <Megaphone size={28} color="var(--primary-gold)" weight="fill" />
+                                    <Icons.Megaphone size={28} color="var(--primary-gold)" weight="fill" />
                                     <h2 style={{ fontSize: '1.6rem', fontWeight: '800', color: 'white', margin: 0 }}>{t('noticesTitle')}</h2>
                                 </div>
                                 {Array.isArray(notices) && notices.length > 0 ? (
@@ -1200,7 +1239,7 @@ const MemberProfile = () => {
                                     </div>
                                 ) : (
                                     <div className="glass-panel" style={{ padding: '40px 20px', textAlign: 'center', background: 'rgba(255,255,255,0.02)' }}>
-                                        <Megaphone size={40} style={{ opacity: 0.2, marginBottom: '15px' }} />
+                                        <Icons.Megaphone size={40} style={{ opacity: 0.2, marginBottom: '15px' }} />
                                         <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0, textAlign: 'center' }}>{t('noNewNotices')}</p>
                                     </div>
                                 )}
@@ -1215,8 +1254,10 @@ const MemberProfile = () => {
                 </div>
             </div> {/* End of profile-container */}
 
-            {/* Bottom Navigation */}
-            <ProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} t={t} />
+            {/* Bottom Navigation (Hidden in Meditation Mode) */}
+            {activeTab !== 'meditation' && (
+                <ProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} t={t} />
+            )}
 
             {/* Confirm/Alert Modal */}
             {confirmModal.isOpen && (

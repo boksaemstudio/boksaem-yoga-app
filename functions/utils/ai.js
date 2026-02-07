@@ -2,15 +2,20 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 class AIService {
     constructor(apiKey) {
-        if (!apiKey) throw new Error("API Key is missing for AIService");
-        this.client = new GoogleGenerativeAI(apiKey);
+        // Ensure we prioritize process.env.GEMINI_KEY which is loaded from .env in V2 functions
+        const key = apiKey || process.env.GEMINI_KEY;
+        if (!key) throw new Error("API Key is missing for AIService (Check .env or config)");
+        this.client = new GoogleGenerativeAI(key);
+        
+        // Using "gemini-3-flash-preview" as requested by USER (Latest & Greatest)
         this.model = this.client.getGenerativeModel({
-            model: "gemini-2.5-flash",
-            generationConfig: { maxOutputTokens: 300 }
+            model: "gemini-3-flash-preview",
+            generationConfig: { maxOutputTokens: 500 }
         });
         this.jsonModel = this.client.getGenerativeModel({
-            model: "gemini-2.5-flash",
-            generationConfig: { responseMimeType: "application/json", maxOutputTokens: 500 }
+            model: "gemini-3-flash-preview",
+            // Increased token limit to prevent JSON truncation
+            generationConfig: { responseMimeType: "application/json", maxOutputTokens: 1500 }
         });
         this.langMap = { 'ko': 'Korean', 'en': 'English', 'ru': 'Russian', 'zh': 'Chinese (Simplified)', 'ja': 'Japanese' };
     }
@@ -143,23 +148,38 @@ class AIService {
         // Retry up to 2 times
         for (let attempt = 0; attempt < 2; attempt++) {
             try {
+                console.log(`Experience Gen attempt ${attempt + 1} - Calling Gemini API...`);
                 const result = await this.jsonModel.generateContent(prompt);
-                const text = result.response.text();
-                const jsonMatch = text.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                    const parsed = JSON.parse(jsonMatch[0]);
-                    // Validate the structure has expected fields
-                    if (parsed && typeof parsed === 'object') {
-                        return parsed;
+                let text = result.response.text();
+                console.log(`Experience Gen attempt ${attempt + 1} - Raw response length:`, text?.length);
+                
+                // 🛠️ ROBUST JSON EXTRACTION (Handles Markdown code blocks and extra text)
+                // 1. Remove markdown code blocks if present
+                text = text.replace(/```json\s?|```/g, '').trim();
+                
+                // 2. Find the first '{' and the last '}'
+                const firstBrace = text.indexOf('{');
+                const lastBrace = text.lastIndexOf('}');
+                
+                if (firstBrace !== -1 && lastBrace !== -1) {
+                    const jsonContent = text.substring(firstBrace, lastBrace + 1);
+                    try {
+                        const parsed = JSON.parse(jsonContent);
+                        if (parsed && typeof parsed === 'object') {
+                            console.log(`Experience Gen attempt ${attempt + 1} - Success parsing JSON`);
+                            return parsed;
+                        }
+                    } catch (parseError) {
+                        console.warn(`Experience Gen attempt ${attempt + 1} - JSON.parse failed on extracted content:`, parseError.message);
                     }
                 }
+                console.warn(`Experience Gen attempt ${attempt + 1} - No valid JSON structure found`);
             } catch (e) {
-                console.warn(`Experience Gen attempt ${attempt + 1} failed:`, e.message);
+                console.error(`Experience Gen attempt ${attempt + 1} failed:`, e.message);
             }
         }
         
-        // Return null instead of throwing - caller handles fallback
-        console.warn("Experience Gen: All attempts failed, returning null");
+        console.error("Experience Gen: All attempts failed, returning null");
         return null;
     }
 
