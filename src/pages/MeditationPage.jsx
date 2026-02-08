@@ -282,11 +282,53 @@ const MeditationPage = ({ onClose }) => {
         if (window.speechSynthesis) window.speechSynthesis.cancel();
     }, []); 
 
-    // Empty callback for now (will implement properly when restoring Pose)
+    // 🦴 Draw Skeleton on Canvas (V3)
     const onPoseResults = useCallback((results) => {
-        // Placeholder for restoring logic
-        if (!results.poseLandmarks || !canvasRef.current) return;
-        // Logic will be restored in next step if needed, or simplifed here
+        if (!results.poseLandmarks || !canvasRef.current || !videoRef.current) return;
+        
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        const { width, height } = canvas;
+        
+        ctx.clearRect(0, 0, width, height);
+        
+        // 🎨 Draw Golden Skeleton
+        ctx.strokeStyle = '#d4af37'; // Gold
+        ctx.lineWidth = 4;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = 'rgba(212, 175, 55, 0.5)';
+
+        const drawLine = (p1, p2) => {
+            if (!p1 || !p2 || p1.visibility < 0.5 || p2.visibility < 0.5) return;
+            ctx.beginPath();
+            ctx.moveTo(p1.x * width, p1.y * height);
+            ctx.lineTo(p2.x * width, p2.y * height);
+            ctx.stroke();
+        };
+
+        const landmarks = results.poseLandmarks;
+        
+        // Body Links (Simplified for Meditation)
+        drawLine(landmarks[11], landmarks[12]); // Shoulders
+        drawLine(landmarks[11], landmarks[23]); // Left Torso
+        drawLine(landmarks[12], landmarks[24]); // Right Torso
+        drawLine(landmarks[23], landmarks[24]); // Hips
+        drawLine(landmarks[11], landmarks[13]); // Left Arm
+        drawLine(landmarks[13], landmarks[15]);
+        drawLine(landmarks[12], landmarks[14]); // Right Arm
+        drawLine(landmarks[14], landmarks[16]);
+        
+        // Head (Simplified circle)
+        const nose = landmarks[0];
+        if (nose && nose.visibility > 0.5) {
+            ctx.beginPath();
+            ctx.arc(nose.x * width, nose.y * height, 10, 0, 2 * Math.PI);
+            ctx.stroke();
+        }
+
+        setPoseData(landmarks);
     }, []);
 
     // 🤖 AI Pose Initializer - DYNAMIC IMPORT
@@ -2050,7 +2092,7 @@ const MeditationPage = ({ onClose }) => {
                         <ArrowLeft size={24} />
                     </button>
                     <div style={{ flex: 1, textAlign: 'center' }}>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--primary-gold)', fontWeight: 600 }}>준비 단계 ({prepStep}/2)</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--primary-gold)', fontWeight: 600 }}>준비 단계 ({prepStep}/3)</div>
                         <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white' }}>명상 준비</div>
                     </div>
                     <div style={{ width: '44px' }} />
@@ -2064,7 +2106,7 @@ const MeditationPage = ({ onClose }) => {
                             <div style={{ textAlign: 'center', marginBottom: '40px' }}>
                                 <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🔕</div>
                                 <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white', marginBottom: '10px' }}>주변을 고요하게</h3>
-                                <p style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>방해받지 않도록 <br/>기기를 &apos;무음&apos; 또는 &apos;방해금지&apos; 모드로 <br/>설정해주셨나요?</p>
+                                <p style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>방해받지 않도록 <br/>기기를 '무음' 또는 '방해금지' 모드로 <br/>설정해주셨나요?</p>
                             </div>
                             <button 
                                 onClick={() => { setPrepSelections({...prepSelections, notified: true}); setPrepStep(2); }}
@@ -2079,8 +2121,46 @@ const MeditationPage = ({ onClose }) => {
                         </div>
                     )}
 
-                    {/* STEP 2: Posture Guide */}
+                    {/* STEP 2: Phone Placement (NEW) */}
                     {prepStep === 2 && (
+                        <div style={{ width: '100%', maxWidth: '350px', animation: 'fadeIn 0.5s ease' }}>
+                            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                                <div style={{ fontSize: '4rem', marginBottom: '20px' }}>
+                                    {interactionType === 'v1' && '📱'}
+                                    {interactionType === 'v2' && '👄'}
+                                    {interactionType === 'v3' && '📏'}
+                                </div>
+                                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white', marginBottom: '10px' }}>핸드폰 위치 설정</h3>
+                                <p style={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, fontSize: '1.1rem' }}>
+                                    {interactionType === 'v1' && "핸드폰을 손이 닿는 편한 곳에 두세요."}
+                                    {interactionType === 'v2' && "숨소리 감지를 위해 핸드폰을 입 근처(30cm 내)에 비스듬히 세워두세요."}
+                                    {interactionType === 'v3' && "전신 촬영을 위해 핸드폰을 약 2m 거리에 세워두세요."}
+                                </p>
+                                {interactionType === 'v2' && (
+                                    <div style={{ 
+                                        marginTop: '20px', padding: '12px', background: 'rgba(74, 222, 128, 0.1)', 
+                                        borderRadius: '12px', border: '1px solid rgba(74, 222, 128, 0.2)',
+                                        fontSize: '0.85rem', color: '#4ade80', lineHeight: 1.4
+                                    }}>
+                                        💡 <b>Tip:</b> 마이크가 포함된 이어폰을 사용하시면 숨소리를 훨씬 더 정확하게 감지할 수 있어요.
+                                    </div>
+                                )}
+                            </div>
+                            <button 
+                                onClick={() => setPrepStep(3)}
+                                style={{
+                                    width: '100%', background: 'var(--primary-gold)', color: 'black',
+                                    padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
+                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'
+                                }}
+                            >
+                                배치 완료
+                            </button>
+                        </div>
+                    )}
+
+                    {/* STEP 3: Posture Guide */}
+                    {prepStep === 3 && (
                         <div style={{ width: '100%', maxWidth: '400px', animation: 'fadeIn 0.5s ease' }}>
                             <h3 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'white', marginBottom: '25px', textAlign: 'center' }}>가장 편한 자세를 찾아보세요</h3>
                             
@@ -2218,7 +2298,7 @@ const MeditationPage = ({ onClose }) => {
         }}>
             {/* V3 Camera Layer */}
             {interactionType === 'v3' && (
-                <div style={{ position: 'absolute', inset: 0, zIndex: -1, opacity: 0.4 }}>
+                <div style={{ position: 'absolute', inset: 0, zIndex: -1, opacity: 0.6 }}>
                     <video 
                         ref={videoRef} 
                         autoPlay 
@@ -2226,11 +2306,22 @@ const MeditationPage = ({ onClose }) => {
                         muted 
                         style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} 
                     />
+                    <canvas
+                        ref={canvasRef}
+                        width={window.innerWidth}
+                        height={window.innerHeight}
+                        style={{
+                            position: 'absolute', inset: 0,
+                            width: '100%', height: '100%',
+                            transform: 'scaleX(-1)', // Mirror to match video
+                            pointerEvents: 'none'
+                        }}
+                    />
                     <div style={{
                         position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
                         width: '280px', height: '350px',
-                        border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '120px',
-                        boxShadow: '0 0 80px rgba(255, 215, 0, 0.05) inset'
+                        border: '1px solid rgba(255, 215, 0, 0.3)', borderRadius: '120px',
+                        boxShadow: '0 0 80px rgba(255, 215, 0, 0.1) inset'
                     }} />
                 </div>
             )}
@@ -2265,6 +2356,34 @@ const MeditationPage = ({ onClose }) => {
                 <div style={{ fontSize: '4.5rem', fontWeight: 200, color: 'white', fontVariantNumeric: 'tabular-nums', letterSpacing: '-2px', textShadow: '0 0 30px rgba(255,255,255,0.3)', marginBottom: '10px' }}>
                     {formatTime(timeLeft)}
                 </div>
+
+                {/* 🎤 Breath Level Meter (NEW: User Request) */}
+                {interactionType === 'v2' && (
+                    <div style={{ 
+                        marginTop: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
+                        animation: 'fadeIn 0.5s ease'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: micVolume > 0.1 ? '#4ade80' : 'rgba(255,255,255,0.3)', transition: 'color 0.2s' }}>
+                            <Microphone size={20} weight={micVolume > 0.1 ? "fill" : "regular"} style={{ transform: `scale(${1 + Math.min(micVolume, 0.5)})` }} />
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, letterSpacing: '1px' }}>BREATH LEVEL</span>
+                        </div>
+                        <div style={{ 
+                            width: '120px', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', overflow: 'hidden',
+                            boxShadow: '0 0 10px rgba(0,0,0,0.5)'
+                        }}>
+                            <div style={{ 
+                                height: '100%', 
+                                width: `${Math.min(micVolume * 100, 100)}%`, 
+                                background: 'linear-gradient(90deg, #4ade80, #32ff7e)',
+                                transition: 'width 0.1s ease-out',
+                                boxShadow: '0 0 10px rgba(74, 222, 128, 0.5)'
+                            }} />
+                        </div>
+                        {micVolume > 0.1 && (
+                            <span style={{ fontSize: '0.7rem', color: '#4ade80', animation: 'pulse 1s infinite' }}>감지 중...</span>
+                        )}
+                    </div>
+                )}
 
                 {/* Privacy Notice or TTC Indicator */}
                 <div style={{ height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
