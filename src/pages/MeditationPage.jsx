@@ -90,6 +90,14 @@ const MeditationPage = ({ onClose }) => {
     });
     const [aiRequestLock, setAiRequestLock] = useState(false); // ✅ Prevent duplicate requests
 
+    // 🧘 Preparation Flow States
+    const [prepStep, setPrepStep] = useState(1); // 1: Notifications, 2: Posture, 3: Goal
+    const [prepSelections, setPrepSelections] = useState({
+        notified: false,
+        posture: 'chair', // 'chair', 'floor', 'lying'
+        goal: null
+    });
+
     // V3 Pose States
     const [poseData, setPoseData] = useState(null); // 실시간 자세 데이터
     const [isPoseLoading, setIsPoseLoading] = useState(false);
@@ -115,6 +123,9 @@ const MeditationPage = ({ onClose }) => {
     const chatEndRef = useRef(null); // Fixed: Missing Ref
     const currentAudioRef = useRef(null); // ✅ Tracking for cleanup
     const ambientAudioRef = useRef(null); // 🎵 Ambient sound (rain, ocean, etc.)
+    
+    // ✅ Request ID Ref for Race Condition Prevention
+    const currentRequestIdRef = useRef(0);
 
     // Stop Session (useCallback for stability - removed stream dependency to fix V3 crash)
     const stopSession = useCallback(() => {
@@ -124,6 +135,8 @@ const MeditationPage = ({ onClose }) => {
             currentAudioRef.current.currentTime = 0;
             currentAudioRef.current = null; 
         }
+
+        currentRequestIdRef.current += 1; // Invalidate any pending requests
 
         clearInterval(timerRef.current); 
         clearInterval(messageIntervalRef.current);
@@ -159,6 +172,7 @@ const MeditationPage = ({ onClose }) => {
 
         setIsPlaying(false);
         setStep('diagnosis');
+        setPrepStep(1); // Reset prep
         setActiveMode(null);
         setSelectedDiagnosis(null);
         setIsAILoading(false); 
@@ -496,16 +510,23 @@ const MeditationPage = ({ onClose }) => {
         if (aiRequestLock) return; 
         setAiRequestLock(true);
         setIsAILoading(true);
+
+        // 🔒 Generate New Request ID
+        const requestId = currentRequestIdRef.current + 1;
+        currentRequestIdRef.current = requestId;
+        
         try {
             const hour = new Date().getHours();
             let currentContext = 'night';
             if (hour >= 5 && hour < 12) currentContext = 'morning';
             else if (hour >= 12 && hour < 18) currentContext = 'afternoon';
             
-            console.log(`🤖 Fetching AI Question for: ${memberName}`);
+            console.log(`🤖 Fetching AI Question for: ${memberName} (ID: ${requestId})`);
+            
+            let timeoutId;
             // ✅ TIMEOUT PROTECTION: Force fallback if API hangs > 12s
             const timeoutPromise = new Promise((resolve) => {
-                setTimeout(() => {
+                timeoutId = setTimeout(() => {
                     const fallbackMsg = (history && history.length > 0) 
                         ? "잠시 연결이 늦어지네요. 계속해서 이야기 나눠볼까요?" 
                         : "오늘 하루 마음이 어떠셨나요?";
@@ -534,6 +555,14 @@ const MeditationPage = ({ onClose }) => {
 
             // Race API vs Timeout
             const result = await Promise.race([apiPromise, timeoutPromise]);
+            clearTimeout(timeoutId); // ✅ Clean up timeout
+
+            // 🛡️ RACE CONDITION GUARD
+            if (requestId !== currentRequestIdRef.current) {
+                console.warn(`Ignoring stale AI response (ID: ${requestId}, Current: ${currentRequestIdRef.current})`);
+                return;
+            }
+
             console.log("🤖 AI Response:", result.data);
             if (result.data) {
                 // ✅ Personalization Safety: Replace placeholders if backend missed them
@@ -615,14 +644,20 @@ const MeditationPage = ({ onClose }) => {
                 }
             }
         } catch (error) {
+            // 🛡️ RACE CONDITION GUARD for Error
+            if (requestId !== currentRequestIdRef.current) return;
+
             console.error('AI Question failed:', error);
             setCurrentAIChat({
                 message: "죄송해요, 잠시 연결이 고르지 않네요. 계속 대화해볼까요?",
                 options: ["네, 좋아요", "그냥 시작할게요"]
             });
         } finally {
-            setIsAILoading(false);
-            setAiRequestLock(false);
+            // 🛡️ Check ID before unlocking (optional but safer)
+            if (requestId === currentRequestIdRef.current) {
+                setIsAILoading(false);
+                setAiRequestLock(false);
+            }
         }
     };
 
@@ -806,7 +841,8 @@ const MeditationPage = ({ onClose }) => {
     };
 
     const startFromPrescription = () => {
-         startSession(activeMode);
+         setStep('preparation');
+         setPrepStep(1);
     };
 
     // --- Session Logic ---
@@ -889,17 +925,32 @@ const MeditationPage = ({ onClose }) => {
                 ambientAudio.crossOrigin = 'anonymous';
                 ambientAudio.src = ambientConfig.audioUrl;
                 ambientAudio.loop = true;
-                // ✅ Increase Ambient Volume (0.3 -> 0.5)
-                ambientAudio.volume = soundEnabled ? 0.5 : 0; 
+                
+                // ✅ Ambient Fade-in Logic (0.0 -> 0.5 over 2 seconds)
+                ambientAudio.volume = 0; 
                 
                 // Play with error handling
                 const playPromise = ambientAudio.play();
                 if (playPromise !== undefined) {
                     playPromise.catch(e => console.warn('Ambient audio autoplay blocked:', e));
+                    
+                    // Start fade if playing
+                    if (soundEnabled) {
+                        let vol = 0;
+                        const fadeInInterval = setInterval(() => {
+                            vol += 0.05;
+                            if (vol >= 0.5) {
+                                ambientAudio.volume = 0.5;
+                                clearInterval(fadeInInterval);
+                            } else {
+                                ambientAudio.volume = vol;
+                            }
+                        }, 200);
+                    }
                 }
                 
                 ambientAudioRef.current = ambientAudio;
-                console.log(`🎵 Ambient sound started: ${ambientConfig.label} (URL: ${ambientConfig.audioUrl})`);
+                console.log(`🎵 Ambient sound started with fade-in: ${ambientConfig.label}`);
             } catch (e) {
                 console.warn('Failed to start ambient audio:', e);
             }
@@ -910,12 +961,34 @@ const MeditationPage = ({ onClose }) => {
         setTimeLeft(mode.time);
         setIsPlaying(true);
         
-        // Opening Message
-        const messages = AI_SESSION_MESSAGES[interactionType] || AI_SESSION_MESSAGES['v1'];
-        setAiMessage(messages[0]);
+        // ✨ Opening Message - Phase 4 Pre-intro Logic
+        const getPreIntro = () => {
+            const goal = prepSelections.goal;
+            if (goal === 'relax') return "모든 긴장을 내려놓고, 그저 편안함이 온몸에 스며들게 하세요.";
+            if (goal === 'clear') return "떠오르는 생각들을 흘려보내며, 마음의 호숫가를 고요히 만듭니다.";
+            if (goal === 'sense') return "지금 이 순간, 당신의 몸이 전하는 가장 미세한 감각에 귀를 기울여보세요.";
+            if (goal === 'stay') return "아무것도 할 필요 없습니다. 그저 지금 이 순간에 온전히 머물러보세요.";
+            return "숨을 깊게 들이마시고 내쉬며, 당신만의 평온한 시간을 시작합니다.";
+        };
+        
+        const introMessage = getPreIntro();
+        setAiMessage(introMessage);
+        
+        // TTC Voice for Pre-intro if enabled
+        if (ttcEnabled && window.speechSynthesis) {
+            const utterance = new SpeechSynthesisUtterance(introMessage);
+            utterance.lang = 'ko-KR';
+            utterance.rate = 0.85;
+            utterance.volume = 0.4;
+            window.speechSynthesis.speak(utterance);
+        }
         
         startTimer();
-        startMessageLoop();
+        
+        // Delay the first AI session message to let pre-intro breathe
+        setTimeout(() => {
+            startMessageLoop();
+        }, 8000);
     };
 
     const setupAudioAnalysis = (stream, audioCtx) => {
@@ -1436,6 +1509,184 @@ const MeditationPage = ({ onClose }) => {
         );
     }
 
+    // 🧘 Phase 4: Preparation Flow Step
+    if (step === 'preparation') {
+        const PREPARATION_GUIDES = {
+            chair: {
+                title: "의자 명상",
+                desc: "회사나 집에서 간편하게",
+                steps: [
+                    "의자 앞쪽에 걸터앉아 허리를 세웁니다.",
+                    "양발은 어깨너비로 벌려 지면에 닿게 합니다.",
+                    "손은 편안하게 무릎 위에 올립니다."
+                ]
+            },
+            floor: {
+                title: "바닥 명상",
+                desc: "조용하고 안정적인 공간에서",
+                steps: [
+                    "가부좌 또는 편한 책상다리를 합니다.",
+                    "쿠션을 활용해 무릎이 엉덩이보다 낮게 합니다.",
+                    "척추를 곧게 펴고 정수리를 하늘로 당깁니다."
+                ]
+            },
+            lying: {
+                title: "누운 명상",
+                desc: "깊은 이완과 수면을 위해",
+                steps: [
+                    "등을 대고 편안하게 눕습니다.",
+                    "다리는 어깨너비로 벌리고 발끝을 툭 떨어뜨립니다.",
+                    "팔은 몸 옆에 두고 손바닥이 하늘을 향하게 합니다."
+                ]
+            }
+        };
+
+        const PREPARATION_GOALS = [
+            { id: 'relax', label: '온몸의 긴장을 풀고 싶어요' },
+            { id: 'clear', label: '복잡한 생각을 비우고 싶어요' },
+            { id: 'sense', label: '내 몸의 감각에만 집중해볼게요' },
+            { id: 'stay', label: '그저 지금 이대로 머무를래요' }
+        ];
+
+        return (
+            <div style={{
+                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 2000,
+                display: 'flex', flexDirection: 'column', padding: '20px',
+                backgroundImage: 'radial-gradient(circle at 50% 10%, #1a1a2e 0%, #000000 80%)'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
+                    <button onClick={() => setStep('prescription')} style={{ padding: '10px', color: 'white', background: 'none', border: 'none' }}>
+                        <ArrowLeft size={24} />
+                    </button>
+                    <div style={{ flex: 1, textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--primary-gold)', fontWeight: 600 }}>준비 단계 ({prepStep}/3)</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white' }}>명상 준비</div>
+                    </div>
+                    <div style={{ width: '44px' }} />
+                </div>
+
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: '10px' }}>
+                    
+                    {/* STEP 1: Notifications Off */}
+                    {prepStep === 1 && (
+                        <div style={{ width: '100%', maxWidth: '350px', animation: 'fadeIn 0.5s ease' }}>
+                            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                                <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🔕</div>
+                                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white', marginBottom: '10px' }}>주변을 고요하게</h3>
+                                <p style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>방해받지 않도록 <br/>기기를 &apos;무음&apos; 또는 &apos;방해금지&apos; 모드로 <br/>설정해주셨나요?</p>
+                            </div>
+                            <button 
+                                onClick={() => { setPrepSelections({...prepSelections, notified: true}); setPrepStep(2); }}
+                                style={{
+                                    width: '100%', background: 'var(--primary-gold)', color: 'black',
+                                    padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
+                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'
+                                }}
+                            >
+                                확인했습니다
+                            </button>
+                        </div>
+                    )}
+
+                    {/* STEP 2: Posture Guide */}
+                    {prepStep === 2 && (
+                        <div style={{ width: '100%', maxWidth: '400px', animation: 'fadeIn 0.5s ease' }}>
+                            <h3 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'white', marginBottom: '25px', textAlign: 'center' }}>가장 편한 자세를 찾아보세요</h3>
+                            
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+                                {Object.entries(PREPARATION_GUIDES).map(([key, info]) => (
+                                    <button 
+                                        key={key}
+                                        onClick={() => setPrepSelections({...prepSelections, posture: key})}
+                                        style={{
+                                            flex: 1, padding: '12px 5px', borderRadius: '15px', fontSize: '0.85rem',
+                                            background: prepSelections.posture === key ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.03)',
+                                            color: prepSelections.posture === key ? 'white' : 'rgba(255,255,255,0.4)',
+                                            border: prepSelections.posture === key ? '1px solid rgba(255,255,255,0.3)' : '1px solid transparent',
+                                            transition: 'all 0.2s', fontWeight: 600
+                                        }}
+                                    >
+                                        {info.title}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div style={{ 
+                                background: 'rgba(255,255,255,0.05)', borderRadius: '25px', padding: '25px',
+                                border: '1px solid rgba(255,255,255,0.1)', marginBottom: '30px',
+                                minHeight: '220px'
+                            }}>
+                                <div style={{ color: 'var(--primary-gold)', fontSize: '0.8rem', fontWeight: 700, marginBottom: '5px' }}>{PREPARATION_GUIDES[prepSelections.posture].desc}</div>
+                                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'white', marginBottom: '15px' }}>{PREPARATION_GUIDES[prepSelections.posture].title} 자세</div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {PREPARATION_GUIDES[prepSelections.posture].steps.map((s, i) => (
+                                        <div key={i} style={{ display: 'flex', gap: '10px', color: 'rgba(255,255,255,0.8)', fontSize: '0.95rem', lineHeight: 1.5 }}>
+                                            <span style={{ color: 'var(--primary-gold)', fontWeight: 800 }}>{i+1}</span>
+                                            <span>{s}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <button 
+                                onClick={() => setPrepStep(3)}
+                                style={{
+                                    width: '100%', background: 'var(--primary-gold)', color: 'black',
+                                    padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                자세를 잡았습니다
+                            </button>
+                        </div>
+                    )}
+
+                    {/* STEP 3: Goal Selection */}
+                    {prepStep === 3 && (
+                        <div style={{ width: '100%', maxWidth: '380px', animation: 'fadeIn 0.5s ease' }}>
+                            <h3 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'white', marginBottom: '10px', textAlign: 'center' }}>오늘의 명상 의도 세우기</h3>
+                            <p style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', fontSize: '0.9rem', marginBottom: '30px' }}>무엇에 집중하고 싶으신가요?</p>
+                            
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '40px' }}>
+                                {PREPARATION_GOALS.map((g) => (
+                                    <button 
+                                        key={g.id}
+                                        onClick={() => setPrepSelections({...prepSelections, goal: g.id})}
+                                        style={{
+                                            padding: '20px', borderRadius: '20px', fontSize: '1rem',
+                                            background: prepSelections.goal === g.id ? 'rgba(212,175,55,0.2)' : 'rgba(255,255,255,0.05)',
+                                            color: prepSelections.goal === g.id ? 'var(--primary-gold)' : 'rgba(255,255,255,0.7)',
+                                            border: prepSelections.goal === g.id ? '1px solid var(--primary-gold)' : '1px solid rgba(255,255,255,0.1)',
+                                            transition: 'all 0.2s', fontWeight: 600, textAlign: 'left',
+                                            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                        }}
+                                    >
+                                        {g.label}
+                                        {prepSelections.goal === g.id && <Sparkle size={20} weight="fill" />}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <button 
+                                disabled={!prepSelections.goal}
+                                onClick={() => startSession(activeMode)}
+                                style={{
+                                    width: '100%', background: prepSelections.goal ? 'var(--primary-gold)' : 'rgba(255,255,255,0.1)', 
+                                    color: prepSelections.goal ? 'black' : 'rgba(255,255,255,0.2)',
+                                    padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
+                                    cursor: prepSelections.goal ? 'pointer' : 'default',
+                                    boxShadow: prepSelections.goal ? '0 10px 20px rgba(212,175,55,0.3)' : 'none'
+                                }}
+                            >
+                                명상 시작하기
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
     // 4. Active Session Step
     const breathingScale = interactionType === 'v2' ? 1 + micVolume : 1;
 
@@ -1648,6 +1899,10 @@ const MeditationPage = ({ onClose }) => {
                 .floating-circle.animate-float { animation: float 20s infinite linear; }
                 .floating-circle-rev.animate-float-rev { animation: float-rev 25s infinite linear; }
                 .paused { animation-play-state: paused !important; }
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
             `}</style>
         </div>
     );

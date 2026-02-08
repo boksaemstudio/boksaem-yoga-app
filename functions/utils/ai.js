@@ -180,6 +180,23 @@ class AIService {
                     }
                 }
                 console.warn(`Experience Gen attempt ${attempt + 1} - No valid JSON structure found`);
+
+                // 🚨 REGEX FALLBACK (Last Resort)
+                // If this is the last attempt and we have text, try to extract "message"
+                if (attempt === 1 && text) {
+                    console.log("🚨 JSON Parse failed repeatedly. Attempting Regex Fallback for 'message'...");
+                    const messageMatch = text.match(/"message"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+                    if (messageMatch && messageMatch[1]) {
+                        console.log("✅ Regex Fallback successful!");
+                        return {
+                            message: messageMatch[1],
+                            options: [], // Default empty
+                            isFinalAnalysis: false,
+                            fallbackUsed: true
+                        };
+                    }
+                }
+
             } catch (e) {
                 console.error(`Experience Gen attempt ${attempt + 1} failed:`, e.message);
             }

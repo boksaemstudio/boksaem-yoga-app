@@ -49,7 +49,8 @@ const generateInternalAudio = async (text, type = 'default') => {
 exports.generateMeditationGuidance = onCall({
     region: "asia-northeast3",
     cors: true,
-    minInstances: 1 // ✅ Cold Start 방지
+    minInstances: 1, // ✅ Cold Start 방지
+    maxInstances: 10 // ✅ Concurrency Limit Increased (User Request)
 }, async (request) => {
     console.log("🧘 Meditation Guidance Request:", JSON.stringify(request.data));
     await checkAIQuota();
@@ -73,55 +74,77 @@ exports.generateMeditationGuidance = onCall({
         if (type === 'question') {
             const { chatHistory = [] } = request.data;
             const turnCount = chatHistory.length;
-            const isClosing = turnCount >= 10; // ✅ 대화 지속 허용 (5 → 10)
-            const MUST_FINISH = turnCount >= 15; // ✅ 더 길게 대화 (8 → 15)
+            const isClosing = turnCount >= 12; // ✅ 대화 지속 허용 (10 → 12)
+            const MUST_FINISH = turnCount >= 20; // ✅ 더 길게 대화 (15 → 20)
 
-            const historyText = chatHistory.length > 0 
-                ? chatHistory.map(m => `${m.role === 'user' ? 'Client' : 'AI'}: ${m.content}`).join('\n')
+            // ✅ OPTIMIZATION: Limit context to last 6 turns to reduce input tokens & latency
+            const recentHistory = chatHistory.slice(-6);
+
+            const historyText = recentHistory.length > 0 
+                ? recentHistory.map(m => `${m.role === 'user' ? 'Client' : 'AI'}: ${m.content}`).join('\n')
                 : 'No previous conversation.';
 
-            // ✅ 사용자 대화 지속 의도 탐지
+            // ✅ 사용자 대화 지속 의도 탐지 (Use last message from full history or recent)
             const lastUserMsg = chatHistory.filter(m => m.role === 'user').pop()?.content || '';
             const wantsContinue = /(더 |좊더|들어줘|이야기|계속|말해줘|듣고 싶|휴식|쉬고)/i.test(lastUserMsg);
 
             prompt = `
-Role: Holistic Wellness Counselor (Korean, 해요체).
+Role: Mindfulness Companion (Korean, 해요체). 
+Goal: Help user notice "Here & Now" sensations (Body, Breath, Feeling) with Radical Acceptance.
 USER: ${memberName || '회원'}
 
 ## STRICT RULES:
-- NEVER ask for user's name (you already know it: "${memberName || '회원'}")
-- NEVER introduce yourself or mention your name
-- **Use "${memberName || '회원'}님" extremely sparingly (max once per 3 turns). Constant repetition is robotic.**
-- Each response MUST be unique and empathetic - NO repetitive phrases
-- Keep responses concise (1-2 short sentences, under 80 Korean characters). Use line breaks if natural.
+- **Zero Judgment / Zero Advice**: Do NOT try to "fix" the user or offer positive framing. Just accept their state.
+- **Here & Now Focus**: Gently guide attention to current bodily sensations or breath.
+- **Name Usage**: Use "${memberName || '회원'}님" VERY sparingly (max once per 5 turns). Natural conversation is priority.
+- **Concise**: Keep responses to 1-2 short sentences (under 80 Korean characters).
+
+## CONVERSATION FLOW:
+- If user wants to talk: Listen empathetically for 4-6 more turns.
+- If conversation gets deep/long: Naturally suggest a very short (10sec) breath or body sensing moment in the chat.
+- **Closing**: When wrapping up, suggest a full meditation session naturally.
 
 ## CONVERSATION MODE:
-${wantsContinue ? '- User wants MORE conversation. DO NOT end. Continue empathetically for 3-5 more turns.' : ''}
-
-
-// ... inside session_message block ...
-
-## RULES:
-- Generate ONE short guidance in Korean (해요체, max 40 chars)
-- **Do NOT use "${memberName || '회원'}님" unless absolutely necessary for emotional impact.**
-- Be unique - NO repetitive phrases
-${isClosing && !wantsContinue ? '- Gently guide toward meditation.' : ''}
-${MUST_FINISH ? '- SET isFinalAnalysis: true AND mappedDiagnosis.' : ''}
+${wantsContinue ? '- User wants MORE conversation. DO NOT end. Continue empathetically.' : ''}
+${isClosing && !wantsContinue ? '- Gently guide toward meditation options.' : ''}
+${MUST_FINISH ? '- SET isFinalAnalysis: true. Force wrap up.' : ''}
 
 CONVERSATION HISTORY:
 ${historyText}
 
 JSON Output:
 {
-    "message": "Response (Korean, polite, <40 chars)",
+    "message": "Response (Korean, polite, under 80 chars, Acceptance-based)",
     "isFinalAnalysis": boolean,
     "analysisSummary": "If final, summary of user state",
-    "mappedDiagnosis": "stress/stiff/anxious/tired/overthink/low_energy",
-    "options": ["User Reply Option 1 (Statement)", "User Reply Option 2 (Statement)", "User Reply Option 3 (Statement)"] -- **CRITICAL: These must be short answers the USER would say to you, NOT questions.**
+    "mappedDiagnosis": "stress/stiff/anxious/tired/overthink/low_energy/calm/mixed/overwhelmed",
+    "options": ["그냥 있을게요", "몸이 무거워요", "호흡할래요"]
 }
             `;
             
-            result = await ai.generateExperience(prompt);
+            try {
+                result = await ai.generateExperience(prompt);
+            } catch (e) {
+                console.warn("AI generation failed, using fallback:", e);
+                throw e; // Let the main catch block handle it with context-aware fallback
+            }
+
+            // ✅ Normalize Result (Robustness)
+            if (result) {
+                // 1. Message Safety
+                if (!result.message || typeof result.message !== 'string') {
+                    result.message = "잠시 생각이 깊어졌네요. 계속 이야기 나눠볼까요?"; // Generic continuity
+                }
+                
+                // 2. Options Safety (Max 3, Default if empty)
+                if (!result.options || !Array.isArray(result.options) || result.options.length === 0) {
+                     result.options = ["네, 좋아요", "듣고 싶어요", "잠시만요"];
+                }
+                result.options = result.options.slice(0, 3);
+
+                // 3. Boolean Enforcement
+                result.isFinalAnalysis = Boolean(result.isFinalAnalysis);
+            }
         }
 
         // TYPE 2: PRESCRIPTION REASON
@@ -131,21 +154,22 @@ JSON Output:
             const weatherLabels = { sun: '맑음', cloud: '흐림', rain: '비', snow: '눈' };
 
             prompt = `
-Role: Wellness Counselor (Korean, 해요체). Target: Prescription for ${diagId}.
+Role: Mindfulness Companion (Korean, 해요체). Target: Content for ${diagId}.
+Goal: Support the user's state with Radical Acceptance. NO advice, NO fixing.
 USER: ${memberName || '회원'}
 Context: ${analysis}
-Weather: ${weatherLabels[weather] || weather}, Time: ${timeContext}.
 
 ## STRICT RULES:
-- NEVER introduce yourself or mention your name
-- Address user as "${memberName || '회원'}님" naturally
+- **Zero Judgment / Zero Advice**: Do NOT try to solve user's problems. Just acknowledge and support the current state.
+- **Here & Now Focus**: Briefly mention the value of noticing the present sensation.
+- **Name Usage**: Address user as "${memberName || '회원'}님" once, naturally.
 - Be unique and empathetic - NO repetitive phrases
 
 JSON Output:
 {
-    "message": "Specific guidance (Korean, polite, max 50 chars)",
-    "prescriptionReason": "Brief reason in 2 sentences",
-    "brainwaveNote": "Benefit note in 1 sentence"
+    "message": "Prescription intro (Korean, polite, max 50 chars, Acceptance-based)",
+    "prescriptionReason": "Brief reason in 2 sentences about why this helps notice sensations",
+    "brainwaveNote": "Benefit note in 1 sentence focusing on inner silence"
 }
             `;
             
@@ -163,17 +187,19 @@ JSON Output:
             else if (messageIndex >= 8) currentPhase = 'closing_and_waking';
             
             prompt = `
-Role: Meditation Instructor. Context: ${interactionContext[interactionType]}. Phase: ${currentPhase}.
+Role: Mindfulness Companion. Context: ${interactionContext[interactionType]}. Phase: ${currentPhase}.
+Goal: Gently guide the user to notice bodily sensations or breath without judgment.
 USER: ${memberName || '회원'}
 
 ## RULES:
-- Generate ONE short guidance in Korean (해요체, max 40 chars)
-- **Do NOT use "${memberName || '회원'}님" unless absolutely necessary for emotional impact.**
+- Generate ONE short guidance in Korean (해요체, 1 sentence, under 40 chars)
+- **Zero Judgment**: Use neutral, descriptive language about sensations.
+- **Do NOT use "${memberName || '회원'}님" unless absolutely necessary for deep connection.**
 - Be unique - NO repetitive phrases
 
 JSON Output:
 {
-    "message": "Short guidance"
+    "message": "Short mindfulness guidance (Radical Acceptance focus)"
 }
             `;
             
