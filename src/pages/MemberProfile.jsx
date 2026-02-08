@@ -270,12 +270,15 @@ const MemberProfile = () => {
                 setScheduleBranch(memberData.homeBranch || 'gwangheungchang');
                 fetchWeather();
 
+                // [FIX] Filter out denied logs from AI analysis
+                const validHistory = history.filter(h => h.status !== 'denied');
+
                 if (!weatherData) {
-                    loadAIExperience(memberData, history);
+                    loadAIExperience(memberData, validHistory);
                 }
 
                 const now = new Date();
-                storageService.getAIAnalysis(memberData.name, history.length, history, now.getHours(), language, 'member')
+                storageService.getAIAnalysis(memberData.name, validHistory.length, validHistory, now.getHours(), language, 'member')
                     .then(analysis => setAiAnalysis(analysis))
                     .catch(() => setAiAnalysis({ message: t('analysisPending'), isError: true }));
 
@@ -370,14 +373,17 @@ const MemberProfile = () => {
         const day = days[now.getDay()];
 
         try {
+            // [FIX] Filter out denied logs if passing raw attendanceData
+            const validAttendance = attendanceData ? attendanceData.filter(l => l.status !== 'denied') : [];
+            
             // [FIX] Calculate diligence data for personalized AI
-            const streak = attendanceData ? storageService.getMemberStreak(m.id, attendanceData) : 0;
+            const streak = attendanceData ? storageService.getMemberStreak(m.id, validAttendance) : 0;
             // [FIX] Use timestamp instead of date (which is typically undefined in attendance logs)
-            const lastAtt = attendanceData && attendanceData.length > 0 ? (attendanceData[0].timestamp || attendanceData[0].date) : null;
+            const lastAtt = validAttendance.length > 0 ? (validAttendance[0].timestamp || validAttendance[0].date) : null;
 
             const exp = await storageService.getAIExperience(
                 m.name,
-                m.attendanceCount || (attendanceData ? attendanceData.length : 0),
+                m.attendanceCount || validAttendance.length,
                 day,
                 hour,
                 null, // upcoming class
@@ -530,10 +536,17 @@ const MemberProfile = () => {
             const wData = { key: weatherKey, temp: data.current_weather.temperature };
             setWeatherData(wData);
 
-            if (member) loadAIExperience(member, logs, wData);
+            if (member) {
+                // [FIX] Filter out denied logs
+                const validLogs = logs.filter(l => l.status !== 'denied');
+                loadAIExperience(member, validLogs, wData);
+            }
         } catch (err) {
             console.log('Weather fetch failed', err);
-            if (member) loadAIExperience(member, logs, null);
+            if (member) {
+                const validLogs = logs.filter(l => l.status !== 'denied');
+                loadAIExperience(member, validLogs, null);
+            }
         }
     }
 
@@ -580,12 +593,14 @@ const MemberProfile = () => {
     useEffect(() => {
         if (member) {
             setAiExperience(null);
-            loadAIExperience(member, logs, weatherData);
+            // [FIX] Filter out denied logs
+            const validLogs = logs.filter(l => l.status !== 'denied');
+            loadAIExperience(member, validLogs, weatherData);
 
             setAiAnalysis(null);
             const now = new Date();
             // This Effect handles LANGUAGE change. Initial load is handled by loadMemberData.
-            storageService.getAIAnalysis(member.name, logs.length, logs, now.getHours(), language, 'member')
+            storageService.getAIAnalysis(member.name, validLogs.length, validLogs, now.getHours(), language, 'member')
                 .then(analysis => setAiAnalysis(analysis))
                 .catch(() => setAiAnalysis({ message: t('analysisPending'), isError: true }));
 
@@ -736,6 +751,9 @@ const MemberProfile = () => {
 
 
 
+    // [FIX] Filter out denied logs for Statistics & AI (keep 'logs' for History)
+    const validLogs = logs.filter(log => log.status !== 'denied');
+
     const daysRemaining = getDaysRemaining(member.endDate);
 
     return (
@@ -766,10 +784,10 @@ const MemberProfile = () => {
             {/* 2. Overlays (z-index: 3-4) */}
             <div className="bg-aura" style={{ position: 'fixed', zIndex: 3, pointerEvents: 'none' }} />
             {(() => {
-                // [VISUALIZATION] Determine Particle Mode based on user activity
+                // [VISUALIZATION] Determine Particle Mode based on user activity (VALID logs only)
                 let mode = 'calm';
-                if (logs && logs.length > 0) {
-                    const lastLog = logs[0];
+                if (validLogs && validLogs.length > 0) {
+                    const lastLog = validLogs[0];
                     const lastDate = new Date(lastLog.timestamp || lastLog.date);
                     const daysSinceLast = (new Date() - lastDate) / (1000 * 60 * 60 * 24);
 
@@ -777,12 +795,12 @@ const MemberProfile = () => {
                         mode = 'stillness'; // Dormant
                     } else {
                         // Check for high activity (Burning)
-                        // Simple check: 3+ logs in last 7 days OR total logs >= 8 (visible limit)
+                        // Simple check: 3+ valid logs in last 7 days OR total valid logs >= 8
                         const oneWeekAgo = new Date();
                         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-                        const recentLogs = logs.filter(l => new Date(l.timestamp || l.date) > oneWeekAgo);
+                        const recentLogs = validLogs.filter(l => new Date(l.timestamp || l.date) > oneWeekAgo);
 
-                        if (recentLogs.length >= 3 || logs.length >= 8) {
+                        if (recentLogs.length >= 3 || validLogs.length >= 8) {
                             mode = 'burning';
                         }
                     }
@@ -819,8 +837,8 @@ const MemberProfile = () => {
                             <div className="glass-panel" style={{ padding: '24px', marginBottom: '20px', background: 'rgba(20, 20, 20, 0.9)', border: '1px solid rgba(255,255,255,0.15)' }}>
                                 <MembershipInfo member={member} daysRemaining={daysRemaining} t={t} />
 
-                                {/* [New] Personal Yoga Journey Chart */}
-                                <MyStatsChart logs={logs} />
+                                {/* [New] Personal Yoga Journey Chart - Valid Logs Only */}
+                                <MyStatsChart logs={validLogs} />
 
                                 <AISection
                                     aiExperience={aiExperience}
@@ -833,7 +851,7 @@ const MemberProfile = () => {
                                 <HomeYogaSection language={language} t={t} />
 
                                 <RecentAttendance
-                                    logs={logs}
+                                    logs={validLogs}
                                     language={language}
                                     t={t}
                                     setActiveTab={setActiveTab}
@@ -961,7 +979,7 @@ const MemberProfile = () => {
                         </div>
                     )}
 
-                    {/* HISTORY TAB */}
+                    {/* HISTORY TAB - Uses ALL logs (includes denied) */}
                     {activeTab === 'history' && (
                         <div className="fade-in">
                             <AttendanceHistory
@@ -976,7 +994,7 @@ const MemberProfile = () => {
                         </div>
                     )}
 
-                    {/* SCHEDULE TAB */}
+                    {/* SCHEDULE TAB - Uses Valid Logs Only */}
                     {activeTab === 'schedule' && (
                         <div className="fade-in">
                             <div className="glass-panel" style={{ padding: '24px', background: 'rgba(15, 15, 15, 0.9)', minHeight: '400px', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
@@ -1017,7 +1035,7 @@ const MemberProfile = () => {
                                     ))}
                                 </div>
                                 {scheduleView === 'calendar' ? (
-                                    <MemberScheduleCalendar branchId={scheduleBranch || 'gwangheungchang'} attendanceLogs={logs} />
+                                    <MemberScheduleCalendar branchId={scheduleBranch || 'gwangheungchang'} attendanceLogs={validLogs} />
                                 ) : (
                                     (() => {
                                         const now = new Date();

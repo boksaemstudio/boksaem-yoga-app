@@ -59,6 +59,15 @@ const MembersTab = ({
                     onClick={() => handleToggleFilter('attendance')}>
                     <span className="card-label">오늘 출석</span>
                     <span className="card-value">{summary.todayAttendance}명 / <span style={{ fontSize: '1rem', opacity: 0.8 }}>{summary.totalAttendanceToday}회</span></span>
+                    {/* [NEW] Denied Stats Display */}
+                    {summary.deniedCount > 0 && (
+                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.1)', fontSize: '0.85rem', color: '#ff4d4f', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <span>⛔ 거부 {summary.deniedCount}명</span>
+                            <span style={{ fontSize: '0.75rem', opacity: 0.8, fontWeight: 'normal' }}>
+                                (기간만료 {summary.deniedExpiredCount || 0}, 횟수소진 {summary.deniedNoCreditsCount || 0})
+                            </span>
+                        </div>
+                    )}
                 </div>
                 <div className={`dashboard-card interactive ${filterType === 'registration' ? 'highlight' : ''}`}
                     onClick={() => handleToggleFilter('registration')}>

@@ -173,10 +173,30 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         const isMemberInBranch = (m) => currentBranch === 'all' || m.homeBranch === currentBranch;
 
         const attendedMemberIds = new Set();
+        
+        // [New] Denied Stats
+        let deniedCount = 0;
+        let deniedExpiredCount = 0;
+        let deniedNoCreditsCount = 0;
+
+        // [New] Valid Total Attendance (Session Count)
+        let totalAttendanceToday = 0;
+
         branchLogs.forEach(l => {
             if (!l.timestamp) return;
             const logDate = new Date(l.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-            if (logDate === todayStr) attendedMemberIds.add(l.memberId);
+            
+            if (logDate === todayStr) {
+                if (l.status === 'denied') {
+                    deniedCount++;
+                    if (l.denialReason === 'expired') deniedExpiredCount++;
+                    if (l.denialReason === 'no_credits') deniedNoCreditsCount++;
+                } else {
+                    // Valid Attendance
+                    attendedMemberIds.add(l.memberId);
+                    totalAttendanceToday++;
+                }
+            }
         });
 
         const checkIsAttended = (m) => attendedMemberIds.has(m.id);
@@ -185,15 +205,8 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         const totalMembers = uniqueMembers.filter(m => isMemberInBranch(m)).length;
         const activeMembers = uniqueMembers.filter(m => isMemberInBranch(m) && isMemberActive(m)).length;
 
-        // [Logic] Unique individuals attended
+        // [Logic] Unique individuals attended (VALID only)
         const todayAttendance = uniqueMembers.filter(m => isMemberInBranch(m) && checkIsAttended(m)).length;
-
-        // [New] Total attendance counts (includes duplicates/family)
-        const totalAttendanceToday = branchLogs.filter(l => {
-            if (!l.timestamp) return false;
-            const logDate = new Date(l.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-            return logDate === todayStr;
-        }).length;
 
         const todayRegistration = uniqueMembers.filter(m => isMemberInBranch(m) && checkIsRegistered(m)).length;
         const expiringMembersCount = uniqueMembers.filter(m => isMemberInBranch(m) && isMemberExpiring(m)).length;
@@ -271,7 +284,11 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             todayRegistration,
             totalRevenueToday: todayRevenue,
             monthlyRevenue,
-            expiringMembersCount
+            expiringMembersCount,
+            // [New] Denied Stats
+            deniedCount,
+            deniedExpiredCount,
+            deniedNoCreditsCount
         };
         setSummary(newSummary);
 

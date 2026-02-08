@@ -117,6 +117,7 @@ exports.checkInMemberV2Call = onCall({
         // Create attendance record (Record even if denied!)
         const attendanceData = {
             memberId,
+            memberName: memberData.name, // ✅ Added for log transparency
             branchId,
             date: today,
             className: classTitle || '자율수련',
