@@ -637,9 +637,12 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                                 <div>
                                     <div style={{ fontWeight: 'bold', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         {record.memberName}
-                                        {record.cumulativeCount >= 1 && record.cumulativeCount <= 3 && (
+                                        {record.cumulativeCount === 1 && (
+                                            <span style={{ fontSize: '0.7rem', background: '#ff4757', color: 'white', padding: '1px 4px', borderRadius: '4px' }}>신규</span>
+                                        )}
+                                        {record.cumulativeCount >= 2 && record.cumulativeCount <= 3 && (
                                             <span style={{ fontSize: '0.7rem', background: '#ff4757', color: 'white', padding: '1px 4px', borderRadius: '4px' }}>
-                                                새얼굴 {record.cumulativeCount}회차
+                                                {record.cumulativeCount}회차
                                             </span>
                                         )}
                                     </div>

@@ -271,11 +271,12 @@ exports.onAttendanceCreated = onDocumentCreated("attendance/{attendanceId}", asy
 
                     const tokens = instructorTokensSnap.docs.map(doc => doc.data().token).filter(Boolean);
                     
-                    // [NEW] Get Member Rank Label (새얼굴 1~3회차)
+                    // [NEW] Get Member Rank Label (신규, 2회차, 3회차)
                     let rankLabel = '';
                     const totalCount = attendance.cumulativeCount || 0;
-                    if (totalCount >= 1 && totalCount <= 3) {
-                        rankLabel = ` [새얼굴 ${totalCount}회차]`;
+                    if (totalCount === 1) rankLabel = ' [신규]';
+                    else if (totalCount >= 2 && totalCount <= 3) {
+                        rankLabel = ` [${totalCount}회차]`;
                     }
 
                     // Prepare message details
