@@ -459,7 +459,38 @@ const MeditationPage = ({ onClose }) => {
 
 
 
-    // ✅ fetchAIPrescription 로직은 isFinalAnalysis 블록에 인라인으로 구현됨
+    // ✅ fetchAIPrescription: Standalone function for diagnosis/weather handlers
+    const fetchAIPrescription = async (diagnosisId, weatherId, modeId, intType, currentSummary) => {
+        try {
+            // Don't set global loading here to avoid full screen blocker if purely background update
+            // But if we want to show "Loading..." in prescription step, we can use a local state or just let it pop in.
+            // For now, let's use isAILoading if we are transitioning.
+            
+            const prescResult = await generateMeditationGuidance({
+                type: 'prescription',
+                memberName: memberName,
+                timeContext: timeContext,
+                weather: weatherId,
+                diagnosis: diagnosisId,
+                analysisSummary: currentSummary,
+                mode: modeId === 'breath' ? '3min' : (modeId === 'calm' ? '7min' : '15min'),
+                interactionType: intType
+            });
+            
+            if (prescResult.data) {
+                if (prescResult.data.prescriptionReason) {
+                    prescResult.data.prescriptionReason = prescResult.data.prescriptionReason.replace(/OO님/g, `${memberName}님`);
+                }
+                if (prescResult.data.message) {
+                    prescResult.data.message = prescResult.data.message.replace(/OO님/g, `${memberName}님`);
+                }
+                setAiPrescription(prescResult.data);
+                setPrescriptionReason(prescResult.data.prescriptionReason || prescResult.data.message || '');
+            }
+        } catch (err) {
+            console.error('Standalone Prescription fetch failed:', err);
+        }
+    };
 
     const fetchAIQuestion = async (history = []) => {
         if (aiRequestLock) return; 
