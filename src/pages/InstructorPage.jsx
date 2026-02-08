@@ -766,28 +766,16 @@ const InstructorPage = () => {
         loadInstructors();
     }, []);
 
-    // Load Attendance (Global) - [PERF] Single 30s interval for all refreshes
+    // Load Attendance & Schedule in Real-time
     useEffect(() => {
         if (!instructorName) return;
 
-        const loadAttendance = async () => {
+        // 1. Initial Load for Classes (Schedules are relatively static for the day)
+        const loadClasses = async () => {
             try {
-                const attendancePromises = branches.map(b => storageService.getAttendanceByDate(todayStr, b.id));
                 const classPromises = branches.map(b => storageService.getDailyClasses(b.id, instructorName));
+                const classResults = await Promise.all(classPromises);
                 
-                const [attendanceResults, classResults] = await Promise.all([
-                    Promise.all(attendancePromises),
-                    Promise.all(classPromises)
-                ]);
-                
-                let allAttendance = [];
-                attendanceResults.forEach((data, idx) => {
-                    const branchName = branches[idx].name;
-                    const branchId = branches[idx].id;
-                    const branchRecords = (data || []).map(r => ({ ...r, branchName, branchId }));
-                    allAttendance = [...allAttendance, ...branchRecords];
-                });
-
                 let allMyClasses = [];
                 classResults.forEach((data, idx) => {
                     const branchName = branches[idx].name;
@@ -795,25 +783,34 @@ const InstructorPage = () => {
                     const branchClasses = (data || []).map(c => ({ ...c, branchName, branchId }));
                     allMyClasses = [...allMyClasses, ...branchClasses];
                 });
-
-                const myAttendance = allAttendance.filter(a => a.instructor === instructorName);
-                myAttendance.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                
-                setAttendance(myAttendance);
                 setInstructorClasses(allMyClasses);
             } catch (e) {
-                console.error('Failed to load attendance:', e);
-            } finally {
-                setAttendanceLoading(false);
+                console.error('Failed to load classes:', e);
             }
         };
-        
-        console.time('[Instructor] Initial Load');
-        loadAttendance().then(() => console.timeEnd('[Instructor] Initial Load'));
 
-        // [PERF] Single unified interval (was 2 separate intervals)
-        const interval = setInterval(loadAttendance, 30000);
-        return () => clearInterval(interval);
+        loadClasses();
+
+        // 2. Real-time Subscription for Attendance
+        const unsubscribes = branches.map(branch => {
+            return storageService.subscribeAttendance(todayStr, branch.id, (records) => {
+                setAttendance(prev => {
+                    const otherBranches = prev.filter(r => r.branchId !== branch.id);
+                    const branchName = branch.name;
+                    const branchId = branch.id;
+                    const branchRecords = (records || [])
+                        .filter(r => r.instructor === instructorName)
+                        .map(r => ({ ...r, branchName, branchId }));
+                    
+                    const merged = [...otherBranches, ...branchRecords];
+                    merged.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    return merged;
+                });
+                setAttendanceLoading(false);
+            });
+        });
+
+        return () => unsubscribes.forEach(unsub => unsub());
     }, [instructorName, todayStr, branches]);
 
     // Initialize AI Greeting (Instant + Fetch)

@@ -1093,6 +1093,32 @@ export const storageService = {
     }
   },
 
+  // [NEW] Subscribe to attendance records in real-time
+  subscribeAttendance(dateStr, branchId = null, callback) {
+    let q;
+    if (branchId) {
+      q = query(
+        collection(db, 'attendance'),
+        where('date', '==', dateStr),
+        where('branchId', '==', branchId),
+        orderBy('timestamp', 'desc')
+      );
+    } else {
+      q = query(
+        collection(db, 'attendance'),
+        where('date', '==', dateStr),
+        orderBy('timestamp', 'desc')
+      );
+    }
+    
+    return onSnapshot(q, (snapshot) => {
+      const records = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(records);
+    }, (error) => {
+      console.error('[Storage] Attendance subscription failed:', error);
+    });
+  },
+
   async translateNotices(notices, targetLang) {
     if (targetLang === 'ko' || !notices || notices.length === 0) return notices;
     try {
