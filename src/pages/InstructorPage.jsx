@@ -21,22 +21,36 @@ const InstructorLogin = ({ onLogin, instructors }) => {
     const [name, setName] = useState('');
     const [phoneLast4, setPhoneLast4] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleLogin = () => {
-        const instructor = instructors.find(inst => {
-            const instName = typeof inst === 'string' ? inst : inst.name;
-            const instPhone = typeof inst === 'string' ? '' : (inst.phone || '');
-            return instName === name && instPhone.slice(-4) === phoneLast4;
-        });
-
-        if (instructor) {
-            const instName = typeof instructor === 'string' ? instructor : instructor.name;
-            localStorage.setItem('instructorName', instName);
-            onLogin(instName);
-        } else {
-            setError('이름 또는 전화번호가 일치하지 않습니다');
+    const handleLogin = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            // 디버깅 로그
+            console.log('🔍 [강사 로그인 시도]');
+            console.log('  - 선택한 이름:', name);
+            console.log('  - 입력한 번호:', phoneLast4);
+            console.log('  - trim 후 이름:', name.trim());
+            console.log('  - trim 후 번호:', phoneLast4.trim());
+            
+            const result = await storageService.loginInstructor(name.trim(), phoneLast4.trim());
+            
+            console.log('  - 결과:', result);
+            
+            if (result.success) {
+                onLogin(result.name);
+            } else {
+                setError(result.message || '이름 또는 전화번호가 일치하지 않습니다');
+            }
+        } catch (e) {
+            console.error('  - 에러:', e);
+            setError('인증 중 오류가 발생했습니다.');
+        } finally {
+            setLoading(false);
         }
     };
+
 
     return (
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', position: 'relative', zIndex: 1 }}>
@@ -70,9 +84,14 @@ const InstructorLogin = ({ onLogin, instructors }) => {
                         <input
                             type="tel"
                             value={phoneLast4}
-                            onChange={(e) => setPhoneLast4(e.target.value.slice(0, 4))}
+                            onChange={(e) => {
+                                const value = e.target.value.replace(/[^0-9]/g, ''); // 숫자만 허용
+                                setPhoneLast4(value.slice(0, 4));
+                            }}
                             placeholder="전화번호 뒤 4자리"
                             maxLength={4}
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             style={{ flex: 1, background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none' }}
                         />
                     </div>
@@ -82,16 +101,17 @@ const InstructorLogin = ({ onLogin, instructors }) => {
 
                 <button
                     onClick={handleLogin}
-                    disabled={!name || phoneLast4.length !== 4}
+                    disabled={!name || phoneLast4.length !== 4 || loading}
                     style={{
                         width: '100%', padding: '14px', borderRadius: '10px', border: 'none',
-                        background: name && phoneLast4.length === 4 ? 'var(--primary-gold)' : 'var(--bg-input)',
-                        color: name && phoneLast4.length === 4 ? 'black' : 'var(--text-secondary)',
+                        background: (name && phoneLast4.length === 4 && !loading) ? 'var(--primary-gold)' : 'var(--bg-input)',
+                        color: (name && phoneLast4.length === 4 && !loading) ? 'black' : 'var(--text-secondary)',
                         fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer'
                     }}
                 >
-                    로그인
+                    {loading ? '로그인 중...' : '로그인'}
                 </button>
+
             </div>
         </div>
     );

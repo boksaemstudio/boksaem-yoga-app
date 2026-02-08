@@ -4,6 +4,105 @@
 // "지금의 당신을 듣고, 지금의 명상을 만듭니다."
 // ==========================================
 
+// 🎯 Step 1: Meditation Categories - 큰 방향 (비움 vs 채움)
+export const MEDITATION_CATEGORIES = [
+    {
+        id: 'healing',
+        label: '지친 마음을 비우고 싶어요',
+        subtitle: '치유와 이완',
+        description: '비워냄으로써 비로소 평온해지는 시간입니다.',
+        emoji: '🌊',
+        direction: 'negative_to_zero' // 회복 모드
+    },
+    {
+        id: 'growth',
+        label: '밝은 에너지를 채우고 싶어요',
+        subtitle: '성장과 연결',
+        description: '당신의 내면이 가진 본연의 빛을 깨우는 시간입니다.',
+        emoji: '✨',
+        direction: 'zero_to_positive' // 성장 모드
+    }
+];
+
+// 🎯 Step 2: Meditation Intentions - 구체적 의도 (총 8가지)
+export const MEDITATION_INTENTIONS = [
+    // === A그룹: 비움과 치유 (Healing) ===
+    {
+        id: 'body_rest',
+        category: 'healing',
+        label: '지친 몸에 깊은 휴식을 선물하고 싶어요',
+        tag: '신체',
+        emoji: '😌',
+        focus: 'body',
+        keywords: ['근육 이완', '안전 신호', '바디스캔']
+    },
+    {
+        id: 'mind_calm',
+        category: 'healing',
+        label: '폭풍 같은 생각들을 잠재우고 고요해지고 싶어요',
+        tag: '생각',
+        emoji: '🍃',
+        focus: 'mind',
+        keywords: ['인지 과부하', '생각 분리', '호흡 집중']
+    },
+    {
+        id: 'emotion_release',
+        category: 'healing',
+        label: '내 안에 쌓인 감정의 찌꺼기를 흘려보내고 싶어요',
+        tag: '감정',
+        emoji: '🌧️',
+        focus: 'emotion',
+        keywords: ['감정 배출', '정서적 공간 확보']
+    },
+    {
+        id: 'let_go',
+        category: 'healing',
+        label: '통제할 수 없는 불안을 그만 내려놓고 싶어요',
+        tag: '내려놓기',
+        emoji: '🕊️',
+        focus: 'detachment',
+        keywords: ['집착 내려놓기', '심리적 거리두기']
+    },
+    
+    // === B그룹: 채움과 성장 (Growth) ===
+    {
+        id: 'inner_voice',
+        category: 'growth',
+        label: '외부의 소음은 끄고, 내 안의 목소리에 귀 기울일래요',
+        tag: '몰입',
+        emoji: '🧘',
+        focus: 'sensation',
+        keywords: ['감각 회수', '내면 몰입', '고요']
+    },
+    {
+        id: 'self_compassion',
+        category: 'growth',
+        label: '애쓰지 않고, 지금의 나를 있는 그대로 안아줄래요',
+        tag: '수용',
+        emoji: '💚',
+        focus: 'acceptance',
+        keywords: ['비판단적 수용', '자기 연민', '현존']
+    },
+    {
+        id: 'energy_recharge',
+        category: 'growth',
+        label: '방전된 에너지를 채우고, 다시 나아갈 힘을 얻고 싶어요',
+        tag: '활력',
+        emoji: '⚡',
+        focus: 'vitality',
+        keywords: ['에너지 순환', '회복 탄력성', '의욕']
+    },
+    {
+        id: 'gratitude',
+        category: 'growth',
+        label: '당연했던 것들 속에서 소중한 의미를 발견하고 싶어요',
+        tag: '감사',
+        emoji: '🌟',
+        focus: 'gratitude',
+        keywords: ['긍정 편향', '관계의 연결', '자존감']
+    }
+];
+
 export const MEDITATION_MODES = [
     { id: 'breath', label: '3분 숨 고르기', time: 3 * 60, iconName: 'Wind', color: '#48dbfb', desc: '잠깐의 호흡으로 균형 찾기', freq: 10 },
     { id: 'calm', label: '7분 마음 정돈', time: 7 * 60, iconName: 'Brain', color: '#FFD700', desc: '흐트러진 마음 돌보기', freq: 8 },

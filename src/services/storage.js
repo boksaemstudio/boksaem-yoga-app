@@ -1,7 +1,7 @@
 ﻿import { db, auth, functions } from "../firebase";
 import { signInAnonymously } from "firebase/auth";
 import { httpsCallable } from "firebase/functions";
-import { onSnapshot, doc, collection, getDocs, getDoc, addDoc, updateDoc, setDoc, deleteDoc, query, where, orderBy, limit as firestoreLimit, increment } from 'firebase/firestore';
+import { onSnapshot, doc, collection, getDocs, getDoc, addDoc, updateDoc, setDoc, deleteDoc, query, where, orderBy, limit as firestoreLimit, increment, writeBatch } from 'firebase/firestore';
 import { STUDIO_CONFIG } from '../studioConfig';
 import { messaging, getToken } from "../firebase";
 import * as scheduleService from './scheduleService'; // [Refactor]
@@ -698,33 +698,134 @@ export const storageService = {
     this._safeSetItem('admin_current_branch', branchId);
   },
 
+  /**
+   * 로그인 실패 로깅
+   * @param {string} type - "instructor" 또는 "member"
+   * @param {string} name - 시도한 이름
+   * @param {string} phoneLast4 - 시도한 전화번호 뒷4자리
+   * @param {string} errorMessage - 에러 메시지
+   */
+  async logLoginFailure(type, name, phoneLast4, errorMessage) {
+    try {
+      await addDoc(collection(db, 'login_failures'), {
+        timestamp: new Date().toISOString(),
+        type: type,
+        attemptedName: name,
+        attemptedPhone: phoneLast4,
+        errorMessage: errorMessage,
+        userAgent: navigator.userAgent,
+        device: /mobile/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
+      });
+      console.log(`[Login Failure] Logged: ${type} - ${name} - ${phoneLast4}`);
+    } catch (e) {
+      console.error('[Login Failure] Failed to log:', e);
+      // 로깅 실패는 조용히 무시 (사용자 경험에 영향 없음)
+    }
+  },
+
   // Member login (PIN-based authentication)
   async loginMember(name, last4Digits) {
     try {
-      const membersSnap = await getDocs(
-        query(
-          collection(db, 'members'),
-          where('name', '==', name)
-        )
-      );
-
-      const matches = membersSnap.docs.filter(doc => {
-        const phone = doc.data().phone || '';
-        return phone.slice(-4) === last4Digits;
+      // [FIX] Use Cloud Function via findMembersByPhone to bypass Firestore security rules
+      const matches = await this.findMembersByPhone(last4Digits);
+      
+      // [FIX] 이름 부분 매칭 - 데이터에 "노효원TTC2기" 같은 추가 정보가 있어도 "노효원"으로 로그인 가능
+      const inputName = name.trim().toLowerCase();
+      const filtered = matches.filter(m => {
+        const memberName = (m.name || '').trim().toLowerCase();
+        // 입력한 이름이 회원 이름에 포함되어 있거나, 회원 이름이 입력한 이름으로 시작하면 매칭
+        return memberName.startsWith(inputName) || memberName.includes(inputName);
       });
 
-      if (matches.length === 1) {
-        return { success: true, member: { id: matches[0].id, ...matches[0].data() } };
-      } else if (matches.length > 1) {
-        return { success: false, error: 'MULTIPLE_MATCHES', candidates: matches.map(m => ({ id: m.id, ...m.data() })) };
+      if (filtered.length === 1) {
+        return { success: true, member: filtered[0] };
+      } else if (filtered.length > 1) {
+        console.warn(`Multiple members found for name ${name} and PIN ${last4Digits}`);
+        // 정확히 일치하는 회원 우선
+        const exact = filtered.find(m => (m.name || '').trim().toLowerCase() === inputName);
+        return { success: true, member: exact || filtered[0] }; 
       } else {
-        return { success: false, error: 'NOT_FOUND', message: '회원을 찾을 수 없습니다.' };
+        // 실패 로깅
+        await this.logLoginFailure('member', name, last4Digits, 'NOT_FOUND');
+        return { success: false, error: 'NOT_FOUND', message: '일치하는 회원 정보가 없습니다.' };
       }
     } catch (e) {
       console.error('Login failed:', e);
+      // 실패 로깅
+      await this.logLoginFailure('member', name, last4Digits, e.message || 'SYSTEM_ERROR');
       return { success: false, error: 'SYSTEM_ERROR', message: '로그인 중 오류가 발생했습니다.' };
     }
   },
+
+  // [NEW] 강사 로그인 (Cloud Function 기반)
+  async loginInstructor(name, last4Digits) {
+    try {
+      const verifyInstructor = httpsCallable(functions, 'verifyInstructorV2Call');
+      const response = await withTimeout(
+        verifyInstructor({ name, phoneLast4: last4Digits }),
+        10000,
+        '강사 인증 시간 초과'
+      );
+
+      if (response.data.success) {
+        localStorage.setItem('instructorName', response.data.name);
+        return { success: true, name: response.data.name };
+      } else {
+        // 실패 로깅
+        await this.logLoginFailure('instructor', name, last4Digits, response.data.message || '인증 실패');
+        return { success: false, message: response.data.message || '인증 실패' };
+      }
+    } catch (e) {
+      console.error('Instructor login failed:', e);
+      // 실패 로깅
+      await this.logLoginFailure('instructor', name, last4Digits, e.message || 'SYSTEM_ERROR');
+      return { success: false, message: '로그인 중 시스템 오류가 발생했습니다.' };
+    }
+  },
+
+  // [ADMIN] 데이터 마이그레이션 - phoneLast4 필드 자동 생성
+  async migratePhoneLast4() {
+    try {
+      const snapshot = await getDocs(collection(db, 'members'));
+      let count = 0;
+      const batchSize = 100;
+      let batch = writeBatch(db);
+
+      for (const d of snapshot.docs) {
+        const data = d.data();
+        if (data.phone && !data.phoneLast4) {
+          batch.update(doc(db, 'members', d.id), {
+            phoneLast4: data.phone.slice(-4)
+          });
+          count++;
+          if (count % batchSize === 0) {
+            await batch.commit();
+            batch = writeBatch(db);
+          }
+        }
+      }
+      await batch.commit();
+      
+      // 강사 목록도 업데이트 (지원하는 경우)
+      const instDoc = await getDoc(doc(db, 'settings', 'instructors'));
+      if (instDoc.exists()) {
+        const list = instDoc.data().list || [];
+        const updatedList = list.map(inst => {
+          if (typeof inst === 'object' && inst.phone && !inst.phoneLast4) {
+            return { ...inst, phoneLast4: inst.phone.slice(-4) };
+          }
+          return inst;
+        });
+        await setDoc(doc(db, 'settings', 'instructors'), { list: updatedList }, { merge: true });
+      }
+
+      return { success: true, count };
+    } catch (e) {
+      console.error('Migration failed:', e);
+      throw e;
+    }
+  },
+
 
   async updateMember(memberId, data) {
     try {
@@ -821,7 +922,11 @@ export const storageService = {
 
   async deletePushToken() {
     try {
-      const token = await getToken(messaging, { vapidKey: STUDIO_CONFIG.VAPID_KEY || import.meta.env.VITE_FIREBASE_VAPID_KEY });
+      const registration = await navigator.serviceWorker.ready;
+      const token = await getToken(messaging, { 
+        vapidKey: STUDIO_CONFIG.VAPID_KEY || import.meta.env.VITE_FIREBASE_VAPID_KEY,
+        serviceWorkerRegistration: registration
+      });
       if (token) {
         // [SYNC] Find memberId for this token and mark as pushEnabled: false
         const tokenSnap = await getDoc(doc(db, 'fcm_tokens', token));
@@ -856,29 +961,16 @@ export const storageService = {
     }
   },
 
-  // [NEW] Service Worker 등록 상태 확인
+  // [FIX] Service Worker 등록 상태 확인 (Vite PWA 호환)
   async verifyServiceWorkerRegistration() {
     if (!('serviceWorker' in navigator)) {
       throw new Error('이 브라우저는 푸시 알림을 지원하지 않습니다.');
     }
 
     try {
+      // Vite PWA가 이미 SW를 등록하므로, 준비될 때까지 기다리기만 하면 됩니다.
+      // 중복 등록 시도("closed-by-client" 에러 원인)를 방지합니다.
       const registration = await navigator.serviceWorker.ready;
-      if (!registration) {
-        throw new Error('Service Worker가 등록되지 않았습니다.');
-      }
-
-      // Service Worker 파일 확인
-      const swUrl = '/firebase-messaging-sw.js';
-      const swRegistration = await navigator.serviceWorker.getRegistration();
-
-      if (!swRegistration || !swRegistration.active) {
-        console.warn('[Storage] Service Worker is not active. Attempting re-registration...');
-        const newReg = await navigator.serviceWorker.register(swUrl, { scope: '/' });
-        await newReg.update();
-        return newReg;
-      }
-
       return registration;
     } catch (e) {
       console.error('[Storage] Service Worker verification failed:', e);
@@ -914,7 +1006,11 @@ export const storageService = {
       try {
         const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
         if (VAPID_KEY && permission === 'granted' && serviceWorkerActive) {
-          const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+          const registration = await navigator.serviceWorker.ready;
+          const token = await getToken(messaging, { 
+            vapidKey: VAPID_KEY,
+            serviceWorkerRegistration: registration
+          });
           hasToken = !!token;
         }
       } catch (e) {
@@ -983,7 +1079,10 @@ export const storageService = {
         throw new Error('VAPID Key가 설정되지 않았습니다.');
       }
 
-      const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+      const token = await getToken(messaging, { 
+        vapidKey: VAPID_KEY, 
+        serviceWorkerRegistration: await this.verifyServiceWorkerRegistration() 
+      });
       if (!token) {
         throw new Error('토큰 발급에 실패했습니다.');
       }
@@ -1043,7 +1142,14 @@ export const storageService = {
 
       console.log(`[Storage] Requesting token with VAPID Key...`);
 
-      const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+      // 1. SW Registration 가져오기
+      const registration = await this.verifyServiceWorkerRegistration();
+
+      // 2. getToken에 registration 전달 (중요!)
+      const token = await getToken(messaging, { 
+        vapidKey: VAPID_KEY,
+        serviceWorkerRegistration: registration 
+      });
       return token;
     } catch (e) {
       console.error("Token retrieval failed:", e);

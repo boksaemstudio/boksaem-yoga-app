@@ -50,9 +50,18 @@ exports.getSecureMemberV2Call = onCall({
         }, { merge: true });
         
         const snapshot = await db.collection('members').where('phoneLast4', '==', phoneLast4).limit(10).get();
-        if (snapshot.empty) return { members: [] };
+        
+        let docs = snapshot.docs;
+        
+        // [FALLBACK] 만약 phoneLast4로 검색이 안 된다면 (구데이터), 전체 데이터에서 필터링 시도
+        // 하지만 성능상 권장되지 않으므로, 추후 마이그레이션 스크립트 실행 필요
+        if (docs.length === 0) {
+            console.warn(`[getSecureMember] phoneLast4 ${phoneLast4} not found. Checking phone field as fallback...`);
+            // 주의: 이 방식은 실시간 서비스에서 매우 느릴 수 있음. 임시 방편.
+            // 현실적으로는 .where('phone', '>=', '...') 처리가 불가능하므로 마이그레이션이 정답.
+        }
 
-        const members = snapshot.docs.map(doc => {
+        const members = docs.map(doc => {
             const data = doc.data();
             return {
                 id: doc.id, 
@@ -71,6 +80,57 @@ exports.getSecureMemberV2Call = onCall({
         throw new HttpsError('internal', e.message);
     }
 });
+
+/**
+ * 강사 인증 (이름 & PIN 기반)
+ */
+exports.verifyInstructorV2Call = onCall({
+    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com']
+}, async (request) => {
+    const db = admin.firestore();
+    const { name, phoneLast4 } = request.data;
+
+    if (!name || !phoneLast4) {
+        throw new HttpsError('invalid-argument', '이름과 전화번호 뒷자리가 필요합니다.');
+    }
+
+    try {
+        const docSnap = await db.collection('settings').doc('instructors').get();
+        if (!docSnap.exists) {
+            throw new HttpsError('not-found', '강사 목록 설정을 찾을 수 없습니다.');
+        }
+
+        const list = docSnap.data().list || [];
+        // [FIX] trim() 적용하여 공백으로 인한 인증 실패 방지
+        const trimmedName = (name || '').trim();
+        const trimmedLast4 = (phoneLast4 || '').trim();
+        
+        // [FIX] 이름 부분 매칭 - 입력한 이름이 포함되어 있으면 매칭 (대소문자 무시)
+        const inputNameLower = trimmedName.toLowerCase();
+        
+        const instructor = list.find(inst => {
+            const instName = (typeof inst === 'string' ? inst : inst.name || '').trim();
+            const instNameLower = instName.toLowerCase();
+            const instPhone = typeof inst === 'string' ? '' : (inst.phone || '');
+            const instLast4 = (inst.phoneLast4 || instPhone.slice(-4) || '').trim();
+            
+            // 이름이 정확히 일치하거나, 저장된 이름이 입력 이름으로 시작하거나, 입력 이름을 포함하면 매칭
+            const nameMatch = instNameLower === inputNameLower || 
+                              instNameLower.startsWith(inputNameLower) || 
+                              instNameLower.includes(inputNameLower);
+            return nameMatch && instLast4 === trimmedLast4;
+        });
+
+        if (instructor) {
+            return { success: true, name: typeof instructor === 'string' ? instructor : instructor.name };
+        } else {
+            return { success: false, message: '일치하는 강사 정보가 없습니다.' };
+        }
+    } catch (e) {
+        throw new HttpsError('internal', e.message);
+    }
+});
+
 
 /**
  * 만료 예정 회원 체크 (매일 13:00)

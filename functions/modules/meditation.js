@@ -69,35 +69,114 @@ exports.generateMeditationGuidance = onCall({
         const ai = getAI();
         let prompt = "";
         let result = null;
+        let transitionData = null; // ✅ Pre-generated transition data to avoid delay
 
         // TYPE 1: DIAGNOSTIC QUESTION
         if (type === 'question') {
-            const { chatHistory = [] } = request.data;
+            const { chatHistory = [], intentionFocus } = request.data;
             const turnCount = chatHistory.length;
-            const isClosing = turnCount >= 12; // ✅ 대화 지속 허용 (10 → 12)
-            const MUST_FINISH = turnCount >= 20; // ✅ 더 길게 대화 (15 → 20)
+            const isClosing = turnCount >= 6; // ✅ Soft limit
+            const MUST_FINISH = turnCount >= 10; // ✅ Hard limit (Force wrap up)
 
-            // ✅ OPTIMIZATION: Limit context to last 6 turns to reduce input tokens & latency
+            // ✅ OPTIMIZATION: Limit context
             const recentHistory = chatHistory.slice(-6);
 
             const historyText = recentHistory.length > 0 
                 ? recentHistory.map(m => `${m.role === 'user' ? 'Client' : 'AI'}: ${m.content}`).join('\n')
                 : 'No previous conversation.';
 
-            // ✅ 사용자 대화 지속 의도 탐지 (Use last message from full history or recent)
             const lastUserMsg = chatHistory.filter(m => m.role === 'user').pop()?.content || '';
             const wantsContinue = /(더 |좊더|들어줘|이야기|계속|말해줘|듣고 싶|휴식|쉬고)/i.test(lastUserMsg);
 
+            // 🎯 8가지 전문가 관점 매핑
+
+
+
+            const expertPerspectives = {
+                // === 비움 (Healing) ===
+                body: {
+                    psychologist: "근육의 긴장은 마음의 방어 기제입니다. 이완은 뇌에 안전 신호를 보내는 행위입니다.",
+                    philosopher: "몸은 현존의 가장 직접적인 통로입니다. 지금 이 순간, 몸의 감각에 머무르세요.",
+                    yoga: "아사나(자세)는 몸을 통한 명상입니다. 긴장을 내려놓으면 프라나(생명력)가 자유롭게 흐릅니다.",
+                    mentor: "지친 몸을 돌보는 것은 자기 연민의 시작입니다. 스스로에게 자비로워지세요."
+                },
+                mind: {
+                    psychologist: "생각의 폭풍은 뇌의 과활성화 상태입니다. 고요함은 선택이 아닌 허용입니다.",
+                    philosopher: "생각은 구름과 같습니다. 당신은 그 구름을 바라보는 드넓은 하늘 그 자체입니다.",
+                    yoga: "치타 브리티(마음의 파동)를 잠재우는 것이 요가의 본질입니다. 관찰자가 되세요.",
+                    mentor: "생각을 통제하려 하지 마세요. 그저 지나가도록 허락하세요."
+                },
+                emotion: {
+                    psychologist: "억압된 감정은 신체 증상으로 나타납니다. 감정을 인정하고 흘려보내는 것이 치유입니다.",
+                    philosopher: "감정은 날씨와 같습니다. 억누르지 말고, 지나가게 두세요.",
+                    yoga: "프라나야마(호흡 조절)는 감정의 파도를 잔잔하게 만듭니다.",
+                    mentor: "감정의 찌꺼기를 흘려보내면, 마음에 공간이 생깁니다."
+                },
+                detachment: {
+                    psychologist: "통제 욕구는 불안의 증상입니다. 수용은 심리적 자유의 시작입니다.",
+                    philosopher: "통제할 수 없는 것을 놓아두는 것이 진정한 힘입니다.",
+                    yoga: "바이라기야(무집착)는 진정한 자유로 가는 길입니다.",
+                    mentor: "불안을 내려놓으면 비로소 평온이 찾아옵니다."
+                },
+                
+                // === 채움 (Growth) ===
+                sensation: {
+                    psychologist: "외부 자극을 차단하면 내면의 목소리가 선명해집니다. 이것이 진정한 집중입니다.",
+                    philosopher: "외부로 향한 감각을 돌려 내면을 비추는 것, 그것이 자기 인식의 시작입니다.",
+                    yoga: "프라티야하라(감각의 회수)는 진정한 명상으로 가는 문입니다.",
+                    mentor: "내 안의 목소리는 항상 있었습니다. 단지 외부의 소음에 묻혀 있었을 뿐입니다."
+                },
+                acceptance: {
+                    psychologist: "자기 연민은 회복 탄력성의 핵심입니다. 수용은 체념이 아닌 능동적 선택입니다.",
+                    philosopher: "애쓰지 않음(Wu-wei)의 미학입니다. 되려 하지 말고, 이미 존재하세요.",
+                    yoga: "당신은 이미 완전합니다. 요가는 그것을 기억하는 여정입니다.",
+                    mentor: "지금 이대로의 당신은 이미 완벽하며, 성장이 아닌 현존이 목표입니다."
+                },
+                vitality: {
+                    psychologist: "에너지 고갈은 회복의 신호입니다. 충전은 생존이 아닌 선택입니다.",
+                    philosopher: "생명력은 외부에서 얻는 것이 아닌, 내면에서 깨우는 것입니다.",
+                    yoga: "프라나(생명 에너지)는 고갈되지 않고 순환합니다. 흐름을 열어두세요.",
+                    mentor: "쉼은 나약함이 아닌, 다시 나아가기 위한 힘입니다."
+                },
+                gratitude: {
+                    psychologist: "감사는 뇌의 긍정 편향을 강화하고 우울을 완화합니다.",
+                    philosopher: "소유가 아닌 존재에 집중할 때, 풍요가 보입니다.",
+                    yoga: "산토샤(만족)는 진정한 행복의 바탕입니다.",
+                    mentor: "당연한 것은 없습니다. 모든 순간이 선물입니다."
+                }
+            };
+
+            // ✅ 의도에 맞는 전문가 인사이트 선택
+            const perspectives = intentionFocus && expertPerspectives[intentionFocus] 
+                ? expertPerspectives[intentionFocus]
+                : null;
+
+            // 전문가 가이드 섹션
+            const expertGuidance = perspectives ? `
+**전문가 통합 관점 (사용자 의도 기반):**
+- 심리학적: ${perspectives.psychologist}
+- 철학적: ${perspectives.philosopher}
+- 요가 철학적: ${perspectives.yoga}
+- 인생 멘토: ${perspectives.mentor}
+
+이 인사이트를 바탕으로 사용자에게 깊이 공감하고, 자연스럽게 대화를 이어가세요.
+자연스럽고 대화적이어야 하며, 학술적이거나 설교적이어서는 안 됩니다.
+` : '';
+
             prompt = `
-Role: Mindfulness Companion (Korean, 해요체). 
+Role: 복샘 요가의 명상 인사이트 가이드 (Korean, 해요체).
 Goal: Help user notice "Here & Now" sensations (Body, Breath, Feeling) with Radical Acceptance.
 USER: ${memberName || '회원'}
 
 ## STRICT RULES:
 - **Zero Judgment / Zero Advice**: Do NOT try to "fix" the user or offer positive framing. Just accept their state.
 - **Here & Now Focus**: Gently guide attention to current bodily sensations or breath.
+- **Deep Empathy**: 표면적 공감이 아닌, 존재론적 공감
+- **Integrated Wisdom**: 4가지 전문가 관점을 자연스럽게 녹여낸 대화 (학술적이지 않게)
 - **Name Usage**: Use "${memberName || '회원'}님" VERY sparingly (max once per 5 turns). Natural conversation is priority.
 - **Concise**: Keep responses to 1-2 short sentences (under 80 Korean characters).
+
+${expertGuidance}
 
 ## CONVERSATION FLOW:
 - If user wants to talk: Listen empathetically for 4-6 more turns.
@@ -121,6 +200,7 @@ JSON Output:
     "options": ["그냥 있을게요", "몸이 무거워요", "호흡할래요"]
 }
             `;
+
             
             try {
                 result = await ai.generateExperience(prompt);
@@ -144,6 +224,44 @@ JSON Output:
 
                 // 3. Boolean Enforcement
                 result.isFinalAnalysis = Boolean(result.isFinalAnalysis);
+            }
+
+            // ✅ [PRE-GENERATION] Create Transition Message to remove delay
+            if (result && (result.isFinalAnalysis || MUST_FINISH)) {
+                result.isFinalAnalysis = true; // Enforce if MUST_FINISH
+                
+                const diagLabelMap = {
+                    stress: '지친 마음', stiff: '굳은 몸', anxious: '불안한 마음',
+                    tired: '피로한 몸', overthink: '복잡한 생각', low_energy: '무기력함',
+                    calm: '평온함', mixed: '복합적인 감정', overwhelmed: '벅찬 마음'
+                };
+                const dLabel = diagLabelMap[result.mappedDiagnosis] || '현재 상태';
+                
+                const transPrompt = `
+Role: Mindfulness Companion (Korean, 해요체)
+Goal: Create a natural, warm transition from conversation to meditation
+Context: User (${memberName || '회원'}), State (${dLabel}), Analysis (${result.analysisSummary || ''})
+RULES:
+- Acknowledge the conversation naturally
+- Explain briefly why meditation helps
+- Invite them to start
+- Max 60 chars, 해요체
+JSON Output: { "message": "Transition message" }
+                `;
+                
+                try {
+                    const transResult = await ai.generateExperience(transPrompt);
+                    if (transResult && transResult.message) {
+                        // Generate Audio for Transition (using 'meditation' voice)
+                        const transAudio = await generateInternalAudio(transResult.message, 'meditation');
+                        transitionData = {
+                            message: transResult.message,
+                            audioContent: transAudio
+                        };
+                    }
+                } catch (e) {
+                    console.error("Transition pre-gen failed:", e);
+                }
             }
         }
 
@@ -206,6 +324,146 @@ JSON Output:
             result = await ai.generateExperience(prompt);
         }
 
+        // TYPE 4: TRANSITION MESSAGE (대화 → 명상 추천)
+        else if (type === 'transition_message') {
+            const { diagnosis, diagnosisLabel, modeName, analysisSummary } = request.data;
+            
+            prompt = `
+Role: Mindfulness Companion (Korean, 해요체)
+Goal: Create a natural, warm transition from conversation to meditation
+
+Context:
+- User: ${memberName || '회원'}
+- Diagnosis: ${diagnosisLabel || diagnosis}
+- Recommended Meditation: ${modeName}
+- Analysis Summary: ${analysisSummary || ''}
+- Time: ${timeContext}
+
+## RULES:
+- Acknowledge the conversation naturally
+- Explain briefly why this meditation helps their current state
+- Invite them to start with warmth
+- Use "${memberName || '회원'}님" once, naturally
+- Be unique and empathetic - NO template phrases
+- Max 60 Korean characters, 해요체
+
+JSON Output:
+{
+    "message": "Warm transition message inviting to meditation"
+}
+            `;
+            
+            result = await ai.generateExperience(prompt);
+        }
+
+        // TYPE 5: FEEDBACK MESSAGE (명상 종료 후)
+        else if (type === 'feedback_message') {
+            const { mode, diagnosis } = request.data;
+            
+            // 시간대별 컨텍스트
+            let timePhrase = '';
+            const hour = new Date().getHours();
+            if (hour >= 5 && hour < 12) timePhrase = '아침';
+            else if (hour >= 12 && hour < 18) timePhrase = '오후';
+            else timePhrase = '오늘';
+            
+            // 진단 레이블 매핑
+            const diagLabels = {
+                stress: '스트레스', overthink: '생각 과다', stiff: '몸의 긴장',
+                anxious: '불안', frustrated: '답답함', tired: '피로',
+                low_energy: '에너지 부족', distracted: '산만함'
+            };
+            const diagLabel = diagLabels[diagnosis] || '현재 상태';
+            
+            prompt = `
+Role: Mindfulness Companion (Korean, 해요체)
+Goal: Provide warm, structured feedback after meditation session
+
+Context:
+- User: ${memberName || '회원'}
+- Completed Meditation: ${mode || 'calm'}
+- Time of Day: ${timePhrase}
+- Original State: ${diagLabel}
+
+## RULES:
+- Generate EXACTLY 4 feedback sentences as an array
+- Each sentence should be unique and meaningful
+- Sentence 1: Acknowledge their effort and what they practiced
+- Sentence 2: Highlight a specific benefit or insight from this session
+- Sentence 3: Note a positive change or progress
+- Sentence 4: Warm closing encouragement for the rest of their day
+- Use "${memberName || '회원'}님" in ONE sentence only, naturally
+- Each sentence: 15-25 Korean characters, 해요체
+- Be warm, specific, and caring - NO generic templates
+
+JSON Output:
+{
+    "message": "Brief summary message (optional, 1 sentence)",
+    "feedbackPoints": [
+        "Sentence 1: Effort acknowledgment",
+        "Sentence 2: Specific benefit",
+        "Sentence 3: Positive change noted",
+        "Sentence 4: Warm closing"
+    ]
+}
+            `;
+            
+            result = await ai.generateExperience(prompt);
+        }
+
+        // TYPE 6: DYNAMIC OPTIONS (새로운 기능)
+        else if (type === 'options_refresh') {
+            const timeHour = new Date().getHours();
+            let timeOfDay = 'day';
+            if (timeHour >= 5 && timeHour < 11) timeOfDay = 'morning';
+            else if (timeHour >= 22 || timeHour < 5) timeOfDay = 'late_night';
+            else if (timeHour >= 18) timeOfDay = 'evening';
+
+            prompt = `
+Role: Boksaem Yoga AI Curator (Korean).
+Goal: Generate varied, poetic, and context-aware labels for meditation options.
+Context:
+- User: ${memberName || '회원'}
+- Time: ${timeOfDay} (${timeContext})
+- Weather: ${weather}
+
+STANDARD CATEGORIES (Do NOT change ID):
+1. id: "healing" (Core: Rest, Emptiness, Relief)
+2. id: "growth" (Core: Energy, Connection, Insight)
+
+STANDARD INTENTIONS (Do NOT change IDs):
+- healing: body_rest, mind_quiet, emotion_release, detachment
+- growth: sensation, acceptance, vitality, gratitude
+
+## TASK:
+Create refined Korean labels for these categories and intentions based on the context (Time/Weather).
+- Labels should be poetic yet clear.
+- Keep the core meaning but make it feel fresh.
+- Max 20 characters for labels.
+- **Strictly** maintain the JSON structure below.
+
+JSON Output:
+{
+    "categories": [
+        { "id": "healing", "label": "Context-aware label for Healing", "description": "Short poetic description" },
+        { "id": "growth", "label": "Context-aware label for Growth", "description": "Short poetic description" }
+    ],
+    "intentions": [
+        { "id": "body_rest", "category": "healing", "label": "Label for Body Rest" },
+        { "id": "mind_quiet", "category": "healing", "label": "Label for Mind Quiet" },
+        { "id": "emotion_release", "category": "healing", "label": "Label for Emotion" },
+        { "id": "detachment", "category": "healing", "label": "Label for Detachment" },
+        { "id": "sensation", "category": "growth", "label": "Label for Sensation" },
+        { "id": "acceptance", "category": "growth", "label": "Label for Acceptance" },
+        { "id": "vitality", "category": "growth", "label": "Label for Vitality" },
+        { "id": "gratitude", "category": "growth", "label": "Label for Gratitude" }
+    ]
+}
+            `;
+            
+            result = await ai.generateExperience(prompt);
+        }
+
         if (!result) {
             throw new Error("AI returned null");
         }
@@ -214,6 +472,13 @@ JSON Output:
         let audioContent = null;
         if (result.message) {
             try {
+                // ✅ TTS Placeholder Safety (Sync with Client)
+                if (memberName) {
+                     result.message = result.message.replace(/OO님/g, `${memberName}님`)
+                                            // Also replace if simple "OO" is used (sometimes AI does this)
+                                            .replace(/OO/g, memberName); 
+                }
+
                 // Determine voice type based on context
                 let voiceType = 'chat';
                 if (type === 'session_message' || type === 'prescription') {
@@ -228,7 +493,8 @@ JSON Output:
 
         const finalResponse = {
             ...result,
-            audioContent: audioContent
+            audioContent: audioContent,
+            transitionData: transitionData || null
         };
 
         // Log usage

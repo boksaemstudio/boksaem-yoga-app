@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../firebase';
 import { Icons } from '../components/CommonIcons';
-import { MEDITATION_MODES, INTERACTION_TYPES, DIAGNOSIS_OPTIONS, WEATHER_OPTIONS, SPECIALIST_QUESTIONS, AI_SESSION_MESSAGES, AMBIENT_SOUNDS } from '../constants/meditationConstants';
+import { MEDITATION_MODES, INTERACTION_TYPES, DIAGNOSIS_OPTIONS, WEATHER_OPTIONS, SPECIALIST_QUESTIONS, AI_SESSION_MESSAGES, AMBIENT_SOUNDS, MEDITATION_INTENTIONS, MEDITATION_CATEGORIES } from '../constants/meditationConstants';
 
 // 🤖 AI Posture Analysis (MediaPipe) - Loaded Dynamically
 // import { Pose } from '@mediapipe/pose'; // REMOVED: Dynamic import used instead
@@ -14,7 +14,7 @@ import { MEDITATION_MODES, INTERACTION_TYPES, DIAGNOSIS_OPTIONS, WEATHER_OPTIONS
 const { 
     Play, Pause, X, Wind, SpeakerHigh, SpeakerSlash, Brain, Microphone, VideoCamera, 
     LockKey, Heartbeat, SmileySad, Lightning, Barbell, Sparkle, Sun, CloudRain, 
-    CloudSnow, Cloud 
+    CloudSnow, Cloud, House
 } = Icons;
 
 // [HOTFIX] Local ArrowLeft to prevent 'Ar' ReferenceError
@@ -42,12 +42,14 @@ const MeditationPage = ({ onClose }) => {
     
     // Stable Refs for cleanup without re-triggering effects
     const cameraStreamRef = useRef(null);
-    const [step, setStep] = useState('diagnosis'); 
+    const [step, setStep] = useState('intention'); // ✅ 의도 선택부터 시작
     
     // Context State
     const [timeContext, setTimeContext] = useState('morning');
     const [weatherContext, setWeatherContext] = useState(null);
     const [selectedDiagnosis, setSelectedDiagnosis] = useState(null);
+    const [selectedIntention, setSelectedIntention] = useState(null); // ✅ 선택한 의도
+    const [selectedCategory, setSelectedCategory] = useState(null); // ✅ 선택한 카테고리 (비움/채움)
     const [prescriptionReason, setPrescriptionReason] = useState('');
     const [currentQuestion, setCurrentQuestion] = useState(null);
 
@@ -55,13 +57,28 @@ const MeditationPage = ({ onClose }) => {
     const [activeMode, setActiveMode] = useState(null); 
     const [interactionType, setInteractionType] = useState('v1');
     const [needsFeedback, setNeedsFeedback] = useState(false); // ✅ Track if session just ended
+    
+    // 🎨 Visual Theme (Randomized)
+    const [visualTheme, setVisualTheme] = useState('heartbeat'); 
+    
+    useEffect(() => {
+        const themes = ['heartbeat', 'candle', 'rain', 'snow'];
+        const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+        setVisualTheme(randomTheme);
+        console.log(`🎨 [Visual Theme] Selected: ${randomTheme}`);
+    }, []);
 
     const [isPlaying, setIsPlaying] = useState(false);
     const [timeLeft, setTimeLeft] = useState(0);
     const [aiMessage, setAiMessage] = useState("");
     const [soundEnabled, setSoundEnabled] = useState(true); 
     const [ttcEnabled, setTtcEnabled] = useState(true); // TTC (Text To Calm) Voice Guidance - Default ON
-    const [selectedAmbient, setSelectedAmbient] = useState('none'); // 🎵 Ambient sound selection
+    const [selectedAmbient, setSelectedAmbient] = useState('rain'); // 🎵 Default to 'rain' (User Request: Calm music from start)
+    const [audioVolumes, setAudioVolumes] = useState({
+        voice: 0.8,    // 🗣️ 음성 안내 (우선순위 1)
+        ambient: 0.3,  // 🌊 환경음 (배경)
+        binaural: 0.25 // 🎵 바이노랄 비트 (잠재의식)
+    });
     
     // Audio/Video State
     const [micVolume, setMicVolume] = useState(0);
@@ -89,6 +106,70 @@ const MeditationPage = ({ onClose }) => {
         return "회원";
     });
     const [aiRequestLock, setAiRequestLock] = useState(false); // ✅ Prevent duplicate requests
+    const [sessionInfo, setSessionInfo] = useState(null); 
+    const [feedbackData, setFeedbackData] = useState(null); // ✅ AI Session Feedback (4 sentences)
+    
+    // 🌊 Dynamic Options State (AI Generated)
+    const [dynamicCategories, setDynamicCategories] = useState(MEDITATION_CATEGORIES);
+    const [dynamicIntentions, setDynamicIntentions] = useState(MEDITATION_INTENTIONS);
+    const [isOptionsLoading, setIsOptionsLoading] = useState(true); // ✅ Start with meditative loading
+
+    // 🛠️ DEBUG LOGGING SYSTEM (User Request)
+    const logDebug = useCallback((action, data) => {
+        const timestamp = new Date().toLocaleTimeString();
+        console.log(`%c[MeditationDebug] ${timestamp} [${action}]`, 'color: #00ffff; font-weight: bold;', data || '');
+    }, []);
+
+    // 🌊 Initial AI Options Fetch
+    useEffect(() => {
+        logDebug("Mount", { step, prepStep });
+        
+        const fetchOptions = async () => {
+            try {
+                // Time Context
+                const hour = new Date().getHours();
+                const tCtx = (hour >= 5 && hour < 11) ? 'morning' : 
+                             (hour >= 18 || hour < 5) ? 'evening' : 'day';
+                setTimeContext(tCtx);
+                logDebug("TimeContext", { tCtx });
+
+                // Fetch Dynamic Options
+                logDebug("FetchOptions:Start");
+                const result = await generateMeditationGuidance({ 
+                    type: 'options_refresh', 
+                    timeContext: tCtx,
+                    weather: 'unknown' // Client-side weather can be added if needed
+                });
+                logDebug("FetchOptions:Result", result.data);
+
+                if (result.data) {
+                    if (result.data.categories && Array.isArray(result.data.categories)) {
+                        // Merge with constants to keep emojis/IDs but update labels
+                        const mergedCats = MEDITATION_CATEGORIES.map(c => {
+                            const dyn = result.data.categories.find(d => d.id === c.id);
+                            return dyn ? { ...c, label: dyn.label, description: dyn.description } : c;
+                        });
+                        setDynamicCategories(mergedCats);
+                    }
+                    if (result.data.intentions && Array.isArray(result.data.intentions)) {
+                        const mergedInts = MEDITATION_INTENTIONS.map(i => {
+                            const dyn = result.data.intentions.find(d => d.id === i.id);
+                            return dyn ? { ...i, label: dyn.label } : i;
+                        });
+                        setDynamicIntentions(mergedInts);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch dynamic options:", error);
+                logDebug("FetchOptions:Error", error);
+                // Fallback to constants (already set as default)
+            } finally {
+                // ✅ Minimum loading time for meditative feel (2s)
+                setTimeout(() => setIsOptionsLoading(false), 2000);
+            }
+        };
+        fetchOptions();
+    }, []);
 
     // 🧘 Preparation Flow States
     const [prepStep, setPrepStep] = useState(1); // 1: Notifications, 2: Posture, 3: Goal
@@ -170,9 +251,25 @@ const MeditationPage = ({ onClose }) => {
             poseRef.current = null;
         }
 
+        // ✅ Save session info before clearing (for feedback AI)
+        const currentMode = activeMode;
+        const currentDiag = selectedDiagnosis;
+        const elapsedTime = currentMode ? (currentMode.time - timeLeft) : 0;
+        
         setIsPlaying(false);
         setStep('diagnosis');
         setPrepStep(1); // Reset prep
+        
+        // Save session info for feedback
+        if (currentMode) {
+            setSessionInfo({
+                mode: currentMode.id,
+                modeName: currentMode.label,
+                duration: elapsedTime,
+                diagnosis: currentDiag?.id
+            });
+        }
+        
         setActiveMode(null);
         setSelectedDiagnosis(null);
         setIsAILoading(false); 
@@ -247,24 +344,36 @@ const MeditationPage = ({ onClose }) => {
     // 🤖 REAL-TIME AI API CALLS (Hoisted Helpers - TDZ Fix)
     // ==========================================
     // ✅ stopAllAudio를 useRef로 저장하여 순환 참조 방지
-    const stopAllAudioRef = useRef(null);
-    stopAllAudioRef.current = () => {
-        // ✅ 모든 오디오 소스 종합 중단
-        if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
-        
-        // Cloud TTS Audio
-        if (currentAudioRef.current) {
+    // ✅ NEW: Stop Voice Only (preserves ambient & binaural)
+    const stopVoiceOnlyRef = useRef(null);
+    stopVoiceOnlyRef.current = () => {
+         if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
+         // Cloud TTS Audio
+         if (currentAudioRef.current) {
             try { currentAudioRef.current.pause(); currentAudioRef.current.currentTime = 0; } catch { /* ignore */ }
             currentAudioRef.current = null;
         }
+    };
+
+    // ✅ stopAllAudio: Stops Voice & Binaural (Keeps Ambient per User Request)
+    const stopAllAudioRef = useRef(null);
+    stopAllAudioRef.current = (stopAmbient = false) => {
+        // 1. Stop Voice
+        stopVoiceOnlyRef.current?.();
         
-        // 🎵 Ambient Audio (빗소리, 파도 등)
-        if (ambientAudioRef.current) {
-            try { ambientAudioRef.current.pause(); ambientAudioRef.current.currentTime = 0; } catch { /* ignore */ }
-            ambientAudioRef.current = null;
+        // 2. Stop Ambient Audio (Only on explicit request or exit)
+        if (stopAmbient && ambientAudioRef.current) {
+            try { 
+                ambientAudioRef.current.pause(); 
+                // ambientAudioRef.current.currentTime = 0; // Don't reset time, just pause? Or reset?
+                // User might come back. But "Home" button implies reset.
+            } catch { /* ignore */ }
+            // Do NOT nullify ref if we want to resume later? 
+            // But checking AMBIENT_SOUNDS again will recreate it if null.
+            // For now, let's keep it paused.
         }
         
-        // 🎛️ Binaural Beats Oscillators
+        // 3. Stop Binaural Beats Oscillators
         if (oscLeftRef.current) {
             try { oscLeftRef.current.stop(); } catch { /* ignore */ }
             oscLeftRef.current = null;
@@ -274,14 +383,15 @@ const MeditationPage = ({ onClose }) => {
             oscRightRef.current = null;
         }
         
-        console.log("🔇 stopAllAudio: All audio sources stopped");
+        logDebug("StopAllAudio", { stopAmbient });
     };
 
     // 🗣️ Fallback Local TTS
     const speakFallback = useCallback((text) => {
         if (!text || typeof window === 'undefined' || !ttcEnabled || !window.speechSynthesis) return;
         
-        stopAllAudioRef.current?.();
+        logDebug("SpeakFallback", text);
+        stopVoiceOnlyRef.current?.(); // ✅ Only stop previous voice
 
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'ko-KR';
@@ -296,35 +406,47 @@ const MeditationPage = ({ onClose }) => {
         }, 100);
     }, [ttcEnabled]);
 
-    // 🔊 Cloud TTS Audio Player
-    const playAudio = useCallback((base64String) => {
-        if (!ttcEnabled) return;
-        if (!base64String) return;
+    // 🔊 Cloud TTS Audio Player (Returns Audio object for chaining)
+    const playAudio = useCallback((base64String, onEndedCallback) => {
+        if (!ttcEnabled) return null;
+        if (!base64String) return null;
         
         try {
-            stopAllAudioRef.current?.();
+            stopVoiceOnlyRef.current?.(); // ✅ Only stop previous voice, keep Ambient/Binaural
             
             const audio = new Audio(`data:audio/mp3;base64,${base64String}`);
-            audio.volume = 0.9; 
+            audio.volume = audioVolumes.voice; // ✅ 음량 조절 적용
             currentAudioRef.current = audio;
 
-            audio.onended = () => { if (currentAudioRef.current === audio) currentAudioRef.current = null; };
+            logDebug("PlayAudio:Start", { vol: audioVolumes.voice });
+
+            audio.onended = () => { 
+                logDebug("PlayAudio:Ended");
+                if (currentAudioRef.current === audio) currentAudioRef.current = null;
+                if (onEndedCallback) onEndedCallback();
+            };
             
             const playPromise = audio.play();
             if (playPromise !== undefined) {
-                playPromise.catch(e => console.error("🔊 Audio Playback Failed:", e));
+                playPromise.catch(e => {
+                    console.error("🔊 Audio Playback Failed:", e);
+                    logDebug("PlayAudio:Error", e);
+                });
             }
+            return audio; // ✅ Return for control
         } catch (e) {
             console.error("🔊 Audio Error:", e);
+            logDebug("PlayAudio:Catch", e);
+            return null;
         }
-    }, [ttcEnabled]);
+    }, [ttcEnabled, audioVolumes]);
 
-    // 🗣️ TTS Wrapper (Consolidated) - speakFallback 의존성 제거하여 TDZ 방지
+    // 🗣️ TTS Wrapper
     const speak = useCallback((text) => {
-        // 인라인 TTS 로직 (speakFallback 호출 대신)
+        logDebug("Speak:Start", text);
         if (!text || typeof window === 'undefined' || !ttcEnabled || !window.speechSynthesis) return;
         
-        stopAllAudioRef.current?.();
+        stopVoiceOnlyRef.current?.(); 
         
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'ko-KR';
@@ -373,23 +495,73 @@ const MeditationPage = ({ onClose }) => {
         console.log(`🔍 Feedback Effect check: step=${step}, needsFeedback=${needsFeedback}`);
         if (step === 'diagnosis' && needsFeedback) {
             console.log("🎯 Session Ended - Injecting Feedback Greeting for:", memberName);
-            const msg = `${memberName}님, 명상은 어떠셨나요? 몸과 마음이 조금이라도 더 편안해지셨길 바라요. 더 나누고 싶은 이야기가 있으신가요?`;
             
-            // ✅ Clean up state and set feedback
+            // ✅ 폴백 메시지 (AI 실패 시)
+            const hour = new Date().getHours();
+            let fallbackMsg;
+            if (hour >= 5 && hour < 12) {
+                fallbackMsg = `${memberName}님, 아침 명상은 어떠셨나요? 상쾌한 하루를 시작하는 데 도움이 되셨길 바라요. 더 나누고 싶은 이야기가 있으신가요?`;
+            } else if (hour >= 12 && hour < 18) {
+                fallbackMsg = `${memberName}님, 명상은 어떠셨나요? 오후 시간이 조금 더 편안해지셨길 바라요. 더 나누고 싶은 이야기가 있으신가요?`;
+            } else {
+                fallbackMsg = `${memberName}님, 오늘의 명상은 어떠셨나요? 편안한 밤 되시길 바라요. 더 나누고 싶은 이야기가 있으신가요?`;
+            }
+            
+            // ✅ Clean up state
             setAiRequestLock(false);
             setIsAILoading(false);
+            
+            // 초기 폴백 메시지 표시
             setCurrentAIChat({
-                message: msg,
+                message: fallbackMsg,
                 options: ["네, 더 이야기할래요", "충분해요, 종료할게요"]
             });
             
-            if (ttcEnabled) {
-                console.log("🔊 Speaking feedback greeting");
-                speakFallback(msg);
+            // ✅ AI 피드백 메시지 생성 (비동기)
+            if (sessionInfo) {
+                (async () => {
+                    try {
+                        const feedbackResult = await generateMeditationGuidance({
+                            type: 'feedback_message',
+                            memberName: memberName,
+                            timeContext: timeContext,
+                            modeName: sessionInfo.modeName,
+                            duration: sessionInfo.duration,
+                            diagnosis: sessionInfo.diagnosis
+                        });
+                        
+                        if (feedbackResult.data?.message) {
+                            const aiMsg = feedbackResult.data.message.replace(/OO님/g, `${memberName}님`);
+                            setCurrentAIChat({
+                                message: aiMsg,
+                                options: ["홈으로 가기"] // ✅ "다시 할까요?" → "홈으로 가기"
+                            });
+                            
+                            // AI 음성 재생
+                            if (feedbackResult.data.audioContent) {
+                                playAudio(feedbackResult.data.audioContent);
+                            } else if (ttcEnabled) {
+                                speak(aiMsg);
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Feedback message AI failed, using fallback:', err);
+                        // 폴백은 이미 표시됨
+                        if (ttcEnabled) {
+                            speakFallback(fallbackMsg);
+                        }
+                    }
+                })();
+            } else {
+                // 세션 정보 없으면 폴백 TTS만
+                if (ttcEnabled) {
+                    speakFallback(fallbackMsg);
+                }
             }
+            
             setNeedsFeedback(false); // Reset flag
         }
-    }, [step, needsFeedback, ttcEnabled, speakFallback, memberName]);
+    }, [step, needsFeedback, ttcEnabled, speakFallback, memberName, sessionInfo, timeContext, playAudio, speak]);
 
     // Auto detect weather using OpenWeatherMap API
     const detectWeather = async () => {
@@ -460,16 +632,16 @@ const MeditationPage = ({ onClose }) => {
         // 1. Binaural Beats Volume
         if (gainNodeRef.current && audioContextRef.current) {
             const currentTime = audioContextRef.current.currentTime;
-            // 0.25 matches startSession volume
-            gainNodeRef.current.gain.setTargetAtTime(soundEnabled ? 0.25 : 0, currentTime, 0.5);
+            // ✅ 음량 조절 적용
+            gainNodeRef.current.gain.setTargetAtTime(soundEnabled ? audioVolumes.binaural : 0, currentTime, 0.5);
         }
 
         // 2. Ambient Audio Volume
         if (ambientAudioRef.current) {
-            // 0.5 matches startSession volume
-            ambientAudioRef.current.volume = soundEnabled ? 0.5 : 0;
+            // ✅ 음량 조절 적용
+            ambientAudioRef.current.volume = soundEnabled ? audioVolumes.ambient : 0;
         }
-    }, [soundEnabled]);
+    }, [soundEnabled, audioVolumes]);
 
 
 
@@ -550,7 +722,8 @@ const MeditationPage = ({ onClose }) => {
                 type: 'question', 
                 memberName: memberName || '회원', 
                 timeContext: currentContext,
-                chatHistory: history 
+                chatHistory: history,
+                intentionFocus: selectedIntention?.focus // ✅ 전문가 관점 적용
             });
 
             // Race API vs Timeout
@@ -576,72 +749,126 @@ const MeditationPage = ({ onClose }) => {
                 // ✅ Text Sync: Set active chat immediately
                 setCurrentAIChat(result.data);
                 
-                // Play Cloud Audio (ONE CALL ONLY)
-                if (result.data.audioContent) {
-                    playAudio(result.data.audioContent);
-                } else if (result.data.error === 'timeout') {
-                    // Timeout fallback - speak locally if possible
-                     speak("잠시 연결이 늦어지네요. 오늘 마음은 어떠세요?");
-                }
+                // 🔊 Play Audio & Handle Transition Sequence
+                const startTransitionSequence = () => {
+                    if (!result.data.isFinalAnalysis) return;
 
-                if (result.data.isFinalAnalysis) {
+                    logDebug("Transition:Start");
                     const diag = DIAGNOSIS_OPTIONS.find(o => o.id === result.data.mappedDiagnosis) || DIAGNOSIS_OPTIONS[0];
                     setSelectedDiagnosis(diag);
+                    
                     const defaultMode = MEDITATION_MODES[0]; 
                     if (!activeMode) {
                         setActiveMode(defaultMode);
                         setTimeLeft(defaultMode.time);
                     }
                     
-                    // ✅ 자연스러운 전환 멘트
-                    const transitionMsg = `${memberName}님, 그럼 이제 명상으로 함께 가볼까요?`;
-                    setCurrentAIChat({ 
-                        message: transitionMsg, 
-                        options: ["네, 갈게요"],
-                        isTransition: true,
-                        analysisSummary: result.data.analysisSummary || result.data.message || ""
-                    });
-                    
-                    // ✅ 처방 파라미터 저장
-                    const wId = weatherContext?.id || 'sun';
-                    const mId = activeMode?.id || defaultMode.id;
-                    const iType = interactionType || 'v1';
                     const summary = result.data.analysisSummary || result.data.message || "";
                     
-                    // 3초 후 prescription 화면으로 전환 후 처방 직접 로드 (인라인, 함수 참조 없음)
+                    // 1. FAST PATH: Use Pre-generated Transition Data
+                    if (result.data.transitionData) {
+                        const tData = result.data.transitionData;
+                        logDebug("Transition:FastPath", tData);
+                        
+                        // Show Transition Message
+                        setCurrentAIChat({
+                            message: tData.message,
+                            options: ["네, 시작할게요"],
+                            isTransition: true,
+                            analysisSummary: summary
+                        });
+                        
+                        // Play Transition Audio
+                        playAudio(tData.audioContent);
+                        
+                        // Schedule Prescription Step (Analysis View)
+                        schedulePrescriptionStep(diag, summary, 6000, true);
+                        return;
+                    }
+
+                    // 2. SLOW PATH: Generate Manually (Fallback)
+                    logDebug("Transition:SlowPath");
+                    const diagName = diag.label || '현재 상태';
+                    const modeName = "맞춤 명상";
+                    const fallbackMsg = `${memberName}님의 상태를 분석한 결과, ${diagName}에 도움이 되는 ${modeName}을 추천드립니다.`;
+                    
+                    // Show Fallback immediately
+                    setCurrentAIChat({ 
+                        message: fallbackMsg, 
+                        options: ["네, 시작할게요"],
+                        isTransition: true,
+                        analysisSummary: summary
+                    });
+
+                    // Async Generate
+                    (async () => {
+                        try {
+                            const transitionResult = await generateMeditationGuidance({
+                                type: 'transition_message',
+                                memberName, timeContext, diagnosis: diag.id, diagnosisLabel: diagName, modeName, analysisSummary: summary
+                            });
+                            
+                            if (transitionResult.data?.message) {
+                                const aiMsg = transitionResult.data.message.replace(/OO님/g, `${memberName}님`);
+                                setCurrentAIChat({ message: aiMsg, options: ["네, 시작할게요"], isTransition: true, analysisSummary: summary });
+                                if (transitionResult.data.audioContent) playAudio(transitionResult.data.audioContent);
+                                else if (ttcEnabled) speak(aiMsg);
+                            }
+                        } catch (e) {
+                            console.error("Transition Gen Failed", e);
+                            if (ttcEnabled) speak(fallbackMsg);
+                        }
+                    })();
+                    
+                    schedulePrescriptionStep(diag, summary, 8000, false);
+                };
+
+                // Play Chat Audio with Callback
+                if (result.data.audioContent) {
+                    playAudio(result.data.audioContent, startTransitionSequence);
+                } else {
+                    if (result.data.error === 'timeout') speak("잠시 연결이 늦어지네요...");
+                    // No audio? Start transition immediately if final
+                    if (result.data.isFinalAnalysis) startTransitionSequence();
+                }
+
+                // Helper: Switch to Prescription Screen
+                const schedulePrescriptionStep = (diag, summary, delay, fastPath) => {
                     setTimeout(async () => {
+                        stopAllAudioRef.current?.(false); // Keep ambient
                         setStep('prescription');
                         
-                        // ✅ 직접 Cloud Function 호출 (fetchAIPrescription 참조 안함)
+                        // Fetch Prescription Details (Inline)
                         try {
                             setIsAILoading(true);
+                            // Only fetch if we didn't already? (We always fetch for prescription details like reason)
+                            const wId = weatherContext?.id || 'sun';
+                            const mId = activeMode?.id || 'calm';
+                            const iType = interactionType || 'v1';
+                            
                             const prescResult = await generateMeditationGuidance({
                                 type: 'prescription',
-                                memberName: memberName,
-                                timeContext: timeContext,
-                                weather: wId,
-                                diagnosis: diag.id,
-                                analysisSummary: summary,
+                                memberName, timeContext, weather: wId, diagnosis: diag.id, analysisSummary: summary,
                                 mode: mId === 'breath' ? '3min' : (mId === 'calm' ? '7min' : '15min'),
                                 interactionType: iType
                             });
+                            
                             if (prescResult.data) {
-                                if (prescResult.data.prescriptionReason) {
-                                    prescResult.data.prescriptionReason = prescResult.data.prescriptionReason.replace(/OO님/g, `${memberName}님`);
-                                }
-                                if (prescResult.data.message) {
-                                    prescResult.data.message = prescResult.data.message.replace(/OO님/g, `${memberName}님`);
-                                }
+                                if (prescResult.data.prescriptionReason) prescResult.data.prescriptionReason = prescResult.data.prescriptionReason.replace(/OO님/g, `${memberName}님`);
                                 setAiPrescription(prescResult.data);
-                                setPrescriptionReason(prescResult.data.prescriptionReason || prescResult.data.message || '');
+                                const prescText = prescResult.data.prescriptionReason || prescResult.data.message || '';
+                                setPrescriptionReason(prescText);
+                                
+                                if (prescResult.data.audioContent) playAudio(prescResult.data.audioContent);
+                                else if (ttcEnabled) speak(prescText);
                             }
                         } catch (err) {
-                            console.error('Inline Prescription fetch failed:', err);
+                            console.error('Prescription fetch failed:', err);
                         } finally {
                             setIsAILoading(false);
                         }
-                    }, 3000);
-                }
+                    }, delay);
+                };
             }
         } catch (error) {
             // 🛡️ RACE CONDITION GUARD for Error
@@ -664,6 +891,14 @@ const MeditationPage = ({ onClose }) => {
     // --- Chat Handlers ---
     const handleChatResponse = async (answer) => {
         if (!answer || aiRequestLock) return;
+        
+        // ✅ 홈으로 가기 처리
+        if (answer === "홈으로 가기") {
+            stopAllAudioRef.current?.();
+            if (onClose) onClose();
+            else navigate('/');
+            return;
+        }
         
         // 🛑 Stop current AI voice immediately when user responds
         stopAllAudioRef.current?.();
@@ -860,6 +1095,9 @@ const MeditationPage = ({ onClose }) => {
         const carrierFreq = 200; 
         const beatFreq = mode.freq; 
 
+        console.log(`🎵 [Binaural Debug] Creating binaural beats - Carrier: ${carrierFreq}Hz, Beat: ${beatFreq}Hz`);
+        console.log(`🎵 [Binaural Debug] Sound Enabled: ${soundEnabled}`);
+
         const oscL = audioCtx.createOscillator();
         const oscR = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
@@ -876,10 +1114,15 @@ const MeditationPage = ({ onClose }) => {
         oscR.connect(pannerR); pannerR.connect(gainNode);
 
         gainNode.connect(audioCtx.destination);
-        // ✅ Increase Base Volume (0.1 -> 0.25)
-        gainNode.gain.value = soundEnabled ? 0.25 : 0;
+        // ✅ Set volume based on soundEnabled (0.25 when enabled, 0 when disabled)
+        const initialVolume = soundEnabled ? 0.25 : 0;
+        gainNode.gain.value = initialVolume;
+        
+        console.log(`🎵 [Binaural Debug] Initial volume set to: ${initialVolume}`);
 
         oscL.start(); oscR.start();
+        
+        console.log(`✅ [Binaural Debug] Oscillators started successfully`);
 
         oscLeftRef.current = oscL; oscRightRef.current = oscR;
         gainNodeRef.current = gainNode;
@@ -914,73 +1157,53 @@ const MeditationPage = ({ onClose }) => {
             }
         }
 
-        // 🎵 Start Ambient Sound Layer (if selected)
-        const ambientConfig = AMBIENT_SOUNDS.find(a => a.id === selectedAmbient);
-        console.log(`🎵 Ambient Config for '${selectedAmbient}':`, ambientConfig);
-        
-        if (ambientConfig && ambientConfig.audioUrl) {
-            try {
-                // ✅ Improved Audio Construction
-                const ambientAudio = new Audio();
-                ambientAudio.crossOrigin = 'anonymous';
-                ambientAudio.src = ambientConfig.audioUrl;
-                ambientAudio.loop = true;
-                
-                // ✅ Ambient Fade-in Logic (0.0 -> 0.5 over 2 seconds)
-                ambientAudio.volume = 0; 
-                
-                // Play with error handling
-                const playPromise = ambientAudio.play();
-                if (playPromise !== undefined) {
-                    playPromise.catch(e => console.warn('Ambient audio autoplay blocked:', e));
-                    
-                    // Start fade if playing
-                    if (soundEnabled) {
-                        let vol = 0;
-                        const fadeInInterval = setInterval(() => {
-                            vol += 0.05;
-                            if (vol >= 0.5) {
-                                ambientAudio.volume = 0.5;
-                                clearInterval(fadeInInterval);
-                            } else {
-                                ambientAudio.volume = vol;
-                            }
-                        }, 200);
-                    }
-                }
-                
-                ambientAudioRef.current = ambientAudio;
-                console.log(`🎵 Ambient sound started with fade-in: ${ambientConfig.label}`);
-            } catch (e) {
-                console.warn('Failed to start ambient audio:', e);
-            }
-        } else if (selectedAmbient !== 'none') {
-            console.warn(`⚠️ No audioUrl for ambient '${selectedAmbient}'. Check meditationConstants.js`);
+        // 🎵 Ambient Sound is now handled by global useEffect
+        if (selectedAmbient === 'none') {
+             console.log(`🎵 [Audio Debug] No ambient sound selected (mode: 'none')`);
+        } else {
+             console.log(`🎵 [Audio Debug] Ambient '${selectedAmbient}' managing globally`);
         }
+
 
         setTimeLeft(mode.time);
         setIsPlaying(true);
         
         // ✨ Opening Message - Phase 4 Pre-intro Logic
+        // ✨ Opening Message - Phase 4 Pre-intro Logic
         const getPreIntro = () => {
-            const goal = prepSelections.goal;
-            if (goal === 'relax') return "모든 긴장을 내려놓고, 그저 편안함이 온몸에 스며들게 하세요.";
-            if (goal === 'clear') return "떠오르는 생각들을 흘려보내며, 마음의 호숫가를 고요히 만듭니다.";
-            if (goal === 'sense') return "지금 이 순간, 당신의 몸이 전하는 가장 미세한 감각에 귀를 기울여보세요.";
-            if (goal === 'stay') return "아무것도 할 필요 없습니다. 그저 지금 이 순간에 온전히 머물러보세요.";
-            return "숨을 깊게 들이마시고 내쉬며, 당신만의 평온한 시간을 시작합니다.";
+             if (selectedIntention?.label) {
+                 return `선택하신 '${selectedIntention.label}'을(를) 마음에 품고, 평온한 시간을 시작합니다.`;
+             }
+             return "숨을 깊게 들이마시고 내쉬며, 당신만의 평온한 시간을 시작합니다.";
         };
         
         const introMessage = getPreIntro();
         setAiMessage(introMessage);
         
-        // TTC Voice for Pre-intro if enabled
-        if (ttcEnabled && window.speechSynthesis) {
-            const utterance = new SpeechSynthesisUtterance(introMessage);
-            utterance.lang = 'ko-KR';
-            utterance.rate = 0.85;
-            utterance.volume = 0.4;
-            window.speechSynthesis.speak(utterance);
+        
+        // ✅ TTC Voice for Pre-intro - Cloud TTS (High Quality)
+        if (ttcEnabled) {
+            (async () => {
+                try {
+                    const introTTS = await generateMeditationGuidance({
+                        type: 'session_message',
+                        memberName: memberName,
+                        timeContext: timeContext,
+                        message: introMessage,
+                        messageIndex: 0
+                    });
+                    
+                    if (introTTS.data?.audioContent) {
+                        playAudio(introTTS.data.audioContent);
+                    } else {
+                        // Fallback: Browser TTS
+                        speak(introMessage);
+                    }
+                } catch (err) {
+                    console.error('Intro TTS failed:', err);
+                    speak(introMessage);
+                }
+            })();
         }
         
         startTimer();
@@ -1054,8 +1277,58 @@ const MeditationPage = ({ onClose }) => {
     };
 
     const completeSession = () => {
-        stopSession();
-        setStep('diagnosis');
+        stopSession(false); // ✅ Keep ambient music playing
+        setStep('feedback');
+        setIsAILoading(true); // Show loading state in feedback screen
+
+        // Generate Post-Session Feedback (Async)
+        (async () => {
+            try {
+                // Determine duration logic for context
+                const duration = activeMode?.time || 300;
+                
+                const fbResult = await generateMeditationGuidance({
+                    type: 'feedback_message',
+                    memberName, 
+                    timeContext,
+                    diagnosis: selectedDiagnosis?.id || 'stress',
+                    mode: activeMode?.id || 'calm'
+                });
+                
+                if (fbResult.data) {
+                    // Personalize
+                    if (fbResult.data.message) {
+                        fbResult.data.message = fbResult.data.message.replace(/OO님/g, `${memberName}님`);
+                    }
+                    if (fbResult.data.feedbackPoints) {
+                        // Assuming backend returns points
+                        fbResult.data.feedbackPoints = fbResult.data.feedbackPoints.map(p => p.replace(/OO님/g, `${memberName}님`));
+                    }
+                    
+                    setFeedbackData(fbResult.data);
+                    
+                    if (fbResult.data.audioContent) {
+                        playAudio(fbResult.data.audioContent);
+                    } else if (ttcEnabled && fbResult.data.message) {
+                        speak(fbResult.data.message);
+                    }
+                }
+            } catch (e) {
+                console.error("Feedback Generation Failed:", e);
+                // Fallback Feedback
+                setFeedbackData({
+                    message: `${memberName}님, 오늘 명상으로 마음이 한결 편안해지셨길 바래요.`,
+                    feedbackPoints: [
+                        "명상을 통해 내면의 고요함을 경험했습니다.",
+                        "호흡에 집중하며 현재에 머무르는 연습을 했습니다.",
+                        "긴장했던 몸과 마음이 조금 더 이완되었습니다.",
+                        "오늘 하루도 평온한 마음으로 이어가세요."
+                    ]
+                });
+            } finally {
+                setIsAILoading(false);
+            }
+        })();
     };
 
     const formatTime = (seconds) => {
@@ -1067,6 +1340,229 @@ const MeditationPage = ({ onClose }) => {
     // ==========================================
     // 🎨 RENDER (Refining V3 Overlay Rendering)
     // ==========================================
+
+    // 0. Intention Step (의도 선택 - 2단계 구조)
+    if (step === 'intention') {
+        // ✅ Meditative Loading Screen
+        if (isOptionsLoading) {
+             return (
+                <div style={{
+                    position: 'fixed', inset: 0, background: '#121212', zIndex: 9999,
+                    display: 'flex', flexDirection: 'column',
+                    justifyContent: 'center', alignItems: 'center'
+                }}>
+                    <div className="typing-indicator" style={{ marginBottom: '20px' }}>
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1.1rem', textAlign: 'center', lineHeight: 1.6 }}>
+                        잠시, 호흡에 머물러 보세요...<br/>
+                        <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginTop: '10px', display: 'block' }}>
+                            오늘의 명상을 준비하고 있습니다
+                        </span>
+                    </div>
+                </div>
+             );
+        }
+
+        // 2-1단계: 카테고리가 선택되지 않았으면 카테고리 선택 화면
+        if (!selectedCategory) {
+            return (
+                <div style={{
+                    position: 'fixed', inset: 0, background: '#121212', zIndex: 9999,
+                    display: 'flex', flexDirection: 'column'
+                }}>
+                    {/* Header */}
+                    <div style={{
+                        padding: '15px 20px', paddingTop: 'max(15px, env(safe-area-inset-top))',
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        background: 'rgba(20, 20, 20, 0.95)',
+                        borderBottom: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)'
+                    }}>
+                        <div>
+                            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white' }}>
+                                오늘의 명상
+                            </span>
+                        </div>
+                        <button onClick={() => { stopAllAudioRef.current?.(); if(onClose) onClose(); else navigate(-1); }} 
+                            style={{ 
+                                padding: '8px 16px', 
+                                border: '1px solid rgba(255,255,255,0.15)', 
+                                borderRadius: '20px',
+                                background: 'rgba(255, 255, 255, 0.08)', 
+                                cursor: 'pointer',
+                                color: 'rgba(255,255,255,0.9)',
+                                fontSize: '0.85rem',
+                                fontWeight: '600',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                            }}>
+                            <span>나가기</span>
+                            <X size={16} weight="bold" />
+                        </button>
+                    </div>
+
+                    {/* Main Content */}
+                    <div style={{
+                        flex: 1, display: 'flex', flexDirection: 'column', 
+                        justifyContent: 'center', alignItems: 'center', padding: '40px 20px'
+                    }}>
+                        {/* Title */}
+                        <div style={{ textAlign: 'center', marginBottom: '50px' }}>
+                            <h2 style={{ 
+                                fontSize: '1.6rem', fontWeight: 600, color: '#4c9bfb', 
+                                marginBottom: '15px', lineHeight: 1.4
+                            }}>
+                                지금 당신의 마음은<br/>어디를 향하고 있나요?
+                            </h2>
+                            <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)' }}>
+                                오늘 명상의 큰 방향을 선택해보세요
+                            </p>
+                        </div>
+
+                        {/* Category Options (Dynamic) */}
+                        <div style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            {dynamicCategories.map(category => (
+                                <button
+                                    key={category.id}
+                                    onClick={() => {
+                                        setSelectedCategory(category);
+                                    }}
+                                    style={{
+                                        padding: '30px 25px',
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '20px',
+                                        color: 'white',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.3s ease',
+                                        textAlign: 'left'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = 'rgba(76, 155, 251, 0.15)';
+                                        e.currentTarget.style.borderColor = '#4c9bfb';
+                                        e.currentTarget.style.transform = 'translateY(-2px)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                                        e.currentTarget.style.transform = 'translateY(0)';
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                                        <span style={{ fontSize: '2rem', marginRight: '15px' }}>{category.emoji}</span>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '5px' }}>
+                                                {category.label}
+                                            </div>
+                                            <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)' }}>
+                                                {category.description || category.subtitle}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // 2-2단계: 카테고리가 선택되었으면 해당 카테고리의 의도 선택 화면
+        const categoryIntentions = dynamicIntentions.filter(i => i.category === selectedCategory.id);
+        
+        return (
+            <div style={{
+                position: 'fixed', inset: 0, background: '#121212', zIndex: 9999,
+                display: 'flex', flexDirection: 'column'
+            }}>
+                {/* Header */}
+                <div style={{
+                    padding: '10px 15px', paddingTop: 'max(10px, env(safe-area-inset-top))',
+                    display: 'flex', alignItems: 'center', background: 'rgba(20, 20, 20, 0.95)',
+                    borderBottom: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)'
+                }}>
+                    <button onClick={() => setSelectedCategory(null)} 
+                        style={{ padding: '8px', border: 'none', background: 'none', cursor: 'pointer' }}>
+                        <ArrowLeft size={22} color="white" />
+                    </button>
+                    <div style={{ marginLeft: '10px' }}>
+                        <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>
+                            {selectedCategory.label}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Main Content */}
+                <div style={{
+                    flex: 1, display: 'flex', flexDirection: 'column', 
+                    justifyContent: 'center', alignItems: 'center', padding: '40px 20px'
+                }}>
+                    {/* Title */}
+                    <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                        <h2 style={{ 
+                            fontSize: '1.5rem', fontWeight: 600, color: '#4c9bfb', 
+                            marginBottom: '10px' 
+                        }}>
+                            조금 더 구체적으로 들여다볼까요?
+                        </h2>
+                        <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>
+                            {selectedCategory.description}
+                        </p>
+                    </div>
+
+                    {/* Options (Dynamic) */}
+                    <div style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        {categoryIntentions.map(intention => (
+                            <button
+                                key={intention.id}
+                                onClick={() => {
+                                    setSelectedIntention(intention);
+                                    setStep('diagnosis');
+                                    // 의도를 바탕으로 AI 질문 시작
+                                    fetchAIQuestion([{
+                                        role: 'user',
+                                        content: intention.label
+                                    }]);
+                                }}
+                                style={{
+                                    padding: '20px',
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    borderRadius: '15px',
+                                    color: 'white',
+                                    fontSize: '1rem',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                    textAlign: 'left'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = 'rgba(76, 155, 251, 0.2)';
+                                    e.currentTarget.style.borderColor = '#4c9bfb';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                                }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <span style={{ marginRight: '12px', fontSize: '1.5rem' }}>{intention.emoji}</span>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', marginBottom: '5px' }}>
+                                            {intention.tag}
+                                        </div>
+                                        <div style={{ fontSize: '0.95rem' }}>
+                                            {intention.label}
+                                        </div>
+                                    </div>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     // 1. Diagnosis Step (Conversational AI - Dark Mode)
     if (step === 'diagnosis') {
@@ -1185,7 +1681,7 @@ const MeditationPage = ({ onClose }) => {
                     {isAILoading && (
                          <div style={{ alignSelf: 'center', padding: '6px 12px', borderRadius: '12px', fontSize: '0.8rem', color: 'var(--primary-gold)', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                              <div className="typing-indicator"><span></span><span></span><span></span></div>
-                             {chatHistory.length === 0 ? "AI 복순이가 준비하고 있어요..." : "답변을 생각하는 중..."}
+                             {chatHistory.length === 0 ? "AI 복순이가 당신의 마음을 듣고 있어요..." : "잠시, 호흡에 머물러 보세요..."}
                          </div>
                     )}
                     <div ref={chatEndRef} style={{ height: '2px', width: '100%' }} />
@@ -1541,12 +2037,7 @@ const MeditationPage = ({ onClose }) => {
             }
         };
 
-        const PREPARATION_GOALS = [
-            { id: 'relax', label: '온몸의 긴장을 풀고 싶어요' },
-            { id: 'clear', label: '복잡한 생각을 비우고 싶어요' },
-            { id: 'sense', label: '내 몸의 감각에만 집중해볼게요' },
-            { id: 'stay', label: '그저 지금 이대로 머무를래요' }
-        ];
+
 
         return (
             <div style={{
@@ -1559,7 +2050,7 @@ const MeditationPage = ({ onClose }) => {
                         <ArrowLeft size={24} />
                     </button>
                     <div style={{ flex: 1, textAlign: 'center' }}>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--primary-gold)', fontWeight: 600 }}>준비 단계 ({prepStep}/3)</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--primary-gold)', fontWeight: 600 }}>준비 단계 ({prepStep}/2)</div>
                         <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white' }}>명상 준비</div>
                     </div>
                     <div style={{ width: '44px' }} />
@@ -1629,60 +2120,89 @@ const MeditationPage = ({ onClose }) => {
                             </div>
 
                             <button 
-                                onClick={() => setPrepStep(3)}
+                                onClick={() => startSession(activeMode)}
                                 style={{
                                     width: '100%', background: 'var(--primary-gold)', color: 'black',
                                     padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
                                     cursor: 'pointer'
                                 }}
                             >
-                                자세를 잡았습니다
+                                자세를 잡았습니다 (명상 시작)
                             </button>
                         </div>
                     )}
 
-                    {/* STEP 3: Goal Selection */}
-                    {prepStep === 3 && (
-                        <div style={{ width: '100%', maxWidth: '380px', animation: 'fadeIn 0.5s ease' }}>
-                            <h3 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'white', marginBottom: '10px', textAlign: 'center' }}>오늘의 명상 의도 세우기</h3>
-                            <p style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', fontSize: '0.9rem', marginBottom: '30px' }}>무엇에 집중하고 싶으신가요?</p>
-                            
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '40px' }}>
-                                {PREPARATION_GOALS.map((g) => (
-                                    <button 
-                                        key={g.id}
-                                        onClick={() => setPrepSelections({...prepSelections, goal: g.id})}
-                                        style={{
-                                            padding: '20px', borderRadius: '20px', fontSize: '1rem',
-                                            background: prepSelections.goal === g.id ? 'rgba(212,175,55,0.2)' : 'rgba(255,255,255,0.05)',
-                                            color: prepSelections.goal === g.id ? 'var(--primary-gold)' : 'rgba(255,255,255,0.7)',
-                                            border: prepSelections.goal === g.id ? '1px solid var(--primary-gold)' : '1px solid rgba(255,255,255,0.1)',
-                                            transition: 'all 0.2s', fontWeight: 600, textAlign: 'left',
-                                            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                                        }}
-                                    >
-                                        {g.label}
-                                        {prepSelections.goal === g.id && <Sparkle size={20} weight="fill" />}
-                                    </button>
-                                ))}
-                            </div>
 
-                            <button 
-                                disabled={!prepSelections.goal}
-                                onClick={() => startSession(activeMode)}
-                                style={{
-                                    width: '100%', background: prepSelections.goal ? 'var(--primary-gold)' : 'rgba(255,255,255,0.1)', 
-                                    color: prepSelections.goal ? 'black' : 'rgba(255,255,255,0.2)',
-                                    padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
-                                    cursor: prepSelections.goal ? 'pointer' : 'default',
-                                    boxShadow: prepSelections.goal ? '0 10px 20px rgba(212,175,55,0.3)' : 'none'
-                                }}
-                            >
-                                명상 시작하기
-                            </button>
-                        </div>
-                    )}
                 </div>
+            </div>
+        );
+    }
+
+    // 5. Feedback Step
+    if (step === 'feedback') {
+        const points = feedbackData?.feedbackPoints || [];
+        
+        return (
+            <div style={{
+                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 3000,
+                display: 'flex', flexDirection: 'column', padding: '20px',
+                backgroundImage: 'radial-gradient(circle at 50% 80%, #1a1a2e 0%, #000000 80%)'
+            }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', maxWidth: '400px', margin: '0 auto', width: '100%' }}>
+                     <div style={{ marginBottom: '30px', color: 'var(--primary-gold)' }}><Sparkle size={48} weight="fill" /></div>
+                     
+                     <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white', marginBottom: '10px', textAlign: 'center' }}>
+                        오늘의 명상 기록
+                     </h2>
+                     <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem', marginBottom: '40px' }}>
+                        {isAILoading ? "AI가 명상 결과를 정리하고 있습니다..." : "오늘의 마음 챙김이 완료되었습니다"}
+                     </p>
+
+                     {isAILoading ? (
+                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                            <div style={{ width: '8px', height: '8px', background: 'white', borderRadius: '50%', animation: 'pulse 1s infinite' }}></div>
+                            <div style={{ width: '8px', height: '8px', background: 'white', borderRadius: '50%', animation: 'pulse 1s infinite 0.2s' }}></div>
+                            <div style={{ width: '8px', height: '8px', background: 'white', borderRadius: '50%', animation: 'pulse 1s infinite 0.4s' }}></div>
+                         </div>
+                     ) : (
+                         <div style={{ width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '20px', padding: '25px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                             {/* Feedback Points */}
+                             {points.length > 0 ? (
+                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                     {points.map((p, i) => (
+                                         <div key={i} style={{ display: 'flex', gap: '10px', fontSize: '0.95rem', color: 'rgba(255,255,255,0.9)', lineHeight: 1.5, alignItems: 'flex-start', textAlign: 'left' }}>
+                                             <span style={{ color: 'var(--primary-gold)', marginTop: '4px' }}>•</span>
+                                             <span>{p}</span>
+                                         </div>
+                                     ))}
+                                 </div>
+                             ) : (
+                                 <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.8)', lineHeight: 1.6 }}>
+                                     {feedbackData?.message || "마음이 한결 편안해지셨길 바랍니다."}
+                                 </div>
+                             )}
+                         </div>
+                     )}
+                </div>
+
+                {!isAILoading && (
+                    <div style={{ width: '100%', maxWidth: '400px', margin: '0 auto', paddingBottom: '20px' }}>
+                        <button 
+                            onClick={() => {
+                                stopAllAudioRef.current?.(true); // Stop ambient too
+                                if (onClose) onClose();
+                                else navigate('/');
+                            }}
+                            style={{
+                                width: '100%', background: 'var(--primary-gold)', color: 'black',
+                                padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
+                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'
+                            }}
+                        >
+                            <House size={24} weight="fill" /> 홈으로
+                        </button>
+                    </div>
+                )}
             </div>
         );
     }
@@ -1716,56 +2236,17 @@ const MeditationPage = ({ onClose }) => {
             )}
 
             {/* Background Animation (V1/V2) - ENHANCED for More Movement */}
+            {/* Background Animation (V1/V2) - Dynamic Soul Light */}
             {interactionType !== 'v3' && (
-                <>
-                    {/* Layer 1: Deep Pulse (Base) */}
-                    <div className={`breathing-circle ${isPlaying ? 'animate' : 'paused'}`} style={{
-                        position: 'absolute',
-                        width: '350px', height: '350px',
-                        borderRadius: '50%',
-                        backgroundImage: `radial-gradient(circle, ${activeMode?.color}30 0%, transparent 70%)`,
-                        filter: 'blur(50px)',
-                        zIndex: 0,
-                        transform: interactionType === 'v2' ? `scale(${breathingScale})` : undefined,
-                        boxShadow: interactionType === 'v2' ? `0 0 ${micVolume * 60}px ${activeMode?.color}40` : 'none',
-                        transition: 'all 0.5s ease-out'
-                    }} />
-                    
-                    {/* Layer 2: Core Focus (Sharper) */}
-                    <div className={`breathing-circle-inner ${isPlaying ? 'animate-inner' : 'paused'}`} style={{
-                        position: 'absolute',
-                        width: '220px', height: '220px',
-                        borderRadius: '50%',
-                        background: `radial-gradient(circle, ${activeMode?.color}50 0%, transparent 70%)`,
-                        filter: 'blur(25px)',
-                        zIndex: 1,
-                        transform: interactionType === 'v2' ? `scale(${breathingScale * 0.85})` : undefined,
-                        border: interactionType === 'v2' ? `${Math.min(micVolume * 4, 10)}px solid ${activeMode?.color}50` : 'none',
-                        transition: 'all 0.3s ease-out'
-                    }} />
-
-                    {/* Layer 3: Floating Drift (New Movement) */}
-                    <div className={`floating-circle ${isPlaying ? 'animate-float' : 'paused'}`} style={{
-                        position: 'absolute',
-                        width: '500px', height: '500px',
-                        borderRadius: '45%', // Slightly imperfect circle
-                        border: `1px solid ${activeMode?.color}20`,
-                        background: 'transparent',
-                        zIndex: -1,
-                        opacity: 0.6
-                    }} />
-                    
-                    {/* Layer 4: Second Float (Opposite direction) */}
-                    <div className={`floating-circle-rev ${isPlaying ? 'animate-float-rev' : 'paused'}`} style={{
-                        position: 'absolute',
-                        width: '400px', height: '400px',
-                        borderRadius: '40%',
-                        border: `1px dashed ${activeMode?.color}15`,
-                        background: 'transparent',
-                        zIndex: -1, 
-                        opacity: 0.4
-                    }} />
-                </>
+                <div 
+                    className={`soul-light-base soul-theme-${visualTheme} ${isPlaying && interactionType !== 'v2' ? 'active' : ''}`} 
+                    style={{
+                         transform: interactionType === 'v2' && isPlaying 
+                            ? `translate(-50%, -50%) scale(${1 + Math.min(micVolume, 0.5)})` 
+                            : undefined,
+                         transition: interactionType === 'v2' ? 'transform 0.1s ease-out' : 'all 1s ease'
+                     }}
+                />
             )}
 
             {/* Content Overlay */}
