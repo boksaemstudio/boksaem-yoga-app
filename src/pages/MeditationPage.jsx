@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase';
 import { Icons } from '../components/CommonIcons';
 import { MEDITATION_MODES, INTERACTION_TYPES, DIAGNOSIS_OPTIONS, WEATHER_OPTIONS, SPECIALIST_QUESTIONS, AI_SESSION_MESSAGES, AMBIENT_SOUNDS } from '../constants/meditationConstants';
 
@@ -34,7 +35,6 @@ const ICON_MAP = {
 };
 
 // Initialize Firebase Functions
-const functions = getFunctions(undefined, 'asia-northeast3');
 const generateMeditationGuidance = httpsCallable(functions, 'generateMeditationGuidance');
 
 const MeditationPage = ({ onClose }) => {
@@ -471,12 +471,29 @@ const MeditationPage = ({ onClose }) => {
             else if (hour >= 12 && hour < 18) currentContext = 'afternoon';
             
             console.log(`🤖 Fetching AI Question for: ${memberName}`);
-            const result = await generateMeditationGuidance({ 
+            // ✅ TIMEOUT PROTECTION: Force fallback if API hangs > 8s
+            const timeoutPromise = new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve({
+                        data: {
+                            message: "오늘 하루 마음이 어떠셨나요?",
+                            isFinalAnalysis: false,
+                            options: ["편안해요", "그저 그래요", "지쳤어요"],
+                            error: "timeout"
+                        }
+                    });
+                }, 8000); 
+            });
+
+            const apiPromise = generateMeditationGuidance({ 
                 type: 'question', 
-                memberName: memberName, // ✅ Personalize
+                memberName: memberName || '회원', 
                 timeContext: currentContext,
                 chatHistory: history 
             });
+
+            // Race API vs Timeout
+            const result = await Promise.race([apiPromise, timeoutPromise]);
             console.log("🤖 AI Response:", result.data);
             if (result.data) {
                 // ✅ Personalization Safety: Replace placeholders if backend missed them
@@ -493,6 +510,9 @@ const MeditationPage = ({ onClose }) => {
                 // Play Cloud Audio (ONE CALL ONLY)
                 if (result.data.audioContent) {
                     playAudio(result.data.audioContent);
+                } else if (result.data.error === 'timeout') {
+                    // Timeout fallback - speak locally if possible
+                     speak("잠시 연결이 늦어지네요. 오늘 마음은 어떠세요?");
                 }
 
                 if (result.data.isFinalAnalysis) {
