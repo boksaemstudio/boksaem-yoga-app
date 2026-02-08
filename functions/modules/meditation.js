@@ -93,10 +93,18 @@ USER: ${memberName || '회원'}
 - NEVER introduce yourself or mention your name
 - **Use "${memberName || '회원'}님" extremely sparingly (max once per 3 turns). Constant repetition is robotic.**
 - Each response MUST be unique and empathetic - NO repetitive phrases
-- Keep responses SHORT (under 40 Korean characters)
+- Keep responses concise (1-2 short sentences, under 80 Korean characters). Use line breaks if natural.
 
 ## CONVERSATION MODE:
 ${wantsContinue ? '- User wants MORE conversation. DO NOT end. Continue empathetically for 3-5 more turns.' : ''}
+
+
+// ... inside session_message block ...
+
+## RULES:
+- Generate ONE short guidance in Korean (해요체, max 40 chars)
+- **Do NOT use "${memberName || '회원'}님" unless absolutely necessary for emotional impact.**
+- Be unique - NO repetitive phrases
 ${isClosing && !wantsContinue ? '- Gently guide toward meditation.' : ''}
 ${MUST_FINISH ? '- SET isFinalAnalysis: true AND mappedDiagnosis.' : ''}
 
@@ -159,7 +167,7 @@ Role: Meditation Instructor. Context: ${interactionContext[interactionType]}. Ph
 USER: ${memberName || '회원'}
 
 ## RULES:
-- Generate ONE short guidance in Korean (해요체, max 25 chars)
+- Generate ONE short guidance in Korean (해요체, max 40 chars)
 - **Do NOT use "${memberName || '회원'}님" unless absolutely necessary for emotional impact.**
 - Be unique - NO repetitive phrases
 
@@ -223,9 +231,13 @@ JSON Output:
         // Fallback responses
         const fallbacks = {
             question: {
-                message: "오늘 하루 마음이 어떠셨나요?",
+                message: (request.data.chatHistory && request.data.chatHistory.length > 0) 
+                    ? "잠시 연결이 고르지 않네요. 지금 하신 말씀에 대해 조금 더 들려주실 수 있나요?" 
+                    : "오늘 하루 마음이 어떠셨나요?",
                 isFinalAnalysis: false,
-                options: ["편안해요", "그저 그래요", "지쳤어요"]
+                options: (request.data.chatHistory && request.data.chatHistory.length > 0)
+                    ? ["네, 계속 이야기할게요", "잠시 쉬고 싶어요"]
+                    : ["편안해요", "그저 그래요", "지쳤어요"]
             },
             prescription: {
                 prescriptionReason: "오늘의 명상으로 마음을 편안하게 해드릴게요.",

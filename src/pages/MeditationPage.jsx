@@ -503,18 +503,26 @@ const MeditationPage = ({ onClose }) => {
             else if (hour >= 12 && hour < 18) currentContext = 'afternoon';
             
             console.log(`🤖 Fetching AI Question for: ${memberName}`);
-            // ✅ TIMEOUT PROTECTION: Force fallback if API hangs > 8s
+            // ✅ TIMEOUT PROTECTION: Force fallback if API hangs > 12s
             const timeoutPromise = new Promise((resolve) => {
                 setTimeout(() => {
+                    const fallbackMsg = (history && history.length > 0) 
+                        ? "잠시 연결이 늦어지네요. 계속해서 이야기 나눠볼까요?" 
+                        : "오늘 하루 마음이 어떠셨나요?";
+                        
+                    const fallbackOptions = (history && history.length > 0)
+                        ? ["네, 좋아요", "잠시 생각할게요"]
+                        : ["편안해요", "그저 그래요", "지쳤어요"];
+
                     resolve({
                         data: {
-                            message: "오늘 하루 마음이 어떠셨나요?",
+                            message: fallbackMsg,
                             isFinalAnalysis: false,
-                            options: ["편안해요", "그저 그래요", "지쳤어요"],
+                            options: fallbackOptions,
                             error: "timeout"
                         }
                     });
-                }, 8000); 
+                }, 12000); 
             });
 
             const apiPromise = generateMeditationGuidance({ 
