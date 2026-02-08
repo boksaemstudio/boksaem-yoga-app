@@ -82,12 +82,28 @@ exports.checkInMemberV2Call = onCall({
         const currentCredits = memberData.credits || 0;
         const currentCount = memberData.attendanceCount || 0;
         
-        if (currentCredits <= 0) {
-            throw new HttpsError('failed-precondition', '잔여 수업권이 없습니다.');
+        // [FIX] Attendance Status Logic (Full Audit)
+        let attendanceStatus = 'valid'; // Default
+        let denialReason = null;
+        const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+
+        // 1. Check Expiration
+        if (memberData.endDate) {
+            const todayDate = new Date(today);
+            const endDate = new Date(memberData.endDate);
+            if (todayDate > endDate) {
+                attendanceStatus = 'denied';
+                denialReason = 'expired';
+            }
+        }
+
+        // 2. Check Credits (Only if not already denied by expiration)
+        if (attendanceStatus === 'valid' && currentCredits <= 0) {
+            attendanceStatus = 'denied';
+            denialReason = 'no_credits';
         }
 
         // Check for duplicate check-in today
-        const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
         const existingSnap = await db.collection('attendance')
             .where('memberId', '==', memberId)
             .where('date', '==', today)
@@ -98,53 +114,75 @@ exports.checkInMemberV2Call = onCall({
         const isMultiSession = !existingSnap.empty;
         const sessionCount = isMultiSession ? existingSnap.size + 1 : 1;
 
-        // Create attendance record
-        await db.collection('attendance').add({
+        // Create attendance record (Record even if denied!)
+        const attendanceData = {
             memberId,
             branchId,
             date: today,
             className: classTitle || '자율수련',
             instructor: instructor || '관리자',
             timestamp: new Date().toISOString(),
-            sessionNumber: sessionCount
-        });
+            sessionNumber: sessionCount,
+            status: attendanceStatus // 'valid' or 'denied'
+        };
 
-        // Update member stats
-        const newCredits = currentCredits - 1;
-        const newCount = currentCount + 1;
-        
-        // Calculate streak
-        const recentAttendance = await db.collection('attendance')
-            .where('memberId', '==', memberId)
-            .orderBy('timestamp', 'desc')
-            .limit(30)
-            .get();
-        const records = recentAttendance.docs.map(d => d.data());
-        const streak = calculateStreak(records, today);
-
-        // Handle TBD dates
-        let startDate = memberData.startDate;
-        let endDate = memberData.endDate;
-        
-        if (startDate === 'TBD' || !startDate) {
-            startDate = today;
-            // Calculate end date based on typical membership (30 days)
-            const end = new Date();
-            end.setDate(end.getDate() + 30);
-            endDate = end.toISOString().split('T')[0];
+        if (denialReason) {
+            attendanceData.denialReason = denialReason;
         }
 
-        await memberRef.update({
-            credits: newCredits,
-            attendanceCount: newCount,
-            streak: streak,
-            startDate: startDate,
-            endDate: endDate,
-            lastAttendance: new Date().toISOString()
-        });
+        const docRef = await db.collection('attendance').add(attendanceData);
+
+        // Update member stats ONLY if valid
+        let newCredits = currentCredits;
+        let newCount = currentCount;
+        let streak = memberData.streak || 0;
+        let startDate = memberData.startDate;
+        let endDate = memberData.endDate;
+
+        if (attendanceStatus === 'valid') {
+            newCredits = currentCredits - 1;
+            newCount = currentCount + 1;
+            
+            // Calculate streak
+            const recentAttendance = await db.collection('attendance')
+                .where('memberId', '==', memberId)
+                .where('status', '!=', 'denied') // Exclude denied logs from streak
+                .orderBy('timestamp', 'desc')
+                .limit(30)
+                .get();
+            const records = recentAttendance.docs.map(d => d.data());
+            streak = calculateStreak(records, today);
+
+            // Handle TBD dates
+            if (startDate === 'TBD' || !startDate) {
+                startDate = today;
+                // Calculate end date based on typical membership (30 days)
+                const end = new Date();
+                end.setDate(end.getDate() + 30);
+                endDate = end.toISOString().split('T')[0];
+            }
+
+            await memberRef.update({
+                credits: newCredits,
+                attendanceCount: newCount,
+                streak: streak,
+                startDate: startDate,
+                endDate: endDate,
+                lastAttendance: new Date().toISOString()
+            });
+
+            // Trigger Analysis only for valid attendance
+            // (onAttendanceCreated trigger will handle this, but we might want to skip analysis for denied logs there too)
+        } else {
+             // For denied logs, we might just update lastAttemptedAttendance or similar if needed, 
+             // but for now, we just log the attempt in 'attendance' collection.
+             console.log(`[Attendance] Denied check-in for ${memberId}: ${denialReason}`);
+        }
 
         return {
             success: true,
+            attendanceStatus, // 'valid' | 'denied'
+            denialReason,     // 'expired' | 'no_credits' | null
             newCredits,
             attendanceCount: newCount,
             streak,

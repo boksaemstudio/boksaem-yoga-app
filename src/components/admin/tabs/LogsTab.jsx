@@ -149,11 +149,13 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                             borderRadius: '8px',
                                             cursor: log.memberId ? 'pointer' : 'default',
                                             transition: 'all 0.2s ease',
-                                            borderLeft: `3px solid ${log.type === 'checkin' ? 'var(--accent-success)' :
+                                            borderLeft: `3px solid ${
+                                                log.status === 'denied' ? '#ff4d4f' : // Red for denied
+                                                log.type === 'checkin' ? 'var(--accent-success)' :
                                                 log.type === 'register' ? 'var(--primary-gold)' :
-                                                    log.type === 'extend' ? '#3B82F6' :
-                                                        'var(--text-secondary)'
-                                                }`
+                                                log.type === 'extend' ? '#3B82F6' :
+                                                'var(--text-secondary)'
+                                            }`
                                         }}
                                         onMouseEnter={(e) => { if (log.memberId) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
                                         onMouseLeave={(e) => { if (log.memberId) e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
@@ -168,6 +170,22 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                                     {log.className || '일반'}
                                                 </span>
                                                 <span className="badge" style={{ fontSize: '0.65rem', padding: '2px 4px' }}>{getBranchName(log.branchId)}</span>
+
+                                                {/* [NEW] Denied Badge */}
+                                                {log.status === 'denied' && (
+                                                    <span style={{
+                                                        fontSize: '0.65rem',
+                                                        padding: '1px 6px',
+                                                        borderRadius: '10px',
+                                                        background: 'rgba(255, 77, 79, 0.15)',
+                                                        color: '#ff4d4f',
+                                                        border: '1px solid rgba(255, 77, 79, 0.3)',
+                                                        fontWeight: 'bold',
+                                                        display: 'flex', alignItems: 'center', gap: '3px'
+                                                    }}>
+                                                        ⛔ 출석거부 ({log.denialReason === 'expired' ? '기간만료' : '횟수소진'})
+                                                    </span>
+                                                )}
 
                                                 {/* [NEW] Passion Badge for Multi-session */}
                                                 {(log.sessionCount > 1 || log.isMultiSession) && (
@@ -187,8 +205,11 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                                     </span>
                                                 )}
                                             </div>
-                                            <div style={{ fontSize: '0.85rem', opacity: 0.8, marginTop: '2px' }}>
-                                                {log.action?.includes('출석') ? `${log.className || '일반'} 수업 참여 (${log.instructor || '관리자'} 강사님)` : log.action}
+                                            <div style={{ fontSize: '0.85rem', opacity: 0.8, marginTop: '2px', color: log.status === 'denied' ? '#ff4d4f' : 'inherit' }}>
+                                                {log.status === 'denied' 
+                                                    ? `출석 시도가 거부되었습니다 (${log.denialReason === 'expired' ? '기간만료' : '횟수소진'})` 
+                                                    : (log.action?.includes('출석') ? `${log.className || '일반'} 수업 참여 (${log.instructor || '관리자'} 강사님)` : log.action)
+                                                }
                                             </div>
                                         </div>
                                         {log.type === 'checkin' && (

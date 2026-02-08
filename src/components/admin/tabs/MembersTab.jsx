@@ -227,16 +227,31 @@ const MembersTab = ({
                                                     </div>
                                                 )}
                                                 {member.attendanceTime && (
-                                                    <span style={{
-                                                        fontSize: '0.75rem',
-                                                        color: 'rgba(0,0,0,0.85)',
-                                                        background: 'var(--primary-gold)',
-                                                        padding: '2px 8px',
-                                                        borderRadius: '6px',
-                                                        fontWeight: '700'
-                                                    }}>
-                                                        {member.attendanceClass} ({member.attendanceTime})
-                                                    </span>
+                                                    member.attendanceStatus === 'denied' ? (
+                                                        <span style={{
+                                                            fontSize: '0.75rem',
+                                                            color: '#ff4d4f',
+                                                            background: 'rgba(255, 77, 79, 0.15)',
+                                                            border: '1px solid rgba(255, 77, 79, 0.3)',
+                                                            padding: '2px 8px',
+                                                            borderRadius: '6px',
+                                                            fontWeight: '700',
+                                                            display: 'flex', alignItems: 'center', gap: '4px'
+                                                        }}>
+                                                            ⛔ 출석거부 ({member.denialReason === 'expired' ? '기간' : '횟수'})
+                                                        </span>
+                                                    ) : (
+                                                        <span style={{
+                                                            fontSize: '0.75rem',
+                                                            color: 'rgba(0,0,0,0.85)',
+                                                            background: 'var(--primary-gold)',
+                                                            padding: '2px 8px',
+                                                            borderRadius: '6px',
+                                                            fontWeight: '700'
+                                                        }}>
+                                                            {member.attendanceClass} ({member.attendanceTime})
+                                                        </span>
+                                                    )
                                                 )}
                                             </div>
                                             <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>

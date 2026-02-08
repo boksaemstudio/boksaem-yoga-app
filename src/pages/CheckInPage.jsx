@@ -646,8 +646,14 @@ const CheckInPage = () => {
             const result = await storageService.checkInById(member.id, currentBranch);
 
             if (result.success) {
-                // Show success with static message (no AI)
-                showCheckInSuccess(result, null);
+                // [FIX] Check for DENIED status even if success=true (Full Audit)
+                if (result.attendanceStatus === 'denied') {
+                    const reason = result.denialReason === 'expired' ? '기간 만료' : '횟수 소진';
+                    handleCheckInError(`출석이 거부되었습니다. (${reason})`);
+                } else {
+                    // Show success with static message (no AI)
+                    showCheckInSuccess(result, null);
+                }
             } else {
                 handleCheckInError(result.message);
             }
@@ -676,6 +682,8 @@ const CheckInPage = () => {
             displayMsg = date ? `회원권 만료일(${date})이 지났습니다.` : "회원권이 만료되었습니다.";
         } else if (lowerErr.includes("not-found")) {
             displayMsg = "회원 정보를 찾을 수 없습니다.";
+        } else if (lowerErr.includes("거부")) {
+             displayMsg = `⛔ ${errorStr}`; // Special icon for denial
         } else {
             displayMsg += ` (${errorStr})`;
         }
@@ -698,7 +706,13 @@ const CheckInPage = () => {
             console.log(`[CheckIn] SelectMember Result: ${result.success ? 'Success' : 'Fail'}`);
 
             if (result.success) {
-                showCheckInSuccess(result);
+                 // [FIX] Check for DENIED status even if success=true
+                 if (result.attendanceStatus === 'denied') {
+                    const reason = result.denialReason === 'expired' ? '기간 만료' : '횟수 소진';
+                    handleCheckInError(`출석이 거부되었습니다. (${reason})`);
+                } else {
+                    showCheckInSuccess(result);
+                }
             } else {
                 handleCheckInError(result.message);
             }

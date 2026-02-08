@@ -348,7 +348,8 @@ const MeditationPage = ({ onClose }) => {
 
     // 🧠 Initial AI Question Load: Immediate Fetch (All AI)
     useEffect(() => {
-        if (step === 'diagnosis' && chatHistory.length === 0 && !currentAIChat && !isAILoading) {
+        // [FIX] Removed !isAILoading ensure fetch triggers even if initialized as loading
+        if (step === 'diagnosis' && chatHistory.length === 0 && !currentAIChat) {
              fetchAIQuestion(); 
         }
     }, [step, chatHistory.length]);

@@ -130,6 +130,19 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, lo
         return days;
     };
 
+    const isExpiredLog = (log) => {
+        // [FIX] Check for explicit denied status OR date expiration
+        if (log.status === 'denied') return true;
+        
+        if (!member.endDate) return false;
+        const logTime = new Date(log.timestamp).getTime();
+        const endTime = new Date(member.endDate + 'T23:59:59').getTime();
+        return logTime > endTime;
+    };
+
+    const validLogs = logs.filter(log => !isExpiredLog(log));
+    const expiredLogsCount = logs.length - validLogs.length;
+
     return (
         <div className="fade-in">
             {/* Statistics / AI Analysis Panel */}
@@ -157,7 +170,10 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, lo
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <h3 style={{ fontSize: '1.2rem', color: 'var(--primary-gold)', margin: 0 }}>수련 이력</h3>
-                        <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)' }}>총 {logs.length}회</span>
+                        <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)' }}>
+                            정상 {validLogs.length}회 
+                            {expiredLogsCount > 0 && <span style={{ color: '#ff4d4f', marginLeft: '4px' }}>(만료취소 {expiredLogsCount}회)</span>}
+                        </span>
                     </div>
 
                     {/* View Toggle */}
@@ -198,11 +214,35 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, lo
                         {logs.map((log, idx) => {
                             const date = new Date(log.timestamp);
                             const isValidDate = !isNaN(date.getTime());
+                            const isExpired = isExpiredLog(log);
+                            
+                            // Calculate proper index for valid logs
+                            // Assuming logs are sorted descending (latest first)
+                            // We want: Total Valid - (Count of valid logs before this one)
+                            // Simpler: filter validLogs, find index of this log in validLogs?
+                            // Performance: simple filter is fine for small lists
+                            
+                            let displayBadge = "자율수련";
+                            let badgeColor = "var(--primary-gold)";
+                            
+                            if (isExpired) {
+                                if (log.status === 'denied') {
+                                     displayBadge = log.denialReason === 'no_credits' ? "출석거부(횟수소진)" : "출석거부(기간만료)";
+                                } else {
+                                     displayBadge = "출석거부(기간만료)"; // Legacy fallback
+                                }
+                                badgeColor = "#ff4d4f";
+                            } else {
+                                // Find index in validLogs
+                                const validIndex = validLogs.findIndex(l => l.id === log.id);
+                                // Assuming logs are descending, the count is validLogs.length - validIndex
+                                displayBadge = `${validLogs.length - validIndex}회차`;
+                            }
 
                             return (
                                 <div key={log.id} style={{ padding: '15px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--primary-gold)' }}>
+                                        <div style={{ fontSize: '0.8rem', color: isExpired ? '#ff4d4f' : 'var(--primary-gold)' }}>
                                             {isValidDate ? (
                                                 <>
                                                     {new Intl.DateTimeFormat(language === 'ko' ? 'ko-KR' : (language === 'en' ? 'en-US' : (language === 'ru' ? 'ru-RU' : (language === 'zh' ? 'zh-CN' : 'ja-JP'))), { year: 'numeric', month: '2-digit', day: '2-digit' }).format(date)} {date.toLocaleTimeString(language === 'ko' ? 'ko-KR' : (language === 'en' ? 'en-US' : (language === 'ru' ? 'ru-RU' : (language === 'zh' ? 'zh-CN' : 'ja-JP'))), { hour12: false, hour: '2-digit', minute: '2-digit' })}
@@ -211,7 +251,7 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, lo
                                                 <span>Invalid Date</span>
                                             )}
                                         </div>
-                                        <div style={{ fontSize: '1rem', fontWeight: 'bold', color: 'white' }}>
+                                        <div style={{ fontSize: '1rem', fontWeight: 'bold', color: isExpired ? '#rgba(255,255,255,0.5)' : 'white', textDecoration: isExpired ? 'line-through' : 'none' }}>
                                             {log.className || "자율 수련"}
                                             {log.instructor && `(${log.instructor})`}
                                         </div>
@@ -223,14 +263,12 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, lo
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <div style={{ 
                                             fontSize: '0.8rem', 
-                                            color: (member.endDate && new Date(log.timestamp) > new Date(member.endDate + 'T23:59:59')) ? '#ff4d4f' : 'var(--primary-gold)', 
+                                            color: badgeColor, 
                                             border: '1px solid currentColor', 
                                             padding: '2px 8px', 
                                             borderRadius: '10px' 
                                         }}>
-                                            {(member.endDate && new Date(log.timestamp) > new Date(member.endDate + 'T23:59:59')) 
-                                                ? "기간만료" 
-                                                : `${logs.length - idx}회차`}
+                                            {displayBadge}
                                         </div>
                                         {onDelete && (
                                             <button

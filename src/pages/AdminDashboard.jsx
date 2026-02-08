@@ -203,6 +203,8 @@ const AdminDashboard = () => {
                             attendanceTime: new Date(l.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                             attendanceClass: l.className,
                             instructorName: l.instructor, // Add instructor info
+                            attendanceStatus: l.status, // Pass status
+                            denialReason: l.denialReason, // Pass reason
                             originalLog: l
                         });
                     }
