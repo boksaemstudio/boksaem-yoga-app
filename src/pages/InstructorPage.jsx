@@ -603,9 +603,12 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading }) => {
                             {currentMatch.instructor} 선생님 ({currentMatch.branch})
                         </div>
                         <div style={{ fontSize: '0.9rem', color: 'white' }}>{currentMatch.title}</div>
-                        <div style={{ fontSize: '0.8rem', color: '#4CAF50', marginTop: '6px', fontFamily: 'monospace' }}>
-                            ✅ 로직: {currentMatch.debugReason}
-                        </div>
+                        {currentMatch.debugReason && (
+                            <div style={{ fontSize: '0.85rem', color: '#4CAF50', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{ opacity: 0.8 }}>상태:</span>
+                                <span style={{ fontWeight: 'bold' }}>{currentMatch.debugReason}</span>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div>

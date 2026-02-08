@@ -1185,7 +1185,7 @@ const MeditationPage = ({ onClose }) => {
                     {isAILoading && (
                          <div style={{ alignSelf: 'center', padding: '6px 12px', borderRadius: '12px', fontSize: '0.8rem', color: 'var(--primary-gold)', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                              <div className="typing-indicator"><span></span><span></span><span></span></div>
-                             {chatHistory.length === 0 ? "복순이가 준비하고 있어요..." : "답변을 생각하는 중..."}
+                             {chatHistory.length === 0 ? "AI 복순이가 준비하고 있어요..." : "답변을 생각하는 중..."}
                          </div>
                     )}
                     <div ref={chatEndRef} style={{ height: '2px', width: '100%' }} />
@@ -1202,7 +1202,7 @@ const MeditationPage = ({ onClose }) => {
                 }}>
                     {/* A. Quick Options */}
                     {!isAILoading && currentAIChat?.options && (
-                        <div className="no-scrollbar" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '10px', scrollbarWidth: 'none', justifyContent: 'flex-start' }}>
+                        <div className="no-scrollbar" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '10px', paddingRight: '20px', scrollbarWidth: 'none', justifyContent: 'flex-start' }}>
                             {currentAIChat.options.map((opt, i) => (
                                 <button
                                     key={i}
@@ -1385,7 +1385,7 @@ const MeditationPage = ({ onClose }) => {
                     }}>
                         {/* 1. AI Analysis Analysis (Prioritized) */}
                         <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '15px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)', lineHeight: 1.6 }}>
-                            <div style={{ color: 'var(--primary-gold)', fontWeight: 700, marginBottom: '8px', fontSize: '0.85rem' }}>📋 복순이의 심리 분석</div>
+                            <div style={{ color: 'var(--primary-gold)', fontWeight: 700, marginBottom: '8px', fontSize: '0.85rem' }}>📋 AI 복순이의 심리 분석</div>
                             {currentAIChat?.isFinalAnalysis ? (
                                 <div>{currentAIChat.analysisSummary || prescriptionReason}</div>
                             ) : (

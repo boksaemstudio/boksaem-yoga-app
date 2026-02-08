@@ -1,6 +1,6 @@
 
 // ==========================================
-// 🧘 복순 AI 명상 가이드 - CONFIG
+// 🧘 AI 복순 명상 가이드 - CONFIG
 // "지금의 당신을 듣고, 지금의 명상을 만듭니다."
 // ==========================================
 
@@ -12,7 +12,7 @@ export const MEDITATION_MODES = [
 
 // Interaction Types - Bio-Feedback Loop
 export const INTERACTION_TYPES = {
-    v1: { id: 'v1', label: '고요한 안내', desc: '복순이의 목소리가 안정된 상태로 데려갑니다', iconName: 'Wind' },
+    v1: { id: 'v1', label: '고요한 안내', desc: 'AI 복순이의 목소리가 안정된 상태로 데려갑니다', iconName: 'Wind' },
     v2: { id: 'v2', label: '호흡의 파도', desc: '당신의 숨이 파동이 됩니다', iconName: 'Microphone' },
     v3: { id: 'v3', label: '거울 명상', desc: '자세를 바로잡고 깊이 들어갑니다', iconName: 'VideoCamera' }
 };

@@ -417,7 +417,7 @@ export const storageService = {
       // Even if the previous class is running late, the new arrival is likely for this new class.
       if (currentMinutes >= startMinutes - 30 && currentMinutes < startMinutes) {
         selectedClass = cls;
-        logicReason = `Upcoming (30min rule): ${cls.time}`;
+        logicReason = `수업 예정: ${cls.time}`;
         break; // Found highest priority, stop.
       }
 
@@ -438,13 +438,13 @@ export const storageService = {
               // Overlap! The next class is starting soon (<30m).
               // User policy: "Assign to NEXT instructor".
               selectedClass = nextCls;
-              logicReason = `Overlap Priority (Next Class): ${nextCls.time}`;
+              logicReason = `다음 수업 우선: ${nextCls.time}`;
               break; 
            }
         }
 
         selectedClass = cls;
-        logicReason = `Ongoing: ${cls.time}`;
+        logicReason = `수업 진행 중: ${cls.time}`;
         break; 
       }
 
@@ -466,7 +466,7 @@ export const storageService = {
 
          if (!isBlocked) {
             selectedClass = cls;
-            logicReason = `Early Bird (60min): ${cls.time}`;
+            logicReason = `조기 출석: ${cls.time}`;
             break;
          }
       }
