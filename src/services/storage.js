@@ -490,6 +490,29 @@ export const storageService = {
     return null;
   },
 
+  async getDailyClasses(branchId, instructorName = null) {
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+    const cacheKey = `${branchId}_${today}`;
+    
+    if (!cachedDailyClasses[cacheKey]) {
+      try {
+        const docRef = doc(db, 'daily_classes', cacheKey);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) cachedDailyClasses[cacheKey] = docSnap.data().classes;
+        else cachedDailyClasses[cacheKey] = [];
+      } catch { return []; }
+    }
+    
+    let classes = (cachedDailyClasses[cacheKey] || [])
+      .filter(c => c.status !== 'cancelled');
+
+    if (instructorName) {
+      classes = classes.filter(c => c.instructor === instructorName);
+    }
+
+    return classes.sort((a, b) => a.time.localeCompare(b.time));
+  },
+
   async saveToken(token, role = 'member', language = 'ko') {
     if (!token) return;
     try {

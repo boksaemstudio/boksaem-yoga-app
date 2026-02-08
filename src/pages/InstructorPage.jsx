@@ -437,7 +437,7 @@ const InstructorNotices = () => {
 };
 
 // === Home Tab ===
-const InstructorHome = ({ instructorName, attendance, attendanceLoading }) => {
+const InstructorHome = ({ instructorName, attendance, attendanceLoading, instructorClasses = [] }) => {
     const [pushEnabled, setPushEnabled] = useState(false);
     const [pushLoading, setPushLoading] = useState(false);
     const [pushMessage, setPushMessage] = useState('');
@@ -541,32 +541,74 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading }) => {
     const ghcAttendance = attendance.filter(r => r.branchName === '광흥창점' || r.branchId === 'gwangheungchang');
     const mapoAttendance = attendance.filter(r => r.branchName === '마포점' || r.branchId === 'mapo');
 
-    const renderAttendanceList = (list, title, color) => {
-        if (list.length === 0) return null; // Hide branch if no attendance
+    const renderAttendanceList = (list, title, color, branchId) => {
+        const branchClasses = instructorClasses.filter(c => c.branchId === branchId);
         
+        // Hide only if both attendance AND classes are empty
+        if (list.length === 0 && branchClasses.length === 0) return null;
+        
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+        const getStatus = (timeStr, duration = 60) => {
+            const [h, m] = timeStr.split(':').map(Number);
+            const start = h * 60 + m;
+            const end = start + duration;
+            if (currentMinutes < start) return { label: '예정', color: '#FFD93D' };
+            if (currentMinutes >= start && currentMinutes < end) return { label: '진행 중', color: '#4CAF50' };
+            return { label: '종료', color: 'gray' };
+        };
+
         return (
-            <div style={{ marginTop: '16px', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px' }}>
-                <h4 style={{ margin: '0 0 10px', fontSize: '0.9rem', color: color, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: color }} />
-                    {title} <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>({list.length}명)</span>
+            <div style={{ marginTop: '16px', background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <h4 style={{ margin: '0 0 12px', fontSize: '0.95rem', color: color, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: color }} />
+                        {title}
+                    </div>
+                    <span style={{ opacity: 0.6, fontSize: '0.8rem', fontWeight: 'normal' }}>총 {list.length}명 출석</span>
                 </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {list.map((record, idx) => (
-                        <div key={record.id || idx} style={{ 
-                            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                            padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px',
-                            borderLeft: `2px solid ${color}`
-                        }}>
-                            <div>
-                                <div style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{record.memberName}</div>
-                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{record.className}</div>
+
+                {/* 오늘 수업 목록 */}
+                <div style={{ marginBottom: '16px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {branchClasses.map((cls, idx) => {
+                        const status = getStatus(cls.time, cls.duration);
+                        return (
+                            <div key={idx} style={{ 
+                                background: 'rgba(255,255,255,0.05)', padding: '6px 10px', borderRadius: '6px',
+                                fontSize: '0.75rem', border: `1px solid ${status.color}44`, display: 'flex', alignItems: 'center', gap: '6px'
+                            }}>
+                                <span style={{ color: status.color, fontWeight: 'bold' }}>• {status.label}</span>
+                                <span style={{ color: 'white' }}>{cls.time} {cls.title}</span>
                             </div>
-                            <div style={{ color: 'var(--primary-gold)', fontWeight: 'bold', fontSize: '0.85rem' }}>
-                                {record.timestamp?.split('T')[1]?.slice(0, 5) || ''}
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
+
+                {/* 출석 명단 */}
+                {list.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {list.map((record, idx) => (
+                            <div key={record.id || idx} style={{ 
+                                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px',
+                                borderLeft: `2px solid ${color}`
+                            }}>
+                                <div>
+                                    <div style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{record.memberName}</div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{record.className}</div>
+                                </div>
+                                <div style={{ color: 'var(--primary-gold)', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                                    {record.timestamp?.split('T')[1]?.slice(0, 5) || ''}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', padding: '8px', textAlign: 'center', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '6px' }}>
+                        출석 데이터가 없습니다
+                    </div>
+                )}
             </div>
         );
     };
@@ -629,8 +671,8 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading }) => {
                     <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '20px' }}>로딩 중...</div>
                 ) : (
                     <>
-                        {renderAttendanceList(ghcAttendance, '광흥창점', 'var(--primary-gold)')}
-                        {renderAttendanceList(mapoAttendance, '마포점', '#FF6B6B')}
+                        {renderAttendanceList(ghcAttendance, '광흥창점', 'var(--primary-gold)', 'gwangheungchang')}
+                        {renderAttendanceList(mapoAttendance, '마포점', '#FF6B6B', 'mapo')}
                     </>
                 )}
             </div>
@@ -697,6 +739,7 @@ const InstructorPage = () => {
     
     // Attendance State (Global)
     const [attendance, setAttendance] = useState([]);
+    const [instructorClasses, setInstructorClasses] = useState([]);
     const [attendanceLoading, setAttendanceLoading] = useState(true);
     const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
     const hour = new Date().getHours();
@@ -729,21 +772,35 @@ const InstructorPage = () => {
 
         const loadAttendance = async () => {
             try {
-                const promises = branches.map(b => storageService.getAttendanceByDate(todayStr, b.id));
-                const results = await Promise.all(promises);
+                const attendancePromises = branches.map(b => storageService.getAttendanceByDate(todayStr, b.id));
+                const classPromises = branches.map(b => storageService.getDailyClasses(b.id, instructorName));
+                
+                const [attendanceResults, classResults] = await Promise.all([
+                    Promise.all(attendancePromises),
+                    Promise.all(classPromises)
+                ]);
                 
                 let allAttendance = [];
-                results.forEach((data, idx) => {
+                attendanceResults.forEach((data, idx) => {
                     const branchName = branches[idx].name;
                     const branchId = branches[idx].id;
                     const branchRecords = (data || []).map(r => ({ ...r, branchName, branchId }));
                     allAttendance = [...allAttendance, ...branchRecords];
                 });
 
+                let allMyClasses = [];
+                classResults.forEach((data, idx) => {
+                    const branchName = branches[idx].name;
+                    const branchId = branches[idx].id;
+                    const branchClasses = (data || []).map(c => ({ ...c, branchName, branchId }));
+                    allMyClasses = [...allMyClasses, ...branchClasses];
+                });
+
                 const myAttendance = allAttendance.filter(a => a.instructor === instructorName);
                 myAttendance.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                 
                 setAttendance(myAttendance);
+                setInstructorClasses(allMyClasses);
             } catch (e) {
                 console.error('Failed to load attendance:', e);
             } finally {
@@ -864,7 +921,7 @@ const InstructorPage = () => {
 
             {/* Content Area */}
             <div style={{ position: 'relative', zIndex: 1, minHeight: 'calc(100vh - 220px)' }}>
-                {activeTab === 'home' && <InstructorHome instructorName={instructorName} attendance={attendance} attendanceLoading={attendanceLoading} />}
+                {activeTab === 'home' && <InstructorHome instructorName={instructorName} attendance={attendance} attendanceLoading={attendanceLoading} instructorClasses={instructorClasses} />}
                 {activeTab === 'schedule' && <InstructorSchedule instructorName={instructorName} />}
                 {activeTab === 'notices' && <InstructorNotices />}
             </div>
