@@ -635,8 +635,23 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                                 borderLeft: `2px solid ${color}`
                             }}>
                                 <div>
-                                    <div style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{record.memberName}</div>
-                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{record.className}</div>
+                                    <div style={{ fontWeight: 'bold', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        {record.memberName}
+                                        {record.cumulativeCount >= 1 && record.cumulativeCount <= 3 && (
+                                            <span style={{ fontSize: '0.7rem', background: '#ff4757', color: 'white', padding: '1px 4px', borderRadius: '4px' }}>
+                                                새얼굴 {record.cumulativeCount}회차
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', gap: '8px', marginTop: '2px' }}>
+                                        <span>{record.className}</span>
+                                        {(record.credits !== undefined || record.endDate) && (
+                                            <span style={{ color: 'var(--primary-gold)', opacity: 0.9 }}>
+                                                {record.credits !== undefined && `${record.credits}회 `}
+                                                {record.endDate && `/ ~${record.endDate.slice(2)}`}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                                 <div style={{ color: 'var(--primary-gold)', fontWeight: 'bold', fontSize: '0.85rem' }}>
                                     {record.timestamp?.split('T')[1]?.slice(0, 5) || ''}
@@ -667,8 +682,26 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                     <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '20px' }}>로딩 중...</div>
                 ) : (
                     <>
-                        {renderAttendanceList(ghcAttendance, '광흥창점', 'var(--primary-gold)', 'gwangheungchang')}
-                        {renderAttendanceList(mapoAttendance, '마포점', '#FF6B6B', 'mapo')}
+                        {ghcAttendance.length === 0 && mapoAttendance.length === 0 && instructorClasses.length === 0 ? (
+                            <div style={{ 
+                                textAlign: 'center', 
+                                padding: '40px 20px', 
+                                color: 'var(--text-secondary)',
+                                background: 'rgba(255,255,255,0.02)',
+                                borderRadius: '12px',
+                                marginTop: '10px',
+                                border: '1px dashed rgba(255,255,255,0.1)'
+                            }}>
+                                <div style={{ fontSize: '2rem', marginBottom: '12px' }}>☕</div>
+                                <div style={{ fontSize: '0.95rem', fontWeight: 'bold', color: 'white', marginBottom: '4px' }}>오늘은 수업 일정이 없습니다</div>
+                                <div style={{ fontSize: '0.85rem', opacity: 0.7 }}>편안한 휴식과 충전의 시간 되시길 바랍니다!</div>
+                            </div>
+                        ) : (
+                            <>
+                                {renderAttendanceList(ghcAttendance, '광흥창점', 'var(--primary-gold)', 'gwangheungchang')}
+                                {renderAttendanceList(mapoAttendance, '마포점', '#FF6B6B', 'mapo')}
+                            </>
+                        )}
                     </>
                 )}
             </div>
@@ -737,7 +770,7 @@ const InstructorPage = () => {
     const [attendance, setAttendance] = useState([]);
     const [instructorClasses, setInstructorClasses] = useState([]);
     const [attendanceLoading, setAttendanceLoading] = useState(true);
-    const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+    const todayStr = useMemo(() => new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }), []);
     const hour = new Date().getHours();
 
     const branches = useMemo(() => [
@@ -766,12 +799,21 @@ const InstructorPage = () => {
     useEffect(() => {
         if (!instructorName) return;
 
-        // 1. Initial Load for Classes (Schedules are relatively static for the day)
-        const loadClasses = async () => {
+        // 1. Initial Load for Classes & Attendance (Baseline)
+        const loadInitialData = async () => {
             try {
+                // Fetch Classes (Static for the day)
                 const classPromises = branches.map(b => storageService.getDailyClasses(b.id, instructorName));
-                const classResults = await Promise.all(classPromises);
                 
+                // Fetch Attendance (Baseline)
+                const attendancePromises = branches.map(b => storageService.getAttendanceByDate(todayStr, b.id));
+
+                const [classResults, attendanceResults] = await Promise.all([
+                    Promise.all(classPromises),
+                    Promise.all(attendancePromises)
+                ]);
+                
+                // Process Classes
                 let allMyClasses = [];
                 classResults.forEach((data, idx) => {
                     const branchName = branches[idx].name;
@@ -780,14 +822,30 @@ const InstructorPage = () => {
                     allMyClasses = [...allMyClasses, ...branchClasses];
                 });
                 setInstructorClasses(allMyClasses);
+
+                // Process Attendance Baseline
+                let allBaselineAttendance = [];
+                attendanceResults.forEach((data, idx) => {
+                    const branchName = branches[idx].name;
+                    const branchId = branches[idx].id;
+                    const branchRecords = (data || [])
+                        .filter(r => r.instructor === instructorName)
+                        .map(r => ({ ...r, branchName, branchId }));
+                    allBaselineAttendance = [...allBaselineAttendance, ...branchRecords];
+                });
+                
+                setAttendance(allBaselineAttendance.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
+                setAttendanceLoading(false); // Initial load done
             } catch (e) {
-                console.error('Failed to load classes:', e);
+                console.error('Failed to load initial data:', e);
+                setAttendanceLoading(false);
             }
         };
 
-        loadClasses();
+        loadInitialData();
 
         // 2. Real-time Subscription for Attendance
+        // We still keep the subscription to get instant updates
         const unsubscribes = branches.map(branch => {
             return storageService.subscribeAttendance(todayStr, branch.id, (records) => {
                 setAttendance(prev => {
@@ -802,11 +860,17 @@ const InstructorPage = () => {
                     merged.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                     return merged;
                 });
-                setAttendanceLoading(false);
+                setAttendanceLoading(false); // Subscription update also clears loading if not already cleared
             });
         });
 
-        return () => unsubscribes.forEach(unsub => unsub());
+        // SAFETY: Fallback to stop loading even if everything hangs
+        const loadingSafetyTimeout = setTimeout(() => setAttendanceLoading(false), 5000);
+
+        return () => {
+            unsubscribes.forEach(unsub => unsub());
+            clearTimeout(loadingSafetyTimeout);
+        };
     }, [instructorName, todayStr, branches]);
 
     // Initialize AI Greeting (Instant + Fetch)

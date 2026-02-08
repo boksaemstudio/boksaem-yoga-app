@@ -131,6 +131,11 @@ exports.checkInMemberV2Call = onCall({
             attendanceData.denialReason = denialReason;
         }
 
+        // [NEW] Include credits and expiry for instructor view
+        attendanceData.credits = attendanceStatus === 'valid' ? currentCredits - 1 : currentCredits;
+        attendanceData.endDate = memberData.endDate;
+        attendanceData.cumulativeCount = attendanceStatus === 'valid' ? currentCount + 1 : currentCount;
+
         const docRef = await db.collection('attendance').add(attendanceData);
 
         // Update member stats ONLY if valid
@@ -265,15 +270,37 @@ exports.onAttendanceCreated = onDocumentCreated("attendance/{attendanceId}", asy
                     const className = attendance.className || '수업';
 
                     const tokens = instructorTokensSnap.docs.map(doc => doc.data().token).filter(Boolean);
+                    
+                    // [NEW] Get Member Rank Label (새얼굴 1~3회차)
+                    let rankLabel = '';
+                    const totalCount = attendance.cumulativeCount || 0;
+                    if (totalCount >= 1 && totalCount <= 3) {
+                        rankLabel = ` [새얼굴 ${totalCount}회차]`;
+                    }
+
+                    // Prepare message details
+                    let body = `${memberName}님이 출석하셨습니다.`;
+                    if (attendance.credits !== undefined || attendance.endDate) {
+                        const credits = attendance.credits !== undefined ? `${attendance.credits}회 남음` : '';
+                        const expiry = attendance.endDate ? `(~${attendance.endDate.slice(2)})` : '';
+                        body = `${className} | ${credits} ${expiry}`;
+                    }
+
                     for (const token of tokens) {
                         try {
                             await admin.messaging().send({
                                 token,
                                 notification: {
-                                    title: `${className} 출석`,
-                                    body: `${memberName}님이 출석하셨습니다.`
+                                    title: `🧘‍♀️ ${memberName}${rankLabel}님 출석`,
+                                    body: `${className} | ${credits} ${expiry}`
                                 },
-                                webpush: { notification: { icon: '/logo_circle.png' } }
+                                webpush: { 
+                                    notification: { 
+                                        icon: 'https://boksaem-yoga.web.app/logo_circle.png',
+                                        badge: 'https://boksaem-yoga.web.app/logo_circle.png'
+                                    },
+                                    fcm_options: { link: 'https://boksaem-yoga.web.app/instructor' }
+                                }
                             });
                         } catch (sendError) {
                             if (sendError.code === 'messaging/invalid-registration-token') {
