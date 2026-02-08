@@ -373,7 +373,7 @@ export const storageService = {
     }
   },
 
-  async getCurrentClass(branchId) {
+  async getCurrentClass(branchId, instructorName = null) {
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
     const cacheKey = `${branchId}_${today}`;
     
@@ -387,10 +387,16 @@ export const storageService = {
       } catch { return null; }
     }
     
-    // [LOGIC] 2. Sort Classes by Time
-    const classes = (cachedDailyClasses[cacheKey] || [])
-      .filter(c => c.status !== 'cancelled')
-      .sort((a, b) => a.time.localeCompare(b.time));
+    // [LOGIC] 2. Filter & Sort Classes by Time
+    let classes = (cachedDailyClasses[cacheKey] || [])
+      .filter(c => c.status !== 'cancelled');
+
+    // Filter by instructor if provided (Smart Filter)
+    if (instructorName) {
+      classes = classes.filter(c => c.instructor === instructorName);
+    }
+
+    classes.sort((a, b) => a.time.localeCompare(b.time));
 
     if (classes.length === 0) return null;
 

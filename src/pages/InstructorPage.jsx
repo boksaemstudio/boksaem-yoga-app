@@ -483,10 +483,10 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading }) => {
     useEffect(() => {
         const checkLogic = async () => {
             const branchId = 'mapo'; 
-            const match = await storageService.getCurrentClass(branchId);
+            const match = await storageService.getCurrentClass(branchId, instructorName);
             
             if (!match) {
-                 const match2 = await storageService.getCurrentClass('gwangheungchang');
+                 const match2 = await storageService.getCurrentClass('gwangheungchang', instructorName);
                  if (match2) setCurrentMatch({ ...match2, branch: '광흥창점' });
                  else setCurrentMatch(null);
             } else {
@@ -541,15 +541,15 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading }) => {
     const ghcAttendance = attendance.filter(r => r.branchName === '광흥창점' || r.branchId === 'gwangheungchang');
     const mapoAttendance = attendance.filter(r => r.branchName === '마포점' || r.branchId === 'mapo');
 
-    const renderAttendanceList = (list, title, color) => (
-        <div style={{ marginTop: '16px', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px' }}>
-            <h4 style={{ margin: '0 0 10px', fontSize: '0.9rem', color: color, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: color }} />
-                {title} <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>({list.length}명)</span>
-            </h4>
-            {list.length === 0 ? (
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic', paddingLeft: '14px' }}>출석한 회원이 없습니다</div>
-            ) : (
+    const renderAttendanceList = (list, title, color) => {
+        if (list.length === 0) return null; // Hide branch if no attendance
+        
+        return (
+            <div style={{ marginTop: '16px', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px' }}>
+                <h4 style={{ margin: '0 0 10px', fontSize: '0.9rem', color: color, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: color }} />
+                    {title} <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>({list.length}명)</span>
+                </h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {list.map((record, idx) => (
                         <div key={record.id || idx} style={{ 
@@ -567,9 +567,9 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading }) => {
                         </div>
                     ))}
                 </div>
-            )}
-        </div>
-    );
+            </div>
+        );
+    };
 
     return (
         <div style={{ padding: '16px' }}>
@@ -621,7 +621,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading }) => {
             {/* Attendance */}
             <div style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '12px', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <h3 style={{ margin: 0, fontSize: '1rem' }}>📋 오늘 출석현황</h3>
+                    <h3 style={{ margin: 0, fontSize: '1rem' }}>📋 나의 오늘 출석현황</h3>
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{todayStr} ({attendance.length}명)</span>
                 </div>
                 
@@ -640,7 +640,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading }) => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
                     {pushEnabled ? <BellRinging size={24} color="var(--primary-gold)" weight="fill" /> : <Bell size={24} color="var(--text-secondary)" />}
                     <div>
-                        <h3 style={{ margin: 0, fontSize: '1rem' }}>출석 알림</h3>
+                        <h3 style={{ margin: 0, fontSize: '1rem' }}>나의 수업 출석회원 알림</h3>
                         <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                             회원 출석 시 알림 받기
                         </p>
