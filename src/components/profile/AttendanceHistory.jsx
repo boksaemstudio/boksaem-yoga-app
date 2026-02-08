@@ -221,7 +221,17 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, lo
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--primary-gold)', border: '1px solid currentColor', padding: '2px 8px', borderRadius: '10px' }}>{logs.length - idx}회차</div>
+                                        <div style={{ 
+                                            fontSize: '0.8rem', 
+                                            color: (member.endDate && new Date(log.timestamp) > new Date(member.endDate + 'T23:59:59')) ? '#ff4d4f' : 'var(--primary-gold)', 
+                                            border: '1px solid currentColor', 
+                                            padding: '2px 8px', 
+                                            borderRadius: '10px' 
+                                        }}>
+                                            {(member.endDate && new Date(log.timestamp) > new Date(member.endDate + 'T23:59:59')) 
+                                                ? "기간만료" 
+                                                : `${logs.length - idx}회차`}
+                                        </div>
                                         {onDelete && (
                                             <button
                                                 onClick={() => onDelete(log.id)}
