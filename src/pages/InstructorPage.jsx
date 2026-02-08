@@ -102,6 +102,9 @@ const InstructorSchedule = ({ instructorName }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [monthlyData, setMonthlyData] = useState({});
     const [selectedDate, setSelectedDate] = useState(null);
+    const [dateAttendance, setDateAttendance] = useState([]);
+    const [expandedClassKey, setExpandedClassKey] = useState(null); // time_title
+    const [loadingAttendance, setLoadingAttendance] = useState(false);
 
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth() + 1;
@@ -137,6 +140,30 @@ const InstructorSchedule = ({ instructorName }) => {
         };
         loadData();
     }, [year, month, branches]);
+
+    // Load Attendance for selected date
+    useEffect(() => {
+        if (!selectedDate) return;
+        
+        const loadDateAttendance = async () => {
+            setLoadingAttendance(true);
+            try {
+                const promises = branches.map(b => storageService.getAttendanceByDate(selectedDate, b.id));
+                const results = await Promise.all(promises);
+                let all = [];
+                results.forEach(data => {
+                    all = [...all, ...(data || [])];
+                });
+                setDateAttendance(all);
+            } catch (e) {
+                console.error('Failed to load date attendance:', e);
+            } finally {
+                setLoadingAttendance(false);
+            }
+        };
+        loadDateAttendance();
+        setExpandedClassKey(null); // Reset expansion on date change
+    }, [selectedDate, branches]);
 
     const daysInMonth = new Date(year, month, 0).getDate();
     const firstDay = new Date(year, month - 1, 1).getDay();
@@ -328,12 +355,20 @@ const InstructorSchedule = ({ instructorName }) => {
                                 return (
                                     <div
                                         key={idx}
+                                        onClick={() => {
+                                            if (!isCancelled && cls.instructor === instructorName) {
+                                                const key = `${cls.time}_${cls.title}`;
+                                                setExpandedClassKey(expandedClassKey === key ? null : key);
+                                            }
+                                        }}
                                         style={{
                                             padding: '12px', borderRadius: '8px',
                                             background: isCancelled ? 'rgba(255, 71, 87, 0.1)' : cls.instructor === instructorName ? 'rgba(212, 175, 55, 0.1)' : 'var(--bg-input)',
                                             borderLeft: `4px solid ${isCancelled ? '#ff4757' : (cls.branchColor || 'var(--primary-gold)')}`,
                                             position: 'relative',
-                                            opacity: isCancelled ? 0.7 : 1
+                                            opacity: isCancelled ? 0.7 : 1,
+                                            cursor: (!isCancelled && cls.instructor === instructorName) ? 'pointer' : 'default',
+                                            border: (expandedClassKey === `${cls.time}_${cls.title}`) ? `1px solid ${cls.branchColor}` : 'none'
                                         }}
                                     >
                                         <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', gap: '6px' }}>
@@ -363,12 +398,39 @@ const InstructorSchedule = ({ instructorName }) => {
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                                             <span style={{ fontWeight: 'bold', fontSize: '1.1rem', textDecoration: isCancelled ? 'line-through' : 'none' }}>{cls.time}</span>
-                                            {cls.instructor === instructorName && !isCancelled && <span style={{ fontSize: '0.75rem', background: 'var(--primary-gold)', color: 'black', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>ME</span>}
+                                            {cls.instructor === instructorName && !isCancelled && <span style={{ fontSize: '0.75rem', background: 'var(--primary-gold)', color: 'black', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>내 수업</span>}
                                         </div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <div style={{ fontSize: '0.95rem', textDecoration: isCancelled ? 'line-through' : 'none', color: isCancelled ? 'var(--text-secondary)' : 'var(--text-primary)' }}>{cls.title}</div>
                                             <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginRight: isCancelled ? '0' : '60px' }}>{cls.instructor}</span>
                                         </div>
+
+                                        {/* Attendee List Expansion */}
+                                        {expandedClassKey === `${cls.time}_${cls.title}` && (
+                                            <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--primary-gold)', marginBottom: '8px', fontWeight: 'bold' }}>👥 출석 명단</div>
+                                                {loadingAttendance ? (
+                                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>조회 중...</div>
+                                                ) : (
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                        {dateAttendance
+                                                            .filter(a => a.className === cls.title && a.instructor === cls.instructor)
+                                                            .length === 0 ? (
+                                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>출석 회원이 없습니다</div>
+                                                        ) : (
+                                                            dateAttendance
+                                                                .filter(a => a.className === cls.title && a.instructor === cls.instructor)
+                                                                .map((att, aidx) => (
+                                                                    <div key={att.id || aidx} style={{ display: 'flex', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '6px 10px', borderRadius: '4px' }}>
+                                                                        <span style={{ fontSize: '0.85rem' }}>{att.memberName}</span>
+                                                                        <span style={{ fontSize: '0.8rem', color: 'var(--primary-gold)' }}>{att.timestamp?.split('T')[1]?.slice(0, 5)}</span>
+                                                                    </div>
+                                                                ))
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -445,9 +507,6 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
     const [isStandalone, setIsStandalone] = useState(false);
     const [deviceOS, setDeviceOS] = useState('unknown');
     
-    // [NEW] Smart Logic Debug State
-    const [currentMatch, setCurrentMatch] = useState(null);
-    
     const todayStr = new Date().toISOString().split('T')[0];
 
     useEffect(() => {
@@ -477,25 +536,6 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
         };
     }, []);
 
-    // [PERF] checkLogic moved to parent InstructorPage for unified interval
-    // getCurrentClass result is passed via props or context if needed
-    // For now, we keep a local effect that runs once + on attendance change
-    useEffect(() => {
-        const checkLogic = async () => {
-            const branchId = 'mapo'; 
-            const match = await storageService.getCurrentClass(branchId, instructorName);
-            
-            if (!match) {
-                 const match2 = await storageService.getCurrentClass('gwangheungchang', instructorName);
-                 if (match2) setCurrentMatch({ ...match2, branch: '광흥창점' });
-                 else setCurrentMatch(null);
-            } else {
-                 setCurrentMatch({ ...match, branch: '마포점' });
-            }
-        };
-        checkLogic();
-        // [PERF] Removed separate 30s interval - now synced with attendance refresh
-    }, [attendance]); // Re-check when attendance updates
 
     const handleEnablePush = async () => {
         setPushLoading(true);
@@ -615,50 +655,6 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
 
     return (
         <div style={{ padding: '16px' }}>
-            {/* Logic Status Monitor */}
-            <div style={{ 
-                background: 'linear-gradient(145deg, rgba(30, 30, 40, 0.9), rgba(20, 20, 30, 0.95))', 
-                border: '2px solid var(--primary-gold)', 
-                boxShadow: '0 0 20px rgba(212, 175, 55, 0.2)', // Soft gold glow
-                padding: '16px', 
-                borderRadius: '16px', // Slightly more rounded
-                marginBottom: '16px',
-                position: 'relative',
-                overflow: 'hidden'
-            }}>
-                <div style={{ // Subtle shine effect overlay
-                    position: 'absolute',
-                    top: '-50%',
-                    left: '-50%',
-                    width: '200%',
-                    height: '200%',
-                    background: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%)',
-                    pointerEvents: 'none',
-                    transform: 'translate(0, 0)'
-                }} />
-                <h3 style={{ margin: '0 0 8px', fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    🕒 현재 출석 매칭 시스템
-                </h3>
-                {currentMatch ? (
-                    <div>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--primary-gold)', marginBottom: '4px' }}>
-                            {currentMatch.instructor} 선생님 ({currentMatch.branch})
-                        </div>
-                        <div style={{ fontSize: '0.9rem', color: 'white' }}>{currentMatch.title}</div>
-                        {currentMatch.debugReason && (
-                            <div style={{ fontSize: '0.85rem', color: '#4CAF50', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <span style={{ opacity: 0.8 }}>상태:</span>
-                                <span style={{ fontWeight: 'bold' }}>{currentMatch.debugReason}</span>
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <div>
-                        <div style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>현재 진행/대기 중인 수업 없음</div>
-                        <div style={{ fontSize: '0.8rem', color: 'gray', marginTop: '4px' }}>자율수련 모드로 동작 중</div>
-                    </div>
-                )}
-            </div>
 
             {/* Attendance */}
             <div style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '12px', marginBottom: '16px' }}>
