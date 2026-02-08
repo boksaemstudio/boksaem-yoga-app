@@ -38,6 +38,9 @@
       } else if (path.indexOf('/member') === 0) {
         manifestFile = '/manifest-member.json';
         appTitle = '내요가';
+      } else if (path.indexOf('/instructor') === 0) {
+        manifestFile = '/manifest-instructor.json';
+        appTitle = '복샘요가강사';
       }
 
       // Manifest 주입

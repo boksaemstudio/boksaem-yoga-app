@@ -38,6 +38,9 @@ export const PWAProvider = ({ children }) => {
         } else if (path.startsWith('/member')) {
             manifestFile = '/manifest-member.json';
             appTitle = '내요가';
+        } else if (path.startsWith('/instructor')) {
+            manifestFile = '/manifest-instructor.json';
+            appTitle = '복샘요가강사';
         }
 
         // Update manifest link
