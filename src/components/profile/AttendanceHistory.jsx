@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Icons } from '../CommonIcons';
 import { getTranslatedClass } from '../../utils/classMapping';
 import { getHolidayName } from '../../utils/holidays';
+import { STUDIO_CONFIG } from '../../studioConfig';
 
 
 const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, logLimit, setLogLimit }) => {
@@ -105,22 +106,26 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, lo
                             gap: '2px',
                             overflow: 'hidden'
                         }}>
-                            {dayLogs.map((log, idx) => (
-                                <div key={idx} style={{
-                                    fontSize: '0.65rem',
-                                    background: 'var(--primary-gold)',
-                                    color: 'black',
-                                    padding: '2px 4px',
-                                    borderRadius: '4px',
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    fontWeight: 'bold',
-                                    textAlign: 'center'
-                                }}>
-                                    {log.className ? getTranslatedClass(log.className, t) : t('selfPractice')}
-                                </div>
-                            ))}
+                            {dayLogs.map((log, idx) => {
+                                const branchConfig = STUDIO_CONFIG.BRANCHES.find(b => b.id === log.branchId);
+                                const badgeColor = branchConfig ? branchConfig.color : 'var(--primary-gold)';
+                                return (
+                                    <div key={idx} style={{
+                                        fontSize: '0.65rem',
+                                        background: badgeColor,
+                                        color: 'black', // Assuming both Gold and Blue provide good contrast with black, or adapt if needed
+                                        padding: '2px 4px',
+                                        borderRadius: '4px',
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        fontWeight: 'bold',
+                                        textAlign: 'center'
+                                    }}>
+                                        {log.className ? getTranslatedClass(log.className, t) : t('selfPractice')}
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
@@ -314,6 +319,16 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, lo
                 ) : (
                     /* Calendar View Implementation */
                     <div className="fade-in">
+                        {/* Legend for Branches */}
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginBottom: '15px' }}>
+                            {STUDIO_CONFIG.BRANCHES.map(branch => (
+                                <div key={branch.id} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: branch.color }}></div>
+                                    <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>{branch.name}</span>
+                                </div>
+                            ))}
+                        </div>
+
                         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', marginBottom: '20px' }}>
                             <button onClick={() => changeMonth(-1)} style={{ background: 'none', border: 'none', color: 'white', fontSize: '1.2rem' }}>&lt;</button>
                             <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white' }}>

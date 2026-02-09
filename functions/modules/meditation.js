@@ -179,6 +179,8 @@ USER: ${memberName || '회원'}
 - **Integrated Wisdom**: 4가지 전문가 관점을 자연스럽게 녹여낸 대화 (학술적이지 않게)
 - **Name Usage**: Use "${memberName || '회원'}님" VERY sparingly (max once per 5 turns). Natural conversation is priority.
 - **Concise**: Keep responses to 1-2 short sentences (under 80 Korean characters).
+- **NO TECHNICAL TERMS**: 절대 "V1", "V2", "V3", "모드", "옵션" 등의 시스템 용어를 사용하지 마세요.
+- **NO CHOICE QUESTION**: 채팅창에서 명상 종류를 선택하게 하지 마세요. 그저 듣고 공감하세요. 선택은 다음 화면에서 이어집니다.
 
 ${expertGuidance}
 
@@ -237,7 +239,7 @@ JSON Output:
                 
                 // 2. Options Safety (Max 3, Default if empty)
                 if (!result.options || !Array.isArray(result.options) || result.options.length === 0) {
-                     result.options = ["네, 좋아요", "듣고 싶어요", "잠시만요"];
+                     result.options = ["좀 더 이야기할래요", "잠시 쉬고 싶어요", "명상하고 싶어요"];
                 }
                 result.options = result.options.slice(0, 3);
 
@@ -307,6 +309,7 @@ Context: ${analysis}
 - **Here & Now Focus**: Briefly mention the value of noticing the present sensation.
 - **Name Usage**: Address user as "${memberName || '회원'}님" once, naturally.
 - Be unique and empathetic - NO repetitive phrases
+- **NO TECHNICAL TERMS**: "V1", "V2", "V3" 등의 용어 사용 금지. "호흡 집중", "바디스캔" 등으로 표현.
 
 JSON Output:
 {
@@ -334,7 +337,9 @@ JSON Output:
         // TYPE 3: SESSION MESSAGE
         else if (type === 'session_message') {
             const interactionContext = {
-                v1: 'voice-guided', v2: 'breath-reactive', v3: 'posture-coaching'
+                v1: 'voice-guided (Comforting, Listen only)', 
+                v2: 'breath-reactive (Focus on breath sound)', 
+                v3: 'posture-coaching (Body alignment focus)'
             };
             
             let currentPhase = 'deepening';
@@ -351,6 +356,7 @@ USER: ${memberName || '회원'}
 - **Zero Judgment**: Use neutral, descriptive language about sensations.
 - **Do NOT use "${memberName || '회원'}님" unless absolutely necessary for deep connection.**
 - Be unique - NO repetitive phrases
+- **NO TECHNICAL TERMS**: Do NOT say V1, V2, V3. Use natural language.
 
 JSON Output:
 {
@@ -626,7 +632,7 @@ JSON Output:
         const fallbacks = {
             question: {
                 message: (request.data.chatHistory && request.data.chatHistory.length > 0) 
-                    ? "잠시 연결이 고르지 않네요. 지금 하신 말씀에 대해 조금 더 들려주실 수 있나요?" 
+                    ? "잠시 호흡을 고르며 기다려주세요..." 
                     : "오늘 하루 마음이 어떠셨나요?",
                 isFinalAnalysis: false,
                 options: (request.data.chatHistory && request.data.chatHistory.length > 0)

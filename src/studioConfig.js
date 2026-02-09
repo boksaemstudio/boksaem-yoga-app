@@ -12,7 +12,7 @@ export const STUDIO_CONFIG = {
     // ID는 데이터베이스 저장용 키로 사용되므로 변경 시 주의가 필요합니다.
     BRANCHES: [
         { id: 'gwangheungchang', name: '광흥창점', color: 'var(--primary-gold)' },
-        { id: 'mapo', name: '마포점', color: 'var(--text-secondary)' },
+        { id: 'mapo', name: '마포점', color: '#54a0ff' },
         // 새로운 지점 추가 예시:
         // { id: 'gangnam', name: '강남점' }
     ],

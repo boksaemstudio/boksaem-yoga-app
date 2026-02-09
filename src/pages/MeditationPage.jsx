@@ -37,6 +37,8 @@ const ICON_MAP = {
 // Initialize Firebase Functions
 const generateMeditationGuidance = httpsCallable(functions, 'generateMeditationGuidance');
 
+const SELECTED_DIAGNOSIS_FALLBACK = DIAGNOSIS_OPTIONS[0];
+
 const MeditationPage = ({ onClose }) => {
     const navigate = useNavigate();
     
@@ -76,8 +78,8 @@ const MeditationPage = ({ onClose }) => {
     const [selectedAmbient, setSelectedAmbient] = useState('rain'); // 🎵 Default to 'rain' (User Request: Calm music from start)
     const [audioVolumes, setAudioVolumes] = useState({
         voice: 0.8,    // 🗣️ 음성 안내 (우선순위 1)
-        ambient: 0.3,  // 🌊 환경음 (배경)
-        binaural: 0.25 // 🎵 바이노랄 비트 (잠재의식)
+        ambient: 0.35, // 🌊 환경음 (배경)
+        binaural: 0.1  // 🎵 바이노랄 비트 (잠재의식 - 음량 낮춤)
     });
     
     // Audio/Video State
@@ -138,7 +140,13 @@ const MeditationPage = ({ onClose }) => {
     }, []);
 
     // 🧘 Preparation Flow States
-    const [prepStep, setPrepStep] = useState(1); // 1: Notifications, 2: Posture, 3: Goal
+    const [prepStep, setPrepStep] = useState(1); 
+    
+    // ✅ Log Step Change for shared visibility
+    useEffect(() => {
+        logDebug("StepChange", { step, prepStep });
+    }, [step, prepStep]);
+
     const [prepSelections, setPrepSelections] = useState({
         notified: false,
         posture: 'chair', // 'chair', 'floor', 'lying'
@@ -457,7 +465,7 @@ const MeditationPage = ({ onClose }) => {
 
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'ko-KR';
-        utterance.rate = 1.0; 
+        utterance.rate = 0.9; // ✅ 차분하게 속도 조절
         utterance.pitch = 1.0; 
         utterance.volume = 0.8; 
         
@@ -518,7 +526,7 @@ const MeditationPage = ({ onClose }) => {
         
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'ko-KR';
-        utterance.rate = 1.0;
+        utterance.rate = 0.9; // ✅ 차분하게 속도 조절
         utterance.pitch = 1.0;
         utterance.volume = 0.8;
 
@@ -748,12 +756,14 @@ const MeditationPage = ({ onClose }) => {
             ambientAudioRef.current = audio;
         }
 
-        if (isPlaying && soundEnabled) {
+        // 🌊 배경음 재생 조건: 처방(분석), 가이드 선택, 준비, 세션 단계에서 모두 재생
+        const activeAmbientSteps = ['prescription_summary', 'interaction_select', 'prescription', 'preparation', 'session'];
+        if ((isPlaying || activeAmbientSteps.includes(step)) && soundEnabled) {
             ambientAudioRef.current.play().catch(e => console.warn("Ambient play failed:", e));
         } else {
             ambientAudioRef.current.pause();
         }
-    }, [selectedAmbient, isPlaying, soundEnabled, audioVolumes.ambient]);
+    }, [selectedAmbient, isPlaying, soundEnabled, audioVolumes.ambient, step]);
 
 
 
@@ -865,128 +875,12 @@ const MeditationPage = ({ onClose }) => {
                 // ✅ Text Sync: Set active chat immediately
                 setCurrentAIChat(result.data);
                 
-                // 🔊 Play Audio & Handle Transition Sequence
-                const startTransitionSequence = () => {
-                    if (!result.data.isFinalAnalysis) return;
-
-                    logDebug("Transition:Start");
-                    const diag = DIAGNOSIS_OPTIONS.find(o => o.id === result.data.mappedDiagnosis) || DIAGNOSIS_OPTIONS[0];
-                    setSelectedDiagnosis(diag);
-                    
-                    const defaultMode = MEDITATION_MODES[0]; 
-                    if (!activeMode) {
-                        setActiveMode(defaultMode);
-                        setTimeLeft(defaultMode.time);
-                    }
-                    
-                    const summary = result.data.analysisSummary || result.data.message || "";
-                    
-                    // 1. FAST PATH: Use Pre-generated Transition Data
-                    if (result.data.transitionData) {
-                        const tData = result.data.transitionData;
-                        logDebug("Transition:FastPath", tData);
-                        
-                        // Show Transition Message
-                        setCurrentAIChat({
-                            message: tData.message,
-                            options: ["네, 시작할게요"],
-                            isTransition: true,
-                            analysisSummary: summary
-                        });
-                        
-                        // Play Transition Audio
-                        playAudio(tData.audioContent);
-                        
-                        // Schedule Prescription Step (Analysis View)
-                        schedulePrescriptionStep(diag, summary, 6000, true);
-                        return;
-                    }
-
-                    // 2. SLOW PATH: Generate Manually (Fallback)
-                    logDebug("Transition:SlowPath");
-                    const diagName = diag.label || '현재 상태';
-                    const modeName = "맞춤 명상";
-                    const fallbackMsg = `${memberName}님의 상태를 분석한 결과, ${diagName}에 도움이 되는 ${modeName}을 추천드립니다.`;
-                    
-                    // Show Fallback immediately
-                    setCurrentAIChat({ 
-                        message: fallbackMsg, 
-                        options: ["네, 시작할게요"],
-                        isTransition: true,
-                        analysisSummary: summary
-                    });
-
-                    // Async Generate
-                    (async () => {
-                        try {
-                            const startTime = Date.now();
-                            const transitionResult = await generateMeditationGuidance({
-                                type: 'transition_message',
-                                memberName, timeContext, diagnosis: diag.id, diagnosisLabel: diagName, modeName, analysisSummary: summary
-                            });
-                            setAiLatency(Date.now() - startTime);
-                            
-                            if (transitionResult.data?.message) {
-                                const aiMsg = transitionResult.data.message.replace(/OO님/g, `${memberName}님`);
-                                setCurrentAIChat({ message: aiMsg, options: ["네, 시작할게요"], isTransition: true, analysisSummary: summary });
-                                if (transitionResult.data.audioContent) playAudio(transitionResult.data.audioContent);
-                                else if (ttcEnabled) speak(aiMsg);
-                            }
-                        } catch (e) {
-                            console.error("Transition Gen Failed", e);
-                            if (ttcEnabled) speak(fallbackMsg);
-                        }
-                    })();
-                    
-                    schedulePrescriptionStep(diag, summary, 8000, false);
-                };
-
-                // Play Chat Audio with Callback
+                // 🔊 Play Audio & (Removed Auto Transition)
                 if (result.data.audioContent) {
-                    playAudio(result.data.audioContent, startTransitionSequence);
-                } else {
-                    if (result.data.error === 'timeout') speak("잠시 연결이 늦어지네요...");
-                    // No audio? Start transition immediately if final
-                    if (result.data.isFinalAnalysis) startTransitionSequence();
+                    playAudio(result.data.audioContent);
+                } else if (result.data.isFinalAnalysis) {
+                    if (ttcEnabled) speak(result.data.message);
                 }
-
-                // Helper: Switch to Prescription Screen
-                const schedulePrescriptionStep = (diag, summary, delay, fastPath) => {
-                    setTimeout(async () => {
-                        stopAllAudioRef.current?.(false); // Keep ambient
-                        setStep('prescription');
-                        
-                        // Fetch Prescription Details (Inline)
-                        try {
-                            setIsAILoading(true);
-                            // Only fetch if we didn't already? (We always fetch for prescription details like reason)
-                            const wId = weatherContext?.id || 'sun';
-                            const mId = activeMode?.id || 'calm';
-                            const iType = interactionType || 'v1';
-                            
-                            const prescResult = await generateMeditationGuidance({
-                                type: 'prescription',
-                                memberName, timeContext, weather: wId, diagnosis: diag.id, analysisSummary: summary,
-                                mode: mId === 'breath' ? '3min' : (mId === 'calm' ? '7min' : '15min'),
-                                interactionType: iType
-                            });
-                            
-                            if (prescResult.data) {
-                                if (prescResult.data.prescriptionReason) prescResult.data.prescriptionReason = prescResult.data.prescriptionReason.replace(/OO님/g, `${memberName}님`);
-                                setAiPrescription(prescResult.data);
-                                const prescText = prescResult.data.prescriptionReason || prescResult.data.message || '';
-                                setPrescriptionReason(prescText);
-                                
-                                if (prescResult.data.audioContent) playAudio(prescResult.data.audioContent);
-                                else if (ttcEnabled) speak(prescText);
-                            }
-                        } catch (err) {
-                            console.error('Prescription fetch failed:', err);
-                        } finally {
-                            setIsAILoading(false);
-                        }
-                    }, delay);
-                };
             }
         } catch (error) {
             // 🛡️ RACE CONDITION GUARD for Error
@@ -1018,34 +912,15 @@ const MeditationPage = ({ onClose }) => {
             return;
         }
         
-        // ✅ 명상 시작 동의 시 즉시 환경음 시작 (심리적 대기 시간 단축)
-        if (answer === "네, 시작할게요" && selectedAmbient && selectedAmbient !== 'none') {
-            // Ambient 오디오 즉시 fade-in 시작
-            if (!ambientAudioRef.current || !ambientAudioRef.current.src.includes(selectedAmbient)) {
-                const ambientDef = AMBIENT_SOUNDS.find(s => s.id === selectedAmbient);
-                if (ambientDef) {
-                    const audio = new Audio(ambientDef.file);
-                    audio.loop = true;
-                    audio.volume = 0; // 0부터 시작
-                    ambientAudioRef.current = audio;
-                    
-                    audio.play().catch(e => console.warn("Ambient start failed:", e));
-                    
-                    // 1.5초에 걸쳐 부드럽게 fade-in
-                    let vol = 0;
-                    const fadeInterval = setInterval(() => {
-                        vol += 0.05;
-                        if (vol >= audioVolumes.ambient) {
-                            vol = audioVolumes.ambient;
-                            clearInterval(fadeInterval);
-                        }
-                        if (ambientAudioRef.current) ambientAudioRef.current.volume = vol;
-                    }, 50);
-                }
-            }
+        // ✅ 명상 시작 동의 시 처방 분석 단계로 이동
+        if (answer === "네, 시작할게요" || answer === "맞춤 명상 시작하기") {
+            const diag = DIAGNOSIS_OPTIONS.find(o => o.id === currentAIChat?.mappedDiagnosis) || SELECTED_DIAGNOSIS_FALLBACK;
+            setSelectedDiagnosis(diag);
+            setStep('prescription_summary');
+            return;
         }
         
-        // 🛑 Stop current AI voice immediately when user responds
+        // ✅ 홈으로 가기 처리
         stopAllAudioRef.current?.();
 
         // 1. Move CURRENT AI chat to history BEFORE clearing
@@ -1096,6 +971,12 @@ const MeditationPage = ({ onClose }) => {
                 messageIndex: aiSessionMessageIndex
             });
             setAiLatency(Date.now() - startTime);
+            
+            // ✅ ERROR HANDLING: If backend returns fallback error, force local fallback
+            if (result.data && result.data.error) {
+                throw new Error("Backend Returned Error: " + result.data.error);
+            }
+
             if (result.data && result.data.message) {
                 // ✅ Personalization Safety
                 // ✅ Personalization Safety
@@ -1235,8 +1116,9 @@ const MeditationPage = ({ onClose }) => {
     };
 
     const startFromPrescription = () => {
+         logDebug("Flow:StartFromPrescription");
          setStep('preparation');
-         setPrepStep(2); // ✅ Skip Notification Check (Step 1) as it's done at start
+         setPrepStep(3); // ✅ Start with Posture Guide (New Flow)
     };
 
     // --- Session Logic ---
@@ -1524,7 +1406,24 @@ const MeditationPage = ({ onClose }) => {
                         <div style={{ marginBottom: '40px' }}>
                             <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🔕</div>
                             <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white', marginBottom: '10px' }}>주변을 고요하게</h3>
-                            <p style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>방해받지 않도록 <br/>기기를 '무음' 또는 '방해금지' 모드로 <br/>설정해주셨나요?</p>
+                            <p style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, marginBottom: '20px' }}>
+                                방해받지 않도록 <br/>기기를 &apos;무음&apos; 또는 &apos;방해금지&apos; 모드로 <br/>설정해주셨나요?
+                            </p>
+                            
+                            {/* 🔊 무음 모드 안내 추가 */}
+                            <div style={{ 
+                                background: 'rgba(76, 155, 251, 0.1)', 
+                                border: '1px solid rgba(76, 155, 251, 0.2)',
+                                borderRadius: '15px', padding: '15px', marginTop: '10px',
+                                textAlign: 'left', fontSize: '0.85rem'
+                            }}>
+                                <div style={{ color: '#4c9bfb', fontWeight: 700, marginBottom: '5px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                    <SpeakerHigh size={14} weight="fill" /> 안심하세요
+                                </div>
+                                <div style={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
+                                    &apos;무음&apos;이나 &apos;방해금지&apos; 모드에서도 **명상 가이드와 배경음은 정상적으로 들립니다.** 외부 알림만 차단되니 안심하고 설정해주세요.
+                                </div>
+                            </div>
                         </div>
                         <button onClick={() => { 
                             setPrepSelections(prev => ({...prev, notified: true})); 
@@ -2053,6 +1952,93 @@ const MeditationPage = ({ onClose }) => {
         );
     }
 
+    // 1-a. Prescription Summary (New AI Analysis View)
+    if (step === 'prescription_summary') {
+        const summary = currentAIChat?.analysisSummary || prescriptionReason || "당신의 마음 상태를 깊이 들여다보았습니다.";
+        return (
+            <div style={{
+                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 2000,
+                display: 'flex', flexDirection: 'column', padding: '20px', overflow: 'hidden'
+            }}>
+                <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
+                <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100%', width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ marginBottom: '30px', color: 'var(--primary-gold)', textAlign: 'center' }}>
+                        <Brain size={60} weight="fill" />
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'white', marginTop: '20px' }}>AI 마음 분석</h2>
+                    </div>
+                    
+                    <div style={{ 
+                        width: '100%', maxWidth: '400px', background: 'rgba(255,255,255,0.08)', 
+                        borderRadius: '24px', padding: '30px', border: '1px solid rgba(255,255,255,0.1)',
+                        marginBottom: '40px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
+                    }}>
+                        <p style={{ color: 'white', fontSize: '1.15rem', lineHeight: 1.7, textAlign: 'center', wordBreak: 'keep-all' }}>
+                            &quot;{summary}&quot;
+                        </p>
+                    </div>
+
+                    <button onClick={() => setStep('interaction_select')}
+                        style={{
+                            width: '100%', maxWidth: '300px', background: 'var(--primary-gold)', color: 'black',
+                            padding: '20px', borderRadius: '20px', fontSize: '1.2rem', fontWeight: 800, border: 'none',
+                            cursor: 'pointer', boxShadow: '0 10px 20px rgba(212,175,55,0.3)'
+                        }}>명상 모드 선택하기</button>
+                    
+                    <button onClick={() => setStep('diagnosis')}
+                        style={{ marginTop: '20px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', textDecoration: 'underline' }}>
+                        대화 더 하기
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // 1-b. Interaction Selection (New Dedicated View)
+    if (step === 'interaction_select') {
+        return (
+            <div style={{
+                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 2000,
+                display: 'flex', flexDirection: 'column', padding: '20px', overflow: 'hidden'
+            }}>
+                <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
+                <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
+                    <div style={{ padding: '20px 0', textAlign: 'center' }}>
+                        <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'white' }}>어떤 명상을 원하시나요?</h2>
+                        <p style={{ color: 'rgba(255,255,255,0.5)', marginTop: '8px' }}>나에게 가장 필요한 모드를 선택하세요</p>
+                    </div>
+
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '15px', justifyContent: 'center', width: '100%', maxWidth: '400px', margin: '0 auto' }}>
+                        {Object.values(INTERACTION_TYPES).map(t => (
+                            <button key={t.id} onClick={() => {
+                                setInteractionType(t.id);
+                                const defaultMode = MEDITATION_MODES.find(m => m.id === selectedDiagnosis?.prescription.modeId) || MEDITATION_MODES[1];
+                                setActiveMode(defaultMode);
+                                setTimeLeft(defaultMode.time);
+                                // Fetch real prescription details in background
+                                fetchAIPrescription(selectedDiagnosis?.id || 'stress', weatherContext?.id || 'sun', defaultMode.id, t.id, "");
+                                setStep('preparation');
+                                setPrepStep(3); // Go to Posture Guide
+                            }}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: '20px', padding: '25px',
+                                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: '24px', color: 'white', textAlign: 'left', cursor: 'pointer', transition: 'all 0.3s'
+                                }}>
+                                <div style={{ width: '50px', height: '50px', borderRadius: '15px', background: 'rgba(212,175,55,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-gold)' }}>
+                                    {t.id === 'v1' ? <Wind size={28} /> : t.id === 'v2' ? <Microphone size={28} /> : <VideoCamera size={28} />}
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '4px' }}>{t.label}</div>
+                                    <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.4 }}>{t.desc}</div>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     if (step === 'prescription' && selectedDiagnosis && activeMode) {
         const ModeIcon = ICON_MAP[activeMode.iconName] || ICON_MAP.Wind;
         
@@ -2100,9 +2086,9 @@ const MeditationPage = ({ onClose }) => {
                                     <div style={{ fontSize: '0.85rem', color: 'var(--primary-gold)', fontWeight: 600, marginBottom: '2px' }}>✨ AI 강력 추천</div>
                                     <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'white' }}>{activeMode.label}</div>
                                     <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)' }}>
-                                        {interactionType === 'v1' && '편안한 가이드 명상'}
-                                        {interactionType === 'v2' && '호흡 반응형 명상'}
-                                        {interactionType === 'v3' && 'AI 자세 코칭'}
+                                        {interactionType === 'v1' && '바디스캔 가이드'}
+                                        {interactionType === 'v2' && '호흡 몰입'}
+                                        {interactionType === 'v3' && '자세 교정'}
                                     </div>
                                 </div>
                             </div>
@@ -2133,7 +2119,7 @@ const MeditationPage = ({ onClose }) => {
                                                 background: interactionType === t.id ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.05)',
                                                 color: interactionType === t.id ? 'white' : 'rgba(255,255,255,0.6)',
                                                 border: interactionType === t.id ? '1px solid rgba(255,255,255,0.3)' : 'none', fontWeight: 600
-                                            }}>{t.id === 'v1' ? '안내' : t.id === 'v2' ? '숨소리' : '자세'}</button>
+                                            }}>{t.id === 'v1' ? '바디스캔' : t.id === 'v2' ? '호흡' : '자세'}</button>
                                     ))}
                                 </div>
 
@@ -2226,7 +2212,24 @@ const MeditationPage = ({ onClose }) => {
                                 <div style={{ textAlign: 'center', marginBottom: '40px' }}>
                                     <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🔕</div>
                                     <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white', marginBottom: '10px' }}>주변을 고요하게</h3>
-                                    <p style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>방해받지 않도록 <br/>기기를 '무음' 또는 '방해금지' 모드로 <br/>설정해주셨나요?</p>
+                                    <p style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, marginBottom: '20px' }}>
+                                        방해받지 않도록 <br/>기기를 &apos;무음&apos; 또는 &apos;방해금지&apos; 모드로 <br/>설정해주셨나요?
+                                    </p>
+
+                                    {/* 🔊 무음 모드 안내 추가 */}
+                                    <div style={{ 
+                                        background: 'rgba(76, 155, 251, 0.1)', 
+                                        border: '1px solid rgba(76, 155, 251, 0.2)',
+                                        borderRadius: '15px', padding: '15px', marginTop: '10px',
+                                        textAlign: 'left', fontSize: '0.85rem'
+                                    }}>
+                                        <div style={{ color: '#4c9bfb', fontWeight: 700, marginBottom: '5px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                            <SpeakerHigh size={14} weight="fill" /> 안심하세요
+                                        </div>
+                                        <div style={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
+                                            &apos;무음&apos;이나 &apos;방해금지&apos; 모드에서도 **명상 가이드와 배경음은 정상적으로 들립니다.** 외부 알림만 차단되니 안심하고 설정해주세요.
+                                        </div>
+                                    </div>
                                 </div>
                                 <button onClick={() => { setPrepSelections({...prepSelections, notified: true}); setPrepStep(2); }}
                                     style={{
@@ -2237,7 +2240,47 @@ const MeditationPage = ({ onClose }) => {
                             </div>
                         )}
 
-                        {/* STEP 2: Phone Placement */}
+                        {/* STEP 3: Posture Guide */}
+                        {prepStep === 3 && (
+                            <div style={{ width: '100%', maxWidth: '400px', animation: 'fadeIn 0.5s ease' }}>
+                                <h3 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'white', marginBottom: '15px', textAlign: 'center' }}>가장 편한 자세를 찾아보세요</h3>
+                                <div style={{ display: 'flex', gap: '8px', marginBottom: '15px' }}>
+                                    {Object.entries(PREPARATION_GUIDES).map(([key, info]) => (
+                                        <button key={key} onClick={() => setPrepSelections({...prepSelections, posture: key})}
+                                            style={{
+                                                flex: 1, padding: '10px 4px', borderRadius: '12px', fontSize: '0.8rem',
+                                                background: prepSelections.posture === key ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.03)',
+                                                color: prepSelections.posture === key ? 'white' : 'rgba(255,255,255,0.4)',
+                                                border: prepSelections.posture === key ? '1px solid rgba(255,255,255,0.3)' : '1px solid transparent',
+                                                fontWeight: 600
+                                            }}>{info.title}</button>
+                                    ))}
+                                </div>
+                                <div style={{ 
+                                    background: 'rgba(255,255,255,0.05)', borderRadius: '24px', padding: '20px',
+                                    border: '1px solid rgba(255,255,255,0.1)', marginBottom: '20px', minHeight: '180px'
+                                }}>
+                                    <div style={{ color: 'var(--primary-gold)', fontSize: '0.75rem', fontWeight: 700, marginBottom: '4px' }}>{PREPARATION_GUIDES[prepSelections.posture].desc}</div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'white', marginBottom: '12px' }}>{PREPARATION_GUIDES[prepSelections.posture].title} 자세</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                        {PREPARATION_GUIDES[prepSelections.posture].steps.map((s, i) => (
+                                            <div key={i} style={{ display: 'flex', gap: '8px', color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', lineHeight: 1.4 }}>
+                                                <span style={{ color: 'var(--primary-gold)', fontWeight: 800 }}>{i+1}</span>
+                                                <span>{s}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <button onClick={() => setPrepStep(2)} // ✅ Go to Phone Placement NEXT
+                                    style={{
+                                        width: '100%', background: 'white', color: 'black',
+                                        padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
+                                        cursor: 'pointer', marginBottom: '15px'
+                                    }}>기기 위치 설정으로</button>
+                            </div>
+                        )}
+                        
+                        {/* STEP 2: Phone Placement (Moved AFTER posture) */}
                         {prepStep === 2 && (
                             <div style={{ width: '100%', maxWidth: '350px', animation: 'fadeIn 0.5s ease' }}>
                                 <div style={{ textAlign: 'center', marginBottom: '40px' }}>
@@ -2255,52 +2298,12 @@ const MeditationPage = ({ onClose }) => {
                                         }}>💡 <b>Tip:</b> 마이크가 포함된 이어폰을 사용하시면 숨소리를 훨씬 더 정확하게 감지할 수 있어요.</div>
                                     )}
                                 </div>
-                                <button onClick={() => setPrepStep(3)}
-                                    style={{
-                                        width: '100%', background: 'var(--primary-gold)', color: 'black',
-                                        padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
-                                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                    }}>배치 완료</button>
-                            </div>
-                        )}
-
-                        {/* STEP 3: Posture Guide */}
-                        {prepStep === 3 && (
-                            <div style={{ width: '100%', maxWidth: '400px', animation: 'fadeIn 0.5s ease' }}>
-                                <h3 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'white', marginBottom: '25px', textAlign: 'center' }}>가장 편한 자세를 찾아보세요</h3>
-                                <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                                    {Object.entries(PREPARATION_GUIDES).map(([key, info]) => (
-                                        <button key={key} onClick={() => setPrepSelections({...prepSelections, posture: key})}
-                                            style={{
-                                                flex: 1, padding: '12px 5px', borderRadius: '15px', fontSize: '0.85rem',
-                                                background: prepSelections.posture === key ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.03)',
-                                                color: prepSelections.posture === key ? 'white' : 'rgba(255,255,255,0.4)',
-                                                border: prepSelections.posture === key ? '1px solid rgba(255,255,255,0.3)' : '1px solid transparent',
-                                                fontWeight: 600
-                                            }}>{info.title}</button>
-                                    ))}
-                                </div>
-                                <div style={{ 
-                                    background: 'rgba(255,255,255,0.05)', borderRadius: '25px', padding: '25px',
-                                    border: '1px solid rgba(255,255,255,0.1)', marginBottom: '30px', minHeight: '220px'
-                                }}>
-                                    <div style={{ color: 'var(--primary-gold)', fontSize: '0.8rem', fontWeight: 700, marginBottom: '5px' }}>{PREPARATION_GUIDES[prepSelections.posture].desc}</div>
-                                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'white', marginBottom: '15px' }}>{PREPARATION_GUIDES[prepSelections.posture].title} 자세</div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                        {PREPARATION_GUIDES[prepSelections.posture].steps.map((s, i) => (
-                                            <div key={i} style={{ display: 'flex', gap: '10px', color: 'rgba(255,255,255,0.8)', fontSize: '0.95rem', lineHeight: 1.5 }}>
-                                                <span style={{ color: 'var(--primary-gold)', fontWeight: 800 }}>{i+1}</span>
-                                                <span>{s}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
                                 <button onClick={() => startSession(activeMode)}
                                     style={{
                                         width: '100%', background: 'var(--primary-gold)', color: 'black',
                                         padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
-                                        cursor: 'pointer'
-                                    }}>자세를 잡았습니다 (명상 시작)</button>
+                                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                    }}>준비 완료 (명상 시작)</button>
                             </div>
                         )}
                     </div>
@@ -2442,8 +2445,8 @@ const MeditationPage = ({ onClose }) => {
             />
 
             {/* Content Overlay */}
-            <div style={{ zIndex: 10, textAlign: 'center', width: '100%', padding: '40px', maxWidth: '600px' }}>
-                <div style={{ marginBottom: '50px', minHeight: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ zIndex: 10, textAlign: 'center', width: '100%', padding: '20px', maxWidth: '600px' }}>
+                <div style={{ marginBottom: '20px', minHeight: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <p style={{ 
                         color: 'white', fontSize: '1.2rem', fontWeight: 500, lineHeight: 1.6,
                         opacity: isPlaying ? 1 : 0.5, transition: 'opacity 1s ease',
