@@ -2160,7 +2160,18 @@ const MeditationPage = ({ onClose }) => {
                             cursor: 'pointer', boxShadow: '0 10px 20px rgba(212,175,55,0.3)'
                         }}>명상 모드 선택하기</button>
                     
-                    <button onClick={() => setStep('diagnosis')}
+                    <button onClick={() => {
+                            // ✨ AI's warm welcome message when returning to chat
+                            const welcomeBackMessages = [
+                                "다시 돌아오셨군요! 더 이야기 나눠볼까요? 😊",
+                                "좋아요, 조금 더 깊이 들여다볼게요. 지금 어떠세요?",
+                                "천천히 가도 괜찮아요. 더 이야기해주시면 더 잘 도와드릴 수 있어요."
+                            ];
+                            const randomWelcome = welcomeBackMessages[Math.floor(Math.random() * welcomeBackMessages.length)];
+                            setChatHistory(prev => [...prev, { role: 'model', content: randomWelcome }]);
+                            if (ttcEnabled) speak(randomWelcome);
+                            setStep('diagnosis');
+                        }}
                         style={{ marginTop: '20px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', textDecoration: 'underline' }}>
                         대화 더 하기
                     </button>
