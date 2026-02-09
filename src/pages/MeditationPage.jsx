@@ -2262,7 +2262,7 @@ const MeditationPage = ({ onClose }) => {
                                     <div style={{ fontSize: '0.85rem', color: 'var(--primary-gold)', fontWeight: 600, marginBottom: '2px' }}>✨ AI 강력 추천</div>
                                     <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'white' }}>{activeMode.label}</div>
                                     <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)' }}>
-                                        {interactionType === 'v1' && '바디스캔 가이드'}
+                                        {interactionType === 'v1' && '온몸 이완 가이드'}
                                         {interactionType === 'v2' && '호흡 몰입'}
                                         {interactionType === 'v3' && '자세 교정'}
                                     </div>

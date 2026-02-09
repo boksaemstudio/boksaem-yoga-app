@@ -111,7 +111,7 @@ export const MEDITATION_MODES = [
 
 // Interaction Types - Bio-Feedback Loop
 export const INTERACTION_TYPES = {
-    v1: { id: 'v1', label: '바디스캔 가이드', desc: '몸의 감각을 깨우는 편안한 안내', iconName: 'Wind' },
+    v1: { id: 'v1', label: '온몸 이완 가이드', desc: '몸의 감각을 깨우는 편안한 안내', iconName: 'Wind' },
     v2: { id: 'v2', label: '호흡 몰입', desc: '숨소리에 반응하는 인터랙티브 명상', iconName: 'Microphone' },
     v3: { id: 'v3', label: '자세 교정', desc: 'AI가 실시간으로 자세를 잡아줍니다', iconName: 'VideoCamera' }
 };
