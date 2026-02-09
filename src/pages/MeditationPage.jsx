@@ -2607,7 +2607,11 @@ const MeditationPage = ({ onClose }) => {
 
             {/* Controls */}
             <div style={{ position: 'absolute', bottom: '60px', display: 'flex', alignItems: 'center', gap: '40px', zIndex: 20 }}>
-                <button onClick={stopSession} style={{
+                <button onClick={() => { 
+                    stopSession(); 
+                    if(onClose) onClose(); 
+                    else navigate('/member'); 
+                }} style={{
                     width: '60px', height: '60px', borderRadius: '50%',
                     background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
