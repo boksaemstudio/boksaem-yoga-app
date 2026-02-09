@@ -42,7 +42,7 @@ const MeditationPage = ({ onClose }) => {
     
     // Stable Refs for cleanup without re-triggering effects
     const cameraStreamRef = useRef(null);
-    const [step, setStep] = useState('intention'); // ✅ 의도 선택부터 시작
+    const [step, setStep] = useState('initial_prep'); // ✅ 알림 끄기 체크부터 시작
     
     // Context State
     const [timeContext, setTimeContext] = useState('morning');
@@ -114,11 +114,36 @@ const MeditationPage = ({ onClose }) => {
     const [dynamicIntentions, setDynamicIntentions] = useState(MEDITATION_INTENTIONS);
     const [isOptionsLoading, setIsOptionsLoading] = useState(true); // ✅ Start with meditative loading
 
+    // 🛠️ DEBUG MODE STATES (User Request)
+    const [isDebugMode, setIsDebugMode] = useState(false); // ✅ Default to false (User: Record internally only)
+    const [debugClickCount, setDebugClickCount] = useState(0);
+    const [aiLatency, setAiLatency] = useState(0);
+    const [ttsState, setTtsState] = useState({ isSpeaking: false, engine: 'None', volume: 0 });
+
+    const handleDebugToggle = useCallback(() => {
+        setDebugClickCount(prev => {
+            const next = prev + 1;
+            if (next >= 5) {
+                setIsDebugMode(v => !v);
+                return 0;
+            }
+            return next;
+        });
+    }, []);
+
     // 🛠️ DEBUG LOGGING SYSTEM (User Request)
     const logDebug = useCallback((action, data) => {
         const timestamp = new Date().toLocaleTimeString();
         console.log(`%c[MeditationDebug] ${timestamp} [${action}]`, 'color: #00ffff; font-weight: bold;', data || '');
     }, []);
+
+    // 🧘 Preparation Flow States
+    const [prepStep, setPrepStep] = useState(1); // 1: Notifications, 2: Posture, 3: Goal
+    const [prepSelections, setPrepSelections] = useState({
+        notified: false,
+        posture: 'chair', // 'chair', 'floor', 'lying'
+        goal: null
+    });
 
     // 🌊 Initial AI Options Fetch
     useEffect(() => {
@@ -135,11 +160,13 @@ const MeditationPage = ({ onClose }) => {
 
                 // Fetch Dynamic Options
                 logDebug("FetchOptions:Start");
+                const startTime = Date.now();
                 const result = await generateMeditationGuidance({ 
                     type: 'options_refresh', 
                     timeContext: tCtx,
                     weather: 'unknown' // Client-side weather can be added if needed
                 });
+                setAiLatency(Date.now() - startTime);
                 logDebug("FetchOptions:Result", result.data);
 
                 if (result.data) {
@@ -171,13 +198,6 @@ const MeditationPage = ({ onClose }) => {
         fetchOptions();
     }, []);
 
-    // 🧘 Preparation Flow States
-    const [prepStep, setPrepStep] = useState(1); // 1: Notifications, 2: Posture, 3: Goal
-    const [prepSelections, setPrepSelections] = useState({
-        notified: false,
-        posture: 'chair', // 'chair', 'floor', 'lying'
-        goal: null
-    });
 
     // V3 Pose States
     const [poseData, setPoseData] = useState(null); // 실시간 자세 데이터
@@ -460,10 +480,13 @@ const MeditationPage = ({ onClose }) => {
             audio.volume = audioVolumes.voice; // ✅ 음량 조절 적용
             currentAudioRef.current = audio;
 
+            setTtsState({ isSpeaking: true, engine: 'Cloud TTS', volume: audio.volume }); // 🛠️ DEBUG
+
             logDebug("PlayAudio:Start", { vol: audioVolumes.voice });
 
             audio.onended = () => { 
                 logDebug("PlayAudio:Ended");
+                setTtsState(prev => ({ ...prev, isSpeaking: false })); // 🛠️ DEBUG
                 if (currentAudioRef.current === audio) currentAudioRef.current = null;
                 if (onEndedCallback) onEndedCallback();
             };
@@ -473,12 +496,14 @@ const MeditationPage = ({ onClose }) => {
                 playPromise.catch(e => {
                     console.error("🔊 Audio Playback Failed:", e);
                     logDebug("PlayAudio:Error", e);
+                    setTtsState(prev => ({ ...prev, isSpeaking: false })); // 🛠️ DEBUG
                 });
             }
             return audio; // ✅ Return for control
         } catch (e) {
             console.error("🔊 Audio Error:", e);
             logDebug("PlayAudio:Catch", e);
+            setTtsState(prev => ({ ...prev, isSpeaking: false })); // 🛠️ DEBUG
             return null;
         }
     }, [ttcEnabled, audioVolumes]);
@@ -486,6 +511,7 @@ const MeditationPage = ({ onClose }) => {
     // 🗣️ TTS Wrapper
     const speak = useCallback((text) => {
         logDebug("Speak:Start", text);
+        console.log("🗣️ [TTS Check] Speaking:", text); // ✅ User Verification Log
         if (!text || typeof window === 'undefined' || !ttcEnabled || !window.speechSynthesis) return;
         
         stopVoiceOnlyRef.current?.(); 
@@ -495,6 +521,10 @@ const MeditationPage = ({ onClose }) => {
         utterance.rate = 1.0;
         utterance.pitch = 1.0;
         utterance.volume = 0.8;
+
+        utterance.onstart = () => setTtsState({ isSpeaking: true, engine: 'Local TTS', volume: 0.8 }); // 🛠️ DEBUG
+        utterance.onend = () => setTtsState(prev => ({ ...prev, isSpeaking: false })); // 🛠️ DEBUG
+        utterance.onerror = () => setTtsState(prev => ({ ...prev, isSpeaking: false })); // 🛠️ DEBUG
         
         setTimeout(() => {
             if (window.speechSynthesis && ttcEnabled) {
@@ -685,6 +715,46 @@ const MeditationPage = ({ onClose }) => {
         }
     }, [soundEnabled, audioVolumes]);
 
+    // 🎵 Global Ambient Audio Manager
+    useEffect(() => {
+        if (!selectedAmbient || selectedAmbient === 'none') {
+            if (ambientAudioRef.current) {
+                ambientAudioRef.current.pause();
+                ambientAudioRef.current = null;
+            }
+            return;
+        }
+
+        const ambientDef = AMBIENT_SOUNDS.find(s => s.id === selectedAmbient);
+        if (!ambientDef) return;
+
+        // Create or update audio
+        if (!ambientAudioRef.current || !ambientAudioRef.current.src.includes(ambientDef.file)) {
+            if (ambientAudioRef.current) ambientAudioRef.current.pause();
+            
+            // Note: In a real app, these should be valid URLs. 
+            // Assuming the constants/meditationConstants provides valid paths or we use a specialized player.
+            // For now, using a placeholder logic or assuming the file property is a valid path/ID.
+            // If they are local files, ensure imports work. 
+            // The user report says "only frequency sound" which implies this was missing.
+            
+            // Check if ambientDef.file is a local path or URL? 
+            // Looking at standard project structure, likely it's an import or public URL.
+            // Assuming it's a URL or path string.
+            
+            const audio = new Audio(ambientDef.file); 
+            audio.loop = true;
+            audio.volume = soundEnabled ? audioVolumes.ambient : 0;
+            ambientAudioRef.current = audio;
+        }
+
+        if (isPlaying && soundEnabled) {
+            ambientAudioRef.current.play().catch(e => console.warn("Ambient play failed:", e));
+        } else {
+            ambientAudioRef.current.pause();
+        }
+    }, [selectedAmbient, isPlaying, soundEnabled, audioVolumes.ambient]);
+
 
 
     // ✅ fetchAIPrescription: Standalone function for diagnosis/weather handlers
@@ -694,6 +764,7 @@ const MeditationPage = ({ onClose }) => {
             // But if we want to show "Loading..." in prescription step, we can use a local state or just let it pop in.
             // For now, let's use isAILoading if we are transitioning.
             
+            const startTime = Date.now();
             const prescResult = await generateMeditationGuidance({
                 type: 'prescription',
                 memberName: memberName,
@@ -704,6 +775,7 @@ const MeditationPage = ({ onClose }) => {
                 mode: modeId === 'breath' ? '3min' : (modeId === 'calm' ? '7min' : '15min'),
                 interactionType: intType
             });
+            setAiLatency(Date.now() - startTime);
             
             if (prescResult.data) {
                 if (prescResult.data.prescriptionReason) {
@@ -757,9 +829,10 @@ const MeditationPage = ({ onClose }) => {
                             error: "timeout"
                         }
                     });
-                }, 12000); 
+                }, 18000); 
             });
 
+            const startTime = Date.now();
             const apiPromise = generateMeditationGuidance({ 
                 type: 'question', 
                 memberName: memberName || '회원', 
@@ -770,6 +843,7 @@ const MeditationPage = ({ onClose }) => {
 
             // Race API vs Timeout
             const result = await Promise.race([apiPromise, timeoutPromise]);
+            setAiLatency(Date.now() - startTime);
             clearTimeout(timeoutId); // ✅ Clean up timeout
 
             // 🛡️ RACE CONDITION GUARD
@@ -845,10 +919,12 @@ const MeditationPage = ({ onClose }) => {
                     // Async Generate
                     (async () => {
                         try {
+                            const startTime = Date.now();
                             const transitionResult = await generateMeditationGuidance({
                                 type: 'transition_message',
                                 memberName, timeContext, diagnosis: diag.id, diagnosisLabel: diagName, modeName, analysisSummary: summary
                             });
+                            setAiLatency(Date.now() - startTime);
                             
                             if (transitionResult.data?.message) {
                                 const aiMsg = transitionResult.data.message.replace(/OO님/g, `${memberName}님`);
@@ -942,6 +1018,33 @@ const MeditationPage = ({ onClose }) => {
             return;
         }
         
+        // ✅ 명상 시작 동의 시 즉시 환경음 시작 (심리적 대기 시간 단축)
+        if (answer === "네, 시작할게요" && selectedAmbient && selectedAmbient !== 'none') {
+            // Ambient 오디오 즉시 fade-in 시작
+            if (!ambientAudioRef.current || !ambientAudioRef.current.src.includes(selectedAmbient)) {
+                const ambientDef = AMBIENT_SOUNDS.find(s => s.id === selectedAmbient);
+                if (ambientDef) {
+                    const audio = new Audio(ambientDef.file);
+                    audio.loop = true;
+                    audio.volume = 0; // 0부터 시작
+                    ambientAudioRef.current = audio;
+                    
+                    audio.play().catch(e => console.warn("Ambient start failed:", e));
+                    
+                    // 1.5초에 걸쳐 부드럽게 fade-in
+                    let vol = 0;
+                    const fadeInterval = setInterval(() => {
+                        vol += 0.05;
+                        if (vol >= audioVolumes.ambient) {
+                            vol = audioVolumes.ambient;
+                            clearInterval(fadeInterval);
+                        }
+                        if (ambientAudioRef.current) ambientAudioRef.current.volume = vol;
+                    }, 50);
+                }
+            }
+        }
+        
         // 🛑 Stop current AI voice immediately when user responds
         stopAllAudioRef.current?.();
 
@@ -982,6 +1085,7 @@ const MeditationPage = ({ onClose }) => {
     // Fetch AI session message (during meditation)
     const fetchAISessionMessage = async () => {
         try {
+            const startTime = Date.now();
             const result = await generateMeditationGuidance({
                 type: 'session_message',
                 memberName: memberName, // ✅ Personalize
@@ -991,9 +1095,12 @@ const MeditationPage = ({ onClose }) => {
                 interactionType: interactionType,
                 messageIndex: aiSessionMessageIndex
             });
+            setAiLatency(Date.now() - startTime);
             if (result.data && result.data.message) {
                 // ✅ Personalization Safety
+                // ✅ Personalization Safety
                 const personalizedMsg = result.data.message.replace(/OO님/g, `${memberName}님`);
+                console.log("🤖 [AI Message Check] Display Text:", personalizedMsg); // ✅ User Verification Log
                 setAiMessage(personalizedMsg);
                 setAiSessionMessageIndex(prev => prev + 1);
                 
@@ -1104,22 +1211,32 @@ const MeditationPage = ({ onClose }) => {
     const handleReturnToChat = async () => {
         setStep('diagnosis');
         setIsAILoading(true);
-        setCurrentAIChat(null); // Clear stale analysis
+        
+        // ✅ 즉시 부드러운 재개 메시지 표시 (AI 생성 전)
+        const warmReconnectMsg = `${memberName}님, 다시 돌아오셨네요. 혹시 더 나누고 싶은 이야기가 있으신가요?`;
+        setCurrentAIChat({
+            message: warmReconnectMsg,
+            options: ["네, 있어요", "괜찮아요, 명상할게요"]
+        });
+        
+        // TTS로 즉시 재생
+        if (ttcEnabled) speak(warmReconnectMsg);
 
-        // Add System Note to prompt AI
+        // 컨텍스트 보존 프롬프트 (백그라운드에서 더 나은 응답 생성)
+        const lastUserMsg = chatHistory.filter(m => m.role === 'user').pop()?.content || '';
         const newHistory = [...chatHistory, { 
-            role: 'user', 
-            content: "[System]: User returned from prescription screen. Ask if they want to change anything or share more details." 
+            role: 'system',
+            content: `[Context] User briefly viewed meditation options but chose to continue conversation. Last discussed: "${lastUserMsg}". Gently ask if they want to explore that topic more deeply, in a warm, human, conversational tone. Do NOT sound robotic or templated.` 
         }];
         setChatHistory(newHistory);
         
-        // Fetch new conversational response
+        // Fetch improved AI response (will replace the initial message)
         await fetchAIQuestion(newHistory);
     };
 
     const startFromPrescription = () => {
          setStep('preparation');
-         setPrepStep(1);
+         setPrepStep(2); // ✅ Skip Notification Check (Step 1) as it's done at start
     };
 
     // --- Session Logic ---
@@ -1329,6 +1446,7 @@ const MeditationPage = ({ onClose }) => {
                 // Determine duration logic for context
                 const duration = activeMode?.time || 300;
                 
+                const startTime = Date.now();
                 const fbResult = await generateMeditationGuidance({
                     type: 'feedback_message',
                     memberName, 
@@ -1336,6 +1454,7 @@ const MeditationPage = ({ onClose }) => {
                     diagnosis: selectedDiagnosis?.id || 'stress',
                     mode: activeMode?.id || 'calm'
                 });
+                setAiLatency(Date.now() - startTime);
                 
                 if (fbResult.data) {
                     // Personalize
@@ -1383,24 +1502,75 @@ const MeditationPage = ({ onClose }) => {
     // 🎨 RENDER (Refining V3 Overlay Rendering)
     // ==========================================
 
-    // 0. Intention Step (의도 선택 - 2단계 구조)
+    // 0. Initial Preparation Step (Notifications Off - First Screen)
+    if (step === 'initial_prep') {
+        return (
+            <div style={{
+                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 9999,
+                display: 'flex', flexDirection: 'column', padding: '20px', overflow: 'hidden'
+            }}>
+                <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
+                <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100%', width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                     {/* 🛠️ Debug Overlay */}
+                     <MeditationDebugOverlay 
+                        isVisible={isDebugMode}
+                        ttsState={ttsState}
+                        currentStep={step}
+                        audioLevels={audioVolumes}
+                        currentText={aiMessage}
+                        aiLatency={aiLatency}
+                    />
+                     <div style={{ width: '100%', maxWidth: '350px', animation: 'fadeIn 0.5s ease', textAlign: 'center' }}>
+                        <div style={{ marginBottom: '40px' }}>
+                            <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🔕</div>
+                            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white', marginBottom: '10px' }}>주변을 고요하게</h3>
+                            <p style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>방해받지 않도록 <br/>기기를 '무음' 또는 '방해금지' 모드로 <br/>설정해주셨나요?</p>
+                        </div>
+                        <button onClick={() => { 
+                            setPrepSelections(prev => ({...prev, notified: true})); 
+                            setStep('intention'); // Proceed to Category Selection
+                        }}
+                            style={{
+                                width: '100%', background: 'var(--primary-gold)', color: 'black',
+                                padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
+                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            }}>확인했습니다</button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // 0-a. Intention Step (의도 선택 - 2단계 구조)
     if (step === 'intention') {
         // ✅ Meditative Loading Screen
         if (isOptionsLoading) {
              return (
                 <div style={{
-                    position: 'fixed', inset: 0, background: '#121212', zIndex: 9999,
+                    position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 9999,
                     display: 'flex', flexDirection: 'column',
-                    justifyContent: 'center', alignItems: 'center'
+                    justifyContent: 'center', alignItems: 'center', overflow: 'hidden'
                 }}>
+                    <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.5 }} />
+                <div style={{ zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    {/* 🛠️ Debug Overlay */}
+                    <MeditationDebugOverlay 
+                        isVisible={isDebugMode}
+                        ttsState={ttsState}
+                        currentStep={step}
+                        audioLevels={audioVolumes}
+                        currentText={aiMessage}
+                        aiLatency={aiLatency}
+                    />
                     <div className="typing-indicator" style={{ marginBottom: '20px' }}>
-                        <span></span><span></span><span></span>
-                    </div>
-                    <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1.1rem', textAlign: 'center', lineHeight: 1.6 }}>
-                        잠시, 호흡에 머물러 보세요...<br/>
-                        <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginTop: '10px', display: 'block' }}>
-                            오늘의 명상을 준비하고 있습니다
-                        </span>
+                            <span></span><span></span><span></span>
+                        </div>
+                        <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1.1rem', textAlign: 'center', lineHeight: 1.6 }}>
+                            잠시, 호흡에 머물러 보세요...<br/>
+                            <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginTop: '10px', display: 'block' }}>
+                                오늘의 명상을 준비하고 있습니다
+                            </span>
+                        </div>
                     </div>
                 </div>
              );
@@ -1410,22 +1580,38 @@ const MeditationPage = ({ onClose }) => {
         if (!selectedCategory) {
             return (
                 <div style={{
-                    position: 'fixed', inset: 0, background: '#121212', zIndex: 9999,
-                    display: 'flex', flexDirection: 'column'
+                    position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 9999,
+                    display: 'flex', flexDirection: 'column', overflow: 'hidden'
                 }}>
+                    <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
                     {/* Header */}
                     <div style={{
                         padding: '15px 20px', paddingTop: 'max(15px, env(safe-area-inset-top))',
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        background: 'rgba(20, 20, 20, 0.95)',
-                        borderBottom: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)'
+                        background: 'rgba(20, 20, 20, 0.4)',
+                        borderBottom: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)',
+                        zIndex: 20
                     }}>
-                        <div>
+                        {/* 🛠️ Debug Overlay */}
+                        <MeditationDebugOverlay 
+                            isVisible={isDebugMode}
+                            ttsState={ttsState}
+                            currentStep={step}
+                            audioLevels={audioVolumes}
+                            currentText={lastSpokenMessage || aiMessage || currentAIChat?.message}
+                            aiLatency={aiLatency}
+                        />
+
+                        {/* Title - Left Side */}
+                        <div onClick={handleDebugToggle} style={{ cursor: 'pointer' }}>
                             <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white' }}>
                                 오늘의 명상
                             </span>
                         </div>
-                        <button onClick={() => { stopAllAudioRef.current?.(); if(onClose) onClose(); else navigate(-1); }} 
+                        <button onClick={() => { 
+                                stopAllAudioRef.current?.(); 
+                                if(onClose) onClose(); else navigate(-1); 
+                            }} 
                             style={{ 
                                 padding: '8px 16px', 
                                 border: '1px solid rgba(255,255,255,0.15)', 
@@ -1447,7 +1633,8 @@ const MeditationPage = ({ onClose }) => {
                     {/* Main Content */}
                     <div style={{
                         flex: 1, display: 'flex', flexDirection: 'column', 
-                        justifyContent: 'center', alignItems: 'center', padding: '40px 20px'
+                        justifyContent: 'flex-start', alignItems: 'center', padding: '100px 20px 40px', // ✅ Adjusted layout
+                        zIndex: 10
                     }}>
                         {/* Title */}
                         <div style={{ textAlign: 'center', marginBottom: '50px' }}>
@@ -1515,91 +1702,86 @@ const MeditationPage = ({ onClose }) => {
         
         return (
             <div style={{
-                position: 'fixed', inset: 0, background: '#121212', zIndex: 9999,
-                display: 'flex', flexDirection: 'column'
+                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 9999,
+                display: 'flex', flexDirection: 'column', overflow: 'hidden'
             }}>
-                {/* Header */}
-                <div style={{
-                    padding: '10px 15px', paddingTop: 'max(10px, env(safe-area-inset-top))',
-                    display: 'flex', alignItems: 'center', background: 'rgba(20, 20, 20, 0.95)',
-                    borderBottom: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)'
-                }}>
-                    <button onClick={() => setSelectedCategory(null)} 
-                        style={{ padding: '8px', border: 'none', background: 'none', cursor: 'pointer' }}>
-                        <ArrowLeft size={22} color="white" />
-                    </button>
-                    <div style={{ marginLeft: '10px' }}>
-                        <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>
-                            {selectedCategory.label}
-                        </span>
-                    </div>
-                </div>
-
-                {/* Main Content */}
-                <div style={{
-                    flex: 1, display: 'flex', flexDirection: 'column', 
-                    justifyContent: 'center', alignItems: 'center', padding: '40px 20px'
-                }}>
-                    {/* Title */}
-                    <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-                        <h2 style={{ 
-                            fontSize: '1.5rem', fontWeight: 600, color: '#4c9bfb', 
-                            marginBottom: '10px' 
-                        }}>
-                            조금 더 구체적으로 들여다볼까요?
-                        </h2>
-                        <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>
-                            {selectedCategory.description}
-                        </p>
+                <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
+                <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
+                    {/* 🛠️ Debug Overlay */}
+                    <MeditationDebugOverlay 
+                        isVisible={isDebugMode}
+                        ttsState={ttsState}
+                        currentStep={step}
+                        audioLevels={audioVolumes}
+                        currentText={aiMessage}
+                        aiLatency={aiLatency}
+                    />
+                    {/* Header */}
+                    <div style={{
+                        padding: '10px 15px', paddingTop: 'max(10px, env(safe-area-inset-top))',
+                        display: 'flex', alignItems: 'center', background: 'rgba(20, 20, 20, 0.4)',
+                        borderBottom: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)',
+                        zIndex: 20
+                    }}>
+                        <button onClick={() => setSelectedCategory(null)} 
+                            style={{ padding: '8px', border: 'none', background: 'none', cursor: 'pointer' }}>
+                            <ArrowLeft size={22} color="white" />
+                        </button>
+                        <div style={{ marginLeft: '10px' }}>
+                            <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>
+                                {selectedCategory.label}
+                            </span>
+                        </div>
                     </div>
 
-                    {/* Options (Dynamic) */}
-                    <div style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        {categoryIntentions.map(intention => (
-                            <button
-                                key={intention.id}
-                                onClick={() => {
-                                    setSelectedIntention(intention);
-                                    setStep('diagnosis');
-                                    // 의도를 바탕으로 AI 질문 시작
-                                    fetchAIQuestion([{
-                                        role: 'user',
-                                        content: intention.label
-                                    }]);
-                                }}
-                                style={{
-                                    padding: '20px',
-                                    background: 'rgba(255, 255, 255, 0.05)',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                                    borderRadius: '15px',
-                                    color: 'white',
-                                    fontSize: '1rem',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.3s ease',
-                                    textAlign: 'left'
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = 'rgba(76, 155, 251, 0.2)';
-                                    e.currentTarget.style.borderColor = '#4c9bfb';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                                }}
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <span style={{ marginRight: '12px', fontSize: '1.5rem' }}>{intention.emoji}</span>
-                                    <div style={{ flex: 1 }}>
-                                        <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', marginBottom: '5px' }}>
-                                            {intention.tag}
-                                        </div>
-                                        <div style={{ fontSize: '0.95rem' }}>
-                                            {intention.label}
+                    {/* Main Content */}
+                    <div style={{
+                        flex: 1, display: 'flex', flexDirection: 'column', 
+                        justifyContent: 'center', alignItems: 'center', padding: '40px 20px'
+                    }}>
+                        {/* Title */}
+                        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                            <h2 style={{ 
+                                fontSize: '1.5rem', fontWeight: 600, color: '#4c9bfb', 
+                                marginBottom: '10px' 
+                            }}>
+                                조금 더 구체적으로 들여다볼까요?
+                            </h2>
+                            <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>
+                                {selectedCategory.description}
+                            </p>
+                        </div>
+
+                        {/* Options (Dynamic) */}
+                        <div style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                            {categoryIntentions.map(intention => (
+                                <button
+                                    key={intention.id}
+                                    onClick={() => {
+                                        setSelectedIntention(intention);
+                                        setStep('diagnosis');
+                                        fetchAIQuestion([{ role: 'user', content: intention.label }]);
+                                    }}
+                                    style={{
+                                        padding: '20px', background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '15px',
+                                        color: 'white', fontSize: '1rem', cursor: 'pointer', transition: 'all 0.3s ease', textAlign: 'left'
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <span style={{ marginRight: '12px', fontSize: '1.5rem' }}>{intention.emoji}</span>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', marginBottom: '5px' }}>
+                                                {intention.tag}
+                                            </div>
+                                            <div style={{ fontSize: '0.95rem' }}>
+                                                {intention.label}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </button>
-                        ))}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1610,247 +1792,208 @@ const MeditationPage = ({ onClose }) => {
     if (step === 'diagnosis') {
         return (
             <div style={{
-                position: 'fixed', inset: 0, background: '#121212', zIndex: 9999, // 🌑 Dark Mode
-                display: 'flex', flexDirection: 'column'
+                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 9999, // 🌑 Dark Mode
+                display: 'flex', flexDirection: 'column', overflow: 'hidden'
             }}>
-                {/* 1. Header (Translucent Dark) */}
-                <div style={{
-                    padding: '10px 15px', paddingTop: 'max(10px, env(safe-area-inset-top))',
-                    display: 'flex', alignItems: 'center', background: 'rgba(20, 20, 20, 0.95)',
-                    borderBottom: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)',
-                    zIndex: 10
-                }}>
-                    <button onClick={() => { stopAllAudioRef.current?.(); if(onClose) onClose(); else navigate(-1); }} style={{ padding: '8px', border: 'none', background: 'none', cursor: 'pointer' }}>
-                        <ArrowLeft size={22} color="white" />
-                    </button>
-                    <div style={{ marginLeft: '10px', display: 'flex', flexDirection: 'column' }}>
-                         <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>복순 (마음 챙김이)</span>
-                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <SpeakerHigh size={12} color={ttcEnabled ? "#4caf50" : "#666"} weight="fill" />
-                            <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)' }}>
-                                {isAILoading ? '생각하는 중...' : '음성 대화 중'}
-                            </span>
-                         </div>
-                    </div>
-                </div>
-
-                {/* 2. Chat Area (Scrollable) */}
-                <div style={{
-                    flex: 1, overflowY: 'auto', padding: '20px 15px',
-                    paddingBottom: '20px', // ✅ Use Flex instead of fixed padding
-                    display: 'flex', flexDirection: 'column', gap: '20px'
-                }}>
-                    {/* Date Divider */}
-                    <div style={{ alignSelf: 'center', background: 'rgba(255,255,255,0.1)', padding: '4px 12px', borderRadius: '12px', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', marginBottom: '10px' }}>
-                        {new Date().toLocaleDateString()}
-                    </div>
-
-                    {/* Chat Bubbles */}
-                    {chatHistory.filter(msg => !msg.content.startsWith('[System]:')).map((msg, idx) => {
-                        const isMe = msg.role === 'user';
-                        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                        return (
-                            <div key={idx} style={{
-                                display: 'flex',
-                                justifyContent: isMe ? 'flex-end' : 'flex-start',
-                                alignItems: 'flex-start',
-                                gap: '8px'
-                            }}>
-                                {/* Avatar (AI) */}
-                                {!isMe && (
-                                    <div style={{
-                                        width: '40px', height: '40px', borderRadius: '50%',
-                                        background: 'var(--primary-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0,
-                                        fontSize: '1.2rem'
-                                    }}>
-                                         🧘‍♀️
-                                    </div>
-                                )}
-
-                                <div style={{ display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: '6px' }}>
-                                    
-                                     <div style={{
-                                         background: isMe ? 'linear-gradient(135deg, #d4af37, #f1c40f)' : 'rgba(255,255,255,0.08)',
-                                         color: isMe ? '#000' : '#fff',
-                                         padding: '12px 16px',
-                                         borderRadius: isMe ? '18px 4px 18px 18px' : '4px 18px 18px 18px',
-                                         maxWidth: '75vw', fontSize: '0.95rem', lineHeight: '1.6',
-                                         boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-                                         wordBreak: 'keep-all',
-                                         border: isMe ? 'none' : '1px solid rgba(255,255,255,0.1)'
-                                     }}>
-                                         {msg.content}
-                                     </div>
-                                     <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginBottom: '2px', minWidth: '55px', textAlign: isMe ? 'right' : 'left' }}>
-                                         {timeStr}
-                                     </span>
-                                </div>
-                            </div>
-                        );
-                    })}
-
-                    {/* Latest AI Question */}
-                    {currentAIChat && !isAILoading && (
-                         <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', gap: '8px' }}>
-                             <div style={{
-                                 width: '40px', height: '40px', borderRadius: '50%',
-                                 background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                 overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0
-                             }}>
-                                  <img src="/pwa-192x192.png" alt="AI" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display='none'; e.target.parentNode.innerText='🧘‍♀️'; }} />
-                             </div>
-                             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', gap: '6px' }}>
-                                 <div style={{
-                                     background: 'rgba(255,255,255,0.08)', color: 'white',
-                                     padding: '14px 18px',
-                                     borderRadius: '4px 18px 18px 18px',
-                                     maxWidth: '75vw', fontSize: '1.0rem', lineHeight: '1.6',
-                                     boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-                                     border: '1px solid rgba(255,255,255,0.15)',
-                                     backdropFilter: 'blur(10px)'
-                                 }}>
-                                     {currentAIChat.message || currentAIChat.question || "오늘 하루는 어떠셨나요?"}
-                                 </div>
-                                 <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginBottom: '2px' }}>
-                                     {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                 </span>
-                             </div>
-                         </div>
-                    )}
-
-                    {isAILoading && (
-                         <div style={{ alignSelf: 'center', padding: '6px 12px', borderRadius: '12px', fontSize: '0.8rem', color: 'var(--primary-gold)', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                             <div className="typing-indicator"><span></span><span></span><span></span></div>
-                             {chatHistory.length === 0 ? "AI 복순이가 당신의 마음을 듣고 있어요..." : "잠시, 호흡에 머물러 보세요..."}
-                         </div>
-                    )}
-                    <div ref={chatEndRef} style={{ height: '2px', width: '100%' }} />
-                </div>
-
-                {/* 3. Fixed Bottom Options */}
-                {/* 3. Fixed Bottom Options & Input */}
-                <div style={{
-                    background: '#1a1a1d', borderTop: '1px solid rgba(255,255,255,0.1)',
-                    padding: '15px', paddingBottom: 'calc(15px + env(safe-area-inset-bottom))',
-                    display: 'flex', flexDirection: 'column', gap: '12px',
-                    animation: 'slideUp 0.3s ease-out',
-                    zIndex: 20
-                }}>
-                    {/* A. Quick Options */}
-                    {!isAILoading && currentAIChat?.options && (
-                        <div className="no-scrollbar" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '10px', paddingRight: '20px', scrollbarWidth: 'none', justifyContent: 'flex-start' }}>
-                            {currentAIChat.options.map((opt, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => { 
-                                        stopAllAudioRef.current?.(); 
-                                        handleChatResponse(opt); 
-                                    }}
-                                    style={{
-                                        flex: '0 0 auto',
-                                        background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
-                                        padding: '10px 18px', borderRadius: '18px',
-                                        color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', cursor: 'pointer',
-                                        whiteSpace: 'nowrap',
-                                        transition: 'all 0.2s',
-                                        backdropFilter: 'blur(5px)'
-                                    }}
-                                >
-                                    {opt}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* B. Manual Input */}
-                    <form 
-                        onSubmit={(e) => {
-                            try {
-                                handleManualSubmit(e);
-                            } catch (err) {
-                                console.error("Submit Error:", err);
-                                setIsAILoading(false);
-                            }
-                        }} 
-                        style={{ 
-                            display: 'flex', gap: '10px', alignItems: 'center',
-                            background: 'rgba(255,255,255,0.05)', borderRadius: '28px',
-                            padding: '6px 6px 6px 20px', border: '1px solid rgba(255,255,255,0.1)',
-                            transition: 'all 0.3s'
-                        }}
-                    >
-                        <input 
-                            type="text" 
-                            value={manualInput}
-                            onChange={(e) => setManualInput(e.target.value)}
-                            disabled={isAILoading}
-                            autoFocus
-                            placeholder={isAILoading ? "답변을 기다리는 중..." : "직접 입력하기..."}
-                            style={{
-                                flex: 1, background: 'transparent', border: 'none',
-                                color: 'white', fontSize: '1rem', outline: 'none'
-                            }}
-                        />
-                        <button 
-                            type="submit" 
-                            disabled={!manualInput.trim() || isAILoading} 
-                            style={{
-                                background: manualInput.trim() ? 'var(--primary-gold)' : 'rgba(255,255,255,0.1)',
-                                color: manualInput.trim() ? 'black' : 'rgba(255,255,255,0.2)',
-                                border: 'none', borderRadius: '50%', width: '40px', height: '40px',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                                cursor: manualInput.trim() ? 'pointer' : 'default',
-                                transition: 'all 0.2s', flexShrink: 0
-                            }}
-                        >
-                            <ArrowUp size={24} weight="bold" />
+                <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
+                <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
+                    {/* 🛠️ Debug Overlay */}
+                    <MeditationDebugOverlay 
+                        isVisible={isDebugMode}
+                        ttsState={ttsState}
+                        currentStep={step}
+                        audioLevels={audioVolumes}
+                        currentText={aiMessage}
+                        aiLatency={aiLatency}
+                    />
+                    {/* 1. Header (Translucent Dark) */}
+                    <div style={{
+                        padding: '10px 15px', paddingTop: 'max(10px, env(safe-area-inset-top))',
+                        display: 'flex', alignItems: 'center', background: 'rgba(20, 20, 20, 0.4)',
+                        borderBottom: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)',
+                        zIndex: 20
+                    }}>
+                        <button onClick={() => { stopAllAudioRef.current?.(); if(onClose) onClose(); else navigate(-1); }} style={{ padding: '8px', border: 'none', background: 'none', cursor: 'pointer' }}>
+                            <ArrowLeft size={22} color="white" />
                         </button>
-                    </form>
+                        <div onClick={handleDebugToggle} style={{ marginLeft: '10px', display: 'flex', flexDirection: 'column', cursor: 'pointer' }}>
+                             <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>복순 (마음 챙김이)</span>
+                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <SpeakerHigh size={12} color={ttcEnabled ? "#4caf50" : "#666"} weight="fill" />
+                                <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)' }}>
+                                    {isAILoading ? '생각하는 중...' : '음성 대화 중'}
+                                </span>
+                             </div>
+                        </div>
+                    </div>
+
+                    {/* 2. Chat Area (Scrollable) */}
+                    <div style={{
+                        flex: 1, overflowY: 'auto', padding: '20px 15px',
+                        paddingBottom: '20px', display: 'flex', flexDirection: 'column', gap: '20px'
+                    }} className="no-scrollbar">
+                        {/* Date Divider */}
+                        <div style={{ alignSelf: 'center', background: 'rgba(255,255,255,0.1)', padding: '4px 12px', borderRadius: '12px', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', marginBottom: '10px' }}>
+                            {new Date().toLocaleDateString()}
+                        </div>
+
+                        {/* Chat Bubbles */}
+                        {chatHistory.filter(msg => !msg.content.startsWith('[System]:')).map((msg, idx) => {
+                            const isMe = msg.role === 'user';
+                            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                            return (
+                                <div key={idx} style={{
+                                    display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start',
+                                    alignItems: 'flex-start', gap: '8px'
+                                }}>
+                                    {!isMe && (
+                                        <div style={{
+                                            width: '40px', height: '40px', borderRadius: '50%',
+                                            background: 'var(--primary-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0,
+                                            fontSize: '1.2rem'
+                                        }}>🧘‍♀️</div>
+                                    )}
+                                    <div style={{ display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: '6px' }}>
+                                         <div style={{
+                                             background: isMe ? 'linear-gradient(135deg, #d4af37, #f1c40f)' : 'rgba(255,255,255,0.08)',
+                                             color: isMe ? '#000' : '#fff', padding: '12px 16px',
+                                             borderRadius: isMe ? '18px 4px 18px 18px' : '4px 18px 18px 18px',
+                                             maxWidth: '75vw', fontSize: '0.95rem', lineHeight: '1.6',
+                                             boxShadow: '0 4px 15px rgba(0,0,0,0.2)', wordBreak: 'keep-all',
+                                             border: isMe ? 'none' : '1px solid rgba(255,255,255,0.1)'
+                                         }}>{msg.content}</div>
+                                         <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginBottom: '2px', minWidth: '55px', textAlign: isMe ? 'right' : 'left' }}>
+                                             {timeStr}
+                                         </span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+
+                        {/* Latest AI Question */}
+                        {currentAIChat && !isAILoading && (
+                             <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', gap: '8px' }}>
+                                 <div style={{
+                                     width: '40px', height: '40px', borderRadius: '50%',
+                                     background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                     overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0
+                                 }}>
+                                      <img src="/pwa-192x192.png" alt="AI" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display='none'; e.target.parentNode.innerText='🧘‍♀️'; }} />
+                                 </div>
+                                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', gap: '6px' }}>
+                                     <div style={{
+                                         background: 'rgba(255,255,255,0.08)', color: 'white', padding: '14px 18px',
+                                         borderRadius: '4px 18px 18px 18px', maxWidth: '75vw', fontSize: '1.0rem', lineHeight: '1.6',
+                                         boxShadow: '0 4px 15px rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)'
+                                     }}>{currentAIChat.message || currentAIChat.question || "오늘 하루는 어떠셨나요?"}</div>
+                                     <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginBottom: '2px' }}>
+                                         {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                     </span>
+                                 </div>
+                             </div>
+                        )}
+
+                        {isAILoading && (
+                             <div style={{ alignSelf: 'center', padding: '6px 12px', borderRadius: '12px', fontSize: '0.8rem', color: 'var(--primary-gold)', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                 <div className="typing-indicator"><span></span><span></span><span></span></div>
+                                 {chatHistory.length === 0 ? "AI 복순이가 당신의 마음을 듣고 있어요..." : "잠시, 호흡에 머물러 보세요..."}
+                             </div>
+                        )}
+                        <div ref={chatEndRef} style={{ height: '2px', width: '100%' }} />
+                    </div>
+
+                    {/* 3. Bottom Options & Input */}
+                    <div style={{
+                        background: '#1a1a1d', borderTop: '1px solid rgba(255,255,255,0.1)',
+                        padding: '15px', paddingBottom: 'calc(15px + env(safe-area-inset-bottom))',
+                        display: 'flex', flexDirection: 'column', gap: '12px', zIndex: 20
+                    }}>
+                        {!isAILoading && currentAIChat?.options && (
+                            <div className="no-scrollbar" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '10px', scrollbarWidth: 'none', justifyContent: 'flex-start' }}>
+                                {currentAIChat.options.map((opt, i) => (
+                                    <button key={i} onClick={() => { stopAllAudioRef.current?.(); handleChatResponse(opt); }}
+                                        style={{
+                                            flex: '0 0 auto', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
+                                            padding: '10px 18px', borderRadius: '18px', color: 'rgba(255,255,255,0.9)', 
+                                            fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s', backdropFilter: 'blur(5px)'
+                                        }}>{opt}</button>
+                                ))}
+                            </div>
+                        )}
+                        {!currentAIChat?.isFinalAnalysis && !currentAIChat?.isTransition && (
+                            <form onSubmit={(e) => { try { handleManualSubmit(e); } catch (err) { setIsAILoading(false); } }} 
+                                style={{ 
+                                    display: 'flex', gap: '10px', alignItems: 'center', background: 'rgba(255,255,255,0.05)', 
+                                    borderRadius: '28px', padding: '6px 6px 6px 20px', border: '1px solid rgba(255,255,255,0.1)'
+                                }}>
+                                <input type="text" value={manualInput} onChange={(e) => setManualInput(e.target.value)}
+                                    disabled={isAILoading} autoFocus placeholder={isAILoading ? "답변을 기다리는 중..." : "직접 입력하기..."}
+                                    style={{ flex: 1, background: 'transparent', border: 'none', color: 'white', fontSize: '1rem', outline: 'none' }} />
+                                <button type="submit" disabled={!manualInput.trim() || isAILoading}
+                                    style={{
+                                        background: manualInput.trim() ? 'var(--primary-gold)' : 'rgba(255,255,255,0.1)',
+                                        color: manualInput.trim() ? 'black' : 'rgba(255,255,255,0.2)',
+                                        border: 'none', borderRadius: '50%', width: '40px', height: '40px',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+                                    }}><ArrowUp size={24} weight="bold" /></button>
+                            </form>
+                        )}
+                    </div>
                 </div>
             </div>
         );
     }
 
-    // 1-b. Manual Diagnosis Step (Fallback)
     if (step === 'diagnosis_manual') {
         return (
             <div style={{
                 position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 2000,
-                display: 'flex', flexDirection: 'column', padding: '20px',
-                backgroundImage: 'radial-gradient(circle at 50% 30%, #1a1a2e 0%, #000000 70%)'
+                display: 'flex', flexDirection: 'column', padding: '20px', overflow: 'hidden'
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
-                    <button onClick={() => setStep('diagnosis')} style={{ padding: '10px', color: 'white', background: 'none', border: 'none' }}>
-                        <ArrowLeft size={24} />
-                    </button>
-                    <h1 style={{ flex: 1, textAlign: 'center', fontSize: '1.1rem', fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginRight: '44px' }}>
-                        명상 선택
-                    </h1>
-                </div>
+                <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
+                <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
+                    {/* 🛠️ Debug Overlay */}
+                    <MeditationDebugOverlay 
+                        isVisible={isDebugMode}
+                        ttsState={ttsState}
+                        currentStep={step}
+                        audioLevels={audioVolumes}
+                        currentText={aiMessage}
+                        aiLatency={aiLatency}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
+                        <button onClick={() => setStep('diagnosis')} style={{ padding: '10px', color: 'white', background: 'none', border: 'none' }}>
+                            <ArrowLeft size={24} />
+                        </button>
+                        <h1 style={{ flex: 1, textAlign: 'center', fontSize: '1.1rem', fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginRight: '44px' }}>
+                            명상 선택
+                        </h1>
+                    </div>
 
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: '30px' }}>
-                    <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '25px', fontSize: '0.95rem' }}>
-                        지금 느껴지는 상태를 선택해주세요
-                    </p>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: '30px' }}>
+                        <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '25px', fontSize: '0.95rem' }}>
+                            지금 느껴지는 상태를 선택해주세요
+                        </p>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', width: '100%', maxWidth: '400px' }}>
-                        {DIAGNOSIS_OPTIONS.map((option) => (
-                            <button key={option.id} onClick={() => handleDiagnosisSelect(option)} style={{
-                                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: '20px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px',
-                                transition: 'all 0.3s ease', cursor: 'pointer'
-                            }}>
-                                <div style={{ 
-                                    width: '50px', height: '50px', borderRadius: '50%', background: `${option.color}20`,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: option.color 
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', width: '100%', maxWidth: '400px' }}>
+                            {DIAGNOSIS_OPTIONS.map((option) => (
+                                <button key={option.id} onClick={() => handleDiagnosisSelect(option)} style={{
+                                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: '20px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px',
+                                    transition: 'all 0.3s ease', cursor: 'pointer'
                                 }}>
-                                    <option.icon size={28} weight="fill" />
-                                </div>
-                                <span style={{ color: 'white', fontWeight: 600 }}>{option.label}</span>
-                            </button>
-                        ))}
+                                    <div style={{ 
+                                        width: '50px', height: '50px', borderRadius: '50%', background: `${option.color}20`,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', color: option.color 
+                                    }}>
+                                        <option.icon size={28} weight="fill" />
+                                    </div>
+                                    <span style={{ color: 'white', fontWeight: 600 }}>{option.label}</span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1862,185 +2005,170 @@ const MeditationPage = ({ onClose }) => {
         return (
              <div style={{
                 position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 2000,
-                display: 'flex', flexDirection: 'column', padding: '20px',
-                backgroundImage: 'radial-gradient(circle at 50% 30%, #1a1a2e 0%, #000000 70%)'
+                display: 'flex', flexDirection: 'column', padding: '20px', overflow: 'hidden'
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
-                    <button onClick={() => setStep('diagnosis')} style={{ padding: '10px', color: 'white', background: 'none', border: 'none' }}>
-                        <ArrowLeft size={24} />
-                    </button>
-                    <h1 style={{ flex: 1, textAlign: 'center', fontSize: '1.1rem', fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginRight: '44px' }}>
-                        환경 감지
-                    </h1>
-                </div>
+                <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
+                <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
+                    {/* 🛠️ Debug Overlay */}
+                    <MeditationDebugOverlay 
+                        isVisible={isDebugMode}
+                        ttsState={ttsState}
+                        currentStep={step}
+                        audioLevels={audioVolumes}
+                        currentText={aiMessage}
+                        aiLatency={aiLatency}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
+                        <button onClick={() => setStep('diagnosis')} style={{ padding: '10px', color: 'white', background: 'none', border: 'none' }}>
+                            <ArrowLeft size={24} />
+                        </button>
+                        <h1 style={{ flex: 1, textAlign: 'center', fontSize: '1.1rem', fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginRight: '44px' }}>
+                            환경 감지
+                        </h1>
+                    </div>
 
-                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: '40px' }}>
-                    <h2 style={{ fontSize: '1.6rem', fontWeight: 700, color: 'white', marginBottom: '10px', textAlign: 'center' }}>
-                        지금 창밖의 날씨는 어떤가요?
-                    </h2>
-                    <p style={{ color: 'rgba(255,255,255,0.5)', marginBottom: '50px', textAlign: 'center', fontSize: '0.9rem' }}>
-                        날씨에 따라 뇌의 반응 패턴이 달라집니다
-                    </p>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: '40px' }}>
+                        <h2 style={{ fontSize: '1.6rem', fontWeight: 700, color: 'white', marginBottom: '10px', textAlign: 'center' }}>
+                            지금 창밖의 날씨는 어떤가요?
+                        </h2>
+                        <p style={{ color: 'rgba(255,255,255,0.5)', marginBottom: '50px', textAlign: 'center', fontSize: '0.9rem' }}>
+                            날씨에 따라 뇌의 반응 패턴이 달라집니다
+                        </p>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', width: '100%', maxWidth: '400px' }}>
-                        {WEATHER_OPTIONS.map((option) => (
-                            <button key={option.id} onClick={() => handleWeatherSelect(option)} style={{
-                                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px',
-                                cursor: 'pointer'
-                            }}>
-                                <option.icon size={36} color={option.color} weight="duotone" />
-                                <span style={{ color: 'white', fontSize: '1.1rem', marginTop: '5px' }}>{option.label}</span>
-                            </button>
-                        ))}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', width: '100%', maxWidth: '400px' }}>
+                            {WEATHER_OPTIONS.map((option) => (
+                                <button key={option.id} onClick={() => handleWeatherSelect(option)} style={{
+                                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px',
+                                    cursor: 'pointer'
+                                }}>
+                                    <option.icon size={36} color={option.color} weight="duotone" />
+                                    <span style={{ color: 'white', fontSize: '1.1rem', marginTop: '5px' }}>{option.label}</span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
         );
     }
 
-    // 3. Prescription Step
     if (step === 'prescription' && selectedDiagnosis && activeMode) {
         const ModeIcon = ICON_MAP[activeMode.iconName] || ICON_MAP.Wind;
         
         return (
             <div style={{
                 position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 2000,
-                display: 'flex', flexDirection: 'column', padding: '20px',
-                backgroundImage: 'radial-gradient(circle at 50% 30%, #1a1a2e 0%, #000000 70%)',
-                overflowY: 'auto', paddingBottom: 'calc(20px + env(safe-area-inset-bottom))'
+                display: 'flex', flexDirection: 'column', padding: '20px', overflow: 'hidden'
             }}>
-                <div style={{ marginTop: '20px', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingBottom: '40px' }}>
-                    <div style={{ marginBottom: '20px', color: 'var(--primary-gold)' }}><Sparkle size={48} weight="fill" /></div>
-                    <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'white', marginBottom: '20px', textAlign: 'center' }}>
-                        명상 전문 AI 처방
-                    </h2>
+                <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
+                <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100%', width: '100%', overflowY: 'auto' }} className="no-scrollbar">
+                    {/* 🛠️ Debug Overlay */}
+                    <MeditationDebugOverlay 
+                        isVisible={isDebugMode}
+                        ttsState={ttsState}
+                        currentStep={step}
+                        audioLevels={audioVolumes}
+                        currentText={aiMessage}
+                        aiLatency={aiLatency}
+                    />
+                    <div style={{ marginTop: '20px', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingBottom: '40px' }}>
+                        <div style={{ marginBottom: '20px', color: 'var(--primary-gold)' }}><Sparkle size={48} weight="fill" /></div>
+                        <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'white', marginBottom: '20px', textAlign: 'center' }}>
+                            명상 전문 AI 처방
+                        </h2>
 
-                    <div style={{ 
-                        width: '100%', maxWidth: '350px', background: 'rgba(255,255,255,0.08)', 
-                        borderRadius: '24px', padding: '20px', border: '1px solid rgba(255,255,255,0.1)',
-                        display: 'flex', flexDirection: 'column', gap: '15px'
-                    }}>
-                        {/* 1. AI Analysis Analysis (Prioritized) */}
-                        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '15px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)', lineHeight: 1.6 }}>
-                            <div style={{ color: 'var(--primary-gold)', fontWeight: 700, marginBottom: '8px', fontSize: '0.85rem' }}>📋 AI 복순이의 심리 분석</div>
-                            {currentAIChat?.isFinalAnalysis ? (
-                                <div>{currentAIChat.analysisSummary || prescriptionReason}</div>
-                            ) : (
-                                <div>{prescriptionReason}</div>
-                            )}
-                        </div>
-
-                        <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '5px 0' }} />
-
-                        {/* 2. Recommendation Hero Card */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                            <div style={{ width: '60px', height: '60px', borderRadius: '18px', background: `${activeMode.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: activeMode.color }}>
-                                <ModeIcon size={32} weight="duotone" />
+                        <div style={{ 
+                            width: '100%', maxWidth: '350px', background: 'rgba(255,255,255,0.08)', 
+                            borderRadius: '24px', padding: '20px', border: '1px solid rgba(255,255,255,0.1)',
+                            display: 'flex', flexDirection: 'column', gap: '15px'
+                        }}>
+                            {/* 1. AI Analysis */}
+                            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '15px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)', lineHeight: 1.6 }}>
+                                <div style={{ color: 'var(--primary-gold)', fontWeight: 700, marginBottom: '8px', fontSize: '0.85rem' }}>📋 AI 복순이의 심리 분석</div>
+                                <div>{currentAIChat?.isFinalAnalysis ? (currentAIChat.analysisSummary || prescriptionReason) : prescriptionReason}</div>
                             </div>
-                            <div>
-                                <div style={{ fontSize: '0.85rem', color: 'var(--primary-gold)', fontWeight: 600, marginBottom: '2px' }}>✨ AI 강력 추천</div>
-                                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'white' }}>{activeMode.label}</div>
-                                <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)' }}>
-                                    {interactionType === 'v1' && '편안한 가이드 명상'}
-                                    {interactionType === 'v2' && '호흡 반응형 명상'}
-                                    {interactionType === 'v3' && 'AI 자세 코칭'}
+
+                            <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '5px 0' }} />
+
+                            {/* 2. Recommendation Hero Card */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                <div style={{ width: '60px', height: '60px', borderRadius: '18px', background: `${activeMode.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: activeMode.color }}>
+                                    <ModeIcon size={32} weight="duotone" />
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--primary-gold)', fontWeight: 600, marginBottom: '2px' }}>✨ AI 강력 추천</div>
+                                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'white' }}>{activeMode.label}</div>
+                                    <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)' }}>
+                                        {interactionType === 'v1' && '편안한 가이드 명상'}
+                                        {interactionType === 'v2' && '호흡 반응형 명상'}
+                                        {interactionType === 'v3' && 'AI 자세 코칭'}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* 3. User Options (Collapsible/Separated) */}
-                        <div style={{ marginTop: '10px' }}>
-                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                                <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>옵션 변경하기</span>
-                            </div>
-                            
-                            {/* Time Selection */}
-                            <div style={{ marginBottom: '10px', display: 'flex', gap: '8px' }}>
-                                {MEDITATION_MODES.map(m => (
-                                    <button 
-                                        key={m.id}
-                                        onClick={() => { setActiveMode(m); setTimeLeft(m.time); }}
-                                        style={{
-                                            flex: 1, padding: '8px', borderRadius: '10px', fontSize: '0.75rem',
-                                            background: activeMode.id === m.id ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.05)',
-                                            color: activeMode.id === m.id ? 'white' : 'rgba(255,255,255,0.6)',
-                                            border: activeMode.id === m.id ? '1px solid rgba(255,255,255,0.3)' : 'none', 
-                                            transition: 'all 0.2s', fontWeight: 600
-                                        }}
-                                    >
-                                        {m.label.split(' ')[0]}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Type Selection */}
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                                {Object.values(INTERACTION_TYPES).map(t => (
-                                    <button 
-                                        key={t.id}
-                                        onClick={() => setInteractionType(t.id)}
-                                        style={{
-                                            flex: 1, padding: '8px', borderRadius: '10px', fontSize: '0.75rem',
-                                            background: interactionType === t.id ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.05)',
-                                            color: interactionType === t.id ? 'white' : 'rgba(255,255,255,0.6)',
-                                            border: interactionType === t.id ? '1px solid rgba(255,255,255,0.3)' : 'none',
-                                            transition: 'all 0.2s', fontWeight: 600
-                                        }}
-                                    >
-                                        {t.id === 'v1' ? '안내' : t.id === 'v2' ? '숨소리' : '자세'}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* 🎵 Ambient Sound Selection */}
+                            {/* 3. User Options */}
                             <div style={{ marginTop: '10px' }}>
-                                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', marginBottom: '8px' }}>🎵 배경음</div>
-                                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                                    {AMBIENT_SOUNDS.map(a => (
-                                        <button 
-                                            key={a.id}
-                                            onClick={() => setSelectedAmbient(a.id)}
+                                 <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', marginBottom: '10px' }}>옵션 변경하기</div>
+                                
+                                {/* Time Selection */}
+                                <div style={{ marginBottom: '10px', display: 'flex', gap: '8px' }}>
+                                    {MEDITATION_MODES.map(m => (
+                                        <button key={m.id} onClick={() => { setActiveMode(m); setTimeLeft(m.time); }}
                                             style={{
-                                                padding: '6px 12px', borderRadius: '12px', fontSize: '0.7rem',
-                                                background: selectedAmbient === a.id ? `${a.color}30` : 'rgba(255,255,255,0.05)',
-                                                color: selectedAmbient === a.id ? a.color : 'rgba(255,255,255,0.5)',
-                                                border: selectedAmbient === a.id ? `1px solid ${a.color}50` : '1px solid transparent',
-                                                transition: 'all 0.2s', fontWeight: 600, cursor: 'pointer'
-                                            }}
-                                        >
-                                            {a.label}
-                                        </button>
+                                                flex: 1, padding: '8px', borderRadius: '10px', fontSize: '0.75rem',
+                                                background: activeMode.id === m.id ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.05)',
+                                                color: activeMode.id === m.id ? 'white' : 'rgba(255,255,255,0.6)',
+                                                border: activeMode.id === m.id ? '1px solid rgba(255,255,255,0.3)' : 'none', fontWeight: 600
+                                            }}>{m.label.split(' ')[0]}</button>
                                     ))}
                                 </div>
+
+                                {/* Type Selection */}
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    {Object.values(INTERACTION_TYPES).map(t => (
+                                        <button key={t.id} onClick={() => setInteractionType(t.id)}
+                                            style={{
+                                                flex: 1, padding: '8px', borderRadius: '10px', fontSize: '0.75rem',
+                                                background: interactionType === t.id ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.05)',
+                                                color: interactionType === t.id ? 'white' : 'rgba(255,255,255,0.6)',
+                                                border: interactionType === t.id ? '1px solid rgba(255,255,255,0.3)' : 'none', fontWeight: 600
+                                            }}>{t.id === 'v1' ? '안내' : t.id === 'v2' ? '숨소리' : '자세'}</button>
+                                    ))}
+                                </div>
+
+                                {/* 🎵 Ambient Sound Selection */}
+                                <div style={{ marginTop: '15px' }}>
+                                    <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', marginBottom: '8px' }}>🎵 배경음</div>
+                                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                        {AMBIENT_SOUNDS.map(a => (
+                                            <button key={a.id} onClick={() => setSelectedAmbient(a.id)}
+                                                style={{
+                                                    padding: '6px 12px', borderRadius: '12px', fontSize: '0.7rem',
+                                                    background: selectedAmbient === a.id ? `${a.color}30` : 'rgba(255,255,255,0.05)',
+                                                    color: selectedAmbient === a.id ? a.color : 'rgba(255,255,255,0.5)',
+                                                    border: selectedAmbient === a.id ? `1px solid ${a.color}50` : '1px solid transparent',
+                                                    fontWeight: 600, cursor: 'pointer'
+                                                }}>{a.label}</button>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        {isAILoading && (
-                            <div style={{ textAlign: 'center', color: 'var(--primary-gold)', marginTop: '5px', fontSize: '0.75rem' }}>
-                                ✨ 최적의 코스를 로딩 중...
-                            </div>
-                        )}
-                    </div>
-
-                    <div style={{ width: '100%', maxWidth: '350px', paddingBottom: '10px' }}>
-                        <button onClick={startFromPrescription} style={{
-                            width: '100%',
-                            background: 'var(--primary-gold)', color: 'black',
-                            padding: '16px', borderRadius: '18px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', 
-                            cursor: 'pointer', boxShadow: '0 10px 20px rgba(212,175,55,0.3)'
-                        }}>
-                            <Play size={24} weight="fill" /> 시작하기
-                        </button>
-                        
-                        <button onClick={handleReturnToChat} style={{ 
-                            marginTop: '15px', width: '100%', background: 'transparent', 
-                            border: 'none', color: 'rgba(255,255,255,0.4)', 
-                            textDecoration: 'underline', cursor: 'pointer', fontSize: '0.85rem'
-                        }}>
-                            다시 선택 (대화로 돌아가기)
-                        </button>
+                        <div style={{ width: '100%', maxWidth: '350px', marginTop: '30px' }}>
+                            <button onClick={startFromPrescription} style={{
+                                width: '100%', background: 'var(--primary-gold)', color: 'black',
+                                padding: '16px', borderRadius: '18px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', 
+                                cursor: 'pointer', boxShadow: '0 10px 20px rgba(212,175,55,0.3)'
+                            }}><Play size={24} weight="fill" /> 시작하기</button>
+                            
+                            <button onClick={handleReturnToChat} style={{ 
+                                marginTop: '15px', width: '100%', background: 'transparent', border: 'none', 
+                                color: 'rgba(255,255,255,0.4)', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.85rem'
+                            }}>다시 선택 (대화로 돌아가기)</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2051,168 +2179,131 @@ const MeditationPage = ({ onClose }) => {
     if (step === 'preparation') {
         const PREPARATION_GUIDES = {
             chair: {
-                title: "의자 명상",
-                desc: "회사나 집에서 간편하게",
-                steps: [
-                    "의자 앞쪽에 걸터앉아 허리를 세웁니다.",
-                    "양발은 어깨너비로 벌려 지면에 닿게 합니다.",
-                    "손은 편안하게 무릎 위에 올립니다."
-                ]
+                title: "의자 명상", desc: "회사나 집에서 간편하게",
+                steps: ["의자 앞쪽에 걸터앉아 허리를 세웁니다.", "양발은 어깨너비로 벌려 지면에 닿게 합니다.", "손은 편안하게 무릎 위에 올립니다."]
             },
             floor: {
-                title: "바닥 명상",
-                desc: "조용하고 안정적인 공간에서",
-                steps: [
-                    "가부좌 또는 편한 책상다리를 합니다.",
-                    "쿠션을 활용해 무릎이 엉덩이보다 낮게 합니다.",
-                    "척추를 곧게 펴고 정수리를 하늘로 당깁니다."
-                ]
+                title: "바닥 명상", desc: "조용하고 안정적인 공간에서",
+                steps: ["가부좌 또는 편한 책상다리를 합니다.", "쿠션을 활용해 무릎이 엉덩이보다 낮게 합니다.", "척추를 곧게 펴고 정수리를 하늘로 당깁니다."]
             },
             lying: {
-                title: "누운 명상",
-                desc: "깊은 이완과 수면을 위해",
-                steps: [
-                    "등을 대고 편안하게 눕습니다.",
-                    "다리는 어깨너비로 벌리고 발끝을 툭 떨어뜨립니다.",
-                    "팔은 몸 옆에 두고 손바닥이 하늘을 향하게 합니다."
-                ]
+                title: "누운 명상", desc: "깊은 이완과 수면을 위해",
+                steps: ["등을 대고 편안하게 눕습니다.", "다리는 어깨너비로 벌리고 발끝을 툭 떨어뜨립니다.", "팔은 몸 옆에 두고 손바닥이 하늘을 향하게 합니다."]
             }
         };
-
-
 
         return (
             <div style={{
                 position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 2000,
-                display: 'flex', flexDirection: 'column', padding: '20px',
-                backgroundImage: 'radial-gradient(circle at 50% 10%, #1a1a2e 0%, #000000 80%)'
+                display: 'flex', flexDirection: 'column', padding: '20px', overflow: 'hidden'
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
-                    <button onClick={() => setStep('prescription')} style={{ padding: '10px', color: 'white', background: 'none', border: 'none' }}>
-                        <ArrowLeft size={24} />
-                    </button>
-                    <div style={{ flex: 1, textAlign: 'center' }}>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--primary-gold)', fontWeight: 600 }}>준비 단계 ({prepStep}/3)</div>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white' }}>명상 준비</div>
+                <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
+                <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
+                    {/* 🛠️ Debug Overlay */}
+                    <MeditationDebugOverlay 
+                        isVisible={isDebugMode}
+                        ttsState={ttsState}
+                        currentStep={step}
+                        audioLevels={audioVolumes}
+                        currentText={aiMessage}
+                        aiLatency={aiLatency}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
+                        <button onClick={() => setStep('prescription')} style={{ padding: '10px', color: 'white', background: 'none', border: 'none' }}>
+                            <ArrowLeft size={24} />
+                        </button>
+                        <div style={{ flex: 1, textAlign: 'center' }}>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--primary-gold)', fontWeight: 600 }}>준비 단계 ({prepStep}/3)</div>
+                            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white' }}>명상 준비</div>
+                        </div>
+                        <div style={{ width: '44px' }} />
                     </div>
-                    <div style={{ width: '44px' }} />
-                </div>
 
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: '10px' }}>
-                    
-                    {/* STEP 1: Notifications Off */}
-                    {prepStep === 1 && (
-                        <div style={{ width: '100%', maxWidth: '350px', animation: 'fadeIn 0.5s ease' }}>
-                            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-                                <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🔕</div>
-                                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white', marginBottom: '10px' }}>주변을 고요하게</h3>
-                                <p style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>방해받지 않도록 <br/>기기를 '무음' 또는 '방해금지' 모드로 <br/>설정해주셨나요?</p>
-                            </div>
-                            <button 
-                                onClick={() => { setPrepSelections({...prepSelections, notified: true}); setPrepStep(2); }}
-                                style={{
-                                    width: '100%', background: 'var(--primary-gold)', color: 'black',
-                                    padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
-                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'
-                                }}
-                            >
-                                확인했습니다
-                            </button>
-                        </div>
-                    )}
-
-                    {/* STEP 2: Phone Placement (NEW) */}
-                    {prepStep === 2 && (
-                        <div style={{ width: '100%', maxWidth: '350px', animation: 'fadeIn 0.5s ease' }}>
-                            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-                                <div style={{ fontSize: '4rem', marginBottom: '20px' }}>
-                                    {interactionType === 'v1' && '📱'}
-                                    {interactionType === 'v2' && '👄'}
-                                    {interactionType === 'v3' && '📏'}
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: '10px' }}>
+                        {/* STEP 1: Notifications Off */}
+                        {prepStep === 1 && (
+                            <div style={{ width: '100%', maxWidth: '350px', animation: 'fadeIn 0.5s ease' }}>
+                                <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                                    <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🔕</div>
+                                    <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white', marginBottom: '10px' }}>주변을 고요하게</h3>
+                                    <p style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>방해받지 않도록 <br/>기기를 '무음' 또는 '방해금지' 모드로 <br/>설정해주셨나요?</p>
                                 </div>
-                                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white', marginBottom: '10px' }}>핸드폰 위치 설정</h3>
-                                <p style={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, fontSize: '1.1rem' }}>
-                                    {interactionType === 'v1' && "핸드폰을 손이 닿는 편한 곳에 두세요."}
-                                    {interactionType === 'v2' && "숨소리 감지를 위해 핸드폰을 입 근처(30cm 내)에 비스듬히 세워두세요."}
-                                    {interactionType === 'v3' && "전신 촬영을 위해 핸드폰을 약 2m 거리에 세워두세요."}
-                                </p>
-                                {interactionType === 'v2' && (
-                                    <div style={{ 
-                                        marginTop: '20px', padding: '12px', background: 'rgba(74, 222, 128, 0.1)', 
-                                        borderRadius: '12px', border: '1px solid rgba(74, 222, 128, 0.2)',
-                                        fontSize: '0.85rem', color: '#4ade80', lineHeight: 1.4
-                                    }}>
-                                        💡 <b>Tip:</b> 마이크가 포함된 이어폰을 사용하시면 숨소리를 훨씬 더 정확하게 감지할 수 있어요.
+                                <button onClick={() => { setPrepSelections({...prepSelections, notified: true}); setPrepStep(2); }}
+                                    style={{
+                                        width: '100%', background: 'var(--primary-gold)', color: 'black',
+                                        padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
+                                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                    }}>확인했습니다</button>
+                            </div>
+                        )}
+
+                        {/* STEP 2: Phone Placement */}
+                        {prepStep === 2 && (
+                            <div style={{ width: '100%', maxWidth: '350px', animation: 'fadeIn 0.5s ease' }}>
+                                <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                                    <div style={{ fontSize: '4rem', marginBottom: '20px' }}>
+                                        {interactionType === 'v3' ? '📏' : (interactionType === 'v2' ? '👄' : '📱')}
                                     </div>
-                                )}
+                                    <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white', marginBottom: '10px' }}>핸드폰 위치 설정</h3>
+                                    <p style={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, fontSize: '1.1rem' }}>
+                                        {interactionType === 'v3' ? "전신 촬영을 위해 핸드폰을 약 2m 거리에 세워두세요." : (interactionType === 'v2' ? "숨소리 감지를 위해 핸드폰을 입 근처(30cm 내)에 비스듬히 세워두세요." : "핸드폰을 손이 닿는 편한 곳에 두세요.")}
+                                    </p>
+                                    {interactionType === 'v2' && (
+                                        <div style={{ 
+                                            marginTop: '20px', padding: '12px', background: 'rgba(74, 222, 128, 0.1)', 
+                                            borderRadius: '12px', border: '1px solid rgba(74, 222, 128, 0.2)', fontSize: '0.85rem', color: '#4ade80'
+                                        }}>💡 <b>Tip:</b> 마이크가 포함된 이어폰을 사용하시면 숨소리를 훨씬 더 정확하게 감지할 수 있어요.</div>
+                                    )}
+                                </div>
+                                <button onClick={() => setPrepStep(3)}
+                                    style={{
+                                        width: '100%', background: 'var(--primary-gold)', color: 'black',
+                                        padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
+                                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                    }}>배치 완료</button>
                             </div>
-                            <button 
-                                onClick={() => setPrepStep(3)}
-                                style={{
-                                    width: '100%', background: 'var(--primary-gold)', color: 'black',
-                                    padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
-                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'
-                                }}
-                            >
-                                배치 완료
-                            </button>
-                        </div>
-                    )}
+                        )}
 
-                    {/* STEP 3: Posture Guide */}
-                    {prepStep === 3 && (
-                        <div style={{ width: '100%', maxWidth: '400px', animation: 'fadeIn 0.5s ease' }}>
-                            <h3 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'white', marginBottom: '25px', textAlign: 'center' }}>가장 편한 자세를 찾아보세요</h3>
-                            
-                            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                                {Object.entries(PREPARATION_GUIDES).map(([key, info]) => (
-                                    <button 
-                                        key={key}
-                                        onClick={() => setPrepSelections({...prepSelections, posture: key})}
-                                        style={{
-                                            flex: 1, padding: '12px 5px', borderRadius: '15px', fontSize: '0.85rem',
-                                            background: prepSelections.posture === key ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.03)',
-                                            color: prepSelections.posture === key ? 'white' : 'rgba(255,255,255,0.4)',
-                                            border: prepSelections.posture === key ? '1px solid rgba(255,255,255,0.3)' : '1px solid transparent',
-                                            transition: 'all 0.2s', fontWeight: 600
-                                        }}
-                                    >
-                                        {info.title}
-                                    </button>
-                                ))}
-                            </div>
-
-                            <div style={{ 
-                                background: 'rgba(255,255,255,0.05)', borderRadius: '25px', padding: '25px',
-                                border: '1px solid rgba(255,255,255,0.1)', marginBottom: '30px',
-                                minHeight: '220px'
-                            }}>
-                                <div style={{ color: 'var(--primary-gold)', fontSize: '0.8rem', fontWeight: 700, marginBottom: '5px' }}>{PREPARATION_GUIDES[prepSelections.posture].desc}</div>
-                                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'white', marginBottom: '15px' }}>{PREPARATION_GUIDES[prepSelections.posture].title} 자세</div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    {PREPARATION_GUIDES[prepSelections.posture].steps.map((s, i) => (
-                                        <div key={i} style={{ display: 'flex', gap: '10px', color: 'rgba(255,255,255,0.8)', fontSize: '0.95rem', lineHeight: 1.5 }}>
-                                            <span style={{ color: 'var(--primary-gold)', fontWeight: 800 }}>{i+1}</span>
-                                            <span>{s}</span>
-                                        </div>
+                        {/* STEP 3: Posture Guide */}
+                        {prepStep === 3 && (
+                            <div style={{ width: '100%', maxWidth: '400px', animation: 'fadeIn 0.5s ease' }}>
+                                <h3 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'white', marginBottom: '25px', textAlign: 'center' }}>가장 편한 자세를 찾아보세요</h3>
+                                <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+                                    {Object.entries(PREPARATION_GUIDES).map(([key, info]) => (
+                                        <button key={key} onClick={() => setPrepSelections({...prepSelections, posture: key})}
+                                            style={{
+                                                flex: 1, padding: '12px 5px', borderRadius: '15px', fontSize: '0.85rem',
+                                                background: prepSelections.posture === key ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.03)',
+                                                color: prepSelections.posture === key ? 'white' : 'rgba(255,255,255,0.4)',
+                                                border: prepSelections.posture === key ? '1px solid rgba(255,255,255,0.3)' : '1px solid transparent',
+                                                fontWeight: 600
+                                            }}>{info.title}</button>
                                     ))}
                                 </div>
+                                <div style={{ 
+                                    background: 'rgba(255,255,255,0.05)', borderRadius: '25px', padding: '25px',
+                                    border: '1px solid rgba(255,255,255,0.1)', marginBottom: '30px', minHeight: '220px'
+                                }}>
+                                    <div style={{ color: 'var(--primary-gold)', fontSize: '0.8rem', fontWeight: 700, marginBottom: '5px' }}>{PREPARATION_GUIDES[prepSelections.posture].desc}</div>
+                                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'white', marginBottom: '15px' }}>{PREPARATION_GUIDES[prepSelections.posture].title} 자세</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        {PREPARATION_GUIDES[prepSelections.posture].steps.map((s, i) => (
+                                            <div key={i} style={{ display: 'flex', gap: '10px', color: 'rgba(255,255,255,0.8)', fontSize: '0.95rem', lineHeight: 1.5 }}>
+                                                <span style={{ color: 'var(--primary-gold)', fontWeight: 800 }}>{i+1}</span>
+                                                <span>{s}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <button onClick={() => startSession(activeMode)}
+                                    style={{
+                                        width: '100%', background: 'var(--primary-gold)', color: 'black',
+                                        padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
+                                        cursor: 'pointer'
+                                    }}>자세를 잡았습니다 (명상 시작)</button>
                             </div>
-
-                            <button 
-                                onClick={() => startSession(activeMode)}
-                                style={{
-                                    width: '100%', background: 'var(--primary-gold)', color: 'black',
-                                    padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                자세를 잡았습니다 (명상 시작)
-                            </button>
-                        </div>
-                    )}
-
-
+                        )}
+                    </div>
                 </div>
             </div>
         );
@@ -2224,65 +2315,77 @@ const MeditationPage = ({ onClose }) => {
         
         return (
             <div style={{
-                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 3000,
-                display: 'flex', flexDirection: 'column', padding: '20px',
-                backgroundImage: 'radial-gradient(circle at 50% 80%, #1a1a2e 0%, #000000 80%)'
+                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 9999,
+                display: 'flex', flexDirection: 'column', overflow: 'hidden'
             }}>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', maxWidth: '400px', margin: '0 auto', width: '100%' }}>
-                     <div style={{ marginBottom: '30px', color: 'var(--primary-gold)' }}><Sparkle size={48} weight="fill" /></div>
-                     
-                     <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white', marginBottom: '10px', textAlign: 'center' }}>
-                        오늘의 명상 기록
-                     </h2>
-                     <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem', marginBottom: '40px' }}>
-                        {isAILoading ? "AI가 명상 결과를 정리하고 있습니다..." : "오늘의 마음 챙김이 완료되었습니다"}
-                     </p>
+                <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
+                <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100%', width: '100%', overflowY: 'auto' }} className="no-scrollbar">
+                    {/* 🛠️ Debug Overlay */}
+                    <MeditationDebugOverlay 
+                        isVisible={isDebugMode}
+                        ttsState={ttsState}
+                        currentStep={step}
+                        audioLevels={audioVolumes}
+                        currentText={aiMessage}
+                        aiLatency={aiLatency}
+                    />
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+                        <div style={{ marginBottom: '30px', color: 'var(--primary-gold)' }}>
+                            <Sparkle size={60} weight="fill" />
+                        </div>
+                        
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'white', marginBottom: '10px', textAlign: 'center' }}>
+                            오늘의 명상을 마쳤습니다
+                        </h2>
+                        <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '40px', textAlign: 'center' }}>
+                            오늘 하루, 당신의 마음을 잘 돌보셨나요?
+                        </p>
 
-                     {isAILoading ? (
-                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                            <div style={{ width: '8px', height: '8px', background: 'white', borderRadius: '50%', animation: 'pulse 1s infinite' }}></div>
-                            <div style={{ width: '8px', height: '8px', background: 'white', borderRadius: '50%', animation: 'pulse 1s infinite 0.2s' }}></div>
-                            <div style={{ width: '8px', height: '8px', background: 'white', borderRadius: '50%', animation: 'pulse 1s infinite 0.4s' }}></div>
-                         </div>
-                     ) : (
-                         <div style={{ width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '20px', padding: '25px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                             {/* Feedback Points */}
-                             {points.length > 0 ? (
-                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                     {points.map((p, i) => (
-                                         <div key={i} style={{ display: 'flex', gap: '10px', fontSize: '0.95rem', color: 'rgba(255,255,255,0.9)', lineHeight: 1.5, alignItems: 'flex-start', textAlign: 'left' }}>
-                                             <span style={{ color: 'var(--primary-gold)', marginTop: '4px' }}>•</span>
-                                             <span>{p}</span>
-                                         </div>
-                                     ))}
+                        {/* AI Summary Card */}
+                        <div style={{ 
+                            width: '100%', maxWidth: '400px', background: 'rgba(255,255,255,0.08)', 
+                            borderRadius: '24px', padding: '25px', border: '1px solid rgba(255,255,255,0.1)',
+                            marginBottom: '40px'
+                        }}>
+                             <div style={{ color: 'var(--primary-gold)', fontWeight: 700, marginBottom: '15px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <img src="/pwa-192x192.png" alt="AI" style={{ width: '100%' }} />
+                                </div>
+                                AI 복순이의 마음 일기
+                             </div>
+                             
+                             {isAILoading ? (
+                                 <div style={{ color: 'rgba(255,255,255,0.5)', textAlign: 'center', padding: '20px' }}>
+                                     명상 결과를 정리하고 있습니다...
                                  </div>
                              ) : (
-                                 <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.8)', lineHeight: 1.6 }}>
-                                     {feedbackData?.message || "마음이 한결 편안해지셨길 바랍니다."}
+                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                     {points.length > 0 ? (
+                                         points.map((p, i) => (
+                                             <div key={i} style={{ display: 'flex', gap: '10px', fontSize: '1.0rem', color: 'rgba(255,255,255,0.9)', lineHeight: 1.6 }}>
+                                                 <span style={{ color: 'var(--primary-gold)' }}>•</span>
+                                                 <span>{p}</span>
+                                             </div>
+                                         ))
+                                     ) : (
+                                         <div style={{ color: 'white', fontSize: '1.1rem', lineHeight: 1.7 }}>
+                                             {feedbackData?.message || "오늘 하루도 평온하시길 바랍니다."}
+                                         </div>
+                                     )}
                                  </div>
                              )}
-                         </div>
-                     )}
-                </div>
+                        </div>
 
-                {!isAILoading && (
-                    <div style={{ width: '100%', maxWidth: '400px', margin: '0 auto', paddingBottom: '20px' }}>
-                        <button 
-                            onClick={() => {
-                                stopAllAudioRef.current?.(true); // Stop ambient too
-                                if (onClose) onClose();
-                                else navigate('/');
-                            }}
-                            style={{
-                                width: '100%', background: 'var(--primary-gold)', color: 'black',
+                        {/* Back home button */}
+                        {!isAILoading && (
+                            <button onClick={() => { stopAllAudioRef.current?.(true); if(onClose) onClose(); else navigate('/member-profile'); }} style={{
+                                width: '100%', maxWidth: '300px', background: 'white', color: 'black',
                                 padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
-                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'
-                            }}
-                        >
-                            <House size={24} weight="fill" /> 홈으로
-                        </button>
+                                cursor: 'pointer', transition: 'all 0.3s ease'
+                            }}>홈으로 돌아가기</button>
+                        )}
                     </div>
-                )}
+                </div>
             </div>
         );
     }
@@ -2292,13 +2395,13 @@ const MeditationPage = ({ onClose }) => {
 
     return (
         <div style={{
-            position: 'fixed', inset: 0, background: '#000', zIndex: 3000,
+            position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 3000,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             overflow: 'hidden'
         }}>
             {/* V3 Camera Layer */}
             {interactionType === 'v3' && (
-                <div style={{ position: 'absolute', inset: 0, zIndex: -1, opacity: 0.6 }}>
+                <div style={{ position: 'absolute', inset: 0, zIndex: 1, opacity: 0.6 }}>
                     <video 
                         ref={videoRef} 
                         autoPlay 
@@ -2326,19 +2429,17 @@ const MeditationPage = ({ onClose }) => {
                 </div>
             )}
 
-            {/* Background Animation (V1/V2) - ENHANCED for More Movement */}
-            {/* Background Animation (V1/V2) - Dynamic Soul Light */}
-            {interactionType !== 'v3' && (
-                <div 
-                    className={`soul-light-base soul-theme-${visualTheme} ${isPlaying && interactionType !== 'v2' ? 'active' : ''}`} 
-                    style={{
-                         transform: interactionType === 'v2' && isPlaying 
-                            ? `translate(-50%, -50%) scale(${1 + Math.min(micVolume, 0.5)})` 
-                            : undefined,
-                         transition: interactionType === 'v2' ? 'transform 0.1s ease-out' : 'all 1s ease'
-                     }}
-                />
-            )}
+            {/* Global Dynamic Background */}
+            <div 
+                className={`soul-light-base soul-theme-${visualTheme} ${isPlaying && interactionType !== 'v2' ? 'active' : ''}`} 
+                style={{
+                     transform: interactionType === 'v2' && isPlaying 
+                        ? `translate(-50%, -50%) scale(${1 + Math.min(micVolume, 0.5)})` 
+                        : undefined,
+                     transition: interactionType === 'v2' ? 'transform 0.1s ease-out' : 'all 1s ease',
+                     zIndex: 0
+                 }}
+            />
 
             {/* Content Overlay */}
             <div style={{ zIndex: 10, textAlign: 'center', width: '100%', padding: '40px', maxWidth: '600px' }}>
@@ -2466,6 +2567,16 @@ const MeditationPage = ({ onClose }) => {
                 </div>
             </div>
 
+            {/* 🛠️ Debug Overlay */}
+            <MeditationDebugOverlay 
+                isVisible={isDebugMode}
+                ttsState={ttsState}
+                currentStep={step}
+                audioLevels={audioVolumes}
+                currentText={aiMessage}
+                aiLatency={aiLatency}
+            />
+
             <style>{`
                 .no-scrollbar::-webkit-scrollbar {
                     display: none;
@@ -2504,6 +2615,48 @@ const MeditationPage = ({ onClose }) => {
                     to { opacity: 1; transform: translateY(0); }
                 }
             `}</style>
+        </div>
+    );
+};
+
+// 🛠️ Meditation Debug Overlay Component
+const MeditationDebugOverlay = ({ isVisible, ttsState, currentStep, audioLevels, currentText, aiLatency }) => {
+    if (!isVisible) return null;
+
+    return (
+        <div style={{
+            position: 'fixed', top: '80px', left: '20px', right: '20px',
+            background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(0,255,255,0.3)', borderRadius: '15px',
+            padding: '15px', color: '#00ffff', fontSize: '0.75rem', zIndex: 10000,
+            fontFamily: 'monospace', pointerEvents: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+        }}>
+            <div style={{ fontWeight: 'bold', marginBottom: '8px', borderBottom: '1px solid rgba(0,255,255,0.2)', paddingBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                <span>[MEDITATION DEBUG MODE]</span>
+                <span>Latency: {aiLatency}ms</span>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                    <div style={{ color: '#fff', marginBottom: '4px' }}>📡 AI \u0026 Step Status</div>
+                    <div>Step: {currentStep}</div>
+                    <div>TTS Engine: {ttsState.engine}</div>
+                    <div>Speaking: {ttsState.isSpeaking ? 'YES' : 'NO'}</div>
+                </div>
+                <div>
+                    <div style={{ color: '#fff', marginBottom: '4px' }}>🔊 Audio Levels</div>
+                    <div>Voice: {Math.round(audioLevels.voice * 100)}%</div>
+                    <div>Ambient: {Math.round(audioLevels.ambient * 100)}%</div>
+                    <div>Binaural: {Math.round(audioLevels.binaural * 100)}%</div>
+                </div>
+            </div>
+
+            <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid rgba(0,255,255,0.1)' }}>
+                <div style={{ color: '#fff', marginBottom: '4px' }}>📝 Raw TTS Text:</div>
+                <div style={{ background: 'rgba(0,0,0,0.3)', padding: '6px', borderRadius: '4px', maxHeight: '60px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+                    {currentText || 'No text currently processed'}
+                </div>
+            </div>
         </div>
     );
 };

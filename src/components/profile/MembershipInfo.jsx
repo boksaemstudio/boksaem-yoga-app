@@ -16,7 +16,7 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
     return (
         <div style={{ padding: '0 0 20px 0' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px', flexWrap: 'wrap' }}>
-                <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: 0, color: 'white' }}>{member.name} 님</h1>
+                <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: 0, color: 'white' }}>{member.displayName || member.name} 님</h1>
                 <span style={{ background: 'var(--primary-gold)', color: 'black', padding: '3px 10px', borderRadius: '5px', fontSize: '0.75rem', fontWeight: 'bold' }}>
                     {t('branch' + (member.homeBranch === 'gwangheungchang' ? 'Gwangheungchang' : 'Mapo'))}
                 </span>

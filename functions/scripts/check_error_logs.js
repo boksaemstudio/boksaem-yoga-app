@@ -13,41 +13,43 @@ const db = admin.firestore();
 
 async function checkErrorLogs() {
     try {
-        console.log('📋 Fetching error logs from Firestore...\n');
+        console.log('📋 Fetching AI error logs from Firestore (ai_error_logs)...\n');
 
-        const snapshot = await db.collection('error_logs')
+        const snapshot = await db.collection('ai_error_logs')
             .orderBy('timestamp', 'desc')
-            .limit(100)
+            .limit(20)
             .get();
 
         if (snapshot.empty) {
-            console.log('✅ No error logs found! System is healthy.\n');
-            return { count: 0, errors: [] };
+            console.log('✅ No AI error logs found in ai_error_logs collection.\n');
+        } else {
+            console.log(`Found ${snapshot.size} AI error log(s):\n`);
+            console.log('='.repeat(80));
+
+            snapshot.docs.forEach((doc, index) => {
+                const data = doc.data();
+                console.log(`\n[${index + 1}] ID: ${doc.id}`);
+                console.log(`Context: ${data.context || 'Unknown'}`);
+                console.log(`Error: ${data.error || 'No message'}`);
+                console.log(`Timestamp: ${data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : 'N/A'}`);
+                console.log('-'.repeat(80));
+            });
         }
 
-        console.log(`Found ${snapshot.size} error log(s):\n`);
-        console.log('='.repeat(80));
+        console.log('\n📋 Fetching general error logs from Firestore (error_logs)...\n');
+        const generalSnapshot = await db.collection('error_logs')
+            .orderBy('timestamp', 'desc')
+            .limit(10)
+            .get();
 
-        const errors = [];
-        snapshot.docs.forEach((doc, index) => {
-            const data = doc.data();
-            errors.push({ id: doc.id, ...data });
+        if (generalSnapshot.empty) {
+            console.log('✅ No general error logs found.\n');
+        } else {
+             // ... existing general log printing logic if needed, or just summary
+             console.log(`Found ${generalSnapshot.size} general error log(s). Run detailed check if needed.\n`);
+        }
 
-            console.log(`\n[${index + 1}] ID: ${doc.id}`);
-            console.log(`Type: ${data.errorType || 'Unknown'}`);
-            console.log(`Message: ${data.message || 'No message'}`);
-            console.log(`Timestamp: ${data.timestamp ? new Date(data.timestamp).toLocaleString() : 'N/A'}`);
-            console.log(`User: ${data.userId || 'Anonymous'}`);
-
-            if (data.stack) {
-                console.log(`Stack (first 200 chars): ${data.stack.substring(0, 200)}...`);
-            }
-            console.log('-'.repeat(80));
-        });
-
-        console.log(`\n📊 Total: ${snapshot.size} error log(s)\n`);
-
-        return { count: snapshot.size, errors };
+        return { count: snapshot.size + generalSnapshot.size };
 
     } catch (error) {
         console.error('❌ Error fetching logs:', error);

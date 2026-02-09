@@ -737,13 +737,13 @@ export const storageService = {
         return memberName.startsWith(inputName) || memberName.includes(inputName);
       });
 
-      if (filtered.length === 1) {
-        return { success: true, member: filtered[0] };
-      } else if (filtered.length > 1) {
-        console.warn(`Multiple members found for name ${name} and PIN ${last4Digits}`);
-        // 정확히 일치하는 회원 우선
-        const exact = filtered.find(m => (m.name || '').trim().toLowerCase() === inputName);
-        return { success: true, member: exact || filtered[0] }; 
+        if (filtered.length === 1) {
+          return { success: true, member: { ...filtered[0], displayName: name.trim() } };
+        } else if (filtered.length > 1) {
+          console.warn(`Multiple members found for name ${name} and PIN ${last4Digits}`);
+          // 정확히 일치하는 회원 우선
+          const exact = filtered.find(m => (m.name || '').trim().toLowerCase() === inputName);
+          return { success: true, member: { ...(exact || filtered[0]), displayName: name.trim() } }; 
       } else {
         // 실패 로깅
         await this.logLoginFailure('member', name, last4Digits, 'NOT_FOUND');
@@ -1247,12 +1247,13 @@ export const storageService = {
   async getAiUsage() {
     try {
       const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-      const docRef = doc(db, 'system_stats', `ai_usage_${today}`);
+      const docRef = doc(db, 'ai_quota', today);
       const snapshot = await getDoc(docRef);
       if (snapshot.exists()) {
-        return { count: snapshot.data().count || 0, limit: 2000 };
+        const data = snapshot.data();
+        return { count: data.count || 0, limit: 5000 };
       }
-      return { count: 0, limit: 2000 };
+      return { count: 0, limit: 5000 };
     } catch (e) {
       console.error("AI Usage fetch failed:", e);
       return { count: 0, limit: 2000 };
@@ -1312,6 +1313,8 @@ export const storageService = {
       return { success: true };
     } catch (e) {
       console.error('Admin login failed:', e);
+      // 실패 로깅
+      await this.logLoginFailure('admin', email, 'N/A', e.message || 'AUTH_ERROR');
       return { success: false, message: '로그인에 실패했습니다.' };
     }
   },

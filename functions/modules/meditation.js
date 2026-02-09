@@ -8,6 +8,7 @@
 
 const { onCall } = require("firebase-functions/v2/https");
 const { admin, getAI, checkAIQuota, logAIError } = require("../helpers/common");
+const { SchemaType } = require("@google/generative-ai"); // ✅ Import SchemaType
 
 /**
  * 내부 오디오 생성 헬퍼
@@ -30,11 +31,14 @@ const generateInternalAudio = async (text, type = 'default') => {
 
         const voice = voiceConfigs[type] || voiceConfigs.chat; // Default to chat (Neural2)
 
+        const startTime = Date.now();
         const [response] = await client.synthesizeSpeech({
             input: { text },
             voice,
             audioConfig: { audioEncoding: 'MP3', speakingRate: type === 'meditation' ? 0.9 : 1.0 }
         });
+        const latency = Date.now() - startTime;
+        console.log(`[Audio:Latency] Type: ${type}, Latency: ${latency}ms, TextLength: ${text.length}`);
 
         return response.audioContent?.toString('base64') || null;
     } catch (error) {
@@ -201,9 +205,24 @@ JSON Output:
 }
             `;
 
+            // ✅ SCHEMA 1: QUESTION
+            const questionSchema = {
+                type: SchemaType.OBJECT,
+                properties: {
+                    message: { type: SchemaType.STRING },
+                    isFinalAnalysis: { type: SchemaType.BOOLEAN },
+                    analysisSummary: { type: SchemaType.STRING, nullable: true },
+                    mappedDiagnosis: { type: SchemaType.STRING, nullable: true },
+                    options: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } }
+                },
+                required: ["message", "isFinalAnalysis", "options"]
+            };
+            
+            console.log(`[Meditation:Question] Prompt: ${prompt}`);
             
             try {
-                result = await ai.generateExperience(prompt);
+                result = await ai.generateExperience(prompt, questionSchema);
+                console.log(`[Meditation:Question] Result:`, JSON.stringify(result));
             } catch (e) {
                 console.warn("AI generation failed, using fallback:", e);
                 throw e; // Let the main catch block handle it with context-aware fallback
@@ -248,9 +267,15 @@ RULES:
 - Max 60 chars, 해요체
 JSON Output: { "message": "Transition message" }
                 `;
+
+                const transSchema = {
+                    type: SchemaType.OBJECT,
+                    properties: { message: { type: SchemaType.STRING } },
+                    required: ["message"]
+                };
                 
                 try {
-                    const transResult = await ai.generateExperience(transPrompt);
+                    const transResult = await ai.generateExperience(transPrompt, transSchema);
                     if (transResult && transResult.message) {
                         // Generate Audio for Transition (using 'meditation' voice)
                         const transAudio = await generateInternalAudio(transResult.message, 'meditation');
@@ -291,7 +316,19 @@ JSON Output:
 }
             `;
             
-            result = await ai.generateExperience(prompt);
+            const prescriptionSchema = {
+                type: SchemaType.OBJECT,
+                properties: {
+                    message: { type: SchemaType.STRING },
+                    prescriptionReason: { type: SchemaType.STRING },
+                    brainwaveNote: { type: SchemaType.STRING }
+                },
+                required: ["message", "prescriptionReason", "brainwaveNote"]
+            };
+
+            console.log(`[Meditation:Prescription] Prompt: ${prompt}`);
+            result = await ai.generateExperience(prompt, prescriptionSchema);
+            console.log(`[Meditation:Prescription] Result:`, JSON.stringify(result));
         }
 
         // TYPE 3: SESSION MESSAGE
@@ -321,7 +358,15 @@ JSON Output:
 }
             `;
             
-            result = await ai.generateExperience(prompt);
+            const sessionSchema = {
+                type: SchemaType.OBJECT,
+                properties: { message: { type: SchemaType.STRING } },
+                required: ["message"]
+            };
+
+            console.log(`[Meditation:Session] Prompt: ${prompt}`);
+            result = await ai.generateExperience(prompt, sessionSchema);
+            console.log(`[Meditation:Session] Result:`, JSON.stringify(result));
         }
 
         // TYPE 4: TRANSITION MESSAGE (대화 → 명상 추천)
@@ -353,7 +398,15 @@ JSON Output:
 }
             `;
             
-            result = await ai.generateExperience(prompt);
+            const transitionSchema = {
+                type: SchemaType.OBJECT,
+                properties: { message: { type: SchemaType.STRING } },
+                required: ["message"]
+            };
+
+            console.log(`[Meditation:Transition] Prompt: ${prompt}`);
+            result = await ai.generateExperience(prompt, transitionSchema);
+            console.log(`[Meditation:Transition] Result:`, JSON.stringify(result));
         }
 
         // TYPE 5: FEEDBACK MESSAGE (명상 종료 후)
@@ -408,7 +461,18 @@ JSON Output:
 }
             `;
             
-            result = await ai.generateExperience(prompt);
+            const feedbackSchema = {
+                type: SchemaType.OBJECT,
+                properties: {
+                    message: { type: SchemaType.STRING, nullable: true },
+                    feedbackPoints: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } }
+                },
+                required: ["feedbackPoints"]
+            };
+
+            console.log(`[Meditation:Feedback] Prompt: ${prompt}`);
+            result = await ai.generateExperience(prompt, feedbackSchema);
+            console.log(`[Meditation:Feedback] Result:`, JSON.stringify(result));
         }
 
         // TYPE 6: DYNAMIC OPTIONS (새로운 기능)
@@ -461,7 +525,38 @@ JSON Output:
 }
             `;
             
-            result = await ai.generateExperience(prompt);
+            const optionsSchema = {
+                type: SchemaType.OBJECT,
+                properties: {
+                    categories: {
+                        type: SchemaType.ARRAY,
+                        items: {
+                            type: SchemaType.OBJECT,
+                            properties: {
+                                id: { type: SchemaType.STRING },
+                                label: { type: SchemaType.STRING },
+                                description: { type: SchemaType.STRING }
+                            },
+                            required: ["id", "label", "description"]
+                        }
+                    },
+                    intentions: {
+                        type: SchemaType.ARRAY,
+                        items: {
+                            type: SchemaType.OBJECT,
+                            properties: {
+                                id: { type: SchemaType.STRING },
+                                category: { type: SchemaType.STRING },
+                                label: { type: SchemaType.STRING }
+                            },
+                            required: ["id", "category", "label"]
+                        }
+                    }
+                },
+                required: ["categories", "intentions"]
+            };
+
+            result = await ai.generateExperience(prompt, optionsSchema);
         }
 
         if (!result) {
@@ -480,12 +575,19 @@ JSON Output:
                 }
 
                 // Determine voice type based on context
-                let voiceType = 'chat';
-                if (type === 'session_message' || type === 'prescription') {
-                    voiceType = 'meditation';
-                }
+                // ✅ [FIX] 명상 관련 모든 메시지는 meditation voice 사용
+                const MEDITATION_VOICE_TYPES = new Set([
+                    'session_message', 
+                    'prescription', 
+                    'transition_message',  // 채팅 → 명상 전환 시
+                    'feedback_message'     // 명상 완료 후 피드백
+                ]);
+                const voiceType = MEDITATION_VOICE_TYPES.has(type) ? 'meditation' : 'chat';
+
                 
+                const audioStartTime = Date.now();
                 audioContent = await generateInternalAudio(result.message, voiceType);
+                console.log(`[Meditation:Audio] Generation took ${Date.now() - audioStartTime}ms`);
             } catch (audioErr) {
                 console.error("Audio generation failed:", audioErr);
             }

@@ -17,7 +17,7 @@ const LoginPage = () => {
         setError('');
         setLoading(true);
 
-        const result = await storageService.loginAdmin(email, password);
+        const result = await storageService.loginAdmin(email.trim(), password.trim());
 
         if (result.success) {
             navigate('/admin');

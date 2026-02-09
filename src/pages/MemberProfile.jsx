@@ -247,7 +247,11 @@ const MemberProfile = () => {
             ]);
 
             if (memberData) {
-                setMember(memberData);
+                // [FIX] Preserve displayName from existing state or storage if available
+                setMember(prev => ({
+                    ...memberData,
+                    displayName: prev?.displayName || JSON.parse(safeSessionStorage.getItem('member') || '{}').displayName || memberData.name
+                }));
                 // [FIX] Sort history by timestamp descending (newest first)
                 const sortedHistory = (history || []).sort((a, b) => {
                     const timeA = new Date(a.timestamp || a.date || 0).getTime();
@@ -564,7 +568,17 @@ const MemberProfile = () => {
         try {
             const result = await storageService.loginMember(trimmedName, trimmedPhone);
             if (result.success) {
-                safeSessionStorage.setItem('member', JSON.stringify(result.member));
+                // [FIX] Use the returned displayName (input name) for UI consistency
+                const memberWithDisplay = { 
+                    ...result.member,
+                    displayName: result.member.displayName || result.member.name 
+                };
+                safeSessionStorage.setItem('member', JSON.stringify(memberWithDisplay));
+                
+                // Update local state immediately with displayName
+                setMember(memberWithDisplay);
+                
+                // Load fresh data (this might overwrite member, so we need to merge carefully in loadMemberData or just rely on state)
                 loadMemberData(result.member.id);
 
                 // [Fix] Reset token on every login to ensure delivery
