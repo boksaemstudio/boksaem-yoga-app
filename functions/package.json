@@ -21,6 +21,7 @@
     },
     "private": true,
     "devDependencies": {
+        "dotenv": "^17.2.4",
         "firebase-functions-test": "^3.4.1",
         "proxyquire": "^2.1.3"
     }

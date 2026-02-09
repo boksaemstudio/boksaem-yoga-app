@@ -1516,6 +1516,15 @@ h6 {
   animation: pulse-gold 2s infinite;
 }
 
+/* AI Thinking Icon Animation */
+.ai-thinking-icon {
+  animation: spin 2s ease-in-out infinite;
+}
+
+.ai-thinking-icon svg {
+  animation: pulse 1.5s ease-in-out infinite alternate;
+}
+
 /* Global Fix for Select Options (Windows/Chrome visibility) */
 select option {
   background-color: var(--bg-surface-opaque);
