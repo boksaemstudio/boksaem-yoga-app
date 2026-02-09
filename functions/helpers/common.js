@@ -47,7 +47,7 @@ const checkAIQuota = async () => {
     
     const quotaSnap = await quotaRef.get();
     const currentCount = quotaSnap.exists ? quotaSnap.data().count || 0 : 0;
-    const dailyLimit = 5000; // Configurable
+    const dailyLimit = 10000; // Increased for testing
     
     if (currentCount >= dailyLimit) {
         throw new Error(`AI 일일 할당량 초과 (${currentCount}/${dailyLimit})`);

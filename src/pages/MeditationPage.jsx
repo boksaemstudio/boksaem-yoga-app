@@ -1440,13 +1440,29 @@ const MeditationPage = ({ onClose }) => {
         // Clean up chat loop
         if (messageIntervalRef.current) clearInterval(messageIntervalRef.current);
         
-        // Transition delay for effect
+        // ✨ AI's empathetic/regret message when user chooses quick start
+        if (forceStart && chatHistory.length < 3) {
+            const regretMessages = [
+                "조금 아쉽지만, 괜찮아요. 지금 느끼신 그대로 시작해볼게요. 🙏",
+                "더 대화하고 싶었지만, 지금 이 순간도 소중해요. 함께해요.",
+                "마음이 급하시군요. 괜찮아요, 지금 바로 평온함으로 안내할게요."
+            ];
+            const randomMsg = regretMessages[Math.floor(Math.random() * regretMessages.length)];
+            setChatHistory(prev => [...prev, { role: 'model', content: randomMsg }]);
+            
+            // Speak the regret message if TTS is enabled
+            if (ttcEnabled) {
+                speak(randomMsg);
+            }
+        }
+        
+        // Transition delay for effect (longer to let user see the message)
         setTimeout(() => {
             setIsAnalyzing(false);
             stopSession(true); // Stop background audio if any
-            setStep('prescription'); // Move to next step
-        }, 2000);
-    }, []);
+            setStep('prescription'); // Move to prescription/settings step
+        }, forceStart && chatHistory.length < 3 ? 3000 : 2000);
+    }, [chatHistory.length, ttcEnabled, speak]);
 
     const completeSession = () => {
         stopSession(false); // ✅ Keep ambient music playing
