@@ -109,8 +109,21 @@ export function calculateEndDate(saleDate, months) {
  */
 export function extractEndDateFromPeriod(periodStr) {
     if (!periodStr) return '';
-    const parts = periodStr.split('~').map(s => s.trim());
-    return parts.length === 2 ? parts[1] : '';
+    
+    // 1. Tilde case: "2024.01.01 ~ 2024.07.18"
+    if (periodStr.includes('~')) {
+        const parts = periodStr.split('~').map(s => s.trim());
+        return parts.length === 2 ? parts[1] : '';
+    }
+
+    // 2. Single date case: "2026-07-18" or "2026.07.18"
+    const cleaned = periodStr.trim();
+    // Validate length to avoid returning garbage (e.g. "1년")
+    if (cleaned.length >= 8) { 
+        return cleaned;
+    }
+    
+    return '';
 }
 
 /**
