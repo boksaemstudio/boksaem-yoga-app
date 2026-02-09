@@ -1950,14 +1950,21 @@ export const storageService = {
         const phone = row['휴대폰1'].trim();
         const phoneLast4 = phone.slice(-4);
 
-        // 만기일자 계산
-        let endDate = row['만기일자'] || '';
-        if (!endDate && row['이용기간']) {
-          // 이용기간에서 종료일 추출
+        // 만기일자 계산 (우선순위: 이용기간 > 만기일자 > 판매일자+기간)
+        let endDate = '';
+        
+        // 1. 이용기간에서 종료일 추출 (최우선)
+        if (row['이용기간']) {
           endDate = extractEndDateFromPeriod(row['이용기간']);
         }
+
+        // 2. 만기일자 컬럼 확인 (이용기간 없거나 추출 실패 시)
+        if (!endDate && row['만기일자']) {
+          endDate = row['만기일자'];
+        }
+
+        // 3. 상품명에서 기간 추출하여 계산 (마지막 수단)
         if (!endDate && row['판매일자'] && row['마지막 판매']) {
-          // 상품명에서 기간 추출하여 계산
           const months = extractMonthsFromProduct(row['마지막 판매']);
           endDate = calculateEndDate(row['판매일자'], months);
         }

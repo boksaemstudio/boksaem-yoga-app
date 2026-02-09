@@ -953,7 +953,7 @@ const MeditationPage = ({ onClose }) => {
         }
         
         // ✅ 명상 시작 동의 시 처방 분석 단계로 이동
-        if (answer === "네, 시작할게요" || answer === "맞춤 명상 시작하기") {
+        if (["네, 시작할게요", "맞춤 명상 시작하기", "명상하고 싶어요", "시작할게요", "명상 시작"].some(trigger => answer.includes(trigger))) {
             const diag = DIAGNOSIS_OPTIONS.find(o => o.id === currentAIChat?.mappedDiagnosis) || SELECTED_DIAGNOSIS_FALLBACK;
             setSelectedDiagnosis(diag);
             setStep('prescription_summary');
