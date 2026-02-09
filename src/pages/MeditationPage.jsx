@@ -2371,7 +2371,7 @@ const MeditationPage = ({ onClose }) => {
                         aiLatency={aiLatency}
                     />
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
-                        <button onClick={() => setStep('prescription')} style={{ padding: '10px', color: 'white', background: 'none', border: 'none' }}>
+                        <button onClick={() => setStep('interaction_select')} style={{ padding: '10px', color: 'white', background: 'none', border: 'none' }}>
                             <ArrowLeft size={24} />
                         </button>
                         <div style={{ flex: 1, textAlign: 'center' }}>
