@@ -1460,7 +1460,7 @@ const MeditationPage = ({ onClose }) => {
         setTimeout(() => {
             setIsAnalyzing(false);
             stopSession(true); // Stop background audio if any
-            setStep('prescription'); // Move to prescription/settings step
+            setStep('interaction_select'); // Move to meditation type selection (바디스캔/호흡몰입/자세교정)
         }, forceStart && chatHistory.length < 3 ? 3000 : 2000);
     }, [chatHistory.length, ttcEnabled, speak]);
 
