@@ -190,7 +190,7 @@ ${expertGuidance}
 ## CONVERSATION MODE:
 ${wantsContinue && !MUST_FINISH ? '- User wants MORE conversation. DO NOT end. Continue empathetically.' : ''}
 ${isClosing && !wantsContinue ? '- Gently guide toward meditation options.' : ''}
-${MUST_FINISH ? '- SET isFinalAnalysis: true. Force wrap up. MUST include "맞춤 명상 시작하기" in options.' : ''}
+${MUST_FINISH ? '- SET isFinalAnalysis: true. Force wrap up. Guide user to complete the chat naturally.' : ''}
 
 CONVERSATION HISTORY:
 ${historyText}
@@ -201,7 +201,7 @@ JSON Output:
     "isFinalAnalysis": boolean,
     "analysisSummary": "If final, summary of user state",
     "mappedDiagnosis": "stress/stiff/anxious/tired/overthink/low_energy/calm/mixed/overwhelmed",
-    "options": ["그냥 있을게요", "몸이 무거워요", "맞춤 명상 시작하기"]
+    "options": ["그냥 있을게요", "몸이 무거워요", "마음이 복잡해요"]
 }
             `;
 
@@ -237,7 +237,7 @@ JSON Output:
                 
                 // 2. Options Safety (Max 3, Default if empty)
                 if (!result.options || !Array.isArray(result.options) || result.options.length === 0) {
-                     result.options = ["좀 더 이야기할래요", "잠시 쉬고 싶어요", "맞춤 명상 시작하기"];
+                     result.options = ["좀 더 이야기할래요", "잠시 쉬고 싶어요", "조금 나아졌어요"];
                 }
                 result.options = result.options.slice(0, 3);
 
@@ -657,7 +657,7 @@ JSON Output:
                 isFinalAnalysis: false,
                 options: (request.data.chatHistory && request.data.chatHistory.length > 0)
                     ? ["네, 계속 이야기할게요", "잠시 쉬고 싶어요"]
-                    : ["편안해요", "그저 그래요", "맞춤 명상 시작하기"]
+                    : ["편안해요", "그저 그래요", "복잡해요"]
             },
             prescription: {
                 prescriptionReason: "오늘의 명상으로 마음을 편안하게 해드릴게요.",
