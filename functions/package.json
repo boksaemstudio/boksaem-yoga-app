@@ -16,10 +16,12 @@
         "@google-cloud/text-to-speech": "^6.4.0",
         "@google/generative-ai": "^0.21.0",
         "firebase-admin": "^13.6.1",
-        "firebase-functions": "^7.0.5"
+        "firebase-functions": "^7.0.5",
+        "json5": "^2.2.3"
     },
     "private": true,
     "devDependencies": {
-        "firebase-functions-test": "^3.4.1"
+        "firebase-functions-test": "^3.4.1",
+        "proxyquire": "^2.1.3"
     }
 }

@@ -79,8 +79,8 @@ exports.generateMeditationGuidance = onCall({
         if (type === 'question') {
             const { chatHistory = [], intentionFocus } = request.data;
             const turnCount = chatHistory.length;
-            const isClosing = turnCount >= 6; // ✅ Soft limit
-            const MUST_FINISH = turnCount >= 10; // ✅ Hard limit (Force wrap up)
+            const isClosing = turnCount >= 2; // ✅ Very short conversation (Start wrapping up at 2)
+            const MUST_FINISH = turnCount >= 4; // ✅ Force wrap up at 4
 
             // ✅ OPTIMIZATION: Limit context
             const recentHistory = chatHistory.slice(-6);
@@ -93,9 +93,6 @@ exports.generateMeditationGuidance = onCall({
             const wantsContinue = /(더 |좊더|들어줘|이야기|계속|말해줘|듣고 싶|휴식|쉬고)/i.test(lastUserMsg);
 
             // 🎯 8가지 전문가 관점 매핑
-
-
-
             const expertPerspectives = {
                 // === 비움 (Healing) ===
                 body: {
@@ -179,8 +176,17 @@ USER: ${memberName || '회원'}
 - **Integrated Wisdom**: 4가지 전문가 관점을 자연스럽게 녹여낸 대화 (학술적이지 않게)
 - **Name Usage**: Use "${memberName || '회원'}님" VERY sparingly (max once per 5 turns). Natural conversation is priority.
 - **Concise**: Keep responses to 1-2 short sentences (under 80 Korean characters).
-- **NO TECHNICAL TERMS**: 절대 "V1", "V2", "V3", "모드", "옵션" 등의 시스템 용어를 사용하지 마세요.
-- **NO CHOICE QUESTION**: 채팅창에서 명상 종류를 선택하게 하지 마세요. 그저 듣고 공감하세요. 선택은 다음 화면에서 이어집니다.
+- **CRITICAL: NO TECHNICAL TERMS**: 절대 "V1", "V2", "V3", "모드", "옵션" 등의 시스템 용어를 사용하지 마세요.
+- **CRITICAL: NO CHOICE QUESTION**: 채팅창에서 "어떤 명상을 할까요?", "V1과 V2 중 선택해주세요"라고 묻지 마세요. 
+- **JUST LISTEN**: 그저 듣고 공감하세요. 명상 선택은 다음 화면에서 시스템이 처리합니다.
+
+${expertGuidance}
+
+## CONVERSATION FLOW:
+- Only 3-4 turns MAX.
+- If user wants to talk: Listen empathetically.
+- **Closing**: When wrapping up, suggest a full meditation session naturally.
+
 
 ${expertGuidance}
 
@@ -417,7 +423,7 @@ JSON Output:
 
         // TYPE 5: FEEDBACK MESSAGE (명상 종료 후)
         else if (type === 'feedback_message') {
-            const { mode, diagnosis } = request.data;
+            const { mode, diagnosis, poseMetrics } = request.data;
             
             // 시간대별 컨텍스트
             let timePhrase = '';
@@ -433,6 +439,27 @@ JSON Output:
                 low_energy: '에너지 부족', distracted: '산만함'
             };
             const diagLabel = diagLabels[diagnosis] || '현재 상태';
+
+            // 🧠 V3 POSE ANALYSIS CONTEXT
+            let poseContext = "";
+            if (poseMetrics) {
+                const { stabilityScore, issues } = poseMetrics;
+                const score = stabilityScore || 0;
+                const issueList = issues && issues.length > 0 ? issues.map(i => {
+                    const map = { 'leaning_left': '왼쪽 기울임', 'leaning_right': '오른쪽 기울임', 'head_drop': '고개 숙임' };
+                    return map[i] || i;
+                }).join(', ') : '큰 흔들림 없음';
+
+                poseContext = `
+[AI Pose Analysis Data]
+- Stability Score: ${score}/100 (Higher is better)
+- Detected Issues: ${issueList}
+- INSTRUCTION: 
+  1. If score > 80: Compliment their stable posture.
+  2. If score < 50: Gently encourage them to find balance next time.
+  3. If issues detected: Mention them VERY kindly as a tip (e.g., "왼쪽으로 조금 기우셨는데, 다음엔 척추를 세워보세요").
+`;
+            }
             
             prompt = `
 Role: Mindfulness Companion (Korean, 해요체)
@@ -443,6 +470,7 @@ Context:
 - Completed Meditation: ${mode || 'calm'}
 - Time of Day: ${timePhrase}
 - Original State: ${diagLabel}
+${poseContext}
 
 ## RULES:
 - Generate EXACTLY 4 feedback sentences as an array

@@ -1,4 +1,5 @@
 const { GoogleGenerativeAI, SchemaType } = require("@google/generative-ai");
+const json5 = require("json5"); // ✅ Robust JSON Parser
 
 class AIService {
     constructor(apiKey) {
@@ -29,8 +30,6 @@ class AIService {
         this.langMap = { 'ko': 'Korean', 'en': 'English', 'ru': 'Russian', 'zh': 'Chinese (Simplified)', 'ja': 'Japanese' };
     }
 
-    // ... (keep existing methods) ...
-
     async generateExperience(prompt, responseSchema = null) {
         // Retry up to 3 times
         for (let attempt = 0; attempt < 3; attempt++) {
@@ -41,12 +40,17 @@ class AIService {
                 const config = { ...this.jsonConfig };
                 if (responseSchema) {
                     config.responseSchema = responseSchema;
-                    // console.log("Using Structured Output Schema");
+                }
+
+                // 🛠️ REPAIR STRATEGY: Explicitly ask for JSON fix on retries
+                let finalPrompt = prompt;
+                if (attempt > 0) {
+                    finalPrompt += "\n\nIMPORTANT: The previous attempt failed to parse. Please output ONLY valid JSON. No markdown, no preambles.";
                 }
 
                 const startTime = Date.now();
                 const result = await this.jsonModel.generateContent({
-                    contents: [{ role: "user", parts: [{ text: prompt }] }],
+                    contents: [{ role: "user", parts: [{ text: finalPrompt }] }],
                     generationConfig: config
                 });
 
@@ -54,7 +58,6 @@ class AIService {
                 let text = result.response.text();
                 console.log(`Experience Gen attempt ${attempt + 1} - Raw Response (${latency}ms):`, text);
                 
-                // 🛠️ ROBUST JSON EXTRACTION
                 if (!text) throw new Error("Empty response from AI");
 
                 // 1. Sanitize: Remove Markdown code blocks and potential noise
@@ -65,34 +68,35 @@ class AIService {
                 const lastBrace = cleanText.lastIndexOf('}');
                 
                 if (firstBrace !== -1 && lastBrace !== -1) {
-                    const jsonCandidate = cleanText.substring(firstBrace, lastBrace + 1);
+                    cleanText = cleanText.substring(firstBrace, lastBrace + 1);
+                }
+
+                // 3. PARSING STRATEGY: Standard -> JSON5 -> Fixes
+                try {
+                    // 3.1 Try Standard Native Parse (Fastest)
+                    const parsed = JSON.parse(cleanText);
+                    if (parsed && typeof parsed === 'object') {
+                        console.log(`Experience Gen attempt ${attempt + 1} - Success parsing (Standard JSON)`);
+                        return parsed;
+                    }
+                } catch (stdErr) {
+                    console.warn(`Experience Gen attempt ${attempt + 1} - Standard JSON failure:`, stdErr.message);
+                    
                     try {
-                        // Attempt standard parse
-                        const parsed = JSON.parse(jsonCandidate);
-                        if (parsed && typeof parsed === 'object') {
-                            console.log(`Experience Gen attempt ${attempt + 1} - Success parsing JSON`);
-                            return parsed;
+                        // 3.2 Try JSON5 (Robust: handles trailing commas, unquoted keys, comments)
+                        const parsed5 = json5.parse(cleanText);
+                        if (parsed5 && typeof parsed5 === 'object') {
+                            console.log(`Experience Gen attempt ${attempt + 1} - Success parsing (JSON5 - FIXED!)`);
+                            return parsed5;
                         }
-                    } catch (parseError) {
-                         console.warn(`Experience Gen attempt ${attempt + 1} - Standard JSON parse failed:`, parseError.message);
-                         
-                         // 2.1 Attempt to fix common trailing comma issue (e.g., "[...],]")
-                         try {
-                             const fixedJson = jsonCandidate.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
-                             const parsedFixed = JSON.parse(fixedJson);
-                             if (parsedFixed && typeof parsedFixed === 'object') {
-                                 console.log(`Experience Gen attempt ${attempt + 1} - Success parsing Fixed JSON`);
-                                 return parsedFixed;
-                             }
-                         } catch (fixError) {
-                             console.warn(`Experience Gen attempt ${attempt + 1} - Fixed JSON parse failed:`, fixError.message);
-                         }
+                    } catch (json5Err) {
+                        console.warn(`Experience Gen attempt ${attempt + 1} - JSON5 failure:`, json5Err.message);
                     }
                 }
                 
-                console.warn(`Experience Gen attempt ${attempt + 1} - No valid JSON structure found`);
+                console.warn(`Experience Gen attempt ${attempt + 1} - parsing failed completely`);
 
-                // 🚨 REGEX FALLBACK (Aggressive)
+                // 🚨 REGEX FALLBACK (Last Resort)
                 // If standard parsing fails, try to extract key fields using Regex
                 if (attempt >= 1 && text) {
                     console.log("🚨 Attempting Aggressive Regex Fallback...");
@@ -108,17 +112,12 @@ class AIService {
                     if (message) {
                         console.log("✅ Regex Fallback successful for 'message'!");
                         
-                        // Try to extract other fields if possible
-                        const isFinalAnalysis = /"isFinalAnalysis"\s*:\s*true/.test(text);
-                        const analysisSummary = extractField("analysisSummary");
-                        const mappedDiagnosis = extractField("mappedDiagnosis");
-                        
                         return {
                             message: message,
-                            options: [], // Default empty options if list parsing fails
-                            isFinalAnalysis: isFinalAnalysis,
-                            analysisSummary: analysisSummary || null,
-                            mappedDiagnosis: mappedDiagnosis || null,
+                            options: [], 
+                            isFinalAnalysis: /"isFinalAnalysis"\s*:\s*true/.test(text),
+                            analysisSummary: extractField("analysisSummary") || null,
+                            mappedDiagnosis: extractField("mappedDiagnosis") || null,
                             fallbackUsed: true
                         };
                     }

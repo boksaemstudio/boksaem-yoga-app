@@ -310,6 +310,10 @@ const MeditationPage = ({ onClose }) => {
         if (window.speechSynthesis) window.speechSynthesis.cancel();
     }, []); 
 
+    // 🔍 Stability Analysis Refs
+    const stabilityHistoryRef = useRef([]); // Stores {score, timestamp}
+    const postureIssuesRef = useRef(new Set()); // Stores detected issues (e.g., "leaning_left")
+
     // 🦴 Draw Skeleton on Canvas (V3)
     const onPoseResults = useCallback((results) => {
         if (!results.poseLandmarks || !canvasRef.current || !videoRef.current) return;
@@ -354,6 +358,42 @@ const MeditationPage = ({ onClose }) => {
             ctx.beginPath();
             ctx.arc(nose.x * width, nose.y * height, 10, 0, 2 * Math.PI);
             ctx.stroke();
+        }
+
+        // 🧠 REAL-TIME STABILITY CALCULATION
+        if (nose && landmarks[11] && landmarks[12]) {
+            const leftShoulder = landmarks[11];
+            const rightShoulder = landmarks[12];
+            
+            // 1. Calculate Center of Shoulders
+            const shoulderCenterX = (leftShoulder.x + rightShoulder.x) / 2;
+            
+            // 2. Calculate Deviation (Nose vs Shoulder Center) - checks for leaning/sway
+            const deviation = Math.abs(nose.x - shoulderCenterX);
+            
+            // 3. Vertical alignment (Head drop check)
+            const shoulderY = (leftShoulder.y + rightShoulder.y) / 2;
+            const neckLength = Math.abs(nose.y - shoulderY);
+            
+            // 4. Score Calculation (0-100) - Simple inverse mapping
+            // Deviation > 0.1 is bad, < 0.02 is excellent
+            let currentScore = Math.max(0, 100 - (deviation * 500));
+            
+            // 5. Detect Issues
+            if (deviation > 0.08) {
+                if (nose.x < shoulderCenterX) postureIssuesRef.current.add("leaning_right"); // Mirrored
+                else postureIssuesRef.current.add("leaning_left");
+            }
+            if (neckLength < 0.15) { // Threshold depends on camera distance, heuristic
+                postureIssuesRef.current.add("head_drop");
+            }
+
+            // 6. Smooth & Store
+            setAlignmentScore(prev => Math.round(prev * 0.9 + currentScore * 0.1));
+            stabilityHistoryRef.current.push({ score: currentScore, timestamp: Date.now() });
+
+            // Keep history manageable (last 5 mins max @ ~30fps is too much, keep last 1000 points?)
+            if (stabilityHistoryRef.current.length > 1000) stabilityHistoryRef.current.shift();
         }
 
         setPoseData(landmarks);
@@ -1317,10 +1357,39 @@ const MeditationPage = ({ onClose }) => {
         }
     };
 
+    // State for Analysis Transition
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+    const finishAnalysis = useCallback((forceStart = false) => {
+        setIsAnalyzing(true);
+        // Clean up chat loop
+        if (messageIntervalRef.current) clearInterval(messageIntervalRef.current);
+        
+        // Transition delay for effect
+        setTimeout(() => {
+            setIsAnalyzing(false);
+            stopSession(true); // Stop background audio if any
+            setStep('prescription'); // Move to next step
+        }, 2000);
+    }, []);
+
     const completeSession = () => {
         stopSession(false); // ✅ Keep ambient music playing
         setStep('feedback');
         setIsAILoading(true); // Show loading state in feedback screen
+
+        // 🧠 Calculate V3 Pose Metrics
+        let poseMetrics = null;
+        if (interactionType === 'v3' && stabilityHistoryRef.current.length > 0) {
+            const history = stabilityHistoryRef.current;
+            const avgScore = Math.round(history.reduce((acc, curr) => acc + curr.score, 0) / history.length);
+            const issues = Array.from(postureIssuesRef.current);
+            poseMetrics = {
+                stabilityScore: avgScore,
+                issues: issues
+            };
+            console.log("🧘 V3 Pose Analysis Result:", poseMetrics);
+        }
 
         // Generate Post-Session Feedback (Async)
         (async () => {
@@ -1334,7 +1403,8 @@ const MeditationPage = ({ onClose }) => {
                     memberName, 
                     timeContext,
                     diagnosis: selectedDiagnosis?.id || 'stress',
-                    mode: activeMode?.id || 'calm'
+                    mode: activeMode?.id || 'calm',
+                    poseMetrics: poseMetrics // 👈 NEW
                 });
                 setAiLatency(Date.now() - startTime);
                 
@@ -1708,22 +1778,46 @@ const MeditationPage = ({ onClose }) => {
                     {/* 1. Header (Translucent Dark) */}
                     <div style={{
                         padding: '10px 15px', paddingTop: 'max(10px, env(safe-area-inset-top))',
-                        display: 'flex', alignItems: 'center', background: 'rgba(20, 20, 20, 0.4)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between', // ✅ Adjusted layout
+                        background: 'rgba(20, 20, 20, 0.4)',
                         borderBottom: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)',
                         zIndex: 20
                     }}>
-                        <button onClick={() => { stopAllAudioRef.current?.(); if(onClose) onClose(); else navigate(-1); }} style={{ padding: '8px', border: 'none', background: 'none', cursor: 'pointer' }}>
-                            <ArrowLeft size={22} color="white" />
-                        </button>
-                        <div onClick={handleDebugToggle} style={{ marginLeft: '10px', display: 'flex', flexDirection: 'column', cursor: 'pointer' }}>
-                             <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>복순 (마음 챙김이)</span>
-                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <SpeakerHigh size={12} color={ttcEnabled ? "#4caf50" : "#666"} weight="fill" />
-                                <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)' }}>
-                                    {isAILoading ? '생각하는 중...' : '음성 대화 중'}
-                                </span>
-                             </div>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <button onClick={() => { stopAllAudioRef.current?.(); if(onClose) onClose(); else navigate(-1); }} style={{ padding: '8px', border: 'none', background: 'none', cursor: 'pointer' }}>
+                                <ArrowLeft size={22} color="white" />
+                            </button>
+                            <div onClick={handleDebugToggle} style={{ marginLeft: '10px', display: 'flex', flexDirection: 'column', cursor: 'pointer' }}>
+                                <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>복순 (마음 챙김이)</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <SpeakerHigh size={12} color={ttcEnabled ? "#4caf50" : "#666"} weight="fill" />
+                                    <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)' }}>
+                                        {isAnalyzing ? (
+                                            <span className="blinking-text">분석 중...</span> // ✅ Blinking Effect
+                                        ) : isAILoading ? '생각하는 중...' : '음성 대화 중'}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
+
+                        {/* ✅ START NOW BUTTON */}
+                        {!isAnalyzing && (
+                            <button 
+                                onClick={() => finishAnalysis(true)}
+                                style={{
+                                    padding: '6px 12px',
+                                    borderRadius: '20px',
+                                    background: 'rgba(76, 155, 251, 0.2)',
+                                    border: '1px solid #4c9bfb',
+                                    color: '#4c9bfb',
+                                    fontSize: '0.8rem',
+                                    fontWeight: '600',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                바로 시작
+                            </button>
+                        )}
                     </div>
 
                     {/* 2. Chat Area (Scrollable) */}
