@@ -171,10 +171,11 @@ exports.checkInMemberV2Call = onCall({
             const records = recentAttendanceSnap.docs.map(d => d.data()).filter(r => r.status === 'valid');
             streak = calculateStreak(records, today);
 
-            // Handle TBD dates
-            if (startDate === 'TBD' || !startDate) {
+            // Handle TBD dates or missing end date (auto-activate on first attendance)
+            if (startDate === 'TBD' || !startDate || !memberData.endDate) {
                 startDate = today;
                 // Calculate end date based on typical membership (30 days)
+                // TODO: If member has 'months' field, calculate based on that. Defaulting to 30 days.
                 const end = new Date();
                 end.setDate(end.getDate() + 30);
                 endDate = end.toISOString().split('T')[0];
