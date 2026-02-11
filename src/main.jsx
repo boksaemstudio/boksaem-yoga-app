@@ -1,3 +1,15 @@
+// [Global Event Guard]
+// Prevent browser context menu (long-press menu) specifically for Kiosk/Tablet experience
+// This ensures that "Download/Share/Print" menu never appears on any part of the app.
+if (typeof window !== 'undefined') {
+  window.addEventListener('contextmenu', (e) => {
+    // [EXCEPTION] Allow context menu on inputs if needed for text editing (optional)
+    // if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    
+    e.preventDefault();
+  }, { passive: false });
+}
+
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
