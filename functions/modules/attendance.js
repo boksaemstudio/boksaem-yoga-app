@@ -110,16 +110,20 @@ exports.checkInMemberV2Call = onCall({
         }
 
         // [PERF] 중복 확인과 streak 계산용 쿼리를 병렬로 실행 (~200ms 절약)
+        // [FIX] classTitle이 undefined일 경우 쿼리 에러 방지
+        let existingQuery = db.collection('attendance')
+            .where('memberId', '==', memberId)
+            .where('date', '==', today);
+        
+        if (classTitle) {
+            existingQuery = existingQuery.where('className', '==', classTitle);
+        }
+
         const [existingSnap, recentAttendanceSnap] = await Promise.all([
+            existingQuery.limit(1).get(),
             db.collection('attendance')
                 .where('memberId', '==', memberId)
-                .where('date', '==', today)
-                .where('className', '==', classTitle)
-                .limit(1)
-                .get(),
-            db.collection('attendance')
-                .where('memberId', '==', memberId)
-                .where('status', '==', 'valid')
+                // .where('status', '==', 'valid') // [FIX] 인덱스 없음 에러 방지 (메모리 필터링으로 대체)
                 .orderBy('timestamp', 'desc')
                 .limit(30)
                 .get()
@@ -164,7 +168,7 @@ exports.checkInMemberV2Call = onCall({
             newCount = currentCount + 1;
             
             // [PERF] streak 계산에 이미 가져온 recentAttendanceSnap 재사용
-            const records = recentAttendanceSnap.docs.map(d => d.data());
+            const records = recentAttendanceSnap.docs.map(d => d.data()).filter(r => r.status === 'valid');
             streak = calculateStreak(records, today);
 
             // Handle TBD dates
