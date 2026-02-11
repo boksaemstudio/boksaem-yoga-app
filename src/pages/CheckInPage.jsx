@@ -205,16 +205,7 @@ const CheckInPage = () => {
     // const { language } = useLanguage();
     const language = 'ko';
 
-    // Use a slow timer for background period updates (every 5 minutes)
-    const [period, setPeriod] = useState(() => {
-        const hour = new Date().getHours();
-        if (hour >= 6 && hour < 12) return 'morning';
-        if (hour >= 12 && hour < 17) return 'afternoon';
-        if (hour >= 17 && hour < 21) return 'evening';
-        return 'night';
-    });
-
-    // [PERF] Warm-up & Keep-alive: 앱 시작 시 즉시 깨우고, 영업시간엔 주기적으로 깨워둠
+    // [PERF] Warm-up & Keep-alive: 앱 시작 시 최우선 실행 (서버 깨우기)
     useEffect(() => {
         const pingServer = async () => {
             try {
@@ -241,6 +232,17 @@ const CheckInPage = () => {
 
         return () => clearInterval(interval);
     }, []);
+
+    // Use a slow timer for background period updates (every 5 minutes)
+    const [period, setPeriod] = useState(() => {
+        const hour = new Date().getHours();
+        if (hour >= 6 && hour < 12) return 'morning';
+        if (hour >= 12 && hour < 17) return 'afternoon';
+        if (hour >= 17 && hour < 21) return 'evening';
+        return 'night';
+    });
+
+
 
     // [PERF] 현재 시간대 배경만 동적 로딩
     const [bgImage, setBgImage] = useState(null);
