@@ -31,7 +31,7 @@ import MembersTab from '../components/admin/tabs/MembersTab';
 import StatsTab from '../components/admin/tabs/StatsTab';
 import NoticesTab from '../components/admin/tabs/NoticesTab';
 import LogsTab from '../components/admin/tabs/LogsTab';
-import ErrorLogsTab from '../components/admin/tabs/ErrorLogsTab';
+
 import PushHistoryTab from '../components/admin/tabs/PushHistoryTab';
 import DataMigrationTab from '../components/admin/tabs/DataMigrationTab';
 import { usePWA } from '../hooks/usePWA';
@@ -529,10 +529,7 @@ const AdminDashboard = () => {
                         </span>
                     )}
                 </button>
-                <button onClick={() => setActiveTab('error_logs')} className={`nav-tab-item ${activeTab === 'error_logs' ? 'active' : ''}`}>
-                    <Warning size={22} weight={activeTab === 'error_logs' ? "fill" : "regular"} color="#F43F5E" />
-                    <span>에러로그</span>
-                </button>
+
                 {STUDIO_CONFIG.FEATURES?.ENABLE_DATA_MIGRATION && (
                     <button onClick={() => setActiveTab('data_migration')} className={`nav-tab-item ${activeTab === 'data_migration' ? 'active' : ''}`}>
                         <Database size={22} weight={activeTab === 'data_migration' ? "fill" : "regular"} color="var(--primary-gold)" />
@@ -793,10 +790,6 @@ const AdminDashboard = () => {
                         members={members}
                         onMemberClick={handleOpenEdit}
                     />
-                )}
-
-                {activeTab === 'error_logs' && (
-                    <ErrorLogsTab />
                 )}
 
                 {activeTab === 'data_migration' && STUDIO_CONFIG.FEATURES?.ENABLE_DATA_MIGRATION && (
