@@ -61,7 +61,7 @@ const generateEventMessage = (eventType, context) => {
  * 회원 출석 처리
  */
 exports.checkInMemberV2Call = onCall({ 
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com']
+    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
 }, async (request) => {
     const { memberId, branchId, classTitle, instructor } = request.data;
     const db = admin.firestore();

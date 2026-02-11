@@ -12,7 +12,10 @@ const { admin, getAI, checkAIQuota, logAIError } = require("../helpers/common");
 /**
  * AI 기반 맞춤형 페이지 경험 생성
  */
-exports.generatePageExperienceV2 = onCall({ region: "asia-northeast3", cors: true }, async (request) => {
+exports.generatePageExperienceV2 = onCall({ 
+    region: "asia-northeast3", 
+    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173'] 
+}, async (request) => {
     await checkAIQuota();
 
     let role = request.data.role || 'member';
@@ -71,7 +74,7 @@ exports.generatePageExperienceV2 = onCall({ region: "asia-northeast3", cors: tru
  */
 exports.translateNoticesV2 = onCall({ 
     region: "asia-northeast3", 
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com'] 
+    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173'] 
 }, async (request) => {
     const { notices, language = 'ko' } = request.data;
     try {
@@ -88,7 +91,7 @@ exports.translateNoticesV2 = onCall({
  */
 exports.generateDailyYogaV2 = onCall({ 
     region: "asia-northeast3", 
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com'] 
+    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173'] 
 }, async (request) => {
     try {
         await checkAIQuota();

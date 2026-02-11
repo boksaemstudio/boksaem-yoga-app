@@ -2,8 +2,10 @@ import { lazy, Suspense, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ErrorBoundary from './components/ErrorBoundary';
 import { storageService } from './services/storage';
+import NotificationListener from './components/common/NotificationListener';
+import ReloadPrompt from './components/ReloadPrompt';
+import { PWAProvider } from './context/PWAContext';
 
-// Lazy load pages
 // Lazy load pages
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const CheckInPage = lazy(() => import('./pages/CheckInPage'));
@@ -64,10 +66,6 @@ const RequireAuth = ({ children }) => {
 
   return children;
 };
-
-import NotificationListener from './components/common/NotificationListener';
-import ReloadPrompt from './components/ReloadPrompt';
-import { PWAProvider } from './context/PWAContext';
 
 function App() {
   useEffect(() => {

@@ -28,3 +28,5 @@ dist-ssr
 # Secrets
 service-account-key.json
 functions/service-account-key.json
+**/service-account-key*.json
+*-credentials.json

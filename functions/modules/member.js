@@ -85,7 +85,7 @@ exports.getSecureMemberV2Call = onCall({
  * 강사 인증 (이름 & PIN 기반)
  */
 exports.verifyInstructorV2Call = onCall({
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com']
+    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
 }, async (request) => {
     const db = admin.firestore();
     const { name, phoneLast4 } = request.data;

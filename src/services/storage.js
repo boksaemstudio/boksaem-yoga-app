@@ -663,8 +663,16 @@ export const storageService = {
   async getClassLevels() { return scheduleService.getClassLevels(); },
   async updateClassLevels(list) { return scheduleService.updateClassLevels(list); },
   async getMemberById(id) {
-    const docSnap = await getDoc(doc(db, 'members', id));
-    return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
+    // Cache lookup first
+    const cached = cachedMembers.find(m => m.id === id);
+    if (cached) return cached;
+    try {
+      const docSnap = await getDoc(doc(db, 'members', id));
+      return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
+    } catch (e) {
+      console.error('getMemberById failed:', e);
+      return null;
+    }
   },
 
   async logError(error, context = {}) {

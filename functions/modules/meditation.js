@@ -52,7 +52,7 @@ const generateInternalAudio = async (text, type = 'default') => {
  */
 exports.generateMeditationGuidance = onCall({
     region: "asia-northeast3",
-    cors: true,
+    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173'],
     minInstances: 1, // ✅ Cold Start 방지
     maxInstances: 10 // ✅ Concurrency Limit Increased (User Request)
 }, async (request) => {
@@ -78,12 +78,12 @@ exports.generateMeditationGuidance = onCall({
         // TYPE 1: DIAGNOSTIC QUESTION
         if (type === 'question') {
             const { chatHistory = [], intentionFocus } = request.data;
-            const turnCount = chatHistory.length;
-            const isClosing = turnCount >= 2; // ✅ Very short conversation (Start wrapping up at 2)
-            const MUST_FINISH = turnCount >= 4; // ✅ Force wrap up at 4
+            const turnCount = chatHistory.filter(m => m.role === 'user').length; // ✅ Count USER turns only
+            const isClosing = turnCount >= 2; // ✅ Start wrapping up after 2 user turns
+            const MUST_FINISH = turnCount >= 3; // ✅ Force wrap up at 3 (Maximum 3 user turns)
 
             // ✅ OPTIMIZATION: Limit context
-            const recentHistory = chatHistory.slice(-6);
+            const recentHistory = chatHistory.slice(-4); // ✅ Even shorter context
 
             const historyText = recentHistory.length > 0 
                 ? recentHistory.map(m => `${m.role === 'user' ? 'Client' : 'AI'}: ${m.content}`).join('\n')
@@ -152,45 +152,39 @@ exports.generateMeditationGuidance = onCall({
                 ? expertPerspectives[intentionFocus]
                 : null;
 
-            // 전문가 가이드 섹션
-            const expertGuidance = perspectives ? `
-**전문가 통합 관점 (사용자 의도 기반):**
-- 심리학적: ${perspectives.psychologist}
-- 철학적: ${perspectives.philosopher}
-- 요가 철학적: ${perspectives.yoga}
-- 인생 멘토: ${perspectives.mentor}
-
-이 인사이트를 바탕으로 사용자에게 깊이 공감하고, 자연스럽게 대화를 이어가세요.
-자연스럽고 대화적이어야 하며, 학술적이거나 설교적이어서는 안 됩니다.
-` : '';
-
             prompt = `
-Role: 복샘 요가의 명상 인사이트 가이드 (Korean, 해요체).
+Role: 복샘 요가의 명상 인사이트 가이드 (Korean, 해요체). 
 Goal: Help user notice "Here & Now" sensations (Body, Breath, Feeling) with Radical Acceptance.
-USER: ${memberName || '회원'}
+USER: ${memberName}
 
 ## STRICT RULES:
 - **Zero Judgment / Zero Advice**: Do NOT try to "fix" the user or offer positive framing. Just accept their state.
 - **Here & Now Focus**: Gently guide attention to current bodily sensations or breath.
 - **Deep Empathy**: 표면적 공감이 아닌, 존재론적 공감
 - **Integrated Wisdom**: 4가지 전문가 관점을 자연스럽게 녹여낸 대화 (학술적이지 않게)
-- **Name Usage**: Use "${memberName || '회원'}님" VERY sparingly (max once per 5 turns). Natural conversation is priority.
-- **Concise**: Keep responses to 1-2 short sentences (under 80 Korean characters).
+- **Name Usage**: Use "${memberName}님" VERY sparingly (max once per turn). Natural conversation is priority.
+- **Concise**: Keep responses EXTREMELY short (1 sentence, max 60 characters).
 - **CRITICAL: NO TECHNICAL TERMS**: 절대 "V1", "V2", "V3", "모드", "옵션" 등의 시스템 용어를 사용하지 마세요.
-- **CRITICAL: NO CHOICE QUESTION**: 채팅창에서 "어떤 명상을 할까요?", "V1과 V2 중 선택해주세요"라고 묻지 마세요. 
+- **CRITICAL: NO CHOICE QUESTION**: 채팅창에서 명상 모드를 선택하라고 묻지 마세요.
+- **CRITICAL: NO MEDITATION TYPE HINTS**: "바디스캔", "호흡 몰입", "자세 교정", "숨 고르기", "호흡 집중" 등 명상 유형을 묻거나 제안하거나 선택지에 넣지 마세요. 명상 유형은 시스템이 자동으로 결정합니다.
+- **CRITICAL: RESPONSE OPTIONS**: 선택지는 반드시 사용자의 감정/상태에 관한 것만 제공하세요. 명상 관련 키워드 금지. 예: "조금 나아졌어요", "좀 더 이야기할래요", "그대로 있을게요" 등.
 - **JUST LISTEN**: 그저 듣고 공감하세요. 명상 선택은 다음 화면에서 시스템이 처리합니다.
 
-${expertGuidance}
+**전문가 통합 관점 (사용자 의도 기반):**
+${JSON.stringify(expertPerspectives[intentionFocus || 'body'])}
 
-## CONVERSATION FLOW:
-- Only 3-4 turns MAX.
-- If user wants to talk: Listen empathetically.
-- **Closing**: When wrapping up, suggest a full meditation session naturally.
+이 인사이트를 바탕으로 사용자에게 깊이 공감하고, 자연스럽게 대화를 이어가세요.
+자연스럽고 대화적이어야 하며, 학술적이거나 설교적이어서는 안 됩니다. 
+
+## CONVERSATION FLOW (엄격히 준수):
+- 최대 2~3턴 대화만 합니다.
+- If user wants to talk: Listen empathetically but keep it brief.
+- **Closing**: When wrapping up, DO NOT suggest specific meditation types. Just say something warm like "충분히 이해했어요" and set isFinalAnalysis: true.
 
 ## CONVERSATION MODE:
-${wantsContinue && !MUST_FINISH ? '- User wants MORE conversation. DO NOT end. Continue empathetically.' : ''}
-${isClosing && !wantsContinue ? '- Gently guide toward meditation options.' : ''}
-${MUST_FINISH ? '- SET isFinalAnalysis: true. Force wrap up. Guide user to complete the chat naturally.' : ''}
+${wantsContinue && !MUST_FINISH ? '- User wants MORE conversation. Continue empathetically but briefly. Maximum 1 more turn.' : ''}
+${isClosing && !wantsContinue ? '- 대화를 마무리하세요. isFinalAnalysis: true로 설정하세요. 자연스럽게 "충분히 들었어요, 준비되면 시작해주세요" 느낌으로 마무리하세요.' : ''}
+${MUST_FINISH ? '- 반드시 isFinalAnalysis: true. 대화를 종료합니다. "충분히 이해했어요. 당신에게 맞는 명상을 준비했어요." 느낌으로 마무리하세요.' : ''}
 
 CONVERSATION HISTORY:
 ${historyText}
@@ -201,7 +195,7 @@ JSON Output:
     "isFinalAnalysis": boolean,
     "analysisSummary": "If final, summary of user state",
     "mappedDiagnosis": "stress/stiff/anxious/tired/overthink/low_energy/calm/mixed/overwhelmed",
-    "options": ["그냥 있을게요", "몸이 무거워요", "마음이 복잡해요"]
+    "options": ["조용히 있을래요", "좀 더 이야기할래요", "괜찮아진 것 같아요"]
 }
             `;
 
@@ -348,6 +342,7 @@ JSON Output:
 Role: Mindfulness Companion. Context: ${interactionContext[interactionType]}. Phase: ${currentPhase}.
 Goal: Gently guide the user to notice bodily sensations or breath without judgment.
 USER: ${memberName || '회원'}
+${request.data.breathLevel !== null && request.data.breathLevel !== undefined ? `\nBreath Detection: ${request.data.breathLevel > 0.5 ? 'Strong breathing detected - encourage to maintain rhythm' : request.data.breathLevel > 0.1 ? 'Moderate breathing detected - gently deepen' : 'Weak/no breathing detected - remind to breathe deeply'}` : ''}
 
 ## RULES:
 - Generate ONE short guidance in Korean (해요체, 1 sentence, under 40 chars)
@@ -355,6 +350,7 @@ USER: ${memberName || '회원'}
 - **Do NOT use "${memberName || '회원'}님" unless absolutely necessary for deep connection.**
 - Be unique - NO repetitive phrases
 - **NO TECHNICAL TERMS**: Do NOT say V1, V2, V3. Use natural language.
+${request.data.breathLevel !== null && request.data.breathLevel !== undefined ? '- **BREATH COACHING**: Respond to the detected breath level. If strong, affirm. If weak, gently encourage deeper breathing.' : ''}
 
 JSON Output:
 {
@@ -499,6 +495,29 @@ JSON Output:
             console.log(`[Meditation:Feedback] Prompt: ${prompt}`);
             result = await ai.generateExperience(prompt, feedbackSchema);
             console.log(`[Meditation:Feedback] Result:`, JSON.stringify(result));
+            
+            // ✅ FIX: feedback_message fallback - AI null이면 기본 피드백 제공
+            if (!result) {
+                const diagLabel = request.data.diagnosis || '명상';
+                console.warn('[Meditation:Feedback] AI returned null, using fallback');
+                result = {
+                    message: `${memberName || '회원'}님, 오늘 명상 수고하셨어요.`,
+                    feedbackPoints: [
+                        "오늘의 명상을 완주하셨어요",
+                        "잠시라도 멈추는 시간이 소중해요",
+                        "마음이 한결 고요해졌을 거예요",
+                        "내일도 자신에게 이 시간을 선물하세요"
+                    ]
+                };
+            }
+            
+            // ✅ Normalize feedbackPoints
+            if (result && result.feedbackPoints) {
+                result.feedbackPoints = result.feedbackPoints.filter(p => p && typeof p === 'string' && p.trim().length > 0);
+                if (result.feedbackPoints.length === 0) {
+                    result.feedbackPoints = ["명상을 완료하셨어요", "고요한 시간이었어요", "내일도 찾아와주세요"];
+                }
+            }
         }
 
         // TYPE 6: DYNAMIC OPTIONS (새로운 기능)

@@ -161,6 +161,7 @@ const MeditationPage = ({ onClose }) => {
     const [micVolume, setMicVolume] = useState(0);
     const [permissionError, setPermissionError] = useState(null);
     const [cameraStream, setCameraStream] = useState(null);
+    const [showVolumePanel, setShowVolumePanel] = useState(false); // ✅ Phase 3: 볼륨 컨트롤 패널
 
     // 🤖 REAL-TIME AI States
     const [isAILoading, setIsAILoading] = useState(true); // Start as loading (All AI)
@@ -987,6 +988,13 @@ const MeditationPage = ({ onClose }) => {
                     result.data.question = result.data.question.replace(/OO님/g, `${memberName}님`);
                 }
                 
+                // ✅ Phase 1: 대화 종료 상태 처리
+                if (result.data.isFinalAnalysis) {
+                    console.log('🏁 AI signaled isFinalAnalysis - ending chat');
+                    result.data.options = []; // 선택지 제거 → 시작 버튼만 표시
+                    result.data.isTransition = true; // 채팅 입력 숨김 플래그
+                }
+                
                 // ✅ Text Sync: Set active chat immediately
                 setCurrentAIChat(result.data);
                 
@@ -1027,11 +1035,16 @@ const MeditationPage = ({ onClose }) => {
             return;
         }
         
-        // ✅ 명상 시작 동의 시 처방 분석 단계로 이동
-        if (["네, 시작할게요", "맞춤 명상 시작하기", "명상하고 싶어요", "시작할게요", "명상 시작"].some(trigger => answer.includes(trigger))) {
+        // ✅ Phase 1: 분석 완료 후 시작 요청 - 즉시 명상 타입 선택으로
+        if (currentAIChat?.isFinalAnalysis || ["네, 시작할게요", "맞춤 명상 시작하기", "명상하고 싶어요", "시작할게요", "명상 시작", "명상 시작하기"].some(trigger => answer.includes(trigger))) {
             const diag = DIAGNOSIS_OPTIONS.find(o => o.id === currentAIChat?.mappedDiagnosis) || SELECTED_DIAGNOSIS_FALLBACK;
             setSelectedDiagnosis(diag);
-            setStep('prescription_summary');
+            // 자동으로 모드/인터랙션 타입 설정
+            const defaultMode = MEDITATION_MODES.find(m => m.id === diag?.prescription?.modeId) || MEDITATION_MODES[1];
+            setActiveMode(defaultMode);
+            setTimeLeft(defaultMode.time);
+            setInteractionType(diag?.prescription?.type || 'v1');
+            setStep('interaction_select');
             return;
         }
         
@@ -1042,14 +1055,21 @@ const MeditationPage = ({ onClose }) => {
         let updatedHistory = [...chatHistory];
         if (currentAIChat) {
             const aiText = currentAIChat.message || currentAIChat.question;
-            if (aiText) {
+            const isFallback = aiText?.includes("연결이 늦어지네요") || aiText?.includes("연결이 고르지 않네요");
+            
+            if (aiText && !isFallback) {
                 updatedHistory = [...updatedHistory, { role: 'model', content: aiText }];
             }
         }
 
         // 2. Add User Answer
-        const userMsg = { role: 'user', content: answer };
-        updatedHistory = [...updatedHistory, userMsg];
+        // Skip adding the answer to history if the current AI chat was a fallback message
+        const isRespondingToFallback = currentAIChat?.message?.includes("연결이 늦어지네요") || currentAIChat?.message?.includes("연결이 고르지 않네요");
+        
+        if (!isRespondingToFallback) {
+            const userMsg = { role: 'user', content: answer };
+            updatedHistory = [...updatedHistory, userMsg];
+        }
         
         // 3. Update States
         setChatHistory(updatedHistory);
@@ -1083,7 +1103,8 @@ const MeditationPage = ({ onClose }) => {
                 diagnosis: selectedDiagnosis?.id,
                 mode: activeMode?.id === 'breath' ? '3min' : (activeMode?.id === 'calm' ? '7min' : '15min'),
                 interactionType: interactionType,
-                messageIndex: aiSessionMessageIndex
+                messageIndex: aiSessionMessageIndex,
+                breathLevel: interactionType === 'v2' ? micVolume : null // ✅ Phase 5: 호흡 레벨 전달
             });
             setAiLatency(Date.now() - startTime);
             
@@ -1374,7 +1395,8 @@ const MeditationPage = ({ onClose }) => {
         const analyser = audioCtx.createAnalyser();
         const source = audioCtx.createMediaStreamSource(stream);
         source.connect(analyser);
-        analyser.fftSize = 256;
+        analyser.fftSize = 1024; // ✅ Phase 4: Higher resolution for breath detection
+        analyser.smoothingTimeConstant = 0.8; // ✅ Smoother transitions
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
         analyserRef.current = analyser;
@@ -1386,13 +1408,16 @@ const MeditationPage = ({ onClose }) => {
     const drawAudioVisualizer = () => {
         if (!analyserRef.current) return;
         animationFrameRef.current = requestAnimationFrame(drawAudioVisualizer);
-        analyserRef.current.getByteFrequencyData(dataArrayRef.current);
+        analyserRef.current.getByteTimeDomainData(dataArrayRef.current); // ✅ Phase 4: Time domain for breath
         let sum = 0;
-        // Focus on lower frequencies (breath range)
-        for (let i = 0; i < 15; i++) { sum += dataArrayRef.current[i]; }
-        const average = sum / 15;
-        // Increased sensitivity for breathing and low volume
-        setMicVolume(Math.min((average * 6) / 100, 2.5));
+        const bufferLength = dataArrayRef.current.length;
+        for (let i = 0; i < bufferLength; i++) {
+            const value = (dataArrayRef.current[i] - 128) / 128; // Normalize to -1..1
+            sum += value * value; // RMS calculation
+        }
+        const rms = Math.sqrt(sum / bufferLength);
+        const normalizedLevel = Math.min(rms * 8, 2.5); // ✅ Amplified for visual feedback
+        setMicVolume(normalizedLevel);
     };
 
     const startTimer = () => {
@@ -1985,7 +2010,32 @@ const MeditationPage = ({ onClose }) => {
                         padding: '15px', paddingBottom: 'calc(15px + env(safe-area-inset-bottom))',
                         display: 'flex', flexDirection: 'column', gap: '12px', zIndex: 20
                     }}>
-                        {!isAILoading && currentAIChat?.options && (
+                        {/* ✅ Phase 1: 분석 완료 상태 - 시작 버튼만 표시 */}
+                        {!isAILoading && currentAIChat?.isFinalAnalysis && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', animation: 'fadeIn 0.5s ease' }}>
+                                <button onClick={() => {
+                                    stopAllAudioRef.current?.();
+                                    const diag = DIAGNOSIS_OPTIONS.find(o => o.id === currentAIChat?.mappedDiagnosis) || SELECTED_DIAGNOSIS_FALLBACK;
+                                    setSelectedDiagnosis(diag);
+                                    const defaultMode = MEDITATION_MODES.find(m => m.id === diag?.prescription?.modeId) || MEDITATION_MODES[1];
+                                    setActiveMode(defaultMode);
+                                    setTimeLeft(defaultMode.time);
+                                    setInteractionType(diag?.prescription?.type || 'v1');
+                                    setStep('interaction_select');
+                                }} style={{
+                                    width: '100%', background: 'var(--primary-gold)', color: 'black',
+                                    padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
+                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                    boxShadow: '0 10px 20px rgba(212,175,55,0.3)'
+                                }}>🧘 명상 시작하기</button>
+                                <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
+                                    당신에게 맞는 명상을 준비했어요
+                                </p>
+                            </div>
+                        )}
+
+                        {/* 일반 대화 중: 선택지 버튼 (isFinalAnalysis가 아닐 때만) */}
+                        {!isAILoading && currentAIChat?.options?.length > 0 && !currentAIChat?.isFinalAnalysis && (
                             <div className="no-scrollbar" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '10px', scrollbarWidth: 'none', justifyContent: 'flex-start' }}>
                                 {currentAIChat.options.map((opt, i) => (
                                     <button key={i} onClick={() => { stopAllAudioRef.current?.(); handleChatResponse(opt); }}
@@ -1997,7 +2047,9 @@ const MeditationPage = ({ onClose }) => {
                                 ))}
                             </div>
                         )}
-                        {!currentAIChat?.isFinalAnalysis && !currentAIChat?.isTransition && (
+
+                        {/* 채팅 입력: 분석 완료가 아니고 isTransition도 아닐 때만 */}
+                        {!currentAIChat?.isFinalAnalysis && !currentAIChat?.isTransition && !isAnalyzing && (
                             <form onSubmit={(e) => { try { handleManualSubmit(e); } catch (err) { setIsAILoading(false); } }} 
                                 style={{ 
                                     display: 'flex', gap: '10px', alignItems: 'center', background: 'rgba(255,255,255,0.05)', 
@@ -2701,9 +2753,8 @@ const MeditationPage = ({ onClose }) => {
             {/* Controls */}
             <div style={{ position: 'absolute', bottom: '60px', display: 'flex', alignItems: 'center', gap: '40px', zIndex: 20 }}>
                 <button onClick={() => { 
-                    stopSession(); 
-                    if(onClose) onClose(); 
-                    else navigate('/member'); 
+                    // ✅ Phase 2: X 버튼 → 피드백 화면으로 이동 (홈 대신)
+                    completeSession();
                 }} style={{
                     width: '60px', height: '60px', borderRadius: '50%',
                     background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white',
@@ -2721,16 +2772,17 @@ const MeditationPage = ({ onClose }) => {
                     {isPlaying ? <Pause size={32} weight="fill" /> : <Play size={32} weight="fill" />}
                 </button>
 
-                <button onClick={() => setSoundEnabled(!soundEnabled)} style={{
+                <button onClick={() => setShowVolumePanel(!showVolumePanel)} style={{
                     width: '60px', height: '60px', borderRadius: '50%',
-                    background: 'rgba(255,255,255,0.1)', border: 'none', 
+                    background: showVolumePanel ? 'rgba(212,175,55,0.3)' : 'rgba(255,255,255,0.1)', border: 'none', 
                     color: soundEnabled ? 'white' : 'rgba(255,255,255,0.3)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                    transition: 'all 0.3s ease'
                 }}>
                     {soundEnabled ? <SpeakerHigh size={28} /> : <SpeakerSlash size={28} />}
                 </button>
 
-                {/* TTC Toggle Button - Repositioned and stylized */}
+                {/* TTC Toggle Button */}
                 <div style={{ 
                     position: 'absolute', right: '0', bottom: '100px', 
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px'
@@ -2757,9 +2809,91 @@ const MeditationPage = ({ onClose }) => {
                     }}>
                         <SpeakerHigh size={26} weight={ttcEnabled ? "fill" : "regular"} />
                     </button>
-                    <span style={{ fontSize: '0.7rem', color: ttcEnabled ? 'var(--primary-gold)' : 'rgba(255,255,255,0.4)', fontWeight: 'bold', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>TTC ON</span>
+                    <span style={{ fontSize: '0.7rem', color: ttcEnabled ? 'var(--primary-gold)' : 'rgba(255,255,255,0.4)', fontWeight: 'bold', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>TTC {ttcEnabled ? 'ON' : 'OFF'}</span>
                 </div>
             </div>
+
+            {/* ✅ Phase 3: Volume Control Panel */}
+            {showVolumePanel && (
+                <div style={{
+                    position: 'absolute', bottom: '180px', left: '50%', transform: 'translateX(-50%)',
+                    width: '280px', background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(20px)',
+                    borderRadius: '24px', padding: '20px', zIndex: 30,
+                    border: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+                    animation: 'fadeIn 0.3s ease'
+                }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                        <span style={{ color: 'var(--primary-gold)', fontSize: '0.85rem', fontWeight: 700 }}>🎛️ 볼륨 조절</span>
+                        <button onClick={() => setShowVolumePanel(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: '4px' }}>
+                            <X size={18} />
+                        </button>
+                    </div>
+                    
+                    {/* Voice Volume */}
+                    <div style={{ marginBottom: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>🗣️ 음성 안내</span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--primary-gold)' }}>{Math.round(audioVolumes.voice * 100)}%</span>
+                        </div>
+                        <input type="range" min="0" max="100" value={Math.round(audioVolumes.voice * 100)}
+                            onChange={(e) => {
+                                const val = parseInt(e.target.value) / 100;
+                                setAudioVolumes(prev => ({ ...prev, voice: val }));
+                                if (currentAudioRef.current) currentAudioRef.current.volume = val;
+                            }}
+                            style={{ width: '100%', accentColor: 'var(--primary-gold)', height: '4px' }} />
+                    </div>
+                    
+                    {/* Ambient Volume */}
+                    <div style={{ marginBottom: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>🌊 환경음</span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--primary-gold)' }}>{Math.round(audioVolumes.ambient * 100)}%</span>
+                        </div>
+                        <input type="range" min="0" max="100" value={Math.round(audioVolumes.ambient * 100)}
+                            onChange={(e) => {
+                                const val = parseInt(e.target.value) / 100;
+                                setAudioVolumes(prev => ({ ...prev, ambient: val }));
+                                if (ambientAudioRef.current) ambientAudioRef.current.volume = val;
+                            }}
+                            style={{ width: '100%', accentColor: '#4ade80', height: '4px' }} />
+                    </div>
+                    
+                    {/* Binaural Volume */}
+                    <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>🎵 주파수</span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--primary-gold)' }}>{Math.round(audioVolumes.binaural * 100)}%</span>
+                        </div>
+                        <input type="range" min="0" max="100" value={Math.round(audioVolumes.binaural * 100)}
+                            onChange={(e) => {
+                                const val = parseInt(e.target.value) / 100;
+                                setAudioVolumes(prev => ({ ...prev, binaural: val }));
+                                if (gainNodeRef.current) gainNodeRef.current.gain.value = val;
+                            }}
+                            style={{ width: '100%', accentColor: '#a29bfe', height: '4px' }} />
+                    </div>
+                    
+                    {/* Mute All Toggle */}
+                    <button onClick={() => {
+                        setSoundEnabled(!soundEnabled);
+                        if (soundEnabled) {
+                            // Mute all
+                            if (ambientAudioRef.current) ambientAudioRef.current.volume = 0;
+                            if (gainNodeRef.current) gainNodeRef.current.gain.value = 0;
+                        } else {
+                            // Restore
+                            if (ambientAudioRef.current) ambientAudioRef.current.volume = audioVolumes.ambient;
+                            if (gainNodeRef.current) gainNodeRef.current.gain.value = audioVolumes.binaural;
+                        }
+                    }} style={{
+                        marginTop: '12px', width: '100%', padding: '10px', borderRadius: '12px',
+                        background: soundEnabled ? 'rgba(255,255,255,0.08)' : 'rgba(255,0,0,0.15)',
+                        border: '1px solid rgba(255,255,255,0.1)', color: soundEnabled ? 'rgba(255,255,255,0.7)' : '#ff6b6b',
+                        fontSize: '0.8rem', cursor: 'pointer', fontWeight: 600
+                    }}>{soundEnabled ? '🔇 전체 음소거' : '🔊 소리 켜기'}</button>
+                </div>
+            )}
 
             {/* 🛠️ Debug Overlay */}
             <MeditationDebugOverlay 

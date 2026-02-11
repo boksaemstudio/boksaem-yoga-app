@@ -186,7 +186,7 @@ service cloud.firestore {
     // ========================================
     match /error_logs/{logId} {
       allow read: if isAdmin();
-      allow create: if true; // Allow anonymous error logging
+      allow create: if isAuth(); // Require authentication to prevent DoS
       allow update, delete: if isAdmin();
     }
 

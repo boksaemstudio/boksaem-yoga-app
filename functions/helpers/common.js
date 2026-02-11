@@ -14,6 +14,40 @@ if (admin.apps.length === 0) {
     admin.firestore().settings({ ignoreUndefinedProperties: true });
 }
 
+// [UNIFIED] FCM 토큰 컬렉션 상수 (레거시 마이그레이션 완료 시까지 유지)
+const FCM_COLLECTIONS = ["fcm_tokens", "fcmTokens", "push_tokens"];
+
+/**
+ * 모든 FCM 컬렉션에서 토큰을 조회하는 공통 헬퍼
+ * @param {Object} db - Firestore instance
+ * @param {Object} filters - { memberId, role, instructorName } 등 필터 조건
+ * @returns {Object} { tokens: string[], tokenSources: { token: collectionName } }
+ */
+const getAllFCMTokens = async (db, filters = {}) => {
+    const tokens = [];
+    const tokenSources = {};
+
+    for (const col of FCM_COLLECTIONS) {
+        try {
+            let q = db.collection(col);
+            if (filters.memberId) q = q.where('memberId', '==', filters.memberId);
+            if (filters.role) q = q.where('role', '==', filters.role);
+            if (filters.instructorName) q = q.where('instructorName', '==', filters.instructorName);
+            
+            const snap = await q.get();
+            snap.docs.forEach(doc => {
+                if (!tokens.includes(doc.id)) {
+                    tokens.push(doc.id);
+                    tokenSources[doc.id] = col;
+                }
+            });
+        } catch (e) {
+            // Collection might not exist, skip
+        }
+    }
+    return { tokens, tokenSources };
+};
+
 /**
  * AI 에러 로깅
  */
@@ -82,5 +116,7 @@ module.exports = {
     logAIError,
     getAI,
     checkAIQuota,
-    createPendingApproval
+    createPendingApproval,
+    FCM_COLLECTIONS,
+    getAllFCMTokens
 };
