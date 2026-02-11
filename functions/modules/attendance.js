@@ -64,6 +64,11 @@ exports.checkInMemberV2Call = onCall({
     cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173'],
     minInstances: 0  // [PERF] 테스트 중 비용 방지 (프로덕션: 1로 변경하면 Cold Start 방지)
 }, async (request) => {
+    // [PERF] Warm-up / Keep-alive Ping
+    if (request.data.ping) {
+        return { success: true, message: 'pong', timestamp: Date.now() };
+    }
+
     const { memberId, branchId, classTitle, instructor } = request.data;
     const db = admin.firestore();
 

@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, memo } from 'react';
 import Keypad from '../components/Keypad';
 import { storageService } from '../services/storage';
+import { functions } from '../firebase';
+import { httpsCallable } from 'firebase/functions';
 import { getAllBranches, getBranchName } from '../studioConfig';
 import logoWide from '../assets/logo_wide.png';
 import { MapPin, Sun, Cloud, CloudRain, Snowflake, Lightning, Moon, CornersOut, CornersIn, Chalkboard } from '@phosphor-icons/react';
@@ -211,6 +213,34 @@ const CheckInPage = () => {
         if (hour >= 17 && hour < 21) return 'evening';
         return 'night';
     });
+
+    // [PERF] Warm-up & Keep-alive: 앱 시작 시 즉시 깨우고, 영업시간엔 주기적으로 깨워둠
+    useEffect(() => {
+        const pingServer = async () => {
+            try {
+                const now = new Date();
+                const currentHour = now.getHours();
+                
+                // 영업시간 (09:00 ~ 22:00) 외에는 핑 보내지 않음 (사용자 요청)
+                if (currentHour < 9 || currentHour >= 22) return;
+
+                console.log(`[System] Sending keep-alive ping... (${currentHour}시)`);
+                const checkInFn = httpsCallable(functions, 'checkInMemberV2Call');
+                await checkInFn({ ping: true });
+                console.log("[System] Server is warm 🔥");
+            } catch (e) {
+                console.debug("[System] Ping failed (harmless):", e);
+            }
+        };
+
+        // 1. Warm-up: 즉시 실행
+        pingServer();
+
+        // 2. Keep-alive: 10분마다 실행 (영업시간 내)
+        const interval = setInterval(pingServer, 10 * 60 * 1000); 
+
+        return () => clearInterval(interval);
+    }, []);
 
     // [PERF] 현재 시간대 배경만 동적 로딩
     const [bgImage, setBgImage] = useState(null);
