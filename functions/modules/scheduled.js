@@ -85,13 +85,9 @@ exports.sendDailyAdminReportV2 = onSchedule({
                 notification: { title: "일일 리포트", body: reportBody.substring(0, 100) },
                 data: { fullReport: reportBody }
             });
-        }
 
-        // Check for security anomalies
-        if (anomalyCount > 0 || ghostCount > 10) {
-            const tokensSnap2 = await db.collection('fcm_tokens').where('type', '==', 'admin').get();
-            if (!tokensSnap2.empty) {
-                const tokens = tokensSnap2.docs.map(d => d.id);
+            // [PERF] 보안 이상 확인 — tokensSnap 재사용 (이중 조회 제거)
+            if (anomalyCount > 0 || ghostCount > 10) {
                 const securityMessage = `[긴급 보안 알림] 크레딧 오류: ${anomalyCount}건, 유령 토큰: ${ghostCount}건 - 확인이 필요합니다.`;
                 await admin.messaging().sendEachForMulticast({
                     tokens,

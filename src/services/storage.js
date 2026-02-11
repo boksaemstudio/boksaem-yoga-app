@@ -93,8 +93,9 @@ export const storageService = {
     }
 
     // ✅ FULL MODE: Subscribe to everything (Admin/Mobile)
+    // [PERF] attendance는 최근 200건만 구독 (누적 데이터 전부 구독 방지)
     safelySubscribe(
-      query(collection(db, 'attendance'), orderBy("timestamp", "desc")),
+      query(collection(db, 'attendance'), orderBy("timestamp", "desc"), firestoreLimit(200)),
       (snapshot) => cachedAttendance = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
       "Attendance"
     );
@@ -108,75 +109,31 @@ export const storageService = {
       "Notices"
     );
 
-    safelySubscribe(
-      collection(db, 'messages'),
-      ( /* snapshot */) => { /* messages sync disabled for now */ },
-      "Messages"
-    );
+    // [PERF] messages 빈 리스너 제거 — 아무것도 하지 않으면서 Firestore 연결 점유했음
 
-    const updateTokenCache = (snapshot, collectionName) => {
-      const tokens = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-      // Update the map for this collection
-      cachedPushTokensMap[collectionName] = tokens;
-
-      // Merge all tokens (avoiding duplicates by document ID)
-      const allMerged = {};
-      Object.values(cachedPushTokensMap).forEach(tokenList => {
-        tokenList.forEach(t => {
-          allMerged[t.id] = t;
-        });
-      });
-
-      cachedPushTokens = Object.values(allMerged);
-      console.log(`[Storage] Total Unique FCM Tokens: ${cachedPushTokens.length}`);
-      notifyListeners();
-    };
-
+    // [PERF] FCM 토큰: 기본 컬렉션(fcm_tokens)만 구독 (3중 → 단일)
+    // 레거시 컬렉션(fcmTokens, push_tokens)은 마이그레이션 후 제거 예정
     safelySubscribe(
       collection(db, 'fcm_tokens'),
-      (snapshot) => updateTokenCache(snapshot, 'fcm_tokens'),
-      "FCMTokensMain"
-    );
-
-    safelySubscribe(
-      collection(db, 'fcmTokens'),
-      (snapshot) => updateTokenCache(snapshot, 'fcmTokens'),
-      "FCMTokensFallback1"
-    );
-
-    safelySubscribe(
-      collection(db, 'push_tokens'),
-      (snapshot) => updateTokenCache(snapshot, 'push_tokens'),
-      "FCMTokensFallback2"
-    );
-
-    safelySubscribe(
-      collection(db, 'images'),
       (snapshot) => {
-        console.log("[Storage] Image listener fired. Pending writes:", Object.keys(pendingImageWrites));
-        const imgs = {};
-        snapshot.docs.forEach(doc => {
-          imgs[doc.id] = doc.data().url || doc.data().base64;
-        });
-
-        // [FIX] Merge pending writes to prevent UI reversion if listener fires with stale data
-        const now = Date.now();
-        Object.entries(pendingImageWrites).forEach(([id, data]) => {
-          if (now - data.timestamp < 10000) { // Keep pending for 10s
-            console.log(`[Storage] Applying pending write for ${id}`);
-            imgs[id] = data.base64;
-          } else {
-            console.log(`[Storage] Expired pending write for ${id}`);
-            delete pendingImageWrites[id]; // Cleanup old pending writes
-          }
-        });
-
-        cachedImages = imgs;
-        console.log("[Storage] cachedImages updated. Keys:", Object.keys(cachedImages));
+        cachedPushTokens = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log(`[Storage] FCM Tokens: ${cachedPushTokens.length}`);
       },
-      "Images"
+      "FCMTokens"
     );
+
+    // [PERF] images: 1회 로드로 변경 (실시간 구독 불필요 — 이미지는 거의 변하지 않음)
+    try {
+      const imgSnapshot = await getDocs(collection(db, 'images'));
+      const imgs = {};
+      imgSnapshot.docs.forEach(d => {
+        imgs[d.id] = d.data().url || d.data().base64;
+      });
+      cachedImages = imgs;
+      console.log(`[Storage] Images loaded (one-time): ${Object.keys(cachedImages).length} items`);
+    } catch (imgErr) {
+      console.warn('[Storage] Images load failed:', imgErr);
+    }
   },
 
   _setupMemberListener() {
@@ -540,26 +497,10 @@ export const storageService = {
     }
   },
 
+  // [PERF] aiModule.js로 위임 (캐시 포함 버전 사용)
   async getAIExperience(memberName, attendanceCount, day, hour, upcomingClass, weather, credits, remainingDays, language = 'ko', diligence = null, context = 'profile') {
-    try {
-      const genAI = httpsCallable(functions, 'generatePageExperienceV2');
-      const isGeneric = !memberName || ["방문 회원", "방문회원", "visitor", "Guest"].includes(memberName);
-      const res = await genAI({
-        memberName, attendanceCount, dayOfWeek: day, timeOfDay: hour, upcomingClass, weather, credits, remainingDays, language, diligence,
-        role: isGeneric ? 'visitor' : 'member', type: 'experience', context
-      });
-      return res.data;
-    } catch (error) {
-      console.warn("AI Experience failed, using fallback:", error);
-      const fallbacks = {
-        ko: "오늘도 매트 위에서 나를 만나는 소중한 시간 되시길 바랍니다.",
-        en: "May you find a precious moment to meet yourself on the mat today.",
-        ru: "Желаю вам найти драгоценный момент для встречи с собой на коврике сегодня.",
-        zh: "愿你今天在垫子上找到与自己相遇的珍贵时刻。",
-        ja: "今日もマットの上で自分自身と向き合う大切な時間となりますように。"
-      };
-      return { message: fallbacks[language] || fallbacks['ko'], bgTheme: "sunny", colorTone: "#FFFFFF", isFallback: true };
-    }
+    const { getAIExperience } = await import('./modules/aiModule.js');
+    return getAIExperience(memberName, attendanceCount, day, hour, upcomingClass, weather, credits, remainingDays, language, diligence, context);
   },
 
   async getAIAnalysis(memberName, attendanceCount, logs, timeOfDay, language = 'ko', requestRole = 'member', statsData = null, context = 'profile') {

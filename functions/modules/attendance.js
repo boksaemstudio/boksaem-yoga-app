@@ -104,13 +104,21 @@ exports.checkInMemberV2Call = onCall({
             denialReason = 'no_credits';
         }
 
-        // Check for duplicate check-in today
-        const existingSnap = await db.collection('attendance')
-            .where('memberId', '==', memberId)
-            .where('date', '==', today)
-            .where('className', '==', classTitle)
-            .limit(1)
-            .get();
+        // [PERF] 중복 확인과 streak 계산용 쿼리를 병렬로 실행 (~200ms 절약)
+        const [existingSnap, recentAttendanceSnap] = await Promise.all([
+            db.collection('attendance')
+                .where('memberId', '==', memberId)
+                .where('date', '==', today)
+                .where('className', '==', classTitle)
+                .limit(1)
+                .get(),
+            db.collection('attendance')
+                .where('memberId', '==', memberId)
+                .where('status', '==', 'valid')
+                .orderBy('timestamp', 'desc')
+                .limit(30)
+                .get()
+        ]);
 
         const isMultiSession = !existingSnap.empty;
         const sessionCount = isMultiSession ? existingSnap.size + 1 : 1;
@@ -150,14 +158,8 @@ exports.checkInMemberV2Call = onCall({
             newCredits = currentCredits - 1;
             newCount = currentCount + 1;
             
-            // Calculate streak
-            const recentAttendance = await db.collection('attendance')
-                .where('memberId', '==', memberId)
-                .where('status', '==', 'valid') // [FIX] Use equality to avoid orderBy constraints
-                .orderBy('timestamp', 'desc')
-                .limit(30)
-                .get();
-            const records = recentAttendance.docs.map(d => d.data());
+            // [PERF] streak 계산에 이미 가져온 recentAttendanceSnap 재사용
+            const records = recentAttendanceSnap.docs.map(d => d.data());
             streak = calculateStreak(records, today);
 
             // Handle TBD dates

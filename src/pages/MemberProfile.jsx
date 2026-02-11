@@ -340,28 +340,8 @@ const MemberProfile = () => {
         };
     }, [logLimit]);
 
-    // [REAL-TIME] Unified Message History Listener for Member Profile
-    useEffect(() => {
-        if (!member?.id) return;
-
-        console.log(`[MemberProfile] Setting up message listener for: ${member.id}`);
-        const q = query(
-            collection(db, 'messages'),
-            where("memberId", "==", member.id),
-            firestoreLimit(20)
-        );
-
-        const unsub = onSnapshot(q, (snap) => {
-            const msgs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            // Sort by timestamp desc
-            msgs.sort((a, b) => new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt));
-            setMessages(msgs);
-        }, (err) => {
-            console.error("[MemberProfile] Message listener error:", err);
-        });
-
-        return () => unsub();
-    }, [member?.id]);
+    // [PERF] 메시지 리스너는 아래 useEffect(line ~445)에서 통합 관리
+    // 중복 리스너 제거 — Firestore 연결 1개 절약
 
     const loadAIExperience = async (m, attendanceData = null, wData = null) => {
         if (!m) return;
