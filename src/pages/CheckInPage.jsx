@@ -6,10 +6,15 @@ import logoWide from '../assets/logo_wide.png';
 import { MapPin, Sun, Cloud, CloudRain, Snowflake, Lightning, Moon, CornersOut, CornersIn, Chalkboard } from '@phosphor-icons/react';
 import { getDaysRemaining } from '../utils/dates';
 
-import bgMorning from '../assets/bg_morning.png';
-import bgAfternoon from '../assets/bg_afternoon.png';
-import bgEvening from '../assets/bg_evening.png';
-import bgNight from '../assets/bg_night.png';
+// [PERF] 현재 시간대 배경만 로딩 (4장 → 1장)
+const getBgForPeriod = (period) => {
+    switch (period) {
+        case 'morning': return import('../assets/bg_morning.png');
+        case 'afternoon': return import('../assets/bg_afternoon.png');
+        case 'evening': return import('../assets/bg_evening.png');
+        default: return import('../assets/bg_night.png');
+    }
+};
 import InstallGuideModal from '../components/InstallGuideModal';
 import InstructorQRModal from '../components/InstructorQRModal';
 import rys200Logo from '../assets/RYS200.png';
@@ -206,6 +211,12 @@ const CheckInPage = () => {
         if (hour >= 17 && hour < 21) return 'evening';
         return 'night';
     });
+
+    // [PERF] 현재 시간대 배경만 동적 로딩
+    const [bgImage, setBgImage] = useState(null);
+    useEffect(() => {
+        getBgForPeriod(period).then(m => setBgImage(m.default));
+    }, [period]);
 
     // [New] Auto-reset input after 20s of inactivity
     useEffect(() => {
@@ -888,12 +899,7 @@ const CheckInPage = () => {
                 zIndex: 0
             }}>
                 <img
-                    src={(() => {
-                        if (period === 'morning') return bgMorning;
-                        if (period === 'afternoon') return bgAfternoon;
-                        if (period === 'evening') return bgEvening;
-                        return bgNight;
-                    })()}
+                    src={bgImage}
                     alt="bg"
                     className="static-bg"
                     style={{

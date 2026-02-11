@@ -17,6 +17,14 @@ const safeSetItem = (key, value) => { try { localStorage.setItem(key, value); } 
  * AI 기반 회원 경험 메시지 생성
  */
 export const getAIExperience = async (memberName, attendanceCount, day, hour, upcomingClass, weather, credits, remainingDays, language = 'ko', diligence = null, context = 'profile') => {
+    // [PERF] 시간별 캐시 — 동일 시간대 중복 Cloud Function 호출 방지
+    const cacheKey = `ai_experience_${memberName}_${hour}_${language}_${context}`;
+    const cached = safeGetItem(cacheKey);
+    if (cached) {
+        console.log("[AI] Returning cached experience");
+        return JSON.parse(cached);
+    }
+
     try {
         const genAI = httpsCallable(functions, 'generatePageExperienceV2');
         const isGeneric = !memberName || ["방문 회원", "방문회원", "visitor", "Guest"].includes(memberName);
@@ -24,6 +32,11 @@ export const getAIExperience = async (memberName, attendanceCount, day, hour, up
             memberName, attendanceCount, dayOfWeek: day, timeOfDay: hour, upcomingClass, weather, credits, remainingDays, language, diligence,
             role: isGeneric ? 'visitor' : 'member', type: 'experience', context
         });
+        
+        // [PERF] 캐시 저장 (fallback 아닌 경우만)
+        if (res.data && !res.data.isFallback) {
+            safeSetItem(cacheKey, JSON.stringify(res.data));
+        }
         return res.data;
     } catch (error) {
         console.warn("AI Experience failed, using fallback:", error);

@@ -10,6 +10,14 @@ const { onCall } = require("firebase-functions/v2/https");
 const { admin, getAI, checkAIQuota, logAIError } = require("../helpers/common");
 const { SchemaType } = require("@google/generative-ai"); // ✅ Import SchemaType
 
+// [PERF] TTS 클라이언트 싱글톤 — 매 호출마다 객체 생성 비용(200-500ms) 제거
+const { TextToSpeechClient } = require('@google-cloud/text-to-speech');
+let _ttsClient = null;
+const getTTSClient = () => {
+    if (!_ttsClient) _ttsClient = new TextToSpeechClient();
+    return _ttsClient;
+};
+
 /**
  * 내부 오디오 생성 헬퍼
  */
@@ -17,8 +25,7 @@ const generateInternalAudio = async (text, type = 'default') => {
     if (!text) return null;
     
     try {
-        const { TextToSpeechClient } = require('@google-cloud/text-to-speech');
-        const client = new TextToSpeechClient();
+        const client = getTTSClient();
 
         const voiceConfigs = {
             // 채팅용: Neural2-B (사용자 요청)
@@ -269,13 +276,16 @@ JSON Output: { "message": "Transition message" }
                 };
                 
                 try {
+                    // [PERF] 메인 메시지 TTS 생성을 전환 메시지 AI 호출과 병렬로 처리 가능하도록 변경
+                    // 여기서는 일단 transResult를 얻어야 하므로 transResult AI 호출을 먼저 함
                     const transResult = await ai.generateExperience(transPrompt, transSchema);
                     if (transResult && transResult.message) {
-                        // Generate Audio for Transition (using 'meditation' voice)
-                        const transAudio = await generateInternalAudio(transResult.message, 'meditation');
+                        // 전환 메시지용 오디오 생성 (나중에 Promise.all로 기다릴 수 있게 준비)
+                        const transAudioPromise = generateInternalAudio(transResult.message, 'meditation');
+                        // 여기서 바로 await하지 않고 객체에 promise를 담아둠
                         transitionData = {
                             message: transResult.message,
-                            audioContent: transAudio
+                            audioPromise: transAudioPromise 
                         };
                     }
                 } catch (e) {
@@ -608,34 +618,29 @@ JSON Output:
             throw new Error("AI returned null");
         }
 
-        // Generate audio
+        // [PERF] AI 응답 메시지와 전환 메시지(있을 경우)의 TTS 생성을 병렬로 처리
         let audioContent = null;
-        if (result.message) {
+        const mainAudioPromise = result.message ? (async () => {
             try {
-                // ✅ TTS Placeholder Safety (Sync with Client)
                 if (memberName) {
-                     result.message = result.message.replace(/OO님/g, `${memberName}님`)
-                                            // Also replace if simple "OO" is used (sometimes AI does this)
-                                            .replace(/OO/g, memberName); 
+                    result.message = result.message.replace(/OO님/g, `${memberName}님`).replace(/OO/g, memberName);
                 }
-
-                // Determine voice type based on context
-                // ✅ [FIX] 명상 관련 모든 메시지는 meditation voice 사용
-                const MEDITATION_VOICE_TYPES = new Set([
-                    'session_message', 
-                    'prescription', 
-                    'transition_message',  // 채팅 → 명상 전환 시
-                    'feedback_message'     // 명상 완료 후 피드백
-                ]);
+                const MEDITATION_VOICE_TYPES = new Set(['session_message', 'prescription', 'transition_message', 'feedback_message']);
                 const voiceType = MEDITATION_VOICE_TYPES.has(type) ? 'meditation' : 'chat';
+                return await generateInternalAudio(result.message, voiceType);
+            } catch (e) { return null; }
+        })() : Promise.resolve(null);
 
-                
-                const audioStartTime = Date.now();
-                audioContent = await generateInternalAudio(result.message, voiceType);
-                console.log(`[Meditation:Audio] Generation took ${Date.now() - audioStartTime}ms`);
-            } catch (audioErr) {
-                console.error("Audio generation failed:", audioErr);
-            }
+        // 병렬로 모든 오디오 생성 대기
+        const [mainAudio, transAudio] = await Promise.all([
+            mainAudioPromise,
+            transitionData?.audioPromise || Promise.resolve(null)
+        ]);
+
+        audioContent = mainAudio;
+        if (transitionData) {
+            transitionData.audioContent = transAudio;
+            delete transitionData.audioPromise;
         }
 
         const finalResponse = {
@@ -644,21 +649,17 @@ JSON Output:
             transitionData: transitionData || null
         };
 
-        // Log usage
-        try {
-            await admin.firestore().collection('meditation_ai_logs').add({
-                type,
-                timeContext: timeContext || 'unknown',
-                weather: weather || 'unknown',
-                mode: mode || 'unknown',
-                interactionType: interactionType || 'v1',
-                messageIndex: messageIndex || 0,
-                success: true,
-                createdAt: admin.firestore.FieldValue.serverTimestamp()
-            });
-        } catch (logError) {
-            console.error("Failed to log meditation usage:", logError);
-        }
+        // [PERF] Log usage — fire-and-forget (응답 반환 지연 제거)
+        admin.firestore().collection('meditation_ai_logs').add({
+            type,
+            timeContext: timeContext || 'unknown',
+            weather: weather || 'unknown',
+            mode: mode || 'unknown',
+            interactionType: interactionType || 'v1',
+            messageIndex: messageIndex || 0,
+            success: true,
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        }).catch(logError => console.error("Failed to log meditation usage:", logError));
 
         console.log("🧘 Meditation AI Result Ready");
         return finalResponse;

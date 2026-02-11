@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../firebase';
@@ -14,7 +14,7 @@ import { MEDITATION_MODES, INTERACTION_TYPES, DIAGNOSIS_OPTIONS, WEATHER_OPTIONS
 const { 
     Play, Pause, X, Wind, SpeakerHigh, SpeakerSlash, Brain, Microphone, VideoCamera, 
     LockKey, Heartbeat, SmileySad, Lightning, Barbell, Sparkle, Sun, CloudRain, 
-    CloudSnow, Cloud, House
+    CloudSnow, Cloud
 } = Icons;
 
 // [HOTFIX] Local ArrowLeft to prevent 'Ar' ReferenceError
@@ -24,7 +24,7 @@ const ArrowLeft = ({ size = 24, color = "currentColor" }) => (
     </svg>
 );
 
-const ArrowUp = ({ size = 24, color = "currentColor", weight="regular" }) => (
+const ArrowUp = ({ size = 24, color = "currentColor" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill={color} viewBox="0 0 256 256">
         <path d="M213.66,122.34a8,8,0,0,1-11.32,0L136,56v152a8,8,0,0,1-16,0V56L53.66,122.34a8,8,0,0,1-11.32-11.32l80-80a8,8,0,0,1,11.32,0l80,80A8,8,0,0,1,213.66,122.34Z"></path>
     </svg>
@@ -128,7 +128,7 @@ const MeditationPage = ({ onClose }) => {
     const [selectedIntention, setSelectedIntention] = useState(null); // ✅ 선택한 의도
     const [selectedCategory, setSelectedCategory] = useState(null); // ✅ 선택한 카테고리 (비움/채움)
     const [prescriptionReason, setPrescriptionReason] = useState('');
-    const [currentQuestion, setCurrentQuestion] = useState(null);
+    const [, setCurrentQuestion] = useState(null);
 
     // Session Settings
     const [activeMode, setActiveMode] = useState(null); 
@@ -162,16 +162,17 @@ const MeditationPage = ({ onClose }) => {
     const [permissionError, setPermissionError] = useState(null);
     const [cameraStream, setCameraStream] = useState(null);
     const [showVolumePanel, setShowVolumePanel] = useState(false); // ✅ Phase 3: 볼륨 컨트롤 패널
+    const [showVolumeHint, setShowVolumeHint] = useState(false); // ✅ 볼륨 힌트 토스트
 
     // 🤖 REAL-TIME AI States
     const [isAILoading, setIsAILoading] = useState(true); // Start as loading (All AI)
-    const [aiPrescription, setAiPrescription] = useState(null);
-    const [aiSessionMessageIndex, setAiSessionMessageIndex] = useState(0);
-    const [lastSpokenMessage, setLastSpokenMessage] = useState("");
+    const [, setAiPrescription] = useState(null);
+    const [, setAiSessionMessageIndex] = useState(0);
+    const [lastSpokenMessage, setLastSpokenMessage] = useState(""); // debug overlay용
     const [chatHistory, setChatHistory] = useState([]); // 대화 내역 저장
     const [currentAIChat, setCurrentAIChat] = useState(null); // No static content
     const [manualInput, setManualInput] = useState(""); // User manual input
-    const [memberName, setMemberName] = useState(() => {
+    const [memberName] = useState(() => {
         try {
             const stored = localStorage.getItem('member');
             if (stored) {
@@ -194,7 +195,7 @@ const MeditationPage = ({ onClose }) => {
 
     // 🛠️ DEBUG MODE STATES (User Request)
     const [isDebugMode, setIsDebugMode] = useState(false); // ✅ Default to false (User: Record internally only)
-    const [debugClickCount, setDebugClickCount] = useState(0);
+    const [, setDebugClickCount] = useState(0);
     const [aiLatency, setAiLatency] = useState(0);
     const [ttsState, setTtsState] = useState({ isSpeaking: false, engine: 'None', volume: 0 });
 
@@ -284,10 +285,9 @@ const MeditationPage = ({ onClose }) => {
 
 
     // V3 Pose States
-    const [poseData, setPoseData] = useState(null); // 실시간 자세 데이터
-    const [isPoseLoading, setIsPoseLoading] = useState(false);
-    const [alignmentScore, setAlignmentScore] = useState(100); // 0-100 정렬 점수
-    const [poseWarnings, setPoseWarnings] = useState([]); // 자세 불균형 경고 목록
+    const [, setPoseData] = useState(null); // 실시간 자세 데이터
+    const [, setIsPoseLoading] = useState(false);
+    const [, setAlignmentScore] = useState(100); // 0-100 정렬 점수
     
     // Canvas Refs for Golden Skeleton
     const canvasRef = useRef(null);
@@ -311,6 +311,10 @@ const MeditationPage = ({ onClose }) => {
     
     // ✅ Request ID Ref for Race Condition Prevention
     const currentRequestIdRef = useRef(0);
+    
+    // ✅ FIX: Ref로 최신 값 유지 (클로저 버그 방지)
+    const messageIndexRef = useRef(0);
+    const sessionDiagnosisRef = useRef(null); // 세션 시작 시 진단 저장
 
     // Stop Session (useCallback for stability - removed stream dependency to fix V3 crash)
     const stopSession = useCallback(() => {
@@ -1095,15 +1099,19 @@ const MeditationPage = ({ onClose }) => {
     // Fetch AI session message (during meditation)
     const fetchAISessionMessage = async () => {
         try {
+            // ✅ FIX: Ref에서 최신 index 읽기 (클로저 버그 방지)
+            const currentIndex = messageIndexRef.current;
+            const currentDiagnosis = sessionDiagnosisRef.current;
+            
             const startTime = Date.now();
             const result = await generateMeditationGuidance({
                 type: 'session_message',
                 memberName: memberName, // ✅ Personalize
                 timeContext: timeContext,
-                diagnosis: selectedDiagnosis?.id,
+                diagnosis: currentDiagnosis, // ✅ FIX: ref에서 읽기
                 mode: activeMode?.id === 'breath' ? '3min' : (activeMode?.id === 'calm' ? '7min' : '15min'),
                 interactionType: interactionType,
-                messageIndex: aiSessionMessageIndex,
+                messageIndex: currentIndex, // ✅ FIX: ref에서 읽기
                 breathLevel: interactionType === 'v2' ? micVolume : null // ✅ Phase 5: 호흡 레벨 전달
             });
             setAiLatency(Date.now() - startTime);
@@ -1115,11 +1123,12 @@ const MeditationPage = ({ onClose }) => {
 
             if (result.data && result.data.message) {
                 // ✅ Personalization Safety
-                // ✅ Personalization Safety
                 const personalizedMsg = result.data.message.replace(/OO님/g, `${memberName}님`);
                 console.log("🤖 [AI Message Check] Display Text:", personalizedMsg); // ✅ User Verification Log
                 setAiMessage(personalizedMsg);
+                // ✅ FIX: state와 ref 동시 업데이트
                 setAiSessionMessageIndex(prev => prev + 1);
+                messageIndexRef.current = currentIndex + 1;
                 
                 // Play Cloud Audio ONLY
                 if (result.data.audioContent) {
@@ -1128,11 +1137,14 @@ const MeditationPage = ({ onClose }) => {
             }
         } catch (error) {
             console.error('AI Session message failed:', error);
+            // ✅ FIX: Ref에서 최신 index 읽기
+            const currentIndex = messageIndexRef.current;
             // Fallback to static messages
             const messages = AI_SESSION_MESSAGES[interactionType] || AI_SESSION_MESSAGES['v1'];
-            const msg = messages[aiSessionMessageIndex % messages.length];
+            const msg = messages[currentIndex % messages.length];
             setAiMessage(msg);
             setAiSessionMessageIndex(prev => prev + 1);
+            messageIndexRef.current = currentIndex + 1;
             // No Audio Fallback
         }
     };
@@ -1261,6 +1273,16 @@ const MeditationPage = ({ onClose }) => {
     const startSession = async (mode) => {
         setStep('session');
         setPermissionError(null);
+        
+        // ✅ FIX: 세션 시작 시 진단 정보와 인덱스를 ref에 저장
+        sessionDiagnosisRef.current = selectedDiagnosis?.id || null;
+        messageIndexRef.current = 0;
+        setAiSessionMessageIndex(0);
+        
+        // ✅ 볼륨 조절 힌트 토스트 표시 (첫 세션)
+        setShowVolumeHint(true);
+        setTimeout(() => setShowVolumeHint(false), 5000);
+        
         const audioCtx = getAudioContext();
 
         // 🔊 Always ensure AudioContext is ACTIVE
@@ -1511,7 +1533,7 @@ const MeditationPage = ({ onClose }) => {
         (async () => {
             try {
                 // Determine duration logic for context
-                const duration = activeMode?.time || 300;
+                // const duration = activeMode?.time || 300;
                 
                 const startTime = Date.now();
                 const fbResult = await generateMeditationGuidance({
@@ -2772,15 +2794,18 @@ const MeditationPage = ({ onClose }) => {
                     {isPlaying ? <Pause size={32} weight="fill" /> : <Play size={32} weight="fill" />}
                 </button>
 
-                <button onClick={() => setShowVolumePanel(!showVolumePanel)} style={{
-                    width: '60px', height: '60px', borderRadius: '50%',
-                    background: showVolumePanel ? 'rgba(212,175,55,0.3)' : 'rgba(255,255,255,0.1)', border: 'none', 
-                    color: soundEnabled ? 'white' : 'rgba(255,255,255,0.3)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                }}>
-                    {soundEnabled ? <SpeakerHigh size={28} /> : <SpeakerSlash size={28} />}
-                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                    <button onClick={() => setShowVolumePanel(!showVolumePanel)} style={{
+                        width: '60px', height: '60px', borderRadius: '50%',
+                        background: showVolumePanel ? 'rgba(212,175,55,0.3)' : 'rgba(255,255,255,0.1)', border: 'none', 
+                        color: soundEnabled ? 'white' : 'rgba(255,255,255,0.3)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                        transition: 'all 0.3s ease'
+                    }}>
+                        {soundEnabled ? <SpeakerHigh size={28} /> : <SpeakerSlash size={28} />}
+                    </button>
+                    <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', fontWeight: '600' }}>볼륨</span>
+                </div>
 
                 {/* TTC Toggle Button */}
                 <div style={{ 
@@ -2809,7 +2834,7 @@ const MeditationPage = ({ onClose }) => {
                     }}>
                         <SpeakerHigh size={26} weight={ttcEnabled ? "fill" : "regular"} />
                     </button>
-                    <span style={{ fontSize: '0.7rem', color: ttcEnabled ? 'var(--primary-gold)' : 'rgba(255,255,255,0.4)', fontWeight: 'bold', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>TTC {ttcEnabled ? 'ON' : 'OFF'}</span>
+                    <span style={{ fontSize: '0.65rem', color: ttcEnabled ? 'var(--primary-gold)' : 'rgba(255,255,255,0.4)', fontWeight: '600', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>음성 안내</span>
                 </div>
             </div>
 
@@ -2892,6 +2917,20 @@ const MeditationPage = ({ onClose }) => {
                         border: '1px solid rgba(255,255,255,0.1)', color: soundEnabled ? 'rgba(255,255,255,0.7)' : '#ff6b6b',
                         fontSize: '0.8rem', cursor: 'pointer', fontWeight: 600
                     }}>{soundEnabled ? '🔇 전체 음소거' : '🔊 소리 켜기'}</button>
+                </div>
+            )}
+
+            {/* 🔊 볼륨 조절 힌트 토스트 */}
+            {showVolumeHint && !showVolumePanel && (
+                <div style={{
+                    position: 'absolute', bottom: '190px', left: '50%', transform: 'translateX(-50%)',
+                    background: 'rgba(212,175,55,0.2)', backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(212,175,55,0.3)', borderRadius: '20px',
+                    padding: '8px 16px', color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem',
+                    whiteSpace: 'nowrap', animation: 'fadeIn 0.5s ease-out',
+                    pointerEvents: 'none'
+                }}>
+                    🔊 스피커 아이콘을 눌러 볼륨을 조절하세요
                 </div>
             )}
 

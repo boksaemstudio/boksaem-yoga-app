@@ -69,8 +69,11 @@ const RequireAuth = ({ children }) => {
 
 function App() {
   useEffect(() => {
-    // Initialize storage service with real-time listeners for Admin/Mobile apps
-    storageService.initialize({ mode: 'full' });
+    // [PERF] 출석체크 키오스크(/) 경로에서는 full 모드 초기화 건너뜀
+    // CheckInPage가 자체적으로 kiosk 모드로 초기화 (리스너 없이 캐시만)
+    if (window.location.pathname !== '/') {
+      storageService.initialize({ mode: 'full' });
+    }
   }, []);
 
   return (

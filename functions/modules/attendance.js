@@ -61,7 +61,8 @@ const generateEventMessage = (eventType, context) => {
  * 회원 출석 처리
  */
 exports.checkInMemberV2Call = onCall({ 
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
+    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173'],
+    minInstances: 0  // [PERF] 테스트 중 비용 방지 (프로덕션: 1로 변경하면 Cold Start 방지)
 }, async (request) => {
     const { memberId, branchId, classTitle, instructor } = request.data;
     const db = admin.firestore();
@@ -152,7 +153,7 @@ exports.checkInMemberV2Call = onCall({
             // Calculate streak
             const recentAttendance = await db.collection('attendance')
                 .where('memberId', '==', memberId)
-                .where('status', '!=', 'denied') // Exclude denied logs from streak
+                .where('status', '==', 'valid') // [FIX] Use equality to avoid orderBy constraints
                 .orderBy('timestamp', 'desc')
                 .limit(30)
                 .get();
