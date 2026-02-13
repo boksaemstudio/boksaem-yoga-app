@@ -103,8 +103,15 @@ exports.checkInMemberV2Call = onCall({
             }
         }
 
+        // [FIX] Defensive check for NaN/Infinity
+        if (!Number.isFinite(currentCredits)) {
+             console.warn(`[Attendance] Invalid credits for ${memberId}: ${currentCredits}. Resetting to 0.`);
+             // We don't overwrite the DB here to preserve evidence, but treat as 0 for logic
+        }
+        const safeCredits = Number.isFinite(currentCredits) ? currentCredits : 0;
+
         // 2. Check Credits (Only if not already denied by expiration)
-        if (attendanceStatus === 'valid' && currentCredits <= 0) {
+        if (attendanceStatus === 'valid' && safeCredits <= 0) {
             attendanceStatus = 'denied';
             denialReason = 'no_credits';
         }
@@ -150,7 +157,7 @@ exports.checkInMemberV2Call = onCall({
         }
 
         // [NEW] Include credits and expiry for instructor view
-        attendanceData.credits = attendanceStatus === 'valid' ? currentCredits - 1 : currentCredits;
+        attendanceData.credits = attendanceStatus === 'valid' ? safeCredits - 1 : safeCredits;
         attendanceData.endDate = memberData.endDate;
         attendanceData.cumulativeCount = attendanceStatus === 'valid' ? currentCount + 1 : currentCount;
 
@@ -164,12 +171,13 @@ exports.checkInMemberV2Call = onCall({
         let endDate = memberData.endDate;
 
         if (attendanceStatus === 'valid') {
-            newCredits = currentCredits - 1;
+            newCredits = safeCredits - 1;
             newCount = currentCount + 1;
             
             // [PERF] streak 계산에 이미 가져온 recentAttendanceSnap 재사용
             const records = recentAttendanceSnap.docs.map(d => d.data()).filter(r => r.status === 'valid');
             streak = calculateStreak(records, today);
+            if (!Number.isFinite(streak)) streak = 1; // [FIX] Prevent Infinity
 
             // Handle TBD dates or missing end date (auto-activate on first attendance)
             if (startDate === 'TBD' || !startDate || !memberData.endDate) {

@@ -725,10 +725,18 @@ const CheckInPage = () => {
             displayMsg = date ? `회원권 만료일(${date})이 지났습니다.` : "회원권이 만료되었습니다.";
         } else if (lowerErr.includes("not-found")) {
             displayMsg = "회원 정보를 찾을 수 없습니다.";
+        } else if (lowerErr.includes("infinity")) { // [FIX] Handle 'Infinity' error specifically
+            displayMsg = "데이터 오류가 발생했습니다. (Infinity)";
+            console.error("[CheckIn] Critical Data Error: Infinity detected");
         } else if (lowerErr.includes("거부")) {
              displayMsg = `⛔ ${errorStr}`; // Special icon for denial
         } else {
-            displayMsg += ` (${errorStr})`;
+            // [FIX] Prevent showing "Infinity" in raw error messages
+            if (errorStr.includes("Infinity")) {
+                 displayMsg = "데이터 오류가 발생했습니다. (Infinity)";
+            } else {
+                 displayMsg += ` (${errorStr})`;
+            }
         }
 
         setMessage({ type: 'error', text: displayMsg });
@@ -782,18 +790,19 @@ const CheckInPage = () => {
             today.setHours(0, 0, 0, 0);
             endDate.setHours(0, 0, 0, 0);
             daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+            if (!Number.isFinite(daysLeft)) daysLeft = 999; // [FIX] Prevent Infinity
         }
 
         let finalMsg = "오늘의 수련이 시작됩니다.";
 
         // Priority Logic matches context
-        if (streak >= 10) {
+        if (streak >= 10 && Number.isFinite(streak)) { // [FIX] Check finite
             finalMsg = `${streak}일 연속 수련 중입니다. 놀라운 꾸준함입니다!`;
-        } else if (streak >= 3) {
+        } else if (streak >= 3 && Number.isFinite(streak)) { // [FIX] Check finite
             finalMsg = `${streak}일째 수련을 이어가고 계시네요. 좋은 흐름입니다.`;
         } else if (daysLeft <= 7 && daysLeft >= 0) {
             finalMsg = `회원권 만료가 ${daysLeft}일 남았습니다.`;
-        } else if (credits <= 3 && credits > 0) {
+        } else if (credits <= 3 && credits > 0 && Number.isFinite(credits)) { // [FIX] Check finite
             finalMsg = `잔여 횟수가 ${credits}회 남았습니다.`;
         } else if (attCount >= 100) {
             finalMsg = `${attCount}번째 수련입니다. 항상 함께해 주셔서 감사합니다.`;
