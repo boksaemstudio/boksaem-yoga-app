@@ -195,6 +195,8 @@ const CheckInPage = () => {
     const [weather, setWeather] = useState(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [aiExperience, setAiExperience] = useState(null);
+    const [aiEnhancedMsg, setAiEnhancedMsg] = useState(null); // [AI] 백그라운드 AI 보강 메시지 (기존에 추가)
+    const [aiLoading, setAiLoading] = useState(false); // [AI] AI 통신 중 애니메이션 표시
     const [showKioskInstallGuide, setShowKioskInstallGuide] = useState(false);
     const [showInstallGuide, setShowInstallGuide] = useState(false);
     const [showInstructorQR, setShowInstructorQR] = useState(false);
@@ -443,7 +445,6 @@ const CheckInPage = () => {
                 let staticMsg = "";
 
                 // 1. Weather Context (Priority 1)
-                // Codes: 0-3(Clear/Cloudy), 51-67/80-82(Rain), 71-77/85-86(Snow)
                 const wCode = parseInt(weatherCode);
                 const isRainy = wCode >= 51 && wCode <= 67 || wCode >= 80 && wCode <= 82;
                 const isSnowy = wCode >= 71 && wCode <= 77 || wCode >= 85 && wCode <= 86;
@@ -467,7 +468,7 @@ const CheckInPage = () => {
                     staticMsg = snowMsgs[Math.floor(Math.random() * snowMsgs.length)];
                 }
 
-                // 2. Class Context (Priority 2 - if no weather msg selected)
+                // 2. Class Context (Priority 2)
                 if (!staticMsg && classTitle && classTitle !== "자율수련" && Math.random() > 0.5) {
                     if (classTitle.includes("플라잉")) {
                         const flyingMsgs = [
@@ -496,10 +497,10 @@ const CheckInPage = () => {
                     }
                 }
 
-                // 3. Time Context (Priority 3 - Default Large Pool)
+                // 3. Time Context (Priority 3)
                 if (!staticMsg) {
                     let timeMsgs = [];
-                    if (hour >= 6 && hour < 11) { // Morning
+                    if (hour >= 6 && hour < 11) {
                         timeMsgs = [
                             "상쾌한 아침, 건강한 에너지를 깨우세요.",
                             "새로운 하루, 매트 위에서 시작하는 다짐.",
@@ -508,7 +509,7 @@ const CheckInPage = () => {
                             "맑은 정신으로 맞이하는 아침 수련.",
                             "가장 먼저 나를 만나는 이 시간이 소중합니다."
                         ];
-                    } else if (hour >= 11 && hour < 14) { // Lunch
+                    } else if (hour >= 11 && hour < 14) {
                         timeMsgs = [
                             "오후를 위한 활력, 잠시 쉬어가세요.",
                             "나른함을 깨우고 몸에 생기를 불어넣습니다.",
@@ -516,7 +517,7 @@ const CheckInPage = () => {
                             "점심 시간, 짧지만 깊은 충전의 시간입니다.",
                             "몸을 가볍게 비우고 마음을 채우세요."
                         ];
-                    } else if (hour >= 14 && hour < 18) { // Afternoon
+                    } else if (hour >= 14 && hour < 18) {
                         timeMsgs = [
                             "오후의 햇살처럼 따뜻한 에너지를 만드세요.",
                             "지친 오후, 굳은 어깨와 마음을 활짝 펴세요.",
@@ -524,7 +525,7 @@ const CheckInPage = () => {
                             "지금 이 순간, 오롯이 나에게 집중합니다.",
                             "긴장을 풀고 호흡 깊이 들이마시세요."
                         ];
-                    } else if (hour >= 18 && hour < 21) { // Evening
+                    } else if (hour >= 18 && hour < 21) {
                         timeMsgs = [
                             "오늘 하루의 무게를 매트에 내려놓으세요.",
                             "수고한 당신, 이제 온전히 쉴 시간입니다.",
@@ -533,7 +534,7 @@ const CheckInPage = () => {
                             "고요한 저녁, 나를 다독이는 따뜻한 수련.",
                             "오늘도 잘 견뎌낸 나에게 감사를 전합니다."
                         ];
-                    } else { // Night (21+)
+                    } else {
                         timeMsgs = [
                             "깊은 밤, 달빛처럼 은은한 평화를 찾으세요.",
                             "하루의 끝, 내일의 나를 위한 재충전.",
@@ -545,13 +546,39 @@ const CheckInPage = () => {
                     staticMsg = timeMsgs[Math.floor(Math.random() * timeMsgs.length)];
                 }
 
+                // [INSTANT] 정적 메시지 즉시 표시 (속도 우선)
                 setAiExperience({
                     message: staticMsg,
                     bgTheme: (hour >= 6 && hour < 18) ? "day" : "night",
                     colorTone: "#FDFCF0",
                     isFallback: true
                 });
-                return; // Stop here, no API call
+
+                // [AI ENHANCEMENT] 백그라운드에서 AI 메시지 추가 로드
+                setAiLoading(true);
+                storageService.getAIExperience(
+                    memberName, 0, day, hour, classTitle,
+                    currentWeatherData || weather,
+                    null, null, language, null, 'visitor', 'checkin'
+                ).then(aiResult => {
+                    if (aiResult && aiResult.message && !aiResult.isFallback) {
+                        let cleanMsg = aiResult.message
+                            .replace(/나마스테[.]?\s*🙏?/gi, '')
+                            .replace(/^.*님,\s*/, '')
+                            .trim();
+                        if (cleanMsg && cleanMsg !== staticMsg) {
+                            setAiEnhancedMsg(cleanMsg);
+                        }
+                        // 캐시 저장
+                        const cacheKey = `ai_standby_${currentBranch}_${hour}_${day}_${classTitle}_${weatherCode}`;
+                        localStorage.setItem('ai_standby_cache', JSON.stringify({ key: cacheKey, data: aiResult }));
+                    }
+                }).catch(err => {
+                    console.warn('[AI Standby] Background AI failed:', err);
+                }).finally(() => {
+                    setAiLoading(false);
+                });
+                return; // 대기화면은 여기서 종료 (아래 멤버 전용 AI는 별도)
             }
 
             const exp = await storageService.getAIExperience(
@@ -820,6 +847,10 @@ const CheckInPage = () => {
             finalMsg = fallbacks[Math.floor(Math.random() * fallbacks.length)];
         }
 
+        // [AI ENHANCEMENT] 규칙 기반 즉시 표시 + AI 백그라운드 보강
+        setAiEnhancedMsg(null); // 초기화
+        setAiLoading(true); // AI 로딩 시작
+
         setMessage({
             type: 'success',
             member: result.member,
@@ -846,7 +877,6 @@ const CheckInPage = () => {
                             <div style={{ fontSize: '1.2rem', opacity: 0.6, marginBottom: '8px' }}>잔여 일수</div>
                             <div style={{ fontSize: '3rem', fontWeight: 800, color: '#4CAF50' }}>
                                 {(() => {
-                                    // [FIX] More robust date handling for "Start on First Attendance" or "Unlimited"
                                     if (!result.member.endDate || result.member.endDate === 'TBD') {
                                         return <span style={{ fontSize: '2rem' }}>확정 전</span>;
                                     }
@@ -862,7 +892,6 @@ const CheckInPage = () => {
                         </div>
                         <div style={{ width: '1px', background: 'rgba(255,255,255,0.1)' }} />
 
-                        {/* Simplified Log for Tablet: Streak or Total only */}
                         <div style={{ textAlign: 'center' }}>
                             <div style={{ fontSize: '1.2rem', opacity: 0.6, marginBottom: '8px' }}>연속 수련</div>
                             <div style={{ fontSize: '3rem', fontWeight: 800, color: '#FF6B6B', display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -874,7 +903,31 @@ const CheckInPage = () => {
             )
         });
         setPin('');
-        startDismissTimer(5000); // [ADJUSTED] 5s as requested
+        startDismissTimer(7000); // [EXTENDED] AI 메시지 볼 시간 확보 (5s → 7s)
+
+        // [AI] 백그라운드 AI 개인화 메시지 요청
+        const now2 = new Date();
+        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+        storageService.getAIExperience(
+            member.name, attCount, dayNames[now2.getDay()], now2.getHours(),
+            null, weather, credits, daysLeft, language,
+            { streak, lastAttendanceAt: null },
+            'member', 'checkin'
+        ).then(aiResult => {
+            if (aiResult && aiResult.message && !aiResult.isFallback) {
+                let cleanMsg = aiResult.message
+                    .replace(/나마스테[.]?\s*🙏?/gi, '')
+                    .replace(/^.*님,\s*/, '')
+                    .trim();
+                if (cleanMsg) {
+                    setAiEnhancedMsg(cleanMsg);
+                }
+            }
+        }).catch(err => {
+            console.warn('[AI CheckIn] Background AI failed:', err);
+        }).finally(() => {
+            setAiLoading(false);
+        });
     };
 
     const startDismissTimer = (duration = 5000) => {
@@ -889,6 +942,8 @@ const CheckInPage = () => {
     const handleModalClose = (closeAction) => {
         setKeypadLocked(true);
         closeAction();
+        setAiEnhancedMsg(null); // [AI] 보강 메시지 초기화
+        setAiLoading(false); // [AI] 로딩 상태 초기화
         // Buffer time to ignore any lingering touch/click events (ghost touches)
         setTimeout(() => {
             setKeypadLocked(false);
@@ -1026,6 +1081,77 @@ const CheckInPage = () => {
                                             }}>
                                                 {aiExperience.message}
                                             </span>
+                                            {/* [AI] AI 보강 메시지 - 기존 메시지 아래 추가 */}
+                                            {aiEnhancedMsg && !loading && (
+                                                <div style={{
+                                                    marginTop: '8px',
+                                                    padding: '12px 16px',
+                                                    background: 'linear-gradient(135deg, rgba(212,175,55,0.12), rgba(212,175,55,0.04))',
+                                                    border: '1px solid rgba(212,175,55,0.25)',
+                                                    borderRadius: '16px',
+                                                    animation: 'slideUp 0.6s ease-out',
+                                                    display: 'flex',
+                                                    alignItems: 'flex-start',
+                                                    gap: '10px'
+                                                }}>
+                                                    <span style={{ fontSize: '1.2rem', flexShrink: 0, marginTop: '2px' }}>✨</span>
+                                                    <span style={{
+                                                        fontSize: 'clamp(1rem, 2.5vh, 1.4rem)',
+                                                        color: 'rgba(255,255,255,0.9)',
+                                                        lineHeight: 1.5,
+                                                        fontWeight: 500,
+                                                        wordBreak: 'keep-all',
+                                                        fontStyle: 'italic'
+                                                    }}>
+                                                        {aiEnhancedMsg}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {/* [AI] AI 로딩 인디케이터 - 반드시 애니메이션 */}
+                                            {aiLoading && !loading && (
+                                                <div style={{
+                                                    marginTop: '12px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '10px',
+                                                    padding: '10px 16px',
+                                                    borderRadius: '20px',
+                                                    background: 'rgba(212,175,55,0.08)',
+                                                    border: '1px solid rgba(212,175,55,0.15)',
+                                                    animation: 'fadeIn 0.5s ease-out'
+                                                }}>
+                                                    <div className="ai-thinking-icon" style={{
+                                                        width: '24px', height: '24px',
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                                    }}>
+                                                        <svg width="20" height="20" viewBox="0 0 256 256" fill="var(--primary-gold)">
+                                                            <path d="M200,48H136V16a8,8,0,0,0-16,0V48H56A32,32,0,0,0,24,80v96a32,32,0,0,0,32,32h80v32a8,8,0,0,0,16,0V208h48a32,32,0,0,0,32-32V80A32,32,0,0,0,200,48ZM172,168H84a12,12,0,0,1,0-24h88a12,12,0,0,1,0,24Zm0-48H84a12,12,0,0,1,0-24h88a12,12,0,0,1,0,24Z"/>
+                                                        </svg>
+                                                    </div>
+                                                    <span style={{
+                                                        color: 'rgba(212,175,55,0.85)',
+                                                        fontSize: '0.95rem',
+                                                        fontWeight: 500,
+                                                        animation: 'pulse 1.5s ease-in-out infinite'
+                                                    }}>
+                                                        AI가 오늘의 메시지를 준비하고 있어요
+                                                    </span>
+                                                    <div style={{
+                                                        display: 'flex', gap: '4px'
+                                                    }}>
+                                                        {[0, 1, 2].map(i => (
+                                                            <div key={i} style={{
+                                                                width: '6px', height: '6px',
+                                                                borderRadius: '50%',
+                                                                background: 'var(--primary-gold)',
+                                                                opacity: 0.7,
+                                                                animation: `pulse 1.4s ease-in-out ${i * 0.2}s infinite`
+                                                            }} />
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                             {loading && (
                                                 <div className="mini-loader" style={{
                                                     fontSize: '1.1rem',
@@ -1038,7 +1164,14 @@ const CheckInPage = () => {
                                             )}
                                         </div>
                                     ) : (
-                                        <div style={{ opacity: 0.5 }}>요가 수련의 에너지를 연결하고 있습니다...</div>
+                                        <div style={{ opacity: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                                            <div className="ai-thinking-icon" style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <svg width="20" height="20" viewBox="0 0 256 256" fill="var(--primary-gold)">
+                                                    <path d="M200,48H136V16a8,8,0,0,0-16,0V48H56A32,32,0,0,0,24,80v96a32,32,0,0,0,32,32h80v32a8,8,0,0,0,16,0V208h48a32,32,0,0,0,32-32V80A32,32,0,0,0,200,48ZM172,168H84a12,12,0,0,1,0-24h88a12,12,0,0,1,0,24Zm0-48H84a12,12,0,0,1,0-24h88a12,12,0,0,1,0,24Z"/>
+                                                </svg>
+                                            </div>
+                                            <span style={{ animation: 'pulse 1.5s ease-in-out infinite' }}>요가 수련의 에너지를 연결하고 있습니다...</span>
+                                        </div>
                                     )}
                                 </div>
                             )}
@@ -1256,6 +1389,75 @@ const CheckInPage = () => {
                             <div className="message-content">
                                 <div className="message-text" style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '15px' }}>{message.text}</div>
                                 {message.subText && <div className="message-subtext" style={{ fontSize: '1.5rem', opacity: 1, marginBottom: '20px', whiteSpace: 'pre-wrap', lineHeight: '1.3' }}>{message.subText}</div>}
+                                {/* [AI] 체크인 성공 AI 보강 메시지 */}
+                                {message.type === 'success' && aiEnhancedMsg && (
+                                    <div style={{
+                                        margin: '0 20px 15px',
+                                        padding: '14px 18px',
+                                        background: 'linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.05))',
+                                        border: '1px solid rgba(212,175,55,0.3)',
+                                        borderRadius: '16px',
+                                        animation: 'slideUp 0.6s ease-out',
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        gap: '10px'
+                                    }}>
+                                        <span style={{ fontSize: '1.3rem', flexShrink: 0, marginTop: '2px' }}>✨</span>
+                                        <span style={{
+                                            fontSize: '1.15rem',
+                                            color: 'rgba(255,255,255,0.95)',
+                                            lineHeight: 1.5,
+                                            fontWeight: 500,
+                                            wordBreak: 'keep-all',
+                                            fontStyle: 'italic'
+                                        }}>
+                                            {aiEnhancedMsg}
+                                        </span>
+                                    </div>
+                                )}
+                                {/* [AI] 체크인 성공 AI 로딩 인디케이터 */}
+                                {message.type === 'success' && aiLoading && (
+                                    <div style={{
+                                        margin: '0 20px 15px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        padding: '10px 16px',
+                                        borderRadius: '20px',
+                                        background: 'rgba(212,175,55,0.08)',
+                                        border: '1px solid rgba(212,175,55,0.15)',
+                                        animation: 'fadeIn 0.5s ease-out'
+                                    }}>
+                                        <div className="ai-thinking-icon" style={{
+                                            width: '20px', height: '20px',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                        }}>
+                                            <svg width="16" height="16" viewBox="0 0 256 256" fill="var(--primary-gold)">
+                                                <path d="M200,48H136V16a8,8,0,0,0-16,0V48H56A32,32,0,0,0,24,80v96a32,32,0,0,0,32,32h80v32a8,8,0,0,0,16,0V208h48a32,32,0,0,0,32-32V80A32,32,0,0,0,200,48ZM172,168H84a12,12,0,0,1,0-24h88a12,12,0,0,1,0,24Zm0-48H84a12,12,0,0,1,0-24h88a12,12,0,0,1,0,24Z"/>
+                                            </svg>
+                                        </div>
+                                        <span style={{
+                                            color: 'rgba(212,175,55,0.85)',
+                                            fontSize: '0.85rem',
+                                            fontWeight: 500,
+                                            animation: 'pulse 1.5s ease-in-out infinite'
+                                        }}>
+                                            마음을 담은 메시지를 준비 중...
+                                        </span>
+                                        <div style={{ display: 'flex', gap: '3px' }}>
+                                            {[0, 1, 2].map(i => (
+                                                <div key={i} style={{
+                                                    width: '5px', height: '5px',
+                                                    borderRadius: '50%',
+                                                    background: 'var(--primary-gold)',
+                                                    opacity: 0.7,
+                                                    animation: `pulse 1.4s ease-in-out ${i * 0.2}s infinite`
+                                                }} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                                 {message.details}
                             </div>
                             <p className="message-dismiss-text" style={{ fontSize: '1.2rem', opacity: 0.7 }}>화면을 터치하면 바로 닫힙니다</p>

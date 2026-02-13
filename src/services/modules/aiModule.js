@@ -40,11 +40,29 @@ export const getAIExperience = async (memberName, attendanceCount, day, hour, up
         return res.data;
     } catch (error) {
         console.warn("AI Experience failed, using fallback:", error);
+        
+        // [FIX] Randomized Fallback for Instructors
+        if (context === 'instructor' || memberName?.includes('선생님')) {
+            const instructorQuotes = [
+                "매트 위에서 나를 만나는 소중한 시간입니다.",
+                "오늘도 회원들에게 따뜻한 에너지를 전해주세요.",
+                "선생님의 미소가 스튜디오를 밝힙니다.",
+                "호흡을 통해 마음의 평온을 찾으세요.",
+                "오늘 하루도 건강하고 행복하게!",
+                "수련의 깊이가 더해지는 하루가 되길 바랍니다.",
+                "나눔의 기쁨을 실천하는 멋진 선생님.",
+                "잠시 멈추어 내면의 소리에 귀 기울여보세요.",
+                "오늘도 즐거운 수련 되세요!"
+            ];
+            const randomQuote = instructorQuotes[Math.floor(Math.random() * instructorQuotes.length)];
+            return { message: randomQuote, bgTheme: "sunny", colorTone: "#FFFFFF", isFallback: true };
+        }
+
         const fallbacks = {
             ko: "오늘도 매트 위에서 나를 만나는 소중한 시간 되시길 바랍니다.",
             en: "May you find a precious moment to meet yourself on the mat today.",
             ru: "Желаю вам найти драгоценный момент для встречи с собой на коврике сегодня.",
-            zh: "愿你今天在垫子上找到与自己相遇的珍贵时刻。",
+            zh: "愿你今天在垫子上找到与自己相遇的珍贵时刻.",
             ja: "今日もマットの上で自分自身と向き合う大切な時間となりますように。"
         };
         return { message: fallbacks[language] || fallbacks['ko'], bgTheme: "sunny", colorTone: "#FFFFFF", isFallback: true };

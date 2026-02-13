@@ -2804,38 +2804,10 @@ const MeditationPage = ({ onClose }) => {
                     }}>
                         {soundEnabled ? <SpeakerHigh size={28} /> : <SpeakerSlash size={28} />}
                     </button>
-                    <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', fontWeight: '600' }}>볼륨</span>
+                    <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', fontWeight: '600' }}>소리 조절</span>
                 </div>
 
-                {/* TTC Toggle Button */}
-                <div style={{ 
-                    position: 'absolute', right: '0', bottom: '100px', 
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px'
-                }}>
-                    <button onClick={() => {
-                        const next = !ttcEnabled;
-                        setTtcEnabled(next);
-                        if (next && window.speechSynthesis) {
-                            window.speechSynthesis.cancel();
-                            const utterance = new SpeechSynthesisUtterance("음성 안내를 시작합니다.");
-                            utterance.lang = 'ko-KR';
-                            utterance.volume = 0.3;
-                            window.speechSynthesis.speak(utterance);
-                            if (isPlaying) fetchAISessionMessage();
-                        } else if (!next && window.speechSynthesis) {
-                            window.speechSynthesis.cancel();
-                        }
-                    }} style={{
-                        width: '50px', height: '50px', borderRadius: '15px',
-                        background: ttcEnabled ? 'var(--primary-gold)' : 'rgba(255,255,255,0.15)', border: 'none', 
-                        color: ttcEnabled ? '#000' : 'white',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                        transition: 'all 0.3s ease', boxShadow: ttcEnabled ? '0 0 20px rgba(212,175,55,0.4)' : 'none'
-                    }}>
-                        <SpeakerHigh size={26} weight={ttcEnabled ? "fill" : "regular"} />
-                    </button>
-                    <span style={{ fontSize: '0.65rem', color: ttcEnabled ? 'var(--primary-gold)' : 'rgba(255,255,255,0.4)', fontWeight: '600', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>음성 안내</span>
-                </div>
+
             </div>
 
             {/* ✅ Phase 3: Volume Control Panel */}

@@ -315,6 +315,11 @@ const InstructorSchedule = ({ instructorName }) => {
                 <button onClick={() => setCurrentDate(new Date(year, month, 1))} style={navBtnStyle}>▶</button>
             </div>
 
+            {/* 🗓️ Guide Text */}
+            <div style={{ textAlign: 'center', marginBottom: '16px', fontSize: '0.85rem', color: 'var(--text-secondary)', animation: 'fadeIn 1s ease' }}>
+                👇 날짜를 터치하면 상세 시간표를 확인할 수 있어요
+            </div>
+
             {/* Branch Legend */}
             <div style={{ 
                 marginBottom: '20px', 
@@ -788,6 +793,8 @@ const InstructorPage = () => {
 
     // AI Greeting State (Global)
     const [aiGreeting, setAiGreeting] = useState('');
+    const [aiGreetingLoading, setAiGreetingLoading] = useState(false); // [AI] 로딩 애니메이션
+    const [aiEnhancedGreeting, setAiEnhancedGreeting] = useState(null); // [AI] AI 보강 메시지
     
     // Attendance State (Global)
     const [attendance, setAttendance] = useState([]);
@@ -913,16 +920,12 @@ const InstructorPage = () => {
             setAiGreeting(getDefaultGreeting(instructorName, hour, dayOfWeek));
         }
 
-        // 2. Fetch fresh AI message in background (only if we have meaningful attendance data or no cache)
+        // 2. Fetch fresh AI message in background
         const fetchAI = async () => {
-            if (attendanceLoading) return; // Wait for attendance count
+            if (attendanceLoading) return;
             
+            setAiGreetingLoading(true); // [AI] 로딩 시작
             try {
-                // If we have cache and it's fresh enough (e.g. same session), maybe skip?
-                // For now, always re-fetch to be fresh with attendance count changes.
-                // But to avoid flickering, only update if different? 
-                // Let's just fetch and update logic.
-                
                 const result = await storageService.getAIExperience(
                     instructorName,
                     attendance.length,
@@ -935,10 +938,17 @@ const InstructorPage = () => {
                     ? result 
                     : (result?.message || getDefaultGreeting(instructorName, hour, dayOfWeek, attendance.length));
                 
-                setAiGreeting(greetingText);
+                // [AI] AI 메시지가 기존과 다르면 보강 메시지로 추가 표시
+                if (greetingText && greetingText !== aiGreeting && !result?.isFallback) {
+                    setAiEnhancedGreeting(greetingText);
+                } else {
+                    setAiGreeting(greetingText);
+                }
                 localStorage.setItem(cacheKey, greetingText);
             } catch (e) {
                 console.error('AI greeting background fetch failed:', e);
+            } finally {
+                setAiGreetingLoading(false); // [AI] 로딩 종료
             }
         };
 
@@ -997,6 +1007,68 @@ const InstructorPage = () => {
                 <p style={{ margin: 0, fontSize: '1rem', lineHeight: 1.5, color: 'var(--text-primary)', textAlign: 'center', fontStyle: 'italic' }}>
                     &quot;{aiGreeting}&quot;
                 </p>
+                {/* [AI] 보강 메시지 - 기존 인사말 아래 추가 */}
+                {aiEnhancedGreeting && (
+                    <div style={{
+                        marginTop: '10px',
+                        padding: '10px 14px',
+                        background: 'rgba(212,175,55,0.08)',
+                        border: '1px solid rgba(212,175,55,0.2)',
+                        borderRadius: '12px',
+                        animation: 'slideUp 0.6s ease-out',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '8px'
+                    }}>
+                        <span style={{ fontSize: '1rem', flexShrink: 0 }}>✨</span>
+                        <span style={{
+                            fontSize: '0.9rem',
+                            color: 'rgba(255,255,255,0.85)',
+                            lineHeight: 1.5,
+                            fontWeight: 400,
+                            fontStyle: 'italic',
+                            wordBreak: 'keep-all'
+                        }}>
+                            {aiEnhancedGreeting}
+                        </span>
+                    </div>
+                )}
+                {/* [AI] 로딩 인디케이터 */}
+                {aiGreetingLoading && (
+                    <div style={{
+                        marginTop: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        animation: 'fadeIn 0.3s ease-out'
+                    }}>
+                        <div className="ai-thinking-icon" style={{ width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <svg width="14" height="14" viewBox="0 0 256 256" fill="var(--primary-gold)">
+                                <path d="M200,48H136V16a8,8,0,0,0-16,0V48H56A32,32,0,0,0,24,80v96a32,32,0,0,0,32,32h80v32a8,8,0,0,0,16,0V208h48a32,32,0,0,0,32-32V80A32,32,0,0,0,200,48ZM172,168H84a12,12,0,0,1,0-24h88a12,12,0,0,1,0,24Zm0-48H84a12,12,0,0,1,0-24h88a12,12,0,0,1,0,24Z"/>
+                            </svg>
+                        </div>
+                        <span style={{
+                            color: 'rgba(212,175,55,0.7)',
+                            fontSize: '0.8rem',
+                            fontWeight: 400,
+                            animation: 'pulse 1.5s ease-in-out infinite'
+                        }}>
+                            AI가 오늘의 인사를 준비하고 있어요
+                        </span>
+                        <div style={{ display: 'flex', gap: '3px' }}>
+                            {[0, 1, 2].map(i => (
+                                <div key={i} style={{
+                                    width: '4px', height: '4px',
+                                    borderRadius: '50%',
+                                    background: 'var(--primary-gold)',
+                                    opacity: 0.6,
+                                    animation: `pulse 1.4s ease-in-out ${i * 0.2}s infinite`
+                                }} />
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Content Area */}
