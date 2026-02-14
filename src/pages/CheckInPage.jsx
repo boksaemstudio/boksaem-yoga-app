@@ -203,6 +203,11 @@ const CheckInPage = () => {
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [keypadLocked, setKeypadLocked] = useState(false); // [FIX] Prevent ghost touches
     const [isOnline, setIsOnline] = useState(navigator.onLine); // [NETWORK] Connectivity state
+    // [DUPLICATE] 중복 입력 방지
+    const recentCheckInsRef = useRef([]); // [{pin, timestamp}, ...]
+    const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
+    const [pendingPin, setPendingPin] = useState(null);
+    const duplicateAutoCloseRef = useRef(null);
     // [FIX] Always use Korean for Check-in Page as requested
     // const { language } = useLanguage();
     const language = 'ko';
@@ -676,22 +681,11 @@ const CheckInPage = () => {
 
 
 
-    const handleSubmit = async (code) => {
-        const pinCode = code || pin;
-        if (pinCode.length !== 4 || loading) return; // Prevent double submission
-
-        // [NETWORK] Check connectivity before attempting server call
-        if (!navigator.onLine) {
-            setMessage({ type: 'error', text: '⚠️ 네트워크 연결을 확인해주세요' });
-            setPin('');
-            startDismissTimer(3000);
-            return;
-        }
-
+    // [DUPLICATE] 중복 입력 확인 후 실제 출석 처리
+    const proceedWithCheckIn = async (pinCode) => {
         console.log(`[CheckIn] Starting submission for PIN: ${pinCode}`);
         setLoading(true);
         try {
-            // [OPTIMIZED] find member first to start AI generation early
             const members = await storageService.findMembersByPhone(pinCode);
             console.log(`[CheckIn] Members found: ${members.length}`);
 
@@ -712,16 +706,15 @@ const CheckInPage = () => {
             const member = members[0];
             console.log(`[CheckIn] Single member selected: ${member.name} (${member.id})`);
 
-            // [FIX] Show result IMMEDIATELY without waiting for AI
             const result = await storageService.checkInById(member.id, currentBranch);
 
             if (result.success) {
-                // [FIX] Check for DENIED status even if success=true (Full Audit)
                 if (result.attendanceStatus === 'denied') {
                     const reason = result.denialReason === 'expired' ? '기간 만료' : '횟수 소진';
                     handleCheckInError(`출석이 거부되었습니다. (${reason})`);
                 } else {
-                    // Show success with static message (no AI)
+                    // 출석 성공 → 기록 추가
+                    recentCheckInsRef.current.push({ pin: pinCode, timestamp: Date.now() });
                     showCheckInSuccess(result, null);
                 }
             } else {
@@ -732,6 +725,60 @@ const CheckInPage = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    // [DUPLICATE] 확인 모달에서 "다시 출석" 클릭
+    const confirmDuplicateCheckIn = () => {
+        if (duplicateAutoCloseRef.current) clearTimeout(duplicateAutoCloseRef.current);
+        setShowDuplicateConfirm(false);
+        const pinToProcess = pendingPin;
+        setPendingPin(null);
+        if (pinToProcess) proceedWithCheckIn(pinToProcess);
+    };
+
+    // [DUPLICATE] 확인 모달에서 "취소" 클릭
+    const cancelDuplicateCheckIn = () => {
+        if (duplicateAutoCloseRef.current) clearTimeout(duplicateAutoCloseRef.current);
+        setShowDuplicateConfirm(false);
+        setPendingPin(null);
+        setPin('');
+        setLoading(false);
+    };
+
+    const handleSubmit = async (code) => {
+        const pinCode = code || pin;
+        if (pinCode.length !== 4 || loading) return;
+
+        // [NETWORK] Check connectivity before attempting server call
+        if (!navigator.onLine) {
+            setMessage({ type: 'error', text: '⚠️ 네트워크 연결을 확인해주세요' });
+            setPin('');
+            startDismissTimer(3000);
+            return;
+        }
+
+        // [DUPLICATE] 60초 이내 동일 PIN 입력 확인
+        const now = Date.now();
+        const DUPLICATE_WINDOW_MS = 60000; // 60초
+        // 만료된 기록 정리
+        recentCheckInsRef.current = recentCheckInsRef.current.filter(
+            entry => (now - entry.timestamp) < DUPLICATE_WINDOW_MS
+        );
+        const isDuplicate = recentCheckInsRef.current.some(entry => entry.pin === pinCode);
+
+        if (isDuplicate) {
+            console.log(`[CheckIn] Duplicate PIN detected: ${pinCode} (within ${DUPLICATE_WINDOW_MS/1000}s)`);
+            setPendingPin(pinCode);
+            setShowDuplicateConfirm(true);
+            setPin('');
+            // 5초 후 자동 취소
+            duplicateAutoCloseRef.current = setTimeout(() => {
+                cancelDuplicateCheckIn();
+            }, 5000);
+            return;
+        }
+
+        await proceedWithCheckIn(pinCode);
     };
 
     const handleCheckInError = (errorStr) => {
@@ -1487,6 +1534,98 @@ const CheckInPage = () => {
                 isOpen={showInstructorQR} 
                 onClose={() => setShowInstructorQR(false)} 
             />
+
+            {/* [DUPLICATE] 중복 입력 확인 모달 */}
+            {showDuplicateConfirm && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.7)',
+                    zIndex: 10000,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    animation: 'fadeIn 0.3s ease-out'
+                }}>
+                    <div style={{
+                        background: 'rgba(30,30,30,0.95)',
+                        backdropFilter: 'blur(20px)',
+                        border: '1px solid rgba(255,215,0,0.3)',
+                        borderRadius: '24px',
+                        padding: '40px 50px',
+                        maxWidth: '480px',
+                        width: '90%',
+                        textAlign: 'center',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+                        animation: 'slideUp 0.4s ease-out'
+                    }}>
+                        <div style={{
+                            fontSize: '3rem',
+                            marginBottom: '16px'
+                        }}>⚠️</div>
+                        <h3 style={{
+                            color: 'var(--primary-gold)',
+                            fontSize: '1.5rem',
+                            fontWeight: 700,
+                            marginBottom: '12px'
+                        }}>중복 출석 확인</h3>
+                        <p style={{
+                            color: 'rgba(255,255,255,0.8)',
+                            fontSize: '1.15rem',
+                            lineHeight: 1.6,
+                            marginBottom: '30px',
+                            wordBreak: 'keep-all'
+                        }}>
+                            같은 번호로 이미 출석했습니다.<br/>
+                            다시 출석하시겠습니까?
+                        </p>
+                        <div style={{
+                            display: 'flex',
+                            gap: '16px',
+                            justifyContent: 'center'
+                        }}>
+                            <button
+                                onClick={cancelDuplicateCheckIn}
+                                style={{
+                                    padding: '14px 36px',
+                                    borderRadius: '14px',
+                                    border: '1px solid rgba(255,255,255,0.2)',
+                                    background: 'rgba(255,255,255,0.1)',
+                                    color: 'rgba(255,255,255,0.8)',
+                                    fontSize: '1.15rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                취소
+                            </button>
+                            <button
+                                onClick={confirmDuplicateCheckIn}
+                                style={{
+                                    padding: '14px 36px',
+                                    borderRadius: '14px',
+                                    border: 'none',
+                                    background: 'linear-gradient(135deg, #d4af37, #f5d76e)',
+                                    color: '#1a1a1a',
+                                    fontSize: '1.15rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 15px rgba(212,175,55,0.3)',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                다시 출석
+                            </button>
+                        </div>
+                        <p style={{
+                            color: 'rgba(255,255,255,0.4)',
+                            fontSize: '0.85rem',
+                            marginTop: '20px'
+                        }}>5초 후 자동으로 취소됩니다</p>
+                    </div>
+                </div>
+            )}
         </div >
     );
 };
