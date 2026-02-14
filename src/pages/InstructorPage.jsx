@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { CalendarBlank, Bell, BellRinging, House, SignOut, User, Phone } from '@phosphor-icons/react';
+import SimpleImageModal from '../components/common/SimpleImageModal';
 import { storageService } from '../services/storage';
 import { getMonthlyClasses } from '../services/scheduleService';
 import { isHoliday, getHolidayName } from '../utils/holidays';
@@ -471,6 +472,7 @@ const InstructorSchedule = ({ instructorName }) => {
 const InstructorNotices = () => {
     const [notices, setNotices] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedImage, setSelectedImage] = useState(null);
 
     useEffect(() => {
         const loadNotices = async () => {
@@ -532,7 +534,7 @@ const InstructorNotices = () => {
                                                     scrollSnapAlign: 'start',
                                                     cursor: 'pointer'
                                                 }}
-                                                onClick={() => window.open(img, '_blank')}
+                                                onClick={() => setSelectedImage(img)}
                                             />
                                         ))
                                     ) : (
@@ -540,7 +542,8 @@ const InstructorNotices = () => {
                                             src={notice.image || notice.imageUrl} 
                                             alt={notice.title} 
                                             style={{ width: '100%', borderRadius: '8px', cursor: 'pointer' }}
-                                            onClick={() => window.open(notice.image || notice.imageUrl, '_blank')}
+
+                                            onClick={() => setSelectedImage(notice.image || notice.imageUrl)}
                                         />
                                     )}
                                 </div>
@@ -550,6 +553,13 @@ const InstructorNotices = () => {
                     ))}
                 </div>
             )}
+
+            {/* Image Modal for Notices */}
+            <SimpleImageModal 
+                isOpen={!!selectedImage} 
+                imageSrc={selectedImage} 
+                onClose={() => setSelectedImage(null)} 
+            />
         </div>
     );
 };
