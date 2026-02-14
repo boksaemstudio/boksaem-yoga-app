@@ -50,7 +50,7 @@ const MembersTab = ({
                         활성 회원
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
-                            <span className="tooltip-text">잔여 횟수 1회 이상이며<br />만료일이 지나지 않은 회원</span>
+                            <span className="tooltip-text">잔여 횟수 1회 이상이며(0회 제외)<br />만료일이 오늘 또는 이후인 회원</span>
                         </div>
                     </span>
                     <span className="card-value gold">{summary.activeMembers}명</span>
@@ -82,7 +82,7 @@ const MembersTab = ({
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
                             <span className="tooltip-text" style={{ width: '220px', left: '-100px' }}>
-                                잔여 1회 이하 또는 만료 전 7일 ~ 만료 후 1개월 이내 회원
+                                잔여 1회 이하 또는<br />만료 7일 전 ~ 만료 후 30일 이내
                             </span>
                         </div>
                     </span>
@@ -97,11 +97,29 @@ const MembersTab = ({
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
                             <span className="tooltip-text" style={{ width: '220px', left: '-100px' }}>
-                                14일 이상 미출석한 활성 회원 (안부 문자 대상)
+                                활성 회원 중<br />최근 출석일 14일 이상 경과
                             </span>
                         </div>
                     </span>
                     <span className="card-value" style={{ color: filterType === 'dormant' ? 'black' : '#E0E0FF' }}>{summary.dormantMembersCount || 0}명</span>
+                </div>
+                {/* [NEW] App Install Stats */}
+                <div className="dashboard-card" style={{ background: 'linear-gradient(135deg, rgba(60, 60, 80, 0.4), rgba(80, 80, 100, 0.2))', border: '1px solid rgba(100, 150, 255, 0.2)' }}>
+                    <span className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#a0c4ff' }}>
+                        앱 설치 현황
+                        <div className="tooltip-container">
+                            <Info size={14} style={{ opacity: 0.7 }} />
+                            <span className="tooltip-text" style={{ width: '220px', left: '-100px' }}>
+                                회원 앱 설치(로그인 이력) 및<br/>푸시 알림 수신 동의 현황
+                            </span>
+                        </div>
+                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span className="card-value" style={{ color: '#60a5fa' }}>{summary.installedCount}명</span>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '-2px' }}>
+                            (수신 {summary.pushEnabledCount}명)
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -121,6 +139,13 @@ const MembersTab = ({
                 <div style={{ display: 'flex', height: '10px', width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '5px', overflow: 'hidden' }}>
                     <div style={{ width: '100%', background: 'linear-gradient(90deg, var(--primary-gold-dim), var(--primary-gold))' }}></div>
                 </div>
+            </div>
+
+            {/* Legend */}
+            <div style={{ display: 'flex', gap: '15px', fontSize: '0.8rem', padding: '0 10px 10px', color: 'var(--text-tertiary)', justifyContent: 'flex-end' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-error)' }} /> 만료/소진</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b' }} /> 임박 (7일/3회↓)</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--text-tertiary)' }} /> 일반</div>
             </div>
 
             {/* Search & Bulk Actions */}
@@ -266,10 +291,20 @@ const MembersTab = ({
                                             <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
                                                 <span>{member.subject || '일반'}</span>
                                                 <span style={{ opacity: 0.3 }}>|</span>
-                                                <span style={{ color: member.credits <= 3 ? 'var(--accent-error)' : 'var(--text-primary)', fontWeight: 'bold' }}>잔여 {member.credits}회</span>
+                                                <span style={{ color: member.credits <= 0 ? 'var(--accent-error)' : (member.credits <= 3 ? '#f59e0b' : 'var(--text-primary)'), fontWeight: 'bold' }}>잔여 {member.credits}회</span>
                                                 <span style={{ opacity: 0.3 }}>|</span>
                                                 <span style={{
-                                                    color: member.endDate && new Date(member.endDate) < new Date(new Date().setDate(new Date().getDate() + 7)) ? 'var(--accent-error)' : 'var(--text-tertiary)',
+                                                    color: (() => {
+                                                        if (!member.endDate || member.endDate === 'TBD' || member.endDate === 'unlimited') return 'var(--text-tertiary)';
+                                                        const end = new Date(member.endDate);
+                                                        const today = new Date();
+                                                        today.setHours(0,0,0,0);
+                                                        const diff = (end - today) / (1000 * 60 * 60 * 24);
+                                                        
+                                                        if (diff < 0) return 'var(--accent-error)';
+                                                        if (diff <= 7) return '#f59e0b';
+                                                        return 'var(--text-tertiary)';
+                                                    })(),
                                                     fontSize: '0.85rem'
                                                 }}>
                                                     종료일: {member.endDate === 'TBD' ? '첫 출석 시 확정' : (member.endDate || '무제한')}

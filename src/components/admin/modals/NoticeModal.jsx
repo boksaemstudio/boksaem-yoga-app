@@ -10,6 +10,10 @@ const NoticeModal = ({ isOpen, onClose, onSuccess }) => {
 
     const handleCreateNotice = async () => {
         if (!newNotice.title || !newNotice.content) return;
+        if (!newNotice.image) {
+            alert('이미지를 1개 이상 첨부해주세요.');
+            return;
+        }
         if (isSubmitting) return;
 
         setIsSubmitting(true);
@@ -92,8 +96,11 @@ const NoticeModal = ({ isOpen, onClose, onSuccess }) => {
                     />
                 </div>
                 <div className="form-group">
-                    <label className="form-label">이미지 첨부 (선택)</label>
+                    <label className="form-label">이미지 첨부 <span style={{ color: '#ff6b6b', fontWeight: 700 }}>*필수</span></label>
                     <input type="file" accept="image/*" className="form-input" onChange={handleImageUpload} />
+                    {!newNotice.image && (
+                        <p style={{ margin: '6px 0 0', fontSize: '0.8rem', color: 'rgba(255,107,107,0.8)' }}>공지 등록 시 이미지를 반드시 첨부해주세요.</p>
+                    )}
                     {newNotice.image && (
                         <div style={{ marginTop: '10px', position: 'relative' }}>
                             <img src={newNotice.image} style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '8px' }} />

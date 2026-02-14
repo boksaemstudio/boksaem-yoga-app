@@ -28,7 +28,9 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         todayRegistration: 0,
         totalRevenueToday: 0,
         monthlyRevenue: 0,
-        expiringMembersCount: 0
+        expiringMembersCount: 0,
+        installedCount: 0,
+        pushEnabledCount: 0
     });
 
     // Helper: Is Member Active? (Domain Logic)
@@ -41,8 +43,9 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             return credits > 0;
         }
 
-        // If has endDate, must be future/today AND have credits >= 0
-        return m.endDate >= todayStr && credits >= 0;
+        // If has endDate, must be future/today AND have credits > 0
+        // (If credits are 0, member allows entry? usually no, unless unlimited type which has high credits)
+        return m.endDate >= todayStr && credits > 0;
     }, []);
 
     // Helper: Is Member Expiring?
@@ -288,7 +291,11 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             // [New] Denied Stats
             deniedCount,
             deniedExpiredCount,
-            deniedNoCreditsCount
+            deniedNoCreditsCount,
+            
+            // [New] App Installation Stats
+            installedCount: uniqueMembers.filter(m => isMemberInBranch(m) && tokensResult.some(t => t.memberId === m.id)).length,
+            pushEnabledCount: uniqueMembers.filter(m => isMemberInBranch(m) && tokensResult.some(t => t.memberId === m.id) && m.pushEnabled !== false).length
         };
         setSummary(newSummary);
 
