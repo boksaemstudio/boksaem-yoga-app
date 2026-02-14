@@ -39,7 +39,7 @@ export default [
     },
   },
   {
-    files: ['test_*.js', '*.config.js', 'check_*.cjs', 'functions/**/*.js', 'scripts/**/*.js', 'check_*.js', 'debug_*.js'],
+    files: ['test_*.js', '*.config.js', 'check_*.cjs', 'functions/**/*.js', 'scripts/**/*.js', 'check_*.js', 'debug_*.js', 'fix_*.js', 'run_*.js'],
     languageOptions: {
       globals: {
         ...globals.node,

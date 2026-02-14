@@ -1436,6 +1436,12 @@ h6 {
 /* AI Dynamic Background Animations - Removed for performance */
 
 /* Keypad Floating Instruction */
+@keyframes soft-pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
 .keypad-floating-instruction {
   position: absolute;
   top: 22.5%;
@@ -1452,7 +1458,8 @@ h6 {
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.5), 0 10px 25px var(--primary-gold-glow);
   z-index: 100;
   pointer-events: none;
-  /* Removed infinite animation for better tablet performance */
+  animation: soft-pulse 2s infinite ease-in-out;
+  will-change: opacity;
   border: 4px solid #1a1a1a;
   /* Contrast border against keypad buttons */
 }

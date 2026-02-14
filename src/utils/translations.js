@@ -8,7 +8,7 @@ export const translations = {
         nameLabel: "이름",
         namePlaceholder: "이름을 입력해주세요",
         phoneLabel: "전화번호 뒤 4자리",
-        phonePlaceholder: "번호 4자리를 입력해주세요",
+        phonePlaceholder: "번호 4자리를 눌러주세요",
         checkRecordBtn: "나의 수련 여정 보기",
         loginFooter: "수련 데이터가 쌓일수록 AI가 당신의 요가 수련을 깊이 있게 분석해 드립니다.",
 

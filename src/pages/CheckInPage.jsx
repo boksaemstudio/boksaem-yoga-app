@@ -1317,7 +1317,7 @@ const CheckInPage = () => {
                     )}
                     {pin.length === 0 && !message && isReady && (
                         <div className="keypad-floating-instruction">
-                            전화번호 뒤 4자리를 입력하세요
+                            전화번호 뒤 4자리를 눌러주세요
                         </div>
                     )}
                     <Keypad
