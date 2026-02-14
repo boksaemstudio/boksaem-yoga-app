@@ -17,8 +17,8 @@ import './styles/index.css'
 import ErrorBoundary from './components/ErrorBoundary'
 import { LanguageProvider } from './context/LanguageContext'
 
-// [Agent Admin Mode] Enable via URL parameter (?agent_admin=true) or localStorage
-if (typeof window !== 'undefined' && (window.location.search.includes('agent_admin=true') || localStorage.getItem('agent_admin_mode') === 'true')) {
+// [Agent Admin Mode] Enable ONLY in development via URL parameter (?agent_admin=true) or localStorage
+if (import.meta.env.DEV && typeof window !== 'undefined' && (window.location.search.includes('agent_admin=true') || localStorage.getItem('agent_admin_mode') === 'true')) {
   window.__AGENT_ADMIN_MODE__ = true;
   console.log('🚀 Agent Admin Mode Enabled: Confirmation dialogs will be auto-processed.');
 

@@ -233,6 +233,12 @@ exports.sendPushOnNoticeV2 = onDocumentCreated({
     document: "notices/{noticeId}"
 }, async (event) => {
     const noticeData = event.data.data();
+    // [FEATURE] Check if push is enabled for this notice (default: true)
+    if (noticeData.sendPush === false) {
+        console.log(`[Push] Notice ${event.params.noticeId} has push disabled. Skipping.`);
+        return;
+    }
+
     const titleOriginal = noticeData.title || "새로운 공지사항";
     const bodyOriginal = noticeData.content || "새로운 소식이 등록되었습니다";
 

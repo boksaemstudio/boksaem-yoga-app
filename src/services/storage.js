@@ -14,7 +14,6 @@ let cachedNotices = [];
 let cachedImages = {};
 let pendingImageWrites = {}; // Buffer for optimistic updates
 let cachedDailyClasses = {};
-let cachedPushTokensMap = {}; // Use Map-like object to merge multiple collections
 let cachedPushTokens = [];
 let listeners = [];
 
@@ -155,14 +154,32 @@ export const storageService = {
   _safeGetItem(key) { try { return localStorage.getItem(key); } catch { return null; } },
   _safeSetItem(key, value) { try { localStorage.setItem(key, value); } catch { /* ignore */ } },
 
-  async addNotice(title, content, image = null) {
+  async addNotice(title, content, images = [], sendPush = true) {
     try {
       const today = new Date();
       const dateStr = today.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }); // YYYY-MM-DD
+      
+      // [COMPATIBILITY] Handle legacy single image call or new array call
+      // If 'images' is a string (old usage), treat as single item array or legacy field
+      // Logic: Maintain 'image' field for legacy support, 'images' field for new multi-support
+      
+      let imageList = [];
+      let primaryImage = null;
+
+      if (Array.isArray(images)) {
+        imageList = images;
+        primaryImage = images.length > 0 ? images[0] : null;
+      } else if (typeof images === 'string') {
+        imageList = [images];
+        primaryImage = images;
+      }
+
       await addDoc(collection(db, 'notices'), {
         title,
         content,
-        image,
+        image: primaryImage, // Legacy support (thumbnail)
+        images: imageList,   // New multi-image support
+        sendPush,            // Push toggle
         date: dateStr,
         timestamp: today.toISOString()
       });

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { storageService } from '../services/storage';
 
-import memberBg from '../assets/zen_yoga_bg.png';
+import memberBg from '../assets/zen_yoga_bg.webp';
 import logo from '../assets/logo.png';
 
 const LoginPage = () => {

@@ -5,4 +5,3 @@ Disallow: /admin
 Disallow: /member/
 Disallow: /member
 
-Sitemap: https://boksaem-yoga.web.app/sitemap.xml

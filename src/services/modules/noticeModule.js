@@ -13,14 +13,29 @@ import { httpsCallable } from "firebase/functions";
 /**
  * 공지사항 추가
  */
-export const addNotice = async (title, content, image = null) => {
+export const addNotice = async (title, content, images = [], sendPush = true) => {
     try {
         const today = new Date();
         const dateStr = today.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+        
+        // [COMPATIBILITY]
+        let imageList = [];
+        let primaryImage = null;
+
+        if (Array.isArray(images)) {
+            imageList = images;
+            primaryImage = images.length > 0 ? images[0] : null;
+        } else if (typeof images === 'string') {
+            imageList = [images];
+            primaryImage = images;
+        }
+
         await addDoc(collection(db, 'notices'), {
             title,
             content,
-            image,
+            image: primaryImage,
+            images: imageList,
+            sendPush,
             date: dateStr,
             timestamp: today.toISOString()
         });

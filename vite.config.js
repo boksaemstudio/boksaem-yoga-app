@@ -34,7 +34,7 @@ export default defineConfig({
           // Firebase 관련 라이브러리를 별도 청크로 분리
           'firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage', 'firebase/messaging'],
           // 아이콘 라이브러리를 별도 청크로 분리
-          'icons': ['@phosphor-icons/react', 'phosphor-react'],
+          'icons': ['@phosphor-icons/react'],
         }
       }
     },

@@ -8,13 +8,13 @@ import logoWide from '../assets/logo_wide.png';
 import { MapPin, Sun, Cloud, CloudRain, Snowflake, Lightning, Moon, CornersOut, CornersIn, Chalkboard } from '@phosphor-icons/react';
 import { getDaysRemaining } from '../utils/dates';
 
-// [PERF] 현재 시간대 배경만 로딩 (4장 → 1장)
+// [PERF] 현재 시간대 배경만 로딩 (4장 → 1장, WebP 최적화)
 const getBgForPeriod = (period) => {
     switch (period) {
-        case 'morning': return import('../assets/bg_morning.png');
-        case 'afternoon': return import('../assets/bg_afternoon.png');
-        case 'evening': return import('../assets/bg_evening.png');
-        default: return import('../assets/bg_night.png');
+        case 'morning': return import('../assets/bg_morning.webp');
+        case 'afternoon': return import('../assets/bg_afternoon.webp');
+        case 'evening': return import('../assets/bg_evening.webp');
+        default: return import('../assets/bg_night.webp');
     }
 };
 import InstallGuideModal from '../components/InstallGuideModal';
@@ -759,7 +759,7 @@ const CheckInPage = () => {
 
         // [DUPLICATE] 60초 이내 동일 PIN 입력 확인
         const now = Date.now();
-        const DUPLICATE_WINDOW_MS = 60000; // 60초
+        const DUPLICATE_WINDOW_MS = 600000; // 10분
         // 만료된 기록 정리
         recentCheckInsRef.current = recentCheckInsRef.current.filter(
             entry => (now - entry.timestamp) < DUPLICATE_WINDOW_MS

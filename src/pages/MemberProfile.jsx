@@ -5,7 +5,7 @@ import { db } from '../firebase';
 import { storageService } from '../services/storage';
 import { Icons } from '../components/CommonIcons';
 import logo from '../assets/logo.png';
-import memberBg from '../assets/zen_yoga_bg.png';
+import memberBg from '../assets/zen_yoga_bg.webp';
 import MemberScheduleCalendar from '../components/MemberScheduleCalendar';
 // Lazy load MeditationPage to prevent initialization errors and reduce bundle size
 const MeditationPage = lazy(() => import('./MeditationPage'));
@@ -1177,7 +1177,7 @@ const MemberProfile = () => {
                                                 boxShadow: isSelected ? '0 0 30px rgba(212, 175, 55, 0.3)' : '0 15px 35px rgba(0,0,0,0.3)',
                                                 transition: 'all 0.3s ease'
                                             }}>
-                                                {(notice.image || notice.imageUrl) ? (
+                                                {((notice.images && notice.images.length > 0) || notice.image || notice.imageUrl) ? (
                                                     <div>
                                                         {/* Header (Title & Date) - Now above image */}
                                                         <div style={{ padding: '24px 24px 15px' }}>
@@ -1201,13 +1201,70 @@ const MemberProfile = () => {
                                                         </div>
 
                                                         {/* Image - Now below title */}
-                                                        <div style={{ width: '100%', overflow: 'hidden' }}>
-                                                            <img
-                                                                src={notice.image || notice.imageUrl}
-                                                                alt="notice"
-                                                                style={{ width: '100%', height: 'auto', display: 'block', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer' }}
-                                                                onClick={() => setLightboxImage(notice.image || notice.imageUrl)}
-                                                            />
+                                                        <div style={{ 
+                                                            display: 'flex', 
+                                                            overflowX: 'auto', 
+                                                            overflowY: 'hidden',
+                                                            scrollSnapType: 'x mandatory', 
+                                                            gap: '0', 
+                                                            width: '100%',
+                                                            WebkitOverflowScrolling: 'touch'
+                                                        }}>
+                                                            {notice.images && notice.images.length > 0 ? (
+                                                                notice.images.map((img, idx) => (
+                                                                    <div key={idx} style={{ 
+                                                                        minWidth: '100%', 
+                                                                        scrollSnapAlign: 'start',
+                                                                        position: 'relative'
+                                                                    }}>
+                                                                        <img
+                                                                            src={img}
+                                                                            alt="notice"
+                                                                            style={{ 
+                                                                                width: '100%', 
+                                                                                height: 'auto', 
+                                                                                maxHeight: '500px', 
+                                                                                objectFit: 'contain',
+                                                                                display: 'block', 
+                                                                                borderTop: '1px solid rgba(255,255,255,0.05)', 
+                                                                                borderBottom: '1px solid rgba(255,255,255,0.05)', 
+                                                                                cursor: 'pointer',
+                                                                                backgroundColor: 'rgba(0,0,0,0.2)'
+                                                                            }}
+                                                                            onClick={() => setLightboxImage(img)}
+                                                                        />
+                                                                        {notice.images.length > 1 && (
+                                                                            <div style={{
+                                                                                position: 'absolute',
+                                                                                bottom: '10px',
+                                                                                right: '10px',
+                                                                                background: 'rgba(0,0,0,0.6)',
+                                                                                padding: '4px 8px',
+                                                                                borderRadius: '12px',
+                                                                                color: 'white',
+                                                                                fontSize: '0.75rem',
+                                                                                fontWeight: 'bold'
+                                                                            }}>
+                                                                                {idx + 1} / {notice.images.length}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                ))
+                                                            ) : (
+                                                                <img
+                                                                    src={notice.image || notice.imageUrl}
+                                                                    alt="notice"
+                                                                    style={{ 
+                                                                        width: '100%', 
+                                                                        height: 'auto', 
+                                                                        display: 'block', 
+                                                                        borderTop: '1px solid rgba(255,255,255,0.05)', 
+                                                                        borderBottom: '1px solid rgba(255,255,255,0.05)', 
+                                                                        cursor: 'pointer' 
+                                                                    }}
+                                                                    onClick={() => setLightboxImage(notice.image || notice.imageUrl)}
+                                                                />
+                                                            )}
                                                         </div>
                                                     </div>
                                                 ) : (

@@ -93,8 +93,47 @@ const NoticesTab = ({ notices, setShowNoticeModal, refreshData }) => {
                                 background: 'rgba(0,0,0,0.2)',
                                 borderRadius: '8px'
                             }}>
-                                {notice.image && (
-                                    <img src={notice.image} alt="공지 이미지" style={{ width: '100%', borderRadius: '8px', marginBottom: '15px' }} />
+                                {((notice.images && notice.images.length > 0) || notice.image) && (
+                                    <div style={{
+                                        display: 'flex',
+                                        gap: '10px',
+                                        overflowX: 'auto',
+                                        paddingBottom: '10px',
+                                        marginBottom: '15px',
+                                        scrollSnapType: 'x mandatory',
+                                        WebkitOverflowScrolling: 'touch'
+                                    }}>
+                                        {notice.images && notice.images.length > 0 ? (
+                                            notice.images.map((img, idx) => (
+                                                <img 
+                                                    key={idx} 
+                                                    src={img} 
+                                                    alt={`notice-img-${idx}`} 
+                                                    style={{ 
+                                                        minWidth: '280px', 
+                                                        maxWidth: '100%',
+                                                        height: 'auto', 
+                                                        maxHeight: '300px',
+                                                        objectFit: 'cover', 
+                                                        borderRadius: '8px', 
+                                                        border: '1px solid rgba(255,255,255,0.1)',
+                                                        scrollSnapAlign: 'start'
+                                                    }} 
+                                                />
+                                            ))
+                                        ) : (
+                                            <img 
+                                                src={notice.image} 
+                                                alt="공지 이미지" 
+                                                style={{ 
+                                                    width: '100%', 
+                                                    borderRadius: '8px', 
+                                                    maxHeight: '400px', 
+                                                    objectFit: 'cover' 
+                                                }} 
+                                            />
+                                        )}
+                                    </div>
                                 )}
                                 {notice.content}
                             </div>

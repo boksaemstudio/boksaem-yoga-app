@@ -71,20 +71,6 @@
             ]
         },
         {
-            "collectionGroup": "attendance",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "memberId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "timestamp",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
             "collectionGroup": "messages",
             "queryScope": "COLLECTION",
             "fields": [

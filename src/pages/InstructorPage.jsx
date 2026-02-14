@@ -506,13 +506,44 @@ const InstructorNotices = () => {
                                 <h3 style={{ margin: 0, fontSize: '1rem' }}>{notice.title}</h3>
                                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{notice.createdAt?.split('T')[0] || ''}</span>
                             </div>
-                            {(notice.image || notice.imageUrl) && (
-                                <img 
-                                    src={notice.image || notice.imageUrl} 
-                                    alt={notice.title} 
-                                    style={{ width: '100%', borderRadius: '8px', marginBottom: '12px', cursor: 'pointer' }}
-                                    onClick={() => window.open(notice.image || notice.imageUrl, '_blank')}
-                                />
+                            {((notice.images && notice.images.length > 0) || notice.image || notice.imageUrl) && (
+                                <div style={{
+                                    display: 'flex',
+                                    gap: '10px',
+                                    overflowX: 'auto',
+                                    paddingBottom: '10px',
+                                    marginBottom: '12px',
+                                    scrollSnapType: 'x mandatory',
+                                    WebkitOverflowScrolling: 'touch'
+                                }}>
+                                    {notice.images && notice.images.length > 0 ? (
+                                        notice.images.map((img, idx) => (
+                                            <img 
+                                                key={idx} 
+                                                src={img} 
+                                                alt={notice.title} 
+                                                style={{ 
+                                                    minWidth: '280px', 
+                                                    maxWidth: '100%',
+                                                    height: 'auto', 
+                                                    maxHeight: '300px',
+                                                    objectFit: 'cover', 
+                                                    borderRadius: '8px', 
+                                                    scrollSnapAlign: 'start',
+                                                    cursor: 'pointer'
+                                                }}
+                                                onClick={() => window.open(img, '_blank')}
+                                            />
+                                        ))
+                                    ) : (
+                                        <img 
+                                            src={notice.image || notice.imageUrl} 
+                                            alt={notice.title} 
+                                            style={{ width: '100%', borderRadius: '8px', cursor: 'pointer' }}
+                                            onClick={() => window.open(notice.image || notice.imageUrl, '_blank')}
+                                        />
+                                    )}
+                                </div>
                             )}
                             <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap' }}>{notice.content}</p>
                         </div>
