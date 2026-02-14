@@ -155,7 +155,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                     item: newMember.subject,
                     amount: newMember.amount,
                     paymentMethod: newMember.paymentMethod,
-                    date: new Date().toISOString(),
+                    date: new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }),
                     branchId: newMember.branch
                 });
             }

@@ -55,9 +55,16 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
             const member = (members || []).find(m => m.id === s.memberId);
             if (currentBranch !== 'all' && member && member.homeBranch !== currentBranch) return;
 
-            // Check if dates match 'YYYY-MM-DD'
+            // Check if dates match 'YYYY-MM-DD' (KST 기준)
             if (!s.date) return false;
-            const dateStr = s.date.split('T')[0];
+            let dateStr;
+            if (s.date.includes('T')) {
+                // ISO UTC → KST 변환
+                const d = new Date(s.date);
+                dateStr = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            } else {
+                dateStr = s.date;
+            }
 
             // Avoid double counting if we just added this via 'members' loop?
             // 'members' loop adds based on 'regDate'. 

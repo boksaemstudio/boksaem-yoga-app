@@ -142,7 +142,7 @@ exports.checkExpiringMembersV2 = onSchedule({
     const db = admin.firestore();
     const ai = getAI();
     const today = new Date();
-    const targetDateStr = today.toISOString().split('T')[0];
+    const targetDateStr = today.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 
     try {
         const snapshot = await db.collection('members').where('endDate', '==', targetDateStr).get();

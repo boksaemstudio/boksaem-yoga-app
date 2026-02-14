@@ -186,7 +186,7 @@ exports.checkInMemberV2Call = onCall({
                 // TODO: If member has 'months' field, calculate based on that. Defaulting to 30 days.
                 const end = new Date();
                 end.setDate(end.getDate() + 30);
-                endDate = end.toISOString().split('T')[0];
+                endDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
             }
 
             await memberRef.update({
@@ -241,7 +241,7 @@ exports.onAttendanceCreated = onDocumentCreated("attendance/{attendanceId}", asy
         // Get recent attendance for analysis
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        const cutoffDate = thirtyDaysAgo.toISOString().split('T')[0];
+        const cutoffDate = thirtyDaysAgo.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 
         const recentSnap = await db.collection('attendance')
             .where('memberId', '==', memberId)

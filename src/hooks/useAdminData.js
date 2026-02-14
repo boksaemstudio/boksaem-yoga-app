@@ -244,7 +244,14 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             }
 
             if (!s.date) return;
-            const dateStr = s.date.split('T')[0];
+            // KST 기준 날짜 변환 (UTC ISO 대응)
+            let dateStr;
+            if (s.date.includes('T')) {
+                const d = new Date(s.date);
+                dateStr = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            } else {
+                dateStr = s.date;
+            }
 
             allRevenueItems.push({
                 id: s.id,

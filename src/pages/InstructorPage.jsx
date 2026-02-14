@@ -212,7 +212,7 @@ const InstructorSchedule = ({ instructorName }) => {
             const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
             const { hasGhc, hasMapo } = getBranchStatus(dateStr);
             const isSelected = selectedDate === dateStr;
-            const isToday = dateStr === new Date().toISOString().split('T')[0];
+            const isToday = dateStr === new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
             
             // Calculate day of week (0: Sun, 6: Sat)
             const dayOfWeek = new Date(year, month - 1, d).getDay();
@@ -573,7 +573,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
     const [isStandalone, setIsStandalone] = useState(false);
     const [deviceOS, setDeviceOS] = useState('unknown');
     
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 
     useEffect(() => {
         if ('Notification' in window) {

@@ -60,7 +60,7 @@ const analyzeUnlimitedMember = (logs, streak) => {
 
     logs.forEach(log => {
         const d = log.timestamp ? new Date(log.timestamp.seconds * 1000 || log.timestamp) : new Date(log.createdAt);
-        const weekStart = startOfWeek(d, { weekStartsOn: 1 }).toISOString().split('T')[0]; // Monday start
+        const weekStart = startOfWeek(d, { weekStartsOn: 1 }).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }); // Monday start (KST)
         weeksMap[weekStart] = (weeksMap[weekStart] || 0) + 1;
     });
 
@@ -74,7 +74,7 @@ const analyzeUnlimitedMember = (logs, streak) => {
     }
 
     // Check "This Week" count
-    const thisWeekStart = startOfWeek(now, { weekStartsOn: 1 }).toISOString().split('T')[0];
+    const thisWeekStart = startOfWeek(now, { weekStartsOn: 1 }).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
     const thisWeekCount = weeksMap[thisWeekStart] || 0;
 
     if (thisWeekCount >= 3) {

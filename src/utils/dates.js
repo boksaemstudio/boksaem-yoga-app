@@ -68,7 +68,7 @@ export const compareDates = (date1, date2) => {
 export const addDays = (dateStr, days) => {
     const date = new Date(dateStr);
     date.setDate(date.getDate() + days);
-    return date.toISOString().split('T')[0];
+    return date.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 };
 
 /**
