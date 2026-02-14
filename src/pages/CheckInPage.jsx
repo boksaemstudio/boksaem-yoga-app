@@ -869,8 +869,18 @@ const CheckInPage = () => {
 
         let finalMsg = "오늘의 수련이 시작됩니다.";
 
+        // [EXPIRY] 만료 상태 최우선 표시
+        const isExpiredPeriod = daysLeft < 0;
+        const isExpiredCredits = credits <= 0 && Number.isFinite(credits);
+
+        if (isExpiredPeriod && isExpiredCredits) {
+            finalMsg = "기간 및 횟수가 만료되었습니다.";
+        } else if (isExpiredPeriod) {
+            finalMsg = "기간이 만료되었습니다.";
+        } else if (isExpiredCredits) {
+            finalMsg = "횟수가 만료되었습니다.";
         // Priority Logic matches context
-        if (streak >= 10 && Number.isFinite(streak)) { // [FIX] Check finite
+        } else if (streak >= 10 && Number.isFinite(streak)) { // [FIX] Check finite
             finalMsg = `${streak}일 연속 수련 중입니다. 놀라운 꾸준함입니다!`;
         } else if (streak >= 3 && Number.isFinite(streak)) { // [FIX] Check finite
             finalMsg = `${streak}일째 수련을 이어가고 계시네요. 좋은 흐름입니다.`;
