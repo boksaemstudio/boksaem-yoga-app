@@ -243,10 +243,13 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         // 2. Re-reg: Sales today AND NOT New
         const todaySalesMemberIds = new Set();
         currentSales.forEach(s => {
-            let sDate = s.date;
+            // [FIX] date가 없으면 timestamp에서 fallback
+            const rawDate = s.date || s.timestamp;
+            if (!rawDate) return;
+            let sDate = rawDate;
             // Handle ISO string if present
-            if (s.date && s.date.includes('T')) {
-                sDate = new Date(s.date).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            if (rawDate.includes('T')) {
+                sDate = new Date(rawDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
             }
             // Check if matches today
             if (sDate === todayStr) {
@@ -301,14 +304,19 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
                  if (!s.branchId && uniqueMembers.find(m => m.id === s.memberId)?.homeBranch !== currentBranch) return;
             }
 
-            if (!s.date) return;
+            // [FIX] date가 없으면 timestamp에서 fallback
+            const rawDate = s.date || s.timestamp;
+            if (!rawDate) {
+                console.warn('[Revenue] Sales record missing both date and timestamp:', s.id, s.memberName);
+                return;
+            }
             // KST 기준 날짜 변환 (UTC ISO 대응)
             let dateStr;
-            if (s.date.includes('T')) {
-                const d = new Date(s.date);
+            if (rawDate.includes('T')) {
+                const d = new Date(rawDate);
                 dateStr = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
             } else {
-                dateStr = s.date;
+                dateStr = rawDate;
             }
 
             allRevenueItems.push({

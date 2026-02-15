@@ -145,9 +145,14 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
             return;
         }
 
+        // [FIX] 시작일/종료일/횟수 변경 시 매출 보호 안내
+        const revenueRelatedKeys = ['startDate', 'endDate', 'credits'];
+        const hasRevenueRelated = changes.some(c => revenueRelatedKeys.includes(c.key));
+
         if (changes.length === 1) {
             const change = changes[0];
-            if (confirm(`${change.label}을(를) "${change.oldValue}"에서 "${change.newValue}"(으)로 변경하시겠습니까?`)) {
+            const extraNote = hasRevenueRelated ? '\n\n※ 매출 기록은 별도로 관리되므로 영향받지 않습니다.' : '';
+            if (confirm(`${change.label}을(를) "${change.oldValue}"에서 "${change.newValue}"(으)로 변경하시겠습니까?${extraNote}`)) {
                 // Save single change
                 handleFinalSave({ [change.key]: editData[change.key] });
             }

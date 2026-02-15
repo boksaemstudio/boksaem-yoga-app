@@ -20,13 +20,18 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
             const member = (members || []).find(m => m.id === s.memberId);
             if (currentBranch !== 'all' && member && member.homeBranch !== currentBranch) return;
 
-            if (!s.date) return;
+            // [FIX] date가 없으면 timestamp에서 fallback
+            const rawDate = s.date || s.timestamp;
+            if (!rawDate) {
+                console.warn('[Revenue] Sales record missing both date and timestamp:', s.id, s.memberName);
+                return;
+            }
             let dateStr;
-            if (s.date.includes('T')) {
-                const d = new Date(s.date);
+            if (rawDate.includes('T')) {
+                const d = new Date(rawDate);
                 dateStr = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
             } else {
-                dateStr = s.date;
+                dateStr = rawDate;
             }
 
             // Determine isNew

@@ -71,13 +71,21 @@ const MembersTab = ({
                 </div>
                 <div className={`dashboard-card interactive ${filterType === 'registration' ? 'highlight' : ''}`}
                     onClick={() => handleToggleFilter('registration')}>
-                    <span className="card-label">오늘 등록</span>
-                    <span className="card-value success">
+                    <span className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        오늘 전체 등록
+                        <div className="tooltip-container" onClick={e => e.stopPropagation()}>
+                            <Info size={14} style={{ opacity: 0.7 }} />
+                            <span className="tooltip-text">오늘 등록된 모든 수강권 합계<br />(신규 가입 + 기존 회원 재등록)</span>
+                        </div>
+                    </span>
+                    <span className="card-value success" style={{ fontSize: '1.8rem' }}>
                         {summary.todayRegistration}명
                     </span>
-                    <span style={{ fontSize: '0.75rem', opacity: 0.8, color: '#86efac', display: 'block', marginTop: '2px' }}>
-                        (신규 {summary.todayNewCount || 0} / 재등록 {summary.todayReRegCount || 0})
-                    </span>
+                    <div style={{ fontSize: '0.85rem', color: '#86efac', display: 'flex', gap: '8px', marginTop: '4px', fontWeight: 'bold' }}>
+                        <span>신규 {summary.todayNewCount || 0}</span>
+                        <span style={{ opacity: 0.4 }}>|</span>
+                        <span>재등록 {summary.todayReRegCount || 0}</span>
+                    </div>
                 </div>
                 <div className={`dashboard-card interactive ${filterType === 'expiring' ? 'highlight' : ''}`}
                     onClick={selectExpiringMembers}
@@ -264,7 +272,7 @@ const MembersTab = ({
                                                     I will do that in the NEXT step. For now, I'll use optional chaining if possible or safe access.
                                                  */}
                                                  {summary.todayReRegMemberIds && summary.todayReRegMemberIds.includes(member.id) && (
-                                                     <span className="badge" style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3B82F6', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+                                                     <span className="badge" style={{ background: 'rgba(59, 130, 246, 0.25)', color: '#60A5FA', border: '1px solid rgba(59, 130, 246, 0.5)', fontWeight: 'bold' }}>
                                                         재등록
                                                      </span>
                                                  )}
