@@ -298,33 +298,43 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
                 date: dateStr,
                 amount: Number(s.amount) || 0,
                 name: s.memberName,
-                type: s.type || 'register'
+                type: s.type, // 'register' or 'extend'
+                item: s.item
             });
         });
 
-        // Deduplication: Filter out 'legacy' items if a 'sales' item exists for same Name + Date
+        // [Fix] Deduplicate: Remove 'legacy' item if a 'register' item exists for same member on same date
+        const uniqueRevenueItems = [];
         const salesKeys = new Set(
             allRevenueItems
                 .filter(i => i.type !== 'legacy')
                 .map(i => `${i.name}-${i.date}`)
         );
 
-        const finalRevenueItems = allRevenueItems.filter(item => {
+        allRevenueItems.forEach(item => {
             if (item.type === 'legacy') {
                 const key = `${item.name}-${item.date}`;
-                if (salesKeys.has(key)) return false;
+                if (salesKeys.has(key)) return; // Skip legacy if sale exists
             }
-            return true;
+            uniqueRevenueItems.push(item);
         });
 
-        // Calculate Totals using finalRevenueItems
-        const todayRevenue = finalRevenueItems
+        const todayRevenue = uniqueRevenueItems
             .filter(i => i.date === todayStr)
-            .reduce((sum, i) => sum + i.amount, 0);
+            .reduce((sum, item) => sum + item.amount, 0);
 
-        const monthlyRevenue = finalRevenueItems
-            .filter(i => i.date.startsWith(currentMonth))
-            .reduce((sum, i) => sum + i.amount, 0);
+        const currentMonthStr = todayStr.substring(0, 7); // 'YYYY-MM'
+        const monthlyRevenue = uniqueRevenueItems
+            .filter(i => i.date.startsWith(currentMonthStr))
+            .reduce((sum, item) => sum + item.amount, 0);
+
+        // ... Note: This logic assumes 'uniqueRevenueItems' covers all needed revenue data.
+        // Also note that 'members.amount' is usually the MOST RECENT payment amount.
+        // If a member paid last month AND this month, 'members' object only holds the LATEST.
+        // So 'legacy' logic is inherently flawed for historical data if only using 'members' snapshot.
+        // But for "This Month" revenue, it works IF the member registered/paid this month.
+        // The `sales` collection is the correct way forward.
+        // The dedup ensures we don't double count the *latest* payment if it's in both.
 
         const newSummary = {
             totalMembers,
