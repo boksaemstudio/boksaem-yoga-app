@@ -1195,22 +1195,37 @@ export const storageService = {
       q = query(
         collection(db, 'attendance'),
         where('date', '==', dateStr),
-        where('branchId', '==', branchId),
-        orderBy('timestamp', 'desc')
+        where('branchId', '==', branchId)
       );
     } else {
       q = query(
         collection(db, 'attendance'),
-        where('date', '==', dateStr),
-        orderBy('timestamp', 'desc')
+        where('date', '==', dateStr)
       );
     }
     
     return onSnapshot(q, (snapshot) => {
       const records = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      // Sort on client side to avoid requiring composite index
+      records.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
       callback(records);
     }, (error) => {
       console.error('[Storage] Attendance subscription failed:', error);
+      // Fallback: try without branchId filter
+      if (branchId) {
+        console.log('[Storage] Retrying without branchId filter...');
+        const fallbackQ = query(
+          collection(db, 'attendance'),
+          where('date', '==', dateStr)
+        );
+        onSnapshot(fallbackQ, (snap) => {
+          const allRecords = snap.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(r => r.branchId === branchId);
+          allRecords.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+          callback(allRecords);
+        });
+      }
     });
   },
 
