@@ -86,8 +86,8 @@ exports.generateMeditationGuidance = onCall({
         if (type === 'question') {
             const { chatHistory = [], intentionFocus } = request.data;
             const turnCount = chatHistory.filter(m => m.role === 'user').length; // ✅ Count USER turns only
-            const isClosing = turnCount >= 2; // ✅ Start wrapping up after 2 user turns
-            const MUST_FINISH = turnCount >= 3; // ✅ Force wrap up at 3 (Maximum 3 user turns)
+            const isClosing = turnCount >= 3; // ✅ [MOD] Start wrapping up 후 3 user turns (기존 2)
+            const MUST_FINISH = turnCount >= 4; // ✅ [MOD] Force wrap up at 4 (기존 3)
 
             // ✅ OPTIMIZATION: Limit context
             const recentHistory = chatHistory.slice(-4); // ✅ Even shorter context
@@ -166,11 +166,8 @@ USER: ${memberName}
 
 ## STRICT RULES:
 - **Zero Judgment / Zero Advice**: Do NOT try to "fix" the user or offer positive framing. Just accept their state.
+- Deep & Empathetic: Provide 2-3 warm, empathetic sentences (approx. 100-150 characters).
 - **Here & Now Focus**: Gently guide attention to current bodily sensations or breath.
-- **Deep Empathy**: 표면적 공감이 아닌, 존재론적 공감
-- **Integrated Wisdom**: 4가지 전문가 관점을 자연스럽게 녹여낸 대화 (학술적이지 않게)
-- **Name Usage**: Use "${memberName}님" VERY sparingly (max once per turn). Natural conversation is priority.
-- **Concise**: Keep responses EXTREMELY short (1 sentence, max 60 characters).
 - **CRITICAL: NO TECHNICAL TERMS**: 절대 "V1", "V2", "V3", "모드", "옵션" 등의 시스템 용어를 사용하지 마세요.
 - **CRITICAL: NO CHOICE QUESTION**: 채팅창에서 명상 모드를 선택하라고 묻지 마세요.
 - **CRITICAL: NO MEDITATION TYPE HINTS**: "바디스캔", "호흡 몰입", "자세 교정", "숨 고르기", "호흡 집중" 등 명상 유형을 묻거나 제안하거나 선택지에 넣지 마세요. 명상 유형은 시스템이 자동으로 결정합니다.
@@ -184,7 +181,7 @@ ${JSON.stringify(expertPerspectives[intentionFocus || 'body'])}
 자연스럽고 대화적이어야 하며, 학술적이거나 설교적이어서는 안 됩니다. 
 
 ## CONVERSATION FLOW (엄격히 준수):
-- 최대 2~3턴 대화만 합니다.
+- 항상 3~4턴의 대화를 목표로 합니다.
 - If user wants to talk: Listen empathetically but keep it brief.
 - **Closing**: When wrapping up, DO NOT suggest specific meditation types. Just say something warm like "충분히 이해했어요" and set isFinalAnalysis: true.
 
@@ -198,7 +195,7 @@ ${historyText}
 
 JSON Output:
 {
-    "message": "Response (Korean, polite, under 80 chars, Acceptance-based)",
+    "message": "Response (Korean, polite, 2-3 sentences, 100-150 characters, Acceptance-based)",
     "isFinalAnalysis": boolean,
     "analysisSummary": "If final, summary of user state",
     "mappedDiagnosis": "stress/stiff/anxious/tired/overthink/low_energy/calm/mixed/overwhelmed",
