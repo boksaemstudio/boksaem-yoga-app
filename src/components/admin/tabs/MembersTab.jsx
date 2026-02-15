@@ -1,4 +1,4 @@
-import { BellRinging, Check, Info } from '@phosphor-icons/react';
+import { BellRinging, Check, Info, Plus, NotePencil } from '@phosphor-icons/react';
 import { getBranchName, getBranchColor, getBranchThemeColor } from '../../../studioConfig';
 
 const MembersTab = ({
