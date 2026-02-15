@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ClockCounterClockwise, Trash, Sparkle } from '@phosphor-icons/react';
-import { getBranchName } from '../../../studioConfig';
+import { getBranchName, getBranchColor, getBranchThemeColor } from '../../../studioConfig';
 import { storageService } from '../../../services/storage';
 
 const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, members = [], onMemberClick }) => {
@@ -44,10 +44,10 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                             fontSize: '0.65rem',
                                             padding: '2px 6px',
                                             borderRadius: '4px',
-                                            background: cls.branchId === 'gwangheungchang' ? 'rgba(212, 175, 55, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                                            color: cls.branchId === 'gwangheungchang' ? 'var(--primary-gold)' : 'var(--text-secondary)',
+                                            background: `${getBranchColor(cls.branchId)}20`,
+                                            color: getBranchThemeColor(cls.branchId),
                                             fontWeight: 'bold',
-                                            border: `1px solid ${cls.branchId === 'gwangheungchang' ? 'rgba(212, 175, 55, 0.3)' : 'rgba(255, 255, 255, 0.15)'}`
+                                            border: `1px solid ${getBranchColor(cls.branchId)}33`
                                         }}>
                                             {getBranchName(cls.branchId)}
                                         </span>
@@ -172,7 +172,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                         onMouseLeave={(e) => { if (log.memberId) e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
                                     >
                                         <div style={{ width: '60px', fontSize: '0.75rem', opacity: 0.6, textAlign: 'center' }}>
-                                            {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            {new Date(log.timestamp).toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false })}
                                         </div>
                                         <div style={{ flex: 1, paddingLeft: '12px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -180,7 +180,16 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                                 <span style={{ fontSize: '0.7rem', color: 'var(--primary-gold)', background: 'rgba(212,175,55,0.1)', padding: '1px 6px', borderRadius: '4px' }}>
                                                     {log.className || '일반'}
                                                 </span>
-                                                <span className="badge" style={{ fontSize: '0.65rem', padding: '2px 4px' }}>{getBranchName(log.branchId)}</span>
+                                                <span className="badge" style={{ 
+                                                    fontSize: '0.65rem', 
+                                                    padding: '2px 6px',
+                                                    background: `${getBranchColor(log.branchId)}20`,
+                                                    color: getBranchThemeColor(log.branchId),
+                                                    border: `1px solid ${getBranchColor(log.branchId)}33`,
+                                                    fontWeight: 'bold'
+                                                }}>
+                                                    {getBranchName(log.branchId)}
+                                                </span>
 
                                                 {/* [NEW] Denied Badge */}
                                                 {log.status === 'denied' && (

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { storageService } from '../services/storage';
 import { useAdminData } from '../hooks/useAdminData'; // [Refactor]
-import { STUDIO_CONFIG } from '../studioConfig';
+import { STUDIO_CONFIG, getBranchName, getBranchThemeColor, getBranchColor } from '../studioConfig';
 import { useNavigate } from 'react-router-dom';
 import {
     Users, ClockCounterClockwise, PlusCircle,
@@ -200,7 +200,7 @@ const AdminDashboard = () => {
                             ...member,
                             logId: l.id, // Use log ID for unique key if possible
                             // Override member data with specific log data
-                            attendanceTime: new Date(l.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                            attendanceTime: new Date(l.timestamp).toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false }),
                             attendanceClass: l.className,
                             instructorName: l.instructor, // Add instructor info
                             attendanceStatus: l.status, // Pass status
@@ -673,13 +673,13 @@ const AdminDashboard = () => {
                                 {STUDIO_CONFIG.BRANCHES.map((branch) => {
                                     // 지점별 테마 색상 및 스타일 정의
                                     const isGwang = branch.id === 'gwangheungchang';
-                                    const themeColor = isGwang ? 'var(--primary-gold)' : '#60a5fa'; // 골드 vs 블루
-                                    const bgTint = isGwang ? 'rgba(212, 175, 55, 0.05)' : 'rgba(96, 165, 250, 0.05)';
+                                    const themeColor = getBranchThemeColor(branch.id);
+                                    const bgTint = `${getBranchColor(branch.id)}0D`; // 05 opacity hex
 
                                     return (
                                         <div key={branch.id} className="dashboard-card" style={{ 
                                             position: 'relative',
-                                            border: `1px solid ${isGwang ? 'rgba(212, 175, 55, 0.3)' : 'rgba(96, 165, 250, 0.3)'}`,
+                                            border: `1px solid ${getBranchColor(branch.id)}4D`, // 0.3 opacity hex
                                             background: `linear-gradient(180deg, ${bgTint} 0%, rgba(20, 20, 25, 0.5) 100%)`
                                         }}>
                                             <div style={{ 
@@ -687,22 +687,22 @@ const AdminDashboard = () => {
                                                 justifyContent: 'space-between', 
                                                 alignItems: 'center', 
                                                 marginBottom: '20px',
-                                                borderBottom: `1px solid ${isGwang ? 'rgba(212, 175, 55, 0.1)' : 'rgba(96, 165, 250, 0.1)'}`,
+                                                borderBottom: `1px solid ${getBranchColor(branch.id)}1A`, // 0.1 opacity hex
                                                 paddingBottom: '10px'
                                             }}>
                                                 <h3 style={{ 
                                                     fontSize: '1.8rem', 
                                                     fontWeight: '800', 
                                                     color: themeColor,
-                                                    textShadow: `0 0 10px ${isGwang ? 'rgba(212,175,55,0.3)' : 'rgba(96,165,250,0.3)'}`
+                                                    textShadow: `0 0 10px ${getBranchColor(branch.id)}4D`
                                                 }}>
                                                     {branch.name}
                                                 </h3>
                                                 <div style={{
                                                     padding: '4px 12px',
                                                     borderRadius: '20px',
-                                                    background: isGwang ? 'rgba(212, 175, 55, 0.1)' : 'rgba(96, 165, 250, 0.1)',
-                                                    border: `1px solid ${isGwang ? 'rgba(212, 175, 55, 0.2)' : 'rgba(96, 165, 250, 0.2)'}`,
+                                                    background: `${getBranchColor(branch.id)}1A`,
+                                                    border: `1px solid ${getBranchColor(branch.id)}33`,
                                                     color: themeColor,
                                                     fontSize: '0.8rem',
                                                     fontWeight: 'bold'

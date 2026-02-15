@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { storageService } from '../services/storage';
+import { getTodayKST, getKSTHour } from '../utils/dates';
 
 
 // Helper for consistent date parsing
@@ -106,7 +107,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
                 "Administrator",
                 logs.length,
                 logs,
-                new Date().getHours(),
+                getKSTHour(),
                 'ko',
                 'admin',
                 statsData,

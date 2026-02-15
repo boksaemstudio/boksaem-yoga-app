@@ -1,6 +1,5 @@
-
-import { Plus, Check, BellRinging, NotePencil, Info } from '@phosphor-icons/react';
-import { getBranchName } from '../../../studioConfig';
+import { BellRinging, Check, Info } from '@phosphor-icons/react';
+import { getBranchName, getBranchColor, getBranchThemeColor } from '../../../studioConfig';
 
 const MembersTab = ({
     filteredMembers,
@@ -174,7 +173,9 @@ const MembersTab = ({
                     {filterType === 'registration' && '오늘 등록 회원'}
                     {filterType === 'expiring' && '만료/횟수 임박 회원'}
                     {filterType === 'dormant' && '잠든 회원'}
-                </strong> 목록을 <strong style={{ color: 'var(--text-secondary)' }}>이름 가나다순</strong>으로 보고 계십니다.
+                </strong> 목록을 <strong style={{ color: 'var(--text-secondary)' }}>
+                    {filterType === 'attendance' ? '최신 출석 순' : '이름 가나다순'}
+                </strong>으로 보고 계십니다.
             </div>
 
             {/* Member List */}
@@ -249,7 +250,15 @@ const MembersTab = ({
                                                     );
                                                 })()}
                                                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{member.phone}</span>
-                                                <span className="badge" style={{ fontSize: '0.7rem' }}>{getBranchName(member.homeBranch)}</span>
+                                                <span className="badge" style={{ 
+                                                    fontSize: '0.7rem',
+                                                    background: `${getBranchColor(member.homeBranch)}20`,
+                                                    color: getBranchThemeColor(member.homeBranch),
+                                                    border: `1px solid ${getBranchColor(member.homeBranch)}33`,
+                                                    fontWeight: 'bold'
+                                                }}>
+                                                    {getBranchName(member.homeBranch)}
+                                                </span>
                                                 {member.pushEnabled !== false && pushTokens.some(t => t.memberId === member.id) && (
                                                     <div style={{
                                                         display: 'flex', alignItems: 'center', gap: '4px',
@@ -283,6 +292,7 @@ const MembersTab = ({
                                                             borderRadius: '6px',
                                                             fontWeight: '700'
                                                         }}>
+                                                            {member.originalLog?.branchId && `[${getBranchName(member.originalLog.branchId)}] `}
                                                             {member.attendanceClass} ({member.attendanceTime})
                                                         </span>
                                                     )

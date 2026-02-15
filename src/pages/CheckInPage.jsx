@@ -6,7 +6,7 @@ import { httpsCallable } from 'firebase/functions';
 import { getAllBranches, getBranchName } from '../studioConfig';
 import logoWide from '../assets/logo_wide.png';
 import { MapPin, Sun, Cloud, CloudRain, Snowflake, Lightning, Moon, CornersOut, CornersIn, Chalkboard } from '@phosphor-icons/react';
-import { getDaysRemaining } from '../utils/dates';
+import { getTodayKST, getKSTHour, getKSTMinutes } from '../utils/dates';
 
 // [PERF] 현재 시간대 배경만 로딩 (4장 → 1장, WebP 최적화)
 const getBgForPeriod = (period) => {
@@ -115,7 +115,7 @@ const TopBar = memo(({ weather, currentBranch, branches, handleBranchChange, tog
                 {weather && (
                     <>
                         <div className="top-weather" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            {getWeatherIcon(weather.weathercode, now.getHours() >= 18 || now.getHours() < 6)}
+                            {getWeatherIcon(weather.weathercode, getKSTHour() >= 18 || getKSTHour() < 6)}
                             <span className="weather-temp" style={{ fontSize: '1.4rem', fontWeight: 600, color: 'rgba(255,255,255,0.95)', lineHeight: 1 }}>
                                 {weather.temperature}°C
                             </span>
@@ -217,7 +217,7 @@ const CheckInPage = () => {
         const pingServer = async () => {
             try {
                 const now = new Date();
-                const currentHour = now.getHours();
+                const currentHour = getKSTHour();
                 
                 // 영업시간 (09:00 ~ 22:00) 외에는 핑 보내지 않음 (사용자 요청)
                 if (currentHour < 9 || currentHour >= 22) return;
@@ -242,7 +242,7 @@ const CheckInPage = () => {
 
     // Use a slow timer for background period updates (every 5 minutes)
     const [period, setPeriod] = useState(() => {
-        const hour = new Date().getHours();
+        const hour = getKSTHour();
         if (hour >= 6 && hour < 12) return 'morning';
         if (hour >= 12 && hour < 17) return 'afternoon';
         if (hour >= 17 && hour < 21) return 'evening';
@@ -351,7 +351,7 @@ const CheckInPage = () => {
 
         // Background / Period Slow Timer
         const periodTimer = setInterval(() => {
-            const hour = new Date().getHours();
+            const hour = getKSTHour();
             let newPeriod = 'night';
             if (hour >= 6 && hour < 12) newPeriod = 'morning';
             else if (hour >= 12 && hour < 17) newPeriod = 'afternoon';
@@ -421,7 +421,7 @@ const CheckInPage = () => {
 
         try {
             const now = new Date();
-            const hour = now.getHours();
+            const hour = getKSTHour();
             const days = ['일', '월', '화', '수', '목', '금', '토'];
             const day = days[now.getDay()];
 

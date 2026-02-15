@@ -5,6 +5,7 @@ import { onSnapshot, doc, collection, getDocs, getDoc, addDoc, updateDoc, setDoc
 import { STUDIO_CONFIG } from '../studioConfig';
 import { messaging, getToken } from "../firebase";
 import * as scheduleService from './scheduleService'; // [Refactor]
+import { getKSTTotalMinutes } from '../utils/dates';
 
 // Local cache for sync-like access
 let cachedMembers = [];
@@ -378,8 +379,7 @@ export const storageService = {
 
     if (classes.length === 0) return null;
 
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const currentMinutes = getKSTTotalMinutes();
 
     let selectedClass = null;
     let logicReason = "No Match";
@@ -1181,7 +1181,10 @@ export const storageService = {
         );
       }
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const records = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      // [PERF] Sort on client side as a safety measure for pending indexes
+      records.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      return records;
     } catch (e) {
       console.error('[Storage] getAttendanceByDate failed:', e);
       return [];

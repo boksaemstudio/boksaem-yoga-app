@@ -282,7 +282,7 @@ const MemberProfile = () => {
                 }
 
                 const now = new Date();
-                storageService.getAIAnalysis(memberData.name, validHistory.length, validHistory, now.getHours(), language, 'member')
+                storageService.getAIAnalysis(memberData.name, validHistory.length, validHistory, getKSTHour(), language, 'member')
                     .then(analysis => setAiAnalysis(analysis))
                     .catch(() => setAiAnalysis({ message: t('analysisPending'), isError: true }));
 
@@ -351,7 +351,7 @@ const MemberProfile = () => {
         if (aiExperience && !aiExperience.isFallback) return;
 
         const now = new Date();
-        const hour = now.getHours();
+        const hour = getKSTHour();
 
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const day = days[now.getDay()];
@@ -594,7 +594,7 @@ const MemberProfile = () => {
             setAiAnalysis(null);
             const now = new Date();
             // This Effect handles LANGUAGE change. Initial load is handled by loadMemberData.
-            storageService.getAIAnalysis(member.name, validLogs.length, validLogs, now.getHours(), language, 'member')
+            storageService.getAIAnalysis(member.name, validLogs.length, validLogs, getKSTHour(), language, 'member')
                 .then(analysis => setAiAnalysis(analysis))
                 .catch(() => setAiAnalysis({ message: t('analysisPending'), isError: true }));
 
@@ -609,7 +609,7 @@ const MemberProfile = () => {
 
     const getTraditionalYogaMessage = () => {
         const now = new Date();
-        const hour = now.getHours();
+        const hour = getKSTHour();
         const month = now.getMonth() + 1;
 
         let timeMsg = "";
@@ -1195,7 +1195,7 @@ const MemberProfile = () => {
                                                                     fontWeight: '600',
                                                                     border: '1px solid rgba(255,255,255,0.05)'
                                                                 }}>
-                                                                    {notice.date || (notice.createdAt ? new Date(notice.createdAt).toLocaleDateString() : '최근')}
+                                                                    {notice.date || (notice.createdAt ? new Date(notice.createdAt).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }) : '최근')}
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -1282,7 +1282,7 @@ const MemberProfile = () => {
                                                                 borderRadius: '20px',
                                                                 fontWeight: '600'
                                                             }}>
-                                                                {notice.date || (notice.createdAt ? new Date(notice.createdAt).toLocaleDateString() : '최근')}
+                                                                {notice.date || (notice.createdAt ? new Date(notice.createdAt).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }) : '최근')}
                                                             </span>
                                                         </div>
                                                     </div>

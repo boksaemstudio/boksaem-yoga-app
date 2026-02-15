@@ -205,4 +205,17 @@ export const getBranchId = (id) => {
     return branch ? branch.id : id;
 };
 
+export const getBranchColor = (id) => {
+    const branch = STUDIO_CONFIG.BRANCHES.find(b => b.id === id);
+    return branch?.color || 'var(--text-secondary)';
+};
+
+export const getBranchThemeColor = (id) => {
+    const branch = STUDIO_CONFIG.BRANCHES.find(b => b.id === id);
+    if (!branch) return 'var(--text-secondary)';
+    if (branch.id === 'gwangheungchang') return 'var(--primary-gold)';
+    if (branch.id === 'mapo') return '#60a5fa';
+    return branch.color || 'var(--primary-gold)';
+};
+
 export const getAllBranches = () => STUDIO_CONFIG.BRANCHES;

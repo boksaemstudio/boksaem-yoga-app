@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { CalendarBlank, Bell, BellRinging, House, SignOut, User, Phone } from '@phosphor-icons/react';
 import SimpleImageModal from '../components/common/SimpleImageModal';
 import { storageService } from '../services/storage';
+import { getTodayKST, getKSTHour, getKSTTotalMinutes } from '../utils/dates';
 import { getMonthlyClasses } from '../services/scheduleService';
 import { isHoliday, getHolidayName } from '../utils/holidays';
 import { getToken } from 'firebase/messaging';
@@ -449,7 +450,9 @@ const InstructorSchedule = ({ instructorName }) => {
                                                                 .map((att, aidx) => (
                                                                     <div key={att.id || aidx} style={{ display: 'flex', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '6px 10px', borderRadius: '4px' }}>
                                                                         <span style={{ fontSize: '0.85rem' }}>{att.memberName}</span>
-                                                                        <span style={{ fontSize: '0.8rem', color: 'var(--primary-gold)' }}>{att.timestamp?.split('T')[1]?.slice(0, 5)}</span>
+                                                                        <span style={{ fontSize: '0.8rem', color: 'var(--primary-gold)' }}>
+                                                                            {att.timestamp ? new Date(att.timestamp).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) : ''}
+                                                                        </span>
                                                                     </div>
                                                                 ))
                                                         )}
@@ -506,7 +509,7 @@ const InstructorNotices = () => {
                         <div key={notice.id || idx} style={{ background: 'var(--bg-surface)', padding: '16px', borderRadius: '12px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                                 <h3 style={{ margin: 0, fontSize: '1rem' }}>{notice.title}</h3>
-                                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{notice.createdAt?.split('T')[0] || ''}</span>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{notice.createdAt ? new Date(notice.createdAt).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }) : ''}</span>
                             </div>
                             {((notice.images && notice.images.length > 0) || notice.image || notice.imageUrl) && (
                                 <div style={{
@@ -669,7 +672,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
         if (list.length === 0 && branchClasses.length === 0) return null;
         
         const now = new Date();
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const currentMinutes = getKSTTotalMinutes();
 
         const getStatus = (timeStr, duration = 60) => {
             const [h, m] = timeStr.split(':').map(Number);
@@ -743,7 +746,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                                     </div>
                                 </div>
                                 <div style={{ color: 'var(--primary-gold)', fontWeight: 'bold', fontSize: '0.85rem' }}>
-                                    {record.timestamp?.split('T')[1]?.slice(0, 5) || ''}
+                                    {record.timestamp ? new Date(record.timestamp).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) : ''}
                                 </div>
                             </div>
                         ))}
@@ -886,7 +889,7 @@ const InstructorPage = () => {
     const [instructorClasses, setInstructorClasses] = useState([]);
     const [attendanceLoading, setAttendanceLoading] = useState(true);
     const todayStr = useMemo(() => new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }), []);
-    const hour = new Date().getHours();
+    const hour = getKSTHour();
 
     const branches = useMemo(() => [
         { id: 'gwangheungchang', name: '광흥창점' },

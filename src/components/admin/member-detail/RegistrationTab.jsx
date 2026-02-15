@@ -1,8 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import CustomDatePicker from '../../common/CustomDatePicker';
 
 const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMember }) => {
     const [mode, setMode] = useState('renew'); // 'renew' or 'extend'
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const isSubmittingRef = useRef(false);
 
     // Renew State
     const [membershipType, setMembershipType] = useState('general');
@@ -89,31 +91,44 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
     }, [calculatedPrice]);
 
     const handleRenew = async () => {
+        // 중복 클릭 방지
+        if (isSubmitting || isSubmittingRef.current) return;
         if (!confirm(`${calculatedProductName}\n금액: ${price.toLocaleString()}원\n\n등록하시겠습니까?`)) return;
 
-        const salesData = {
-            memberId: member.id,
-            memberName: member.name,
-            type: 'register',
-            item: calculatedProductName,
-            amount: price,
-            paymentMethod: paymentMethod,
-            date: new Date().toISOString(),
-            startDate: startDate,
-            endDate: calculatedEndDate
-        };
+        isSubmittingRef.current = true;
+        setIsSubmitting(true);
+        try {
+            const salesData = {
+                memberId: member.id,
+                memberName: member.name,
+                type: 'register',
+                item: calculatedProductName,
+                amount: price,
+                paymentMethod: paymentMethod,
+                date: new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }),
+                startDate: startDate,
+                endDate: calculatedEndDate
+            };
 
-        if (onAddSalesRecord) await onAddSalesRecord(salesData);
+            if (onAddSalesRecord) await onAddSalesRecord(salesData);
 
-        const updateData = {
-            membershipType: membershipType,
-            credits: calculatedCredits,
-            endDate: calculatedEndDate,
-            lastPaymentDate: new Date().toISOString()
-        };
+            const updateData = {
+                membershipType: membershipType,
+                credits: calculatedCredits,
+                startDate: startDate,
+                endDate: calculatedEndDate,
+                lastPaymentDate: new Date().toISOString()
+            };
 
-        await onUpdateMember(member.id, updateData);
-        alert('등록이 완료되었습니다.');
+            await onUpdateMember(member.id, updateData);
+            alert('등록이 완료되었습니다.');
+        } catch (err) {
+            console.error('Registration error:', err);
+            alert('등록 중 오류가 발생했습니다.');
+        } finally {
+            setIsSubmitting(false);
+            isSubmittingRef.current = false;
+        }
     };
 
     return (
@@ -205,13 +220,15 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
 
                     <button
                         onClick={handleRenew}
+                        disabled={isSubmitting}
                         style={{
                             padding: '18px', borderRadius: '12px', border: 'none',
-                            background: 'var(--primary-gold)', color: 'black',
-                            fontWeight: 'bold', fontSize: '1.1rem', marginTop: '10px'
+                            background: isSubmitting ? '#555' : 'var(--primary-gold)', color: 'black',
+                            fontWeight: 'bold', fontSize: '1.1rem', marginTop: '10px',
+                            opacity: isSubmitting ? 0.6 : 1, cursor: isSubmitting ? 'not-allowed' : 'pointer'
                         }}
                     >
-                        등록 하기
+                        {isSubmitting ? '처리 중...' : '등록 하기'}
                     </button>
                 </>
             ) : (

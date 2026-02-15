@@ -163,3 +163,31 @@ export const isWeekend = (dateStr) => {
     const day = getDayName(dateStr);
     return day === '토' || day === '일';
 };
+
+/**
+ * KST 기준 현재 시(Hour)를 반환 (0-23)
+ * @returns {number}
+ */
+export const getKSTHour = () => {
+    const options = { timeZone: 'Asia/Seoul', hour: 'numeric', hour12: false };
+    const hourStr = new Intl.DateTimeFormat('en-US', options).format(new Date());
+    return parseInt(hourStr);
+};
+
+/**
+ * KST 기준 현재 분(Minute)을 반환 (0-59)
+ * @returns {number}
+ */
+export const getKSTMinutes = () => {
+    const options = { timeZone: 'Asia/Seoul', minute: 'numeric' };
+    const minuteStr = new Intl.DateTimeFormat('en-US', options).format(new Date());
+    return parseInt(minuteStr);
+};
+
+/**
+ * KST 기준 현재 총 분(Total Minutes)을 반환 (Hour * 60 + Minute)
+ * @returns {number}
+ */
+export const getKSTTotalMinutes = () => {
+    return getKSTHour() * 60 + getKSTMinutes();
+};
