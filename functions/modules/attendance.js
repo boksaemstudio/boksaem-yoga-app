@@ -146,7 +146,7 @@ exports.checkInMemberV2Call = onCall({
             branchId,
             date: today,
             className: classTitle || '자율수련',
-            instructor: instructor || '관리자',
+            instructor: instructor || '미지정',
             timestamp: new Date().toISOString(),
             sessionNumber: sessionCount,
             status: attendanceStatus // 'valid' or 'denied'

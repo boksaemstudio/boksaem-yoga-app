@@ -119,9 +119,10 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                 </div>
                 <div style={{ marginTop: '10px' }}>
                     {(() => {
-                        const filteredLogs = selectedClassKey
+                        const filteredLogs = (selectedClassKey
                             ? logs.filter(l => `${l.className || '일반'}-${l.instructor || '선생님'}-${l.branchId}` === selectedClassKey)
-                            : logs;
+                            : logs
+                        ).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
                         const itemsPerPage = 15;
                         const startIndex = (currentLogPage - 1) * itemsPerPage;

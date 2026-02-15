@@ -304,7 +304,7 @@ export const storageService = {
       const checkInMember = httpsCallable(functions, 'checkInMemberV2Call');
       const currentClassInfo = await this.getCurrentClass(branchId);
       const classTitle = currentClassInfo?.title || '자율수련';
-      const instructor = currentClassInfo?.instructor || '관리자';
+      const instructor = currentClassInfo?.instructor || '미지정';
       // [NETWORK] Apply timeout to prevent infinite waiting on slow networks
       const response = await withTimeout(
         checkInMember({ memberId, branchId, classTitle, instructor }),
@@ -456,15 +456,34 @@ export const storageService = {
       }
     }
 
+    // Rule 4: Post-Class Grace Period (30 mins after end)
+    // If no class matched via Rules 1-3, check if we just missed a class
+    if (!selectedClass) {
+      for (let i = classes.length - 1; i >= 0; i--) {
+        const cls = classes[i];
+        const duration = cls.duration || 60;
+        const [h, m] = cls.time.split(':').map(Number);
+        const endMinutes = (h * 60 + m) + duration;
+
+        // If current time is within 30 mins after class ended
+        if (currentMinutes >= endMinutes && currentMinutes <= endMinutes + 30) {
+          selectedClass = cls;
+          logicReason = `수업 종료 직후: ${cls.time} (종료 ${currentMinutes - endMinutes}분 경과)`;
+          break;
+        }
+      }
+    }
+
     if (selectedClass) {
        console.log(`[SmartAttendance] Matched: ${selectedClass.title} (${logicReason})`);
        return { 
          title: selectedClass.title, 
          instructor: selectedClass.instructor,
-         debugReason: logicReason // For UI display if needed
+         debugReason: logicReason
        };
     }
 
+    console.log(`[SmartAttendance] No match found. currentMinutes=${currentMinutes}, classes=${classes.map(c => c.time + '(' + c.title + ')').join(', ')}`);
     return null;
   },
 
@@ -1409,12 +1428,12 @@ export const storageService = {
             const matchedClass = dayClasses.find(cls => {
               if (!cls.time || cls.status === 'cancelled') return false;
               const [classHour, classMinute] = cls.time.split(':').map(Number);
-              const classTimeMins = classHour * 60 + classMinute;
+              const classStartMins = classHour * 60 + classMinute;
+              const classDuration = cls.duration || 60;
+              const classEndMins = classStartMins + classDuration;
 
-              // Match if within 40 minutes range (e.g., 20 mins before to 20 mins after start)
-              // or strictly during the class duration
-              const diff = Math.abs(requestTimeMins - classTimeMins);
-              return diff <= 30; // 30 minutes tolerance
+              // Match: 30 mins before start ~ 30 mins after end
+              return requestTimeMins >= classStartMins - 30 && requestTimeMins <= classEndMins + 30;
             });
 
             if (matchedClass) {

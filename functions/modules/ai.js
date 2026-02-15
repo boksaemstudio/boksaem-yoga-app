@@ -31,6 +31,14 @@ exports.generatePageExperienceV2 = onCall({
         role = 'visitor';
     }
 
+    // [DEBUG] Log AI Request
+    await logAIRequest('experience', memberName, { 
+        role, type, language, timeOfDay, weather 
+    }, {
+        uid: request.auth?.uid || 'anonymous',
+        ip: request.rawRequest ? request.rawRequest.ip : 'unknown'
+    });
+
     try {
         const ai = getAI();
         const targetLang = ai.getLangName(language);

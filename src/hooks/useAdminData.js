@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { storageService } from '../services/storage';
 
 
@@ -14,6 +14,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
     const [stats, setStats] = useState({ byTime: [], bySubject: [] });
     const [aiInsight, setAiInsight] = useState(null);
     const [loadingInsight, setLoadingInsight] = useState(false);
+    const loadingRef = useRef(false); // [FIX] Use Ref to prevent dependency loop
     const [images, setImages] = useState({});
     const [optimisticImages, setOptimisticImages] = useState({});
     const [todayClasses, setTodayClasses] = useState([]);
@@ -89,8 +90,10 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
     }, []);
 
     const loadAIInsight = useCallback(async (members, logs, currentSummary, currentTodayClasses) => {
-        if (loadingInsight) return;
+        if (loadingRef.current) return; // Check Ref
+        loadingRef.current = true;      // Set Ref
         setLoadingInsight(true);
+        
         try {
             const statsData = {
                 activeCount: currentSummary.activeMembers,
@@ -121,9 +124,10 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             const fallbackMsg = `현재 ${currentSummary.activeMembers}명의 회원이 활동 중이며, 오늘 ${currentSummary.todayAttendance}명이 출석했습니다. 안정적인 센터 운영이 이어지고 있습니다.`;
             setAiInsight({ message: fallbackMsg, isFallback: true });
         } finally {
+            loadingRef.current = false; // Reset Ref
             setLoadingInsight(false);
         }
-    }, [loadingInsight]);
+    }, []); // Removed [loadingInsight] dependency to prevent loop
 
     const refreshData = useCallback(async () => {
         console.time('[Admin] refreshData');
