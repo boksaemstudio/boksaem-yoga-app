@@ -10,16 +10,15 @@ function ReloadPrompt() {
   } = useRegisterSW({
     onRegistered(r) {
       console.log('SW Registered: ' + r);
-      // [NEW] Check for updates every 10 minutes
       if (r) {
         // 1. Check immediately on load
         r.update();
 
-        // 2. Check every 1 minute (Aggressive update for debugging)
+        // 2. Check every 10 minutes (stabilized from 1min)
         setInterval(() => {
           console.log('Checking for SW update (Interval)...');
           r.update();
-        }, 60 * 1000);
+        }, 10 * 60 * 1000);
 
         // 3. Check when window comes back to foreground
         document.addEventListener('visibilitychange', () => {
@@ -36,6 +35,21 @@ function ReloadPrompt() {
   });
 
   if (closed || !needRefresh) return null;
+
+  // [ALWAYS-ON] 키오스크(/) 경로에서는 자동으로 SW 업데이트 적용
+  const isKiosk = window.location.pathname === '/';
+  if (isKiosk && needRefresh) {
+    console.log('[AlwaysOn] Kiosk mode: Auto-applying SW update...');
+    // 약간의 딜레이 후 자동 업데이트 (렌더링 안정성)
+    setTimeout(async () => {
+      try {
+        await updateServiceWorker(true);
+      } catch {
+        window.location.reload();
+      }
+    }, 3000);
+    return null; // 키오스크에서는 프롬프트 표시하지 않음
+  }
 
   const handleRefresh = async () => {
     console.log('ReloadPrompt: Refresh requested by user.');

@@ -416,6 +416,111 @@ const CheckInPage = () => {
         };
     }, []);
 
+    // ============================================================
+    // [ALWAYS-ON GUARD SYSTEM] 키오스크 앱 꺼짐 방지
+    // ============================================================
+
+    // [GUARD 1] 탭 절전 복구 (visibilitychange)
+    // 태블릿 화면이 꺼졌다 켜지면 캐시 재로드 + 장시간 절전 시 새로고침
+    useEffect(() => {
+        let lastActiveTime = Date.now();
+
+        const handleVisibilityChange = async () => {
+            if (document.visibilityState === 'visible') {
+                const sleepDuration = Date.now() - lastActiveTime;
+                const sleepMinutes = Math.round(sleepDuration / 60000);
+                console.log(`[AlwaysOn] Tab woke up after ${sleepMinutes}m`);
+
+                // 5분 이상 잠들었으면 전체 새로고침 (Firestore 연결 불안정)
+                if (sleepDuration > 5 * 60 * 1000) {
+                    console.log('[AlwaysOn] Long sleep detected, reloading page...');
+                    window.location.reload();
+                    return;
+                }
+
+                // 1분 이상 잠들었으면 캐시만 갱신
+                if (sleepDuration > 60 * 1000) {
+                    try {
+                        console.log('[AlwaysOn] Refreshing cache after short sleep...');
+                        await storageService.loadAllMembers();
+                        fetchWeatherAndAI();
+                    } catch (e) {
+                        console.warn('[AlwaysOn] Cache refresh failed:', e);
+                    }
+                }
+            } else {
+                lastActiveTime = Date.now();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // [GUARD 2] 화면 절전 방지 (Wake Lock API)
+    // 브라우저가 화면을 끄지 않도록 요청
+    useEffect(() => {
+        let wakeLock = null;
+
+        const requestWakeLock = async () => {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('[AlwaysOn] Wake Lock acquired ✅');
+                    wakeLock.addEventListener('release', () => {
+                        console.log('[AlwaysOn] Wake Lock released, re-acquiring...');
+                        // 자동 재획득
+                        setTimeout(requestWakeLock, 1000);
+                    });
+                }
+            } catch (e) {
+                console.log('[AlwaysOn] Wake Lock not supported or failed:', e.message);
+            }
+        };
+
+        requestWakeLock();
+
+        // visibilitychange 시 Wake Lock 재획득 (앱 포커스 되돌아올 때)
+        const handleWakeLockVisibility = () => {
+            if (document.visibilityState === 'visible') {
+                requestWakeLock();
+            }
+        };
+        document.addEventListener('visibilitychange', handleWakeLockVisibility);
+
+        return () => {
+            if (wakeLock) wakeLock.release().catch(() => {});
+            document.removeEventListener('visibilitychange', handleWakeLockVisibility);
+        };
+    }, []);
+
+    // [GUARD 3] 주기적 건강 체크 (Heartbeat)
+    // 3분마다 앱 상태 확인, 비정상 시 자동 새로고침
+    useEffect(() => {
+        let heartbeatCount = 0;
+
+        const heartbeat = setInterval(() => {
+            heartbeatCount++;
+            const rootEl = document.getElementById('root');
+
+            // DOM이 사라졌으면 앱이 죽은 것
+            if (!rootEl || !rootEl.children || rootEl.children.length === 0) {
+                console.error('[AlwaysOn] Heartbeat: DOM dead, reloading...');
+                window.location.reload();
+                return;
+            }
+
+            // 매 30번째(~90분)마다 예방적 캐시 갱신
+            if (heartbeatCount % 30 === 0) {
+                console.log('[AlwaysOn] Heartbeat: Preventive cache refresh');
+                storageService.loadAllMembers().catch(() => {});
+            }
+        }, 3 * 60 * 1000); // 3분
+
+        return () => clearInterval(heartbeat);
+    }, []);
+
     const loadAIExperience = async (memberName = "방문 회원", credits = null, remainingDays = null, currentWeatherData = null) => {
         const isStandby = memberName === "방문 회원" || memberName === "visitor";
 

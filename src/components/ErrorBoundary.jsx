@@ -37,6 +37,42 @@ class ErrorBoundary extends Component {
 
     render() {
         if (this.state.hasError) {
+            // [ALWAYS-ON] 키오스크(/) 경로에서는 10초 후 자동 새로고침
+            const isKiosk = window.location.pathname === '/';
+            if (isKiosk) {
+                const reloadCount = parseInt(sessionStorage.getItem('eb_reload_count') || '0');
+                if (reloadCount < 3) {
+                    sessionStorage.setItem('eb_reload_count', String(reloadCount + 1));
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 10000);
+                    // 30초 후 카운터 리셋 (정상 부팅 시)
+                    setTimeout(() => {
+                        sessionStorage.removeItem('eb_reload_count');
+                    }, 30000);
+                }
+
+                return (
+                    <div style={{ padding: '40px', color: '#ff6b6b', background: '#121212', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                        <div>
+                            <h1 style={{ marginBottom: '20px', fontSize: '2rem' }}>⚠️ 시스템 오류 발생</h1>
+                            <p style={{ color: 'white', marginBottom: '10px', fontSize: '1.2rem' }}>잠시 후 자동으로 복구됩니다...</p>
+                            <p style={{ color: '#888', fontSize: '0.9rem' }}>
+                                {reloadCount < 3 ? '10초 후 자동 새로고침' : '자동 복구 시도 횟수 초과'}
+                            </p>
+                            <div style={{ marginTop: '30px' }}>
+                                <button
+                                    onClick={() => window.location.reload()}
+                                    style={{ padding: '12px 24px', background: '#ff6b6b', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }}
+                                >
+                                    지금 새로고침
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
             // 폴백 UI를 커스텀하여 렌더링할 수 있습니다.
             return (
                 <div style={{ padding: '40px', color: '#ff6b6b', background: '#121212', height: '100vh', overflow: 'auto', fontFamily: 'monospace' }}>

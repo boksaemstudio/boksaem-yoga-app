@@ -54,12 +54,50 @@ try {
   );
 
 
-  // [SAFETY] Global Async Error Handler
+  // [SAFETY] Global Async Error Handler - Enhanced with auto-recovery for kiosk
   window.addEventListener('unhandledrejection', (event) => {
     console.warn('[Global Safety] Unhandled Promise Rejection:', event.reason);
-    // Prevent default if you want to suppress console error, but usually better to log it.
-    // We could forward this to an error reporting service here.
+    
+    // [ALWAYS-ON] 키오스크(/) 경로에서 치명적 에러 시 자동 복구
+    const isKiosk = window.location.pathname === '/';
+    const errorMsg = String(event.reason?.message || event.reason || '');
+    const isFatal = errorMsg.includes('ChunkLoadError') || 
+                    errorMsg.includes('Failed to fetch') ||
+                    errorMsg.includes('Loading chunk') ||
+                    errorMsg.includes('dynamically imported module');
+    
+    if (isKiosk && isFatal) {
+      const reloadCount = parseInt(sessionStorage.getItem('auto_reload_count') || '0');
+      if (reloadCount < 3) {
+        sessionStorage.setItem('auto_reload_count', String(reloadCount + 1));
+        console.error('[AlwaysOn] Fatal error on kiosk, auto-reloading in 5s... (attempt ' + (reloadCount + 1) + '/3)');
+        setTimeout(() => window.location.reload(), 5000);
+      } else {
+        console.error('[AlwaysOn] Max reload attempts reached. Stopping auto-recovery.');
+      }
+    }
   });
+
+  // [ALWAYS-ON] Global Sync Error Handler
+  window.onerror = (message, source, lineno, colno, error) => {
+    console.error('[Global Safety] Uncaught Error:', message, source, lineno);
+    
+    const isKiosk = window.location.pathname === '/';
+    if (isKiosk) {
+      const reloadCount = parseInt(sessionStorage.getItem('auto_reload_count') || '0');
+      if (reloadCount < 3) {
+        sessionStorage.setItem('auto_reload_count', String(reloadCount + 1));
+        console.error('[AlwaysOn] Fatal sync error on kiosk, auto-reloading in 5s...');
+        setTimeout(() => window.location.reload(), 5000);
+      }
+    }
+    return false; // Don't suppress default error reporting
+  };
+
+  // [ALWAYS-ON] Reset reload counter after successful boot (30s stability window)
+  setTimeout(() => {
+    sessionStorage.removeItem('auto_reload_count');
+  }, 30000);
 
   /* 
    * [PWA CONFLICT REMOVED] 
