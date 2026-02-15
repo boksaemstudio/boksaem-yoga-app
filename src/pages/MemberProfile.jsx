@@ -31,7 +31,7 @@ import ProfileTabs from '../components/profile/ProfileTabs';
 import { profileStyles } from '../components/profile/profileStyles';
 import MyStatsChart from '../components/profile/MyStatsChart';
 import MessagesTab from '../components/profile/MessagesTab';
-import { getDaysRemaining } from '../utils/dates';
+import { getDaysRemaining, getKSTHour } from '../utils/dates';
 import ImageLightbox from '../components/common/ImageLightbox';
 
 // Safe localStorage wrapper with error handling

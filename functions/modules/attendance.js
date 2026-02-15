@@ -62,9 +62,8 @@ const generateEventMessage = (eventType, context) => {
  */
 exports.checkInMemberV2Call = onCall({ 
     cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173'],
-    minInstances: 0  // [PERF] 테스트 중 비용 방지 (프로덕션: 1로 변경하면 Cold Start 방지)
+    minInstances: 0
 }, async (request) => {
-    // [PERF] Warm-up / Keep-alive Ping
     if (request.data.ping) {
         return { success: true, message: 'pong', timestamp: Date.now() };
     }
@@ -77,149 +76,163 @@ exports.checkInMemberV2Call = onCall({
     }
 
     try {
-        const memberRef = db.collection('members').doc(memberId);
-        const memberSnap = await memberRef.get();
-        
-        if (!memberSnap.exists) {
-            throw new HttpsError('not-found', '회원을 찾을 수 없습니다.');
-        }
-
-        const memberData = memberSnap.data();
-        const currentCredits = memberData.credits || 0;
-        const currentCount = memberData.attendanceCount || 0;
-        
-        // [FIX] Attendance Status Logic (Full Audit)
-        let attendanceStatus = 'valid'; // Default
-        let denialReason = null;
-        const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-
-        // 1. Check Expiration
-        if (memberData.endDate) {
-            const todayDate = new Date(today);
-            const endDate = new Date(memberData.endDate);
-            if (todayDate > endDate) {
-                attendanceStatus = 'denied';
-                denialReason = 'expired';
-            }
-        }
-
-        // [FIX] Defensive check for NaN/Infinity
-        if (!Number.isFinite(currentCredits)) {
-             console.warn(`[Attendance] Invalid credits for ${memberId}: ${currentCredits}. Resetting to 0.`);
-             // We don't overwrite the DB here to preserve evidence, but treat as 0 for logic
-        }
-        const safeCredits = Number.isFinite(currentCredits) ? currentCredits : 0;
-
-        // 2. Check Credits (Only if not already denied by expiration)
-        if (attendanceStatus === 'valid' && safeCredits <= 0) {
-            attendanceStatus = 'denied';
-            denialReason = 'no_credits';
-        }
-
-        // [PERF] 중복 확인과 streak 계산용 쿼리를 병렬로 실행 (~200ms 절약)
-        // [FIX] classTitle이 undefined일 경우 쿼리 에러 방지
-        let existingQuery = db.collection('attendance')
-            .where('memberId', '==', memberId)
-            .where('date', '==', today);
-        
-        if (classTitle) {
-            existingQuery = existingQuery.where('className', '==', classTitle);
-        }
-
-        const [existingSnap, recentAttendanceSnap] = await Promise.all([
-            existingQuery.limit(1).get(),
-            db.collection('attendance')
-                .where('memberId', '==', memberId)
-                // .where('status', '==', 'valid') // [FIX] 인덱스 없음 에러 방지 (메모리 필터링으로 대체)
-                .orderBy('timestamp', 'desc')
-                .limit(30)
-                .get()
-        ]);
-
-        const isMultiSession = !existingSnap.empty;
-        const sessionCount = isMultiSession ? existingSnap.size + 1 : 1;
-
-        // Create attendance record (Record even if denied!)
-        const attendanceData = {
-            memberId,
-            memberName: memberData.name, // ✅ Added for log transparency
-            branchId,
-            date: today,
-            className: classTitle || '자율수련',
-            instructor: instructor || '미지정',
-            timestamp: new Date().toISOString(),
-            sessionNumber: sessionCount,
-            status: attendanceStatus // 'valid' or 'denied'
-        };
-
-        if (denialReason) {
-            attendanceData.denialReason = denialReason;
-        }
-
-        // [NEW] Include credits and expiry for instructor view
-        attendanceData.credits = attendanceStatus === 'valid' ? safeCredits - 1 : safeCredits;
-        attendanceData.startDate = memberData.startDate;
-        attendanceData.endDate = memberData.endDate;
-        attendanceData.cumulativeCount = attendanceStatus === 'valid' ? currentCount + 1 : currentCount;
-
-        const docRef = await db.collection('attendance').add(attendanceData);
-
-        // Update member stats ONLY if valid
-        let newCredits = currentCredits;
-        let newCount = currentCount;
-        let streak = memberData.streak || 0;
-        let startDate = memberData.startDate;
-        let endDate = memberData.endDate;
-
-        if (attendanceStatus === 'valid') {
-            newCredits = safeCredits - 1;
-            newCount = currentCount + 1;
+        return await db.runTransaction(async (transaction) => {
+            const memberRef = db.collection('members').doc(memberId);
+            const memberSnap = await transaction.get(memberRef);
             
-            // [PERF] streak 계산에 이미 가져온 recentAttendanceSnap 재사용
-            const records = recentAttendanceSnap.docs.map(d => d.data()).filter(r => r.status === 'valid');
-            streak = calculateStreak(records, today);
-            if (!Number.isFinite(streak)) streak = 1; // [FIX] Prevent Infinity
-
-            // Handle TBD dates or missing end date (auto-activate on first attendance)
-            if (startDate === 'TBD' || !startDate || !memberData.endDate) {
-                startDate = today;
-                // Calculate end date based on typical membership (30 days)
-                // TODO: If member has 'months' field, calculate based on that. Defaulting to 30 days.
-                const end = new Date();
-                end.setDate(end.getDate() + 30);
-                endDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            if (!memberSnap.exists) {
+                throw new HttpsError('not-found', '회원을 찾을 수 없습니다.');
             }
 
-            await memberRef.update({
-                credits: newCredits,
+            const memberData = memberSnap.data();
+            
+            // [CRITICAL] Check for Duplicates (Idempotency) inside Transaction
+            // Same member, same date, within last 5 minutes = Duplicate
+            const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            const now = new Date();
+            const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000).toISOString();
+
+            // Note: We can't do complex queries inside transaction easily without index, 
+            // but we can query by ID if we had a deterministic ID. 
+            // Since we don't, we'll do a query. Firestore allows reads before writes.
+            const duplicateQuery = db.collection('attendance')
+                .where('memberId', '==', memberId)
+                .where('date', '==', today)
+                .where('timestamp', '>=', fiveMinutesAgo);
+            
+            const duplicateSnap = await transaction.get(duplicateQuery);
+            
+            if (!duplicateSnap.empty) {
+                // If duplicate found, return the EXISTING success response (Idempotent)
+                const existing = duplicateSnap.docs[0].data();
+                console.log(`[Attendance] Duplicate check-in blocked for ${memberId}`);
+                return {
+                    success: true,
+                    message: '이미 출석 처리되었습니다.',
+                    attendanceStatus: existing.status,
+                    newCredits: memberData.credits,
+                    attendanceCount: memberData.attendanceCount,
+                    isDuplicate: true
+                };
+            }
+
+            // --- Normal Logic starts here ---
+            const currentCredits = memberData.credits || 0;
+            const currentCount = memberData.attendanceCount || 0;
+            
+            let attendanceStatus = 'valid';
+            let denialReason = null;
+
+            // 1. Check Expiration
+            if (memberData.endDate) {
+                const todayDate = new Date(today);
+                const endDate = new Date(memberData.endDate);
+                if (todayDate > endDate) {
+                    attendanceStatus = 'denied';
+                    denialReason = 'expired';
+                }
+            }
+
+            const safeCredits = Number.isFinite(currentCredits) ? currentCredits : 0;
+
+            // 2. Check Credits
+            if (attendanceStatus === 'valid' && safeCredits <= 0) {
+                attendanceStatus = 'denied';
+                denialReason = 'no_credits';
+            }
+
+            // Get Recent Attendance for Streak (Non-transactional read is okay for this, or execute outside)
+            // Ideally we should do this query. For simplicity and limit, we do it here.
+            // Transaction requires all reads before writes.
+            const recentSnap = await transaction.get(
+                db.collection('attendance')
+                    .where('memberId', '==', memberId)
+                    .orderBy('timestamp', 'desc')
+                    .limit(30)
+            );
+
+            // Calculate Multi-session status based on TODAY's records (excluding the one we just checked for dupes)
+            // We already queried for duplicates (last 5 mins). Now we need ALL today's records for session count.
+            // We can reuse the duplicate query if we widen it, but for simplicity let's stick to logic.
+            // Actually, to get session count, we need all records for today.
+            const todaySnap = await transaction.get(
+                db.collection('attendance')
+                    .where('memberId', '==', memberId)
+                    .where('date', '==', today)
+            );
+            
+            const isMultiSession = !todaySnap.empty;
+            const sessionCount = isMultiSession ? todaySnap.size + 1 : 1;
+
+            const attendanceData = {
+                memberId,
+                memberName: memberData.name, 
+                branchId,
+                date: today,
+                className: classTitle || '자율수련',
+                instructor: instructor || '미지정',
+                timestamp: now.toISOString(),
+                sessionNumber: sessionCount,
+                status: attendanceStatus
+            };
+
+            if (denialReason) attendanceData.denialReason = denialReason;
+
+            attendanceData.credits = attendanceStatus === 'valid' ? safeCredits - 1 : safeCredits;
+            attendanceData.startDate = memberData.startDate;
+            attendanceData.endDate = memberData.endDate;
+            attendanceData.cumulativeCount = attendanceStatus === 'valid' ? currentCount + 1 : currentCount;
+
+            const newAttRef = db.collection('attendance').doc();
+            transaction.set(newAttRef, attendanceData);
+
+            let newCredits = safeCredits;
+            let newCount = currentCount;
+            let streak = memberData.streak || 0;
+            let startDate = memberData.startDate;
+            let endDate = memberData.endDate;
+
+            if (attendanceStatus === 'valid') {
+                newCredits = safeCredits - 1;
+                newCount = currentCount + 1;
+                
+                const records = recentSnap.docs.map(d => d.data()).filter(r => r.status === 'valid');
+                streak = calculateStreak(records, today);
+                if (!Number.isFinite(streak)) streak = 1;
+
+                if (startDate === 'TBD' || !startDate || !memberData.endDate) {
+                    startDate = today;
+                    const end = new Date();
+                    end.setDate(end.getDate() + 30);
+                    endDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                }
+
+                transaction.update(memberRef, {
+                    credits: newCredits,
+                    attendanceCount: newCount,
+                    streak: streak,
+                    startDate: startDate,
+                    endDate: endDate,
+                    lastAttendance: now.toISOString()
+                });
+            } else {
+                 console.log(`[Attendance] Denied check-in for ${memberId}: ${denialReason}`);
+            }
+
+            return {
+                success: true,
+                attendanceStatus,
+                denialReason,
+                newCredits,
                 attendanceCount: newCount,
-                streak: streak,
-                startDate: startDate,
-                endDate: endDate,
-                lastAttendance: new Date().toISOString()
-            });
-
-            // Trigger Analysis only for valid attendance
-            // (onAttendanceCreated trigger will handle this, but we might want to skip analysis for denied logs there too)
-        } else {
-             // For denied logs, we might just update lastAttemptedAttendance or similar if needed, 
-             // but for now, we just log the attempt in 'attendance' collection.
-             console.log(`[Attendance] Denied check-in for ${memberId}: ${denialReason}`);
-        }
-
-        return {
-            success: true,
-            attendanceStatus, // 'valid' | 'denied'
-            denialReason,     // 'expired' | 'no_credits' | null
-            newCredits,
-            attendanceCount: newCount,
-            streak,
-            startDate,
-            endDate,
-            memberName: memberData.name,
-            isMultiSession,
-            sessionCount
-        };
+                streak,
+                startDate,
+                endDate,
+                memberName: memberData.name,
+                isMultiSession,
+                sessionCount
+            };
+        });
 
     } catch (error) {
         if (error.code) throw error;

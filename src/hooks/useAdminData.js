@@ -159,8 +159,25 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         setPushTokens(tokensResult);
         setAiUsage(usageResult);
 
-        // [FIX] Ensure Unique Members by ID (Prevent UI Duplicates)
-        const uniqueMembers = Array.from(new Map(currentMembers.map(m => [m.id, m])).values());
+        // [FIX] Ensure Unique Members by ID (Prevent UI Duplicates) & Enrich with Install Date
+        const memberInstallDate = {};
+        if (tokensResult) {
+            tokensResult.forEach(t => {
+                if (!t.memberId) return;
+                const date = t.createdAt || null; // Only count tracked installs with createdAt
+                if (date) {
+                    if (!memberInstallDate[t.memberId] || date > memberInstallDate[t.memberId]) {
+                        memberInstallDate[t.memberId] = date;
+                    }
+                }
+            });
+        }
+
+        const uniqueMembers = Array.from(new Map(currentMembers.map(m => [m.id, m])).values())
+            .map(m => ({
+                ...m,
+                installedAt: memberInstallDate[m.id] || null
+            }));
 
         setMembers(uniqueMembers);
         setLogs([...currentLogs]); // Force new reference
@@ -265,6 +282,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
                 if (currentBranch !== 'all' && m.homeBranch !== currentBranch) return;
                 allRevenueItems.push({
                     id: m.id,
+                    memberId: m.id, // [Fix] Explicit memberId
                     date: m.regDate, // 'YYYY-MM-DD'
                     amount: amt,
                     name: m.name,
@@ -295,6 +313,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
             allRevenueItems.push({
                 id: s.id,
+                memberId: s.memberId, // [Fix] Explicit memberId
                 date: dateStr,
                 amount: Number(s.amount) || 0,
                 name: s.memberName,
@@ -304,19 +323,45 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         });
 
         // [Fix] Deduplicate: Remove 'legacy' item if a 'register' item exists for same member on same date
+        // AND remove duplicate sales items if they exist matches (MemberId + Date + Amount)
+        
+        // [Fix V4] Resolve Member IDs for Sales Items that lack them (backward compatibility)
+        const memberNameMap = new Map();
+        members.forEach(m => memberNameMap.set(m.name, m.id));
+
         const uniqueRevenueItems = [];
         const salesKeys = new Set(
             allRevenueItems
                 .filter(i => i.type !== 'legacy')
-                .map(i => `${i.name}-${i.date}`)
+                .map(i => {
+                     const resolvedId = i.memberId || memberNameMap.get(i.name);
+                     return `${resolvedId}-${i.date}`;
+                })
         );
 
+        const seenKeys = new Set();
+
         allRevenueItems.forEach(item => {
+            const resolvedMemberId = item.memberId || memberNameMap.get(item.name);
+
+            // 1. Legacy Deduplication
             if (item.type === 'legacy') {
-                const key = `${item.name}-${item.date}`;
+                const key = `${item.memberId}-${item.date}`;
                 if (salesKeys.has(key)) return; // Skip legacy if sale exists
             }
-            uniqueRevenueItems.push(item);
+
+            // 2. Self Deduplication
+            // Key: MemberId + Date + Amount
+            const uniqueKey = `${resolvedMemberId}-${item.date}-${item.amount}`;
+            if (seenKeys.has(uniqueKey)) return;
+            seenKeys.add(uniqueKey);
+
+            // Attach resolved ID if missing
+            if (!item.memberId && resolvedMemberId) {
+                uniqueRevenueItems.push({ ...item, memberId: resolvedMemberId });
+            } else {
+                uniqueRevenueItems.push(item);
+            }
         });
 
         const todayRevenue = uniqueRevenueItems
@@ -355,7 +400,18 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             
             // [New] App Installation Stats
             installedCount: uniqueMembers.filter(m => isMemberInBranch(m) && tokensResult.some(t => t.memberId === m.id)).length,
-            pushEnabledCount: uniqueMembers.filter(m => isMemberInBranch(m) && tokensResult.some(t => t.memberId === m.id) && m.pushEnabled !== false).length
+            todayInstalledCount: uniqueMembers.filter(m => {
+                if (!isMemberInBranch(m)) return false;
+                const installDate = m.installedAt;
+                if (!installDate) return false;
+                const kstDate = new Date(installDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                return kstDate === todayStr;
+            }).length,
+            pushEnabledCount: uniqueMembers.filter(m => isMemberInBranch(m) && tokensResult.some(t => t.memberId === m.id) && m.pushEnabled !== false).length,
+            
+            // [New] Ratios for UI
+            installRatio: activeMembers > 0 ? Math.round((uniqueMembers.filter(m => isMemberInBranch(m) && tokensResult.some(t => t.memberId === m.id)).length / activeMembers) * 100) : 0,
+            reachableRatio: activeMembers > 0 ? Math.round((uniqueMembers.filter(m => isMemberInBranch(m) && tokensResult.some(t => t.memberId === m.id) && m.pushEnabled !== false).length / activeMembers) * 100) : 0
         };
         setSummary(newSummary);
 
@@ -374,10 +430,15 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
                     className: log.className || '일반',
                     instructor: log.instructor || '선생님',
                     branchId: log.branchId,
-                    count: 0
+                    count: 0,
+                    deniedCount: 0
                 };
             }
-            classGroups[key].count++;
+            if (log.status === 'denied') {
+                classGroups[key].deniedCount++;
+            } else {
+                classGroups[key].count++;
+            }
         });
         const newTodayClasses = Object.values(classGroups).sort((a, b) => b.count - a.count);
         setTodayClasses(newTodayClasses);

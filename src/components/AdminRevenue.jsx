@@ -1,92 +1,40 @@
 import { useState, useMemo } from 'react';
 import { CaretLeft, CaretRight, Calendar as CalendarIcon } from '@phosphor-icons/react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { getHolidayName } from '../utils/holidays';
 
 const AdminRevenue = ({ members, sales, currentBranch }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
 
     // 1. Data Merging & Processing
-    const { dailyStats, monthlyStats, comparativeStats, recentTrend } = useMemo(() => {
+    const { dailyStats, monthlyStats, comparativeStats, recentTrend, monthlyTrend } = useMemo(() => {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth() + 1;
         const monthStr = `${year}-${String(month).padStart(2, '0')}`;
 
-        // Map legacy members to "Sales Item" format if not already in sales
-        // Strategy: Use 'sales' as primary. If 'sales' is empty, maybe fallback?
-        // Actually, let's merge. 
-        // Create a map of existing sales IDs to avoid duplicates if we were to backfill.
-        // But since we didn't backfill, 'sales' only has NEW data.
-        // 'members' has regDate. We can treat 'members' with valid regDate as a sale.
-
         const allItems = [];
+        const salesKeySet = new Set(); // Format: `${memberId}_${date}`
 
-        // Legacy Members Data
-        (members || []).forEach(m => {
-            const amt = Number(m.amount) || 0;
-            if (m.regDate && amt > 0) {
-                // If this member transaction is already in 'sales' (by some ID check?), skip. 
-                // Since strictly disparate now (new vs old), just add.
-                // Filter by Branch
-                if (currentBranch !== 'all' && m.homeBranch !== currentBranch) return;
-
-                allItems.push({
-                    id: m.id,
-                    date: m.regDate, // 'YYYY-MM-DD'
-                    amount: amt,
-                    name: m.name,
-                    type: 'legacy',
-                    item: m.subject || '수강권'
-                });
-            }
-        });
-
-        // New Sales Data
+        // 1. Process New Sales Data First (Primary Source)
         (sales || []).forEach(s => {
-            // Filter by Branch? Sales record might need branch info.
-            // If sales record doesn't have branch, we might need to lookup member? 
-            // Assume 'sales' records belong to the branch where the admin is logged in?
-            // Or we need to fetch member branch.
-            // For now, let's assume we show all or filter if we have branch data.
-            // *Optimization*: Let's assume for now we show all or filter if we have branch data.
-            // 'sales' doc doesn't have 'branch'. We should probably add it.
-            // For this iteration, let's include all sales (or rely on admin seeing their logic).
-            // Wait, 'members' are passed in. We can find branch from members array!
-
             const member = (members || []).find(m => m.id === s.memberId);
             if (currentBranch !== 'all' && member && member.homeBranch !== currentBranch) return;
 
-            // Check if dates match 'YYYY-MM-DD' (KST 기준)
             if (!s.date) return;
             let dateStr;
             if (s.date.includes('T')) {
-                // ISO UTC → KST 변환
                 const d = new Date(s.date);
                 dateStr = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
             } else {
                 dateStr = s.date;
             }
 
-            // Avoid double counting if we just added this via 'members' loop?
-            // 'members' loop adds based on 'regDate'. 
-            // If I register today, 'members' has regDate=today. 'sales' has date=today.
-            // Double counting risk!
-            // *Fix*: Only add from 'members' if date is BEFORE '2026-01-20' (Project Cutoff) OR if not found in sales.
-            // Easier: If 'sales' has data, trust 'sales'. If 'sales' is empty (legacy), trust 'members'.
-            // Best: Since we JUST started utilizing 'sales', 'members' still contains the master record for "Last Payment".
-            // Actually, `AdminMemberDetailModal` updates BOTH `members` (regDate) and `sales`.
-            // So for TODAY's transaction, it's in both.
-            // Simple dedup: If `sales` contains a record for Member X on Date Y, ignore legacy entry.
-
-            // For now, simpler approach:
-            // If s.type === 'register', it likely overlaps with m.regDate if dates match.
-            // Let's just use `sales` for accurate *recent* history, and `members` for meaningful *past*.
-            // Only add `members` item if date < '2026-01-20' (approx today).
-
             // Determine isNew
             let isNew = false;
             if (s.type === 'extend') {
                 isNew = false;
             } else if (s.type === 'register') {
+                // If regDate matches sales date, it's likely a new registration or re-registration treated as new
                 if (member && member.regDate === dateStr) {
                     isNew = true;
                 } else {
@@ -96,6 +44,7 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
 
             allItems.push({
                 id: s.id,
+                memberId: s.memberId,
                 date: dateStr,
                 amount: s.amount,
                 name: s.memberName,
@@ -103,31 +52,50 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
                 item: s.item,
                 isNew: isNew
             });
-        });
 
-        // Dedup: Filter out 'legacy' items if a 'register' item exists for same member same day
-        const uniqueItems = [];
-
-        // Prioritize Sales Data (already in allItems, later in array? No, currently mixed)
-        // Let's sort strictly first: Sales > Legacy?
-        // Actually, let's just filter legacy if sale exists.
-
-        const salesKeys = new Set(
-            allItems
-                .filter(i => i.type !== 'legacy')
-                .map(i => `${i.name}-${i.date}`) // Key by Name + Date (Weak but likely sufficient)
-        );
-
-        allItems.forEach(item => {
-            if (item.type === 'legacy') {
-                const key = `${item.name}-${item.date}`;
-                if (salesKeys.has(key)) return; // Skip legacy if sale exists
+            // Add to dedup set
+            if (s.memberId) {
+                salesKeySet.add(`${s.memberId}_${dateStr}`);
             }
-            uniqueItems.push(item);
         });
 
-        uniqueItems.sort((a, b) => new Date(b.date) - new Date(a.date));
-        const finalItems = uniqueItems;
+        // 2. Process Legacy Members Data (Secondary Source)
+        (members || []).forEach(m => {
+            const amt = Number(m.amount) || 0;
+            if (m.regDate && amt > 0) {
+                if (currentBranch !== 'all' && m.homeBranch !== currentBranch) return;
+
+                // [FIX] Deduplication Check
+                // If this member has a sales record on this date, skip legacy addition
+                if (salesKeySet.has(`${m.id}_${m.regDate}`)) return;
+
+                allItems.push({
+                    id: m.id,
+                    memberId: m.id,
+                    date: m.regDate,
+                    amount: amt,
+                    name: m.name,
+                    type: 'legacy',
+                    item: m.subject || '수강권',
+                    // Legacy assumption: if present in members with amount, specific to that regDate
+                    isNew: true 
+                });
+            }
+        });
+
+
+        // 3. Final Sort
+        allItems.sort((a, b) => new Date(b.date) - new Date(a.date));
+        const finalItems = allItems;
+
+
+
+        // [Debug] Log Revenue Data
+        console.log('Revenue Debug:', {
+            totalItems: allItems.length,
+            sampleItems: allItems.slice(0, 5)
+        });
+
 
         // 2. Monthly Stats (for Calendar)
         // Filter for current Month
@@ -214,6 +182,25 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
             });
         }
 
+        // 5. Monthly Trend (Last 6 Months)
+        const monthlyTrend = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(year, month - 1 - i, 1);
+            const mStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            const label = `${d.getMonth() + 1}월`;
+            
+            // Sum revenue for this month
+            const amount = finalItems
+                .filter(item => item.date.startsWith(mStr))
+                .reduce((sum, item) => sum + item.amount, 0);
+
+            monthlyTrend.push({
+                name: label,
+                monthParams: mStr, // For validation if needed
+                amount: amount
+            });
+        }
+
         const monthlyNew = Object.values(daily).reduce((s, d) => s + d.amountNew, 0);
         const monthlyReReg = Object.values(daily).reduce((s, d) => s + d.amountReReg, 0);
 
@@ -230,7 +217,8 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
                 dayBefore: statDayBefore,
                 lastWeek: statLastWeek
             },
-            recentTrend: trendData
+            recentTrend: trendData,
+            monthlyTrend: monthlyTrend
         };
 
     }, [members, sales, currentDate, currentBranch]);
@@ -287,8 +275,53 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
 
             {/* Revenue Graph (Straight Line) */}
             <div className="dashboard-card">
-                <h3 style={{ fontSize: '1.1rem', marginBottom: '20px', color: 'var(--text-secondary)' }}>최근 14일 매출 추이</h3>
+                <h3 style={{ fontSize: '1.1rem', marginBottom: '20px', color: 'var(--text-secondary)' }}>최근 14일 일별 매출</h3>
                 <StraightLineChart data={recentTrend} />
+            </div>
+
+            {/* Monthly Bar Chart */}
+            <div className="dashboard-card" style={{ height: '400px', display: 'flex', flexDirection: 'column' }}>
+                <h3 style={{ fontSize: '1.1rem', marginBottom: '20px', color: 'var(--text-secondary)' }}>월별 매출 추이 (최근 6개월)</h3>
+                <div style={{ flex: 1, minHeight: 0 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={monthlyTrend} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+                            <XAxis 
+                                dataKey="name" 
+                                stroke="#71717a" 
+                                tick={{ fill: '#71717a', fontSize: 12 }} 
+                                axisLine={{ stroke: '#3f3f46' }}
+                                tickLine={false}
+                            />
+                            <YAxis 
+                                stroke="#71717a" 
+                                tick={{ fill: '#71717a', fontSize: 12 }} 
+                                tickFormatter={(value) => `${(value / 10000).toLocaleString()}만`}
+                                axisLine={false}
+                                tickLine={false}
+                                width={60}
+                            />
+                            <Tooltip
+                                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                contentStyle={{ 
+                                    backgroundColor: '#18181b', 
+                                    borderColor: '#3f3f46', 
+                                    borderRadius: '8px',
+                                    color: '#fff',
+                                    padding: '12px'
+                                }}
+                                formatter={(value) => [`${new Intl.NumberFormat('ko-KR').format(value)}원`, '매출']}
+                                itemStyle={{ color: 'var(--primary-gold)' }}
+                                labelStyle={{ color: '#a1a1aa', marginBottom: '8px' }}
+                            />
+                            <Bar dataKey="amount" radius={[4, 4, 0, 0]} maxBarSize={60}>
+                                {monthlyTrend.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.monthParams === `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}` ? 'var(--primary-gold)' : '#333'} />
+                                ))}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
             </div>
 
             {/* Calendar View */}

@@ -56,6 +56,21 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px' }}>
                                         <span style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--primary-gold)', lineHeight: 1 }}>{cls.count}</span>
                                         <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>명 참여</span>
+                                        {/* [NEW] Denied Count Badge */}
+                                        {cls.deniedCount > 0 && (
+                                            <span style={{
+                                                fontSize: '0.7rem',
+                                                color: '#ff4d4f',
+                                                background: 'rgba(255, 77, 79, 0.1)',
+                                                padding: '2px 6px',
+                                                borderRadius: '4px',
+                                                border: '1px solid rgba(255, 77, 79, 0.2)',
+                                                fontWeight: 'bold',
+                                                marginLeft: '6px'
+                                            }}>
+                                                ⛔ 거부 {cls.deniedCount}명
+                                            </span>
+                                        )}
                                     </div>
                                     {isSelected && (
                                         <div style={{ position: 'absolute', bottom: '6px', right: '8px', fontSize: '0.6rem', color: 'var(--primary-gold)', background: 'rgba(0,0,0,0.4)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>필터링 중</div>

@@ -45,11 +45,13 @@ export const useAttendanceStats = (attendanceLogs = [], memberId = null) => {
 
         // Count by month (YYYY-MM format)
         const byMonth = {};
+        logs.forEach(log => {
             if (log.timestamp) {
                 const kstDate = new Date(log.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
                 const month = kstDate.substring(0, 7); // Extract YYYY-MM
                 byMonth[month] = (byMonth[month] || 0) + 1;
             }
+        });
 
         // Get recent logs (last 10)
         const recent = [...logs]

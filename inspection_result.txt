@@ -1,0 +1,18 @@
+--- Inspection Results ---
+
+[1] Kim Hee-jung (6017)
+ID: xqIuDa28d2PtVfYsyYah, Name: 김희정, Credits: 13, Count: 1
+Attendance for 2026-02-15 (1 records):
+ - ID: Us2JMmKgeW4ts3MZ8L2Y, Time: 2026-02-15T04:46:07.832Z, Class: 하타 인텐시브, Status: valid, Credits: 13
+
+[2] Lee Su-yeon (1748)
+ID: nBqfNnuD4v0hWGQmOcNu, Name: 이수연, Credits: 32, Count: 2
+Attendance for 2026-02-15 (2 records):
+ - ID: 0Lqh8EE4xW3xDpIyramo, Time: 2026-02-15T02:24:05.237Z, Class: 마이솔, Status: valid, Credits: 33
+ - ID: 6Pl9quLDZGvQAO86fMjg, Time: 2026-02-15T04:14:43.767Z, Class: 자율수련, Status: valid, Credits: 32
+
+[3] Gwangheungchang Schedule (2026-02-15)
+Classes found: 3
+ - 11:20 [마이솔] 원장 (Status: normal)
+ - 14:00 [하타 인텐시브] 원장 (Status: normal)
+ - 19:00 [하타] 혜실 (Status: normal)

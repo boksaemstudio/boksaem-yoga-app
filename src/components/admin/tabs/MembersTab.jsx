@@ -107,22 +107,33 @@ const MembersTab = ({
                     </span>
                     <span className="card-value" style={{ color: filterType === 'dormant' ? 'black' : '#E0E0FF' }}>{summary.dormantMembersCount || 0}명</span>
                 </div>
-                {/* [NEW] App Install Stats */}
-                <div className="dashboard-card" style={{ background: 'linear-gradient(135deg, rgba(60, 60, 80, 0.4), rgba(80, 80, 100, 0.2))', border: '1px solid rgba(100, 150, 255, 0.2)' }}>
-                    <span className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#a0c4ff' }}>
-                        앱 설치 현황
+                {/* [NEW] App Usage & Push Stats (Redesigned) */}
+                <div className={`dashboard-card interactive ${filterType === 'installed' ? 'highlight' : ''}`}
+                    onClick={() => handleToggleFilter('installed')}
+                    style={{ background: filterType === 'installed' ? 'var(--primary-gold)' : 'linear-gradient(135deg, rgba(20, 30, 48, 0.6), rgba(36, 59, 85, 0.4))', border: filterType === 'installed' ? 'none' : '1px solid rgba(16, 185, 129, 0.2)' }}>
+                    <span className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: filterType === 'installed' ? 'black' : '#6EE7B7' }}>
+                        <BellRinging size={16} weight="fill" /> 알림 수신 가능
                         <div className="tooltip-container">
                             <Info size={14} style={{ opacity: 0.7 }} />
-                            <span className="tooltip-text" style={{ width: '220px', left: '-100px' }}>
-                                회원 앱 설치(로그인 이력) 및<br/>푸시 알림 수신 동의 현황
+                            <span className="tooltip-text" style={{ width: '240px', left: '-120px' }}>
+                                푸시 알림을 받을 수 있는 회원 수<br/>(앱 설치 + 알림 권한 허용)
                             </span>
                         </div>
                     </span>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span className="card-value" style={{ color: '#60a5fa' }}>{summary.installedCount}명</span>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '-2px' }}>
-                            (수신 {summary.pushEnabledCount}명)
-                        </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', marginTop: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                            <span className="card-value" style={{ color: filterType === 'installed' ? 'black' : '#10B981', fontSize: '1.6rem', textShadow: filterType !== 'installed' ? '0 0 15px rgba(16, 185, 129, 0.4)' : 'none' }}>
+                                {summary.pushEnabledCount}명
+                            </span>
+                            <span style={{ fontSize: '0.9rem', color: filterType === 'installed' ? 'rgba(0,0,0,0.6)' : '#6EE7B7', fontWeight: 'bold' }}>
+                                ({summary.reachableRatio}%)
+                            </span>
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: filterType === 'installed' ? 'rgba(0,0,0,0.7)' : 'var(--text-secondary)', marginTop: '6px' }}>
+                            <span style={{ color: filterType === 'installed' ? 'black' : '#93C5FD' }}>앱 설치 {summary.installedCount}명 ({summary.installRatio}%)</span>
+                            <span style={{ margin: '0 4px', opacity: 0.3 }}>|</span>
+                             오늘 +{summary.todayInstalledCount}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -178,8 +189,9 @@ const MembersTab = ({
                     {filterType === 'registration' && '오늘 등록 회원'}
                     {filterType === 'expiring' && '만료/횟수 임박 회원'}
                     {filterType === 'dormant' && '잠든 회원'}
+                    {filterType === 'installed' && '앱 설치 회원'}
                 </strong> 목록을 <strong style={{ color: 'var(--text-secondary)' }}>
-                    {filterType === 'attendance' ? '최신 출석 순' : '이름 가나다순'}
+                    {filterType === 'attendance' ? '최신 출석 순' : (filterType === 'installed' ? '최신 설치 순' : '이름 가나다순')}
                 </strong>으로 보고 계십니다.
             </div>
 
@@ -276,6 +288,23 @@ const MembersTab = ({
                                                         </span>
                                                     );
                                                 })()}
+                                                {/* [NEW] Install Date Badge (Show only when filtered by installed) */}
+                                                {filterType === 'installed' && member.installedAt && (() => {
+                                                    const installDate = new Date(member.installedAt);
+                                                    const today = new Date();
+                                                    const isToday = installDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }) === today.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                                                    
+                                                    return (
+                                                        <span className="badge" style={{ 
+                                                            background: isToday ? 'rgba(76, 217, 100, 0.2)' : 'rgba(96, 165, 250, 0.15)', 
+                                                            color: isToday ? '#4CD964' : '#60A5FA', 
+                                                            border: isToday ? '1px solid rgba(76, 217, 100, 0.4)' : '1px solid rgba(96, 165, 250, 0.3)'
+                                                        }}>
+                                                            {isToday ? '오늘 설치' : `${installDate.toLocaleDateString().slice(2)} 설치`}
+                                                        </span>
+                                                    );
+                                                })()}
+
                                                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{member.phone}</span>
                                                 <span className="badge" style={{ 
                                                     fontSize: '0.7rem',
@@ -286,15 +315,26 @@ const MembersTab = ({
                                                 }}>
                                                     {getBranchName(member.homeBranch)}
                                                 </span>
-                                                {member.pushEnabled !== false && pushTokens.some(t => t.memberId === member.id) && (
+                                                {member.pushEnabled !== false && pushTokens.some(t => t.memberId === member.id) ? (
                                                     <div style={{
                                                         display: 'flex', alignItems: 'center', gap: '4px',
-                                                        background: 'rgba(16, 185, 129, 0.15)', color: '#10B981',
+                                                        background: 'rgba(52, 211, 153, 0.1)', color: '#34D399',
                                                         padding: '2px 8px', borderRadius: '6px', fontSize: '0.7rem',
-                                                        fontWeight: 'bold', border: '1px solid rgba(16, 185, 129, 0.3)'
+                                                        fontWeight: 'bold', border: '1px solid rgba(52, 211, 153, 0.2)'
                                                     }}>
                                                         <BellRinging size={12} weight="fill" /> 푸시 ON
                                                     </div>
+                                                ) : (
+                                                    filterType === 'installed' && (
+                                                        <div style={{
+                                                            display: 'flex', alignItems: 'center', gap: '4px',
+                                                            background: 'rgba(156, 163, 175, 0.1)', color: '#9CA3AF',
+                                                            padding: '2px 8px', borderRadius: '6px', fontSize: '0.7rem',
+                                                            border: '1px solid rgba(156, 163, 175, 0.2)'
+                                                        }}>
+                                                            <BellRinging size={12} weight="regular" /> 알림 꺼짐
+                                                        </div>
+                                                    )
                                                 )}
                                                 {member.attendanceTime && (
                                                     member.attendanceStatus === 'denied' ? (

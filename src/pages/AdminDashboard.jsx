@@ -229,9 +229,19 @@ const AdminDashboard = () => {
             // if (filterType === 'attendance') handled above
             if (filterType === 'expiring') return checkIsExpiring(m);
             if (filterType === 'dormant') return isMemberDormant(m, logs, isMemberActive);
+            // [New] Installed Filter
+            if (filterType === 'installed') return !!m.installedAt;
 
             return true; // 'all'
-        }).sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+        }).sort((a, b) => {
+            if (filterType === 'installed') {
+                // Sort by installedAt desc
+                if (!a.installedAt) return 1;
+                if (!b.installedAt) return -1;
+                return new Date(b.installedAt) - new Date(a.installedAt);
+            }
+            return a.name.localeCompare(b.name, 'ko');
+        });
     }, [members, logs, searchTerm, filterType, currentBranch, isMemberActive, isMemberExpiring, todayReRegMemberIds]);
 
     const dormantCount = useMemo(() => {

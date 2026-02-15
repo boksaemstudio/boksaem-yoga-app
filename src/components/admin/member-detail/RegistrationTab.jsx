@@ -177,7 +177,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
 
                     {/* Duration / Payment Grid */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                        <InputGroup label="등록 기간 (개월)" value={duration} onChange={setDuration} type="select"
+                        <InputGroup label="등록 기간 (개월)" value={duration} onChange={val => setDuration(Number(val))} type="select"
                             options={[1, 3, 6, 12].map(n => ({ value: n, label: `${n}개월` }))}
                         />
                         <InputGroup label="결제 수단" value={paymentMethod} onChange={setPaymentMethod} type="select"
@@ -253,7 +253,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                                             item: `만료일 변경 (${member.endDate} -> ${newDate})`,
                                             amount: 0,
                                             paymentMethod: 'none',
-                                            date: new Date().toISOString(),
+                                            date: new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }),
                                             memo: '기간 연장/단축'
                                         };
 

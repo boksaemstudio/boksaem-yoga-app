@@ -6,7 +6,7 @@ import { httpsCallable } from 'firebase/functions';
 import { getAllBranches, getBranchName } from '../studioConfig';
 import logoWide from '../assets/logo_wide.png';
 import { MapPin, Sun, Cloud, CloudRain, Snowflake, Lightning, Moon, CornersOut, CornersIn, Chalkboard } from '@phosphor-icons/react';
-import { getTodayKST, getKSTHour, getKSTMinutes } from '../utils/dates';
+import { getTodayKST, getKSTHour, getKSTMinutes, getDaysRemaining } from '../utils/dates';
 
 // [PERF] 현재 시간대 배경만 로딩 (4장 → 1장, WebP 최적화)
 const getBgForPeriod = (period) => {

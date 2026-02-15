@@ -475,9 +475,9 @@ export const storageService = {
     }
 
     if (selectedClass) {
-       console.log(`[SmartAttendance] Matched: ${selectedClass.title} (${logicReason})`);
+       console.log(`[SmartAttendance] Matched: ${selectedClass.title || selectedClass.className} (${logicReason})`);
        return { 
-         title: selectedClass.title, 
+         title: selectedClass.title || selectedClass.className, 
          instructor: selectedClass.instructor,
          debugReason: logicReason
        };
@@ -937,8 +937,21 @@ export const storageService = {
       if (permission === 'granted') {
         const token = await this.requestAndSaveToken('member');
         if (token && memberId) {
+          // [FIX] Check if token doc exists to set 'createdAt' only for new installs
+          const tokenRef = doc(db, 'fcm_tokens', token);
+          const tokenSnap = await getDoc(tokenRef);
+          
+          let dataToUpdate = { 
+            memberId, 
+            updatedAt: new Date().toISOString() 
+          };
+
+          if (!tokenSnap.exists() || !tokenSnap.data().createdAt) {
+            dataToUpdate.createdAt = new Date().toISOString();
+          }
+
           // [FIX] Use setDoc with merge to prevent "No document to update" error
-          await setDoc(doc(db, 'fcm_tokens', token), { memberId, updatedAt: new Date().toISOString() }, { merge: true });
+          await setDoc(tokenRef, dataToUpdate, { merge: true });
           // [SYNC] Mark member as push enabled
           await updateDoc(doc(db, 'members', memberId), { pushEnabled: true });
         }
@@ -1080,13 +1093,23 @@ export const storageService = {
 
       // 5. memberId와 연결하여 저장
       if (memberId) {
-        await setDoc(doc(db, 'fcm_tokens', token), {
+        const tokenRef = doc(db, 'fcm_tokens', token);
+        const tokenSnap = await getDoc(tokenRef);
+        
+        let tokenData = {
           memberId,
           updatedAt: new Date().toISOString(),
           platform: 'web',
           role: 'member',
           language: 'ko'
-        }, { merge: true });
+        };
+
+        // Preserve original createdAt if exists, or set new if missing
+        if (!tokenSnap.exists() || !tokenSnap.data().createdAt) {
+          tokenData.createdAt = new Date().toISOString();
+        }
+
+        await setDoc(tokenRef, tokenData, { merge: true });
 
         await updateDoc(doc(db, 'members', memberId), {
           pushEnabled: true,
