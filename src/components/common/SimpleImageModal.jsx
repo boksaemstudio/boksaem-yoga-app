@@ -1,10 +1,11 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { X } from '@phosphor-icons/react';
 
 const SimpleImageModal = ({ isOpen, onClose, imageSrc }) => {
     if (!isOpen || !imageSrc) return null;
 
-    return (
+    return createPortal(
         <div 
             style={{
                 position: 'fixed',
@@ -12,12 +13,13 @@ const SimpleImageModal = ({ isOpen, onClose, imageSrc }) => {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.95)',
-                zIndex: 3000,
+                backgroundColor: 'black', // 완전 불투명
+                zIndex: 9999, // 최상위
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '20px'
+                padding: '20px',
+                backdropFilter: 'none' // 성능 최적화 및 뒤쪽 요소 간섭 제거
             }}
             onClick={onClose}
         >
@@ -27,20 +29,21 @@ const SimpleImageModal = ({ isOpen, onClose, imageSrc }) => {
                     position: 'absolute',
                     top: '20px',
                     right: '20px',
-                    background: 'rgba(255, 255, 255, 0.1)',
+                    background: 'rgba(255, 255, 255, 0.15)',
                     border: 'none',
                     borderRadius: '50%',
-                    width: '40px',
-                    height: '40px',
+                    width: '44px',
+                    height: '44px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
                     color: 'white',
-                    zIndex: 3001
+                    zIndex: 10000,
+                    backdropFilter: 'blur(4px)'
                 }}
             >
-                <X size={24} />
+                <X size={28} />
             </button>
             
             <img 
@@ -50,12 +53,13 @@ const SimpleImageModal = ({ isOpen, onClose, imageSrc }) => {
                     maxWidth: '100%',
                     maxHeight: '90vh',
                     objectFit: 'contain',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
+                    borderRadius: '4px',
+                    boxShadow: '0 4px 30px rgba(0,0,0,0.5)'
                 }}
                 onClick={(e) => e.stopPropagation()} 
             />
-        </div>
+        </div>,
+        document.body
     );
 };
 
