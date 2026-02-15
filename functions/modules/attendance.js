@@ -116,7 +116,51 @@ exports.checkInMemberV2Call = onCall({
                 };
             }
 
+
             // --- Normal Logic starts here ---
+            
+            // [FIX] Validating '자율수련': Server-side fallback matching
+            // If client sent '자율수련' (or nothing), try to match with actual schedule
+            let finalClassTitle = classTitle;
+            let finalInstructor = instructor;
+
+            if (!classTitle || classTitle === '자율수련') {
+                try {
+                    const schedDocRef = db.collection('daily_classes').doc(`${branchId}_${today}`);
+                    // Use transaction read if possible, but reading outside transaction is also safer for complexity? 
+                    // Actually, we are inside a transaction. We MUST use transaction.get()!
+                    const schedSnap = await transaction.get(schedDocRef);
+                    
+                    if (schedSnap.exists) {
+                        const classes = (schedSnap.data().classes || []).filter(c => c.status !== 'cancelled');
+                        const now = new Date();
+                        // Calculate KST minutes
+                        // We need a robust way to get KST time from 'now' (UTC/Server time)
+                        // 'now' is a Date object. formatting it to KST.
+                        const kstString = now.toLocaleString('en-US', { timeZone: 'Asia/Seoul', hour12: false, hour: '2-digit', minute: '2-digit' });
+                        // kstString is "HH:mm" (e.g. "18:35")
+                        const [kstH, kstM] = kstString.split(':').map(Number);
+                        const currentMin = kstH * 60 + kstM;
+
+                        // Match: 60 mins before ~ 30 mins after
+                        const matched = classes.find(cls => {
+                             const [h, m] = cls.time.split(':').map(Number);
+                             const start = h * 60 + m;
+                             const end = start + (cls.duration || 60);
+                             return currentMin >= start - 60 && currentMin <= end + 30;
+                        });
+
+                        if (matched) {
+                            finalClassTitle = matched.title || matched.className || classTitle;
+                            finalInstructor = matched.instructor || instructor;
+                            console.log(`[Attendance] Server-side matched: ${finalClassTitle} (${finalInstructor}) for ${memberId}`);
+                        }
+                    }
+                } catch (schedErr) {
+                    console.warn("[Attendance] Server-side schedule match failed:", schedErr);
+                }
+            }
+            
             const currentCredits = memberData.credits || 0;
             const currentCount = memberData.attendanceCount || 0;
             
@@ -169,8 +213,8 @@ exports.checkInMemberV2Call = onCall({
                 memberName: memberData.name, 
                 branchId,
                 date: today,
-                className: classTitle || '자율수련',
-                instructor: instructor || '미지정',
+                className: finalClassTitle || '자율수련',
+                instructor: finalInstructor || '미지정',
                 timestamp: now.toISOString(),
                 sessionNumber: sessionCount,
                 status: attendanceStatus

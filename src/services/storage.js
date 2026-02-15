@@ -14,7 +14,8 @@ let cachedNotices = [];
 // let cachedMessages = [];  // Unused
 let cachedImages = {};
 let pendingImageWrites = {}; // Buffer for optimistic updates
-let cachedDailyClasses = {};
+let cachedDailyClasses = {}; // {cacheKey: { classes: [...], fetchedAt: timestamp }}
+const DAILY_CLASS_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 let cachedPushTokens = [];
 let listeners = [];
 
@@ -106,7 +107,7 @@ export const storageService = {
           this._refreshInterval = setInterval(() => {
             console.log("[Storage] Scheduled background refresh for today's classes...");
             branches.forEach(bid => this._refreshDailyClassCache(bid));
-          }, 60 * 60 * 1000);
+          }, 10 * 60 * 1000); // [FIX] Shortened from 1h to 10m to prevent stale empty cache
         }
 
       } catch (err) {
@@ -445,9 +446,15 @@ export const storageService = {
       const docRef = doc(db, 'daily_classes', cacheKey);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        cachedDailyClasses[cacheKey] = docSnap.data().classes;
+        cachedDailyClasses[cacheKey] = { 
+          classes: docSnap.data().classes || [], 
+          fetchedAt: Date.now() 
+        };
       } else {
-        cachedDailyClasses[cacheKey] = [];
+        cachedDailyClasses[cacheKey] = { 
+          classes: [], 
+          fetchedAt: Date.now() 
+        };
       }
     } catch (e) {
       console.warn(`[Storage] Failed to refresh daily classes for ${cacheKey}:`, e);
@@ -458,18 +465,26 @@ export const storageService = {
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
     const cacheKey = `${branchId}_${today}`;
     
-    // [LOGIC] 1. Fetch Classes for Today
-    if (!cachedDailyClasses[cacheKey]) {
+    // [LOGIC] 1. Fetch Classes for Today (With TTL & Stale Check)
+    const cached = cachedDailyClasses[cacheKey];
+    const now = Date.now();
+    const isStale = !cached || !cached.classes || cached.classes.length === 0 || (now - (cached.fetchedAt || 0)) > DAILY_CLASS_CACHE_TTL;
+
+    if (isStale) {
       try {
+        console.log(`[Storage] Cache stale/empty for ${cacheKey}, refreshing...`);
         const docRef = doc(db, 'daily_classes', cacheKey);
         const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) cachedDailyClasses[cacheKey] = docSnap.data().classes;
-        else cachedDailyClasses[cacheKey] = [];
-      } catch { return null; }
+        const classes = docSnap.exists() ? (docSnap.data().classes || []) : [];
+        cachedDailyClasses[cacheKey] = { classes, fetchedAt: Date.now() };
+      } catch (e) { 
+        console.warn("[Storage] Failed to fetch classes:", e);
+        return null; 
+      }
     }
     
     // [LOGIC] 2. Filter & Sort Classes by Time
-    let classes = (cachedDailyClasses[cacheKey] || [])
+    let classes = (cachedDailyClasses[cacheKey]?.classes || [])
       .filter(c => c.status !== 'cancelled');
 
     // Filter by instructor if provided (Smart Filter)
@@ -597,16 +612,17 @@ export const storageService = {
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
     const cacheKey = `${branchId}_${today}`;
     
-    if (!cachedDailyClasses[cacheKey]) {
+    const cached = cachedDailyClasses[cacheKey];
+    if (!cached || !cached.classes) {
       try {
         const docRef = doc(db, 'daily_classes', cacheKey);
         const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) cachedDailyClasses[cacheKey] = docSnap.data().classes;
-        else cachedDailyClasses[cacheKey] = [];
+        const classes = docSnap.exists() ? (docSnap.data().classes || []) : [];
+        cachedDailyClasses[cacheKey] = { classes, fetchedAt: Date.now() };
       } catch { return []; }
     }
     
-    let classes = (cachedDailyClasses[cacheKey] || [])
+    let classes = (cachedDailyClasses[cacheKey]?.classes || [])
       .filter(c => c.status !== 'cancelled');
 
     if (instructorName) {
