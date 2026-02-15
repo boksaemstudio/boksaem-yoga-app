@@ -367,7 +367,11 @@ export const storageService = {
 
     // Filter by instructor if provided (Smart Filter)
     if (instructorName) {
-      classes = classes.filter(c => c.instructor === instructorName);
+      const query = instructorName.trim();
+      classes = classes.filter(c => {
+        const target = (c.instructor || '').trim();
+        return target === query || target.includes(query) || query.includes(target);
+      });
     }
 
     classes.sort((a, b) => a.time.localeCompare(b.time));

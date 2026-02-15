@@ -576,8 +576,8 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
     const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 
     useEffect(() => {
-        if ('Notification' in window) {
-            setPushEnabled(Notification.permission === 'granted');
+        if (typeof window !== 'undefined' && 'Notification' in window) {
+            setPushEnabled(window.Notification.permission === 'granted');
         }
 
         const ua = navigator.userAgent.toLowerCase();
@@ -607,7 +607,13 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
         setPushLoading(true);
         setPushMessage('');
         try {
-            const permission = await Notification.requestPermission();
+            if (!('Notification' in window)) {
+                setPushMessage('❌ 이 브라우저는 알림을 지원하지 않습니다. ' + 
+                    (deviceOS === 'ios' ? "아이폰은 '홈 화면에 추가'를 통해 앱을 설치해야 알림 설정이 가능합니다." : "크롬 등 최신 브라우저를 사용해 주세요."));
+                return;
+            }
+
+            const permission = await window.Notification.requestPermission();
             if (permission === 'granted') {
                 const token = await getToken(messaging, {
                     vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
@@ -640,6 +646,15 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
             const { outcome } = await deferredPrompt.userChoice;
             if (outcome === 'accepted') setIsStandalone(true);
             setDeferredPrompt(null);
+        } else {
+            // Manual Guide
+            if (deviceOS === 'ios') {
+                setPushMessage('ℹ️ 아이폰 설치 방법: Safari 하단 공유 버튼(↑) 클릭 > "홈 화면에 추가"를 눌러주세요.');
+            } else if (deviceOS === 'android') {
+                setPushMessage('ℹ️ 안드로이드 설치 방법: 브라우저 우측 상단 메뉴(⋮) 클릭 > "홈 화면에 추가" 혹은 "앱 설치"를 눌러주세요.');
+            } else {
+                setPushMessage('ℹ️ 브라우저 메뉴에서 "홈 화면에 추가"를 선택하여 앱을 설치하실 수 있습니다.');
+            }
         }
     };
 
@@ -803,23 +818,47 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
             </div>
 
             {/* PWA Install */}
-            {!isStandalone && (deviceOS === 'ios' || deviceOS === 'android') && (
-                <div style={{ background: 'var(--bg-surface)', padding: '16px', borderRadius: '12px', marginBottom: '16px' }}>
-                    <h3 style={{ margin: '0 0 12px', fontSize: '1rem' }}>📲 홈 화면에 추가</h3>
-                    {deviceOS === 'android' && deferredPrompt ? (
-                        <button onClick={handleInstallPWA} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: 'none', background: 'var(--primary-gold)', color: 'black', fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer' }}>
-                            홈 화면에 설치하기
-                        </button>
-                    ) : (
-                        <div style={{ background: 'rgba(212, 175, 55, 0.1)', padding: '12px', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
-                            {deviceOS === 'ios' ? 'Safari 공유 버튼 ↑ → "홈 화면에 추가"' : 'Chrome 메뉴 ⋮ → "홈 화면에 추가"'}
+            {!isStandalone && (
+                <div style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '12px', marginBottom: '16px', border: '1px solid rgba(212, 175, 55, 0.3)', boxShadow: '0 0 15px rgba(212, 175, 55, 0.1)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                        <div style={{ background: 'var(--primary-gold)', borderRadius: '10px', padding: '8px', display: 'flex' }}>
+                            <SignOut size={24} color="black" style={{ transform: 'rotate(-90deg)' }} />
                         </div>
+                        <div>
+                            <h3 style={{ margin: 0, fontSize: '1rem', color: 'white' }}>홈 화면에 앱 설치하기</h3>
+                            <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                앱처럼 편하게 아이콘으로 접속하세요
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <button 
+                        onClick={handleInstallPWA} 
+                        style={{ 
+                            width: '100%', padding: '14px', borderRadius: '10px', border: 'none', 
+                            background: 'var(--primary-gold)', color: 'black', fontWeight: 'bold', 
+                            fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', 
+                            justifyContent: 'center', gap: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
+                        }}
+                    >
+                        <SignOut size={20} style={{ transform: 'rotate(-90deg)' }} /> 폰에 앱 설치하기
+                    </button>
+                    
+                    {deviceOS === 'ios' && (
+                         <p style={{ marginTop: '12px', fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                            * iOS는 수동 설치가 필요할 수 있습니다.
+                        </p>
                     )}
                 </div>
             )}
 
-            <div style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)', padding: '8px' }}>
-                {instructorName} 선생님으로 로그인됨
+            <div style={{ textAlign: 'center', fontSize: '0.75rem', opacity: 0.6, color: 'var(--text-secondary)', padding: '20px 8px' }}>
+                <div style={{ marginBottom: '4px', fontSize: '0.85rem' }}>{instructorName} 선생님으로 로그인됨</div>
+                <div style={{ fontSize: '0.75rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                     <span>v2026.02.15.1 | Date: {todayStr}</span>
+                     <span>User: [{instructorName}] ({instructorName.length})</span>
+                     <span>Fetched: {instructorClasses.length} / Att: {attendance.length}</span>
+                </div>
             </div>
         </div>
     );

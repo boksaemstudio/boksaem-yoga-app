@@ -314,7 +314,7 @@ exports.onAttendanceCreated = onDocumentCreated("attendance/{attendanceId}", asy
                                 token,
                                 notification: {
                                     title: `🧘‍♀️ ${memberName}${rankLabel}님 출석`,
-                                    body: `${className} | ${credits} ${expiry}`
+                                    body: body
                                 },
                                 webpush: { 
                                     notification: { 
