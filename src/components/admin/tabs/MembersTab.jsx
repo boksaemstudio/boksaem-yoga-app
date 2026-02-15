@@ -18,7 +18,8 @@ const MembersTab = ({
     handleOpenEdit,
     setShowAddModal,
     pushTokens,
-    getDormantSegments
+    getDormantSegments,
+    setActiveTab
 }) => {
     return (
         <>
@@ -139,7 +140,7 @@ const MembersTab = ({
             </div>
 
             {/* Revenue Card (Visual Bar Chart Simulated) */}
-            <div className="dashboard-card" style={{ marginBottom: '24px' }}>
+            <div className="dashboard-card interactive" style={{ marginBottom: '24px', cursor: 'pointer' }} onClick={() => setActiveTab('revenue')}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '10px' }}>
                     <div>
                         <span className="card-label outfit-font" style={{ letterSpacing: '0.1em', textTransform: 'uppercase', fontSize: '0.7rem' }}>월간 총 매출</span>

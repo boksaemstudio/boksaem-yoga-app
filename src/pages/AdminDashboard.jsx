@@ -664,6 +664,7 @@ const AdminDashboard = () => {
                         pushTokens={pushTokens}
                         getDormantSegments={getDormantSegments}
                         setBulkMessageInitialText={setBulkMessageInitialText}
+                        setActiveTab={setActiveTab}
                     />
                 )}
 

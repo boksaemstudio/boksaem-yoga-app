@@ -42,7 +42,7 @@ async function checkSales() {
             console.log(`⚠️ POTENTIAL DUPLICATE: ${s.memberName} - ${s.amount} - ${s.date} (ID: ${s.id})`);
         } else {
             seen.add(key);
-            console.log(` - ${s.date} | ${s.memberName} | ${s.amount.toLocaleString()} | ${s.item} | Type: ${s.type}`);
+            console.log(` - ${s.date} | ${s.memberName} | ${s.amount.toLocaleString()} | ${s.item} | ID: ${s.id}`);
         }
     });
 }
