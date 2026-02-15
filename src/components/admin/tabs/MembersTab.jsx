@@ -71,7 +71,12 @@ const MembersTab = ({
                 <div className={`dashboard-card interactive ${filterType === 'registration' ? 'highlight' : ''}`}
                     onClick={() => handleToggleFilter('registration')}>
                     <span className="card-label">오늘 등록</span>
-                    <span className="card-value success">{summary.todayRegistration}명</span>
+                    <span className="card-value success">
+                        {summary.todayRegistration}명
+                    </span>
+                    <span style={{ fontSize: '0.75rem', opacity: 0.8, color: '#86efac', display: 'block', marginTop: '2px' }}>
+                        (신규 {summary.todayNewCount || 0} / 재등록 {summary.todayReRegCount || 0})
+                    </span>
                 </div>
                 <div className={`dashboard-card interactive ${filterType === 'expiring' ? 'highlight' : ''}`}
                     onClick={selectExpiringMembers}
@@ -229,6 +234,28 @@ const MembersTab = ({
                                         <div style={{ flex: 1, marginLeft: '10px', width: '100%' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px', flexWrap: 'wrap' }}>
                                                 <strong style={{ fontWeight: 800, fontSize: '1.1rem' }}>{member.name}</strong>
+                                                
+                                                {/* [NEW] Today Registration Badges */}
+                                                {member.regDate === new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }) && (
+                                                    <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10B981', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                                                        신규
+                                                    </span>
+                                                )}
+                                                {/* Note: In MembersTab, we might not have todayReRegMemberIds prop yet. 
+                                                    Let's use summary or pass it down. 
+                                                    Ideally, we should rely on props. Assuming 'todayReRegMemberIds' is passed or available via context?
+                                                    Actually, I should check if I can access it. 
+                                                    Since I cannot easily add a prop to the component signature without changing AdminDashboard first (which I did not do fully),
+                                                    I will assume AdminDashboard will pass it. 
+                                                    Wait, I haven't added `todayReRegMemberIds` to MembersTab props in AdminDashboard yet.
+                                                    I will do that in the NEXT step. For now, I'll use optional chaining if possible or safe access.
+                                                 */}
+                                                 {summary.todayReRegMemberIds && summary.todayReRegMemberIds.includes(member.id) && (
+                                                     <span className="badge" style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3B82F6', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+                                                        재등록
+                                                     </span>
+                                                 )}
+                                                 
                                                 {filterType === 'dormant' && (() => {
                                                     const today = new Date();
                                                     let lastDate = member.lastAttendance ? new Date(member.lastAttendance) : (member.regDate ? new Date(member.regDate) : null);

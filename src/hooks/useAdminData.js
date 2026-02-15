@@ -130,6 +130,9 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         }
     }, []); // Removed [loadingInsight] dependency to prevent loop
 
+    // [New] Re-registration Logic State
+    const [todayReRegMemberIds, setTodayReRegMemberIds] = useState([]);
+
     const refreshData = useCallback(async () => {
         console.time('[Admin] refreshData');
         
@@ -216,7 +219,39 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         // [Logic] Unique individuals attended (VALID only)
         const todayAttendance = uniqueMembers.filter(m => isMemberInBranch(m) && checkIsAttended(m)).length;
 
-        const todayRegistration = uniqueMembers.filter(m => isMemberInBranch(m) && checkIsRegistered(m)).length;
+        // [Logic] Today Registration (New & Re-reg)
+        // 1. New: regDate === today
+        const todayNewMembers = uniqueMembers.filter(m => isMemberInBranch(m) && checkIsRegistered(m));
+        
+        // 2. Re-reg: Sales today AND NOT New
+        const todaySalesMemberIds = new Set();
+        currentSales.forEach(s => {
+            let sDate = s.date;
+            // Handle ISO string if present
+            if (s.date && s.date.includes('T')) {
+                sDate = new Date(s.date).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            }
+            // Check if matches today
+            if (sDate === todayStr) {
+                // If branch filter applied, check sales branch OR member home branch
+                if (currentBranch === 'all' || s.branchId === currentBranch || uniqueMembers.find(m => m.id === s.memberId)?.homeBranch === currentBranch) {
+                    todaySalesMemberIds.add(s.memberId);
+                }
+            }
+        });
+
+        const todayReRegMembers = uniqueMembers.filter(m => 
+            isMemberInBranch(m) && 
+            todaySalesMemberIds.has(m.id) && 
+            !checkIsRegistered(m) // Not new
+        );
+
+        setTodayReRegMemberIds(todayReRegMembers.map(m => m.id));
+
+        const todayNewCount = todayNewMembers.length;
+        const todayReRegCount = todayReRegMembers.length;
+        const todayRegistrationTotal = todayNewCount + todayReRegCount; // Combined
+
         const expiringMembersCount = uniqueMembers.filter(m => isMemberInBranch(m) && isMemberExpiring(m)).length;
 
         // [Unified Revenue Logic] Match AdminRevenue.jsx
@@ -296,10 +331,13 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             activeMembers,
             todayAttendance,
             totalAttendanceToday,
-            todayRegistration,
+            todayRegistration: todayRegistrationTotal, // Updated to Combined
+            todayNewCount, // [New]
+            todayReRegCount, // [New]
             totalRevenueToday: todayRevenue,
             monthlyRevenue,
             expiringMembersCount,
+            todayReRegMemberIds: todayReRegMembers.map(m => m.id), // [New] For Badges in MembersTab
             // [New] Denied Stats
             deniedCount,
             deniedExpiredCount,
@@ -523,6 +561,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         checkAIQuota,
         filteredMembers,
         getDormantSegments, // [New]
-        isMemberExpiring
+        isMemberExpiring,
+        todayReRegMemberIds // [New]
     };
 };

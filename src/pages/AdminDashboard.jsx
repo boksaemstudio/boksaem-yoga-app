@@ -104,7 +104,8 @@ const AdminDashboard = () => {
         handleApprovePush, handleRejectPush,
         refreshData, isMemberActive, isMemberExpiring,
         // New exports
-        revenueTrend, memberStatusDist, getDormantSegments
+        revenueTrend, memberStatusDist, getDormantSegments,
+        todayReRegMemberIds // [New]
     } = useAdminData(activeTab, 'all');
 
     // Modals
@@ -223,14 +224,15 @@ const AdminDashboard = () => {
             if (!matchesSearch) return false;
 
             if (filterType === 'active') return checkIsActive(m);
-            if (filterType === 'registration') return m.regDate === todayStr;
+            // [FIX] Registration Filter: New OR Re-Reg
+            if (filterType === 'registration') return m.regDate === todayStr || todayReRegMemberIds.includes(m.id);
             // if (filterType === 'attendance') handled above
             if (filterType === 'expiring') return checkIsExpiring(m);
             if (filterType === 'dormant') return isMemberDormant(m, logs, isMemberActive);
 
             return true; // 'all'
         }).sort((a, b) => a.name.localeCompare(b.name, 'ko'));
-    }, [members, logs, searchTerm, filterType, currentBranch, isMemberActive, isMemberExpiring]);
+    }, [members, logs, searchTerm, filterType, currentBranch, isMemberActive, isMemberExpiring, todayReRegMemberIds]);
 
     const dormantCount = useMemo(() => {
         return members.filter(m => {
