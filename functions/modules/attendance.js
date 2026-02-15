@@ -158,6 +158,7 @@ exports.checkInMemberV2Call = onCall({
 
         // [NEW] Include credits and expiry for instructor view
         attendanceData.credits = attendanceStatus === 'valid' ? safeCredits - 1 : safeCredits;
+        attendanceData.startDate = memberData.startDate;
         attendanceData.endDate = memberData.endDate;
         attendanceData.cumulativeCount = attendanceStatus === 'valid' ? currentCount + 1 : currentCount;
 

@@ -718,14 +718,19 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                                 <div>
                                     <div style={{ fontWeight: 'bold', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         {record.memberName}
-                                        {record.cumulativeCount === 1 && (
-                                            <span style={{ fontSize: '0.7rem', background: '#ff4757', color: 'white', padding: '1px 4px', borderRadius: '4px' }}>신규</span>
-                                        )}
-                                        {record.cumulativeCount >= 2 && record.cumulativeCount <= 3 && (
-                                            <span style={{ fontSize: '0.7rem', background: '#ff4757', color: 'white', padding: '1px 4px', borderRadius: '4px' }}>
-                                                {record.cumulativeCount}회차
-                                            </span>
-                                        )}
+                                        {(() => {
+                                            // 신규 배지: startDate가 최근 14일 이내인 경우
+                                            const isNew = record.startDate && (() => {
+                                                const start = new Date(record.startDate);
+                                                const now = new Date();
+                                                const diff = (now - start) / (1000 * 60 * 60 * 24);
+                                                return diff <= 14;
+                                            })();
+                                            if (isNew) return (
+                                                <span style={{ fontSize: '0.65rem', background: '#ff4757', color: 'white', padding: '1px 6px', borderRadius: '4px', fontWeight: 'bold' }}>신규</span>
+                                            );
+                                            return null;
+                                        })()}
                                     </div>
                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', gap: '8px', marginTop: '2px' }}>
                                         <span>{record.className}</span>

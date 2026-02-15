@@ -1,5 +1,5 @@
 /**
- * 오늘 출석 데이터 검증 - instructor 필드 확인
+ * 오늘 출석한 회원들의 attendanceCount 확인
  */
 const admin = require('firebase-admin');
 if (admin.apps.length === 0) {
@@ -8,29 +8,29 @@ if (admin.apps.length === 0) {
 }
 const db = admin.firestore();
 
-async function verify() {
+async function check() {
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-    console.log(`\n📅 날짜: ${today}\n`);
-
-    // 1. 오늘 전체 출석 조회
-    const snap = await db.collection('attendance')
+    
+    // 오늘 출석 기록 조회
+    const attSnap = await db.collection('attendance')
         .where('date', '==', today)
         .get();
     
-    console.log(`📋 오늘 전체 출석: ${snap.size}건\n`);
+    console.log(`📅 ${today} 출석 ${attSnap.size}건\n`);
     
-    snap.docs.forEach(doc => {
-        const d = doc.data();
-        console.log(`  ${d.memberName || '?'} | className: "${d.className}" | instructor: "${d.instructor}" | branchId: "${d.branchId}" | time: ${d.timestamp?.split('T')[1]?.slice(0,5) || '?'}`);
-    });
-
-    // 2. 강사 목록 확인
-    console.log('\n--- 등록 강사 목록 ---');
-    const instrSnap = await db.collection('instructors').get();
-    instrSnap.docs.forEach(doc => {
-        const d = doc.data();
-        console.log(`  "${d.name}" (id: ${doc.id})`);
-    });
+    for (const doc of attSnap.docs) {
+        const att = doc.data();
+        const memberSnap = await db.collection('members').doc(att.memberId).get();
+        const member = memberSnap.exists ? memberSnap.data() : {};
+        
+        console.log(`  ${att.memberName}`);
+        console.log(`    attendance.cumulativeCount: ${att.cumulativeCount}`);
+        console.log(`    member.attendanceCount: ${member.attendanceCount}`);
+        console.log(`    member.credits: ${member.credits}`);
+        console.log(`    member.startDate: ${member.startDate}`);
+        console.log(`    member.endDate: ${member.endDate}`);
+        console.log('');
+    }
 }
 
-verify().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); });
+check().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); });
