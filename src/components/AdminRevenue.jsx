@@ -56,7 +56,7 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
             if (currentBranch !== 'all' && member && member.homeBranch !== currentBranch) return;
 
             // Check if dates match 'YYYY-MM-DD' (KST 기준)
-            if (!s.date) return false;
+            if (!s.date) return;
             let dateStr;
             if (s.date.includes('T')) {
                 // ISO UTC → KST 변환
@@ -82,13 +82,26 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
             // Let's just use `sales` for accurate *recent* history, and `members` for meaningful *past*.
             // Only add `members` item if date < '2026-01-20' (approx today).
 
+            // Determine isNew
+            let isNew = false;
+            if (s.type === 'extend') {
+                isNew = false;
+            } else if (s.type === 'register') {
+                if (member && member.regDate === dateStr) {
+                    isNew = true;
+                } else {
+                    isNew = false;
+                }
+            }
+
             allItems.push({
                 id: s.id,
                 date: dateStr,
                 amount: s.amount,
                 name: s.memberName,
                 type: s.type, // 'register' or 'extend'
-                item: s.item
+                item: s.item,
+                isNew: isNew
             });
         });
 
@@ -146,6 +159,8 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
 
             daily[dKey] = {
                 date: dKey, amount: 0, count: 0,
+                amountNew: 0, amountReReg: 0, // [New]
+                amountNewCount: 0, amountReRegCount: 0, // [New]
                 isSunday: dayOfWeek === 0,
                 isSaturday: dayOfWeek === 6,
                 holidayName: holidayRaw ? (holidayMap[holidayRaw] || '공휴일') : null
@@ -156,6 +171,14 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
             if (daily[item.date]) {
                 daily[item.date].amount += item.amount;
                 daily[item.date].count += 1;
+                
+                if (item.isNew) {
+                    daily[item.date].amountNew += item.amount;
+                    daily[item.date].amountNewCount += 1;
+                } else {
+                    daily[item.date].amountReReg += item.amount;
+                    daily[item.date].amountReRegCount += 1;
+                }
             }
         });
 
@@ -191,10 +214,15 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
             });
         }
 
+        const monthlyNew = Object.values(daily).reduce((s, d) => s + d.amountNew, 0);
+        const monthlyReReg = Object.values(daily).reduce((s, d) => s + d.amountReReg, 0);
+
         return {
             dailyStats: Object.values(daily),
             monthlyStats: {
                 totalRevenue: Object.values(daily).reduce((s, d) => s + d.amount, 0),
+                totalRevenueNew: monthlyNew,
+                totalRevenueReReg: monthlyReReg,
                 totalCount: monthlyItems.length
             },
             comparativeStats: {
@@ -234,9 +262,13 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
             <div className="dashboard-card" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.1), rgba(0,0,0,0))', border: '1px solid rgba(212,175,55,0.3)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                     <div>
-                        <div style={{ fontSize: '0.9rem', color: 'var(--primary-gold)', fontWeight: 'bold', marginBottom: '4px' }}>이번 달 확정 매출</div>
+                        <div style={{ fontSize: '0.9rem', color: 'var(--primary-gold)', fontWeight: 'bold', marginBottom: '4px' }}>월간 총 매출</div>
                         <div style={{ fontSize: '2.4rem', fontWeight: '800', color: '#fff', textShadow: '0 0 20px rgba(212,175,55,0.3)' }}>
                             {formatCurrency(monthlyStats.totalRevenue)}원
+                        </div>
+                        <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', marginTop: '8px' }}>
+                            (신규: <span style={{ color: '#86efac' }}>{formatCurrency(monthlyStats.totalRevenueNew)}원</span> / 
+                             재등록: <span style={{ color: '#60a5fa' }}>{formatCurrency(monthlyStats.totalRevenueReReg)}원</span>)
                         </div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
@@ -303,13 +335,28 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
                                     {day.holidayName}
                                 </div>
                             )}
+                            {/* Detailed breakdown */}
                             {day.amount > 0 && (
-                                <div style={{ fontSize: '0.8rem', color: '#f59e0b', fontWeight: '600', marginBottom: '2px' }}>
-                                    {formatCurrency(day.amount)}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    {day.amountNew > 0 && (
+                                        <div style={{ fontSize: '0.7rem', color: '#86efac', fontWeight: '500' }}>
+                                            신규: {formatCurrency(day.amountNew)}
+                                        </div>
+                                    )}
+                                    {day.amountReReg > 0 && (
+                                        <div style={{ fontSize: '0.7rem', color: '#60a5fa', fontWeight: '500' }}>
+                                            재등록: {formatCurrency(day.amountReReg)}
+                                        </div>
+                                    )}
+                                    {/* Total if needed, specific UI request says separate amounts? Actually user said "재등록 금액과 신규등록 총금액으로 해줘" on calendar too. So separate is good. */}
+                                    {(day.amountNew === 0 || day.amountReReg === 0) && (
+                                        // If only one type exists, maybe emphasize it? Or just leave as is.
+                                        // If mixed, both show up.
+                                        // Let's add total sum at bottom slightly dimmed if both exist? Or just keep it clean.
+                                        // User request: "재등록 금액과 신규등록 총금액으로 해줘" -> likely wants to see the breakdown.
+                                        null
+                                    )}
                                 </div>
-                            )}
-                            {day.count > 0 && (
-                                <div style={{ fontSize: '0.75rem', color: '#3b82f6' }}>{day.count}건</div>
                             )}
                         </div>
                     ))}
