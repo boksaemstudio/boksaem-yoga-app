@@ -68,15 +68,25 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
             )}
 
             <div className="dashboard-card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <h3 className="card-label" style={{ margin: 0 }}>최근 활동 로그</h3>
                         {selectedClassKey && (
                             <button
                                 onClick={() => setSelectedClassKey(null)}
-                                style={{ background: 'var(--primary-gold)', color: 'black', border: 'none', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'pointer' }}
+                                style={{ 
+                                    background: 'var(--primary-gold)', 
+                                    color: 'black', 
+                                    border: 'none', 
+                                    padding: '4px 10px', 
+                                    borderRadius: '6px', 
+                                    fontSize: '0.75rem', 
+                                    fontWeight: 'bold', 
+                                    cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', gap: '4px'
+                                }}
                             >
-                                필터 해제 (전체 보기)
+                                <ClockCounterClockwise size={14} /> 필터 해제
                             </button>
                         )}
                     </div>
@@ -93,27 +103,27 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                 background: 'linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)', // Premium Red Gradient
                                 color: 'white',
                                 border: 'none',
-                                padding: '8px 16px',
-                                borderRadius: '20px',
-                                fontSize: '0.8rem',
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                fontSize: '0.75rem',
                                 fontWeight: 'bold',
-                                boxShadow: '0 4px 15px rgba(255, 75, 43, 0.3)',
+                                boxShadow: '0 2px 8px rgba(255, 75, 43, 0.25)',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '6px',
+                                gap: '4px',
                                 transition: 'all 0.2s ease',
                                 cursor: 'pointer'
                             }}
                             onMouseOver={(e) => {
-                                e.currentTarget.style.transform = 'translateY(-2px)';
-                                e.currentTarget.style.boxShadow = '0 6px 20px rgba(255, 75, 43, 0.5)';
+                                e.currentTarget.style.transform = 'translateY(-1px)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 75, 43, 0.4)';
                             }}
                             onMouseOut={(e) => {
                                 e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 75, 43, 0.3)';
+                                e.currentTarget.style.boxShadow = '0 2px 8px rgba(255, 75, 43, 0.25)';
                             }}
                         >
-                            <Trash size={16} weight="fill" /> 전체 기록 삭제
+                            <Trash size={14} weight="fill" /> 전체 기록 삭제
                         </button>
                     )}
                 </div>
