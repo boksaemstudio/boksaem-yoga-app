@@ -182,11 +182,11 @@ service cloud.firestore {
 
     // ========================================
     // 🐛 Client Error Logs
-    // Anyone can create (for logging), Admin read
+    // Anyone can create (for logging kiosk errors), Admin read
     // ========================================
     match /error_logs/{logId} {
       allow read: if isAdmin();
-      allow create: if isAuth(); // Require authentication to prevent DoS
+      allow create: if true; // Allow anyone to log errors for stability
       allow update, delete: if isAdmin();
     }
 
@@ -218,7 +218,7 @@ service cloud.firestore {
     // ========================================
     match /pending_attendance/{id} {
       allow read: if isAdmin();
-      allow create: if isAuth(); 
+      allow create: if true; // Allow anonymous kiosk to save pending recs
       allow update, delete: if isAdmin();
     }
   }

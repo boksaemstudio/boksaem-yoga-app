@@ -177,9 +177,34 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
 
                     {/* Duration / Payment Grid */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                        <InputGroup label="등록 기간 (개월)" value={duration} onChange={val => setDuration(Number(val))} type="select"
-                            options={[1, 3, 6, 12].map(n => ({ value: n, label: `${n}개월` }))}
-                        />
+                        {(() => {
+                            const option = pricingConfig?.[membershipType]?.options?.find(opt => opt.id === selectedOption);
+                            if (option && option.type === 'subscription') {
+                                return (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                        <label style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>등록 기간 (개월)</label>
+                                        <div style={{ display: 'flex', gap: '5px' }}>
+                                            {[1, 3, 6].map(m => (
+                                                <button
+                                                    key={m}
+                                                    onClick={() => setDuration(m)}
+                                                    style={{
+                                                        flex: 1, padding: '10px 0', borderRadius: '8px', border: '1px solid',
+                                                        borderColor: duration === m ? 'var(--primary-gold)' : 'rgba(255,255,255,0.1)',
+                                                        background: duration === m ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.05)',
+                                                        color: duration === m ? 'var(--primary-gold)' : '#71717a',
+                                                        fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    {m}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            return <div />; // Spacer if no duration choice
+                        })()}
                         <InputGroup label="결제 수단" value={paymentMethod} onChange={setPaymentMethod} type="select"
                             options={[{ value: 'card', label: '카드' }, { value: 'cash', label: '현금' }, { value: 'transfer', label: '이체' }]}
                         />

@@ -380,7 +380,7 @@ export const storageService = {
 
         // Save to Firestore 'pending_attendance' - will auto-sync when online
         const pendingRef = collection(db, 'pending_attendance');
-        await addDoc(pendingRef, {
+        const pendingData = {
             memberId,
             branchId,
             classTitle,
@@ -388,7 +388,19 @@ export const storageService = {
             date: today,
             timestamp: now,
             status: 'pending-offline'
-        });
+        };
+
+        try {
+            await addDoc(pendingRef, pendingData);
+            console.log("[Storage] Pending record saved to Firestore (Offline mode)");
+        } catch (firestoreErr) {
+            // [CRITICAL FALLBACK] If Firestore writing itself fails (e.g. permission or absolute cutoff)
+            // Store in LocalStorage as a last resort
+            console.error("[Storage] Firestore write failed. Using LocalStorage fallback:", firestoreErr.message);
+            const localQueue = JSON.parse(localStorage.getItem('pending_checkins_queue') || '[]');
+            localQueue.push(pendingData);
+            localStorage.setItem('pending_checkins_queue', JSON.stringify(localQueue));
+        }
 
         // Optimistically update local UI
         const newCredits = (member?.credits || 0) > 0 ? (member.credits - 1) : 0;

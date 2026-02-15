@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef, memo } from 'react';
 import Keypad from '../components/Keypad';
 import { storageService } from '../services/storage';
-import { functions } from '../firebase';
+import { functions, auth } from '../firebase';
+import { signInAnonymously } from 'firebase/auth';
 import { httpsCallable } from 'firebase/functions';
 import { getAllBranches, getBranchName } from '../studioConfig';
 import logoWide from '../assets/logo_wide.png';
 import { MapPin, Sun, Cloud, CloudRain, Snowflake, Lightning, Moon, CornersOut, CornersIn, Chalkboard } from '@phosphor-icons/react';
 import { getTodayKST, getKSTHour, getKSTMinutes, getDaysRemaining } from '../utils/dates';
+import { logError } from '../services/modules/errorModule';
 
 // [PERF] 현재 시간대 배경만 로딩 (4장 → 1장, WebP 최적화)
 const getBgForPeriod = (period) => {
@@ -339,6 +341,15 @@ const CheckInPage = () => {
         // [KIOSK MODE] Initialize with cache warming for maximum speed
         const initKiosk = async () => {
             console.time('[CheckIn] Total Init');
+            
+            // [STABILITY] Get anonymous auth to ensure Firestore write permissions for logging
+            try {
+                await signInAnonymously(auth);
+                console.log('[CheckIn] 🔐 Anonymous auth successful');
+            } catch (authErr) {
+                console.warn('[CheckIn] Anonymous auth failed:', authErr.message);
+            }
+
             await storageService.initialize({ mode: 'kiosk' });
             setIsReady(true);
             console.timeEnd('[CheckIn] Total Init');
@@ -887,6 +898,15 @@ const CheckInPage = () => {
 
     const handleCheckInError = (errorStr) => {
         console.error("[CheckIn] Error caught:", errorStr);
+        
+        // [STABILITY] Log error to Firestore for tracking (e.g., Da-sol Joung's case)
+        logError(new Error(errorStr), { 
+            context: 'Kiosk CheckIn', 
+            branch: currentBranch,
+            pin: pin.slice(-4), // Only log last 4 digits for privacy if possible, but here 'pin' is usually last 4 anyway
+            pathname: window.location.pathname
+        });
+
         let displayMsg = '출석 처리 중 오류가 발생했습니다.';
         const lowerErr = errorStr.toLowerCase();
 
