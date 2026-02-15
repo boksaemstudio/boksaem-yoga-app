@@ -165,7 +165,7 @@ const generateScheduleFromTemplateImpl = async (branchId, year, month, template)
         const cleanedClasses = classes.map(cls => ({
             time: cls.startTime, // Map startTime -> time
             title: cls.className, // Map className -> title
-            instructor: cls.instructor,
+            instructor: cls.instructor || '미지정',
             status: 'normal',
             level: cls.level || '',
             duration: cls.duration || 60

@@ -211,5 +211,15 @@ service cloud.firestore {
     match /practice_events/{docId} { allow read: if isAdmin(); }
     match /ai_quota/{docId} { allow read: if isAdmin(); }
     match /pending_approvals/{docId} { allow read, write: if isAdmin(); }
+
+    // ========================================
+    // ⏳ Pending Attendance - 오프라인 대기 출석
+    // Kiosk creates, Admin/System reads/deletes
+    // ========================================
+    match /pending_attendance/{id} {
+      allow read: if isAdmin();
+      allow create: if isAuth(); 
+      allow update, delete: if isAdmin();
+    }
   }
 }

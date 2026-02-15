@@ -749,12 +749,11 @@ const CheckInPage = () => {
         const pinCode = code || pin;
         if (pinCode.length !== 4 || loading) return;
 
-        // [NETWORK] Check connectivity before attempting server call
+        // [NETWORK] We now support offline check-in via storageService fallback
+        // The navigator.onLine check is no longer a blocker. 
+        // We will show a warning but allow the user to proceed.
         if (!navigator.onLine) {
-            setMessage({ type: 'error', text: '⚠️ 네트워크 연결을 확인해주세요' });
-            setPin('');
-            startDismissTimer(3000);
-            return;
+            console.log('[CheckIn] Proceeding in offline mode...');
         }
 
         // [DUPLICATE] 60초 이내 동일 PIN 입력 확인
@@ -909,10 +908,10 @@ const CheckInPage = () => {
         setAiLoading(true); // AI 로딩 시작
 
         setMessage({
-            type: 'success',
+            type: result.isOffline ? 'info' : 'success', // Use 'info' style for offline
             member: result.member,
             text: `${result.member.name}님`,
-            subText: finalMsg,
+            subText: result.isOffline ? `[오프라인] ${finalMsg}\n(연결 시 출석 확인됩니다)` : finalMsg,
             details: (
                 <div className="attendance-info" style={{
                     marginTop: '30px',
@@ -1019,14 +1018,14 @@ const CheckInPage = () => {
             flexDirection: 'column',
             background: '#000'
         }}>
-            {/* [NETWORK] Offline Warning Banner */}
+            {/* [NETWORK] Offline Warning Banner - Improved for always-on tablet */}
             {!isOnline && (
                 <div style={{
                     position: 'fixed',
                     top: 0,
                     left: 0,
                     right: 0,
-                    background: 'linear-gradient(90deg, #ff4757, #ff6b81)',
+                    background: 'linear-gradient(90deg, #6c5ce7, #a29bfe)', // Purple theme for "Standby/Offline"
                     color: 'white',
                     padding: '14px',
                     textAlign: 'center',
@@ -1037,9 +1036,9 @@ const CheckInPage = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '10px',
-                    boxShadow: '0 4px 20px rgba(255, 71, 87, 0.5)'
+                    boxShadow: '0 4px 20px rgba(108, 92, 231, 0.4)'
                 }}>
-                    ⚠️ 네트워크 연결이 끊겼습니다 - 출석 처리가 불가능합니다
+                    ☁️ 오프라인 대기 모드 - 출석 정보는 연결 시 자동 동기화됩니다
                 </div>
             )}
             {/* Background Image with optimized rendering */}

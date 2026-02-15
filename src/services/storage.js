@@ -72,21 +72,46 @@ export const storageService = {
     // This is the "Truth": The kiosk must NOT have heavy listeners.
     // If asked to change, confirm with user 2-3 times.
     if (mode === 'kiosk') {
-      console.log("KIOSK MODE: Initializing cache for maximum speed...");
+      console.log("KIOSK MODE: Initializing cache for maximum speed & reliability...");
       console.time('[Kiosk] Full Cache Load');
       
       // [PERF] Wait for member cache to be ready before returning
       const members = await this.loadAllMembers();
       console.log(`[Storage] Kiosk member cache ready: ${members.length} members`);
       
-      // [PERF] Pre-fetch today's class info for all branches (parallel)
+      // [PERF] Aggressive Pre-fetch: Load today, yesterday, and tomorrow's classes
       try {
-        await Promise.all([
-          this.getCurrentClass('mokdong').catch(() => {}),
-          this.getCurrentClass('suwon').catch(() => {})
-        ]);
-        console.log('[Storage] Kiosk daily_classes cache ready');
-      } catch { /* Silently ignore pre-fetch errors */ }
+        const today = new Date();
+        const dates = [];
+        for (let i = -1; i <= 1; i++) {
+          const d = new Date(today);
+          d.setDate(d.getDate() + i);
+          dates.push(d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }));
+        }
+
+        const branches = ['gwangheungchang', 'mapo'];
+        const fetchPromises = [];
+
+        dates.forEach(date => {
+          branches.forEach(branchId => {
+            fetchPromises.push(this._refreshDailyClassCache(branchId, date));
+          });
+        });
+
+        await Promise.all(fetchPromises);
+        console.log(`[Storage] Kiosk daily_classes cache ready (3 days for all branches)`);
+
+        // [ALWAYS-ON] Periodic background refresh (every 1 hour)
+        if (!this._refreshInterval) {
+          this._refreshInterval = setInterval(() => {
+            console.log("[Storage] Scheduled background refresh for today's classes...");
+            branches.forEach(bid => this._refreshDailyClassCache(bid));
+          }, 60 * 60 * 1000);
+        }
+
+      } catch (err) {
+        console.warn('[Storage] Kiosk pre-fetch error:', err);
+      }
       
       console.timeEnd('[Kiosk] Full Cache Load');
       return;
@@ -306,45 +331,114 @@ export const storageService = {
       const currentClassInfo = await this.getCurrentClass(branchId);
       const classTitle = currentClassInfo?.title || '자율수련';
       const instructor = currentClassInfo?.instructor || '미지정';
-      // [NETWORK] Apply timeout to prevent infinite waiting on slow networks
-      const response = await withTimeout(
-        checkInMember({ memberId, branchId, classTitle, instructor }),
-        10000,
-        '출석 처리 시간 초과 - 다시 시도해주세요'
-      );
+      
+      // Attempt Online Check-in
+      try {
+        const response = await withTimeout(
+          checkInMember({ memberId, branchId, classTitle, instructor }),
+          8000, // Slightly shorter timeout for kiosk UX
+          '서버 연결 지연'
+        );
 
-      if (!response.data.success) throw new Error(response.data.message || 'Check-in failed');
+        if (response.data.success) {
+          const { newCredits, startDate, endDate, attendanceCount, streak, isMultiSession, sessionCount } = response.data;
+          this._updateLocalMemberCache(memberId, { 
+            credits: newCredits, 
+            attendanceCount, 
+            streak, 
+            startDate, 
+            endDate,
+            lastAttendance: new Date().toISOString()
+          });
 
-      const { newCredits, startDate, endDate, attendanceCount, streak, isMultiSession, sessionCount } = response.data;
-      const idx = cachedMembers.findIndex(m => m.id === memberId);
-      if (idx !== -1) {
-        cachedMembers[idx].credits = newCredits;
-        cachedMembers[idx].attendanceCount = attendanceCount;
-        cachedMembers[idx].streak = streak;
-        // [FIX] Update dates if they were TBD
-        cachedMembers[idx].startDate = startDate;
-        cachedMembers[idx].endDate = endDate;
-        // [FIX] Locally update lastAttendance to prevent "Ghost Member" (Risk) false positives immediately after check-in
-        cachedMembers[idx].lastAttendance = new Date().toISOString();
-        notifyListeners();
-      }
-      return {
-        success: true,
-        message: isMultiSession ? `[${classTitle}] ${sessionCount}회차 출석되었습니다!` : `[${classTitle}] 출석되었습니다!`,
-        member: {
-          id: memberId,
-          name: response.data.memberName,
-          credits: newCredits,
-          attendanceCount,
-          streak,
-          startDate,
-          endDate,
-          isMultiSession,
-          sessionCount
+          return {
+            success: true,
+            message: isMultiSession ? `[${classTitle}] ${sessionCount}회차 출석되었습니다!` : `[${classTitle}] 출석되었습니다!`,
+            member: {
+              id: memberId,
+              name: response.data.memberName,
+              credits: newCredits,
+              attendanceCount,
+              streak,
+              startDate,
+              endDate,
+              isMultiSession,
+              sessionCount
+            }
+          };
+        } else {
+           throw new Error(response.data.message || 'Check-in failed');
         }
-      };
+      } catch (networkError) {
+        // [OFFLINE FALLBACK]
+        // If server is unreachable or times out, save to 'pending_attendance'
+        console.warn("[Storage] Offline mode triggered for check-in:", networkError.message);
+        
+        const member = cachedMembers.find(m => m.id === memberId);
+        const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+        const now = new Date().toISOString();
+
+        // Save to Firestore 'pending_attendance' - will auto-sync when online
+        const pendingRef = collection(db, 'pending_attendance');
+        await addDoc(pendingRef, {
+            memberId,
+            branchId,
+            classTitle,
+            instructor,
+            date: today,
+            timestamp: now,
+            status: 'pending-offline'
+        });
+
+        // Optimistically update local UI
+        const newCredits = (member?.credits || 0) > 0 ? (member.credits - 1) : 0;
+        const newCount = (member?.attendanceCount || 0) + 1;
+        
+        this._updateLocalMemberCache(memberId, {
+            credits: newCredits,
+            attendanceCount: newCount,
+            lastAttendance: now
+        });
+
+        return {
+          success: true,
+          isOffline: true,
+          message: `[${classTitle}] 오프라인 모드로 출석되었습니다.\n(연결 시 자동 반영됩니다)`,
+          member: {
+            ...member,
+            credits: newCredits,
+            attendanceCount: newCount
+          }
+        };
+      }
     } catch (error) {
       return { success: false, message: error.message };
+    }
+  },
+
+  _updateLocalMemberCache(memberId, updates) {
+    const idx = cachedMembers.findIndex(m => m.id === memberId);
+    if (idx !== -1) {
+      cachedMembers[idx] = { ...cachedMembers[idx], ...updates };
+      notifyListeners();
+      // Re-build index for searching
+      this._buildPhoneLast4Index();
+    }
+  },
+
+  async _refreshDailyClassCache(branchId, date = null) {
+    const targetDate = date || new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+    const cacheKey = `${branchId}_${targetDate}`;
+    try {
+      const docRef = doc(db, 'daily_classes', cacheKey);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        cachedDailyClasses[cacheKey] = docSnap.data().classes;
+      } else {
+        cachedDailyClasses[cacheKey] = [];
+      }
+    } catch (e) {
+      console.warn(`[Storage] Failed to refresh daily classes for ${cacheKey}:`, e);
     }
   },
 

@@ -441,12 +441,12 @@ const InstructorSchedule = ({ instructorName }) => {
                                                 ) : (
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                                         {dateAttendance
-                                                            .filter(a => a.className === cls.title && a.instructor === cls.instructor)
+                                                            .filter(a => a.className === cls.title && (a.instructor === cls.instructor || a.instructor === '미지정'))
                                                             .length === 0 ? (
                                                             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>출석 회원이 없습니다</div>
                                                         ) : (
                                                             dateAttendance
-                                                                .filter(a => a.className === cls.title && a.instructor === cls.instructor)
+                                                                .filter(a => a.className === cls.title && (a.instructor === cls.instructor || a.instructor === '미지정'))
                                                                 .map((att, aidx) => (
                                                                     <div key={att.id || aidx} style={{ display: 'flex', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '6px 10px', borderRadius: '4px' }}>
                                                                         <span style={{ fontSize: '0.85rem' }}>{att.memberName}</span>

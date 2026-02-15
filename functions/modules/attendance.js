@@ -354,3 +354,67 @@ exports.onAttendanceCreated = onDocumentCreated("attendance/{attendanceId}", asy
         await logAIError('PracticeEvent_Calculation', error);
     }
 });
+
+/**
+ * 오프라인 출석 자동 동기화 트리거
+ * pending_attendance 컬렉션에 새 문서가 생성되면 실행되어 실제 출석으로 처리합니다.
+ */
+exports.onPendingAttendanceCreated = onDocumentCreated({
+    document: "pending_attendance/{id}",
+    region: "asia-northeast3"
+}, async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) return;
+
+    const data = snapshot.data();
+    const { memberId, branchId, classTitle, instructor, timestamp, date } = data;
+    const db = admin.firestore();
+
+    console.log(`[OfflineSync] Processing pending check-in for member: ${memberId}`);
+
+    try {
+        await db.runTransaction(async (transaction) => {
+            const memberRef = db.collection('members').doc(memberId);
+            const memberSnap = await transaction.get(memberRef);
+
+            if (!memberSnap.exists) return;
+
+            const memberData = memberSnap.data();
+            const currentCredits = memberData.credits || 0;
+            const currentCount = memberData.attendanceCount || 0;
+
+            // 1. Create Official Attendance Record
+            // Note: We use the original timestamp from the client for accuracy
+            const attendanceData = {
+                memberId,
+                memberName: memberData.name,
+                branchId,
+                date: date,
+                className: classTitle || '자율수련',
+                instructor: instructor || '미지정',
+                timestamp: timestamp,
+                status: 'valid',
+                credits: currentCredits - 1,
+                cumulativeCount: currentCount + 1,
+                syncMode: 'offline-restored'
+            };
+
+            const attRef = db.collection('attendance').doc();
+            transaction.set(attRef, attendanceData);
+
+            // 2. Clear Member Credits & Increment Count
+            transaction.update(memberRef, {
+                credits: admin.firestore.FieldValue.increment(-1),
+                attendanceCount: admin.firestore.FieldValue.increment(1),
+                lastAttendance: timestamp
+            });
+
+            // 3. Mark Pending Record as Processed
+            transaction.delete(snapshot.ref);
+        });
+
+        console.log(`[OfflineSync] Successfully synced offline check-in for ${memberId}`);
+    } catch (e) {
+        console.error(`[OfflineSync] Sync failed for ${memberId}:`, e);
+    }
+});
