@@ -16,6 +16,25 @@ import App from './App.jsx'
 import './styles/index.css'
 import ErrorBoundary from './components/ErrorBoundary'
 import { LanguageProvider } from './context/LanguageContext'
+import { httpsCallable } from 'firebase/functions'
+import { functions } from './firebase'
+
+// [PERF] Critical Server Warm-up: 앱 시작 즉시 서버 깨우기 (Render 전 실행)
+// 사용자 경험을 위해 UI 렌더링을 기다리지 않고 병렬로 실행
+if (typeof window !== 'undefined') {
+  const warmUpServers = async () => {
+    try {
+      console.log('🔥 [Warm-up] Sending signals to Cloud Functions...');
+      // 1. Check-in Core
+      httpsCallable(functions, 'checkInMemberV2Call')({ ping: true }).catch(() => {});
+      // 2. AI Mediation Engine
+      httpsCallable(functions, 'generateMeditationGuidance')({ type: 'warmup' }).catch(() => {});
+    } catch (e) {
+      console.debug('Warm-up signal failed (harmless):', e);
+    }
+  };
+  warmUpServers();
+}
 
 // [Agent Admin Mode] Enable ONLY in development via URL parameter (?agent_admin=true) or localStorage
 if (import.meta.env.DEV && typeof window !== 'undefined' && (window.location.search.includes('agent_admin=true') || localStorage.getItem('agent_admin_mode') === 'true')) {
