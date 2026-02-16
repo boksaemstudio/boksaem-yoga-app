@@ -380,29 +380,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                 </button>
                             )}
                         </div>
-                        {isToday && logs.length > 0 && (
-                            <button
-                                onClick={async () => {
-                                    if (confirm('정말로 모든 출석 기록을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-                                        const res = await storageService.clearAllAttendance();
-                                        if (res.success) alert(`${res.count}건의 기록이 삭제되었습니다.`);
-                                    }
-                                }}
-                                className="action-btn sm"
-                                style={{
-                                    background: 'linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)',
-                                    color: 'white', border: 'none', padding: '6px 12px',
-                                    borderRadius: '8px', fontSize: '0.75rem', fontWeight: 'bold',
-                                    boxShadow: '0 2px 8px rgba(255, 75, 43, 0.25)',
-                                    display: 'flex', alignItems: 'center', gap: '4px',
-                                    transition: 'all 0.2s ease', cursor: 'pointer'
-                                }}
-                                onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 75, 43, 0.4)'; }}
-                                onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(255, 75, 43, 0.25)'; }}
-                            >
-                                <Trash size={14} weight="fill" /> 전체 기록 삭제
-                            </button>
-                        )}
+
                     </div>
                     <div style={{ marginTop: '10px' }}>
                         {(() => {

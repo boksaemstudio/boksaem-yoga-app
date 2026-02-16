@@ -1315,19 +1315,19 @@ export const storageService = {
         q = query(
           collection(db, 'attendance'),
           where('date', '==', dateStr),
-          where('branchId', '==', branchId),
-          orderBy('timestamp', 'desc')
+          where('branchId', '==', branchId)
+          // [PERF] Removed orderBy to avoid "Missing Index" error.
+          // Sorting is handled client-side below.
         );
       } else {
         q = query(
           collection(db, 'attendance'),
-          where('date', '==', dateStr),
-          orderBy('timestamp', 'desc')
+          where('date', '==', dateStr)
         );
       }
       const snapshot = await getDocs(q);
       const records = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      // [PERF] Sort on client side as a safety measure for pending indexes
+      // [PERF] Sort on client side to ensure correct order
       records.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
       return records;
     } catch (e) {
@@ -1553,6 +1553,8 @@ export const storageService = {
       return { success: false, message: e.message };
     }
   },
+
+
 
   async addManualAttendance(memberId, date, branchId, className = "수동 확인", instructor = "관리자") {
     try {
