@@ -210,6 +210,7 @@ const CheckInPage = () => {
     const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
     const [pendingPin, setPendingPin] = useState(null);
     const duplicateAutoCloseRef = useRef(null);
+    const [duplicateTimer, setDuplicateTimer] = useState(10); // [UX] 10s countdown for auto-confirm
     // [FIX] Always use Korean for Check-in Page as requested
     // const { language } = useLanguage();
     const language = 'ko';
@@ -871,21 +872,23 @@ const CheckInPage = () => {
     };
 
     // [DUPLICATE] 확인 모달에서 "다시 출석" 클릭
-    const confirmDuplicateCheckIn = () => {
-        if (duplicateAutoCloseRef.current) clearTimeout(duplicateAutoCloseRef.current);
+    const confirmDuplicateCheckIn = async () => {
+        if (duplicateAutoCloseRef.current) clearInterval(duplicateAutoCloseRef.current);
         setShowDuplicateConfirm(false);
-        const pinToProcess = pendingPin;
-        setPendingPin(null);
-        if (pinToProcess) proceedWithCheckIn(pinToProcess);
+        if (pendingPin) {
+            await proceedWithCheckIn(pendingPin);
+            setPendingPin(null);
+        }
     };
 
     // [DUPLICATE] 확인 모달에서 "취소" 클릭
     const cancelDuplicateCheckIn = () => {
-        if (duplicateAutoCloseRef.current) clearTimeout(duplicateAutoCloseRef.current);
+        if (duplicateAutoCloseRef.current) clearInterval(duplicateAutoCloseRef.current);
         setShowDuplicateConfirm(false);
         setPendingPin(null);
         setPin('');
         setLoading(false);
+        setDuplicateTimer(10); // Reset
     };
 
     const handleSubmit = async (code) => {
@@ -913,15 +916,43 @@ const CheckInPage = () => {
             setPendingPin(pinCode);
             setShowDuplicateConfirm(true);
             setPin('');
-            // 5초 후 자동 취소
-            duplicateAutoCloseRef.current = setTimeout(() => {
-                cancelDuplicateCheckIn();
-            }, 5000);
+            
+            // [UX] Start 10s Countdown for Auto-Confirm (Request: "If I do nothing, attendance should be checked")
+            setDuplicateTimer(10);
+            
+            // Clear existing timer if any
+            if (duplicateAutoCloseRef.current) clearInterval(duplicateAutoCloseRef.current);
+
+            duplicateAutoCloseRef.current = setInterval(() => {
+                setDuplicateTimer(prev => {
+                    if (prev <= 1) {
+                        clearInterval(duplicateAutoCloseRef.current);
+                        // [UX] Auto-Confirm Logic
+                        console.log("Auto-confirming duplicate check-in due to timeout");
+                        // We need to trigger confirmDuplicateCheckIn, but we can't call it directly inside state update easily
+                        // So we use an effect or just call a wrapped version.
+                        // However, duplicatePin state acts as a trigger.
+                        // Let's call a separate function or use useEffect to watch timer?
+                        // Actually, simpler to just trigger it here if we refactor confirmDuplicateCheckIn to not depend on event.
+                        // Check below for confirmDuplicateCheckIn implementation. It uses pendingPin.
+                        return 0; 
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+
             return;
         }
 
         await proceedWithCheckIn(pinCode);
     };
+
+    // [UX] Watch for timer reaching 0 to trigger auto-confirm
+    useEffect(() => {
+        if (duplicateTimer === 0 && showDuplicateConfirm && pendingPin) {
+            confirmDuplicateCheckIn();
+        }
+    }, [duplicateTimer, showDuplicateConfirm, pendingPin]);
 
     const handleCheckInError = (errorStr) => {
         console.error("[CheckIn] Error caught:", errorStr);
@@ -1732,94 +1763,139 @@ const CheckInPage = () => {
                 onClose={() => setShowInstructorQR(false)} 
             />
 
-            {/* [DUPLICATE] 중복 입력 확인 모달 */}
             {showDuplicateConfirm && (
                 <div style={{
                     position: 'fixed',
                     top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0,0,0,0.7)',
+                    background: 'rgba(0,0,0,0.85)', // [UI] Darker background for focus
                     zIndex: 10000,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    animation: 'fadeIn 0.3s ease-out'
+                    animation: 'fadeIn 0.2s ease-out'
                 }}>
                     <div style={{
-                        background: 'rgba(30,30,30,0.95)',
-                        backdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(255,215,0,0.3)',
-                        borderRadius: '24px',
-                        padding: '40px 50px',
-                        maxWidth: '480px',
-                        width: '90%',
+                        background: 'rgba(30,30,30,0.98)',
+                        backdropFilter: 'blur(30px)',
+                        border: '2px solid rgba(255,80,80,0.5)', // [UI] Red border for alert
+                        borderRadius: '32px',
+                        padding: '50px',
+                        maxWidth: '800px', // [UI] Wider modal
+                        width: '95%',
                         textAlign: 'center',
-                        boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-                        animation: 'slideUp 0.4s ease-out'
+                        boxShadow: '0 30px 80px rgba(0,0,0,0.7)',
+                        animation: 'scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
                     }}>
                         <div style={{
-                            fontSize: '3rem',
-                            marginBottom: '16px'
+                            fontSize: '4rem',
+                            marginBottom: '20px',
+                            animation: 'bounce 1s infinite'
                         }}>⚠️</div>
                         <h3 style={{
-                            color: 'var(--primary-gold)',
-                            fontSize: '1.5rem',
-                            fontWeight: 700,
-                            marginBottom: '12px'
-                        }}>중복 출석 확인</h3>
+                            color: '#ff6b6b', // [UI] Red warning color
+                            fontSize: '2.5rem',
+                            fontWeight: 800,
+                            marginBottom: '20px',
+                            textShadow: '0 2px 10px rgba(255,107,107,0.3)'
+                        }}>잠깐만요! 방금 출석하셨어요</h3>
+                        
                         <p style={{
-                            color: 'rgba(255,255,255,0.8)',
-                            fontSize: '1.15rem',
-                            lineHeight: 1.6,
-                            marginBottom: '30px',
-                            wordBreak: 'keep-all'
+                            color: 'white',
+                            fontSize: '1.6rem',
+                            lineHeight: 1.5,
+                            marginBottom: '10px',
+                            fontWeight: 600
                         }}>
-                            같은 번호로 이미 출석했습니다.<br/>
-                            다시 출석하시겠습니까?
+                            혹시 <span style={{color: '#ffd700'}}>가족/친구분</span>과 함께 오셨나요?
                         </p>
+                        <p style={{
+                            color: 'rgba(255,255,255,0.7)',
+                            fontSize: '1.3rem',
+                            marginBottom: '40px'
+                        }}>
+                             아니라면, 아래 <span style={{color: '#ff6b6b', textDecoration: 'underline'}}>빨간 버튼</span>을 눌러주세요!
+                        </p>
+
                         <div style={{
                             display: 'flex',
-                            gap: '16px',
-                            justifyContent: 'center'
+                            gap: '20px',
+                            justifyContent: 'center',
+                            flexWrap: 'wrap'
                         }}>
+                            {/* [UI] Huge Cancel Button */}
                             <button
                                 onClick={cancelDuplicateCheckIn}
                                 style={{
-                                    padding: '14px 36px',
-                                    borderRadius: '14px',
-                                    border: '1px solid rgba(255,255,255,0.2)',
-                                    background: 'rgba(255,255,255,0.1)',
-                                    color: 'rgba(255,255,255,0.8)',
-                                    fontSize: '1.15rem',
-                                    fontWeight: 600,
+                                    flex: '1 1 300px',
+                                    padding: '30px 20px',
+                                    borderRadius: '24px',
+                                    border: '3px solid #ff6b6b',
+                                    background: 'rgba(255,107,107,0.15)',
+                                    color: '#ff6b6b',
+                                    fontSize: '1.8rem',
+                                    fontWeight: 800,
                                     cursor: 'pointer',
-                                    transition: 'all 0.2s'
+                                    boxShadow: '0 10px 30px rgba(255,107,107,0.2)',
+                                    transition: 'all 0.2s',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '10px'
                                 }}
                             >
-                                취소
+                                <span>😱 잘못 눌렀어요!</span>
+                                <span style={{fontSize: '1rem', fontWeight: 500, opacity: 0.8}}>(취소하기)</span>
                             </button>
+
+                            {/* [UI] Huge Confirm Button */}
                             <button
                                 onClick={confirmDuplicateCheckIn}
                                 style={{
-                                    padding: '14px 36px',
-                                    borderRadius: '14px',
+                                    flex: '1 1 300px',
+                                    padding: '30px 20px',
+                                    borderRadius: '24px',
                                     border: 'none',
                                     background: 'linear-gradient(135deg, #d4af37, #f5d76e)',
                                     color: '#1a1a1a',
-                                    fontSize: '1.15rem',
-                                    fontWeight: 700,
+                                    fontSize: '1.8rem',
+                                    fontWeight: 800,
                                     cursor: 'pointer',
-                                    boxShadow: '0 4px 15px rgba(212,175,55,0.3)',
-                                    transition: 'all 0.2s'
+                                    boxShadow: '0 10px 30px rgba(212,175,55,0.4)',
+                                    transition: 'all 0.2s',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '10px'
                                 }}
                             >
-                                다시 출석
+                                <span>🙆‍♀️ 네, 또 왔어요</span>
+                                <span style={{fontSize: '1rem', fontWeight: 600, opacity: 0.8}}>(2번째 출석하기)</span>
                             </button>
                         </div>
-                        <p style={{
-                            color: 'rgba(255,255,255,0.4)',
-                            fontSize: '0.85rem',
-                            marginTop: '20px'
-                        }}>5초 후 자동으로 취소됩니다</p>
+
+                        {/* [Logic] Auto-confirm countdown */}
+                        <div style={{
+                            marginTop: '40px',
+                            padding: '20px',
+                            background: 'rgba(255,255,255,0.05)',
+                            borderRadius: '16px',
+                            border: '1px dashed rgba(255,255,255,0.2)'
+                        }}>
+                            <p style={{
+                                color: 'rgba(255,255,255,0.9)',
+                                fontSize: '1.2rem',
+                                marginBottom: '10px'
+                            }}>
+                                아무것도 안 누르면...
+                            </p>
+                            <div style={{
+                                fontSize: '1.5rem',
+                                fontWeight: 700,
+                                color: '#ffd700'
+                            }}>
+                                <span style={{fontSize: '2rem', color: '#fff'}}>{duplicateTimer}</span>초 뒤 자동으로 <span style={{textDecoration: 'underline'}}>출석 처리</span>됩니다
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

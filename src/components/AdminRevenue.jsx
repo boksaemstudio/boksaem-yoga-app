@@ -179,6 +179,7 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
 
         const statYesterday = getDailyTotal(yesterdayStr);
         const statDayBefore = getDailyTotal(dayBeforeStr);
+        const statToday = getDailyTotal(today.toLocaleDateString('sv-SE')); // [FIXED] Define today's total
         const statLastWeek = getDailyTotal(lastWeekStr);
 
 
@@ -228,7 +229,7 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
             comparativeStats: {
                 yesterday: statYesterday,
                 dayBefore: statDayBefore,
-                lastWeek: statLastWeek
+                today: statToday // [MODIFIED] Return today
             },
             recentTrend: trendData,
             monthlyTrend: monthlyTrendData
@@ -263,7 +264,9 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
             <div className="dashboard-card" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.1), rgba(0,0,0,0))', border: '1px solid rgba(212,175,55,0.3)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                     <div>
-                        <div style={{ fontSize: '0.9rem', color: 'var(--primary-gold)', fontWeight: 'bold', marginBottom: '4px' }}>월간 총 매출</div>
+                        <div style={{ fontSize: '0.9rem', color: 'var(--primary-gold)', fontWeight: 'bold', marginBottom: '4px' }}>
+                            {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월 총 매출
+                        </div>
                         <div style={{ fontSize: '2.4rem', fontWeight: '800', color: '#fff', textShadow: '0 0 20px rgba(212,175,55,0.3)' }}>
                             {formatCurrency(monthlyStats.totalRevenue)}원
                         </div>
@@ -279,11 +282,11 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
                 </div>
             </div>
 
-            {/* Comparative Cards (Yesterday, Day Before, Last Week) */}
+            {/* Comparative Cards (Day Before, Yesterday, Today) */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                <CompCard title="어제 매출" amount={comparativeStats.yesterday} subLabel="전일" />
                 <CompCard title="그제 매출" amount={comparativeStats.dayBefore} subLabel="전전일" />
-                <CompCard title="지난주 같은 요일" amount={comparativeStats.lastWeek} subLabel="동요일" />
+                <CompCard title="어제 매출" amount={comparativeStats.yesterday} subLabel="전일" />
+                <CompCard title="오늘 매출" amount={comparativeStats.today} subLabel="실시간" />
             </div>
 
             {/* Revenue Graph (Straight Line) */}
