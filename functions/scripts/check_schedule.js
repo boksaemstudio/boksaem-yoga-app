@@ -1,54 +1,72 @@
-/**
- * 광흥창 오늘 스케줄 확인
- */
 const admin = require('firebase-admin');
-if (admin.apps.length === 0) {
-    const serviceAccount = require('../service-account-key.json');
-    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-}
+const path = require('path');
+
+const serviceAccount = require(path.join(__dirname, '..', 'service-account-key.json'));
+admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db = admin.firestore();
 
-async function check() {
-    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+async function checkSchedule() {
+    console.log("=== 2월 스케줄 진단 시작 ===\n");
+
+    const branches = ['gwangheungchang', 'mapo'];
     
-    // 광흥창 오늘 스케줄
-    const gwangKey = `gwangheungchang_${today}`;
-    const docSnap = await db.collection('daily_classes').doc(gwangKey).get();
-    
-    if (docSnap.exists) {
-        const classes = docSnap.data().classes || [];
-        console.log(`📅 광흥창 ${today} 스케줄 (${classes.length}개 수업):\n`);
-        classes.forEach(c => {
-            console.log(`  ${c.time} | ${c.className} | ${c.instructor} | duration: ${c.duration || 60}분 | status: ${c.status || 'active'}`);
-        });
-    } else {
-        console.log('광흥창 오늘 스케줄 없음');
-    }
-    
-    // 마포도 확인
-    const mapoKey = `mapo_${today}`;
-    const mapoSnap = await db.collection('daily_classes').doc(mapoKey).get();
-    
-    if (mapoSnap.exists) {
-        const classes = mapoSnap.data().classes || [];
-        console.log(`\n📅 마포 ${today} 스케줄 (${classes.length}개 수업):\n`);
-        classes.forEach(c => {
-            console.log(`  ${c.time} | ${c.className} | ${c.instructor} | duration: ${c.duration || 60}분 | status: ${c.status || 'active'}`);
-        });
-    }
-    
-    // 박유미, 김성희 출석 확인
-    console.log('\n--- 박유미, 김성희 출석 기록 ---\n');
-    const attSnap = await db.collection('attendance')
-        .where('date', '==', today)
-        .get();
-    
-    for (const doc of attSnap.docs) {
-        const att = doc.data();
-        if (att.memberName === '박유미' || att.memberName === '김성희') {
-            console.log(`  ${att.memberName} | ${att.className} | ${att.instructor} | branchId: ${att.branchId} | time: ${att.timestamp}`);
+    for (const branchId of branches) {
+        console.log(`--- ${branchId} ---`);
+        
+        // 1. Check monthly_schedules meta document
+        const metaDocId = `${branchId}_2026_2`;
+        const metaRef = db.collection('monthly_schedules').doc(metaDocId);
+        const metaSnap = await metaRef.get();
+        
+        if (metaSnap.exists) {
+            console.log(`  [monthly_schedules/${metaDocId}] 존재함`);
+            console.log(`    isSaved: ${metaSnap.data().isSaved}`);
+            console.log(`    fields: ${JSON.stringify(Object.keys(metaSnap.data()))}`);
+        } else {
+            console.log(`  [monthly_schedules/${metaDocId}] 존재하지 않음`);
         }
+
+        // 2. Check daily_classes for first 5 days of Feb
+        for (let d = 1; d <= 5; d++) {
+            const dateStr = `2026-02-${String(d).padStart(2, '0')}`;
+            const dailyRef = db.collection('daily_classes').doc(`${branchId}_${dateStr}`);
+            const dailySnap = await dailyRef.get();
+            
+            if (dailySnap.exists) {
+                const data = dailySnap.data();
+                const classCount = data.classes ? data.classes.length : 0;
+                console.log(`  [daily_classes/${branchId}_${dateStr}] 존재 (수업 ${classCount}개)`);
+            } else {
+                console.log(`  [daily_classes/${branchId}_${dateStr}] 없음`);
+            }
+        }
+
+        // 3. Check images (timetable)
+        const imgKey = `timetable_${branchId}_2026-02`;
+        const imgRef = db.collection('images').doc(imgKey);
+        const imgSnap = await imgRef.get();
+        console.log(`  [images/${imgKey}] ${imgSnap.exists ? '존재함' : '없음'}`);
+        
+        const fallbackKey = `timetable_${branchId}`;
+        const fbSnap = await db.collection('images').doc(fallbackKey).get();
+        console.log(`  [images/${fallbackKey}] ${fbSnap.exists ? '존재함' : '없음'}`);
+        
+        console.log('');
     }
+
+    // 4. List all monthly_schedules docs
+    console.log("--- 전체 monthly_schedules 문서 목록 ---");
+    const allMeta = await db.collection('monthly_schedules').get();
+    if (allMeta.empty) {
+        console.log("  (비어있음)");
+    } else {
+        allMeta.docs.forEach(doc => {
+            console.log(`  ${doc.id}: isSaved=${doc.data().isSaved}`);
+        });
+    }
+
+    console.log("\n=== 진단 완료 ===");
+    process.exit(0);
 }
 
-check().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); });
+checkSchedule().catch(e => { console.error(e); process.exit(1); });
