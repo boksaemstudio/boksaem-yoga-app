@@ -1190,6 +1190,17 @@ const CheckInPage = () => {
         }, 350);
     };
 
+    // [UX] Auto-close Selection Modal after 30s
+    useEffect(() => {
+        let timer;
+        if (showSelectionModal) {
+            timer = setTimeout(() => {
+                handleModalClose(() => setShowSelectionModal(false));
+            }, 30000); // 30s timeout
+        }
+        return () => clearTimeout(timer);
+    }, [showSelectionModal]);
+
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '/member')}&bgcolor=ffffff&color=2c2c2c&margin=10`;
 
     return (
@@ -1558,60 +1569,177 @@ const CheckInPage = () => {
                         }}
                         style={{ zIndex: 3000, touchAction: 'none' }} // Ensure it's on top and blocks gestures
                     >
-                        <div className="modal-content glass-panel" style={{ width: '95%', maxWidth: '1000px', padding: '40px' }}>
-                            <h2 style={{ fontSize: '2.5rem', marginBottom: '30px', textAlign: 'center' }}>회원 선택</h2>
-                            <div className="member-grid" style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                                gap: '25px',
-                                marginTop: '20px'
-                            }}>
-                                {duplicateMembers.map(m => (
-                                    <button
-                                        key={m.id}
-                                        onClick={(e) => {
-                                            if (loading) return;
-                                            if (e.cancelable) e.preventDefault();
-                                            e.stopPropagation();
-                                            handleSelectMember(m.id);
-                                        }}
-                                        className="member-card"
-                                        style={{
-                                            padding: '30px',
-                                            fontSize: '1.8rem',
-                                            borderRadius: '24px',
-                                            background: 'rgba(255,255,255,0.1)',
-                                            color: 'white',
-                                            border: '2px solid rgba(255,255,255,0.2)',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            alignItems: 'center',
-                                            gap: '12px',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        <span style={{ fontWeight: '800' }}>{m.name}</span>
-                                        <span style={{ fontSize: '1.2rem', opacity: 0.8, background: 'rgba(0,0,0,0.3)', padding: '5px 15px', borderRadius: '50px' }}>
-                                            {getBranchName(m.homeBranch)}
-                                        </span>
-                                    </button>
-                                ))}
+                        <div className="modal-content glass-panel" style={{
+                            width: '95%',
+                            maxWidth: '1100px',
+                            padding: '40px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '20px'
+                        }}>
+                            <h2 style={{ fontSize: '2.5rem', marginBottom: '10px', textAlign: 'center' }}>회원 선택</h2>
+                            <p style={{ textAlign: 'center', opacity: 0.7, marginBottom: '20px' }}>
+                                해당하는 회원님을 선택해주세요
+                                <span style={{ marginLeft: '10px', fontSize: '0.9em', color: '#ff6b6b' }}>
+                                    (30초 후 자동 닫힘)
+                                </span>
+                            </p>
+
+                            {/* [LOGIC] Split Active / Inactive Members */}
+                            {(() => {
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+
+                                const activeMembers = [];
+                                const inactiveMembers = [];
+
+                                duplicateMembers.forEach(m => {
+                                    let isActive = false;
+                                    const credits = m.credits || 0;
+                                    const endDateStr = m.endDate;
+
+                                    // 1. Check Credits
+                                    const hasCredits = credits > 0 || credits === Infinity;
+
+                                    // 2. Check Date
+                                    let hasValidDate = true;
+                                    if (endDateStr && endDateStr !== 'unlimited' && endDateStr !== 'TBD') {
+                                        const endDate = new Date(endDateStr);
+                                        endDate.setHours(0, 0, 0, 0);
+                                        if (endDate < today) {
+                                            hasValidDate = false;
+                                        }
+                                    }
+
+                                    // Active Logic: Must have credits AND valid date
+                                    if (hasCredits && hasValidDate) {
+                                        activeMembers.push(m);
+                                    } else {
+                                        inactiveMembers.push(m);
+                                    }
+                                });
+
+                                return (
+                                    <div style={{ display: 'flex', gap: '30px', flex: 1, minHeight: '400px' }}>
+                                        {/* LEFT: Active Members (Prominent) */}
+                                        <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                            <h3 style={{ fontSize: '1.4rem', color: 'var(--primary-gold)', borderBottom: '1px solid rgba(212,175,55,0.3)', paddingBottom: '10px' }}>
+                                                ✨ 이용 가능 회원
+                                            </h3>
+                                            <div style={{
+                                                display: 'grid',
+                                                gridTemplateColumns: activeMembers.length > 4 ? 'repeat(2, 1fr)' : '1fr',
+                                                gap: '15px',
+                                                flex: 1
+                                            }}>
+                                                {activeMembers.length > 0 ? activeMembers.map(m => (
+                                                    <button
+                                                        key={m.id}
+                                                        onClick={(e) => {
+                                                            if (loading) return;
+                                                            e.stopPropagation();
+                                                            handleSelectMember(m.id);
+                                                        }}
+                                                        className="member-card active-member-card"
+                                                        style={{
+                                                            padding: '25px',
+                                                            borderRadius: '20px',
+                                                            background: 'linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05))',
+                                                            color: 'white',
+                                                            border: '2px solid rgba(212,175,55,0.5)',
+                                                            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            gap: '10px',
+                                                            cursor: 'pointer',
+                                                            transition: 'transform 0.2s',
+                                                            minHeight: '180px'
+                                                        }}
+                                                    >
+                                                        <span style={{ fontSize: '2.2rem', fontWeight: '800', color: 'var(--primary-gold)' }}>{m.name}</span>
+                                                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                                            <span style={{ fontSize: '1rem', background: 'rgba(0,0,0,0.4)', padding: '4px 10px', borderRadius: '50px' }}>
+                                                                {getBranchName(m.homeBranch)}
+                                                            </span>
+                                                            <span style={{ fontSize: '1rem', background: 'rgba(76, 175, 80, 0.3)', padding: '4px 10px', borderRadius: '50px', color: '#81c784' }}>
+                                                                {m.credits > 900 ? '무제한' : `${m.credits}회`}
+                                                            </span>
+                                                        </div>
+                                                    </button>
+                                                )) : (
+                                                    <div style={{ gridColumn: '1/-1', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.5, fontSize: '1.2rem' }}>
+                                                        활성 회원이 없습니다.
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* RIGHT: Inactive Members (Compact) */}
+                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '15px', borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '30px' }}>
+                                            <h3 style={{ fontSize: '1.4rem', color: 'rgba(255,255,255,0.5)', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
+                                                💤 만료/비활성 회원
+                                            </h3>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', overflowY: 'auto' }}>
+                                                {inactiveMembers.length > 0 ? inactiveMembers.map(m => (
+                                                    <button
+                                                        key={m.id}
+                                                        onClick={(e) => {
+                                                            if (loading) return;
+                                                            e.stopPropagation();
+                                                            handleSelectMember(m.id);
+                                                        }}
+                                                        className="member-card inactive-member-card"
+                                                        style={{
+                                                            padding: '15px',
+                                                            borderRadius: '12px',
+                                                            background: 'rgba(0,0,0,0.2)',
+                                                            color: 'rgba(255,255,255,0.6)',
+                                                            border: '1px solid rgba(255,255,255,0.1)',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'space-between',
+                                                            cursor: 'pointer',
+                                                            textAlign: 'left'
+                                                        }}
+                                                    >
+                                                        <div>
+                                                            <div style={{ fontSize: '1.2rem', fontWeight: '600' }}>{m.name}</div>
+                                                            <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>{getBranchName(m.homeBranch)}</div>
+                                                        </div>
+                                                        <div style={{ fontSize: '0.9rem', color: '#ff6b6b' }}>만료됨</div>
+                                                    </button>
+                                                )) : (
+                                                    <div style={{ opacity: 0.3, textAlign: 'center', padding: '20px' }}>
+                                                        해당 없음
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+
+                            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
+                                <button
+                                    onClick={() => handleModalClose(() => setShowSelectionModal(false))}
+                                    style={{
+                                        background: 'transparent',
+                                        border: '1px solid rgba(255,255,255,0.3)',
+                                        color: 'rgba(255,255,255,0.6)',
+                                        padding: '10px 30px',
+                                        borderRadius: '50px',
+                                        fontSize: '1rem',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                    }}
+                                    onMouseOver={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.8)'}
+                                    onMouseOut={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'}
+                                >
+                                    취소 (닫기)
+                                </button>
                             </div>
-                            <button
-                                onClick={() => handleModalClose(() => setShowSelectionModal(false))}
-                                style={{
-                                    marginTop: '40px',
-                                    background: 'transparent',
-                                    border: '2px solid rgba(255,255,255,0.3)',
-                                    color: 'rgba(255,255,255,0.8)',
-                                    padding: '15px 40px',
-                                    borderRadius: '50px',
-                                    fontSize: '1.5rem',
-                                    width: '100%'
-                                }}
-                            >
-                                취소
-                            </button>
                         </div>
                     </div>
                 )
