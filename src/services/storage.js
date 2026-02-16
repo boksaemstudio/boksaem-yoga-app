@@ -335,9 +335,9 @@ export const storageService = {
       
       // Attempt Online Check-in
       try {
-        const response = await withTimeout(
+      const response = await withTimeout(
           checkInMember({ memberId, branchId, classTitle, instructor }),
-          8000, // Slightly shorter timeout for kiosk UX
+          30000, // [EXTENDED] 30초로 연장 (사용자 요청: 끊김 방지 최우선)
           '서버 연결 지연'
         );
 

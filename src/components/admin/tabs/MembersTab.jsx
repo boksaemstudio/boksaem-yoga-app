@@ -317,10 +317,11 @@ const MembersTab = ({
                                                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{member.phone}</span>
                                                 <span className="badge" style={{ 
                                                     fontSize: '0.7rem',
-                                                    background: `${getBranchColor(member.homeBranch)}20`,
-                                                    color: getBranchThemeColor(member.homeBranch),
-                                                    border: `1px solid ${getBranchColor(member.homeBranch)}33`,
-                                                    fontWeight: 'bold'
+                                                    // [UI] Neutralize branch color in member list as requested
+                                                    background: 'rgba(255, 255, 255, 0.05)',
+                                                    color: 'var(--text-secondary)',
+                                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                    fontWeight: 'normal'
                                                 }}>
                                                     {getBranchName(member.homeBranch)}
                                                 </span>

@@ -134,7 +134,7 @@ const InstructorSchedule = ({ instructorName }) => {
     // Defined branches to fetch
     const branches = useMemo(() => [
         { id: 'gwangheungchang', name: '광흥창점', color: 'var(--primary-gold)' },
-        { id: 'mapo', name: '마포점', color: '#FF6B6B' } // Using Coral for Mapo distinct color
+        { id: 'mapo', name: '마포점', color: '#3B82F6' } // [FIX] Updated to Blue to match studioConfig
     ], []);
 
     useEffect(() => {
@@ -227,11 +227,11 @@ const InstructorSchedule = ({ instructorName }) => {
 
             if (hasGhc && hasMapo) {
                 borderStyle = '2px solid';
-                borderColor = 'var(--primary-gold) #FF6B6B #FF6B6B var(--primary-gold)'; // Top-Left Gold, Bottom-Right Red
+                borderColor = 'var(--primary-gold) #3B82F6 #3B82F6 var(--primary-gold)'; // Top-Left Gold, Bottom-Right Blue
             } else if (hasGhc) {
                 borderStyle = '2px solid var(--primary-gold)';
             } else if (hasMapo) {
-                borderStyle = '2px solid #FF6B6B';
+                borderStyle = '2px solid #3B82F6';
             }
             
             // [DEBUG] Log if border is applied unexpectedly
@@ -352,8 +352,8 @@ const InstructorSchedule = ({ instructorName }) => {
                             height: '24px', 
                             borderRadius: '6px', 
                             background: 'transparent',
-                            border: '3px solid #FF6B6B',
-                            boxShadow: '0 0 10px rgba(255, 107, 107, 0.2)'
+                            border: '3px solid #3B82F6',
+                            boxShadow: '0 0 10px rgba(59, 130, 246, 0.2)'
                         }} />
                         <span style={{ color: 'white', fontSize: '1rem', fontWeight: 'bold' }}>마포점</span>
                     </div>
@@ -791,7 +791,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                         ) : (
                             <>
                                 {renderAttendanceList(ghcAttendance, '광흥창점', 'var(--primary-gold)', 'gwangheungchang')}
-                                {renderAttendanceList(mapoAttendance, '마포점', '#FF6B6B', 'mapo')}
+                                {renderAttendanceList(mapoAttendance, '마포점', '#3B82F6', 'mapo')}
                             </>
                         )}
                     </>

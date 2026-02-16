@@ -214,6 +214,29 @@ const CheckInPage = () => {
     // const { language } = useLanguage();
     const language = 'ko';
 
+    // [UX] Loading Message Logic
+    const [loadingMessage, setLoadingMessage] = useState('출석 확인 중...');
+    
+    useEffect(() => {
+        if (!loading) {
+            setLoadingMessage('출석 확인 중...');
+            return;
+        }
+
+        const timer1 = setTimeout(() => {
+            setLoadingMessage('잠시만 기다려주세요...');
+        }, 5000);
+
+        const timer2 = setTimeout(() => {
+            setLoadingMessage('서버와 연결하고 있습니다.\n조금만 더 기다려 주세요 🙏');
+        }, 12000);
+
+        return () => {
+            clearTimeout(timer1);
+            clearTimeout(timer2);
+        };
+    }, [loading]);
+
     // [PERF] Warm-up & Keep-alive: 앱 시작 시 최우선 실행 (서버 깨우기)
     useEffect(() => {
         const pingServer = async () => {
@@ -1410,6 +1433,41 @@ const CheckInPage = () => {
                 </div>
 
                 <div className="checkin-keypad-section" style={{ position: 'relative', background: 'transparent', boxShadow: 'none', border: 'none' }}>
+                    {/* [UX] Loading Overlay with Friendly Messages (30s Timeout Support) */}
+                    {loading && (
+                        <div style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: 'rgba(0,0,0,0.85)',
+                            borderRadius: '24px',
+                            zIndex: 100,
+                            padding: '20px',
+                            textAlign: 'center'
+                        }}>
+                            <div style={{
+                                width: '40px',
+                                height: '40px',
+                                border: '3px solid rgba(255,215,0,0.3)',
+                                borderTop: '3px solid var(--primary-gold)',
+                                borderRadius: '50%',
+                                animation: 'spin 1s linear infinite',
+                                marginBottom: '20px'
+                            }} />
+                            <p style={{ color: 'var(--primary-gold)', fontSize: '1.2rem', fontWeight: 600, margin: 0 }}>
+                                {loadingMessage || '출석 확인 중...'}
+                            </p>
+                            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', marginTop: '8px' }}>
+                                잠시만 기다려주세요
+                            </p>
+                        </div>
+                    )}
                     {/* [PERF] Loading overlay while cache is warming */}
                     {!isReady && (
                         <div style={{
