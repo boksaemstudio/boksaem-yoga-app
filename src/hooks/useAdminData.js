@@ -296,12 +296,18 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
         // New Sales Data
         currentSales.forEach(s => {
-            if (currentBranch !== 'all' && (uniqueMembers.find(m => m.id === s.memberId)?.homeBranch !== currentBranch && s.branchId !== currentBranch)) {
-                 // Try to check s.branchId first, fallback to member lookup (though s.branchId should exist on new sales)
-                 if (s.branchId && s.branchId !== currentBranch) return;
-                 // If no s.branchId, check member. If member not found or other branch, skip?
-                 // For safety with old sales records without branchId:
-                 if (!s.branchId && uniqueMembers.find(m => m.id === s.memberId)?.homeBranch !== currentBranch) return;
+            if (currentBranch !== 'all') {
+                const member = uniqueMembers.find(m => m.id === s.memberId);
+                const memberBranch = member?.homeBranch;
+                const saleBranch = s.branchId;
+                
+                // If branch filter applied, record must match either saleBranch or member's homeBranch
+                if ((saleBranch && saleBranch !== currentBranch) && (memberBranch && memberBranch !== currentBranch)) {
+                    return;
+                }
+                // If both are missing, we can't confirm branch, so we skip to be safe in filtered view 
+                // OR we can include it if we want to be permissive. Let's be permissive if it's 'all'
+                if (!saleBranch && !memberBranch) return;
             }
 
             // [FIX] date가 없으면 timestamp에서 fallback
@@ -514,9 +520,21 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
             const monthRevenue = currentSales
                 .filter(s => {
-                    if (!s.timestamp) return false;
-                    const sDate = s.timestamp.substring(0, 7); // "YYYY-MM"
-                    return sDate === key && (currentBranch === 'all' || s.branchId === currentBranch);
+                    const rawDate = s.date || s.timestamp;
+                    if (!rawDate) return false;
+                    
+                    let sMonthKey;
+                    if (rawDate.includes('T')) {
+                        // KST conversion for ISO strings
+                        sMonthKey = new Date(rawDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }).substring(0, 7);
+                    } else {
+                        sMonthKey = rawDate.substring(0, 7);
+                    }
+
+                    const member = uniqueMembers.find(m => m.id === s.memberId);
+                    const branchMatch = currentBranch === 'all' || s.branchId === currentBranch || member?.homeBranch === currentBranch;
+                    
+                    return sMonthKey === key && branchMatch;
                 })
                 .reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
 

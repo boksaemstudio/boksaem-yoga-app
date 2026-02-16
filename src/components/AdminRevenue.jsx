@@ -18,7 +18,15 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
         // 1. Process New Sales Data First (Primary Source)
         (sales || []).forEach(s => {
             const member = (members || []).find(m => m.id === s.memberId);
-            if (currentBranch !== 'all' && member && member.homeBranch !== currentBranch) return;
+            const saleBranch = s.branchId;
+            const memberBranch = member?.homeBranch;
+
+            if (currentBranch !== 'all') {
+                // If branch filter applied, check saleBranch FIRST, then memberBranch
+                const matchFound = (saleBranch && saleBranch === currentBranch) || 
+                                   (!saleBranch && memberBranch && memberBranch === currentBranch);
+                if (!matchFound) return;
+            }
 
             // [FIX] date가 없으면 timestamp에서 fallback
             const rawDate = s.date || s.timestamp;
@@ -188,7 +196,7 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
         }
 
         // 5. Monthly Trend (Last 6 Months)
-        const monthlyTrend = [];
+        const monthlyTrendData = [];
         for (let i = 5; i >= 0; i--) {
             const d = new Date(year, month - 1 - i, 1);
             const mStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -199,7 +207,7 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
                 .filter(item => item.date.startsWith(mStr))
                 .reduce((sum, item) => sum + item.amount, 0);
 
-            monthlyTrend.push({
+            monthlyTrendData.push({
                 name: label,
                 monthParams: mStr, // For validation if needed
                 amount: amount
@@ -223,7 +231,7 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
                 lastWeek: statLastWeek
             },
             recentTrend: trendData,
-            monthlyTrend: monthlyTrend
+            monthlyTrend: monthlyTrendData
         };
 
     }, [members, sales, currentDate, currentBranch]);

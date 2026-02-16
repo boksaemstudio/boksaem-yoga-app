@@ -808,7 +808,7 @@ const CheckInPage = () => {
             if (members.length === 0) {
                 setMessage({ type: 'error', text: '회원 정보를 찾을 수 없습니다.' });
                 setPin('');
-                startDismissTimer(2000);
+                startDismissTimer(3000);
                 return;
             }
 
@@ -826,8 +826,7 @@ const CheckInPage = () => {
 
             if (result.success) {
                 if (result.attendanceStatus === 'denied') {
-                    const reason = result.denialReason === 'expired' ? '기간 만료' : '횟수 소진';
-                    handleCheckInError(`출석이 거부되었습니다. (${reason})`);
+                    handleCheckInError(`기간 혹은 횟수가 만료되었습니다.`);
                 } else {
                     // 출석 성공 → 기록 추가
                     recentCheckInsRef.current.push({ pin: pinCode, timestamp: Date.now() });
@@ -917,10 +916,10 @@ const CheckInPage = () => {
             displayMsg = '🌐 네트워크 오류 - 연결을 확인해주세요';
         } else if (lowerErr.includes("insufficient credits")) {
             displayMsg = "잔여 횟수가 부족합니다. (0회)";
-        } else if (lowerErr.includes("membership expired")) {
+        } else if (lowerErr.includes("membership expired") || lowerErr.includes("expired") || lowerErr.includes("만료")) {
             const dateMatch = errorStr.match(/\((.*?)\)/);
             const date = dateMatch ? dateMatch[1] : '';
-            displayMsg = date ? `회원권 만료일(${date})이 지났습니다.` : "회원권이 만료되었습니다.";
+            displayMsg = date ? `기간 혹은 횟수가 만료되었습니다. (~${date})` : "기간 혹은 횟수가 만료되었습니다.";
         } else if (lowerErr.includes("not-found")) {
             displayMsg = "회원 정보를 찾을 수 없습니다.";
         } else if (lowerErr.includes("infinity")) { // [FIX] Handle 'Infinity' error specifically
@@ -1123,6 +1122,7 @@ const CheckInPage = () => {
     const handleModalClose = (closeAction) => {
         setKeypadLocked(true);
         closeAction();
+        setPin(''); // [FIX] 모달 닫을 때 항상 PIN 초기화
         setAiEnhancedMsg(null); // [AI] 보강 메시지 초기화
         setAiLoading(false); // [AI] 로딩 상태 초기화
         // Buffer time to ignore any lingering touch/click events (ghost touches)

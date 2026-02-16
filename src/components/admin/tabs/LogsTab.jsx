@@ -144,9 +144,17 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                 </div>
                 <div style={{ marginTop: '10px' }}>
                     {(() => {
+                        // [FIX] 오늘 날짜(KST)의 로그만 표시
+                        const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                        const todayLogs = logs.filter(l => {
+                            if (!l.timestamp) return false;
+                            const logDate = new Date(l.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                            return logDate === todayStr;
+                        });
+
                         const filteredLogs = (selectedClassKey
-                            ? logs.filter(l => `${l.className || '일반'}-${l.instructor || '선생님'}-${l.branchId}` === selectedClassKey)
-                            : logs
+                            ? todayLogs.filter(l => `${l.className || '일반'}-${l.instructor || '선생님'}-${l.branchId}` === selectedClassKey)
+                            : todayLogs
                         ).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
                         const itemsPerPage = 15;

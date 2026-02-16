@@ -29,7 +29,7 @@ service cloud.firestore {
     // 📋 Members - 회원 정보
     // ========================================
     match /members/{memberId} {
-      allow read: if isStaff();
+      allow read: if isAuth();
       allow write: if isAdmin();
     }
     
@@ -106,7 +106,7 @@ service cloud.firestore {
     // Staff read, Admin write
     // ========================================
     match /daily_classes/{classId} {
-      allow read: if isStaff();
+      allow read: if isAuth();
       allow write: if isAdmin();
     }
     
