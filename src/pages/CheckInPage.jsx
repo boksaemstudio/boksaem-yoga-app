@@ -250,6 +250,11 @@ const CheckInPage = () => {
                 console.log(`[System] Sending keep-alive ping... (${currentHour}시)`);
                 const checkInFn = httpsCallable(functions, 'checkInMemberV2Call');
                 await checkInFn({ ping: true });
+                
+                // [WARM-UP] Meditation AI (Cold Start 방지)
+                const aiFn = httpsCallable(functions, 'generateMeditationGuidance');
+                aiFn({ type: 'warmup' }).catch(e => console.debug("[System] AI Warm-up silent fail:", e));
+
                 console.log("[System] Server is warm 🔥");
             } catch (e) {
                 console.debug("[System] Ping failed (harmless):", e);

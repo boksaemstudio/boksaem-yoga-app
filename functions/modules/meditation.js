@@ -64,6 +64,13 @@ exports.generateMeditationGuidance = onCall({
     maxInstances: 10 // ✅ Concurrency Limit Increased (User Request)
 }, async (request) => {
     console.log("🧘 Meditation Guidance Request:", JSON.stringify(request.data));
+    
+    // [WARM-UP] Cold Start 방지용 가벼운 응답
+    if (request.data.type === 'warmup') {
+        console.log("🔥 Meditation AI Warmed Up!");
+        return { success: true, message: "AI Function Warmed Up" };
+    }
+
     await checkAIQuota();
 
     const { 
