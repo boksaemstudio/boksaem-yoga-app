@@ -107,22 +107,24 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, lo
                             overflow: 'hidden'
                         }}>
                             {dayLogs.map((log, idx) => {
+                                const isExpired = isExpiredLog(log);
                                 const branchConfig = STUDIO_CONFIG.BRANCHES.find(b => b.id === log.branchId);
-                                const badgeColor = branchConfig ? branchConfig.color : 'var(--primary-gold)';
+                                const badgeColor = isExpired ? '#ff4d4f' : (branchConfig ? branchConfig.color : 'var(--primary-gold)');
                                 return (
                                     <div key={idx} style={{
                                         fontSize: '0.65rem',
                                         background: badgeColor,
-                                        color: 'black', // Assuming both Gold and Blue provide good contrast with black, or adapt if needed
+                                        color: isExpired ? 'white' : 'black',
                                         padding: '2px 4px',
                                         borderRadius: '4px',
                                         whiteSpace: 'nowrap',
                                         overflow: 'hidden',
                                         textOverflow: 'ellipsis',
                                         fontWeight: 'bold',
-                                        textAlign: 'center'
+                                        textAlign: 'center',
+                                        opacity: isExpired ? 0.8 : 1
                                     }}>
-                                        {log.className ? getTranslatedClass(log.className, t) : t('selfPractice')}
+                                        {isExpired ? '⛔' : ''}{log.className ? getTranslatedClass(log.className, t) : t('selfPractice')}
                                     </div>
                                 );
                             })}

@@ -3,7 +3,7 @@ import admin from 'firebase-admin';
 import { readFileSync } from 'fs';
 
 const serviceAccount = JSON.parse(
-    readFileSync('./serviceAccountKey.json', 'utf-8')
+    readFileSync('./functions/service-account-key.json', 'utf-8')
 );
 
 if (!admin.apps.length) {

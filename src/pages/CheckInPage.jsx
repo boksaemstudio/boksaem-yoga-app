@@ -327,6 +327,28 @@ const CheckInPage = () => {
         }
     }, [pin]);
 
+    useEffect(() => {
+        // [NETWORK] Background connection check to prevent permanent "Offline" on UI
+        // Use more aggressive interval (30s) when offline to recover faster
+        const intervalTime = isOnline ? 10 * 60 * 1000 : 30000;
+        
+        const interval = setInterval(() => {
+            console.log(`[CheckIn] Periodic network check (${isOnline ? 'Online mode' : 'Offline mode'})...`);
+            checkConnection();
+        }, intervalTime);
+
+        // [NETWORK] Also check when window regains focus
+        const handleFocus = () => {
+            console.log('[CheckIn] Window focused - Triggering network check');
+            checkConnection();
+        };
+        window.addEventListener('focus', handleFocus);
+
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('focus', handleFocus);
+        };
+    }, [isOnline]);
     const branches = getAllBranches();
 
     useEffect(() => {

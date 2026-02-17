@@ -217,7 +217,7 @@ service cloud.firestore {
     // Kiosk creates, Admin/System reads/deletes
     // ========================================
     match /pending_attendance/{id} {
-      allow read: if isAdmin();
+      allow read: if isAuth(); // [FIX] Allow kiosk (anonymous) to read for sync count visibility
       allow create: if true; // Allow anonymous kiosk to save pending recs
       allow update, delete: if isAdmin();
     }
