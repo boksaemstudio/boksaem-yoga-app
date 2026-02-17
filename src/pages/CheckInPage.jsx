@@ -2030,7 +2030,6 @@ const CheckInPage = () => {
                                 }}
                             >
                                 <span>🙆‍♀️ 네, 또 왔어요</span>
-                                <span style={{fontSize: '1rem', fontWeight: 600, opacity: 0.8}}>(2번째 출석하기)</span>
                             </button>
                         </div>
 
