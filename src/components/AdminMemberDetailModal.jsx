@@ -263,19 +263,24 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
     const handleDeleteAttendance = async (logId) => {
         if (!confirm('정말 삭제하시겠습니까? 횟수가 반환됩니다.')) return;
         try {
-            await storageService.deleteAttendance(logId);
-            alert('출석 기록이 삭제되었습니다. 횟수가 본래대로 복원되었습니다.');
-            // [FIX] Restore credit locally for immediate feedback
-            setLocalMember(prev => ({
-                ...prev,
-                credits: (Number(prev.credits) || 0) + 1
-            }));
-            // Refresh logs
-            const logs = await storageService.getAttendanceByMemberId(member.id);
-            setMemberLogs(logs);
+            const result = await storageService.deleteAttendance(logId);
+            
+            if (result.success) {
+                alert('출석 기록이 삭제되었습니다. 횟수가 본래대로 복원되었습니다.');
+                // [FIX] Restore credit locally for immediate feedback
+                setLocalMember(prev => ({
+                    ...prev,
+                    credits: (Number(prev.credits) || 0) + 1
+                }));
+                // Refresh logs
+                const logs = await storageService.getAttendanceByMemberId(member.id);
+                setMemberLogs(logs);
+            } else {
+                throw new Error(result.message || '삭제 실패');
+            }
         } catch (e) {
             console.error(e);
-            alert('삭제에 실패했습니다.');
+            alert(`삭제에 실패했습니다: ${e.message}`);
         }
     };
 

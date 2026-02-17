@@ -1605,15 +1605,17 @@ const CheckInPage = () => {
                         <div className="modal-content glass-panel" style={{
                             width: '95%',
                             maxWidth: '1100px',
-                            padding: '40px',
+                            maxHeight: '90vh',
+                            padding: '25px 30px',
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: '20px'
+                            gap: '12px',
+                            overflow: 'hidden'
                         }}>
-                            <h2 style={{ fontSize: '2.5rem', marginBottom: '10px', textAlign: 'center' }}>회원 선택</h2>
-                            <p style={{ textAlign: 'center', opacity: 0.7, marginBottom: '20px' }}>
+                            <h2 style={{ fontSize: '2rem', marginBottom: '5px', textAlign: 'center' }}>회원 선택</h2>
+                            <p style={{ textAlign: 'center', opacity: 0.7, marginBottom: '10px', fontSize: '0.95rem' }}>
                                 해당하는 회원님을 선택해주세요
-                                <span style={{ marginLeft: '10px', fontSize: '0.9em', color: '#ff6b6b' }}>
+                                <span style={{ marginLeft: '10px', fontSize: '0.85em', color: '#ff6b6b' }}>
                                     (30초 후 자동 닫힘)
                                 </span>
                             </p>
@@ -1653,16 +1655,16 @@ const CheckInPage = () => {
                                 });
 
                                 return (
-                                    <div style={{ display: 'flex', gap: '30px', flex: 1, minHeight: '400px' }}>
+                                    <div style={{ display: 'flex', gap: '20px', flex: 1, minHeight: '280px' }}>
                                         {/* LEFT: Active Members (Prominent) */}
-                                        <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                            <h3 style={{ fontSize: '1.4rem', color: 'var(--primary-gold)', borderBottom: '1px solid rgba(212,175,55,0.3)', paddingBottom: '10px' }}>
+                                        <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                            <h3 style={{ fontSize: '1.2rem', color: 'var(--primary-gold)', borderBottom: '1px solid rgba(212,175,55,0.3)', paddingBottom: '8px' }}>
                                                 ✨ 이용 가능 회원
                                             </h3>
                                             <div style={{
                                                 display: 'grid',
                                                 gridTemplateColumns: activeMembers.length > 4 ? 'repeat(2, 1fr)' : '1fr',
-                                                gap: '15px',
+                                                gap: '10px',
                                                 flex: 1
                                             }}>
                                                 {activeMembers.length > 0 ? activeMembers.map(m => (
@@ -1675,8 +1677,8 @@ const CheckInPage = () => {
                                                         }}
                                                         className="member-card active-member-card"
                                                         style={{
-                                                            padding: '25px',
-                                                            borderRadius: '20px',
+                                                            padding: '18px',
+                                                            borderRadius: '16px',
                                                             background: 'linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05))',
                                                             color: 'white',
                                                             border: '2px solid rgba(212,175,55,0.5)',
@@ -1685,13 +1687,13 @@ const CheckInPage = () => {
                                                             flexDirection: 'column',
                                                             alignItems: 'center',
                                                             justifyContent: 'center',
-                                                            gap: '10px',
+                                                            gap: '8px',
                                                             cursor: 'pointer',
                                                             transition: 'transform 0.2s',
-                                                            minHeight: '180px'
+                                                            minHeight: '120px'
                                                         }}
                                                     >
-                                                        <span style={{ fontSize: '2.2rem', fontWeight: '800', color: 'var(--primary-gold)' }}>{m.name}</span>
+                                                        <span style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--primary-gold)' }}>{m.name}</span>
                                                         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
                                                             <span style={{ fontSize: '1rem', background: 'rgba(0,0,0,0.4)', padding: '4px 10px', borderRadius: '50px' }}>
                                                                 {getBranchName(m.homeBranch)}
@@ -1710,8 +1712,8 @@ const CheckInPage = () => {
                                         </div>
 
                                         {/* RIGHT: Inactive Members (Compact) */}
-                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '15px', borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '30px' }}>
-                                            <h3 style={{ fontSize: '1.4rem', color: 'rgba(255,255,255,0.5)', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
+                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '20px' }}>
+                                            <h3 style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.5)', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>
                                                 💤 만료/비활성 회원
                                             </h3>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', overflowY: 'auto' }}>
@@ -1938,41 +1940,40 @@ const CheckInPage = () => {
                     <div style={{
                         background: 'rgba(30,30,30,0.98)',
                         backdropFilter: 'blur(30px)',
-                        border: '2px solid rgba(255,80,80,0.5)', // [UI] Red border for alert
-                        borderRadius: '32px',
-                        padding: '50px',
-                        maxWidth: '800px', // [UI] Wider modal
+                        border: '2px solid rgba(255,80,80,0.5)',
+                        borderRadius: '28px',
+                        padding: '30px 40px',
+                        maxWidth: '750px',
                         width: '95%',
                         textAlign: 'center',
                         boxShadow: '0 30px 80px rgba(0,0,0,0.7)',
                         animation: 'scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
                     }}>
                         <div style={{
-                            fontSize: '4rem',
-                            marginBottom: '20px',
-                            animation: 'bounce 1s infinite'
+                            fontSize: '3rem',
+                            marginBottom: '10px'
                         }}>⚠️</div>
                         <h3 style={{
-                            color: '#ff6b6b', // [UI] Red warning color
-                            fontSize: '2.5rem',
+                            color: '#ff6b6b',
+                            fontSize: '2rem',
                             fontWeight: 800,
-                            marginBottom: '20px',
+                            marginBottom: '12px',
                             textShadow: '0 2px 10px rgba(255,107,107,0.3)'
                         }}>잠깐만요! 방금 출석하셨어요</h3>
                         
                         <p style={{
                             color: 'white',
-                            fontSize: '1.6rem',
-                            lineHeight: 1.5,
-                            marginBottom: '10px',
+                            fontSize: '1.3rem',
+                            lineHeight: 1.4,
+                            marginBottom: '6px',
                             fontWeight: 600
                         }}>
                             혹시 <span style={{color: '#ffd700'}}>가족/친구분</span>과 함께 오셨나요?
                         </p>
                         <p style={{
                             color: 'rgba(255,255,255,0.7)',
-                            fontSize: '1.3rem',
-                            marginBottom: '40px'
+                            fontSize: '1.1rem',
+                            marginBottom: '25px'
                         }}>
                              아니라면, 아래 <span style={{color: '#ff6b6b', textDecoration: 'underline'}}>빨간 버튼</span>을 눌러주세요!
                         </p>
@@ -1987,13 +1988,13 @@ const CheckInPage = () => {
                             <button
                                 onClick={cancelDuplicateCheckIn}
                                 style={{
-                                    flex: '1 1 300px',
-                                    padding: '30px 20px',
-                                    borderRadius: '24px',
+                                    flex: '1 1 280px',
+                                    padding: '20px 15px',
+                                    borderRadius: '20px',
                                     border: '3px solid #ff6b6b',
                                     background: 'rgba(255,107,107,0.15)',
                                     color: '#ff6b6b',
-                                    fontSize: '1.8rem',
+                                    fontSize: '1.5rem',
                                     fontWeight: 800,
                                     cursor: 'pointer',
                                     boxShadow: '0 10px 30px rgba(255,107,107,0.2)',
@@ -2001,24 +2002,24 @@ const CheckInPage = () => {
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
-                                    gap: '10px'
+                                    gap: '6px'
                                 }}
                             >
                                 <span>😱 잘못 눌렀어요!</span>
-                                <span style={{fontSize: '1rem', fontWeight: 500, opacity: 0.8}}>(취소하기)</span>
+                                <span style={{fontSize: '0.85rem', fontWeight: 500, opacity: 0.8}}>(취소하기)</span>
                             </button>
 
                             {/* [UI] Huge Confirm Button */}
                             <button
                                 onClick={confirmDuplicateCheckIn}
                                 style={{
-                                    flex: '1 1 300px',
-                                    padding: '30px 20px',
-                                    borderRadius: '24px',
+                                    flex: '1 1 280px',
+                                    padding: '20px 15px',
+                                    borderRadius: '20px',
                                     border: 'none',
                                     background: 'linear-gradient(135deg, #d4af37, #f5d76e)',
                                     color: '#1a1a1a',
-                                    fontSize: '1.8rem',
+                                    fontSize: '1.5rem',
                                     fontWeight: 800,
                                     cursor: 'pointer',
                                     boxShadow: '0 10px 30px rgba(212,175,55,0.4)',
@@ -2026,7 +2027,7 @@ const CheckInPage = () => {
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
-                                    gap: '10px'
+                                    gap: '6px'
                                 }}
                             >
                                 <span>🙆‍♀️ 네, 또 왔어요</span>
@@ -2035,25 +2036,25 @@ const CheckInPage = () => {
 
                         {/* [Logic] Auto-confirm countdown */}
                         <div style={{
-                            marginTop: '40px',
-                            padding: '20px',
+                            marginTop: '20px',
+                            padding: '12px 15px',
                             background: 'rgba(255,255,255,0.05)',
-                            borderRadius: '16px',
+                            borderRadius: '14px',
                             border: '1px dashed rgba(255,255,255,0.2)'
                         }}>
                             <p style={{
                                 color: 'rgba(255,255,255,0.9)',
-                                fontSize: '1.2rem',
-                                marginBottom: '10px'
+                                fontSize: '1rem',
+                                marginBottom: '6px'
                             }}>
                                 아무것도 안 누르면...
                             </p>
                             <div style={{
-                                fontSize: '1.5rem',
+                                fontSize: '1.2rem',
                                 fontWeight: 700,
                                 color: '#ffd700'
                             }}>
-                                <span style={{fontSize: '2rem', color: '#fff'}}>{duplicateTimer}</span>초 뒤 자동으로 <span style={{textDecoration: 'underline'}}>출석 처리</span>됩니다
+                                <span style={{fontSize: '1.5rem', color: '#fff'}}>{duplicateTimer}</span>초 뒤 자동으로 <span style={{textDecoration: 'underline'}}>출석 처리</span>됩니다
                             </div>
                         </div>
                     </div>

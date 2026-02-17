@@ -24,6 +24,12 @@ const NetworkStatus = memo(() => {
         return () => unsubscribe();
     }, []);
 
+    // [UI] Only show if there are pending items AND we are in Kiosk mode (root path)
+    // User Request: '출석체크앱에서만 현재 서버에 안보네게 있는지만 숫자로 알려주는것만 남겨놔'
+    const isKioskMode = window.location.pathname === '/';
+
+    if (!isKioskMode || pendingCount === 0) return null;
+
     return (
         <div 
             className="global-network-status"
@@ -36,80 +42,19 @@ const NetworkStatus = memo(() => {
                 alignItems: 'center',
                 gap: '8px',
                 padding: '8px 16px',
-                background: isOnline ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 82, 82, 0.15)',
+                background: 'rgba(255, 183, 77, 0.9)', // Orange background
                 backdropFilter: 'blur(10px)',
-                border: `1px solid ${isOnline ? 'rgba(76, 175, 80, 0.3)' : 'rgba(255, 82, 82, 0.4)'}`,
+                border: '1px solid rgba(255, 183, 77, 1)',
                 borderRadius: '30px',
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                color: isOnline ? '#81c784' : '#ff8a80',
+                fontSize: '0.9rem',
+                fontWeight: 700,
+                color: '#000', // Black text for contrast
                 boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                pointerEvents: 'none', // Don't block clicks on elements behind
-                opacity: 0.9
+                pointerEvents: 'none',
             }}
         >
-            <div style={{
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-            }}>
-                <div style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    background: isOnline ? '#4CAF50' : '#FF5252',
-                    boxShadow: `0 0 8px ${isOnline ? '#4CAF50' : '#FF5252'}`
-                }} />
-                {isOnline && (
-                    <div style={{
-                        position: 'absolute',
-                        width: '10px',
-                        height: '10px',
-                        borderRadius: '50%',
-                        border: '1px solid #4CAF50',
-                        animation: 'pulse-dot 2s infinite',
-                        opacity: 0
-                    }} />
-                )}
-            </div>
-            
-            {/* Status Text & Pending Count */}
-            {isOnline ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <WifiHigh size={16} weight="bold" />
-                    <span>온라인</span>
-                </div>
-            ) : (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <WifiSlash size={16} weight="bold" />
-                    <span>오프라인</span>
-                </div>
-            )}
-
-            {/* [SYNC] Show pending count if any */}
-            {pendingCount > 0 && (
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    marginLeft: '8px',
-                    paddingLeft: '8px',
-                    borderLeft: '1px solid rgba(255,255,255,0.2)',
-                    color: '#FFB74D' // Orange for pending state
-                }}>
-                    <CloudArrowUp size={16} weight="duotone" />
-                    <span>대기: {pendingCount}</span>
-                </div>
-            )}
-
-            <style>{`
-                @keyframes pulse-dot {
-                    0% { transform: scale(1); opacity: 0.8; }
-                    100% { transform: scale(2.5); opacity: 0; }
-                }
-            `}</style>
+            <CloudArrowUp size={20} weight="duotone" />
+            <span>대기 중인 데이터: {pendingCount}건</span>
         </div>
     );
 });

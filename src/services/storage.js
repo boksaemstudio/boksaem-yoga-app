@@ -1584,6 +1584,8 @@ export const storageService = {
       return { success: true };
     } catch (e) {
       console.error("Delete attendance failed:", e);
+      // [FIX] Log error for debugging
+      await this.logError(e, { context: 'deleteAttendance', logId });
       return { success: false, message: e.message };
     }
   },
