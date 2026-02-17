@@ -427,8 +427,28 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
             const currentCredits = memberData.credits || 0;
             const currentCount = memberData.attendanceCount || 0;
 
-            // 1. Create Official Attendance Record
-            // Note: We use the original timestamp from the client for accuracy
+            // [VALIDATION] Check Validity (Expiration & Credits)
+            let finalStatus = 'valid';
+            let denialReason = null;
+            const todayDate = new Date(date); // Use the check-in date for validation
+
+            // 1. Check Expiration
+            if (memberData.endDate) {
+                const endDate = new Date(memberData.endDate);
+                if (todayDate > endDate) {
+                    finalStatus = 'denied';
+                    denialReason = 'expired';
+                }
+            }
+
+            // 2. Check Credits
+            const safeCredits = Number.isFinite(currentCredits) ? currentCredits : 0;
+            if (finalStatus === 'valid' && safeCredits <= 0) {
+                finalStatus = 'denied';
+                denialReason = 'no_credits';
+            }
+
+            // 3. Create Official Attendance Record
             const attendanceData = {
                 memberId,
                 memberName: memberData.name,
@@ -437,27 +457,37 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
                 className: classTitle || '자율수련',
                 instructor: instructor || '미지정',
                 timestamp: timestamp,
-                status: 'valid',
-                credits: currentCredits - 1,
-                cumulativeCount: currentCount + 1,
+                status: finalStatus,
                 syncMode: 'offline-restored'
             };
+
+            if (finalStatus === 'valid') {
+                attendanceData.credits = safeCredits - 1;
+                attendanceData.cumulativeCount = currentCount + 1;
+            } else {
+                attendanceData.denialReason = denialReason;
+                attendanceData.credits = safeCredits; // No deduction
+                attendanceData.cumulativeCount = currentCount;
+            }
 
             const attRef = db.collection('attendance').doc();
             transaction.set(attRef, attendanceData);
 
-            // 2. Clear Member Credits & Increment Count
-            transaction.update(memberRef, {
-                credits: admin.firestore.FieldValue.increment(-1),
-                attendanceCount: admin.firestore.FieldValue.increment(1),
-                lastAttendance: timestamp
-            });
+            // 4. Update Member (Only if Valid)
+            if (finalStatus === 'valid') {
+                transaction.update(memberRef, {
+                    credits: admin.firestore.FieldValue.increment(-1),
+                    attendanceCount: admin.firestore.FieldValue.increment(1),
+                    lastAttendance: timestamp
+                });
+                console.log(`[OfflineSync] Sync SUCCESS for ${memberId} (Valid)`);
+            } else {
+                console.log(`[OfflineSync] Sync DENIED for ${memberId} (${denialReason})`);
+            }
 
-            // 3. Mark Pending Record as Processed
+            // 5. Mark Pending Record as Processed
             transaction.delete(snapshot.ref);
         });
-
-        console.log(`[OfflineSync] Successfully synced offline check-in for ${memberId}`);
     } catch (e) {
         console.error(`[OfflineSync] Sync failed for ${memberId}:`, e);
     }

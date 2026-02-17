@@ -7,6 +7,7 @@ export const STUDIO_CONFIG = {
     NAME: "복샘요가",
     NAME_ENGLISH: "복샘요가",
     LOGO_TEXT: "BOKSAEM",
+    APP_VERSION: "1.3.0",
 
     // 2. 지점 설정 (ID는 영어, NAME은 한글 표시용)
     // ID는 데이터베이스 저장용 키로 사용되므로 변경 시 주의가 필요합니다.

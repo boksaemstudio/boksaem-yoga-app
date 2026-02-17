@@ -12,6 +12,7 @@ import {
 import AdminScheduleManager from '../components/AdminScheduleManager';
 import AdminRevenue from '../components/AdminRevenue';
 import AdminPriceManager from '../components/AdminPriceManager';
+import { db } from '../firebase';
 import AdminMemberDetailModal from '../components/AdminMemberDetailModal';
 import InstallGuideModal from '../components/admin/modals/InstallGuideModal';
 import NoticeModal from '../components/admin/modals/NoticeModal';
@@ -260,6 +261,31 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleForceUpdate = async () => {
+        if (!window.confirm(`최신 버전(v${STUDIO_CONFIG.APP_VERSION})으로 업데이트 및 캐시를 초기화하시겠습니까?\n(로그아웃 될 수 있습니다)`)) return;
+
+        console.log('[App] Forcing update and clearing persistence...');
+        
+        try {
+            // [CRITICAL] Clear Firestore Persistence
+            // await clearIndexedDbPersistence(db);
+            console.log('[App] Firestore persistence cleared (Skipped for debugging).');
+        } catch (err) {
+            console.warn('[App] Failed to clear persistence (maybe active tabs?):', err);
+        }
+
+        if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const registration of registrations) {
+                await registration.unregister();
+                console.log('[App] SW Unregistered:', registration);
+            }
+        }
+        
+        // Force reload ignoring cache
+        window.location.reload(true);
+    };
+
     const handleBranchChange = (e) => {
         const branch = e.target.value;
         setCurrentBranch(branch);
@@ -427,6 +453,28 @@ const AdminDashboard = () => {
                 <div className="admin-title" style={{ gap: '6px', fontSize: '0.9rem' }}>
                     <img src={logo} alt="로고" style={{ height: '20px', filter: 'invert(1) brightness(1.5) drop-shadow(0 0 8px rgba(212,175,55,0.4))' }} />
                     <span style={{ whiteSpace: 'nowrap', fontWeight: '800' }}>관리</span>
+                    
+                    {/* [NEW] Manual Update Button for PWA Cache Busting */}
+                    <button 
+                        onClick={handleForceUpdate} 
+                        style={{ 
+                            marginLeft: '8px', 
+                            background: 'rgba(255, 255, 255, 0.1)', 
+                            border: '1px solid rgba(255, 255, 255, 0.2)', 
+                            color: '#aaa', 
+                            cursor: 'pointer', 
+                            padding: '2px 6px', 
+                            borderRadius: '4px', 
+                            fontSize: '0.65rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '3px'
+                        }} 
+                        title="클릭하여 최신 버전으로 업데이트"
+                    >
+                        <ClockCounterClockwise size={12} />
+                        v{STUDIO_CONFIG.APP_VERSION}
+                    </button>
 
                     <button onClick={handleInstallClick} style={{ marginLeft: '6px', background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.3)', color: 'var(--primary-gold)', cursor: 'pointer', padding: '4px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem' }} title="홈 화면에 추가">
                         <PlusCircle size={18} weight="bold" />

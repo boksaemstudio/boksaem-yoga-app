@@ -238,38 +238,64 @@ const CheckInPage = () => {
         };
     }, [loading]);
 
+    // [NETWORK] Active Connection Check & Recovery
+    const checkConnection = async () => {
+        try {
+            console.log('[Network] Pinging server to verify connection...');
+            // [FIX] Use lightweight fetch to check connectivity instead of heavy Cloud Function
+            // This prevents false "Offline" caused by Cold Start timeouts
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            
+            // Bypass Cache with timestamp
+            const res = await fetch('/?t=' + new Date().getTime(), { 
+                method: 'HEAD', 
+                cache: 'no-store',
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            
+            // Any response (200, 404, etc.) means we reached the server
+            if (res.ok || res.status < 500) { 
+                console.log('[Network] Connection verified ✅');
+                if (!isOnline) {
+                    console.log('[Network] Restoring online state');
+                    setIsOnline(true);
+                }
+                return true;
+            }
+            return false;
+        } catch (e) {
+            console.warn('[Network] Ping failed:', e);
+            // Only set offline if we were online... (logic remains)
+            return false;
+        }
+    };
+
     // [PERF] Warm-up & Keep-alive: 앱 시작 시 최우선 실행 (서버 깨우기)
     useEffect(() => {
-        const pingServer = async () => {
-            try {
-                const now = new Date();
-                const currentHour = getKSTHour();
-                
-                // 영업시간 (09:00 ~ 22:00) 외에는 핑 보내지 않음 (사용자 요청)
-                if (currentHour < 9 || currentHour >= 22) return;
-
-                console.log(`[System] Sending keep-alive ping... (${currentHour}시)`);
-                const checkInFn = httpsCallable(functions, 'checkInMemberV2Call');
-                await checkInFn({ ping: true });
+        const initServer = async () => {
+            const currentHour = getKSTHour();
+            // 영업시간 (09:00 ~ 22:00) 외에는 핑 보내지 않음
+            if (currentHour >= 9 && currentHour < 22) {
+                await checkConnection();
                 
                 // [WARM-UP] Meditation AI (Cold Start 방지)
                 const aiFn = httpsCallable(functions, 'generateMeditationGuidance');
                 aiFn({ type: 'warmup' }).catch(e => console.debug("[System] AI Warm-up silent fail:", e));
-
-                console.log("[System] Server is warm 🔥");
-            } catch (e) {
-                console.debug("[System] Ping failed (harmless):", e);
             }
         };
 
-        // 1. Warm-up: 즉시 실행
-        pingServer();
-
-        // 2. Keep-alive: 10분마다 실행 (영업시간 내)
-        const interval = setInterval(pingServer, 10 * 60 * 1000); 
-
+        initServer();
+        const interval = setInterval(initServer, 10 * 60 * 1000); 
         return () => clearInterval(interval);
     }, []);
+
+    // ... (Use a slow timer for background period updates) ...
+
+    // ...
+
+
 
     // Use a slow timer for background period updates (every 5 minutes)
     const [period, setPeriod] = useState(() => {
@@ -777,6 +803,13 @@ const CheckInPage = () => {
 
     const handleKeyPress = (num) => {
         setPin(prev => {
+            // [NETWORK] 키패드 입력 시작 시(첫 글자) 즉시 연결 상태 확인 (Just-in-Time Check)
+            // 사용자가 입력을 마칠 때쯤이면 이미 온라인 상태가 되도록 유도
+            if (prev.length === 0) {
+                console.log('[CheckIn] User started typing - Triggering background network check');
+                checkConnection().catch(e => console.debug('[CheckIn] Background check failed', e));
+            }
+
             if (prev.length < 4) {
                 const newPin = prev + num;
                 if (newPin.length === 4) {
@@ -854,6 +887,11 @@ const CheckInPage = () => {
             const result = await storageService.checkInById(member.id, currentBranch);
 
             if (result.success) {
+                // [NETWORK] If success and NOT offline, ensure we are Online
+                if (!result.isOffline) {
+                    setIsOnline(true);
+                }
+
                 if (result.attendanceStatus === 'denied') {
                     handleCheckInError(`기간 혹은 횟수가 만료되었습니다.`);
                 } else {
@@ -1215,25 +1253,34 @@ const CheckInPage = () => {
         }}>
             {/* [NETWORK] Offline Warning Banner - Improved for always-on tablet */}
             {!isOnline && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    background: 'linear-gradient(90deg, #6c5ce7, #a29bfe)', // Purple theme for "Standby/Offline"
-                    color: 'white',
-                    padding: '14px',
-                    textAlign: 'center',
-                    fontWeight: 'bold',
-                    fontSize: '1.1rem',
-                    zIndex: 9999,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '10px',
-                    boxShadow: '0 4px 20px rgba(108, 92, 231, 0.4)'
-                }}>
-                    ☁️ 오프라인 대기 모드 - 출석 정보는 연결 시 자동 동기화됩니다
+                <div 
+                    onClick={() => {
+                        setLoadingMessage('네트워크 연결 확인 중...');
+                        setLoading(true);
+                        checkConnection().then(() => setLoading(false));
+                    }}
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        background: 'linear-gradient(90deg, #6c5ce7, #a29bfe)', // Purple theme for "Standby/Offline"
+                        color: 'white',
+                        padding: '14px',
+                        textAlign: 'center',
+                        fontWeight: 'bold',
+                        fontSize: '1.1rem',
+                        zIndex: 9999,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '10px',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 20px rgba(108, 92, 231, 0.4)'
+                    }}
+                >
+                    <span>☁️ 오프라인 대기 모드 - 터치하여 연결 확인</span>
+                    <div style={{ fontSize: '0.9em', opacity: 0.8 }}>(🔄)</div>
                 </div>
             )}
             {/* Background Image with optimized rendering */}

@@ -121,7 +121,7 @@ export const storageService = {
     // ✅ FULL MODE: Subscribe to everything (Admin/Mobile)
     // [PERF] attendance는 최근 200건만 구독 (누적 데이터 전부 구독 방지)
     safelySubscribe(
-      query(collection(db, 'attendance'), orderBy("timestamp", "desc"), firestoreLimit(200)),
+      query(collection(db, 'attendance'), orderBy("timestamp", "desc"), firestoreLimit(500)),
       (snapshot) => cachedAttendance = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
       "Attendance"
     );
@@ -335,12 +335,13 @@ export const storageService = {
       
       // Attempt Online Check-in
       try {
-      const response = await withTimeout(
+        const response = await withTimeout(
           checkInMember({ memberId, branchId, classTitle, instructor }),
-          30000, // [EXTENDED] 30초로 연장 (사용자 요청: 끊김 방지 최우선)
+          30000, // [EXTENDED] 30초로 연장
           '서버 연결 지연'
         );
 
+        // [FIX] Handle Logic Errors Gracefully (Do NOT throw context errors as network errors)
         if (response.data.success) {
           const { newCredits, startDate, endDate, attendanceCount, streak, isMultiSession, sessionCount } = response.data;
           this._updateLocalMemberCache(memberId, { 
@@ -368,12 +369,40 @@ export const storageService = {
             }
           };
         } else {
-           throw new Error(response.data.message || 'Check-in failed');
+           // [LOGIC ERROR] Server reached, but check-in denied (e.g. Expired, Duplicate)
+           // Return failure directly without triggering offline fallback
+           console.warn(`[Storage] Check-in denied by server: ${response.data.message}`);
+           return { success: false, message: response.data.message || 'Check-in failed' };
         }
       } catch (networkError) {
+        // [ERROR HANDLING] Distinguish between Network Errors vs Logic Exceptions
+        const errCode = networkError.code; 
+        const errMsg = networkError.message || '';
+
+        // List of Firebase Function error codes that imply logic failure, NOT network failure
+        // https://firebase.google.com/docs/reference/js/functions.md#functionserrorcode
+        const logicErrorCodes = [
+            'invalid-argument',
+            'failed-precondition', // e.g. Expired
+            'out-of-range',
+            'unauthenticated',
+            'permission-denied',
+            'not-found',
+            'already-exists',
+            'resource-exhausted', // Maybe?
+            'aborted',
+            'cancelled',
+            'unknown'  // Should ideally be handled, but often wraps logic errors in some wrappers
+        ];
+
+        if (errCode && logicErrorCodes.includes(errCode)) {
+            console.warn(`[Storage] Logic error returned via HttpsError: ${errCode} - ${errMsg}`);
+            return { success: false, message: errMsg };
+        }
+
         // [OFFLINE FALLBACK]
         // If server is unreachable or times out, save to 'pending_attendance'
-        console.warn("[Storage] Offline mode triggered for check-in:", networkError.message);
+        console.warn("[Storage] Offline mode triggered for check-in:", errMsg);
         
         const member = cachedMembers.find(m => m.id === memberId);
         const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });

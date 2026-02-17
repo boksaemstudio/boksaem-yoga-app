@@ -154,6 +154,10 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
     const activeLogs = (() => {
         if (isToday) {
             return logs.filter(l => {
+                // [FIX] Use stored 'date' field first for robustness (avoids client locale/timezone issues)
+                if (l.date) return l.date === todayStr;
+                
+                // Fallback: Parse timestamp if date field is missing (legacy)
                 if (!l.timestamp) return false;
                 const logDate = new Date(l.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
                 return logDate === todayStr;
