@@ -119,6 +119,7 @@ const MeditationPage = ({ onClose }) => {
     
     // Stable Refs for cleanup without re-triggering effects
     const cameraStreamRef = useRef(null);
+    const isPlayingRef = useRef(false); // ✅ 세션 활성 상태 추적 Ref (비동기 콜백용)
     const [step, setStep] = useState('initial_prep'); // ✅ 알림 끄기 체크부터 시작
     
     // Context State
@@ -317,7 +318,7 @@ const MeditationPage = ({ onClose }) => {
     const sessionDiagnosisRef = useRef(null); // 세션 시작 시 진단 저장
 
     // Stop Session (useCallback for stability - removed stream dependency to fix V3 crash)
-    const stopSession = useCallback(() => {
+    const stopSession = useCallback((stopAmbient = false) => {
         // 🛑 STOP AI AUDIO (Fixed Bug)
         if (currentAudioRef.current) {
             currentAudioRef.current.pause();
@@ -334,14 +335,16 @@ const MeditationPage = ({ onClose }) => {
         if (oscRightRef.current) { try { oscRightRef.current.stop(); } catch { /* ignore */ } oscRightRef.current = null; }
         
         // 🎵 Stop Ambient Audio
-        if (ambientAudioRef.current) {
+        if (stopAmbient && ambientAudioRef.current) {
             ambientAudioRef.current.pause();
             ambientAudioRef.current.currentTime = 0;
             ambientAudioRef.current = null;
         }
         if (sourceRef.current) {
-            sourceRef.current.disconnect(); 
-            if (sourceRef.current.mediaStream) sourceRef.current.mediaStream.getTracks().forEach(track => track.stop());
+            try {
+                sourceRef.current.disconnect(); 
+                if (sourceRef.current.mediaStream) sourceRef.current.mediaStream.getTracks().forEach(track => track.stop());
+            } catch (e) { console.warn("Source disconnect failed", e); }
             sourceRef.current = null;
         }
         
@@ -365,6 +368,7 @@ const MeditationPage = ({ onClose }) => {
         const elapsedTime = currentMode ? (currentMode.time - timeLeft) : 0;
         
         setIsPlaying(false);
+        isPlayingRef.current = false; // ✅ Ref 업데이트
         setStep('diagnosis');
         setPrepStep(1); // Reset prep
         
@@ -378,8 +382,12 @@ const MeditationPage = ({ onClose }) => {
             });
         }
         
+        // ✅ [FIX] 모든 세션 상태 초기화 (텍스트 불일치 방지)
         setActiveMode(null);
         setSelectedDiagnosis(null);
+        setSelectedIntention(null);
+        setSelectedCategory(null);
+        setChatHistory([]);
         setIsAILoading(false); 
         setNeedsFeedback(true); // ✅ Signal that we need to show feedback greeting
         console.log("🛑 stopSession: needsFeedback set to true, step to diagnosis");
@@ -388,7 +396,7 @@ const MeditationPage = ({ onClose }) => {
         setPrescriptionReason('');
         setWeatherContext(null);
         if (window.speechSynthesis) window.speechSynthesis.cancel();
-    }, []); 
+    }, [activeMode, selectedDiagnosis, timeLeft]); 
 
     // 🔍 Stability Analysis Refs
     const stabilityHistoryRef = useRef([]); // Stores {score, timestamp}
@@ -627,6 +635,13 @@ const MeditationPage = ({ onClose }) => {
                     setTtsState(prev => ({ ...prev, isSpeaking: false })); // 🛠️ DEBUG
                 });
             }
+            
+            // ✅ [FIX] 재생 시작 직후에 세션이 종료되었다면 즉시 중지 (Race Condition)
+            if (!isPlayingRef.current && step === 'session') {
+                audio.pause();
+                currentAudioRef.current = null;
+            }
+            
             return audio; // ✅ Return for control
         } catch (e) {
             console.error("🔊 Audio Error:", e);
@@ -655,11 +670,12 @@ const MeditationPage = ({ onClose }) => {
         utterance.onerror = () => setTtsState(prev => ({ ...prev, isSpeaking: false })); // 🛠️ DEBUG
         
         setTimeout(() => {
-            if (window.speechSynthesis && ttcEnabled) {
+            // ✅ [FIX] 세션 활성 여부 재확인 (Race Condition)
+            if (window.speechSynthesis && ttcEnabled && (step !== 'session' || isPlayingRef.current)) {
                 window.speechSynthesis.speak(utterance);
             }
         }, 100);
-    }, [ttcEnabled]);
+    }, [ttcEnabled, step]);
 
     useEffect(() => {
         const hour = new Date().getHours();
@@ -1031,9 +1047,11 @@ const MeditationPage = ({ onClose }) => {
     const handleChatResponse = async (answer) => {
         if (!answer || aiRequestLock) return;
         
+        // 🛑 [FIX] 항상 오디오 먼저 중지하여 음성 겹침 및 지속 방지
+        stopAllAudioRef.current?.();
+
         // ✅ 홈으로 가기 처리
         if (answer === "홈으로 가기") {
-            stopAllAudioRef.current?.();
             if (onClose) onClose();
             else navigate('/');
             return;
@@ -1125,27 +1143,34 @@ const MeditationPage = ({ onClose }) => {
                 // ✅ Personalization Safety
                 const personalizedMsg = result.data.message.replace(/OO님/g, `${memberName}님`);
                 console.log("🤖 [AI Message Check] Display Text:", personalizedMsg); // ✅ User Verification Log
-                setAiMessage(personalizedMsg);
-                // ✅ FIX: state와 ref 동시 업데이트
-                setAiSessionMessageIndex(prev => prev + 1);
-                messageIndexRef.current = currentIndex + 1;
                 
-                // Play Cloud Audio ONLY
-                if (result.data.audioContent) {
-                    playAudio(result.data.audioContent);
+                // ✅ [FIX] 재생 직전 세션 상태 확인
+                if (isPlayingRef.current) {
+                    setAiMessage(personalizedMsg);
+                    // ✅ FIX: state와 ref 동시 업데이트
+                    setAiSessionMessageIndex(prev => prev + 1);
+                    messageIndexRef.current = currentIndex + 1;
+                    
+                    // Play Cloud Audio ONLY
+                    if (result.data.audioContent) {
+                        playAudio(result.data.audioContent);
+                    }
                 }
             }
         } catch (error) {
             console.error('AI Session message failed:', error);
-            // ✅ FIX: Ref에서 최신 index 읽기
-            const currentIndex = messageIndexRef.current;
-            // Fallback to static messages
-            const messages = AI_SESSION_MESSAGES[interactionType] || AI_SESSION_MESSAGES['v1'];
-            const msg = messages[currentIndex % messages.length];
-            setAiMessage(msg);
-            setAiSessionMessageIndex(prev => prev + 1);
-            messageIndexRef.current = currentIndex + 1;
-            // No Audio Fallback
+            // ✅ [FIX] 에러 시에도 세션 상태 확인
+            if (isPlayingRef.current) {
+                // ✅ FIX: Ref에서 최신 index 읽기
+                const currentIndex = messageIndexRef.current;
+                // Fallback to static messages
+                const messages = AI_SESSION_MESSAGES[interactionType] || AI_SESSION_MESSAGES['v1'];
+                const msg = messages[currentIndex % messages.length];
+                setAiMessage(msg);
+                setAiSessionMessageIndex(prev => prev + 1);
+                messageIndexRef.current = currentIndex + 1;
+                // No Audio Fallback
+            }
         }
     };
 
@@ -1392,15 +1417,24 @@ const MeditationPage = ({ onClose }) => {
                         messageIndex: 0
                     });
                     
-                    if (introTTS.data?.audioContent) {
-                        playAudio(introTTS.data.audioContent);
-                    } else {
-                        // Fallback: Browser TTS
-                        speak(introMessage);
+                    // ✅ [FIX] 비동기 응답 후 세션이 여전히 활성 상태인지 확인
+                    if (isPlayingRef.current) {
+                        if (introTTS.data?.message) {
+                            // ✅ AI가 새로운 메시지를 줬다면 화면 텍스트도 동기화 (텍스트 불일치 해결)
+                            const finalIntroMsg = introTTS.data.message.replace(/OO님/g, `${memberName}님`);
+                            setAiMessage(finalIntroMsg);
+                        }
+
+                        if (introTTS.data?.audioContent) {
+                            playAudio(introTTS.data.audioContent);
+                        } else {
+                            // Fallback: Browser TTS
+                            speak(introMessage);
+                        }
                     }
                 } catch (err) {
                     console.error('Intro TTS failed:', err);
-                    speak(introMessage);
+                    if (isPlayingRef.current) speak(introMessage);
                 }
             })();
         }
@@ -1471,8 +1505,11 @@ const MeditationPage = ({ onClose }) => {
             if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
             if (videoRef.current) videoRef.current.pause();
             setIsPlaying(false);
+            isPlayingRef.current = false; // ✅ Ref 업데이트
         } else {
-            setIsPlaying(true); startTimer(); startMessageLoop();
+            setIsPlaying(true); 
+            isPlayingRef.current = true; // ✅ Ref 업데이트
+            startTimer(); startMessageLoop();
             if (audioContextRef.current) audioContextRef.current.resume();
             if (interactionType === 'v2') drawAudioVisualizer();
             if (videoRef.current) videoRef.current.play();
@@ -2642,7 +2679,14 @@ const MeditationPage = ({ onClose }) => {
 
                         {/* Back home button */}
                         {!isAILoading && (
-                            <button onClick={() => { stopAllAudioRef.current?.(true); if(onClose) onClose(); else navigate('/member-profile'); }} style={{
+                            <button onClick={() => { 
+                                stopAllAudioRef.current?.(true); 
+                                // ✅ 추가 상태 정리
+                                setAiMessage("");
+                                setChatHistory([]);
+                                if(onClose) onClose(); 
+                                else navigate('/member-profile'); 
+                            }} style={{
                                 width: '100%', maxWidth: '300px', background: 'white', color: 'black',
                                 padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
                                 cursor: 'pointer', transition: 'all 0.3s ease'
