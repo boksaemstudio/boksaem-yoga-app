@@ -333,76 +333,82 @@ export const storageService = {
       const classTitle = currentClassInfo?.title || '자율수련';
       const instructor = currentClassInfo?.instructor || '미지정';
       
-      // Attempt Online Check-in
-      try {
-        const response = await withTimeout(
-          checkInMember({ memberId, branchId, classTitle, instructor }),
-          30000, // [EXTENDED] 30초로 연장
-          '서버 연결 지연'
-        );
+      // Attempt Online Check-in with 1 retry on network fail
+      let lastErr = null;
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          console.log(`[Storage] Check-in attempt ${attempt}/2...`);
+          const response = await withTimeout(
+            checkInMember({ memberId, branchId, classTitle, instructor }),
+            5000, // [UX] Reduced to 5s for snappy fallback
+            'timeout'
+          );
 
-        // [FIX] Handle Logic Errors Gracefully (Do NOT throw context errors as network errors)
-        if (response.data.success) {
-          const { newCredits, startDate, endDate, attendanceCount, streak, isMultiSession, sessionCount } = response.data;
-          this._updateLocalMemberCache(memberId, { 
-            credits: newCredits, 
-            attendanceCount, 
-            streak, 
-            startDate, 
-            endDate,
-            lastAttendance: new Date().toISOString()
-          });
-
-          return {
-            success: true,
-            message: isMultiSession ? `[${classTitle}] ${sessionCount}회차 출석되었습니다!` : `[${classTitle}] 출석되었습니다!`,
-            member: {
-              id: memberId,
-              name: response.data.memberName,
-              credits: newCredits,
-              attendanceCount,
-              streak,
-              startDate,
+          if (response.data.success) {
+            const { newCredits, startDate, endDate, attendanceCount, streak, isMultiSession, sessionCount } = response.data;
+            this._updateLocalMemberCache(memberId, { 
+              credits: newCredits, 
+              attendanceCount, 
+              streak, 
+              startDate, 
               endDate,
-              isMultiSession,
-              sessionCount
-            }
-          };
-        } else {
-           // [LOGIC ERROR] Server reached, but check-in denied (e.g. Expired, Duplicate)
-           // Return failure directly without triggering offline fallback
-           console.warn(`[Storage] Check-in denied by server: ${response.data.message}`);
-           return { success: false, message: response.data.message || 'Check-in failed' };
-        }
-      } catch (networkError) {
-        // [ERROR HANDLING] Distinguish between Network Errors vs Logic Exceptions
-        const errCode = networkError.code; 
-        const errMsg = networkError.message || '';
+              lastAttendance: new Date().toISOString()
+            });
 
-        // List of Firebase Function error codes that imply logic failure, NOT network failure
-        // https://firebase.google.com/docs/reference/js/functions.md#functionserrorcode
-        const logicErrorCodes = [
+            return {
+              success: true,
+              message: isMultiSession ? `[${classTitle}] ${sessionCount}회차 출석되었습니다!` : `[${classTitle}] 출석되었습니다!`,
+              member: {
+                id: memberId,
+                name: response.data.memberName,
+                credits: newCredits,
+                attendanceCount,
+                streak,
+                startDate,
+                endDate,
+                isMultiSession,
+                sessionCount
+              }
+            };
+          } else {
+            console.warn(`[Storage] Check-in denied by server: ${response.data.message}`);
+            return { success: false, message: response.data.message || 'Check-in failed' };
+          }
+        } catch (error) {
+          lastErr = error;
+          const errCode = error.code;
+          const errMsg = error.message || '';
+
+          const logicErrorCodes = [
             'invalid-argument',
-            'failed-precondition', // e.g. Expired
+            'failed-precondition', 
             'out-of-range',
             'unauthenticated',
             'permission-denied',
             'not-found',
             'already-exists',
-            'resource-exhausted', // Maybe?
+            'resource-exhausted', 
             'aborted',
             'cancelled',
-            'unknown'  // Should ideally be handled, but often wraps logic errors in some wrappers
-        ];
+            'unknown'  
+          ];
 
-        if (errCode && logicErrorCodes.includes(errCode)) {
-            console.warn(`[Storage] Logic error returned via HttpsError: ${errCode} - ${errMsg}`);
+          if (errCode && logicErrorCodes.includes(errCode)) {
+            console.warn(`[Storage] Logic error returned: ${errCode} - ${errMsg}`);
             return { success: false, message: errMsg };
-        }
+          }
 
-        // [OFFLINE FALLBACK]
-        // If server is unreachable or times out, save to 'pending_attendance'
-        console.warn("[Storage] Offline mode triggered for check-in:", errMsg);
+          // If it's the first attempt and we are likely online, retry immediately
+          if (attempt === 1 && navigator.onLine) {
+            console.warn(`[Storage] Attempt 1 failed (${errMsg}). Retrying immediately...`);
+            continue; 
+          }
+          break;
+        }
+      }
+
+      // [OFFLINE FALLBACK]
+      console.warn(`[Storage] Offline mode triggered. Reason: ${lastErr?.message || 'Unknown'}`);
         
         const member = cachedMembers.find(m => m.id === memberId);
         const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
@@ -445,15 +451,14 @@ export const storageService = {
         return {
           success: true,
           isOffline: true,
-          message: `[${classTitle}] 오프라인 모드로 출석되었습니다.\n(연결 시 자동 반영됩니다)`,
+          message: `[${classTitle}] 출석되었습니다!`, // [UX] Same message as online success
           member: {
             ...member,
             credits: newCredits,
             attendanceCount: newCount
           }
         };
-      }
-    } catch (error) {
+      } catch (error) {
       return { success: false, message: error.message };
     }
   },

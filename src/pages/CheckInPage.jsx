@@ -9,6 +9,8 @@ import logoWide from '../assets/logo_wide.png';
 import { MapPin, Sun, Cloud, CloudRain, Snowflake, Lightning, Moon, CornersOut, CornersIn, Chalkboard } from '@phosphor-icons/react';
 import { getTodayKST, getKSTHour, getKSTMinutes, getDaysRemaining } from '../utils/dates';
 import { logError } from '../services/modules/errorModule';
+import { useNetwork } from '../context/NetworkContext';
+
 
 // [PERF] 현재 시간대 배경만 로딩 (4장 → 1장, WebP 최적화)
 const getBgForPeriod = (period) => {
@@ -133,9 +135,7 @@ const TopBar = memo(({ weather, currentBranch, branches, handleBranchChange, tog
             </div>
 
             {/* Right: Action Buttons Grouped */}
-            <div className="top-actions-right" style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', gap: '40px' }}>
-
-                {/* Instructor Button */}
+            <div className="top-actions-right" style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', gap: '20px', alignItems: 'center' }}>
                 <button
                     className="instructor-btn"
                     onClick={onInstructorClick}
@@ -158,6 +158,7 @@ const TopBar = memo(({ weather, currentBranch, branches, handleBranchChange, tog
                     <Chalkboard size={20} weight="duotone" />
                     강사
                 </button>
+
 
                 <button
                     className="fullscreen-btn"
@@ -204,7 +205,8 @@ const CheckInPage = () => {
     const [showInstructorQR, setShowInstructorQR] = useState(false);
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [keypadLocked, setKeypadLocked] = useState(false); // [FIX] Prevent ghost touches
-    const [isOnline, setIsOnline] = useState(navigator.onLine); // [NETWORK] Connectivity state
+    const { isOnline, setIsOnline } = useNetwork(); // [NETWORK] GLOBAL Connectivity state
+
     // [DUPLICATE] 중복 입력 방지
     const recentCheckInsRef = useRef([]); // [{pin, timestamp}, ...]
     const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
@@ -462,25 +464,8 @@ const CheckInPage = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [language, currentBranch]);
 
-    // [NETWORK] Monitor online/offline status
-    useEffect(() => {
-        const handleOnline = () => {
-            console.log('[Network] Connection restored');
-            setIsOnline(true);
-        };
-        const handleOffline = () => {
-            console.log('[Network] Connection lost');
-            setIsOnline(false);
-        };
-        
-        window.addEventListener('online', handleOnline);
-        window.addEventListener('offline', handleOffline);
-        
-        return () => {
-            window.removeEventListener('online', handleOnline);
-            window.removeEventListener('offline', handleOffline);
-        };
-    }, []);
+    // [NETWORK] Monitor online/offline status handled by NetworkContext
+
 
     // ============================================================
     // [ALWAYS-ON GUARD SYSTEM] 키오스크 앱 꺼짐 방지
@@ -890,6 +875,9 @@ const CheckInPage = () => {
                 // [NETWORK] If success and NOT offline, ensure we are Online
                 if (!result.isOffline) {
                     setIsOnline(true);
+                } else {
+                    // [NETWORK] Sync status if we fell back to offline
+                    setIsOnline(false);
                 }
 
                 if (result.attendanceStatus === 'denied') {
@@ -1056,6 +1044,12 @@ const CheckInPage = () => {
                     const reason = result.denialReason === 'expired' ? '기간 만료' : '횟수 소진';
                     handleCheckInError(`출석이 거부되었습니다. (${reason})`);
                 } else {
+                    // [NETWORK] Sync status if we fell back to offline
+                    if (result.isOffline) {
+                        setIsOnline(false);
+                    } else {
+                        setIsOnline(true);
+                    }
                     showCheckInSuccess(result);
                 }
             } else {
@@ -1128,11 +1122,11 @@ const CheckInPage = () => {
         setAiEnhancedMsg(null); // 초기화
         setAiLoading(true); // AI 로딩 시작
 
-        setMessage({
-            type: result.isOffline ? 'info' : 'success', // Use 'info' style for offline
-            member: result.member,
-            text: `${result.member.name}님`,
-            subText: result.isOffline ? `[오프라인] ${finalMsg}\n(연결 시 출석 확인됩니다)` : finalMsg,
+            setMessage({
+                type: 'success', // [UX] Always show success style
+                member: result.member,
+                text: `${result.member.name}님`,
+                subText: finalMsg, // [UX] No special offline text
             details: (
                 <div className="attendance-info" style={{
                     marginTop: '30px',
@@ -1251,38 +1245,8 @@ const CheckInPage = () => {
             flexDirection: 'column',
             background: '#000'
         }}>
-            {/* [NETWORK] Offline Warning Banner - Improved for always-on tablet */}
-            {!isOnline && (
-                <div 
-                    onClick={() => {
-                        setLoadingMessage('네트워크 연결 확인 중...');
-                        setLoading(true);
-                        checkConnection().then(() => setLoading(false));
-                    }}
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        background: 'linear-gradient(90deg, #6c5ce7, #a29bfe)', // Purple theme for "Standby/Offline"
-                        color: 'white',
-                        padding: '14px',
-                        textAlign: 'center',
-                        fontWeight: 'bold',
-                        fontSize: '1.1rem',
-                        zIndex: 9999,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '10px',
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 20px rgba(108, 92, 231, 0.4)'
-                    }}
-                >
-                    <span>☁️ 오프라인 대기 모드 - 터치하여 연결 확인</span>
-                    <div style={{ fontSize: '0.9em', opacity: 0.8 }}>(🔄)</div>
-                </div>
-            )}
+            {/* [NETWORK] Global indicator moved to bottom right per user request */}
+
             {/* Background Image with optimized rendering */}
             <div className="bg-container" style={{
                 position: 'fixed',

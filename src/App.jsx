@@ -5,6 +5,9 @@ import { storageService } from './services/storage';
 import NotificationListener from './components/common/NotificationListener';
 import ReloadPrompt from './components/ReloadPrompt';
 import { PWAProvider } from './context/PWAContext';
+import { NetworkProvider } from './context/NetworkContext';
+import NetworkStatus from './components/common/NetworkStatus';
+
 
 // Lazy load pages
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
@@ -78,7 +81,8 @@ function App() {
 
   return (
     <BrowserRouter>
-      <PWAProvider>
+      <NetworkProvider>
+        <PWAProvider>
         <div className="app">
           <NotificationListener />
           <ReloadPrompt />
@@ -146,9 +150,11 @@ function App() {
               }
             />
           </Routes>
+          <NetworkStatus />
         </div>
       </PWAProvider>
-    </BrowserRouter>
+    </NetworkProvider>
+  </BrowserRouter>
   );
 }
 
