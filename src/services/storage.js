@@ -214,7 +214,7 @@ export const storageService = {
                       const res = await fetch(imgData);
                       const blob = await res.blob();
                       
-                      const storageRef = ref(storage, `notices/${Date.now()}_${index}.jpg`);
+                      const storageRef = ref(storage, `notices/${Date.now()}_${index}.webp`);
                       await uploadBytes(storageRef, blob);
                       const downloadURL = await getDownloadURL(storageRef);
                       console.log(`[Storage] Uploaded image ${index+1}/${imageList.length}`);

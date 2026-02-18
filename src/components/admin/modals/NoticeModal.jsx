@@ -63,7 +63,7 @@ const NoticeModal = ({ isOpen, onClose, onSuccess }) => {
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
+                    const compressedBase64 = canvas.toDataURL('image/webp', 0.5);
                     setNewNotice(prev => ({ ...prev, images: [...prev.images, compressedBase64] }));
                 };
                 img.src = event.target.result;
