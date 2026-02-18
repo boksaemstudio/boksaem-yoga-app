@@ -131,7 +131,7 @@ export const storageService = {
     this._setupMemberListener(); // Ensure this is called!
 
     safelySubscribe(
-      query(collection(db, 'notices'), orderBy("date", "desc")),
+      query(collection(db, 'notices'), orderBy("timestamp", "desc")),
       (snapshot) => cachedNotices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
       "Notices"
     );
@@ -1910,7 +1910,7 @@ export const storageService = {
     // Fallback: fetch directly if cache is empty
     try {
       console.log('[Storage] Cache empty, fetching notices from Firestore...');
-      const q = query(collection(db, 'notices'), orderBy('date', 'desc'));
+      const q = query(collection(db, 'notices'), orderBy('timestamp', 'desc'));
       const snapshot = await getDocs(q);
       const notices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 

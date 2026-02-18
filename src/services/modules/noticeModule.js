@@ -66,7 +66,7 @@ export const loadNotices = async () => {
     try {
         const q = query(
             collection(db, 'notices'),
-            orderBy("date", "desc")
+            orderBy("timestamp", "desc")
         );
         const snapshot = await getDocs(q);
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));

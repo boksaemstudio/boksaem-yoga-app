@@ -119,6 +119,16 @@ input, textarea, [contenteditable="true"] {
   -webkit-touch-callout: default !important; /* ✅ FIX: Enable long-press paste menu on mobile */
 }
 
+/* ✅ FIX: Ensure long-press context menu works in modals (iOS Safari) */
+.modal-content input,
+.modal-content textarea,
+.modal-content [contenteditable="true"] {
+  -webkit-touch-callout: default !important;
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  touch-action: auto !important;
+}
+
 /* AI Dynamic Background */
 body::before {
   content: '';
