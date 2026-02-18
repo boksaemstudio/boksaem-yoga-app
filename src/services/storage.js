@@ -202,36 +202,61 @@ export const storageService = {
         primaryImage = images;
       }
 
-      // [FIX] Upload base64 images to Storage -> Save URL to Firestore
-      // Parallel upload + Blob conversion for speed + Timeout protection
+      // [FIX] Upload images to Storage -> Save URL to Firestore
+      // Dual strategy: Storage first, Firestore-safe Base64 fallback
       let finalImages = [];
       if (imageList && imageList.length > 0) {
           const uploadPromises = imageList.map(async (imgData, index) => {
-              // Check if it's a base64 string (starts with data:image)
               if (typeof imgData === 'string' && imgData.startsWith('data:image')) {
-                  // Convert Base64 to Blob (More efficient upload)
-                  const res = await fetch(imgData);
-                  const blob = await res.blob();
-                  
-                  const storageRef = ref(storage, `notices/${Date.now()}_${index}.webp`);
-                  
-                  // [FIX] Timeout protection - prevent infinite hang
-                  const uploadPromise = uploadBytes(storageRef, blob);
-                  const timeoutPromise = new Promise((_, reject) => 
-                      setTimeout(() => reject(new Error('이미지 업로드 시간 초과 (15초)')), 15000)
-                  );
-                  
-                  await Promise.race([uploadPromise, timeoutPromise]);
-                  const downloadURL = await getDownloadURL(storageRef);
-                  console.log(`[Storage] Uploaded image ${index+1}/${imageList.length}`);
-                  return downloadURL;
+                  try {
+                      // Strategy 1: Upload to Firebase Storage (preferred)
+                      const res = await fetch(imgData);
+                      const blob = await res.blob();
+                      
+                      const storageRef = ref(storage, `notices/${Date.now()}_${index}.webp`);
+                      
+                      // Timeout protection - prevent infinite hang
+                      const uploadPromise = uploadBytes(storageRef, blob);
+                      const timeoutPromise = new Promise((_, reject) => 
+                          setTimeout(() => reject(new Error('STORAGE_TIMEOUT')), 15000)
+                      );
+                      
+                      await Promise.race([uploadPromise, timeoutPromise]);
+                      const downloadURL = await getDownloadURL(storageRef);
+                      console.log(`[Storage] Uploaded image ${index+1}/${imageList.length} to Storage`);
+                      return downloadURL;
+                  } catch (uploadErr) {
+                      console.warn(`[Storage] Storage upload failed (${uploadErr.message}). Using compressed Base64 fallback.`);
+                      
+                      // Strategy 2: Aggressive compression for Firestore direct save
+                      // Compress to very small size to fit within Firestore 1MB doc limit
+                      try {
+                          const compressedBase64 = await new Promise((resolve) => {
+                              const img = new Image();
+                              img.onload = () => {
+                                  const canvas = document.createElement('canvas');
+                                  const MAX_WIDTH = 400; // Very small for Firestore safety
+                                  let w = img.width, h = img.height;
+                                  if (w > MAX_WIDTH) { h *= MAX_WIDTH / w; w = MAX_WIDTH; }
+                                  canvas.width = w;
+                                  canvas.height = h;
+                                  canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                                  resolve(canvas.toDataURL('image/jpeg', 0.3)); // Very low quality
+                              };
+                              img.onerror = () => resolve(null);
+                              img.src = imgData;
+                          });
+                          if (compressedBase64) return compressedBase64;
+                      } catch { /* ignore */ }
+                      
+                      return null; // Skip this image entirely if all fails
+                  }
               } else {
-                  // Already a URL or unknown format
                   return imgData;
               }
           });
 
-          finalImages = await Promise.all(uploadPromises);
+          finalImages = (await Promise.all(uploadPromises)).filter(Boolean);
       }
     const finalPrimaryImage = finalImages.length > 0 ? finalImages[0] : null;
 
