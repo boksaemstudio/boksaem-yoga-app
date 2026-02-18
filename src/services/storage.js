@@ -203,26 +203,28 @@ export const storageService = {
       }
 
       // [FIX] Upload base64 images to Storage -> Save URL to Firestore
-      // Parallel upload + Blob conversion for speed
+      // Parallel upload + Blob conversion for speed + Timeout protection
       let finalImages = [];
       if (imageList && imageList.length > 0) {
           const uploadPromises = imageList.map(async (imgData, index) => {
               // Check if it's a base64 string (starts with data:image)
               if (typeof imgData === 'string' && imgData.startsWith('data:image')) {
-                  try {
-                      // Convert Base64 to Blob (More efficient upload)
-                      const res = await fetch(imgData);
-                      const blob = await res.blob();
-                      
-                      const storageRef = ref(storage, `notices/${Date.now()}_${index}.webp`);
-                      await uploadBytes(storageRef, blob);
-                      const downloadURL = await getDownloadURL(storageRef);
-                      console.log(`[Storage] Uploaded image ${index+1}/${imageList.length}`);
-                      return downloadURL;
-                  } catch (uploadErr) {
-                      console.error(`[Storage] Failed to upload image ${index}:`, uploadErr);
-                      return imgData; // Fallback to base64 if upload fails (might fail doc size limit)
-                  }
+                  // Convert Base64 to Blob (More efficient upload)
+                  const res = await fetch(imgData);
+                  const blob = await res.blob();
+                  
+                  const storageRef = ref(storage, `notices/${Date.now()}_${index}.webp`);
+                  
+                  // [FIX] Timeout protection - prevent infinite hang
+                  const uploadPromise = uploadBytes(storageRef, blob);
+                  const timeoutPromise = new Promise((_, reject) => 
+                      setTimeout(() => reject(new Error('이미지 업로드 시간 초과 (15초)')), 15000)
+                  );
+                  
+                  await Promise.race([uploadPromise, timeoutPromise]);
+                  const downloadURL = await getDownloadURL(storageRef);
+                  console.log(`[Storage] Uploaded image ${index+1}/${imageList.length}`);
+                  return downloadURL;
               } else {
                   // Already a URL or unknown format
                   return imgData;

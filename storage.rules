@@ -1,0 +1,23 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ========================================
+    // 📢 Notices - 공지사항 이미지
+    // Authenticated users can upload, anyone can read
+    // ========================================
+    match /notices/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.resource.size < 10 * 1024 * 1024; // Max 10MB
+    }
+
+    // ========================================
+    // 🛡️ Default - 기본 거부
+    // ========================================
+    match /{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+  }
+}
