@@ -64,6 +64,23 @@ const logAIError = async (context, error) => {
 };
 
 /**
+ * AI 요청 로깅 (디버깅용)
+ */
+const logAIRequest = async (type, memberName, data, context) => {
+    try {
+        await admin.firestore().collection('ai_request_logs').add({
+            type,
+            memberName,
+            data,
+            context,
+            timestamp: admin.firestore.FieldValue.serverTimestamp()
+        });
+    } catch (e) {
+        console.error("Failed to log AI request:", e);
+    }
+};
+
+/**
  * AI 서비스 인스턴스 생성
  */
 const getAI = () => {
@@ -114,6 +131,7 @@ const createPendingApproval = async (type, targetMemberIds, title, body, data = 
 module.exports = {
     admin,
     logAIError,
+    logAIRequest,
     getAI,
     checkAIQuota,
     createPendingApproval,

@@ -7,7 +7,7 @@
  */
 
 const { onCall } = require("firebase-functions/v2/https");
-const { admin, getAI, checkAIQuota, logAIError } = require("../helpers/common");
+const { admin, getAI, checkAIQuota, logAIError, logAIRequest } = require("../helpers/common");
 
 /**
  * AI 기반 맞춤형 페이지 경험 생성

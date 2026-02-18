@@ -97,13 +97,14 @@ const NoticeModal = ({ isOpen, onClose, onSuccess }) => {
                         value={newNotice.title}
                         onChange={e => setNewNotice({ ...newNotice, title: e.target.value })}
                         lang="ko"
+                        style={{ userSelect: 'text', WebkitUserSelect: 'text' }} // ✨ FIX: Enable copy/paste menu
                     />
                 </div>
                 <div className="form-group">
                     <label className="form-label">내용</label>
                     <textarea
                         className="form-input"
-                        style={{ height: '150px', resize: 'none' }}
+                        style={{ height: '150px', resize: 'none', userSelect: 'text', WebkitUserSelect: 'text' }} // ✨ FIX: Enable copy/paste menu
                         placeholder="공지할 내용을 상세히 입력해주세요."
                         value={newNotice.content}
                         onChange={e => setNewNotice({ ...newNotice, content: e.target.value })}
