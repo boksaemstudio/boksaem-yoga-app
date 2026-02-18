@@ -41,11 +41,9 @@ const NoticeModal = ({ isOpen, onClose, onSuccess }) => {
         }
 
         files.forEach(file => {
-            if (file.size > 5 * 1024 * 1024) {
-                alert(`파일 용량이 너무 큽니다: ${file.name} (최대 5MB)`);
-                return;
-            }
-
+            // ⚡ [FIX] 용량 제한 제거: "알아서 압축하면 되잖아" (사용자 요청)
+            // 5MB 체크 로직 삭제 -> Canvas 압축 후 Storage 업로드로 처리
+            
             const reader = new FileReader();
             reader.onload = (event) => {
                 const img = new Image();

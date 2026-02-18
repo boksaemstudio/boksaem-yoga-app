@@ -1,7 +1,8 @@
-﻿import { db, auth, functions } from "../firebase";
+﻿import { db, auth, functions, storage } from "../firebase"; // ✅ Import storage
 import { signInAnonymously } from "firebase/auth";
 import { httpsCallable } from "firebase/functions";
 import { onSnapshot, doc, collection, getDocs, getDoc, addDoc, updateDoc, setDoc, deleteDoc, query, where, orderBy, limit as firestoreLimit, increment, writeBatch } from 'firebase/firestore';
+import { ref, uploadString, getDownloadURL } from "firebase/storage"; // ✅ Storage imports
 import { STUDIO_CONFIG } from '../studioConfig';
 import { messaging, getToken } from "../firebase";
 import * as scheduleService from './scheduleService'; // [Refactor]
@@ -201,20 +202,50 @@ export const storageService = {
         primaryImage = images;
       }
 
-      await addDoc(collection(db, 'notices'), {
-        title,
-        content,
-        image: primaryImage, // Legacy support (thumbnail)
-        images: imageList,   // New multi-image support
-        sendPush,            // Push toggle
-        date: dateStr,
-        timestamp: today.toISOString()
-      });
-      return { success: true };
-    } catch (e) {
-      console.error("Add notice failed:", e);
-      throw e;
+      // [FIX] Upload base64 images to Storage -> Save URL to Firestore
+    // This prevents Firestore document size limit (1MB) errors
+    const uploadedImages = [];
+    if (imageList && imageList.length > 0) {
+        for (let i = 0; i < imageList.length; i++) {
+            const imgData = imageList[i];
+            // Check if it's a base64 string (starts with data:image)
+            if (typeof imgData === 'string' && imgData.startsWith('data:image')) {
+                try {
+                    const storageRef = ref(storage, `notices/${Date.now()}_${i}.jpg`);
+                    await uploadString(storageRef, imgData, 'data_url');
+                    const downloadURL = await getDownloadURL(storageRef);
+                    uploadedImages.push(downloadURL);
+                    console.log(`[Storage] Uploaded image ${i+1}/${imageList.length}`);
+                } catch (uploadErr) {
+                    console.error(`[Storage] Failed to upload image ${i}:`, uploadErr);
+                    // If upload fails, try to fallback (might fail doc size limit, but worth a try)
+                    uploadedImages.push(imgData); 
+                }
+            } else {
+                // Already a URL or unknown format
+                uploadedImages.push(imgData);
+            }
+        }
     }
+
+    // Use the uploaded URLs
+    const finalImages = uploadedImages.length > 0 ? uploadedImages : imageList;
+    const finalPrimaryImage = finalImages.length > 0 ? finalImages[0] : null;
+
+    await addDoc(collection(db, 'notices'), {
+      title,
+      content,
+      image: finalPrimaryImage, // Legacy support (thumbnail)
+      images: finalImages,      // New multi-image support (URLs)
+      sendPush,            // Push toggle
+      date: dateStr,
+      timestamp: today.toISOString()
+    });
+    return { success: true };
+  } catch (e) {
+    console.error("Add notice failed:", e);
+    throw e;
+  }
   },
 
   async deleteNotice(noticeId) {
@@ -1520,6 +1551,18 @@ export const storageService = {
       return true;
     } catch (e) {
       console.error("Add sales failed:", e);
+      throw e;
+    }
+  },
+
+  async deleteSalesRecord(salesId) {
+    try {
+      await deleteDoc(doc(db, 'sales', salesId));
+      console.log(`[Storage] Sales record deleted: ${salesId}`);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      console.error("Delete sales record failed:", e);
       throw e;
     }
   },

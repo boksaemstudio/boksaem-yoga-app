@@ -36,10 +36,10 @@ function ReloadPrompt() {
 
   if (closed || !needRefresh) return null;
 
-  // [ALWAYS-ON] 키오스크(/) 경로에서는 자동으로 SW 업데이트 적용
-  const isKiosk = window.location.pathname === '/';
-  if (isKiosk && needRefresh) {
-    console.log('[AlwaysOn] Kiosk mode: Auto-applying SW update...');
+  // [ALWAYS-ON] 키오스크(/) 및 관리자(/admin) 경로에서는 자동으로 SW 업데이트 적용
+  const isAutoUpdate = window.location.pathname === '/' || window.location.pathname.startsWith('/admin');
+  if (isAutoUpdate && needRefresh) {
+    console.log(`[AlwaysOn] Auto-applying SW update for path: ${window.location.pathname}`);
     // 약간의 딜레이 후 자동 업데이트 (렌더링 안정성)
     setTimeout(async () => {
       try {
@@ -48,7 +48,7 @@ function ReloadPrompt() {
         window.location.reload();
       }
     }, 3000);
-    return null; // 키오스크에서는 프롬프트 표시하지 않음
+    return null; // 자동 업데이트 경로에서는 프롬프트 표시하지 않음
   }
 
   const handleRefresh = async () => {
@@ -62,7 +62,6 @@ function ReloadPrompt() {
       console.log('ReloadPrompt: updateServiceWorker called.');
       
       // Fallback: If page doesn't reload within 3 seconds, force it.
-      // Increased from 1s to 3s to allow SW enough time to activate.
       setTimeout(() => {
          console.warn('ReloadPrompt: Timeout waiting for controller change, forcing reload.');
          window.location.reload();
@@ -74,21 +73,13 @@ function ReloadPrompt() {
     }
   };
 
-  // Check for update loop on mount
+  // [FIX] 업데이트 루프 감지 시 SW 제거 대신 플래그만 정리 (SW 제거하면 푸시 알림 깨짐)
   if (needRefresh) {
     const lastAttempt = sessionStorage.getItem('sw_update_attempt');
     if (lastAttempt) {
-        console.warn('ReloadPrompt: Detected probable update loop. Unregistering SW to recover.');
+        console.warn('ReloadPrompt: Detected retry after update attempt. Clearing flag, keeping SW.');
         sessionStorage.removeItem('sw_update_attempt');
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then((registrations) => {
-                for (const registration of registrations) {
-                    registration.unregister();
-                }
-                window.location.reload();
-            });
-        }
-        return null; // Don't show the prompt while we nuke it
+        // SW를 제거하지 않고 프롬프트를 계속 표시하여 수동 재시도 가능
     }
   }
 

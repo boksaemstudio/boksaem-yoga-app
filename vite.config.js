@@ -14,6 +14,21 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
+        skipWaiting: true, // [FIX] 새 SW 즉시 활성화 — 대기 상태 방지
+        // [FIX] Firestore/API 요청이 SW NavigationRoute에 가로채지지 않도록 차단
+        navigateFallbackDenylist: [/^\/__(\/|$)/, /\/api\//, /firestore\.googleapis\.com/, /identitytoolkit\.googleapis\.com/],
+        // [FIX] index.html을 NetworkFirst로 변경 — 서버 최신 HTML 우선 사용
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'html-cache',
+              expiration: { maxEntries: 5, maxAgeSeconds: 60 * 60 },
+              networkTimeoutSeconds: 3,
+            },
+          },
+        ],
         // [CRITICAL] Import Firebase Messaging SW to enable Push Notifications
         importScripts: ['/firebase-messaging-sw.js'],
       },

@@ -340,37 +340,21 @@ JSON Output:
             console.log(`[Meditation:Prescription] Result:`, JSON.stringify(result));
         }
 
-        // TYPE 3: SESSION MESSAGE
+        // TYPE 3: SESSION MESSAGE (⚡ 경량화: 빠른 응답 우선)
         else if (type === 'session_message') {
-            const interactionContext = {
-                v1: 'voice-guided (Comforting, Listen only)', 
-                v2: 'breath-reactive (Focus on breath sound)', 
-                v3: 'posture-coaching (Body alignment focus)'
-            };
-            
             let currentPhase = 'deepening';
-            if (messageIndex <= 1) currentPhase = 'intro_and_relax';
-            else if (messageIndex >= 8) currentPhase = 'closing_and_waking';
+            if (messageIndex <= 1) currentPhase = 'opening';
+            else if (messageIndex >= 8) currentPhase = 'closing';
             
-            prompt = `
-Role: Mindfulness Companion. Context: ${interactionContext[interactionType]}. Phase: ${currentPhase}.
-Goal: Gently guide the user to notice bodily sensations or breath without judgment.
-USER: ${memberName || '회원'}
-${request.data.breathLevel !== null && request.data.breathLevel !== undefined ? `\nBreath Detection: ${request.data.breathLevel > 0.5 ? 'Strong breathing detected - encourage to maintain rhythm' : request.data.breathLevel > 0.1 ? 'Moderate breathing detected - gently deepen' : 'Weak/no breathing detected - remind to breathe deeply'}` : ''}
-
-## RULES:
-- Generate ONE short guidance in Korean (해요체, 1 sentence, under 40 chars)
-- **Zero Judgment**: Use neutral, descriptive language about sensations.
-- **Do NOT use "${memberName || '회원'}님" unless absolutely necessary for deep connection.**
-- Be unique - NO repetitive phrases
-- **NO TECHNICAL TERMS**: Do NOT say V1, V2, V3. Use natural language.
-${request.data.breathLevel !== null && request.data.breathLevel !== undefined ? '- **BREATH COACHING**: Respond to the detected breath level. If strong, affirm. If weak, gently encourage deeper breathing.' : ''}
-
-JSON Output:
-{
-    "message": "Short mindfulness guidance (Radical Acceptance focus)"
-}
-            `;
+            const breathInfo = request.data.breathLevel != null
+                ? (request.data.breathLevel > 0.5 ? '호흡 강함' : request.data.breathLevel > 0.1 ? '호흡 보통' : '호흡 약함')
+                : '';
+            
+            // ⚡ 프롬프트 대폭 경량화 — 토큰 최소화
+            prompt = `명상 가이드(한국어, 해요체). ${currentPhase === 'opening' ? '도입부' : currentPhase === 'closing' ? '마무리' : '깊은 명상 중'}.
+${breathInfo ? `호흡상태: ${breathInfo}.` : ''}
+한 문장 명상 안내(40자 이내). 판단/조언 금지. 감각/호흡 집중.
+JSON: {"message": "안내 문장"}`;
             
             const sessionSchema = {
                 type: SchemaType.OBJECT,
@@ -378,7 +362,7 @@ JSON Output:
                 required: ["message"]
             };
 
-            console.log(`[Meditation:Session] Prompt: ${prompt}`);
+            console.log(`[Meditation:Session] Index: ${messageIndex}, Phase: ${currentPhase}`);
             result = await ai.generateExperience(prompt, sessionSchema);
             console.log(`[Meditation:Session] Result:`, JSON.stringify(result));
         }
@@ -622,13 +606,17 @@ JSON Output:
             throw new Error("AI returned null");
         }
 
-        // [PERF] AI 응답 메시지와 전환 메시지(있을 경우)의 TTS 생성을 병렬로 처리
+        // [PERF] AI 응답 이름 치환
+        if (result.message && memberName) {
+            result.message = result.message.replace(/OO님/g, `${memberName}님`).replace(/OO/g, memberName);
+        }
+
+        // [PERF] TTS 생성 — session_message에서는 v1(음성안내) 모드만 TTS 생성
         let audioContent = null;
-        const mainAudioPromise = result.message ? (async () => {
+        const skipTTS = (type === 'session_message' && interactionType !== 'v1');
+        
+        const mainAudioPromise = (result.message && !skipTTS) ? (async () => {
             try {
-                if (memberName) {
-                    result.message = result.message.replace(/OO님/g, `${memberName}님`).replace(/OO/g, memberName);
-                }
                 const MEDITATION_VOICE_TYPES = new Set(['session_message', 'prescription', 'transition_message', 'feedback_message']);
                 const voiceType = MEDITATION_VOICE_TYPES.has(type) ? 'meditation' : 'chat';
                 return await generateInternalAudio(result.message, voiceType);

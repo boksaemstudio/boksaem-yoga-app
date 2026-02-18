@@ -1115,6 +1115,8 @@ const MeditationPage = ({ onClose }) => {
 
 
     // Fetch AI session message (during meditation)
+    const consecutiveFailsRef = useRef(0); // ⚡ 연속 폴백 카운터
+    
     const fetchAISessionMessage = async () => {
         try {
             // ✅ FIX: Ref에서 최신 index 읽기 (클로저 버그 방지)
@@ -1122,16 +1124,26 @@ const MeditationPage = ({ onClose }) => {
             const currentDiagnosis = sessionDiagnosisRef.current;
             
             const startTime = Date.now();
-            const result = await generateMeditationGuidance({
+            
+            // ⚡ 8초 타임아웃 — AI가 너무 오래 걸리면 즉시 폴백
+            let timeoutId;
+            const timeoutPromise = new Promise((_, reject) => {
+                timeoutId = setTimeout(() => reject(new Error('Session AI timeout (8s)')), 8000);
+            });
+            
+            const apiPromise = generateMeditationGuidance({
                 type: 'session_message',
-                memberName: memberName, // ✅ Personalize
+                memberName: memberName,
                 timeContext: timeContext,
-                diagnosis: currentDiagnosis, // ✅ FIX: ref에서 읽기
+                diagnosis: currentDiagnosis,
                 mode: activeMode?.id === 'breath' ? '3min' : (activeMode?.id === 'calm' ? '7min' : '15min'),
                 interactionType: interactionType,
-                messageIndex: currentIndex, // ✅ FIX: ref에서 읽기
-                breathLevel: interactionType === 'v2' ? micVolume : null // ✅ Phase 5: 호흡 레벨 전달
+                messageIndex: currentIndex,
+                breathLevel: interactionType === 'v2' ? micVolume : null
             });
+            
+            const result = await Promise.race([apiPromise, timeoutPromise]);
+            clearTimeout(timeoutId);
             setAiLatency(Date.now() - startTime);
             
             // ✅ ERROR HANDLING: If backend returns fallback error, force local fallback
@@ -1142,14 +1154,16 @@ const MeditationPage = ({ onClose }) => {
             if (result.data && result.data.message) {
                 // ✅ Personalization Safety
                 const personalizedMsg = result.data.message.replace(/OO님/g, `${memberName}님`);
-                console.log("🤖 [AI Message Check] Display Text:", personalizedMsg); // ✅ User Verification Log
+                console.log("🤖 [AI Session] OK:", personalizedMsg);
                 
                 // ✅ [FIX] 재생 직전 세션 상태 확인
                 if (isPlayingRef.current) {
                     setAiMessage(personalizedMsg);
-                    // ✅ FIX: state와 ref 동시 업데이트
                     setAiSessionMessageIndex(prev => prev + 1);
                     messageIndexRef.current = currentIndex + 1;
+                    
+                    // ⚡ AI 성공 → 연속 폴백 카운터 리셋
+                    consecutiveFailsRef.current = 0;
                     
                     // Play Cloud Audio ONLY
                     if (result.data.audioContent) {
@@ -1158,23 +1172,53 @@ const MeditationPage = ({ onClose }) => {
                 }
             }
         } catch (error) {
-            console.error('AI Session message failed:', error);
+            console.error('AI Session message failed:', error.message);
             // ✅ [FIX] 에러 시에도 세션 상태 확인
             if (isPlayingRef.current) {
-                // ✅ FIX: Ref에서 최신 index 읽기
                 const currentIndex = messageIndexRef.current;
-                // Fallback to static messages
+                
+                // ⚡ 연속 폴백 카운터 증가
+                consecutiveFailsRef.current += 1;
+                const failCount = consecutiveFailsRef.current;
+                
+                // ⚡ [FIX] 3회 이상 연속 실패 시 폴백도 건너뛰기 (조용히 대기)
+                if (failCount > 3) {
+                    console.warn(`[Session] ${failCount}회 연속 AI 실패 — 메시지 표시 건너뜀, 다음 주기에 재시도`);
+                    return;
+                }
+                
+                // Fallback to static messages (1-3회만)
                 const messages = AI_SESSION_MESSAGES[interactionType] || AI_SESSION_MESSAGES['v1'];
                 const msg = messages[currentIndex % messages.length];
                 setAiMessage(msg);
                 setAiSessionMessageIndex(prev => prev + 1);
                 messageIndexRef.current = currentIndex + 1;
-                // No Audio Fallback
             }
         }
     };
 
-
+    const startMessageLoop = () => {
+        if (messageIntervalRef.current) clearInterval(messageIntervalRef.current);
+        
+        // ⚡ 연속 폴백 카운터 리셋
+        consecutiveFailsRef.current = 0;
+        
+        // First message - try AI
+        fetchAISessionMessage();
+        
+        // ⚡ 동적 간격: 기본 20초, 연속 실패 시 35초로 늘림
+        messageIntervalRef.current = setInterval(() => {
+            // 연속 실패 3회 이상이면 간격 자동 증가
+            if (consecutiveFailsRef.current >= 3) {
+                clearInterval(messageIntervalRef.current);
+                console.log('[Session] AI 연속 실패 — 35초 간격으로 전환');
+                messageIntervalRef.current = setInterval(() => {
+                    fetchAISessionMessage();
+                }, 35000);
+            }
+            fetchAISessionMessage();
+        }, 20000);
+    };
 
     // 🗣️ TTS Wrapper (Consolidated)
     // Removed auto-speak useEffect to prevent duplicate audio with Cloud TTS
@@ -1484,18 +1528,6 @@ const MeditationPage = ({ onClose }) => {
                 return prev - 1;
             });
         }, 1000);
-    };
-
-    const startMessageLoop = () => {
-        if (messageIntervalRef.current) clearInterval(messageIntervalRef.current);
-        
-        // First message - try AI
-        fetchAISessionMessage();
-        
-        // Continue with AI messages every 20 seconds
-        messageIntervalRef.current = setInterval(() => {
-            fetchAISessionMessage();
-        }, 20000);
     };
 
     const togglePlay = () => {

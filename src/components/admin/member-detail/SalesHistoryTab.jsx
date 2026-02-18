@@ -1,32 +1,61 @@
 import { useState, useEffect } from 'react';
-import { ClockCounterClockwise } from '@phosphor-icons/react';
+import { ClockCounterClockwise, Trash } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
+
+// [FIX] 멤버십 타입 영어→한글 변환 매핑
+const MEMBERSHIP_TYPE_LABELS = {
+    'general': '일반',
+    'advanced': '심화',
+    'kids': '키즈',
+    'pregnant': '임산부',
+    'saturday': '토요하타',
+};
+
+const getMembershipLabel = (type) => {
+    if (!type) return '회원권';
+    return MEMBERSHIP_TYPE_LABELS[type] || type;
+};
 
 const SalesHistoryTab = ({ memberId, member }) => {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [deleting, setDeleting] = useState(null);
+
+    const fetchHistory = async () => {
+        try {
+            setLoading(true);
+            const data = await storageService.getSalesHistory(memberId);
+            const sorted = [...data].sort((a, b) => {
+                const timeA = new Date(a.timestamp || a.date).getTime();
+                const timeB = new Date(b.timestamp || b.date).getTime();
+                return timeB - timeA;
+            });
+            setHistory(sorted);
+        } catch (e) {
+            console.error('Failed to fetch sales history:', e);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchHistory = async () => {
-            try {
-                setLoading(true);
-                // Fetch without orderBy to avoid composite index requirement
-                const data = await storageService.getSalesHistory(memberId);
-                // Sort in memory by timestamp descending
-                const sorted = [...data].sort((a, b) => {
-                    const timeA = new Date(a.timestamp || a.date).getTime();
-                    const timeB = new Date(b.timestamp || b.date).getTime();
-                    return timeB - timeA;
-                });
-                setHistory(sorted);
-            } catch (e) {
-                console.error('Failed to fetch sales history:', e);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchHistory();
     }, [memberId]);
+
+    const handleDelete = async (salesId, itemName) => {
+        if (!confirm(`"${itemName}" 결제 내역을 삭제하시겠습니까?\n\n⚠️ 삭제된 내역은 복구할 수 없습니다.`)) return;
+
+        try {
+            setDeleting(salesId);
+            await storageService.deleteSalesRecord(salesId);
+            // 목록에서 즉시 제거
+            setHistory(prev => prev.filter(h => h.id !== salesId));
+        } catch (e) {
+            alert('삭제 중 오류가 발생했습니다: ' + e.message);
+        } finally {
+            setDeleting(null);
+        }
+    };
 
     // Derived active membership info
     const isActive = member && member.endDate && new Date(member.endDate) >= new Date();
@@ -42,7 +71,7 @@ const SalesHistoryTab = ({ memberId, member }) => {
 
     return (
         <div>
-            {/* 1. Current Membership Status (Virtual Record) */}
+            {/* 1. Current Membership Status */}
             {member && (
                 <div style={{ marginBottom: '20px' }}>
                     <h4 style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '10px' }}>현재 이용권 정보</h4>
@@ -55,14 +84,10 @@ const SalesHistoryTab = ({ memberId, member }) => {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 <span style={{ color: 'var(--primary-gold)', fontWeight: 'bold', fontSize: '1.2rem' }}>
-                                    {member.subject || member.membershipType || '회원권'}
+                                    {getMembershipLabel(member.membershipType)}
                                 </span>
                                 <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)' }}>
-                                    {member.membershipType === 'general' ? '일반' :
-                                        member.membershipType === 'advanced' ? '심화' :
-                                            member.membershipType === 'kids' ? '키즈' :
-                                                member.membershipType === 'pregnant' ? '임산부' :
-                                                    member.membershipType === 'saturday' ? '토요하타' : member.membershipType}
+                                    {member.subject || getMembershipLabel(member.membershipType)}
                                 </span>
                             </div>
                             <span style={{
@@ -100,7 +125,6 @@ const SalesHistoryTab = ({ memberId, member }) => {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                 <span style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>이용권 상세</span>
                                 <span style={{ fontWeight: '600' }}>
-                                    {/* Try to infer type from credits or name if implicit */}
                                     {member.credits >= 9000 ? '무제한 기간권' : `${member.credits}회권`}
                                 </span>
                             </div>
@@ -139,11 +163,35 @@ const SalesHistoryTab = ({ memberId, member }) => {
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                                 <span style={{ color: 'white', fontWeight: 'bold' }}>{item.item}</span>
-                                <span style={{ color: '#10b981', fontWeight: 'bold' }}>{item.amount.toLocaleString()}원</span>
+                                <span style={{ color: '#10b981', fontWeight: 'bold' }}>{(item.amount || 0).toLocaleString()}원</span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                                <span style={{ color: '#a1a1aa' }}>{item.paymentMethod === 'card' ? '카드' : item.paymentMethod === 'cash' ? '현금' : '이체'}</span>
-                                <span style={{ color: '#a1a1aa' }}>{new Date(item.timestamp || item.date).toLocaleDateString()}</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
+                                <span style={{ color: '#a1a1aa' }}>
+                                    {item.paymentMethod === 'card' ? '카드' : item.paymentMethod === 'cash' ? '현금' : '이체'}
+                                </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <span style={{ color: '#a1a1aa' }}>{new Date(item.timestamp || item.date).toLocaleDateString()}</span>
+                                    <button
+                                        onClick={() => handleDelete(item.id, item.item || '결제 내역')}
+                                        disabled={deleting === item.id}
+                                        style={{
+                                            background: 'rgba(239, 68, 68, 0.1)',
+                                            border: '1px solid rgba(239, 68, 68, 0.2)',
+                                            color: '#ef4444',
+                                            borderRadius: '6px',
+                                            padding: '4px 8px',
+                                            cursor: deleting === item.id ? 'not-allowed' : 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                            fontSize: '0.75rem',
+                                            opacity: deleting === item.id ? 0.5 : 1
+                                        }}
+                                    >
+                                        <Trash size={14} />
+                                        {deleting === item.id ? '삭제중...' : '삭제'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))}
