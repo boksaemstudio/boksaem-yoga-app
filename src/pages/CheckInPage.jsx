@@ -139,7 +139,7 @@ const TopBar = memo(({ weather, currentBranch, branches, handleBranchChange, tog
                 <button
                     className="instructor-btn"
                     onClick={onInstructorClick}
-                    aria-label="강사 앱"
+                    aria-label="선생님 전용"
                     style={{
                         background: 'rgba(212, 175, 55, 0.15)',
                         border: '1px solid rgba(212, 175, 55, 0.4)',
@@ -156,7 +156,7 @@ const TopBar = memo(({ weather, currentBranch, branches, handleBranchChange, tog
                     }}
                 >
                     <Chalkboard size={20} weight="duotone" />
-                    강사
+                    선생님
                 </button>
 
 

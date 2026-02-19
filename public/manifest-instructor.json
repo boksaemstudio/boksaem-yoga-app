@@ -1,7 +1,7 @@
 {
-    "name": "복샘요가강사",
-    "short_name": "강사",
-    "description": "복샘요가 강사 전용 시스템",
+    "name": "복샘요가 선생님",
+    "short_name": "선생님",
+    "description": "복샘요가 선생님 전용 시스템",
     "start_url": "/instructor",
     "gcm_sender_id": "103953800507",
     "display": "standalone",

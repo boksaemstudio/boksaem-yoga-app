@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { BellRinging, User, Users, Clock, CheckCircle, WarningCircle } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 
-const PushHistoryTab = ({ onSelectMember, setActiveTab }) => {
+const PushHistoryTab = ({ onSelectMember, setActiveTab, pendingApprovals = [], onApprove, onReject }) => {
     const [history, setHistory] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -32,6 +32,71 @@ const PushHistoryTab = ({ onSelectMember, setActiveTab }) => {
             </div>
 
             <div className="card-list">
+                {/* [NEW] Pending Approvals Section */}
+                {pendingApprovals.length > 0 && (
+                    <div style={{ marginBottom: '30px' }}>
+                        <h4 style={{ color: '#FFC107', margin: '0 0 15px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <WarningCircle weight="fill" /> 승인 대기 메시지 ({pendingApprovals.length})
+                        </h4>
+                        {pendingApprovals.map(item => (
+                            <div key={item.id} className="glass-panel" style={{
+                                padding: '20px',
+                                marginBottom: '15px',
+                                border: '1px solid rgba(255, 193, 7, 0.3)',
+                                background: 'rgba(255, 193, 7, 0.05)',
+                                borderRadius: '12px'
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                                    <div>
+                                        <span style={{ 
+                                            background: '#FFC107', color: '#000', 
+                                            padding: '2px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', marginRight: '8px' 
+                                        }}>
+                                            {item.type === 'low_credits' ? '크레딧 알림' : (item.type === 'notice' ? '공지 발송' : '기타 알림')}
+                                        </span>
+                                        <span style={{ fontSize: '0.9rem', color: '#FFF' }}>{item.title}</span>
+                                    </div>
+                                    <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>
+                                        {new Date(item.createdAt?.toDate ? item.createdAt.toDate() : item.createdAt).toLocaleString()}
+                                    </div>
+                                </div>
+                                <div style={{ 
+                                    background: 'rgba(0,0,0,0.3)', padding: '15px', borderRadius: '8px', 
+                                    marginBottom: '15px', whiteSpace: 'pre-wrap', fontSize: '0.9rem', lineHeight: 1.5 
+                                }}>
+                                    {item.body}
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ fontSize: '0.85rem', opacity: 0.7 }}>
+                                        발송 대상: {item.targetMemberIds?.length || 0}명
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <button 
+                                            onClick={() => onReject(item.id)}
+                                            style={{
+                                                padding: '8px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)',
+                                                background: 'transparent', color: '#FFF', cursor: 'pointer'
+                                            }}
+                                        >
+                                            삭제
+                                        </button>
+                                        <button 
+                                            onClick={() => onApprove(item.id, item.title)}
+                                            style={{
+                                                padding: '8px 20px', borderRadius: '8px', border: 'none',
+                                                background: '#FFC107', color: '#000', fontWeight: 'bold', cursor: 'pointer'
+                                            }}
+                                        >
+                                            승인 및 발송
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                <h4 style={{ margin: '0 0 15px 0', opacity: 0.7 }}>발송 이력</h4>
                 {history.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '60px 0', opacity: 0.5 }}>
                         <BellRinging size={48} style={{ marginBottom: '15px' }} />

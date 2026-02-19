@@ -62,7 +62,7 @@ const InstructorQRModal = ({ isOpen, onClose }) => {
                 <div style={{ marginBottom: '24px' }}>
                     <QrCode size={48} color="var(--primary-gold)" weight="duotone" />
                     <h2 style={{ color: 'var(--primary-gold)', margin: '12px 0 8px', fontSize: '1.8rem' }}>
-                        강사 앱 접속
+                        선생님 전용
                     </h2>
                 </div>
 

@@ -322,7 +322,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                             {getBranchName(cls.branchId)}
                                         </span>
                                     </div>
-                                    <div style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '8px' }}>{cls.instructor} 강사님</div>
+                                    <div style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '8px' }}>{cls.instructor} 선생님</div>
                                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px' }}>
                                         <span style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--primary-gold)', lineHeight: 1 }}>{cls.count}</span>
                                         <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>명 참여</span>
@@ -473,7 +473,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                                 <div style={{ fontSize: '0.85rem', opacity: 0.8, marginTop: '2px', color: log.status === 'denied' ? '#ff4d4f' : 'inherit' }}>
                                                     {log.status === 'denied'
                                                         ? `출석 시도가 거부되었습니다 (${log.denialReason === 'expired' ? '기간만료' : '횟수소진'})`
-                                                        : (log.action?.includes('출석') ? `${log.className || '일반'} 수업 참여 (${log.instructor || '관리자'} 강사님)` : log.action)
+                                                        : (log.action?.includes('출석') ? `${log.className || '일반'} 수업 참여 (${log.instructor || '관리자'} 선생님)` : log.action)
                                                     }
                                                 </div>
                                             </div>

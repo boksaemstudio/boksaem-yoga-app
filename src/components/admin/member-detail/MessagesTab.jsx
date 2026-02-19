@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+
 import { storageService } from '../../../services/storage';
 import { onSnapshot, collection, query, where, orderBy, limit as firestoreLimit, getDocs } from 'firebase/firestore';
 import { db } from '../../../firebase';
@@ -9,6 +10,24 @@ const MessagesTab = ({ memberId }) => {
     const [history, setHistory] = useState([]);
     const [msgLimit, setMsgLimit] = useState(10);
     const [notices, setNotices] = useState([]);
+    
+    // [NEW] Scheduled Sending State
+    const [isScheduled, setIsScheduled] = useState(false);
+    const [scheduledTime, setScheduledTime] = useState('');
+    const scheduleInputRef = useRef(null);
+
+    // [UX] Auto-open picker when scheduled is checked
+    const handleScheduleToggle = (e) => {
+        const checked = e.target.checked;
+        setIsScheduled(checked);
+        if (checked) {
+            setTimeout(() => {
+                try {
+                    if (scheduleInputRef.current) scheduleInputRef.current.showPicker();
+                } catch (e) {}
+            }, 100);
+        }
+    };
 
     // [REAL-TIME] Individual Message History Listener
     useEffect(() => {
@@ -61,13 +80,30 @@ const MessagesTab = ({ memberId }) => {
 
     const handleSend = async () => {
         if (!message.trim() || !memberId) return;
-        if (!confirm('메시지를 실제 전송하시겠습니까? 회원의 스마트폰으로 푸시 알림이 즉시 발송됩니다.')) return;
+        
+        let confirmMsg = '메시지를 실제 전송하시겠습니까? 회원의 스마트폰으로 푸시 알림과 문자(LMS)가 발송됩니다.';
+        if (isScheduled) {
+            if (!scheduledTime) {
+                alert('예약 시간을 설정해주세요.');
+                return;
+            }
+            const scheduledDate = new Date(scheduledTime);
+            if (scheduledDate <= new Date()) {
+                alert('예약 시간은 현재 시간 이후여야 합니다.');
+                return;
+            }
+            confirmMsg = `메시지를 예약하시겠습니까?\n발송 예정: ${scheduledDate.toLocaleString()}`;
+        }
+
+        if (!confirm(confirmMsg)) return;
 
         setSending(true);
         try {
-            await storageService.addMessage(memberId, message);
+            await storageService.addMessage(memberId, message, isScheduled ? new Date(scheduledTime).toISOString() : null);
             setMessage('');
-            // UI will update automatically via onSnapshot listener
+            setIsScheduled(false);
+            setScheduledTime('');
+            if (isScheduled) alert('메시지가 예약되었습니다.');
         } catch (error) {
             console.error("Message send failed:", error);
             alert('발송에 실패했습니다. 네트워크 상태를 확인해주세요.');
@@ -96,25 +132,84 @@ const MessagesTab = ({ memberId }) => {
                         color: 'white', fontSize: '1rem', resize: 'none', outline: 'none'
                     }}
                 />
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+                
+                {/* [NEW] Cost Estimation */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '0.8rem', color: '#a1a1aa', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px', marginBottom: '8px' }}>
+                    {(() => {
+                        // Simple byte calculation (Korean ~2bytes, English 1byte)
+                        // Solapi/LMS standard: SMS <= 90 bytes, LMS > 90 bytes
+                        let bytes = 0;
+                        for (let i = 0; i < message.length; i++) {
+                            const code = message.charCodeAt(i);
+                            bytes += (code >> 7) ? 2 : 1;
+                        }
+                        const isLMS = bytes > 90;
+                        const cost = isLMS ? 45 : 18; // Approx rates
+                        return (
+                            <span style={{ color: isLMS ? '#f59e0b' : '#10b981' }}>
+                                {bytes} bytes ({isLMS ? 'LMS' : 'SMS'}) • 예상 비용: 약 {cost}원
+                            </span>
+                        );
+                    })()}
+                </div>
+
+                {/* [NEW] Scheduling UI */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <input 
+                            type="checkbox" 
+                            id="scheduleCheck" 
+                            checked={isScheduled} 
+                            onChange={handleScheduleToggle}
+                            style={{ accentColor: 'var(--primary-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                        />
+                        <label htmlFor="scheduleCheck" style={{ color: '#e4e4e7', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                            ⏰ 예약 발송
+                        </label>
+                        
+                        {isScheduled && (
+                            <input 
+                                ref={scheduleInputRef}
+                                type="datetime-local" 
+                                value={scheduledTime}
+                                onChange={e => setScheduledTime(e.target.value)}
+                                onClick={() => {
+                                    try {
+                                        if(scheduleInputRef.current) scheduleInputRef.current.showPicker();
+                                    } catch(e) {}
+                                }}
+                                style={{ 
+                                    background: 'rgba(0,0,0,0.3)', 
+                                    border: '1px solid rgba(255,255,255,0.2)', 
+                                    borderRadius: '6px', 
+                                    padding: '4px 8px', 
+                                    color: 'white', 
+                                    marginLeft: '8px',
+                                    fontSize: '0.9rem',
+                                    cursor: 'pointer'
+                                }}
+                            />
+                        )}
+                    </div>
+                
                     <button
                         onClick={handleSend}
                         disabled={sending || !message.trim()}
                         style={{
                             background: sending ? '#52525b' : 'var(--primary-gold)',
                             color: sending ? '#d4d4d8' : 'black',
-                            border: 'none', borderRadius: '8px', padding: '10px 20px',
+                            border: 'none', borderRadius: '8px', padding: '8px 20px',
                             fontWeight: 'bold', cursor: sending ? 'wait' : 'pointer'
                         }}
                     >
-                        {sending ? '전송 중...' : '전송 하기'}
+                        {sending ? '처리 중...' : (isScheduled ? '예약 하기' : '전송 하기')}
                     </button>
                 </div>
             </div>
 
             {/* Templates */}
             <div style={{ marginBottom: '25px' }}>
-                <p style={{ color: '#a1a1aa', fontSize: '0.85rem', marginBottom: '8px' }}>자주 쓰는 문구</p>
+                <p style={{ color: '#a1a1aa', fontSize: '0.85rem', marginBottom: '8px' }}>자주 쓰는 문구 (비용 절약 💡)</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                     {templates.map((t, i) => (
                         <button

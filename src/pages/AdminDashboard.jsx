@@ -207,7 +207,8 @@ const AdminDashboard = () => {
                             instructorName: l.instructor, // Add instructor info
                             attendanceStatus: l.status, // Pass status
                             denialReason: l.denialReason, // Pass reason
-                            originalLog: l
+                            originalLog: l,
+                            credits: l.credits !== undefined ? l.credits : member.credits // [FIX] Use historical credits snapshot
                         });
                     }
                 }
@@ -674,7 +675,13 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
                         )}
-                        <PushHistoryTab onSelectMember={handleOpenEdit} setActiveTab={setActiveTab} />
+                        <PushHistoryTab 
+                            onSelectMember={handleOpenEdit} 
+                            setActiveTab={setActiveTab} 
+                            pendingApprovals={pendingApprovals}
+                            onApprove={handleApprovePush}
+                            onReject={handleRejectPush}
+                        />
                     </div>
                 )}
 

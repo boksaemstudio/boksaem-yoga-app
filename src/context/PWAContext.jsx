@@ -40,7 +40,7 @@ export const PWAProvider = ({ children }) => {
             appTitle = '내요가';
         } else if (path.startsWith('/instructor')) {
             manifestFile = '/manifest-instructor.json';
-            appTitle = '복샘요가강사';
+            appTitle = '복샘요가 선생님';
         }
 
         // Update manifest link

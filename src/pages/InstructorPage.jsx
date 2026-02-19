@@ -1,5 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
-import { CalendarBlank, Bell, BellRinging, House, SignOut, User, Phone } from '@phosphor-icons/react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+
+
+import { CalendarBlank, Bell, BellRinging, House, SignOut, Share, PlusSquare, User, Phone } from '@phosphor-icons/react';
 import SimpleImageModal from '../components/common/SimpleImageModal';
 import { storageService } from '../services/storage';
 import { getTodayKST, getKSTHour, getKSTTotalMinutes } from '../utils/dates';
@@ -63,8 +65,8 @@ const InstructorLogin = ({ onLogin, instructors }) => {
                     alt="복샘요가" 
                     style={{ width: '70px', height: '70px', marginBottom: '16px', filter: 'drop-shadow(0 0 10px rgba(212, 175, 55, 0.5))' }} 
                 />
-                <h1 style={{ color: 'var(--primary-gold)', marginBottom: '8px', fontSize: '1.8rem' }}>복샘요가 강사</h1>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>강사 전용 앱입니다</p>
+                <h1 style={{ color: 'var(--primary-gold)', marginBottom: '8px', fontSize: '1.8rem' }}>복샘요가 선생님</h1>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>선생님 전용 앱입니다</p>
 
                 <div style={{ marginBottom: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--bg-input)', padding: '12px 16px', borderRadius: '10px', marginBottom: '12px' }}>
@@ -825,37 +827,62 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                 )}
             </div>
 
-            {/* PWA Install */}
+            {/* PWA Install Guide */}
             {!isStandalone && (
-                <div style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '12px', marginBottom: '16px', border: '1px solid rgba(212, 175, 55, 0.3)', boxShadow: '0 0 15px rgba(212, 175, 55, 0.1)' }}>
+                <div style={{ 
+                    background: 'var(--bg-surface)', 
+                    padding: '20px', 
+                    borderRadius: '12px', 
+                    marginBottom: '16px', 
+                    border: deviceOS === 'ios' ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(212, 175, 55, 0.3)', 
+                    boxShadow: deviceOS === 'ios' ? '0 0 15px rgba(59, 130, 246, 0.1)' : '0 0 15px rgba(212, 175, 55, 0.1)' 
+                }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                        <div style={{ background: 'var(--primary-gold)', borderRadius: '10px', padding: '8px', display: 'flex' }}>
-                            <SignOut size={24} color="black" style={{ transform: 'rotate(-90deg)' }} />
+                        <div style={{ 
+                            background: deviceOS === 'ios' ? '#3B82F6' : 'var(--primary-gold)', 
+                            borderRadius: '10px', 
+                            padding: '8px', 
+                            display: 'flex' 
+                        }}>
+                            {deviceOS === 'ios' ? (
+                                <Share size={24} color="white" weight="bold" />
+                            ) : (
+                                <SignOut size={24} color="black" style={{ transform: 'rotate(-90deg)' }} />
+                            )}
                         </div>
                         <div>
-                            <h3 style={{ margin: 0, fontSize: '1rem', color: 'white' }}>홈 화면에 앱 설치하기</h3>
+                            <h3 style={{ margin: 0, fontSize: '1rem', color: 'white' }}>
+                                {deviceOS === 'ios' ? '아이폰에 앱 설치하기' : '홈 화면에 앱 설치하기'}
+                            </h3>
                             <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                                앱처럼 편하게 아이콘으로 접속하세요
+                                {deviceOS === 'ios' ? '사파리(Safari)에서 홈 화면에 추가하세요' : '앱처럼 편하게 아이콘으로 접속하세요'}
                             </p>
                         </div>
                     </div>
                     
-                    <button 
-                        onClick={handleInstallPWA} 
-                        style={{ 
-                            width: '100%', padding: '14px', borderRadius: '10px', border: 'none', 
-                            background: 'var(--primary-gold)', color: 'black', fontWeight: 'bold', 
-                            fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', 
-                            justifyContent: 'center', gap: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
-                        }}
-                    >
-                        <SignOut size={20} style={{ transform: 'rotate(-90deg)' }} /> 폰에 앱 설치하기
-                    </button>
-                    
-                    {deviceOS === 'ios' && (
-                         <p style={{ marginTop: '12px', fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
-                            * iOS는 수동 설치가 필요할 수 있습니다.
-                        </p>
+                    {deviceOS === 'ios' ? (
+                        <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '12px', borderRadius: '8px', marginTop: '10px' }}>
+                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '0.9rem' }}>
+                                <span style={{ background: '#3B82F6', color: 'white', width: '20px', height: '20px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold' }}>1</span>
+                                <span style={{ color: '#e0e0e0' }}>하단 <Share size={16} weight="bold" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> <strong>공유 버튼</strong> 클릭</span>
+                             </div>
+                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }}>
+                                <span style={{ background: '#3B82F6', color: 'white', width: '20px', height: '20px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold' }}>2</span>
+                                <span style={{ color: '#e0e0e0' }}><PlusSquare size={16} weight="bold" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> <strong>홈 화면에 추가</strong> 선택</span>
+                             </div>
+                        </div>
+                    ) : (
+                        <button 
+                            onClick={handleInstallPWA} 
+                            style={{ 
+                                width: '100%', padding: '14px', borderRadius: '10px', border: 'none', 
+                                background: 'var(--primary-gold)', color: 'black', fontWeight: 'bold', 
+                                fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', 
+                                justifyContent: 'center', gap: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
+                            }}
+                        >
+                            <SignOut size={20} style={{ transform: 'rotate(-90deg)' }} /> 폰에 앱 설치하기
+                        </button>
                     )}
                 </div>
             )}
@@ -878,6 +905,9 @@ const InstructorPage = () => {
     const [instructors, setInstructors] = useState([]);
     const [activeTab, setActiveTab] = useState('home');
     const [loading, setLoading] = useState(true);
+    
+    // Subscription Cleanup Ref
+    const unsubscribesRef = useRef([]);
 
     // AI Greeting State (Global)
     const [aiGreeting, setAiGreeting] = useState('');
@@ -946,14 +976,43 @@ const InstructorPage = () => {
                 attendanceResults.forEach((data, idx) => {
                     const branchName = branches[idx].name;
                     const branchId = branches[idx].id;
+                    
+                    const myBranchClasses = allMyClasses.filter(c => c.branchId === branchId);
+                    const myClassTitles = new Set(myBranchClasses.map(c => c.title));
+
                     const branchRecords = (data || [])
-                        .filter(r => r.instructor === instructorName)
+                        .filter(r => r.instructor === instructorName || (r.instructor === '미지정' && myClassTitles.has(r.className)))
                         .map(r => ({ ...r, branchName, branchId }));
                     allBaselineAttendance = [...allBaselineAttendance, ...branchRecords];
                 });
                 
                 setAttendance(allBaselineAttendance.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
                 setAttendanceLoading(false); // Initial load done
+
+                // 2. Real-time Subscription (Moved inside to access allMyClasses)
+                const newUnsubscribes = branches.map(branch => {
+                    return storageService.subscribeAttendance(todayStr, branch.id, (records) => {
+                        setAttendance(prev => {
+                            const otherBranches = prev.filter(r => r.branchId !== branch.id);
+                            const branchName = branch.name;
+                            const branchId = branch.id;
+                            
+                            // Re-filter with the known classes
+                            const myBranchClasses = allMyClasses.filter(c => c.branchId === branchId);
+                            const myClassTitles = new Set(myBranchClasses.map(c => c.title));
+
+                            const branchRecords = (records || [])
+                                .filter(r => r.instructor === instructorName || (r.instructor === '미지정' && myClassTitles.has(r.className)))
+                                .map(r => ({ ...r, branchName, branchId }));
+                            
+                            const merged = [...otherBranches, ...branchRecords];
+                            merged.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                            return merged;
+                        });
+                    });
+                });
+                unsubscribesRef.current = newUnsubscribes;
+
             } catch (e) {
                 console.error('Failed to load initial data:', e);
                 setAttendanceLoading(false);
@@ -962,32 +1021,12 @@ const InstructorPage = () => {
 
         loadInitialData();
 
-        // 2. Real-time Subscription for Attendance
-        // We still keep the subscription to get instant updates
-        const unsubscribes = branches.map(branch => {
-            return storageService.subscribeAttendance(todayStr, branch.id, (records) => {
-                setAttendance(prev => {
-                    const otherBranches = prev.filter(r => r.branchId !== branch.id);
-                    const branchName = branch.name;
-                    const branchId = branch.id;
-                    const branchRecords = (records || [])
-                        .filter(r => r.instructor === instructorName)
-                        .map(r => ({ ...r, branchName, branchId }));
-                    
-                    const merged = [...otherBranches, ...branchRecords];
-                    merged.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                    return merged;
-                });
-                setAttendanceLoading(false); // Subscription update also clears loading if not already cleared
-            });
-        });
-
-        // SAFETY: Fallback to stop loading even if everything hangs
-        const loadingSafetyTimeout = setTimeout(() => setAttendanceLoading(false), 5000);
-
+        // Cleanup function
         return () => {
-            unsubscribes.forEach(unsub => unsub());
-            clearTimeout(loadingSafetyTimeout);
+             if (unsubscribesRef.current) {
+                unsubscribesRef.current.forEach(unsub => unsub());
+             }
+             clearTimeout(loadingSafetyTimeout);
         };
     }, [instructorName, todayStr, branches]);
 
@@ -1077,7 +1116,7 @@ const InstructorPage = () => {
             {/* Header */}
             <div style={{ background: 'rgba(20, 20, 25, 0.95)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', position: 'relative', zIndex: 2 }}>
                 <div>
-                    <h1 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--primary-gold)' }}>복샘요가 강사</h1>
+                    <h1 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--primary-gold)' }}>복샘요가 선생님</h1>
                     <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{instructorName} 선생님</p>
                 </div>
                 <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>

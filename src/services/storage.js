@@ -968,7 +968,7 @@ export const storageService = {
       const response = await withTimeout(
         verifyInstructor({ name, phoneLast4: last4Digits }),
         10000,
-        '강사 인증 시간 초과'
+        '선생님 인증 시간 초과'
       );
 
       if (response.data.success) {
@@ -1710,7 +1710,7 @@ export const storageService = {
 
             if (matchedClass) {
               finalClassName = matchedClass.title || matchedClass.name || "수업";
-              finalInstructor = matchedClass.instructor || "강사님";
+              finalInstructor = matchedClass.instructor || "선생님";
             } else {
               // No matching class found
               finalClassName = "자율수련";
@@ -2085,24 +2085,83 @@ export const storageService = {
    * Sends a single push notification to a member by adding a doc to 'messages' collection.
    * This triggers 'sendPushOnMessageV2' Cloud Function.
    */
-  async addMessage(memberId, content) {
+  async addMessage(memberId, content, scheduledAt = null) {
     try {
       if (!memberId || !content) throw new Error("Invalid message data");
 
-      const docRef = await addDoc(collection(db, 'messages'), {
+      const messageData = {
         memberId,
         content,
         type: 'admin_individual',
         createdAt: new Date().toISOString(),
         timestamp: new Date().toISOString()
-      });
+      };
 
-      console.log(`[Storage] Message added for ${memberId}: ${docRef.id}. Triggering push...`);
+      if (scheduledAt) {
+          messageData.scheduledAt = scheduledAt;
+          messageData.status = 'scheduled';
+      } else {
+          messageData.status = 'pending'; // Default for immediate
+      }
+
+      const docRef = await addDoc(collection(db, 'messages'), messageData);
+
+      console.log(`[Storage] Message added for ${memberId}: ${docRef.id}. Scheduled: ${scheduledAt || 'Immediate'}`);
       return { success: true, id: docRef.id };
     } catch (e) {
       console.error("Add message failed:", e);
       throw e;
     }
+  },
+
+  /**
+   * Bulk send messages to multiple members
+   * Uses batch writes for efficiency (chunks of 500)
+   */
+  async sendBulkMessages(memberIds, content, scheduledAt = null) {
+      try {
+          if (!memberIds || memberIds.length === 0) throw new Error("No members selected");
+          if (!content) throw new Error("Content is empty");
+
+          const chunks = [];
+          for (let i = 0; i < memberIds.length; i += 400) { // Safety margin below 500 limit
+              chunks.push(memberIds.slice(i, i + 400));
+          }
+
+          let totalCount = 0;
+
+          for (const chunk of chunks) {
+              const batch = writeBatch(db);
+              
+              chunk.forEach(memberId => {
+                  const docRef = doc(collection(db, 'messages'));
+                  const messageData = {
+                      memberId,
+                      content,
+                      type: 'admin_individual',
+                      createdAt: new Date().toISOString(),
+                      timestamp: new Date().toISOString(),
+                      status: scheduledAt ? 'scheduled' : 'pending' // 'pending' triggers existing cloud functions
+                  };
+                  
+                  if (scheduledAt) {
+                      messageData.scheduledAt = scheduledAt;
+                  }
+
+                  batch.set(docRef, messageData);
+              });
+
+              await batch.commit();
+              totalCount += chunk.length;
+          }
+
+          console.log(`[Storage] Bulk sent ${totalCount} messages.`);
+          return { success: true, count: totalCount };
+
+      } catch (e) {
+          console.error("Bulk message send failed:", e);
+          throw e;
+      }
   },
 
   /**

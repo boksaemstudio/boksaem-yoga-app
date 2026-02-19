@@ -74,6 +74,24 @@ const MemberProfile = () => {
     // Added for schedule view
     const [scheduleView, setScheduleView] = useState('calendar');
     const [scheduleMonth, setScheduleMonth] = useState('current'); // 'current' or 'next'
+    
+    // PWA Install State
+    const { deferredPrompt, installApp } = useContext(PWAContext) || {};
+    const [isStandalone, setIsStandalone] = useState(false);
+    const [deviceOS, setDeviceOS] = useState('unknown');
+
+    useEffect(() => {
+        const ua = navigator.userAgent.toLowerCase();
+        if (/iphone|ipad|ipod/.test(ua)) {
+            setDeviceOS('ios');
+        } else if (/android/.test(ua)) {
+            setDeviceOS('android');
+        }
+
+        const isInstalled = window.matchMedia('(display-mode: standalone)').matches || 
+                           window.navigator.standalone === true;
+        setIsStandalone(isInstalled);
+    }, []);
 
     const handleNotificationToggle = async (e) => {
         if (e.target.checked) {
@@ -202,23 +220,9 @@ const MemberProfile = () => {
         return 'default';
     });
 
-    // PWA Install State
-    const { deferredPrompt, installApp } = useContext(PWAContext) || {};
-    /*
-    const [isIOS] = useState(() => {
-        if (typeof window === 'undefined') return false;
-        return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-    });
-    const [isInStandaloneMode] = useState(() => {
-        if (typeof window === 'undefined') return false;
-        return window.matchMedia('(display-mode: standalone)').matches ||
-            (window.navigator && window.navigator.standalone);
-    });
-    const [isInAppBrowser] = useState(() => {
-        if (typeof window === 'undefined') return false;
-        return /kakaotalk|naver|instagram|line/i.test(window.navigator.userAgent.toLowerCase());
-    });
-    */
+    // PWA Install State - Moved to top
+    // const { deferredPrompt, installApp } = useContext(PWAContext) || {};
+
 
     // Login States
     const [name, setName] = useState('');
@@ -925,43 +929,64 @@ const MemberProfile = () => {
                                     </label>
                                 </div>
 
-                                {/* [RESTORED] PWA Install Prompt - Only shows if installable */}
-                                {deferredPrompt && (
+                                {/* [RESTORED] PWA Install Guide */}
+                                {!isStandalone && (deferredPrompt || deviceOS === 'ios') && (
                                     <div className="glass-panel" style={{
                                         padding: '20px 25px',
-                                        background: 'rgba(212, 175, 55, 0.1)',
+                                        background: deviceOS === 'ios' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(212, 175, 55, 0.1)',
                                         marginBottom: '20px',
                                         borderRadius: '24px',
-                                        border: '1px solid rgba(212, 175, 55, 0.3)',
+                                        border: deviceOS === 'ios' ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(212, 175, 55, 0.3)',
                                         display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
+                                        flexDirection: 'column',
+                                        gap: '15px',
                                         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
                                         animation: 'fadeIn 0.5s ease-out'
                                     }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                                             <div style={{
                                                 width: '44px', height: '44px', borderRadius: '50%',
-                                                background: 'var(--primary-gold)', color: 'black',
+                                                background: deviceOS === 'ios' ? '#3B82F6' : 'var(--primary-gold)', 
+                                                color: deviceOS === 'ios' ? 'white' : 'black',
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center'
                                             }}>
-                                                <Icons.DownloadSimple size={24} weight="bold" />
+                                                {deviceOS === 'ios' ? <Icons.Share size={24} weight="bold" /> : <Icons.DownloadSimple size={24} weight="bold" />}
                                             </div>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>앱 설치하기</span>
-                                                <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>홈 화면에 추가하여 더 편리하게 이용하세요</span>
+                                                <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>
+                                                    {deviceOS === 'ios' ? '아이폰에 앱 설치하기' : '앱 설치하기'}
+                                                </span>
+                                                <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>
+                                                    {deviceOS === 'ios' ? '사파리(Safari)에서 홈 화면에 추가하세요' : '홈 화면에 추가하여 더 편리하게 이용하세요'}
+                                                </span>
                                             </div>
                                         </div>
-                                        <button 
-                                            onClick={installApp}
-                                            style={{
-                                                background: 'var(--primary-gold)', color: 'black',
-                                                border: 'none', padding: '10px 18px', borderRadius: '12px',
-                                                fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer'
-                                            }}
-                                        >
-                                            설치
-                                        </button>
+
+                                        {deviceOS === 'ios' ? (
+                                            <div style={{ background: 'rgba(59, 130, 246, 0.15)', padding: '15px', borderRadius: '16px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)' }}>
+                                                    <span style={{ background: '#3B82F6', color: 'white', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>1</span>
+                                                    <span>하단 <Icons.Share size={18} weight="bold" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> <strong>공유 버튼</strong> 클릭</span>
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)' }}>
+                                                    <span style={{ background: '#3B82F6', color: 'white', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>2</span>
+                                                    <span><Icons.PlusSquare size={18} weight="bold" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> <strong>홈 화면에 추가</strong> 선택</span>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <button 
+                                                onClick={installApp}
+                                                style={{
+                                                    background: 'var(--primary-gold)', color: 'black',
+                                                    border: 'none', padding: '12px 18px', borderRadius: '14px',
+                                                    fontWeight: 'bold', fontSize: '0.95rem', cursor: 'pointer',
+                                                    width: '100%',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+                                                }}
+                                            >
+                                                <Icons.DownloadSimple size={20} weight="bold" /> 설치하기
+                                            </button>
+                                        )}
                                     </div>
                                 )}
 

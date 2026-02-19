@@ -7,6 +7,7 @@ import AttendanceTab from './admin/member-detail/AttendanceTab';
 import SalesHistoryTab from './admin/member-detail/SalesHistoryTab';
 import MessagesTab from './admin/member-detail/MessagesTab';
 import { storageService } from '../services/storage';
+import { getBranchName, getBranchColor } from '../studioConfig';
 import CustomDatePicker from './common/CustomDatePicker';
 
 const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberLogs, onClose, pricingConfig, onUpdateMember, onAddSalesRecord, pushTokens = [] }) => {
@@ -307,6 +308,20 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                         <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'white', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                             {member.name}
                             <span style={{ fontSize: '0.9rem', color: '#a1a1aa', fontWeight: 'normal' }}>{member.phone}</span>
+                            
+                            {/* [NEW] Branch Badge */}
+                            <div style={{
+                                fontSize: '0.7rem',
+                                background: getBranchColor(member.homeBranch || member.branchId),
+                                color: (member.homeBranch || member.branchId) === 'mapo' ? 'white' : 'black',
+                                padding: '2px 8px',
+                                borderRadius: '4px',
+                                fontWeight: 'bold',
+                                opacity: 0.9
+                            }}>
+                                {getBranchName(member.homeBranch || member.branchId)}
+                            </div>
+
                             {member.pushEnabled !== false && pushTokens.some(t => t.memberId === member.id) && (
                                 <div style={{
                                     display: 'flex', alignItems: 'center', gap: '4px',

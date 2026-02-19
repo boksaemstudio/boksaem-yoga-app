@@ -20,6 +20,7 @@ const memberFunctions = require('./modules/member');
 const attendanceFunctions = require('./modules/attendance');
 const scheduledFunctions = require('./modules/scheduled');
 const meditationFunctions = require('./modules/meditation');
+const solapiFunctions = require('./modules/solapi');
 
 // Re-export all functions
 module.exports = {
@@ -39,7 +40,10 @@ module.exports = {
     ...scheduledFunctions,
     
     // Meditation AI Functions
-    ...meditationFunctions
+    ...meditationFunctions,
+
+    // Solapi Message Functions
+    ...solapiFunctions
 };
 
 /**

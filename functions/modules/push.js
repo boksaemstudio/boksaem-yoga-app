@@ -19,6 +19,12 @@ exports.sendPushOnMessageV2 = onDocumentCreated("messages/{messageId}", async (e
     const content = messageData.content;
 
     if (!memberId || !content) return;
+    
+    // [GUARD] Skip scheduled messages (handled by scheduler)
+    if (messageData.status === 'scheduled') {
+        console.log(`[Push] Skipping scheduled message ${event.params.messageId}`);
+        return;
+    }
 
     try {
         const db = admin.firestore();

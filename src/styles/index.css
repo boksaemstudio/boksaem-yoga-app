@@ -64,7 +64,8 @@ textarea {
 }
 
 /* Date Picker Icon Color for Dark Theme */
-input[type="date"]::-webkit-calendar-picker-indicator {
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   filter: invert(1);
   cursor: pointer;
 }

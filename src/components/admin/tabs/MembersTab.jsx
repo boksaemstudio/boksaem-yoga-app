@@ -1,5 +1,7 @@
-import { BellRinging, Check, Info, Plus, NotePencil } from '@phosphor-icons/react';
+import { BellRinging, Check, Info, Plus, NotePencil, PaperPlaneTilt } from '@phosphor-icons/react';
 import { getBranchName, getBranchColor, getBranchThemeColor } from '../../../studioConfig';
+
+
 
 const MembersTab = ({
     filteredMembers,
@@ -18,11 +20,14 @@ const MembersTab = ({
     handleOpenEdit,
     setShowAddModal,
     pushTokens,
-    getDormantSegments,
-    setActiveTab
+    setActiveTab,
+    setShowBulkMessageModal // [FIX] Add this prop
 }) => {
+    if (!summary || !filteredMembers) return <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>데이터 로딩 중...</div>;
+
     return (
-        <>
+        <div className="members-tab-container">
+
             <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
                 <button onClick={() => setShowAddModal(true)} className="action-btn primary" style={{ flex: 'none', width: 'auto', minWidth: '350px', height: '54px', fontSize: '1.2rem', borderRadius: '12px', boxShadow: '0 8px 24px var(--primary-gold-glow)', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                     <Plus size={24} weight="bold" /> 신규 회원 등록하기
@@ -35,30 +40,30 @@ const MembersTab = ({
             <div className="stats-grid">
                 <div className={`dashboard-card interactive ${filterType === 'all' ? 'highlight' : ''}`}
                     onClick={() => handleToggleFilter('all')}>
-                    <span className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         전체 회원
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
                             <span className="tooltip-text">현재 지점에 등록된<br />모든 회원 (삭제/탈퇴 제외)</span>
                         </div>
-                    </span>
-                    <span className="card-value">{summary.totalMembers}명</span>
+                    </div>
+                    <div className="card-value">{summary.totalMembers}명</div>
                 </div>
                 <div className={`dashboard-card interactive ${filterType === 'active' ? 'highlight' : ''}`}
                     onClick={() => handleToggleFilter('active')}>
-                    <span className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         활성 회원
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
                             <span className="tooltip-text">잔여 횟수 1회 이상이며(0회 제외)<br />만료일이 오늘 또는 이후인 회원</span>
                         </div>
-                    </span>
-                    <span className="card-value gold">{summary.activeMembers}명</span>
+                    </div>
+                    <div className="card-value gold">{summary.activeMembers}명</div>
                 </div>
                 <div className={`dashboard-card interactive ${filterType === 'attendance' ? 'highlight' : ''}`}
                     onClick={() => handleToggleFilter('attendance')}>
-                    <span className="card-label">오늘 출석</span>
-                    <span className="card-value">{summary.todayAttendance}명 / <span style={{ fontSize: '1rem', opacity: 0.8 }}>{summary.totalAttendanceToday}회</span></span>
+                    <div className="card-label">오늘 출석</div>
+                    <div className="card-value">{summary.todayAttendance}명 / <span style={{ fontSize: '1rem', opacity: 0.8 }}>{summary.totalAttendanceToday}회</span></div>
                     {/* [NEW] Denied Stats Display */}
                     {summary.deniedCount > 0 && (
                         <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.1)', fontSize: '0.85rem', color: '#ff4d4f', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -71,16 +76,16 @@ const MembersTab = ({
                 </div>
                 <div className={`dashboard-card interactive ${filterType === 'registration' ? 'highlight' : ''}`}
                     onClick={() => handleToggleFilter('registration')}>
-                    <span className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         오늘 전체 등록
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
                             <span className="tooltip-text">오늘 등록된 모든 수강권 합계<br />(신규 가입 + 기존 회원 재등록)</span>
                         </div>
-                    </span>
-                    <span className="card-value success" style={{ fontSize: '1.8rem' }}>
+                    </div>
+                    <div className="card-value success" style={{ fontSize: '1.8rem' }}>
                         {summary.todayRegistration}명
-                    </span>
+                    </div>
                     <div style={{ fontSize: '0.85rem', color: '#86efac', display: 'flex', gap: '8px', marginTop: '4px', fontWeight: 'bold' }}>
                         <span>신규 {summary.todayNewCount || 0}</span>
                         <span style={{ opacity: 0.4 }}>|</span>
@@ -90,7 +95,7 @@ const MembersTab = ({
                 <div className={`dashboard-card interactive ${filterType === 'expiring' ? 'highlight' : ''}`}
                     onClick={selectExpiringMembers}
                     style={{ transition: 'all 0.3s ease' }}>
-                    <span className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         만료/횟수 임박
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
@@ -98,14 +103,14 @@ const MembersTab = ({
                                 잔여 1회 이하 또는<br />만료 7일 전 ~ 만료 후 30일 이내
                             </span>
                         </div>
-                    </span>
-                    <span className="card-value error">{summary.expiringMembersCount}명</span>
+                    </div>
+                    <div className="card-value error">{summary.expiringMembersCount}명</div>
                 </div>
                 {/* [NEW] Dormant Members Card */}
                 <div className={`dashboard-card interactive ${filterType === 'dormant' ? 'highlight' : ''}`}
                     onClick={() => handleToggleFilter('dormant')}
                     style={{ transition: 'all 0.3s ease', background: filterType === 'dormant' ? 'var(--primary-gold)' : 'linear-gradient(135deg, rgba(30, 30, 60, 0.4), rgba(50, 50, 80, 0.6))', border: filterType === 'dormant' ? 'none' : '1px solid rgba(100, 100, 255, 0.2)' }}>
-                    <span className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: filterType === 'dormant' ? 'black' : '#A0A0FF' }}>
+                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: filterType === 'dormant' ? 'black' : '#A0A0FF' }}>
                         잠든 회원
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
@@ -113,14 +118,14 @@ const MembersTab = ({
                                 활성 회원 중<br />최근 출석일 14일 이상 경과
                             </span>
                         </div>
-                    </span>
-                    <span className="card-value" style={{ color: filterType === 'dormant' ? 'black' : '#E0E0FF' }}>{summary.dormantMembersCount || 0}명</span>
+                    </div>
+                    <div className="card-value" style={{ color: filterType === 'dormant' ? 'black' : '#E0E0FF' }}>{summary.dormantMembersCount || 0}명</div>
                 </div>
                 {/* [NEW] App Usage & Push Stats (Redesigned) */}
                 <div className={`dashboard-card interactive ${filterType === 'installed' ? 'highlight' : ''}`}
                     onClick={() => handleToggleFilter('installed')}
                     style={{ background: filterType === 'installed' ? 'var(--primary-gold)' : 'linear-gradient(135deg, rgba(20, 30, 48, 0.6), rgba(36, 59, 85, 0.4))', border: filterType === 'installed' ? 'none' : '1px solid rgba(16, 185, 129, 0.2)' }}>
-                    <span className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: filterType === 'installed' ? 'black' : '#6EE7B7' }}>
+                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: filterType === 'installed' ? 'black' : '#6EE7B7' }}>
                         <BellRinging size={16} weight="fill" /> 알림 수신 가능
                         <div className="tooltip-container">
                             <Info size={14} style={{ opacity: 0.7 }} />
@@ -128,12 +133,12 @@ const MembersTab = ({
                                 푸시 알림을 받을 수 있는 회원 수<br/>(앱 설치 + 알림 권한 허용)
                             </span>
                         </div>
-                    </span>
+                    </div>
                     <div style={{ display: 'flex', flexDirection: 'column', marginTop: '4px' }}>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                            <span className="card-value" style={{ color: filterType === 'installed' ? 'black' : '#10B981', fontSize: '1.6rem', textShadow: filterType !== 'installed' ? '0 0 15px rgba(16, 185, 129, 0.4)' : 'none' }}>
+                            <div className="card-value" style={{ color: filterType === 'installed' ? 'black' : '#10B981', fontSize: '1.6rem', textShadow: filterType !== 'installed' ? '0 0 15px rgba(16, 185, 129, 0.4)' : 'none' }}>
                                 {summary.pushEnabledCount}명
-                            </span>
+                            </div>
                             <span style={{ fontSize: '0.9rem', color: filterType === 'installed' ? 'rgba(0,0,0,0.6)' : '#6EE7B7', fontWeight: 'bold' }}>
                                 ({summary.reachableRatio}%)
                             </span>
@@ -152,9 +157,9 @@ const MembersTab = ({
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '10px' }}>
                     <div>
                         <span className="card-label outfit-font" style={{ letterSpacing: '0.1em', textTransform: 'uppercase', fontSize: '0.7rem' }}>월간 총 매출</span>
-                        <span className="outfit-font" style={{ fontSize: '1.6rem', fontWeight: '800', color: 'var(--primary-gold)', textShadow: '0 0 20px var(--primary-gold-glow)' }}>
+                        <div className="outfit-font" style={{ fontSize: '1.6rem', fontWeight: '800', color: 'var(--primary-gold)', textShadow: '0 0 20px var(--primary-gold-glow)' }}>
                             {summary.monthlyRevenue.toLocaleString()}원
-                        </span>
+                        </div>
                     </div>
                     <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                         오늘: {summary.totalRevenueToday.toLocaleString()}원
@@ -230,6 +235,22 @@ const MembersTab = ({
                                     </div>
                                     전체 선택 ({filtered.length}명)
                                 </div>
+                                
+                                {/* [NEW] Bulk Action Button */}
+                                {selectedMemberIds.length > 0 && (
+                                    <button 
+                                        onClick={() => setShowBulkMessageModal(true)}
+                                        style={{
+                                            background: 'var(--primary-gold)', color: 'black', border: 'none',
+                                            borderRadius: '6px', padding: '4px 12px', fontSize: '0.8rem',
+                                            fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
+                                        }}
+                                    >
+                                        <PaperPlaneTilt weight="fill" />
+                                        메시지 보내기 ({selectedMemberIds.length})
+                                    </button>
+                                )}
+
                                 <div>페이지 {currentPage} / {totalPages || 1}</div>
                             </div>
 
@@ -479,7 +500,7 @@ const MembersTab = ({
                     );
                 })()}
             </div>
-        </>
+        </div>
     );
 };
 

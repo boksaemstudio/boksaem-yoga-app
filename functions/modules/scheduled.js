@@ -101,3 +101,139 @@ exports.sendDailyAdminReportV2 = onSchedule({
         await logAIError('DailyReport', error);
     }
 });
+
+/**
+ * 예약 메시지 발송 (매 10분마다 실행)
+ */
+exports.sendScheduledMessages = onSchedule({
+    schedule: "*/10 * * * *",
+    timeZone: "Asia/Seoul"
+}, async (event) => {
+    const db = admin.firestore();
+    const now = new Date();
+    
+    console.log(`[Scheduled] Checking for messages to send at ${now.toISOString()}`);
+
+    try {
+        // Query for messages that are 'scheduled' and due
+        const snapshot = await db.collection('messages')
+            .where('status', '==', 'scheduled')
+            .where('scheduledAt', '<=', now.toISOString())
+            .get();
+
+        if (snapshot.empty) {
+            console.log('[Scheduled] No messages due.');
+            return;
+        }
+
+        console.log(`[Scheduled] Found ${snapshot.size} messages to send.`);
+        const solapiModule = require('./solapi'); // Lazy load if needed, or re-implement logic
+        // Since we cannot easily invoke other cloud functions directly from here without HTTP,
+        // and logic is relatively simple, we will duplicate the core sending logic or trigger updates.
+        
+        // BETTER APPROACH: 
+        // We will update the status to 'pending' (or a new trigger state 'sending_scheduled')
+        // But our existing triggers ignore 'scheduled', so changing to 'pending' MIGHT trigger them?
+        // No, onDocumentCreated only triggers on creation. onDocumentUpdated is NOT set up for messages.
+        
+        // So we must Implement Sending Logic Here.
+        
+        const messageService = solapiModule.messageService; // Access exported service if available? 
+        // Actually solapi.js exports 'sendSolapiOnMessageV2', not the service instance usually.
+        // We'll initialize Solapi Service here locally or import a helper if we had one.
+        // To be safe and quick, let's re-implement the core sending steps for these docs.
+
+        // Initialize Solapi ONLY if needed
+        const { SolapiMessageService } = require("solapi");
+        let myMessageService = null;
+        if (process.env.SOLAPI_API_KEY && process.env.SOLAPI_API_SECRET) {
+            myMessageService = new SolapiMessageService(
+                process.env.SOLAPI_API_KEY, 
+                process.env.SOLAPI_API_SECRET
+            );
+        }
+
+        const batch = db.batch();
+        const results = [];
+
+        for (const doc of snapshot.docs) {
+            const msg = doc.data();
+            const memberId = msg.memberId;
+            const content = msg.content;
+            
+            // 1. Send Push
+            let pushSuccess = false;
+            try {
+                // Get Tokens
+                const tokensSnap = await db.collection("fcm_tokens").where("memberId", "==", memberId).get();
+                const tokens = tokensSnap.docs.map(t => t.id);
+                
+                if (tokens.length > 0) {
+                    const payload = {
+                        notification: { title: "내요가 예약 알림", body: content },
+                        data: { url: "https://boksaem-yoga.web.app/member?tab=messages" }
+                    };
+                    const response = await admin.messaging().sendEachForMulticast({
+                        tokens,
+                        notification: payload.notification,
+                        data: payload.data,
+                        android: { notification: { color: "#D4AF37", icon: "stock_ticker_update" } }
+                    });
+                    pushSuccess = response.successCount > 0;
+                }
+            } catch (e) {
+                console.error(`[Scheduled] Push failed for ${doc.id}:`, e);
+            }
+
+            // 2. Send Solapi (SMS/AlimTalk)
+            let solapiResult = null;
+            if (myMessageService && !msg.skipSolapi) {
+                try {
+                    const memberDoc = await db.collection('members').doc(memberId).get();
+                    if (memberDoc.exists) {
+                        const phone = memberDoc.data().phone?.replace(/-/g, '');
+                        if (phone) {
+                             const solapiPayload = {
+                                to: phone,
+                                from: process.env.SOLAPI_SENDER_NUMBER || "01022232789",
+                                text: content,
+                                subject: "복샘요가 알림"
+                            };
+                            // Simple LMS/SMS for now
+                            solapiResult = await myMessageService.sendOne(solapiPayload);
+                        }
+                    }
+                } catch (e) {
+                    console.error(`[Scheduled] Solapi failed for ${doc.id}:`, e);
+                }
+            }
+
+            // 3. Update Doc
+            batch.update(doc.ref, {
+                status: 'sent',
+                sentAt: new Date().toISOString(),
+                pushStatus: { sent: pushSuccess, note: 'Scheduled Send' },
+                solapiStatus: solapiResult ? { sent: true, result: solapiResult } : { sent: false }
+            });
+            
+             // 4. Log to push_history
+             if (pushSuccess || solapiResult) {
+                 const historyRef = db.collection('push_history').doc();
+                 batch.set(historyRef, {
+                    type: 'individual_scheduled',
+                    title: "예약 알림",
+                    body: content,
+                    status: 'sent',
+                    targetMemberId: memberId,
+                    createdAt: new Date()
+                 });
+             }
+        }
+
+        await batch.commit();
+        console.log(`[Scheduled] Successfully processed ${snapshot.size} messages.`);
+
+    } catch (error) {
+        console.error("Scheduled message processing failed:", error);
+    }
+});
