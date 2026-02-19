@@ -398,7 +398,14 @@ export const storageService = {
         try {
           console.log(`[Storage] Check-in attempt ${attempt}/2... (force: ${force})`);
           const response = await withTimeout(
-            checkInMember({ memberId, branchId, classTitle, instructor, force }),
+            checkInMember({ 
+                memberId, 
+                branchId, 
+                classTitle, 
+                instructor, 
+                classTime: currentClassInfo?.time || null, 
+                force 
+            }),
             5000, // [UX] Reduced to 5s for snappy fallback
             'timeout'
           );
@@ -697,6 +704,7 @@ export const storageService = {
        return { 
          title: selectedClass.title || selectedClass.className, 
          instructor: selectedClass.instructor,
+         time: selectedClass.time,
          debugReason: logicReason
        };
     }

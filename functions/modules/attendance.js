@@ -68,7 +68,7 @@ exports.checkInMemberV2Call = onCall({
         return { success: true, message: 'pong', timestamp: Date.now() };
     }
 
-    const { memberId, branchId, classTitle, instructor } = request.data;
+    const { memberId, branchId, classTitle, instructor, classTime } = request.data;
     const db = admin.firestore();
 
     // [DEBUG] Check force flag
@@ -129,40 +129,34 @@ exports.checkInMemberV2Call = onCall({
             // --- Normal Logic starts here ---
             
             // [FIX] Validating '자율수련': Server-side fallback matching
-            // If client sent '자율수련' (or nothing), try to match with actual schedule
             let finalClassTitle = classTitle;
             let finalInstructor = instructor;
+            let matched = null;
 
             if (!classTitle || classTitle === '자율수련') {
                 try {
                     const schedDocRef = db.collection('daily_classes').doc(`${branchId}_${today}`);
-                    // Use transaction read if possible, but reading outside transaction is also safer for complexity? 
-                    // Actually, we are inside a transaction. We MUST use transaction.get()!
                     const schedSnap = await transaction.get(schedDocRef);
                     
                     if (schedSnap.exists) {
                         const classes = (schedSnap.data().classes || []).filter(c => c.status !== 'cancelled');
                         const now = new Date();
-                        // Calculate KST minutes
-                        // We need a robust way to get KST time from 'now' (UTC/Server time)
-                        // 'now' is a Date object. formatting it to KST.
                         const kstString = now.toLocaleString('en-US', { timeZone: 'Asia/Seoul', hour12: false, hour: '2-digit', minute: '2-digit' });
-                        // kstString is "HH:mm" (e.g. "18:35")
                         const [kstH, kstM] = kstString.split(':').map(Number);
                         const currentMin = kstH * 60 + kstM;
 
-                        // Match: 60 mins before ~ 30 mins after
-                        const matched = classes.find(cls => {
+                        const matchedCls = classes.find(cls => {
                              const [h, m] = cls.time.split(':').map(Number);
                              const start = h * 60 + m;
                              const end = start + (cls.duration || 60);
                              return currentMin >= start - 60 && currentMin <= end + 30;
                         });
 
-                        if (matched) {
-                            finalClassTitle = matched.title || matched.className || classTitle;
-                            finalInstructor = matched.instructor || instructor;
-                            console.log(`[Attendance] Server-side matched: ${finalClassTitle} (${finalInstructor}) for ${memberId}`);
+                        if (matchedCls) {
+                             matched = matchedCls; // Use the outer 'matched' variable
+                             finalClassTitle = matchedCls.title || matchedCls.className || classTitle;
+                             finalInstructor = matchedCls.instructor || instructor;
+                             console.log(`[Attendance] Server-side matched: ${finalClassTitle} (${finalInstructor}) for ${memberId}`);
                         }
                     }
                 } catch (schedErr) {
@@ -227,7 +221,7 @@ exports.checkInMemberV2Call = onCall({
                 timestamp: now.toISOString(),
                 sessionNumber: sessionCount,
                 status: attendanceStatus,
-                classTime: matched?.time || null // [NEW] Record the matched class time
+                classTime: classTime || matched?.time || null // [FIX] Use client provided time or server matched time
             };
 
             if (denialReason) attendanceData.denialReason = denialReason;

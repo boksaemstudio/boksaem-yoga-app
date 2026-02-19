@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { storageService } from '../services/storage';
 import { getTodayKST, getKSTHour } from '../utils/dates';
+import { STUDIO_CONFIG } from '../studioConfig';
 
 
 // Helper for consistent date parsing
@@ -452,19 +453,43 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         });
 
         const classGroups = {};
-        todayLogs.forEach(log => {
-            // [UX] Use classTime if available, else fallback to check-in hour (e.g. "18:00")
-            let classTime = log.classTime;
-            if (!classTime && log.timestamp) {
-                const date = new Date(log.timestamp);
-                const h = String(date.getHours()).padStart(2, '0');
-                const m = String(date.getMinutes()).padStart(2, '0');
-                // classTime = `${h}:${m}`; // Too precise? 
-                // Let's use hour grouping for legacy logs if classTime is missing
-                classTime = `${h}:00`; 
+        
+        // [New] Helper to guess classTime from schedule if missing
+        const guessClassTime = (log) => {
+            if (log.classTime) return log.classTime;
+            if (!log.timestamp) return null;
+            
+            const date = new Date(log.timestamp);
+            const checkInMinutes = date.getHours() * 60 + date.getMinutes();
+            const dayOfWeeks = ['일', '월', '화', '수', '목', '금', '토'];
+            const dayOfWeek = dayOfWeeks[date.getDay()];
+            
+            // Look for matching class in STUDIO_CONFIG for fallback
+            const branchSchedule = STUDIO_CONFIG.DEFAULT_SCHEDULE_TEMPLATE[log.branchId] || [];
+            const matches = branchSchedule.filter(s => 
+                s.days.includes(dayOfWeek) && 
+                (s.className === log.className || log.className.includes(s.className) || s.className.includes(log.className))
+            );
+            
+            if (matches.length > 0) {
+                // Find nearest schedule time (within 60 mins)
+                const nearest = matches.find(m => {
+                    const [h, min] = m.startTime.split(':').map(Number);
+                    const startMin = h * 60 + min;
+                    return Math.abs(checkInMinutes - startMin) <= 60;
+                });
+                if (nearest) return nearest.startTime;
             }
+            
+            // Absolute fallback: Rounded hour
+            const h = String(date.getHours()).padStart(2, '0');
+            return `${h}:00`;
+        };
 
+        todayLogs.forEach(log => {
+            const classTime = guessClassTime(log);
             const key = `${log.className || '일반'}-${log.instructor || '선생님'}-${log.branchId}-${classTime || 'no-time'}`;
+            
             if (!classGroups[key]) {
                 classGroups[key] = {
                     className: log.className || '일반',

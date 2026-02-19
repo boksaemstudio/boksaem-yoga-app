@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ClockCounterClockwise, Trash, Sparkle, CaretLeft, CaretRight, CalendarBlank } from '@phosphor-icons/react';
-import { getBranchName, getBranchColor, getBranchThemeColor } from '../../../studioConfig';
+import { STUDIO_CONFIG, getBranchName, getBranchColor, getBranchThemeColor } from '../../../studioConfig';
 import { storageService } from '../../../services/storage';
 
 // ─── Mini Calendar Popup ───
@@ -170,16 +170,43 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
     const classCards = (() => {
         if (isToday) return todayClasses;
         const groups = {};
-        activeLogs.forEach(log => {
-            // [UX] Use classTime if available, else fallback to check-in hour grouping
-            let classTime = log.classTime;
-            if (!classTime && log.timestamp) {
-                const date = new Date(log.timestamp);
-                const h = String(date.getHours()).padStart(2, '0');
-                classTime = `${h}:00`; 
-            }
 
+        // [New] Helper to guess classTime from schedule if missing
+        const guessClassTime = (log) => {
+            if (log.classTime) return log.classTime;
+            if (!log.timestamp) return null;
+            
+            const date = new Date(log.timestamp);
+            const checkInMinutes = date.getHours() * 60 + date.getMinutes();
+            const dayOfWeeks = ['일', '월', '화', '수', '목', '금', '토'];
+            const dayOfWeek = dayOfWeeks[date.getDay()];
+            
+            // Look for matching class in STUDIO_CONFIG for fallback
+            const branchSchedule = STUDIO_CONFIG.DEFAULT_SCHEDULE_TEMPLATE[log.branchId] || [];
+            const matches = branchSchedule.filter(s => 
+                s.days.includes(dayOfWeek) && 
+                (s.className === log.className || log.className.includes(s.className) || s.className.includes(log.className))
+            );
+            
+            if (matches.length > 0) {
+                // Find nearest schedule time (within 60 mins)
+                const nearest = matches.find(m => {
+                    const [h, min] = m.startTime.split(':').map(Number);
+                    const startMin = h * 60 + min;
+                    return Math.abs(checkInMinutes - startMin) <= 60;
+                });
+                if (nearest) return nearest.startTime;
+            }
+            
+            // Absolute fallback: Rounded hour
+            const h = String(date.getHours()).padStart(2, '0');
+            return `${h}:00`;
+        };
+
+        activeLogs.forEach(log => {
+            const classTime = guessClassTime(log);
             const key = `${log.className || '일반'}-${log.instructor || '선생님'}-${log.branchId}-${classTime || 'no-time'}`;
+            
             if (!groups[key]) {
                 groups[key] = {
                     className: log.className || '일반',
