@@ -257,22 +257,28 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         // [New] Valid Total Attendance (Session Count)
         let totalAttendanceToday = 0;
 
-        branchLogs.forEach(l => {
-            if (!l.timestamp) return;
-            const logDate = new Date(l.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-            
-            if (logDate === todayStr) {
-                if (l.status === 'denied') {
-                    deniedCount++;
-                    if (l.denialReason === 'expired') deniedExpiredCount++;
-                    if (l.denialReason === 'no_credits') deniedNoCreditsCount++;
-                } else {
-                    // Valid Attendance
-                    attendedMemberIds.add(l.memberId);
-                    totalAttendanceToday++;
+        try {
+            branchLogs.forEach(l => {
+                if (!l.timestamp) return;
+                const d = new Date(l.timestamp);
+                if (isNaN(d.getTime())) return;
+                const logDate = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                
+                if (logDate === todayStr) {
+                    if (l.status === 'denied') {
+                        deniedCount++;
+                        if (l.denialReason === 'expired') deniedExpiredCount++;
+                        if (l.denialReason === 'no_credits') deniedNoCreditsCount++;
+                    } else {
+                        // Valid Attendance
+                        attendedMemberIds.add(l.memberId);
+                        totalAttendanceToday++;
+                    }
                 }
-            }
-        });
+            });
+        } catch (err) {
+            console.error('[Admin] Error calculating stats:', err);
+        }
 
         const checkIsAttended = (m) => attendedMemberIds.has(m.id);
         const checkIsRegistered = (m) => m.regDate === todayStr;
@@ -480,7 +486,9 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         // Today's Classes Calculation
         const todayLogs = currentLogs.filter(l => {
             if (!l.timestamp) return false;
-            const logDate = new Date(l.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            const d = new Date(l.timestamp);
+            if (isNaN(d.getTime())) return false;
+            const logDate = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
             return logDate === todayStr && (currentBranch === 'all' || l.branchId === currentBranch);
         });
 
