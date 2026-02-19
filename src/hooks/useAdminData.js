@@ -211,16 +211,27 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
         calculateStats(branchLogs);
 
-        // [New] Multi-attendance Detection
-        const attendanceCounts = {};
+        // [New] Multi-attendance Detection (Unique Class Time Base)
+        const uniqueAttendanceMap = {}; // memberId -> Set of classTimes
         branchLogs.forEach(l => {
-            if (l.status !== 'denied' && l.memberId) {
-                attendanceCounts[l.memberId] = (attendanceCounts[l.memberId] || 0) + 1;
+            if (l.status !== 'denied' && l.memberId && l.timestamp) {
+                const logDate = new Date(l.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                if (logDate !== todayStr) return;
+
+                if (!uniqueAttendanceMap[l.memberId]) {
+                    uniqueAttendanceMap[l.memberId] = new Set();
+                }
+                
+                // Use strict schedule time if available, otherwise strict fallback
+                const info = guessClassInfo(l);
+                const classTime = info?.startTime || guessClassTime(l) || '00:00';
+                
+                uniqueAttendanceMap[l.memberId].add(classTime);
             }
         });
-        const multiAttendedMemberIds = Object.entries(attendanceCounts)
-            .filter(([_, count]) => count >= 2)
-            .map(([id, _]) => id);
+
+        const multiAttendedMemberIds = Object.keys(uniqueAttendanceMap)
+            .filter(id => uniqueAttendanceMap[id].size >= 2);
 
         // Stats Calculation
         const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });

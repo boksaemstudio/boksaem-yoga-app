@@ -371,18 +371,16 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                     </div>
                                     {/* [NEW] Show multi-attendance member names */}
                                     {cls.memberNames?.length > 0 && (
-                                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                                             {cls.memberNames.map(name => (
                                                 <span key={name} style={{
-                                                    fontSize: '0.7rem', background: 'var(--primary-gold)', color: 'black',
-                                                    padding: '1px 5px', borderRadius: '3px', fontWeight: 'bold'
+                                                    fontSize: '0.8rem', 
+                                                    color: 'var(--primary-gold)', // Just color change requested
+                                                    fontWeight: 'bold'
                                                 }}>
                                                     {name}
                                                 </span>
                                             ))}
-                                            <span style={{ fontSize: '0.65rem', color: 'var(--primary-gold)', alignSelf: 'center', marginLeft: '2px' }}>
-                                                (열정 🔥)
-                                            </span>
                                         </div>
                                     )}
                                     {/* [UX] Removed "Filtering..." text as requested */}
