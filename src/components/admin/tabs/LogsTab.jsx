@@ -435,8 +435,11 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                         {(() => {
                             const filteredLogs = (selectedClassKey
                                 ? activeLogs.filter(l => {
-                                    const ct = guessClassTime(l);
-                                    return `${l.className || '일반'}-${l.instructor || '선생님'}-${l.branchId}-${ct || 'no-time'}` === selectedClassKey;
+                                    const info = guessClassInfo(l);
+                                    const classTime = info?.startTime || '00:00';
+                                    const canonicalClassName = info?.className || l.className || '일반';
+                                    const canonicalInstructor = info?.instructor || l.instructor || '선생님';
+                                    return `${canonicalClassName}-${canonicalInstructor}-${l.branchId}-${classTime}` === selectedClassKey;
                                 })
                                 : activeLogs
                             ).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
