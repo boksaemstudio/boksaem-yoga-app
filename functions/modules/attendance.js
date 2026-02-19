@@ -87,37 +87,39 @@ exports.checkInMemberV2Call = onCall({
             const memberData = memberSnap.data();
             
             // [CRITICAL] Check for Duplicates (Idempotency) inside Transaction
-            // Same member, same date, within last 5 minutes = Duplicate
-            const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-            const now = new Date();
-            
-            // [UX] Allow rapid multi-session check-ins if 'force' is provided or after a short window
-            const duplicateWindowSeconds = request.data.force ? 0 : 15;
-            const duplicateCutoff = new Date(now.getTime() - duplicateWindowSeconds * 1000).toISOString();
-
-            const duplicateQuery = db.collection('attendance')
-                .where('memberId', '==', memberId)
-                .where('date', '==', today)
-                .where('timestamp', '>=', duplicateCutoff);
-            
-            const duplicateSnap = await transaction.get(duplicateQuery);
-            
-            if (!duplicateSnap.empty) {
-                // If duplicate found, return the EXISTING success response (Idempotent)
-                const existing = duplicateSnap.docs[0].data();
-                console.log(`[Attendance] Duplicate check-in blocked for ${memberId}`);
-                return {
-                    success: true,
-                    message: '이미 출석 처리되었습니다.',
-                    attendanceStatus: existing.status,
-                    newCredits: memberData.credits,
-                    attendanceCount: memberData.attendanceCount,
-                    memberName: memberData.name,
-                    startDate: memberData.startDate,
-                    endDate: memberData.endDate,
-                    streak: memberData.streak || 0,
-                    isDuplicate: true
-                };
+            // Same member, same date, within last 15 seconds = Duplicate
+            // [UX] If 'force' is provided (Member Confirmed Dual Check-in), SKIP this check completely
+            if (!request.data.force) {
+                const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                const now = new Date();
+                
+                const duplicateWindowSeconds = 15;
+                const duplicateCutoff = new Date(now.getTime() - duplicateWindowSeconds * 1000).toISOString();
+    
+                const duplicateQuery = db.collection('attendance')
+                    .where('memberId', '==', memberId)
+                    .where('date', '==', today)
+                    .where('timestamp', '>=', duplicateCutoff);
+                
+                const duplicateSnap = await transaction.get(duplicateQuery);
+                
+                if (!duplicateSnap.empty) {
+                    // If duplicate found, return the EXISTING success response (Idempotent)
+                    const existing = duplicateSnap.docs[0].data();
+                    console.log(`[Attendance] Duplicate check-in blocked for ${memberId}`);
+                    return {
+                        success: true,
+                        message: '이미 출석 처리되었습니다.',
+                        attendanceStatus: existing.status,
+                        newCredits: memberData.credits,
+                        attendanceCount: memberData.attendanceCount,
+                        memberName: memberData.name,
+                        startDate: memberData.startDate,
+                        endDate: memberData.endDate,
+                        streak: memberData.streak || 0,
+                        isDuplicate: true
+                    };
+                }
             }
 
 

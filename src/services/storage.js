@@ -417,6 +417,9 @@ export const storageService = {
             return {
               success: true,
               message: isMultiSession ? `[${classTitle}] ${sessionCount}회차 출석되었습니다!` : `[${classTitle}] 출석되었습니다!`,
+              attendanceStatus: response.data.attendanceStatus, // [FIX] Propagate status
+              denialReason: response.data.denialReason,       // [FIX] Propagate reason
+              isDuplicate: response.data.isDuplicate,           // [FIX] Propagate duplicate flag
               member: {
                 id: memberId,
                 name: response.data.memberName,
