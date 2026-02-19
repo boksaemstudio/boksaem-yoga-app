@@ -217,6 +217,34 @@ const CheckInPage = () => {
     // const { language } = useLanguage();
     const language = 'ko';
 
+    // [TTS] Voice Feedback Helper (Enhanced Quality)
+    const speak = (text) => {
+        if (!window.speechSynthesis) return;
+        
+        // Cancel any pending speech
+        window.speechSynthesis.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ko-KR';
+        utterance.rate = 1.0; 
+        utterance.pitch = 1.0;
+
+        // [QUALITY] Try to select a better voice
+        const voices = window.speechSynthesis.getVoices();
+        const koVoices = voices.filter(v => v.lang.includes('ko'));
+        
+        if (koVoices.length > 0) {
+            // Priority: Google > Microsoft > Others
+            const bestVoice = koVoices.find(v => v.name.includes('Google')) || 
+                              koVoices.find(v => v.name.includes('Microsoft')) || 
+                              koVoices[0];
+            utterance.voice = bestVoice;
+            console.log(`[TTS] Using voice: ${bestVoice.name}`);
+        }
+
+        window.speechSynthesis.speak(utterance);
+    };
+
     // [UX] Loading Message Logic
     const [loadingMessage, setLoadingMessage] = useState('출석 확인 중...');
     
@@ -1043,6 +1071,10 @@ const CheckInPage = () => {
             }
         }
 
+        if (lowerErr.includes("insufficient credits") || lowerErr.includes("expired") || lowerErr.includes("만료") || lowerErr.includes("거부") || lowerErr.includes("not-found")) {
+             speak("선생님에게 문의하세요"); // [TTS] Denied Feedback
+        }
+
         setMessage({ type: 'error', text: displayMsg });
         setPin('');
         startDismissTimer(3000);
@@ -1086,6 +1118,7 @@ const CheckInPage = () => {
 
     const showCheckInSuccess = (result) => {
         console.log(`[CheckIn] Showing success for: ${result.member?.name}`);
+        speak("안녕하세요"); // [TTS] Success Feedback
 
         // [PERSONALIZED FORMULA] No AI, just logic
         const member = result.member;

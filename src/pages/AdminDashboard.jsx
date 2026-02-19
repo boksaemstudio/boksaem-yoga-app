@@ -900,6 +900,7 @@ const AdminDashboard = () => {
                 isOpen={showBulkMessageModal}
                 onClose={() => { setShowBulkMessageModal(false); setBulkMessageInitialText(''); }}
                 selectedMemberIds={selectedMemberIds}
+                memberCount={selectedMemberIds.length} // [FIX] Pass memberCount
                 initialMessage={bulkMessageInitialText}
             />
             <MessageModal isOpen={showMessageModal} onClose={() => setShowMessageModal(false)} member={selectedMember && members.find(m => m.id === selectedMember.id) || selectedMember} />
