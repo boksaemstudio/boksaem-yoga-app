@@ -341,12 +341,12 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
             </div>
 
             {/* Calendar View */}
-            <div className="dashboard-card" style={{ padding: '0', overflow: 'hidden' }}>
-                <div style={{ padding: '20px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="dashboard-card" style={{ padding: '0', overflowX: 'auto' }}>
+                <div style={{ padding: '20px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px', minWidth: '600px' }}>
                     <CalendarIcon size={20} weight="fill" color="var(--primary-gold)" />
                     <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월 정산 달력</h3>
                 </div>
-                <div className="calendar-grid-header" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', padding: '10px 0', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-color)', fontSize: '0.85rem', fontWeight: 'bold', color: '#71717a' }}>
+                <div className="calendar-grid-header" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', padding: '10px 0', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-color)', fontSize: '0.85rem', fontWeight: 'bold', color: '#71717a', minWidth: '600px' }}>
                     <div style={{ color: '#ef4444' }}>일</div>
                     <div>월</div>
                     <div>화</div>
@@ -355,7 +355,7 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
                     <div>금</div>
                     <div>토</div>
                 </div>
-                <div className="calendar-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+                <div className="calendar-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minWidth: '600px' }}>
                     {/* Empty cells for start of month */}
                     {(() => {
                         const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
