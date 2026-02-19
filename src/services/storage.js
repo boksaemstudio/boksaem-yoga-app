@@ -2098,7 +2098,7 @@ export const storageService = {
    * Sends a single push notification to a member by adding a doc to 'messages' collection.
    * This triggers 'sendPushOnMessageV2' Cloud Function.
    */
-  async addMessage(memberId, content, scheduledAt = null) {
+  async addMessage(memberId, content, scheduledAt = null, templateId = null) {
     try {
       if (!memberId || !content) throw new Error("Invalid message data");
 
@@ -2117,9 +2117,14 @@ export const storageService = {
           messageData.status = 'pending'; // Default for immediate
       }
 
+      // [Solapi] Add templateId if provided (for AlimTalk)
+      if (templateId) {
+          messageData.templateId = templateId;
+      }
+
       const docRef = await addDoc(collection(db, 'messages'), messageData);
 
-      console.log(`[Storage] Message added for ${memberId}: ${docRef.id}. Scheduled: ${scheduledAt || 'Immediate'}`);
+      console.log(`[Storage] Message added for ${memberId}: ${docRef.id}. Template: ${templateId || 'None'}`);
       return { success: true, id: docRef.id };
     } catch (e) {
       console.error("Add message failed:", e);

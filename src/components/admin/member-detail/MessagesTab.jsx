@@ -14,7 +14,16 @@ const MessagesTab = ({ memberId }) => {
     // [NEW] Scheduled Sending State
     const [isScheduled, setIsScheduled] = useState(false);
     const [scheduledTime, setScheduledTime] = useState('');
+    const [selectedTemplateId, setSelectedTemplateId] = useState('');
     const scheduleInputRef = useRef(null);
+
+    // [Solapi] AlimTalk Templates
+    const alimTalkTemplates = [
+        { id: '', name: '일반 문자 (LMS/SMS)' },
+        { id: 'KA01TP260219025216404VfhzWLRH3F5', name: '휴무일 오늘 수업변경안내 (단축)', content: '(템플릿 내용에 맞춰주세요)' },
+        { id: 'KA01TP260219025023679E4NxugsIDNd', name: '휴무일 내일 수업변경안내 (단축)', content: '(템플릿 내용에 맞춰주세요)' },
+        { id: 'KA01TP260219024739217NOCrSlZrNo0', name: '휴무일 수업안내 (전수업휴강)', content: '(템플릿 내용에 맞춰주세요)' }
+    ];
 
     // [UX] Auto-open picker when scheduled is checked
     const handleScheduleToggle = (e) => {
@@ -29,6 +38,11 @@ const MessagesTab = ({ memberId }) => {
                 }
             }, 100);
         }
+    };
+
+    const handleTemplateSelect = (e) => {
+        const id = e.target.value;
+        setSelectedTemplateId(id);
     };
 
     // [REAL-TIME] Individual Message History Listener
@@ -83,7 +97,8 @@ const MessagesTab = ({ memberId }) => {
     const handleSend = async () => {
         if (!message.trim() || !memberId) return;
         
-        let confirmMsg = '메시지를 실제 전송하시겠습니까? 회원의 스마트폰으로 푸시 알림과 문자(LMS)가 발송됩니다.';
+        let method = selectedTemplateId ? '알림톡' : '문자(LMS)';
+        let confirmMsg = `메시지를 실제 전송하시겠습니까? 회원의 스마트폰으로 ${method}가 발송됩니다.`;
         if (isScheduled) {
             if (!scheduledTime) {
                 alert('예약 시간을 설정해주세요.');
@@ -101,10 +116,16 @@ const MessagesTab = ({ memberId }) => {
 
         setSending(true);
         try {
-            await storageService.addMessage(memberId, message, isScheduled ? new Date(scheduledTime).toISOString() : null);
+            await storageService.addMessage(
+                memberId, 
+                message, 
+                isScheduled ? new Date(scheduledTime).toISOString() : null,
+                selectedTemplateId
+            );
             setMessage('');
             setIsScheduled(false);
             setScheduledTime('');
+            setSelectedTemplateId('');
             if (isScheduled) alert('메시지가 예약되었습니다.');
         } catch (error) {
             console.error("Message send failed:", error);
@@ -125,10 +146,31 @@ const MessagesTab = ({ memberId }) => {
         <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             {/* Input Area */}
             <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px', marginBottom: '20px' }}>
+                
+                {/* [Solapi] Template Selection */}
+                <div style={{ marginBottom: '12px' }}>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.8rem', color: '#a1a1aa' }}>발송 유형 (알림톡/문자)</label>
+                    <select
+                        value={selectedTemplateId}
+                        onChange={handleTemplateSelect}
+                        style={{
+                            width: '100%', padding: '8px', borderRadius: '8px',
+                            background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)',
+                            color: 'white', outline: 'none', cursor: 'pointer', fontSize: '0.9rem'
+                        }}
+                    >
+                        {alimTalkTemplates.map(t => (
+                            <option key={t.id} value={t.id} style={{ background: '#1d1d2b' }}>
+                                {t.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
                 <textarea
                     value={message}
                     onChange={e => setMessage(e.target.value)}
-                    placeholder="회원에게 보낼 메시지를 입력하세요..."
+                    placeholder={selectedTemplateId ? "알림톡 템플릿 내용과 일치하게 입력해주세요." : "회원에게 보낼 메시지를 입력하세요..."}
                     style={{
                         width: '100%', height: '80px', background: 'transparent', border: 'none',
                         color: 'white', fontSize: '1rem', resize: 'none', outline: 'none'
@@ -146,10 +188,10 @@ const MessagesTab = ({ memberId }) => {
                             bytes += (code >> 7) ? 2 : 1;
                         }
                         const isLMS = bytes > 90;
-                        const cost = isLMS ? 45 : 18; // Approx rates
+                        const cost = selectedTemplateId ? 15 : (isLMS ? 45 : 18); // Approx rates
                         return (
-                            <span style={{ color: isLMS ? '#f59e0b' : '#10b981' }}>
-                                {bytes} bytes ({isLMS ? 'LMS' : 'SMS'}) • 예상 비용: 약 {cost}원
+                            <span style={{ color: selectedTemplateId ? 'var(--primary-gold)' : (isLMS ? '#f59e0b' : '#10b981') }}>
+                                {bytes} bytes ({selectedTemplateId ? '알림톡' : (isLMS ? 'LMS' : 'SMS')}) • 예상 비용: 약 {cost}원
                             </span>
                         );
                     })()}
