@@ -24,7 +24,9 @@ const MessagesTab = ({ memberId }) => {
             setTimeout(() => {
                 try {
                     if (scheduleInputRef.current) scheduleInputRef.current.showPicker();
-                } catch (e) {}
+                } catch (e) {
+                    // ignore
+                }
             }, 100);
         }
     };
@@ -176,7 +178,9 @@ const MessagesTab = ({ memberId }) => {
                                 onClick={() => {
                                     try {
                                         if(scheduleInputRef.current) scheduleInputRef.current.showPicker();
-                                    } catch(e) {}
+                                    } catch(e) {
+                                        // ignore
+                                    }
                                 }}
                                 style={{ 
                                     background: 'rgba(0,0,0,0.3)', 

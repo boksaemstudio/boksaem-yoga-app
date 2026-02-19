@@ -37,10 +37,21 @@ const ErrorFallback = ({ error }) => (
         {error?.toString()}
       </pre>
       <button
-        onClick={() => window.location.reload()}
+        onClick={() => {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    for(let registration of registrations) {
+                        registration.unregister();
+                    }
+                    window.location.reload(true);
+                });
+            } else {
+                window.location.reload(true);
+            }
+        }}
         style={{ marginTop: '30px', padding: '12px 24px', background: 'var(--primary-gold)', color: 'black', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
       >
-        새로고침 시도
+        새로고침 및 캐시 초기화 (Retry)
       </button>
     </div>
   </div>

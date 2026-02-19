@@ -66,7 +66,7 @@ const InstructorLogin = ({ onLogin, instructors }) => {
                     style={{ width: '70px', height: '70px', marginBottom: '16px', filter: 'drop-shadow(0 0 10px rgba(212, 175, 55, 0.5))' }} 
                 />
                 <h1 style={{ color: 'var(--primary-gold)', marginBottom: '8px', fontSize: '1.8rem' }}>복샘요가 선생님</h1>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>선생님 전용 앱입니다</p>
+                <div style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>선생님 전용 앱입니다</div>
 
                 <div style={{ marginBottom: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--bg-input)', padding: '12px 16px', borderRadius: '10px', marginBottom: '12px' }}>
@@ -806,9 +806,9 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                     {pushEnabled ? <BellRinging size={24} color="var(--primary-gold)" weight="fill" /> : <Bell size={24} color="var(--text-secondary)" />}
                     <div>
                         <h3 style={{ margin: 0, fontSize: '1rem' }}>나의 수업 출석회원 알림</h3>
-                        <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        <div style={{ margin: '2px 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                             회원 출석 시 알림 받기
-                        </p>
+                        </div>
                     </div>
                 </div>
                 
@@ -823,7 +823,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                 )}
                 
                 {pushMessage && (
-                    <p style={{ marginTop: '8px', fontSize: '0.85rem', textAlign: 'center', color: pushMessage.includes('✅') ? '#4CAF50' : 'var(--text-secondary)', whiteSpace: 'pre-line' }}>{pushMessage}</p>
+                    <div style={{ marginTop: '8px', fontSize: '0.85rem', textAlign: 'center', color: pushMessage.includes('✅') ? '#4CAF50' : 'var(--text-secondary)', whiteSpace: 'pre-line' }}>{pushMessage}</div>
                 )}
             </div>
 
@@ -854,9 +854,9 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                             <h3 style={{ margin: 0, fontSize: '1rem', color: 'white' }}>
                                 {deviceOS === 'ios' ? '아이폰에 앱 설치하기' : '홈 화면에 앱 설치하기'}
                             </h3>
-                            <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                            <div style={{ margin: '2px 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                                 {deviceOS === 'ios' ? '사파리(Safari)에서 홈 화면에 추가하세요' : '앱처럼 편하게 아이콘으로 접속하세요'}
-                            </p>
+                            </div>
                         </div>
                     </div>
                     
@@ -980,8 +980,25 @@ const InstructorPage = () => {
                     const myBranchClasses = allMyClasses.filter(c => c.branchId === branchId);
                     const myClassTitles = new Set(myBranchClasses.map(c => c.title));
 
+                    console.log(`[InstructorPage] Branch: ${branchId}, Fetched: ${data?.length} logs`);
+                    
                     const branchRecords = (data || [])
-                        .filter(r => r.instructor === instructorName || (r.instructor === '미지정' && myClassTitles.has(r.className)))
+                        .filter(r => {
+                            // Relaxed Filtering Logic
+                            const recordInstructor = r.instructor ? r.instructor.trim() : '';
+                            const currentInstructor = instructorName.trim();
+                            
+                            const isExactMatch = recordInstructor === currentInstructor;
+                            const isUndesignated = recordInstructor === '미지정' || !recordInstructor;
+                            const isClassMatch = myClassTitles.has(r.className);
+
+                            // Debug logging for unmatched but potential candidates
+                            if (isUndesignated && isClassMatch) {
+                                console.log('[InstructorPage] Included Undesignated:', r);
+                            }
+
+                            return isExactMatch || (isUndesignated && isClassMatch);
+                        })
                         .map(r => ({ ...r, branchName, branchId }));
                     allBaselineAttendance = [...allBaselineAttendance, ...branchRecords];
                 });
@@ -1002,7 +1019,16 @@ const InstructorPage = () => {
                             const myClassTitles = new Set(myBranchClasses.map(c => c.title));
 
                             const branchRecords = (records || [])
-                                .filter(r => r.instructor === instructorName || (r.instructor === '미지정' && myClassTitles.has(r.className)))
+                                .filter(r => {
+                                    const recordInstructor = r.instructor ? r.instructor.trim() : '';
+                                    const currentInstructor = instructorName.trim();
+                                    
+                                    const isExactMatch = recordInstructor === currentInstructor;
+                                    const isUndesignated = recordInstructor === '미지정' || !recordInstructor;
+                                    const isClassMatch = myClassTitles.has(r.className);
+                                    
+                                    return isExactMatch || (isUndesignated && isClassMatch);
+                                })
                                 .map(r => ({ ...r, branchName, branchId }));
                             
                             const merged = [...otherBranches, ...branchRecords];
@@ -1026,7 +1052,6 @@ const InstructorPage = () => {
              if (unsubscribesRef.current) {
                 unsubscribesRef.current.forEach(unsub => unsub());
              }
-             clearTimeout(loadingSafetyTimeout);
         };
     }, [instructorName, todayStr, branches]);
 
@@ -1117,7 +1142,7 @@ const InstructorPage = () => {
             <div style={{ background: 'rgba(20, 20, 25, 0.95)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', position: 'relative', zIndex: 2 }}>
                 <div>
                     <h1 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--primary-gold)' }}>복샘요가 선생님</h1>
-                    <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{instructorName} 선생님</p>
+                    <div style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{instructorName} 선생님</div>
                 </div>
                 <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
                     <SignOut size={24} color="var(--text-secondary)" />
@@ -1131,9 +1156,9 @@ const InstructorPage = () => {
                 padding: '16px 20px', 
                 borderBottom: '1px solid rgba(212, 175, 55, 0.1)'
             }}>
-                <p style={{ margin: 0, fontSize: '1rem', lineHeight: 1.5, color: 'var(--text-primary)', textAlign: 'center', fontStyle: 'italic' }}>
+                <div style={{ margin: 0, fontSize: '1rem', lineHeight: 1.5, color: 'var(--text-primary)', textAlign: 'center', fontStyle: 'italic' }}>
                     &quot;{aiGreeting}&quot;
-                </p>
+                </div>
                 {/* [AI] 보강 메시지 - 기존 인사말 아래 추가 */}
                 {aiEnhancedGreeting && (
                     <div style={{

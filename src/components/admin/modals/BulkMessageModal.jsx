@@ -7,6 +7,7 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
     const [isScheduled, setIsScheduled] = useState(false);
     const [scheduledTime, setScheduledTime] = useState('');
     const [sending, setSending] = useState(false);
+    const scheduleInputRef = React.useRef(null);
 
     if (!isOpen) return null;
 
@@ -58,8 +59,6 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
             setSending(false);
         }
     };
-
-    const scheduleInputRef = React.useRef(null);
 
     // [UX] Auto-open picker when scheduled is checked
     const handleScheduleToggle = (e) => {
@@ -149,7 +148,9 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
                             onClick={() => {
                                 try {
                                     if(scheduleInputRef.current) scheduleInputRef.current.showPicker();
-                                } catch(e) {}
+                                } catch(e) {
+                                    // ignore
+                                }
                             }}
                             style={{ 
                                 background: 'rgba(255,255,255,0.1)', 

@@ -21,7 +21,8 @@ const MembersTab = ({
     setShowAddModal,
     pushTokens,
     setActiveTab,
-    setShowBulkMessageModal // [FIX] Add this prop
+    setShowBulkMessageModal, // [FIX] Add this prop
+    getDormantSegments // [FIX] Receive this prop
 }) => {
     if (!summary || !filteredMembers) return <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>데이터 로딩 중...</div>;
 
