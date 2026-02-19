@@ -294,11 +294,19 @@ const MembersTab = ({
                                                     I will do that in the NEXT step. For now, I'll use optional chaining if possible or safe access.
                                                  */}
                                                  {summary.todayReRegMemberIds && summary.todayReRegMemberIds.includes(member.id) && (
-                                                     <span className="badge" style={{ background: 'rgba(59, 130, 246, 0.25)', color: '#60A5FA', border: '1px solid rgba(59, 130, 246, 0.5)', fontWeight: 'bold' }}>
-                                                        재등록
-                                                     </span>
-                                                 )}
-                                                 
+                                            <span className="badge" style={{ background: 'rgba(59, 130, 246, 0.25)', color: '#60A5FA', border: '1px solid rgba(59, 130, 246, 0.5)', fontWeight: 'bold' }}>
+                                                재등록
+                                            </span>
+                                        )}
+                                        {summary.multiAttendedMemberIds && summary.multiAttendedMemberIds.includes(member.id) && (
+                                            <span className="badge" style={{
+                                                background: 'rgba(245, 158, 11, 0.25)', color: '#FBBF24',
+                                                border: '1px solid rgba(245, 158, 11, 0.5)', fontWeight: 'bold'
+                                            }}>
+                                                오늘 2회 출석 🔥
+                                            </span>
+                                        )}
+                                        {/* Status Context Badges */}
                                                 {filterType === 'dormant' && (() => {
                                                     const today = new Date();
                                                     let lastDate = member.lastAttendance ? new Date(member.lastAttendance) : (member.regDate ? new Date(member.regDate) : null);

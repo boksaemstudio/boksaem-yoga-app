@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { storageService } from '../services/storage';
 import { getTodayKST, getKSTHour } from '../utils/dates';
 import { STUDIO_CONFIG } from '../studioConfig';
+import { guessClassTime, guessClassInfo } from '../utils/classUtils';
 
 
 // Helper for consistent date parsing
@@ -209,6 +210,17 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             : currentLogs.filter(l => l.branchId === currentBranch);
 
         calculateStats(branchLogs);
+
+        // [New] Multi-attendance Detection
+        const attendanceCounts = {};
+        branchLogs.forEach(l => {
+            if (l.status !== 'denied' && l.memberId) {
+                attendanceCounts[l.memberId] = (attendanceCounts[l.memberId] || 0) + 1;
+            }
+        });
+        const multiAttendedMemberIds = Object.entries(attendanceCounts)
+            .filter(([_, count]) => count >= 2)
+            .map(([id, _]) => id);
 
         // Stats Calculation
         const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
@@ -423,6 +435,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             monthlyRevenue,
             expiringMembersCount,
             todayReRegMemberIds: todayReRegMembers.map(m => m.id), // [New] For Badges in MembersTab
+            multiAttendedMemberIds, // [NEW] Today 2+ attendance
             // [New] Denied Stats
             deniedCount,
             deniedExpiredCount,
@@ -452,64 +465,35 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             return logDate === todayStr && (currentBranch === 'all' || l.branchId === currentBranch);
         });
 
-        const classGroups = {};
-        
-        // [New] Helper to guess classTime from schedule if missing
-        const guessClassTime = (log) => {
-            if (log.classTime) return log.classTime;
-            if (!log.timestamp) return null;
-            
-            const date = new Date(log.timestamp);
-            const checkInMinutes = date.getHours() * 60 + date.getMinutes();
-            const dayOfWeeks = ['일', '월', '화', '수', '목', '금', '토'];
-            const dayOfWeek = dayOfWeeks[date.getDay()];
-            
-            // Look for matching class in STUDIO_CONFIG for fallback
-            const branchSchedule = STUDIO_CONFIG.DEFAULT_SCHEDULE_TEMPLATE[log.branchId] || [];
-            const matches = branchSchedule.filter(s => 
-                s.days.includes(dayOfWeek) && 
-                (s.className === log.className || log.className.includes(s.className) || s.className.includes(log.className))
-            );
-            
-            if (matches.length > 0) {
-                // [FIX] Find the CLOSEST schedule time (not the first within 60 min)
-                let bestMatch = null;
-                let bestDiff = Infinity;
-                for (const m of matches) {
-                    const [h, min] = m.startTime.split(':').map(Number);
-                    const startMin = h * 60 + min;
-                    const diff = Math.abs(checkInMinutes - startMin);
-                    if (diff <= 60 && diff < bestDiff) {
-                        bestDiff = diff;
-                        bestMatch = m;
-                    }
-                }
-                if (bestMatch) return bestMatch.startTime;
-            }
-            
-            // Absolute fallback: Rounded hour
-            const h = String(date.getHours()).padStart(2, '0');
-            return `${h}:00`;
-        };
-
         todayLogs.forEach(log => {
-            const classTime = guessClassTime(log);
-            const key = `${log.className || '일반'}-${log.instructor || '선생님'}-${log.branchId}-${classTime || 'no-time'}`;
+            const info = guessClassInfo(log);
+            const classTime = info?.startTime || '00:00';
+            const canonicalClassName = info?.className || log.className || '일반';
+            const canonicalInstructor = info?.instructor || log.instructor || '선생님';
+
+            const key = `${canonicalClassName}-${canonicalInstructor}-${log.branchId}-${classTime}`;
             
             if (!classGroups[key]) {
                 classGroups[key] = {
-                    className: log.className || '일반',
-                    instructor: log.instructor || '선생님',
+                    className: canonicalClassName,
+                    instructor: canonicalInstructor,
                     branchId: log.branchId,
                     classTime: classTime,
                     count: 0,
-                    deniedCount: 0
+                    deniedCount: 0,
+                    memberNames: [] // [NEW] Track member names for the card
                 };
             }
             if (log.status === 'denied') {
                 classGroups[key].deniedCount++;
             } else {
                 classGroups[key].count++;
+                // Add name if it's a multi-attended member or specifically passion-member
+                if (log.memberName && (multiAttendedMemberIds.includes(log.memberId) || log.sessionCount > 1 || log.isMultiSession)) {
+                    if (!classGroups[key].memberNames.includes(log.memberName)) {
+                        classGroups[key].memberNames.push(log.memberName);
+                    }
+                }
             }
         });
         

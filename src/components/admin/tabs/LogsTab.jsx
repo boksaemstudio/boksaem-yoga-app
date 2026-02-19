@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ClockCounterClockwise, Trash, Sparkle, CaretLeft, CaretRight, CalendarBlank } from '@phosphor-icons/react';
 import { STUDIO_CONFIG, getBranchName, getBranchColor, getBranchThemeColor } from '../../../studioConfig';
+import { guessClassTime, guessClassInfo } from '../../../utils/classUtils';
 import { storageService } from '../../../services/storage';
 
 // ─── Mini Calendar Popup ───
@@ -171,60 +172,36 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
         if (isToday) return todayClasses;
         const groups = {};
 
-        // [New] Helper to guess classTime from schedule if missing
-        const guessClassTime = (log) => {
-            if (log.classTime) return log.classTime;
-            if (!log.timestamp) return null;
-            
-            const date = new Date(log.timestamp);
-            const checkInMinutes = date.getHours() * 60 + date.getMinutes();
-            const dayOfWeeks = ['일', '월', '화', '수', '목', '금', '토'];
-            const dayOfWeek = dayOfWeeks[date.getDay()];
-            
-            // Look for matching class in STUDIO_CONFIG for fallback
-            const branchSchedule = STUDIO_CONFIG.DEFAULT_SCHEDULE_TEMPLATE[log.branchId] || [];
-            const matches = branchSchedule.filter(s => 
-                s.days.includes(dayOfWeek) && 
-                (s.className === log.className || log.className.includes(s.className) || s.className.includes(log.className))
-            );
-            
-            if (matches.length > 0) {
-                // [FIX] Find the CLOSEST schedule time (not the first within 60 min)
-                let bestMatch = null;
-                let bestDiff = Infinity;
-                for (const m of matches) {
-                    const [h, min] = m.startTime.split(':').map(Number);
-                    const startMin = h * 60 + min;
-                    const diff = Math.abs(checkInMinutes - startMin);
-                    if (diff <= 60 && diff < bestDiff) {
-                        bestDiff = diff;
-                        bestMatch = m;
-                    }
-                }
-                if (bestMatch) return bestMatch.startTime;
-            }
-            
-            // Absolute fallback: Rounded hour
-            const h = String(date.getHours()).padStart(2, '0');
-            return `${h}:00`;
-        };
-
         activeLogs.forEach(log => {
-            const classTime = guessClassTime(log);
-            const key = `${log.className || '일반'}-${log.instructor || '선생님'}-${log.branchId}-${classTime || 'no-time'}`;
+            const info = guessClassInfo(log);
+            const classTime = info?.startTime || '00:00';
+            const canonicalClassName = info?.className || log.className || '일반';
+            const canonicalInstructor = info?.instructor || log.instructor || '선생님';
+
+            const key = `${canonicalClassName}-${canonicalInstructor}-${log.branchId}-${classTime}`;
             
             if (!groups[key]) {
                 groups[key] = {
-                    className: log.className || '일반',
-                    instructor: log.instructor || '선생님',
+                    className: canonicalClassName,
+                    instructor: canonicalInstructor,
                     branchId: log.branchId,
                     classTime: classTime,
                     count: 0,
-                    deniedCount: 0
+                    deniedCount: 0,
+                    memberNames: [] 
                 };
             }
             if (log.status === 'denied') groups[key].deniedCount++;
-            else groups[key].count++;
+            else {
+                groups[key].count++;
+                // If it's a historical log, we might not have easy access to multiAttendedMemberIds here,
+                // but we can at least show those tagged as multi-session in the log itself.
+                if (log.memberName && (log.sessionCount > 1 || log.isMultiSession)) {
+                    if (!groups[key].memberNames.includes(log.memberName)) {
+                        groups[key].memberNames.push(log.memberName);
+                    }
+                }
+            }
         });
         
         // [UX] Sort by classTime Descending (Latest First)
@@ -392,6 +369,22 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                             </span>
                                         )}
                                     </div>
+                                    {/* [NEW] Show multi-attendance member names */}
+                                    {cls.memberNames?.length > 0 && (
+                                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                            {cls.memberNames.map(name => (
+                                                <span key={name} style={{
+                                                    fontSize: '0.7rem', background: 'var(--primary-gold)', color: 'black',
+                                                    padding: '1px 5px', borderRadius: '3px', fontWeight: 'bold'
+                                                }}>
+                                                    {name}
+                                                </span>
+                                            ))}
+                                            <span style={{ fontSize: '0.65rem', color: 'var(--primary-gold)', alignSelf: 'center', marginLeft: '2px' }}>
+                                                (열정 🔥)
+                                            </span>
+                                        </div>
+                                    )}
                                     {/* [UX] Removed "Filtering..." text as requested */}
                                 </div>
                             );
@@ -442,41 +435,9 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                     </div>
                     <div style={{ marginTop: '10px' }}>
                         {(() => {
-                            // [FIX] Use guessClassTime in filter to match 4-part card key
-                            const guessClassTimeForFilter = (log) => {
-                                if (log.classTime) return log.classTime;
-                                if (!log.timestamp) return null;
-                                const date = new Date(log.timestamp);
-                                const checkInMinutes = date.getHours() * 60 + date.getMinutes();
-                                const dayOfWeeks = ['일', '월', '화', '수', '목', '금', '토'];
-                                const dayOfWeek = dayOfWeeks[date.getDay()];
-                                const branchSchedule = STUDIO_CONFIG.DEFAULT_SCHEDULE_TEMPLATE[log.branchId] || [];
-                                const matches = branchSchedule.filter(s =>
-                                    s.days.includes(dayOfWeek) &&
-                                    (s.className === log.className || (log.className && s.className && (log.className.includes(s.className) || s.className.includes(log.className))))
-                                );
-                                if (matches.length > 0) {
-                                    // [FIX] Find the CLOSEST schedule time
-                                    let bestMatch = null;
-                                    let bestDiff = Infinity;
-                                    for (const m of matches) {
-                                        const [h, min] = m.startTime.split(':').map(Number);
-                                        const startMin = h * 60 + min;
-                                        const diff = Math.abs(checkInMinutes - startMin);
-                                        if (diff <= 60 && diff < bestDiff) {
-                                            bestDiff = diff;
-                                            bestMatch = m;
-                                        }
-                                    }
-                                    if (bestMatch) return bestMatch.startTime;
-                                }
-                                const h = String(date.getHours()).padStart(2, '0');
-                                return `${h}:00`;
-                            };
-
                             const filteredLogs = (selectedClassKey
                                 ? activeLogs.filter(l => {
-                                    const ct = guessClassTimeForFilter(l);
+                                    const ct = guessClassTime(l);
                                     return `${l.className || '일반'}-${l.instructor || '선생님'}-${l.branchId}-${ct || 'no-time'}` === selectedClassKey;
                                 })
                                 : activeLogs

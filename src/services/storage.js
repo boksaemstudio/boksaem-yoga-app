@@ -2,7 +2,7 @@
 import { signInAnonymously } from "firebase/auth";
 import { httpsCallable } from "firebase/functions";
 import { onSnapshot, doc, collection, getDocs, getDoc, addDoc, updateDoc, setDoc, deleteDoc, query, where, orderBy, limit as firestoreLimit, increment, writeBatch } from 'firebase/firestore';
-import { ref, uploadString, uploadBytes, getDownloadURL } from "firebase/storage"; // ✅ Storage imports
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // ✅ Storage imports
 import { STUDIO_CONFIG } from '../studioConfig';
 import { messaging, getToken } from "../firebase";
 import * as scheduleService from './scheduleService'; // [Refactor]
@@ -192,14 +192,11 @@ export const storageService = {
       // Logic: Maintain 'image' field for legacy support, 'images' field for new multi-support
       
       let imageList = [];
-      let primaryImage = null;
-
+      
       if (Array.isArray(images)) {
         imageList = images;
-        primaryImage = images.length > 0 ? images[0] : null;
       } else if (typeof images === 'string') {
         imageList = [images];
-        primaryImage = images;
       }
 
       // [FIX] Upload images to Storage -> Save URL to Firestore
