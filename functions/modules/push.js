@@ -14,6 +14,7 @@ const { admin, getAI, logAIError } = require("../helpers/common");
  * 개인 메시지 푸시 알림
  */
 exports.sendPushOnMessageV2 = onDocumentCreated("messages/{messageId}", async (event) => {
+    console.log(`[Push] Triggered for message ${event.params.messageId}`);
     const messageData = event.data.data();
     const memberId = messageData.memberId;
     const content = messageData.content;

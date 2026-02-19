@@ -385,7 +385,7 @@ export const storageService = {
   },
 
 
-  async checkInById(memberId, branchId) {
+  async checkInById(memberId, branchId, force = false) {
     try {
       const checkInMember = httpsCallable(functions, 'checkInMemberV2Call');
       const currentClassInfo = await this.getCurrentClass(branchId);
@@ -396,9 +396,9 @@ export const storageService = {
       let lastErr = null;
       for (let attempt = 1; attempt <= 2; attempt++) {
         try {
-          console.log(`[Storage] Check-in attempt ${attempt}/2...`);
+          console.log(`[Storage] Check-in attempt ${attempt}/2... (force: ${force})`);
           const response = await withTimeout(
-            checkInMember({ memberId, branchId, classTitle, instructor }),
+            checkInMember({ memberId, branchId, classTitle, instructor, force }),
             5000, // [UX] Reduced to 5s for snappy fallback
             'timeout'
           );

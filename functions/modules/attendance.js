@@ -90,15 +90,15 @@ exports.checkInMemberV2Call = onCall({
             // Same member, same date, within last 5 minutes = Duplicate
             const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
             const now = new Date();
-            const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000).toISOString();
+            
+            // [UX] Allow rapid multi-session check-ins if 'force' is provided or after a short window
+            const duplicateWindowSeconds = request.data.force ? 0 : 15;
+            const duplicateCutoff = new Date(now.getTime() - duplicateWindowSeconds * 1000).toISOString();
 
-            // Note: We can't do complex queries inside transaction easily without index, 
-            // but we can query by ID if we had a deterministic ID. 
-            // Since we don't, we'll do a query. Firestore allows reads before writes.
             const duplicateQuery = db.collection('attendance')
                 .where('memberId', '==', memberId)
                 .where('date', '==', today)
-                .where('timestamp', '>=', fiveMinutesAgo);
+                .where('timestamp', '>=', duplicateCutoff);
             
             const duplicateSnap = await transaction.get(duplicateQuery);
             
@@ -112,6 +112,10 @@ exports.checkInMemberV2Call = onCall({
                     attendanceStatus: existing.status,
                     newCredits: memberData.credits,
                     attendanceCount: memberData.attendanceCount,
+                    memberName: memberData.name,
+                    startDate: memberData.startDate,
+                    endDate: memberData.endDate,
+                    streak: memberData.streak || 0,
                     isDuplicate: true
                 };
             }

@@ -178,8 +178,9 @@ exports.sendMessageOnApproval = onDocumentUpdated({
  * messages 컬렉션에 문서 생성을 트리거로 함
  */
 exports.sendSolapiOnMessageV2 = onDocumentCreated("messages/{messageId}", async (event) => {
-    const messageData = event.data.data();
     const messageId = event.params.messageId;
+    console.log(`[Solapi] Triggered for message ${messageId}`);
+    const messageData = event.data.data();
     const memberId = messageData.memberId;
     let content = messageData.content;
     const adminType = messageData.type; // 'admin_individual' or undefined

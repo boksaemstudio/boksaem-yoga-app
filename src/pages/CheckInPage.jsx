@@ -921,9 +921,9 @@ const CheckInPage = () => {
             }
 
             const member = members[0];
-            console.log(`[CheckIn] Single member selected: ${member.name} (${member.id})`);
+            console.log(`[CheckIn] Single member selected: ${member.name} (${member.id}), force: ${isDuplicateConfirm}`);
 
-            const result = await storageService.checkInById(member.id, currentBranch);
+            const result = await storageService.checkInById(member.id, currentBranch, isDuplicateConfirm);
 
             if (result.success) {
                 // [NETWORK] If success and NOT offline, ensure we are Online

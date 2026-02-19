@@ -31,6 +31,10 @@ class AIService {
         this.langMap = { 'ko': 'Korean', 'en': 'English', 'ru': 'Russian', 'zh': 'Chinese (Simplified)', 'ja': 'Japanese' };
     }
 
+    getLangName(langCode) {
+        return this.langMap[langCode] || 'Korean';
+    }
+
     /**
      * ✅ 잘린 JSON 문자열 복구
      * 한글이 잘리면 multi-byte 깨짐 발생 → 정리 후 닫는 괄호 추가
