@@ -3,6 +3,8 @@ import { X, PaperPlaneTilt, Calendar, CurrencyKrw } from '@phosphor-icons/react'
 import { storageService } from '../../../services/storage';
 
 const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) => {
+    if (!isOpen) return null;
+
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
     const [isScheduled, setIsScheduled] = useState(false);
