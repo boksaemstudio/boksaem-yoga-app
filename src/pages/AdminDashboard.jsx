@@ -264,16 +264,36 @@ const AdminDashboard = () => {
     const handleForceUpdate = async () => {
         if (!window.confirm(`최신 버전(v${STUDIO_CONFIG.APP_VERSION})으로 업데이트 및 캐시를 초기화하시겠습니까?\n(로그아웃 될 수 있습니다)`)) return;
 
-        console.log('[App] Forcing update and clearing persistence...');
+        console.log('[App] Forcing update and clearing ALL caches...');
         
+        // [CRITICAL] 1. Delete ALL Firestore/Firebase IndexedDB databases
         try {
-            // [CRITICAL] Clear Firestore Persistence
-            // await clearIndexedDbPersistence(db);
-            console.log('[App] Firestore persistence cleared (Skipped for debugging).');
+            const dbs = await indexedDB.databases();
+            const targetDbs = dbs.filter(db => 
+                db.name && (db.name.includes('firestore') || db.name.includes('firebase'))
+            );
+            for (const dbInfo of targetDbs) {
+                console.log(`[App] Deleting IndexedDB: ${dbInfo.name}`);
+                indexedDB.deleteDatabase(dbInfo.name);
+            }
+            console.log(`[App] Cleared ${targetDbs.length} IndexedDB database(s).`);
         } catch (err) {
-            console.warn('[App] Failed to clear persistence (maybe active tabs?):', err);
+            console.warn('[App] Failed to clear IndexedDB:', err);
         }
 
+        // 2. Clear ALL Cache Storage (Service Worker caches)
+        try {
+            const cacheNames = await caches.keys();
+            for (const name of cacheNames) {
+                await caches.delete(name);
+                console.log(`[App] Deleted cache: ${name}`);
+            }
+            console.log(`[App] Cleared ${cacheNames.length} cache(s).`);
+        } catch (err) {
+            console.warn('[App] Failed to clear Cache Storage:', err);
+        }
+
+        // 3. Unregister ALL Service Workers
         if ('serviceWorker' in navigator) {
             const registrations = await navigator.serviceWorker.getRegistrations();
             for (const registration of registrations) {

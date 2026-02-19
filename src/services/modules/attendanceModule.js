@@ -139,12 +139,14 @@ export const deleteAttendance = async (logId, cachedMembers, notifyListeners) =>
 
         const logData = logSnap.data();
         const memberId = logData.memberId;
+        const wasValid = logData.status === 'valid' || (!logData.status && !logData.denialReason);
         
         // Delete the log
         await deleteDoc(logRef);
         
-        // Update member's attendance count and credits
-        if (memberId) {
+        // [FIX] Only restore credits/count if the attendance was 'valid'
+        // denied 상태의 출석은 크레딧이 차감되지 않았으므로 복원하면 안 됨
+        if (memberId && wasValid) {
             const memberRef = doc(db, 'members', memberId);
             await updateDoc(memberRef, {
                 attendanceCount: increment(-1),
@@ -158,6 +160,8 @@ export const deleteAttendance = async (logId, cachedMembers, notifyListeners) =>
                 cachedMembers[idx].credits = (cachedMembers[idx].credits || 0) + 1;
                 if (notifyListeners) notifyListeners();
             }
+        } else if (memberId && !wasValid) {
+            console.log(`[Attendance] Deleted denied record for ${memberId} - no credit restoration needed`);
         }
         
         return { success: true };
@@ -180,6 +184,7 @@ export const addManualAttendance = async (memberId, date, branchId, className = 
             className,
             instructor,
             type: 'manual',
+            status: 'valid',
             timestamp: new Date().toISOString()
         });
         

@@ -152,7 +152,22 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         ]);
         
         // Get cached data (sync, no await needed)
-        const currentLogs = storageService.getAttendance();
+        let currentLogs = storageService.getAttendance();
+        
+        // [FIX] Fallback: 리스너가 아직 데이터를 수신하지 못한 경우 직접 fetch
+        if (currentLogs.length === 0) {
+            console.warn('[Admin] Attendance cache empty, fetching directly...');
+            const todayDateStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            try {
+                const directLogs = await storageService.getAttendanceByDate(todayDateStr);
+                if (directLogs.length > 0) {
+                    currentLogs = directLogs;
+                    console.log(`[Admin] Fallback fetched ${directLogs.length} attendance logs for today`);
+                }
+            } catch (e) {
+                console.warn('[Admin] Fallback attendance fetch failed:', e);
+            }
+        }
         const currentNotices = storageService.getNotices();
         
         // Set state from parallel results
