@@ -436,8 +436,36 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                     </div>
                     <div style={{ marginTop: '10px' }}>
                         {(() => {
+                            // [FIX] Use guessClassTime in filter to match 4-part card key
+                            const guessClassTimeForFilter = (log) => {
+                                if (log.classTime) return log.classTime;
+                                if (!log.timestamp) return null;
+                                const date = new Date(log.timestamp);
+                                const checkInMinutes = date.getHours() * 60 + date.getMinutes();
+                                const dayOfWeeks = ['일', '월', '화', '수', '목', '금', '토'];
+                                const dayOfWeek = dayOfWeeks[date.getDay()];
+                                const branchSchedule = STUDIO_CONFIG.DEFAULT_SCHEDULE_TEMPLATE[log.branchId] || [];
+                                const matches = branchSchedule.filter(s =>
+                                    s.days.includes(dayOfWeek) &&
+                                    (s.className === log.className || (log.className && s.className && (log.className.includes(s.className) || s.className.includes(log.className))))
+                                );
+                                if (matches.length > 0) {
+                                    const nearest = matches.find(m => {
+                                        const [h, min] = m.startTime.split(':').map(Number);
+                                        const startMin = h * 60 + min;
+                                        return Math.abs(checkInMinutes - startMin) <= 60;
+                                    });
+                                    if (nearest) return nearest.startTime;
+                                }
+                                const h = String(date.getHours()).padStart(2, '0');
+                                return `${h}:00`;
+                            };
+
                             const filteredLogs = (selectedClassKey
-                                ? activeLogs.filter(l => `${l.className || '일반'}-${l.instructor || '선생님'}-${l.branchId}` === selectedClassKey)
+                                ? activeLogs.filter(l => {
+                                    const ct = guessClassTimeForFilter(l);
+                                    return `${l.className || '일반'}-${l.instructor || '선생님'}-${l.branchId}-${ct || 'no-time'}` === selectedClassKey;
+                                })
                                 : activeLogs
                             ).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 

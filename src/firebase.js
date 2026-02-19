@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
+import { getFirestore, clearIndexedDbPersistence } from "firebase/firestore";
 import { getStorage } from "firebase/storage"; // ✅ Import getStorage
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import { getAuth } from "firebase/auth";
@@ -18,18 +18,21 @@ export const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const storage = getStorage(app); // ✅ Initialize Storage
 
-// [FIX] Disable Offline Persistence to prevent stale data issues in Chrome
-// if (typeof window !== 'undefined') {
-//     enableIndexedDbPersistence(db).catch((err) => {
-//         if (err.code === 'failed-precondition') {
-//             console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
-//         } else if (err.code === 'unimplemented') {
-//             console.warn('The current browser does not support all of the features required to enable persistence');
-//         }
-//     });
-// }
+// [FIX] Clear stale Firestore IndexedDB cache on startup to prevent 0-count bug
+// This only clears if no other tabs are using Firestore (safe)
+if (typeof window !== 'undefined') {
+    clearIndexedDbPersistence(db).catch((err) => {
+        // Expected to fail if other tabs are open or persistence wasn't enabled
+        // This is fine - it just means cache is already in use
+        if (err.code !== 'failed-precondition') {
+            console.warn('[Firebase] Cache clear skipped:', err.code);
+        }
+    });
+}
+
 export const messaging = getMessaging(app);
 export const auth = getAuth(app);
 export const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
 export const functions = getFunctions(app, "asia-northeast3");
 export { getToken, onMessage };
+
