@@ -61,8 +61,8 @@ export const guessClassTime = (log) => {
         }
     }
 
-    // [Fix] Enforce 90-minute window. If check-in is too far from class, treat as separate/self-practice.
-    if (bestMatch && bestDiff <= 90) {
+    // [Fix] Enforce 120-minute window. If check-in is too far from class, treat as separate/self-practice.
+    if (bestMatch && bestDiff <= 120) {
          return bestMatch.startTime; 
     }
     
