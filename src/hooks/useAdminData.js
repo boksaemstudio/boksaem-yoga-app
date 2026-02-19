@@ -453,12 +453,24 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
         const classGroups = {};
         todayLogs.forEach(log => {
-            const key = `${log.className || '일반'}-${log.instructor || '선생님'}-${log.branchId}`;
+            // [UX] Use classTime if available, else fallback to check-in hour (e.g. "18:00")
+            let classTime = log.classTime;
+            if (!classTime && log.timestamp) {
+                const date = new Date(log.timestamp);
+                const h = String(date.getHours()).padStart(2, '0');
+                const m = String(date.getMinutes()).padStart(2, '0');
+                // classTime = `${h}:${m}`; // Too precise? 
+                // Let's use hour grouping for legacy logs if classTime is missing
+                classTime = `${h}:00`; 
+            }
+
+            const key = `${log.className || '일반'}-${log.instructor || '선생님'}-${log.branchId}-${classTime || 'no-time'}`;
             if (!classGroups[key]) {
                 classGroups[key] = {
                     className: log.className || '일반',
                     instructor: log.instructor || '선생님',
                     branchId: log.branchId,
+                    classTime: classTime,
                     count: 0,
                     deniedCount: 0
                 };
@@ -469,7 +481,13 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
                 classGroups[key].count++;
             }
         });
-        const newTodayClasses = Object.values(classGroups).sort((a, b) => b.count - a.count);
+        
+        // [UX] Sort by classTime Descending (Latest First) as requested
+        const newTodayClasses = Object.values(classGroups).sort((a, b) => {
+            if (!a.classTime) return 1;
+            if (!b.classTime) return -1;
+            return b.classTime.localeCompare(a.classTime);
+        });
         setTodayClasses(newTodayClasses);
 
         // Trigger AI Insight if tab matches (handled by caller effectively)

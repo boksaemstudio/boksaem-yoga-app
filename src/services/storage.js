@@ -483,6 +483,7 @@ export const storageService = {
             branchId,
             classTitle,
             instructor,
+            classTime: currentClassInfo?.time || null, // [NEW] Record class time in offline record
             date: today,
             timestamp: now,
             status: 'pending-offline'
@@ -2122,7 +2123,7 @@ export const storageService = {
    * Bulk send messages to multiple members
    * Uses batch writes for efficiency (chunks of 500)
    */
-  async sendBulkMessages(memberIds, content, scheduledAt = null) {
+  async sendBulkMessages(memberIds, content, scheduledAt = null, templateId = null) {
       try {
           if (!memberIds || memberIds.length === 0) throw new Error("No members selected");
           if (!content) throw new Error("Content is empty");
@@ -2150,6 +2151,11 @@ export const storageService = {
                   
                   if (scheduledAt) {
                       messageData.scheduledAt = scheduledAt;
+                  }
+                  
+                  // [Solapi] Add templateId if provided (for AlimTalk)
+                  if (templateId) {
+                      messageData.templateId = templateId;
                   }
 
                   batch.set(docRef, messageData);

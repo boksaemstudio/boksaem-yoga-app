@@ -220,6 +220,8 @@ const CheckInPage = () => {
     const [pendingPin, setPendingPin] = useState(null);
     const duplicateAutoCloseRef = useRef(null);
     const [duplicateTimer, setDuplicateTimer] = useState(10); // [UX] 10s countdown for auto-confirm
+    // [FIX] State to track if we are in a forced duplicate check-in flow
+    const [isDuplicateFlow, setIsDuplicateFlow] = useState(false);
     // [FIX] Always use Korean for Check-in Page as requested
     // const { language } = useLanguage();
     const language = 'ko';
@@ -910,7 +912,15 @@ const CheckInPage = () => {
                 speak("error");
                 setPin('');
                 startDismissTimer(3000);
+                setIsDuplicateFlow(false); // Reset flow
                 return;
+            }
+
+            // [FIX] Set flow state if confirmed
+            if (isDuplicateConfirm) {
+                setIsDuplicateFlow(true);
+            } else {
+                setIsDuplicateFlow(false);
             }
 
             if (members.length > 1) {
@@ -1092,8 +1102,8 @@ const CheckInPage = () => {
             const member = duplicateMembers.find(m => m.id === memberId);
             console.log(`[CheckIn] Selected member from modal: ${member?.name} (${memberId})`);
 
-            // [FIX] Immediate result for selected member
-            const result = await storageService.checkInById(memberId, currentBranch);
+            // [FIX] Pass force flag if in duplicate flow
+            const result = await storageService.checkInById(memberId, currentBranch, isDuplicateFlow);
             console.log(`[CheckIn] SelectMember Result: ${result.success ? 'Success' : 'Fail'}`);
 
             if (result.success) {
@@ -1142,11 +1152,14 @@ const CheckInPage = () => {
 
         let finalMsg = "오늘의 수련이 시작됩니다.";
 
-        // [EXPIRY] 만료 상태 최우선 표시
+        // EXPIRY Check first (before duplicate msg)
         const isExpiredPeriod = daysLeft < 0;
         const isExpiredCredits = credits <= 0 && Number.isFinite(credits);
 
-        if (isExpiredPeriod && isExpiredCredits) {
+        // [New] Duplicate Check-in Feedback
+        if (result.isDuplicate) {
+             finalMsg = "이미 출석 처리되었습니다.";
+        } else if (isExpiredPeriod && isExpiredCredits) {
             finalMsg = "기간 및 횟수가 만료되었습니다.";
         } else if (isExpiredPeriod) {
             finalMsg = "기간이 만료되었습니다.";

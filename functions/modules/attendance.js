@@ -71,6 +71,9 @@ exports.checkInMemberV2Call = onCall({
     const { memberId, branchId, classTitle, instructor } = request.data;
     const db = admin.firestore();
 
+    // [DEBUG] Check force flag
+    console.log(`[Attendance] Check-in request for ${memberId} in ${branchId}. Force: ${request.data.force}`);
+
     if (!memberId || !branchId) {
         throw new HttpsError('invalid-argument', '회원 ID와 지점 ID가 필요합니다.');
     }
@@ -223,7 +226,8 @@ exports.checkInMemberV2Call = onCall({
                 instructor: finalInstructor || '미지정',
                 timestamp: now.toISOString(),
                 sessionNumber: sessionCount,
-                status: attendanceStatus
+                status: attendanceStatus,
+                classTime: matched?.time || null // [NEW] Record the matched class time
             };
 
             if (denialReason) attendanceData.denialReason = denialReason;

@@ -171,12 +171,21 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
         if (isToday) return todayClasses;
         const groups = {};
         activeLogs.forEach(log => {
-            const key = `${log.className || '일반'}-${log.instructor || '선생님'}-${log.branchId}`;
+            // [UX] Use classTime if available, else fallback to check-in hour grouping
+            let classTime = log.classTime;
+            if (!classTime && log.timestamp) {
+                const date = new Date(log.timestamp);
+                const h = String(date.getHours()).padStart(2, '0');
+                classTime = `${h}:00`; 
+            }
+
+            const key = `${log.className || '일반'}-${log.instructor || '선생님'}-${log.branchId}-${classTime || 'no-time'}`;
             if (!groups[key]) {
                 groups[key] = {
                     className: log.className || '일반',
                     instructor: log.instructor || '선생님',
                     branchId: log.branchId,
+                    classTime: classTime,
                     count: 0,
                     deniedCount: 0
                 };
@@ -184,11 +193,18 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
             if (log.status === 'denied') groups[key].deniedCount++;
             else groups[key].count++;
         });
-        return Object.values(groups).sort((a, b) => b.count - a.count);
+        
+        // [UX] Sort by classTime Descending (Latest First)
+        return Object.values(groups).sort((a, b) => {
+            if (!a.classTime) return 1;
+            if (!b.classTime) return -1;
+            return b.classTime.localeCompare(a.classTime);
+        });
     })();
 
     const handleClassClick = (cls) => {
-        const key = `${cls.className}-${cls.instructor}-${cls.branchId}`;
+        const key = `${cls.className}-${cls.instructor}-${cls.branchId}-${cls.classTime || 'no-time'}`;
+        // [UX] Toggle selection: if already selected, deselect (show all)
         setSelectedClassKey(prev => prev === key ? null : key);
         setCurrentLogPage(1);
     };
@@ -294,11 +310,11 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                     </h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
                         {classCards.map((cls, idx) => {
-                            const key = `${cls.className}-${cls.instructor}-${cls.branchId}`;
+                            const key = `${cls.className}-${cls.instructor}-${cls.branchId}-${cls.classTime || 'no-time'}`;
                             const isSelected = selectedClassKey === key;
                             return (
                                 <div
-                                    key={idx}
+                                    key={key}
                                     onClick={() => handleClassClick(cls)}
                                     style={{
                                         padding: '12px',
@@ -312,7 +328,14 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                     }}
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-                                        <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: isSelected ? 'var(--primary-gold)' : 'inherit' }}>{cls.className}</div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                            {cls.classTime && (
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--primary-gold)', fontWeight: 'bold' }}>
+                                                    {cls.classTime}
+                                                </div>
+                                            )}
+                                            <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: isSelected ? 'var(--primary-gold)' : 'inherit' }}>{cls.className}</div>
+                                        </div>
                                         <span style={{
                                             fontSize: '0.65rem', padding: '2px 6px', borderRadius: '4px',
                                             background: `${getBranchColor(cls.branchId)}20`,
@@ -336,9 +359,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                             </span>
                                         )}
                                     </div>
-                                    {isSelected && (
-                                        <div style={{ position: 'absolute', bottom: '6px', right: '8px', fontSize: '0.6rem', color: 'var(--primary-gold)', background: 'rgba(0,0,0,0.4)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>필터링 중</div>
-                                    )}
+                                    {/* [UX] Removed "Filtering..." text as requested */}
                                 </div>
                             );
                         })}
