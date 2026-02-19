@@ -11,6 +11,13 @@ import { getTodayKST, getKSTHour, getKSTMinutes, getDaysRemaining } from '../uti
 import { logError } from '../services/modules/errorModule';
 import { useNetwork } from '../context/NetworkContext';
 
+// [AUDIO] High-quality TTS assets
+import audioWelcome from '../assets/audio/welcome.mp3';
+import audioSuccess from '../assets/audio/success.mp3';
+import audioDuplicateSuccess from '../assets/audio/duplicate_success.mp3';
+import audioDenied from '../assets/audio/denied.mp3';
+import audioError from '../assets/audio/error.mp3';
+
 
 // [PERF] 현재 시간대 배경만 로딩 (4장 → 1장, WebP 최적화)
 const getBgForPeriod = (period) => {
@@ -217,32 +224,28 @@ const CheckInPage = () => {
     // const { language } = useLanguage();
     const language = 'ko';
 
-    // [TTS] Voice Feedback Helper (Enhanced Quality)
-    const speak = (text) => {
-        if (!window.speechSynthesis) return;
-        
-        // Cancel any pending speech
-        window.speechSynthesis.cancel();
-        
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ko-KR';
-        utterance.rate = 1.0; 
-        utterance.pitch = 1.0;
+    // [TTS] Voice Feedback Helper (Now using High-quality Pre-recorded Audio)
+    const speak = (type) => {
+        const audioMap = {
+            'welcome': audioWelcome,
+            'success': audioSuccess,
+            'duplicate': audioDuplicateSuccess,
+            'denied': audioDenied,
+            'error': audioError
+        };
 
-        // [QUALITY] Try to select a better voice
-        const voices = window.speechSynthesis.getVoices();
-        const koVoices = voices.filter(v => v.lang.includes('ko'));
-        
-        if (koVoices.length > 0) {
-            // Priority: Google > Microsoft > Others
-            const bestVoice = koVoices.find(v => v.name.includes('Google')) || 
-                              koVoices.find(v => v.name.includes('Microsoft')) || 
-                              koVoices[0];
-            utterance.voice = bestVoice;
-            console.log(`[TTS] Using voice: ${bestVoice.name}`);
+        const source = audioMap[type];
+        if (!source) {
+            console.warn(`[TTS] No audio mapping for type: ${type}`);
+            return;
         }
 
-        window.speechSynthesis.speak(utterance);
+        try {
+            const audio = new Audio(source);
+            audio.play().catch(e => console.warn('[TTS] Playback failed', e));
+        } catch (e) {
+            console.error('[TTS] Audio creation failed', e);
+        }
     };
 
     // [UX] Loading Message Logic
@@ -895,7 +898,7 @@ const CheckInPage = () => {
 
 
     // [DUPLICATE] 중복 입력 확인 후 실제 출석 처리
-    const proceedWithCheckIn = async (pinCode) => {
+    const proceedWithCheckIn = async (pinCode, isDuplicateConfirm = false) => {
         console.log(`[CheckIn] Starting submission for PIN: ${pinCode}`);
         setLoading(true);
         try {
@@ -904,6 +907,7 @@ const CheckInPage = () => {
 
             if (members.length === 0) {
                 setMessage({ type: 'error', text: '회원 정보를 찾을 수 없습니다.' });
+                speak("error");
                 setPin('');
                 startDismissTimer(3000);
                 return;
@@ -935,7 +939,7 @@ const CheckInPage = () => {
                 } else {
                     // 출석 성공 → 기록 추가
                     recentCheckInsRef.current.push({ pin: pinCode, timestamp: Date.now() });
-                    showCheckInSuccess(result, null);
+                    showCheckInSuccess(result, isDuplicateConfirm);
                 }
             } else {
                 handleCheckInError(result.message);
@@ -952,7 +956,7 @@ const CheckInPage = () => {
         if (duplicateAutoCloseRef.current) clearInterval(duplicateAutoCloseRef.current);
         setShowDuplicateConfirm(false);
         if (pendingPin) {
-            await proceedWithCheckIn(pendingPin);
+            await proceedWithCheckIn(pendingPin, true);
             setPendingPin(null);
         }
     };
@@ -1072,7 +1076,7 @@ const CheckInPage = () => {
         }
 
         if (lowerErr.includes("insufficient credits") || lowerErr.includes("expired") || lowerErr.includes("만료") || lowerErr.includes("거부") || lowerErr.includes("not-found")) {
-             speak("선생님에게 문의하세요"); // [TTS] Denied Feedback
+             speak("denied"); // [TTS] Denied Feedback
         }
 
         setMessage({ type: 'error', text: displayMsg });
@@ -1116,9 +1120,9 @@ const CheckInPage = () => {
         }
     };
 
-    const showCheckInSuccess = (result) => {
-        console.log(`[CheckIn] Showing success for: ${result.member?.name}`);
-        speak("안녕하세요"); // [TTS] Success Feedback
+    const showCheckInSuccess = (result, isDuplicate = false) => {
+        console.log(`[CheckIn] Showing success for: ${result.member?.name}, isDuplicate: ${isDuplicate}`);
+        speak(isDuplicate ? "duplicate" : "success"); // [TTS] Success Feedback
 
         // [PERSONALIZED FORMULA] No AI, just logic
         const member = result.member;
