@@ -465,6 +465,8 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             return logDate === todayStr && (currentBranch === 'all' || l.branchId === currentBranch);
         });
 
+        const classGroups = {};
+
         todayLogs.forEach(log => {
             const info = guessClassInfo(log);
             const classTime = info?.startTime || '00:00';
