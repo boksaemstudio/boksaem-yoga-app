@@ -52,19 +52,7 @@ export const guessClassTime = (log) => {
         const [h, min] = m.startTime.split(':').map(Number);
         const startMin = h * 60 + min;
         
-        // 시간 차이 계산
-        // 체크인이 수업 시작 전일 수도 있고 후일 수도 있음 (절대값)
         let diff = checkInMinutes - startMin; 
-
-        // [Logic] 수업 전 출석(Early Arrival) vs 수업 후 출석(Late Arrival) 보정
-        // 보통 30분 전 ~ 60분 후 정도가 유효 범위.
-        // 하지만 "엄격한 매칭"을 위해 범위 제한을 두지 않고 가장 가까운 것을 찾음.
-        // 단, '다음 수업'이 '이전 수업'보다 가까울 수 있으므로 단순 절대값 비교가 유효함.
-        
-        // 예: 21:00 수업. 22:08 체크인 (차이 68분)
-        // 만약 22:30 수업이 있다면? (차이 22분) -> 22:30으로 붙을 수 있음.
-        // 하지만 강사/수업명이 일치한다면 candidates 필터링에 의해 21:00만 남을 것임.
-        
         const absDiff = Math.abs(diff);
 
         if (absDiff < bestDiff) {
@@ -73,13 +61,15 @@ export const guessClassTime = (log) => {
         }
     }
 
-    if (bestMatch) {
+    // [Fix] Enforce 90-minute window. If check-in is too far from class, treat as separate/self-practice.
+    if (bestMatch && bestDiff <= 90) {
          return bestMatch.startTime; 
     }
     
-    // Fallback (Logic Error 방지용)
+    // Fallback: Use actual check-in time if no close match found
     const h = String(date.getHours()).padStart(2, '0');
-    return `${h}:00`;
+    const m = String(date.getMinutes()).padStart(2, '0');
+    return `${h}:${m}`;
 };
 
 /**
