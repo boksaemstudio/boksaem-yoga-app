@@ -719,7 +719,8 @@ export const storageService = {
       .filter(c => c.status !== 'cancelled');
 
     if (instructorName) {
-      classes = classes.filter(c => c.instructor === instructorName);
+      const target = instructorName.trim();
+      classes = classes.filter(c => (c.instructor || '').trim() === target);
     }
 
     return classes.sort((a, b) => a.time.localeCompare(b.time));

@@ -890,9 +890,9 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
             <div style={{ textAlign: 'center', fontSize: '0.75rem', opacity: 0.6, color: 'var(--text-secondary)', padding: '20px 8px' }}>
                 <div style={{ marginBottom: '4px', fontSize: '0.85rem' }}>{instructorName} 선생님으로 로그인됨</div>
                 <div style={{ fontSize: '0.75rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                     <span>v2026.02.15.1 | Date: {todayStr}</span>
-                     <span>User: [{instructorName}] ({instructorName.length})</span>
-                     <span>Fetched: {instructorClasses.length} / Att: {attendance.length}</span>
+                     <span>v2026.02.19.2 | Date: {todayStr}</span>
+                     <span>User: [{instructorName}] ({instructorName.trim().length})</span>
+                     <span>Classes: {instructorClasses.length} / Att: {attendance.length}</span>
                 </div>
             </div>
         </div>
