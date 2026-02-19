@@ -189,13 +189,19 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
             );
             
             if (matches.length > 0) {
-                // Find nearest schedule time (within 60 mins)
-                const nearest = matches.find(m => {
+                // [FIX] Find the CLOSEST schedule time (not the first within 60 min)
+                let bestMatch = null;
+                let bestDiff = Infinity;
+                for (const m of matches) {
                     const [h, min] = m.startTime.split(':').map(Number);
                     const startMin = h * 60 + min;
-                    return Math.abs(checkInMinutes - startMin) <= 60;
-                });
-                if (nearest) return nearest.startTime;
+                    const diff = Math.abs(checkInMinutes - startMin);
+                    if (diff <= 60 && diff < bestDiff) {
+                        bestDiff = diff;
+                        bestMatch = m;
+                    }
+                }
+                if (bestMatch) return bestMatch.startTime;
             }
             
             // Absolute fallback: Rounded hour
@@ -450,12 +456,19 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                     (s.className === log.className || (log.className && s.className && (log.className.includes(s.className) || s.className.includes(log.className))))
                                 );
                                 if (matches.length > 0) {
-                                    const nearest = matches.find(m => {
+                                    // [FIX] Find the CLOSEST schedule time
+                                    let bestMatch = null;
+                                    let bestDiff = Infinity;
+                                    for (const m of matches) {
                                         const [h, min] = m.startTime.split(':').map(Number);
                                         const startMin = h * 60 + min;
-                                        return Math.abs(checkInMinutes - startMin) <= 60;
-                                    });
-                                    if (nearest) return nearest.startTime;
+                                        const diff = Math.abs(checkInMinutes - startMin);
+                                        if (diff <= 60 && diff < bestDiff) {
+                                            bestDiff = diff;
+                                            bestMatch = m;
+                                        }
+                                    }
+                                    if (bestMatch) return bestMatch.startTime;
                                 }
                                 const h = String(date.getHours()).padStart(2, '0');
                                 return `${h}:00`;

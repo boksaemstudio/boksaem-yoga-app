@@ -472,13 +472,19 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             );
             
             if (matches.length > 0) {
-                // Find nearest schedule time (within 60 mins)
-                const nearest = matches.find(m => {
+                // [FIX] Find the CLOSEST schedule time (not the first within 60 min)
+                let bestMatch = null;
+                let bestDiff = Infinity;
+                for (const m of matches) {
                     const [h, min] = m.startTime.split(':').map(Number);
                     const startMin = h * 60 + min;
-                    return Math.abs(checkInMinutes - startMin) <= 60;
-                });
-                if (nearest) return nearest.startTime;
+                    const diff = Math.abs(checkInMinutes - startMin);
+                    if (diff <= 60 && diff < bestDiff) {
+                        bestDiff = diff;
+                        bestMatch = m;
+                    }
+                }
+                if (bestMatch) return bestMatch.startTime;
             }
             
             // Absolute fallback: Rounded hour
