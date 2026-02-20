@@ -20,7 +20,7 @@ export const AttendanceHeatmap = ({ data }) => {
                         contentStyle={{ backgroundColor: '#333', borderColor: '#444', color: '#fff' }}
                         itemStyle={{ color: '#fff' }}
                     />
-                    <Bar dataKey="count" fill="var(--primary-gold)" name="출석 수" />
+                    <Bar dataKey="count" fill="var(--primary-gold)" name="출석 수" isAnimationActive={false} />
                 </BarChart>
             </ResponsiveContainer>
         </div>
@@ -42,7 +42,7 @@ export const RevenueTrend = ({ data }) => {
                         contentStyle={{ backgroundColor: '#333', borderColor: '#444', color: '#fff' }}
                         formatter={(value) => new Intl.NumberFormat('ko-KR').format(value) + '원'}
                     />
-                    <Line type="monotone" dataKey="amount" stroke="#82ca9d" name="매출" strokeWidth={2} />
+                    <Line type="monotone" dataKey="amount" stroke="#82ca9d" name="매출" strokeWidth={2} isAnimationActive={false} />
                 </LineChart>
             </ResponsiveContainer>
         </div>
@@ -66,6 +66,7 @@ export const MemberStatusPie = ({ data }) => {
                         fill="#8884d8"
                         paddingAngle={5}
                         dataKey="value"
+                        isAnimationActive={false}
                         label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     >
                         {data.map((entry, index) => (

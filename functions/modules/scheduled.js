@@ -9,6 +9,7 @@
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const { admin, getAI, createPendingApproval, logAIError } = require("../helpers/common");
+const chunk = require('lodash/chunk');
 
 /**
  * 크레딧 소진 알림
@@ -153,10 +154,10 @@ exports.sendScheduledMessages = onSchedule({
             );
         }
 
-        const batch = db.batch();
+        const docsToProcess = snapshot.docs;
         const results = [];
 
-        for (const doc of snapshot.docs) {
+        for (const doc of docsToProcess) {
             const msg = doc.data();
             const memberId = msg.memberId;
             const content = msg.content;
@@ -208,30 +209,45 @@ exports.sendScheduledMessages = onSchedule({
                 }
             }
 
-            // 3. Update Doc
-            batch.update(doc.ref, {
-                status: 'sent',
-                sentAt: new Date().toISOString(),
-                pushStatus: { sent: pushSuccess, note: 'Scheduled Send' },
-                solapiStatus: solapiResult ? { sent: true, result: solapiResult } : { sent: false }
-            });
-            
-             // 4. Log to push_history
-             if (pushSuccess || solapiResult) {
-                 const historyRef = db.collection('push_history').doc();
-                 batch.set(historyRef, {
+            // Prepare updates instead of batching immediately
+            results.push({
+                ref: doc.ref,
+                updateData: {
+                    status: 'sent',
+                    sentAt: new Date().toISOString(),
+                    pushStatus: { sent: pushSuccess, note: 'Scheduled Send' },
+                    solapiStatus: solapiResult ? { sent: true, result: solapiResult } : { sent: false }
+                },
+                historyData: (pushSuccess || solapiResult) ? {
                     type: 'individual_scheduled',
                     title: "예약 알림",
                     body: content,
                     status: 'sent',
                     targetMemberId: memberId,
                     createdAt: new Date()
-                 });
-             }
+                } : null
+            });
         }
 
-        await batch.commit();
-        console.log(`[Scheduled] Successfully processed ${snapshot.size} messages.`);
+        // Chunking the execution to handle > 500 documents
+        // Each result produces 1 to 2 operations (update message, set history)
+        // A batch can hold 500 operations. To be perfectly safe, chunk by 200 items (max 400 ops)
+        const CHUNK_SIZE = 200;
+        const chunks = chunk(results, CHUNK_SIZE);
+
+        for (const batchChunk of chunks) {
+            const batch = db.batch();
+            for (const item of batchChunk) {
+                 batch.update(item.ref, item.updateData);
+                 if (item.historyData) {
+                     const historyRef = db.collection('push_history').doc();
+                     batch.set(historyRef, item.historyData);
+                 }
+            }
+            await batch.commit();
+        }
+
+        console.log(`[Scheduled] Successfully processed ${results.length} messages.`);
 
     } catch (error) {
         console.error("Scheduled message processing failed:", error);

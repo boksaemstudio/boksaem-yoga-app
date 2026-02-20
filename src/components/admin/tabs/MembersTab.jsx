@@ -1,3 +1,4 @@
+import React, { useMemo } from 'react';
 import { BellRinging, Check, Info, Plus, NotePencil, PaperPlaneTilt } from '@phosphor-icons/react';
 import { getBranchName, getBranchColor, getBranchThemeColor } from '../../../studioConfig';
 
@@ -24,8 +25,22 @@ const MembersTab = ({
     setShowBulkMessageModal, // [FIX] Add this prop
     getDormantSegments // [FIX] Receive this prop
 }) => {
-    if (!summary || !filteredMembers) return <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>데이터 로딩 중...</div>;
+    const todayKstStr = useMemo(() => new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }), []);
+    const todayStartMs = useMemo(() => {
+        const d = new Date();
+        d.setHours(0,0,0,0);
+        return d.getTime();
+    }, []);
 
+    const finalFiltered = useMemo(() => {
+        if (filterType === 'dormant' && getDormantSegments) {
+            const segments = getDormantSegments(filteredMembers);
+            return segments['all'] || [];
+        }
+        return filteredMembers;
+    }, [filteredMembers, filterType, getDormantSegments]);
+
+    if (!summary || !filteredMembers) return <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>데이터 로딩 중...</div>;
     return (
         <div className="members-tab-container">
 
@@ -213,28 +228,22 @@ const MembersTab = ({
             {/* Member List */}
             <div className="card-list">
                 {(() => {
-                    let filtered = filteredMembers;
-                    if (filterType === 'dormant' && getDormantSegments) {
-                        const segments = getDormantSegments(filteredMembers);
-                        filtered = segments['all'] || [];
-                    }
-
-                    const totalPages = Math.ceil(filtered.length / itemsPerPage);
+                    const totalPages = Math.ceil(finalFiltered.length / itemsPerPage);
                     const startIndex = (currentPage - 1) * itemsPerPage;
-                    const paginated = filtered.slice(startIndex, startIndex + itemsPerPage);
+                    const paginated = finalFiltered.slice(startIndex, startIndex + itemsPerPage);
 
                     return (
                         <>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 4px 8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                                <div onClick={() => selectFilteredMembers(filtered)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <div onClick={() => selectFilteredMembers(finalFiltered)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     <div style={{
                                         width: '16px', height: '16px', borderRadius: '4px', border: '1px solid var(--border-color)',
-                                        background: filtered.length > 0 && filtered.every(m => selectedMemberIds.includes(m.id)) ? 'var(--primary-gold)' : 'transparent',
+                                        background: finalFiltered.length > 0 && finalFiltered.every(m => selectedMemberIds.includes(m.id)) ? 'var(--primary-gold)' : 'transparent',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center'
                                     }}>
-                                        {filtered.length > 0 && filtered.every(m => selectedMemberIds.includes(m.id)) && <Check size={10} color="#000" weight="bold" />}
+                                        {finalFiltered.length > 0 && finalFiltered.every(m => selectedMemberIds.includes(m.id)) && <Check size={10} color="#000" weight="bold" />}
                                     </div>
-                                    전체 선택 ({filtered.length}명)
+                                    전체 선택 ({finalFiltered.length}명)
                                 </div>
                                 
                                 {/* [NEW] Bulk Action Button */}
@@ -279,7 +288,7 @@ const MembersTab = ({
                                                 <strong style={{ fontWeight: 800, fontSize: '1.1rem' }}>{member.name}</strong>
                                                 
                                                 {/* [NEW] Today Registration Badges */}
-                                                {member.regDate === new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }) && (
+                                                {member.regDate === todayKstStr && (
                                                     <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10B981', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
                                                         신규
                                                     </span>
@@ -306,14 +315,13 @@ const MembersTab = ({
                                                 오늘 2회 출석 🔥
                                             </span>
                                         )}
-                                        {/* Status Context Badges */}
+                                                {/* Status Context Badges */}
                                                 {filterType === 'dormant' && (() => {
-                                                    const today = new Date();
-                                                    let lastDate = member.lastAttendance ? new Date(member.lastAttendance) : (member.regDate ? new Date(member.regDate) : null);
+                                                    let lastDateMs = member.lastAttendance ? new Date(member.lastAttendance).getTime() : (member.regDate ? new Date(member.regDate).getTime() : null);
 
-                                                    if (!lastDate) return <span className="badge" style={{ background: 'var(--gray-700)', color: '#bbb' }}>기록 없음</span>;
+                                                    if (!lastDateMs) return <span className="badge" style={{ background: 'var(--gray-700)', color: '#bbb' }}>기록 없음</span>;
 
-                                                    const diffTime = Math.abs(today - lastDate);
+                                                    const diffTime = Math.abs(Date.now() - lastDateMs);
                                                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
                                                     return (
@@ -329,9 +337,8 @@ const MembersTab = ({
                                                 })()}
                                                 {/* [NEW] Install Date Badge (Show only when filtered by installed) */}
                                                 {filterType === 'installed' && member.installedAt && (() => {
-                                                    const installDate = new Date(member.installedAt);
-                                                    const today = new Date();
-                                                    const isToday = installDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }) === today.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                                                    const installDateStr = new Date(member.installedAt).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                                                    const isToday = installDateStr === todayKstStr;
                                                     
                                                     return (
                                                         <span className="badge" style={{ 
@@ -339,7 +346,7 @@ const MembersTab = ({
                                                             color: isToday ? '#4CD964' : '#60A5FA', 
                                                             border: isToday ? '1px solid rgba(76, 217, 100, 0.4)' : '1px solid rgba(96, 165, 250, 0.3)'
                                                         }}>
-                                                            {isToday ? '오늘 설치' : `${installDate.toLocaleDateString().slice(2)} 설치`}
+                                                            {isToday ? '오늘 설치' : `${installDateStr.slice(2)} 설치`}
                                                         </span>
                                                     );
                                                 })()}
@@ -413,10 +420,8 @@ const MembersTab = ({
                                                 <span style={{
                                                     color: (() => {
                                                         if (!member.endDate || member.endDate === 'TBD' || member.endDate === 'unlimited') return 'var(--text-tertiary)';
-                                                        const end = new Date(member.endDate);
-                                                        const today = new Date();
-                                                        today.setHours(0,0,0,0);
-                                                        const diff = (end - today) / (1000 * 60 * 60 * 24);
+                                                        const endMs = new Date(member.endDate).getTime();
+                                                        const diff = (endMs - todayStartMs) / (1000 * 60 * 60 * 24);
                                                         
                                                         if (diff < 0) return 'var(--accent-error)';
                                                         if (diff <= 7) return '#f59e0b';

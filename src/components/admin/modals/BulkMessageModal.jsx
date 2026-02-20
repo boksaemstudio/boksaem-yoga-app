@@ -3,14 +3,14 @@ import { X, PaperPlaneTilt, Calendar, CurrencyKrw } from '@phosphor-icons/react'
 import { storageService } from '../../../services/storage';
 
 const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) => {
-    if (!isOpen) return null;
-
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
     const [isScheduled, setIsScheduled] = useState(false);
     const [scheduledTime, setScheduledTime] = useState('');
     const [selectedTemplateId, setSelectedTemplateId] = useState('');
     const scheduleInputRef = useRef(null);
+
+    if (!isOpen) return null;
 
     const templates = [
         "회원님, 재등록 기간입니다. 확인 부탁드려요! 🧘‍♀️",

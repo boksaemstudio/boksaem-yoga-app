@@ -60,6 +60,8 @@ const generateInternalAudio = async (text, type = 'default') => {
 exports.generateMeditationGuidance = onCall({
     region: "asia-northeast3",
     cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173'],
+    memory: "512MiB",
+    timeoutSeconds: 120,
     minInstances: 1, // ✅ Cold Start 방지
     maxInstances: 10 // ✅ Concurrency Limit Increased (User Request)
 }, async (request) => {
@@ -641,8 +643,8 @@ JSON Output:
             transitionData: transitionData || null
         };
 
-        // [PERF] Log usage — fire-and-forget (응답 반환 지연 제거)
-        admin.firestore().collection('meditation_ai_logs').add({
+        // [FIX] Await to prevent fire-and-forget data loss in Cloud Functions
+        await admin.firestore().collection('meditation_ai_logs').add({
             type,
             timeContext: timeContext || 'unknown',
             weather: weather || 'unknown',

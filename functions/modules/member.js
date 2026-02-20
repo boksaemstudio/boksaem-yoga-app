@@ -122,7 +122,23 @@ exports.verifyInstructorV2Call = onCall({
         });
 
         if (instructor) {
-            return { success: true, name: typeof instructor === 'string' ? instructor : instructor.name };
+            const instructorName = typeof instructor === 'string' ? instructor : instructor.name;
+            
+            // [FIX] Create Custom Token for Instructor Auth
+            // This allows the frontend to sign in as this instructor and pass firestore rules
+            try {
+                const uid = `instructor_${trimmedLast4}`;
+                const token = await admin.auth().createCustomToken(uid, { 
+                    instructor: true,
+                    name: instructorName
+                });
+                
+                return { success: true, name: instructorName, token };
+            } catch (tokenError) {
+                console.error("Error creating custom token:", tokenError);
+                // Fallback (might fail firestore rules but allows login)
+                return { success: true, name: instructorName };
+            }
         } else {
             return { success: false, message: '일치하는 강사 정보가 없습니다.' };
         }

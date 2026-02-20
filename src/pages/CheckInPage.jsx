@@ -1,22 +1,17 @@
-import { useState, useEffect, useRef, memo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Keypad from '../components/Keypad';
 import { storageService } from '../services/storage';
-import { functions, auth } from '../firebase';
+import { auth } from '../firebase';
 import { signInAnonymously } from 'firebase/auth';
-import { httpsCallable } from 'firebase/functions';
 import { getAllBranches, getBranchName } from '../studioConfig';
 import logoWide from '../assets/logo_wide.png';
-import { MapPin, Sun, Cloud, CloudRain, Snowflake, Lightning, Moon, CornersOut, CornersIn, Chalkboard } from '@phosphor-icons/react';
-import { getTodayKST, getKSTHour, getKSTMinutes, getDaysRemaining } from '../utils/dates';
+import rys200Logo from '../assets/RYS200.png';
+import { getKSTHour, getDaysRemaining } from '../utils/dates';
 import { logError } from '../services/modules/errorModule';
+import { useNetworkMonitor } from '../hooks/useNetworkMonitor';
+import { useTTS } from '../hooks/useTTS';
 import { useNetwork } from '../context/NetworkContext';
-
-// [AUDIO] High-quality TTS assets
-import audioWelcome from '../assets/audio/welcome.mp3';
-import audioSuccess from '../assets/audio/success.mp3';
-import audioDuplicateSuccess from '../assets/audio/duplicate_success.mp3';
-import audioDenied from '../assets/audio/denied.mp3';
-import audioError from '../assets/audio/error.mp3';
+import TopBar from '../components/checkin/TopBar';
 
 
 // [PERF] 현재 시간대 배경만 로딩 (4장 → 1장, WebP 최적화)
@@ -30,168 +25,7 @@ const getBgForPeriod = (period) => {
 };
 import InstallGuideModal from '../components/InstallGuideModal';
 import InstructorQRModal from '../components/InstructorQRModal';
-import rys200Logo from '../assets/RYS200.png';
 
-
-const getWeatherIcon = (code, isNight) => {
-    if (code === 0) return isNight ? <Moon size={24} weight="fill" /> : <Sun size={24} weight="fill" />;
-    if (code >= 1 && code <= 3) return <Cloud size={24} weight="fill" />;
-    if (code >= 45 && code <= 48) return <Cloud size={24} weight="fill" />; // Fog
-    if (code >= 51 && code <= 67) return <CloudRain size={24} weight="fill" />;
-    if (code >= 71 && code <= 77) return <Snowflake size={24} weight="fill" />;
-    if (code >= 80 && code <= 82) return <CloudRain size={24} weight="fill" />;
-    if (code >= 95) return <Lightning size={24} weight="fill" />;
-    return <Cloud size={24} weight="fill" />;
-};
-
-// [OPTIMIZED] Self-contained Clock to prevent full-page re-renders
-const DigitalClock = memo(() => {
-    const [time, setTime] = useState(new Date());
-
-    useEffect(() => {
-        const timer = setInterval(() => setTime(new Date()), 1000);
-        return () => clearInterval(timer);
-    }, []);
-
-    // Optimized formatting for older CPUs
-    const h = time.getHours().toString().padStart(2, '0');
-    const m = time.getMinutes().toString().padStart(2, '0');
-    const s = time.getSeconds().toString().padStart(2, '0');
-
-    return (
-        <div className="top-clock outfit-font" style={{
-            fontSize: '2.2rem',
-            fontWeight: 700,
-            color: 'var(--primary-gold)',
-            letterSpacing: '2px',
-            fontVariantNumeric: 'tabular-nums',
-            lineHeight: 1
-        }}>
-            {h}:{m}:{s}
-        </div>
-    );
-});
-DigitalClock.displayName = 'DigitalClock';
-
-const TopBar = memo(({ weather, currentBranch, branches, handleBranchChange, toggleFullscreen, isFullscreen, language, onInstructorClick }) => {
-    const locale = language === 'ko' ? 'ko-KR' : (language === 'en' ? 'en-US' : (language === 'ru' ? 'ru-RU' : (language === 'zh' ? 'zh-CN' : 'ja-JP')));
-    const now = new Date();
-
-
-    return (
-        <div className="checkin-top-bar" style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '10px 30px',
-            zIndex: 10,
-            position: 'relative'
-        }}>
-            {/* Left: Branch Selector */}
-            <div className="branch-selector" style={{ flex: 1, display: 'flex', gap: '10px' }}>
-                {branches.map(branch => (
-                    <button
-                        key={branch.id}
-                        className={`branch-btn ${currentBranch === branch.id ? 'active' : ''}`}
-                        onClick={() => handleBranchChange(branch.id)}
-                    >
-                        <MapPin size={18} weight={currentBranch === branch.id ? 'fill' : 'regular'} /> {branch.name}
-                    </button>
-                ))}
-            </div>
-
-            {/* Center: Clock & Weather (Absolute Centered) */}
-            <div className="top-info-center glass-panel-sm" style={{
-                position: 'absolute',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '12px',
-                padding: '8px 20px',
-                borderRadius: '50px',
-                background: 'rgba(255, 255, 255, 0.1)',
-                border: '1px solid rgba(255, 215, 0, 0.3)',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-                whiteSpace: 'nowrap',
-                width: 'fit-content',
-                flexShrink: 0
-            }}>
-                <DigitalClock locale={locale} />
-
-                <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.15)' }} />
-
-                {weather && (
-                    <>
-                        <div className="top-weather" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            {getWeatherIcon(weather.weathercode, getKSTHour() >= 18 || getKSTHour() < 6)}
-                            <span className="weather-temp" style={{ fontSize: '1.4rem', fontWeight: 600, color: 'rgba(255,255,255,0.95)', lineHeight: 1 }}>
-                                {weather.temperature}°C
-                            </span>
-                        </div>
-
-                        <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.15)' }} />
-
-                        <span className="weather-date" style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.6)', fontWeight: 500, letterSpacing: '0.5px', lineHeight: 1 }}>
-                            {now.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
-                        </span>
-                    </>
-                )}
-            </div>
-
-            {/* Right: Action Buttons Grouped */}
-            <div className="top-actions-right" style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', gap: '20px', alignItems: 'center' }}>
-                <button
-                    className="instructor-btn"
-                    onClick={onInstructorClick}
-                    aria-label="선생님 전용"
-                    style={{
-                        background: 'rgba(212, 175, 55, 0.15)',
-                        border: '1px solid rgba(212, 175, 55, 0.4)',
-                        borderRadius: '22px',
-                        padding: '8px 16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        cursor: 'pointer',
-                        color: 'var(--primary-gold)',
-                        fontSize: '0.9rem',
-                        fontWeight: 500,
-                        transition: 'none'
-                    }}
-                >
-                    <Chalkboard size={20} weight="duotone" />
-                    선생님
-                </button>
-
-
-                <button
-                    className="fullscreen-btn"
-                    onClick={toggleFullscreen}
-                    aria-label={isFullscreen ? "전체화면 종료" : "전체화면 시작"}
-                    style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        borderRadius: '50%',
-                        width: '44px',
-                        height: '44px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        color: 'white',
-                        transition: 'none'
-                    }}
-                >
-                    {isFullscreen ? <CornersIn size={24} /> : <CornersOut size={24} />}
-                </button>
-            </div>
-        </div>
-    );
-});
-TopBar.displayName = 'TopBar';
 
 const CheckInPage = () => {
     const [pin, setPin] = useState('');
@@ -212,7 +46,9 @@ const CheckInPage = () => {
     const [showInstructorQR, setShowInstructorQR] = useState(false);
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [keypadLocked, setKeypadLocked] = useState(false); // [FIX] Prevent ghost touches
-    const { isOnline, setIsOnline } = useNetwork(); // [NETWORK] GLOBAL Connectivity state
+    const { isOnline, checkConnection } = useNetworkMonitor();
+    const { setIsOnline } = useNetwork(); // [NETWORK] GLOBAL Connectivity state
+    const { speak } = useTTS();
 
     // [DUPLICATE] 중복 입력 방지
     const recentCheckInsRef = useRef([]); // [{pin, timestamp}, ...]
@@ -225,30 +61,6 @@ const CheckInPage = () => {
     // [FIX] Always use Korean for Check-in Page as requested
     // const { language } = useLanguage();
     const language = 'ko';
-
-    // [TTS] Voice Feedback Helper (Now using High-quality Pre-recorded Audio)
-    const speak = (type) => {
-        const audioMap = {
-            'welcome': audioWelcome,
-            'success': audioSuccess,
-            'duplicate': audioDuplicateSuccess,
-            'denied': audioDenied,
-            'error': audioError
-        };
-
-        const source = audioMap[type];
-        if (!source) {
-            console.warn(`[TTS] No audio mapping for type: ${type}`);
-            return;
-        }
-
-        try {
-            const audio = new Audio(source);
-            audio.play().catch(e => console.warn('[TTS] Playback failed', e));
-        } catch (e) {
-            console.error('[TTS] Audio creation failed', e);
-        }
-    };
 
     // [UX] Loading Message Logic
     const [loadingMessage, setLoadingMessage] = useState('출석 확인 중...');
@@ -273,58 +85,7 @@ const CheckInPage = () => {
         };
     }, [loading]);
 
-    // [NETWORK] Active Connection Check & Recovery
-    const checkConnection = async () => {
-        try {
-            console.log('[Network] Pinging server to verify connection...');
-            // [FIX] Use lightweight fetch to check connectivity instead of heavy Cloud Function
-            // This prevents false "Offline" caused by Cold Start timeouts
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
-            
-            // Bypass Cache with timestamp
-            const res = await fetch('/?t=' + new Date().getTime(), { 
-                method: 'HEAD', 
-                cache: 'no-store',
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            
-            // Any response (200, 404, etc.) means we reached the server
-            if (res.ok || res.status < 500) { 
-                console.log('[Network] Connection verified ✅');
-                if (!isOnline) {
-                    console.log('[Network] Restoring online state');
-                    setIsOnline(true);
-                }
-                return true;
-            }
-            return false;
-        } catch (e) {
-            console.warn('[Network] Ping failed:', e);
-            // Only set offline if we were online... (logic remains)
-            return false;
-        }
-    };
 
-    // [PERF] Warm-up & Keep-alive: 앱 시작 시 최우선 실행 (서버 깨우기)
-    useEffect(() => {
-        const initServer = async () => {
-            const currentHour = getKSTHour();
-            // 영업시간 (09:00 ~ 22:00) 외에는 핑 보내지 않음
-            if (currentHour >= 9 && currentHour < 22) {
-                await checkConnection();
-                
-                // [WARM-UP] Meditation AI (Cold Start 방지)
-                const aiFn = httpsCallable(functions, 'generateMeditationGuidance');
-                aiFn({ type: 'warmup' }).catch(e => console.debug("[System] AI Warm-up silent fail:", e));
-            }
-        };
-
-        initServer();
-        const interval = setInterval(initServer, 10 * 60 * 1000); 
-        return () => clearInterval(interval);
-    }, []);
 
     // ... (Use a slow timer for background period updates) ...
 
@@ -360,28 +121,7 @@ const CheckInPage = () => {
         }
     }, [pin]);
 
-    useEffect(() => {
-        // [NETWORK] Background connection check to prevent permanent "Offline" on UI
-        // Use more aggressive interval (30s) when offline to recover faster
-        const intervalTime = isOnline ? 10 * 60 * 1000 : 30000;
-        
-        const interval = setInterval(() => {
-            console.log(`[CheckIn] Periodic network check (${isOnline ? 'Online mode' : 'Offline mode'})...`);
-            checkConnection();
-        }, intervalTime);
 
-        // [NETWORK] Also check when window regains focus
-        const handleFocus = () => {
-            console.log('[CheckIn] Window focused - Triggering network check');
-            checkConnection();
-        };
-        window.addEventListener('focus', handleFocus);
-
-        return () => {
-            clearInterval(interval);
-            window.removeEventListener('focus', handleFocus);
-        };
-    }, [isOnline]);
     const branches = getAllBranches();
 
     useEffect(() => {
@@ -505,6 +245,7 @@ const CheckInPage = () => {
         return () => {
             clearInterval(periodTimer);
             clearInterval(refreshTimer);
+            if (duplicateAutoCloseRef.current) clearInterval(duplicateAutoCloseRef.current); // ✅ Memory Leak Fix: Zombie Timer Destruction
             window.removeEventListener('click', handleFirstInteraction);
             window.removeEventListener('touchstart', handleFirstInteraction);
         };
@@ -1132,7 +873,6 @@ const CheckInPage = () => {
 
     const showCheckInSuccess = (result, isDuplicate = false) => {
         console.log(`[CheckIn] Showing success for: ${result.member?.name}, isDuplicate: ${isDuplicate}`);
-        speak(isDuplicate ? "duplicate" : "success"); // [TTS] Success Feedback
 
         // [PERSONALIZED FORMULA] No AI, just logic
         const member = result.member;
@@ -1155,6 +895,13 @@ const CheckInPage = () => {
         // EXPIRY Check first (before duplicate msg)
         const isExpiredPeriod = daysLeft < 0;
         const isExpiredCredits = credits <= 0 && Number.isFinite(credits);
+
+        // [TTS] Feedback logic
+        if (isExpiredPeriod || isExpiredCredits) {
+            speak("denied"); 
+        } else {
+            speak(isDuplicate ? "duplicate" : "success"); 
+        }
 
         // [New] Duplicate Check-in Feedback
         if (result.isDuplicate) {
@@ -1715,7 +1462,10 @@ const CheckInPage = () => {
                                                 display: 'grid',
                                                 gridTemplateColumns: activeMembers.length > 4 ? 'repeat(2, 1fr)' : '1fr',
                                                 gap: '10px',
-                                                flex: 1
+                                                flex: 1,
+                                                overflowY: 'auto',
+                                                alignContent: 'start',
+                                                paddingRight: '5px'
                                             }}>
                                                 {activeMembers.length > 0 ? activeMembers.map(m => (
                                                     <button

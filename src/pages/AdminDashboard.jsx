@@ -877,6 +877,7 @@ const AdminDashboard = () => {
                         setCurrentLogPage={setCurrentLogPage}
                         members={members}
                         onMemberClick={handleOpenEdit}
+                        summary={summary}
                     />
                 )}
 

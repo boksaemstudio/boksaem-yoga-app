@@ -1,153 +1,82 @@
-
 const admin = require('firebase-admin');
-const serviceAccount = require('../service-account-key.json');
 
-try {
-    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-} catch (e) {
-    if (!admin.apps.length) admin.initializeApp();
+// Initialize with application default credentials, assuming project is configured
+if (!admin.apps.length) {
+    // try to load the default config (if this script runs in functions dir, we might need a service account, but usually firebase-admin works locally via emulator or default ADC)
+    admin.initializeApp();
 }
 
 const db = admin.firestore();
 
-async function runAudit() {
-    console.log("=== DAILY AUDIT STARTED ===\n");
-    const issues = [];
-
-    // 1. Security Rules
-    console.log("1. Security Rules Check");
-    console.log("   - Verified manually (No 'allow if true' found).");
-    console.log("   - Critical collections are protected.\n");
-
-    // 2. Data Integrity
-    console.log("2. Data Integrity Check");
-    
-    // 2.1 Members with negative credits
-    try {
-        const negCreditsSnap = await db.collection('members').where('credits', '<', 0).get();
-        if (!negCreditsSnap.empty) {
-            console.log(`   [WARNING] Found ${negCreditsSnap.size} members with negative credits:`);
-            negCreditsSnap.docs.forEach(doc => {
-                console.log(`     - ${doc.data().name || doc.id} (${doc.data().credits})`);
-                issues.push(`Member ${doc.data().name} has negative credits.`);
-            });
-        } else {
-            console.log("   - No members with negative credits.");
-        }
-    } catch (e) {
-        console.error("   [ERROR] Failed to check members:", e.message);
-    }
-
-    // 2.2 Duplicate Attendance (Last 500 records)
-    try {
-        const attendanceSnap = await db.collection('attendance')
-            .orderBy('date', 'desc')
-            .limit(500)
-            .get();
-        
-        const verificationMap = {};
-        let duplicateCount = 0;
-        
-        attendanceSnap.docs.forEach(doc => {
-            const data = doc.data();
-            const key = `${data.memberId}_${data.date}_${data.className}`;
-            if (verificationMap[key]) {
-                duplicateCount++;
-                console.log(`     - Duplicate found: ${data.memberName} (${data.date} ${data.className})`);
-                issues.push(`Duplicate attendance for ${data.memberName} on ${data.date}`);
-            } else {
-                verificationMap[key] = true;
-            }
-        });
-
-        if (duplicateCount === 0) {
-            console.log("   - No duplicate attendance records found (in last 500).");
-        }
-    } catch (e) {
-        console.error("   [ERROR] Failed to check attendance:", e.message);
-    }
-    console.log("");
-
-    // 3. Error Logs
-    console.log("3. Error Log Monitoring");
-    
-    const checkLogs = async (colName) => {
-        try {
-            const snap = await db.collection(colName).orderBy('timestamp', 'desc').limit(5).get();
-            if (!snap.empty) {
-                console.log(`   [WARNING] Recent errors in ${colName}:`);
-                snap.docs.forEach(doc => {
-                    const data = doc.data();
-                    console.log(`     -[${data.timestamp?.toDate ? data.timestamp.toDate().toISOString() : 'N/A'}] ${data.error || data.message || 'No message'}`);
-                    issues.push(`Error in ${colName}: ${data.error || data.message}`);
-                });
-            } else {
-                console.log(`   - No recent errors in ${colName}.`);
-            }
-        } catch (e) {
-            // Ignore orderBy errors if index is missing, try without orderBy
-            try {
-                const snap = await db.collection(colName).limit(5).get();
-                if (!snap.empty) {
-                     console.log(`   [INFO] Found logs in ${colName} (unordered):`);
-                     // just show count
-                     console.log(`     - ${snap.size} logs found.`);
-                } else {
-                     console.log(`   - No logs in ${colName}.`);
-                }
-            } catch (e2) {
-                console.error(`   [ERROR] Failed to check ${colName}:`, e.message);
-            }
-        }
-    };
-
-    await checkLogs('ai_error_logs');
-    await checkLogs('error_logs');
-    console.log("");
-
-    // 4. FCM Tokens
-    console.log("4. FCM Token Check");
-    try {
-        const tokenCounts = {};
-        const collections = ["fcm_tokens", "fcmTokens", "push_tokens"];
-        
-        for (const col of collections) {
-            try {
-                const snap = await db.collection(col).get();
-                snap.docs.forEach(doc => {
-                    const data = doc.data();
-                    const memberId = data.memberId || 'unknown';
-                    tokenCounts[memberId] = (tokenCounts[memberId] || 0) + 1;
-                });
-            } catch (e) {
-                // Ignore missing collections
-            }
-        }
-
-        let excessiveTokensFound = false;
-        for (const [memberId, count] of Object.entries(tokenCounts)) {
-            if (count >= 10 && memberId !== 'unknown') {
-                console.log(`   [WARNING] Member ${memberId} has ${count} FCM tokens.`);
-                issues.push(`Member ${memberId} has excessive FCM tokens result.`);
-                excessiveTokensFound = true;
-            }
-        }
-        
-        if (!excessiveTokensFound) {
-            console.log("   - No members with excessive FCM tokens.");
-        }
-
-    } catch (e) {
-        console.error("   [ERROR] Failed to check FCM tokens:", e.message);
-    }
-
-    console.log("\n=== AUDIT COMPLETED ===");
-    if (issues.length > 0) {
-        console.log("\nIssues Found:");
-        issues.forEach(i => console.log("- " + i));
+async function checkIntegrity() {
+    console.log("--- Checking Members for Negative Credits ---");
+    const membersSnap = await db.collection('members').where('credits', '<', 0).get();
+    if (membersSnap.empty) {
+        console.log("✅ No members with negative credits found.");
     } else {
-        console.log("\n✅ All systems nominal.");
+        console.log(`❌ Found ${membersSnap.size} members with negative credits:`);
+        membersSnap.forEach(doc => console.log(` - ${doc.id}: ${doc.data().name} (${doc.data().credits} credits)`));
+    }
+
+    console.log("\n--- Checking Recent Attendance for Duplicates ---");
+    const recentDate = new Date();
+    recentDate.setDate(recentDate.getDate() - 7);
+    const recentDateStr = recentDate.toISOString();
+
+    const attendanceSnap = await db.collection('attendance').where('timestamp', '>=', recentDateStr).get();
+    const attendanceMap = {};
+    let duplicatesFiles = 0;
+
+    attendanceSnap.forEach(doc => {
+        const data = doc.data();
+        if(!data.memberId || !data.date) return;
+        const key = `${data.memberId}_${data.date}`;
+        if (!attendanceMap[key]) {
+            attendanceMap[key] = [];
+        }
+        attendanceMap[key].push(doc.id);
+    });
+
+    for (const [key, ids] of Object.entries(attendanceMap)) {
+        if (ids.length > 1) {
+            duplicatesFiles++;
+            const [memberId, date] = key.split('_');
+            console.log(`❌ Duplicate found for member ${memberId} on date ${date}: Docs: ${ids.join(', ')}`);
+        }
+    }
+
+    if (duplicatesFiles === 0) {
+        console.log("✅ No duplicate attendance records found in the last 7 days.");
+    }
+
+    // FCM tokens
+    console.log("\n--- Checking FCM Tokens ---");
+    const tokensSnap = await db.collection('fcm_tokens').get();
+    const tokenCounts = {};
+    tokensSnap.forEach(doc => {
+        const data = doc.data();
+        if (data.memberId) {
+            tokenCounts[data.memberId] = (tokenCounts[data.memberId] || 0) + 1;
+        }
+    });
+
+    let excessiveTokens = 0;
+    for (const [memberId, count] of Object.entries(tokenCounts)) {
+        if (count > 5) {
+            excessiveTokens++;
+            console.log(`⚠️ Member ${memberId} has ${count} push tokens registered.`);
+        }
+    }
+    
+    if (excessiveTokens === 0) {
+        console.log("✅ No members with excessive FCM tokens.");
     }
 }
 
-runAudit().catch(console.error);
+checkIntegrity().then(() => {
+    console.log("\nAudit Complete.");
+    process.exit(0);
+}).catch(err => {
+    console.error("Audit failed:", err);
+    process.exit(1);
+});

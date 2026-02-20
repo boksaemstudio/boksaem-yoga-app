@@ -14,6 +14,8 @@ const { admin, getAI, checkAIQuota, logAIError, logAIRequest } = require("../hel
  */
 exports.generatePageExperienceV2 = onCall({ 
     region: "asia-northeast3", 
+    memory: "512MiB",
+    timeoutSeconds: 120,
     cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173'] 
 }, async (request) => {
     await checkAIQuota();
@@ -82,6 +84,8 @@ exports.generatePageExperienceV2 = onCall({
  */
 exports.translateNoticesV2 = onCall({ 
     region: "asia-northeast3", 
+    memory: "512MiB",
+    timeoutSeconds: 120,
     cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173'] 
 }, async (request) => {
     const { notices, language = 'ko' } = request.data;
@@ -99,6 +103,8 @@ exports.translateNoticesV2 = onCall({
  */
 exports.generateDailyYogaV2 = onCall({ 
     region: "asia-northeast3", 
+    memory: "512MiB",
+    timeoutSeconds: 120,
     cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173'] 
 }, async (request) => {
     try {

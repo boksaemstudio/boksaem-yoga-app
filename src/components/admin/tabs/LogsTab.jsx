@@ -118,7 +118,7 @@ const calNavBtn = {
 };
 
 // ─── Main Component ───
-const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, members = [], onMemberClick }) => {
+const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, members = [], onMemberClick, summary }) => {
     const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
     const [selectedDate, setSelectedDate] = useState(todayStr);
     const [selectedClassKey, setSelectedClassKey] = useState(null);
@@ -518,6 +518,16 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                                         }}>
                                                             <Sparkle size={10} weight="fill" />
                                                             {log.sessionCount || '2'}회차 Passion
+                                                        </span>
+                                                    )}
+                                                    {isToday && summary?.multiAttendedMemberIds?.includes(log.memberId) && (
+                                                        <span className="badge" style={{
+                                                            fontSize: '0.65rem', padding: '2px 6px',
+                                                            background: 'rgba(245, 158, 11, 0.25)', color: '#FBBF24',
+                                                            border: '1px solid rgba(245, 158, 11, 0.5)', fontWeight: 'bold',
+                                                            height: 'max-content'
+                                                        }}>
+                                                            오늘 2회 출석 🔥
                                                         </span>
                                                     )}
                                                 </div>

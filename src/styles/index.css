@@ -1743,3 +1743,149 @@ input:checked+.slider:before {
    animation: active-pulse 3s infinite ease-in-out !important;
    filter: blur(50px) brightness(1.4);
 }
+
+/* =========================================
+   Admin Revenue Styles
+   ========================================= */
+
+.revenue-summary-card {
+  background: linear-gradient(135deg, rgba(212,175,55,0.1), rgba(0,0,0,0));
+  border: 1px solid rgba(212,175,55,0.3);
+}
+
+.revenue-summary-title {
+  font-size: 0.9rem;
+  color: var(--primary-gold);
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.revenue-summary-amount {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(212,175,55,0.3);
+}
+
+.revenue-summary-details {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.6);
+  margin-top: 8px;
+}
+
+.revenue-new {
+  color: #86efac;
+}
+
+.revenue-rereg {
+  color: #60a5fa;
+}
+
+.revenue-count-title {
+  font-size: 0.9rem;
+  color: #a1a1aa;
+}
+
+.revenue-count {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.revenue-comp-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.comp-card-title {
+  font-size: 0.85rem;
+  color: #a1a1aa;
+  margin-bottom: 8px;
+}
+
+.comp-card-amount {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #fff; /* Default */
+}
+
+.comp-card-amount.positive {
+  color: #f59e0b;
+}
+
+.revenue-calendar-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 600px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  width: 100%;
+  border-left: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-color);
+}
+
+.calendar-header-cell {
+  text-align: center;
+  padding: 10px 0;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #71717a;
+}
+.calendar-header-cell.sun { color: #ef4444; }
+.calendar-header-cell.sat { color: #3b82f6; }
+
+.calendar-empty-cell {
+  min-height: 80px;
+  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  background: #09090b;
+}
+
+.calendar-day-cell {
+  min-height: 80px;
+  padding: 6px;
+  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  background: #09090b;
+  position: relative;
+  overflow: hidden;
+}
+
+.calendar-day-number {
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: #d4d4d8;
+}
+.calendar-day-number.sun { color: #ef4444; }
+.calendar-day-number.sat { color: #3b82f6; }
+
+.calendar-holiday-name {
+  font-size: 0.65rem;
+  color: #ef4444;
+  margin-bottom: 4px;
+  font-weight: bold;
+  line-height: 1.2;
+  word-break: keep-all;
+}
+
+.calendar-amount-row {
+  font-size: 0.7rem;
+  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+}
+
+.calendar-amount-row.new { color: #86efac; }
+.calendar-amount-row.rereg { color: #60a5fa; }
+.calendar-amount-row span:last-child { font-size: 0.75rem; }
+

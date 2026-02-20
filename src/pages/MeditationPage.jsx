@@ -10,12 +10,23 @@ import { MEDITATION_MODES, INTERACTION_TYPES, DIAGNOSIS_OPTIONS, WEATHER_OPTIONS
 // import * as tf from '@tensorflow/tfjs-core'; // REMOVED: Dynamic import used instead
 // import '@tensorflow/tfjs-backend-webgl'; // REMOVED: Dynamic import used instead
 
-// Unlock icons
+import { useAudioAnalyzer } from '../hooks/useAudioAnalyzer';
+import { useMeditationAudio } from '../hooks/useMeditationAudio';
+import { useMeditationAI } from '../hooks/useMeditationAI';
+import { useWeatherAwareness } from '../hooks/useWeatherAwareness';
+import { AILoadingIndicator } from '../components/meditation/ui/AILoadingIndicator';
+import { ChatDialog } from '../components/meditation/ui/ChatDialog';
+import { PoseCanvas } from '../components/meditation/ui/PoseCanvas';
+import { VolumeControlPanel } from '../components/meditation/ui/VolumeControlPanel';
+import { FeedbackView } from '../components/meditation/ui/FeedbackView';
+import { MeditationDebugOverlay } from '../components/meditation/MeditationDebugOverlay';
+import { Icons as PhosphorIcons } from '../components/CommonIcons';
+import { storageService } from '../services/storage';
 const { 
     Play, Pause, X, Wind, SpeakerHigh, SpeakerSlash, Brain, Microphone, VideoCamera, 
     LockKey, Heartbeat, SmileySad, Lightning, Barbell, Sparkle, Sun, CloudRain, 
     CloudSnow, Cloud
-} = Icons;
+} = PhosphorIcons;
 
 // [HOTFIX] Local ArrowLeft to prevent 'Ar' ReferenceError
 const ArrowLeft = ({ size = 24, color = "currentColor" }) => (
@@ -39,80 +50,6 @@ const generateMeditationGuidance = httpsCallable(functions, 'generateMeditationG
 
 const SELECTED_DIAGNOSIS_FALLBACK = DIAGNOSIS_OPTIONS[0];
 
-// ✨ AI Loading Indicator Component (Dynamic Animation)
-const AI_LOADING_MESSAGES = [
-    "마음을 연결하고 있어요...",
-    "깊이 분석 중입니다...",
-    "오늘의 당신을 이해하고 있어요...",
-    "호흡에 집중해 보세요...",
-    "잠시, 고요함 속에 머물러요..."
-];
-
-const AILoadingIndicator = ({ compact = false, message = null }) => {
-    const [msgIndex, setMsgIndex] = useState(0);
-    
-    useEffect(() => {
-        if (message) return; // Don't cycle if custom message provided
-        const interval = setInterval(() => {
-            setMsgIndex(prev => (prev + 1) % AI_LOADING_MESSAGES.length);
-        }, 2500);
-        return () => clearInterval(interval);
-    }, [message]);
-
-    const displayMessage = message || AI_LOADING_MESSAGES[msgIndex];
-    
-    if (compact) {
-        return (
-            <div style={{ 
-                display: 'flex', alignItems: 'center', gap: '12px', 
-                padding: '12px 20px', borderRadius: '20px',
-                background: 'rgba(212, 175, 55, 0.08)',
-                border: '1px solid rgba(212, 175, 55, 0.15)'
-            }}>
-                <div className="ai-thinking-icon" style={{ 
-                    width: '28px', height: '28px', 
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'var(--primary-gold, #d4af37)'
-                }}>
-                    <Brain size={24} weight="duotone" />
-                </div>
-                <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem' }}>{displayMessage}</span>
-            </div>
-        );
-    }
-    
-    return (
-        <div style={{ 
-            display: 'flex', flexDirection: 'column', alignItems: 'center', 
-            justifyContent: 'center', gap: '24px', padding: '40px'
-        }}>
-            {/* Rotating/Pulsing Icon */}
-            <div className="ai-thinking-icon" style={{ 
-                width: '80px', height: '80px', borderRadius: '50%',
-                background: 'rgba(212, 175, 55, 0.1)',
-                border: '2px solid rgba(212, 175, 55, 0.3)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--primary-gold, #d4af37)',
-                boxShadow: '0 0 30px rgba(212, 175, 55, 0.2)'
-            }}>
-                <Brain size={40} weight="duotone" />
-            </div>
-            
-            {/* Message */}
-            <div style={{ textAlign: 'center' }}>
-                <div style={{ 
-                    color: 'rgba(255,255,255,0.9)', fontSize: '1.1rem', fontWeight: '500',
-                    marginBottom: '8px', transition: 'opacity 0.3s ease'
-                }}>
-                    {displayMessage}
-                </div>
-                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>
-                    복순이가 생각하고 있어요
-                </div>
-            </div>
-        </div>
-    );
-};
 
 const MeditationPage = ({ onClose }) => {
     const navigate = useNavigate();
@@ -124,17 +61,14 @@ const MeditationPage = ({ onClose }) => {
     
     // Context State
     const [timeContext, setTimeContext] = useState('morning');
-    const [weatherContext, setWeatherContext] = useState(null);
+    const { weatherContext, setWeatherContext, detectWeather } = useWeatherAwareness();
     const [selectedDiagnosis, setSelectedDiagnosis] = useState(null);
     const [selectedIntention, setSelectedIntention] = useState(null); // ✅ 선택한 의도
     const [selectedCategory, setSelectedCategory] = useState(null); // ✅ 선택한 카테고리 (비움/채움)
-    const [prescriptionReason, setPrescriptionReason] = useState('');
-    const [, setCurrentQuestion] = useState(null);
 
     // Session Settings
     const [activeMode, setActiveMode] = useState(null); 
     const [interactionType, setInteractionType] = useState('v1');
-    const [needsFeedback, setNeedsFeedback] = useState(false); // ✅ Track if session just ended
     
     // 🎨 Visual Theme (Randomized)
     const [visualTheme, setVisualTheme] = useState('heartbeat'); 
@@ -148,7 +82,6 @@ const MeditationPage = ({ onClose }) => {
 
     const [isPlaying, setIsPlaying] = useState(false);
     const [timeLeft, setTimeLeft] = useState(0);
-    const [aiMessage, setAiMessage] = useState("");
     const [soundEnabled, setSoundEnabled] = useState(true); 
     const [ttcEnabled, setTtcEnabled] = useState(true); // TTC (Text To Calm) Voice Guidance - Default ON
     const [selectedAmbient, setSelectedAmbient] = useState('rain'); // 🎵 Default to 'rain' (User Request: Calm music from start)
@@ -159,20 +92,14 @@ const MeditationPage = ({ onClose }) => {
     });
     
     // Audio/Video State
-    const [micVolume, setMicVolume] = useState(0);
+    const { micVolume, setupAudioAnalysis, stopAudioAnalysis, pauseAudioAnalysis, resumeAudioAnalysis } = useAudioAnalyzer();
+
     const [permissionError, setPermissionError] = useState(null);
     const [cameraStream, setCameraStream] = useState(null);
     const [showVolumePanel, setShowVolumePanel] = useState(false); // ✅ Phase 3: 볼륨 컨트롤 패널
     const [showVolumeHint, setShowVolumeHint] = useState(false); // ✅ 볼륨 힌트 토스트
 
     // 🤖 REAL-TIME AI States
-    const [isAILoading, setIsAILoading] = useState(true); // Start as loading (All AI)
-    const [, setAiPrescription] = useState(null);
-    const [, setAiSessionMessageIndex] = useState(0);
-    const [lastSpokenMessage, setLastSpokenMessage] = useState(""); // debug overlay용
-    const [chatHistory, setChatHistory] = useState([]); // 대화 내역 저장
-    const [currentAIChat, setCurrentAIChat] = useState(null); // No static content
-    const [manualInput, setManualInput] = useState(""); // User manual input
     const [memberName] = useState(() => {
         try {
             const stored = localStorage.getItem('member');
@@ -185,19 +112,10 @@ const MeditationPage = ({ onClose }) => {
         }
         return "회원";
     });
-    const [aiRequestLock, setAiRequestLock] = useState(false); // ✅ Prevent duplicate requests
-    const [sessionInfo, setSessionInfo] = useState(null); 
-    const [feedbackData, setFeedbackData] = useState(null); // ✅ AI Session Feedback (4 sentences)
-    
-    // 🌊 Dynamic Options State (AI Generated)
-    const [dynamicCategories, setDynamicCategories] = useState(MEDITATION_CATEGORIES);
-    const [dynamicIntentions, setDynamicIntentions] = useState(MEDITATION_INTENTIONS);
-    const [isOptionsLoading, setIsOptionsLoading] = useState(true); // ✅ Start with meditative loading
 
     // 🛠️ DEBUG MODE STATES (User Request)
     const [isDebugMode, setIsDebugMode] = useState(false); // ✅ Default to false (User: Record internally only)
     const [, setDebugClickCount] = useState(0);
-    const [aiLatency, setAiLatency] = useState(0);
     const [ttsState, setTtsState] = useState({ isSpeaking: false, engine: 'None', volume: 0 });
 
     const handleDebugToggle = useCallback(() => {
@@ -217,6 +135,75 @@ const MeditationPage = ({ onClose }) => {
         console.log(`%c[MeditationDebug] ${timestamp} [${action}]`, 'color: #00ffff; font-weight: bold;', data || '');
     }, []);
 
+    // ✅ Extract Audio System hook
+    const {
+        audioContextRef,
+        ambientAudioRef,
+        currentAudioRef,
+        getAudioContext,
+        playBinauralBeats,
+        stopBinauralBeats,
+        updateBinauralVolume,
+        playAmbientMusic,
+        stopAmbientMusic,
+        stopAmbientMusicAndReset,
+        updateAmbientVolume,
+        playAudio,
+        speak,
+        speakFallback,
+        stopVoiceOnly,
+        stopAllAudio
+    } = useMeditationAudio(ttcEnabled, isPlayingRef, step, logDebug, setTtsState, audioVolumes, soundEnabled);
+
+    const {
+        isAILoading, setIsAILoading,
+        aiRequestLock, setAiRequestLock,
+        aiLatency, setAiLatency,
+        chatHistory, setChatHistory,
+        currentAIChat, setCurrentAIChat,
+        manualInput, setManualInput,
+        aiPrescription, setAiPrescription,
+        prescriptionReason, setPrescriptionReason,
+        aiMessage, setAiMessage,
+        sessionInfo, setSessionInfo,
+        feedbackData, setFeedbackData,
+        needsFeedback, setNeedsFeedback,
+        
+        messageIndexRef, sessionDiagnosisRef, consecutiveFailsRef,
+
+        fetchAIPrescription, fetchAIQuestion, fetchAISessionMessage, fetchAIFeedback,
+        handleChatResponse, handleManualSubmit, handleReturnToChat, generateReason
+    } = useMeditationAI({
+        memberName, 
+        timeContext, 
+        selectedIntention, 
+        activeMode, 
+        interactionType, 
+        micVolume, 
+        isPlayingRef, 
+        ttcEnabled,
+        stopAllAudio, 
+        playAudio, 
+        speak,
+        onExit: () => { stopAllAudio(); if (onClose) onClose(); else navigate('/'); },
+        onMeditationReady: (diag, defaultMode, intType) => {
+            stopAllAudio();
+            setSelectedDiagnosis(diag);
+            setActiveMode(defaultMode);
+            setTimeLeft(defaultMode.time);
+            setInteractionType(intType);
+            setStep('interaction_select');
+        }
+    });
+    
+    const [lastSpokenMessage, setLastSpokenMessage] = useState(""); // debug overlay용
+    
+    // 🌊 Dynamic Options State (AI Generated)
+    const [dynamicCategories, setDynamicCategories] = useState(MEDITATION_CATEGORIES);
+    const [dynamicIntentions, setDynamicIntentions] = useState(MEDITATION_INTENTIONS);
+    const [isOptionsLoading, setIsOptionsLoading] = useState(true); // ✅ Start with meditative loading
+
+    // [MOVED TO TOP] Debug & Audio Hooks
     // 🧘 Preparation Flow States
     const [prepStep, setPrepStep] = useState(1); 
     
@@ -297,26 +284,10 @@ const MeditationPage = ({ onClose }) => {
     // Refs
     const timerRef = useRef(null);
     const messageIntervalRef = useRef(null);
-    const audioContextRef = useRef(null);
-    const analyserRef = useRef(null);
-    const dataArrayRef = useRef(null);
-    const sourceRef = useRef(null);
-    const animationFrameRef = useRef(null);
     const videoRef = useRef(null);
-    const oscLeftRef = useRef(null);
-    const oscRightRef = useRef(null);
-    const gainNodeRef = useRef(null);
     const chatEndRef = useRef(null); // Fixed: Missing Ref
-    const currentAudioRef = useRef(null); // ✅ Tracking for cleanup
-    const ambientAudioRef = useRef(null); // 🎵 Ambient sound (rain, ocean, etc.)
     
-    // ✅ Request ID Ref for Race Condition Prevention
-    const currentRequestIdRef = useRef(0);
-    
-    // ✅ FIX: Ref로 최신 값 유지 (클로저 버그 방지)
-    const messageIndexRef = useRef(0);
-    const sessionDiagnosisRef = useRef(null); // 세션 시작 시 진단 저장
-
+    // [MOVED TO TOP] Extra Audio System hooks
     // Stop Session (useCallback for stability - removed stream dependency to fix V3 crash)
     const stopSession = useCallback((stopAmbient = false) => {
         // 🛑 STOP AI AUDIO (Fixed Bug)
@@ -326,27 +297,13 @@ const MeditationPage = ({ onClose }) => {
             currentAudioRef.current = null; 
         }
 
-        currentRequestIdRef.current += 1; // Invalidate any pending requests
-
         clearInterval(timerRef.current); 
         clearInterval(messageIntervalRef.current);
-        if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-        if (oscLeftRef.current) { try { oscLeftRef.current.stop(); } catch { /* ignore */ } oscLeftRef.current = null; }
-        if (oscRightRef.current) { try { oscRightRef.current.stop(); } catch { /* ignore */ } oscRightRef.current = null; }
+        // Stop Audio Analyzer Hook
+        stopAudioAnalysis();
         
-        // 🎵 Stop Ambient Audio
-        if (stopAmbient && ambientAudioRef.current) {
-            ambientAudioRef.current.pause();
-            ambientAudioRef.current.currentTime = 0;
-            ambientAudioRef.current = null;
-        }
-        if (sourceRef.current) {
-            try {
-                sourceRef.current.disconnect(); 
-                if (sourceRef.current.mediaStream) sourceRef.current.mediaStream.getTracks().forEach(track => track.stop());
-            } catch (e) { console.warn("Source disconnect failed", e); }
-            sourceRef.current = null;
-        }
+        // Use Global Audio Manager
+        stopAllAudio(stopAmbient);
         
         // Use Ref for camera cleanup
         if (cameraStreamRef.current) { 
@@ -392,11 +349,10 @@ const MeditationPage = ({ onClose }) => {
         setNeedsFeedback(true); // ✅ Signal that we need to show feedback greeting
         console.log("🛑 stopSession: needsFeedback set to true, step to diagnosis");
         setAiMessage("");
-        setMicVolume(0);
         setPrescriptionReason('');
         setWeatherContext(null);
         if (window.speechSynthesis) window.speechSynthesis.cancel();
-    }, [activeMode, selectedDiagnosis, timeLeft]); 
+    }, [activeMode, selectedDiagnosis, timeLeft, stopAudioAnalysis]); 
 
     // 🔍 Stability Analysis Refs
     const stabilityHistoryRef = useRef([]); // Stores {score, timestamp}
@@ -553,130 +509,7 @@ const MeditationPage = ({ onClose }) => {
         }
     };
 
-    // ✅ stopAllAudio: Stops Voice & Binaural (Keeps Ambient per User Request)
-    const stopAllAudioRef = useRef(null);
-    stopAllAudioRef.current = (stopAmbient = false) => {
-        // 1. Stop Voice
-        stopVoiceOnlyRef.current?.();
-        
-        // 2. Stop Ambient Audio (Only on explicit request or exit)
-        if (stopAmbient && ambientAudioRef.current) {
-            try { 
-                ambientAudioRef.current.pause(); 
-                // ambientAudioRef.current.currentTime = 0; // Don't reset time, just pause? Or reset?
-                // User might come back. But "Home" button implies reset.
-            } catch { /* ignore */ }
-            // Do NOT nullify ref if we want to resume later? 
-            // But checking AMBIENT_SOUNDS again will recreate it if null.
-            // For now, let's keep it paused.
-        }
-        
-        // 3. Stop Binaural Beats Oscillators
-        if (oscLeftRef.current) {
-            try { oscLeftRef.current.stop(); } catch { /* ignore */ }
-            oscLeftRef.current = null;
-        }
-        if (oscRightRef.current) {
-            try { oscRightRef.current.stop(); } catch { /* ignore */ }
-            oscRightRef.current = null;
-        }
-        
-        logDebug("StopAllAudio", { stopAmbient });
-    };
-
-    // 🗣️ Fallback Local TTS
-    const speakFallback = useCallback((text) => {
-        if (!text || typeof window === 'undefined' || !ttcEnabled || !window.speechSynthesis) return;
-        
-        logDebug("SpeakFallback", text);
-        stopVoiceOnlyRef.current?.(); // ✅ Only stop previous voice
-
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ko-KR';
-        utterance.rate = 0.9; // ✅ 차분하게 속도 조절
-        utterance.pitch = 1.0; 
-        utterance.volume = 0.8; 
-        
-        setTimeout(() => {
-            if (window.speechSynthesis && ttcEnabled) {
-                window.speechSynthesis.speak(utterance);
-            }
-        }, 100);
-    }, [ttcEnabled]);
-
-    // 🔊 Cloud TTS Audio Player (Returns Audio object for chaining)
-    const playAudio = useCallback((base64String, onEndedCallback) => {
-        if (!ttcEnabled) return null;
-        if (!base64String) return null;
-        
-        try {
-            stopVoiceOnlyRef.current?.(); // ✅ Only stop previous voice, keep Ambient/Binaural
-            
-            const audio = new Audio(`data:audio/mp3;base64,${base64String}`);
-            audio.volume = audioVolumes.voice; // ✅ 음량 조절 적용
-            currentAudioRef.current = audio;
-
-            setTtsState({ isSpeaking: true, engine: 'Cloud TTS', volume: audio.volume }); // 🛠️ DEBUG
-
-            logDebug("PlayAudio:Start", { vol: audioVolumes.voice });
-
-            audio.onended = () => { 
-                logDebug("PlayAudio:Ended");
-                setTtsState(prev => ({ ...prev, isSpeaking: false })); // 🛠️ DEBUG
-                if (currentAudioRef.current === audio) currentAudioRef.current = null;
-                if (onEndedCallback) onEndedCallback();
-            };
-            
-            const playPromise = audio.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(e => {
-                    console.error("🔊 Audio Playback Failed:", e);
-                    logDebug("PlayAudio:Error", e);
-                    setTtsState(prev => ({ ...prev, isSpeaking: false })); // 🛠️ DEBUG
-                });
-            }
-            
-            // ✅ [FIX] 재생 시작 직후에 세션이 종료되었다면 즉시 중지 (Race Condition)
-            if (!isPlayingRef.current && step === 'session') {
-                audio.pause();
-                currentAudioRef.current = null;
-            }
-            
-            return audio; // ✅ Return for control
-        } catch (e) {
-            console.error("🔊 Audio Error:", e);
-            logDebug("PlayAudio:Catch", e);
-            setTtsState(prev => ({ ...prev, isSpeaking: false })); // 🛠️ DEBUG
-            return null;
-        }
-    }, [ttcEnabled, audioVolumes]);
-
-    // 🗣️ TTS Wrapper
-    const speak = useCallback((text) => {
-        logDebug("Speak:Start", text);
-        console.log("🗣️ [TTS Check] Speaking:", text); // ✅ User Verification Log
-        if (!text || typeof window === 'undefined' || !ttcEnabled || !window.speechSynthesis) return;
-        
-        stopVoiceOnlyRef.current?.(); 
-        
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ko-KR';
-        utterance.rate = 0.9; // ✅ 차분하게 속도 조절
-        utterance.pitch = 1.0;
-        utterance.volume = 0.8;
-
-        utterance.onstart = () => setTtsState({ isSpeaking: true, engine: 'Local TTS', volume: 0.8 }); // 🛠️ DEBUG
-        utterance.onend = () => setTtsState(prev => ({ ...prev, isSpeaking: false })); // 🛠️ DEBUG
-        utterance.onerror = () => setTtsState(prev => ({ ...prev, isSpeaking: false })); // 🛠️ DEBUG
-        
-        setTimeout(() => {
-            // ✅ [FIX] 세션 활성 여부 재확인 (Race Condition)
-            if (window.speechSynthesis && ttcEnabled && (step !== 'session' || isPlayingRef.current)) {
-                window.speechSynthesis.speak(utterance);
-            }
-        }, 100);
-    }, [ttcEnabled, step]);
-
+    // 🤖 Cleanup on Unmount
     useEffect(() => {
         const hour = new Date().getHours();
         let context = 'morning';
@@ -686,16 +519,13 @@ const MeditationPage = ({ onClose }) => {
         
         setTimeContext(context);
         
-        // Select random specialist question
-        const questions = SPECIALIST_QUESTIONS[context];
-        if (questions) {
-             setCurrentQuestion(questions[Math.floor(Math.random() * questions.length)]);
-        }
+
 
         // 🌤️ AUTO WEATHER DETECTION
         detectWeather();
 
         return () => { stopSession(); };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [stopSession]);
 
     // 🧠 Initial AI Question Load: Immediate Fetch (All AI)
@@ -704,6 +534,7 @@ const MeditationPage = ({ onClose }) => {
         if (step === 'diagnosis' && chatHistory.length === 0 && !currentAIChat) {
              fetchAIQuestion(); 
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [step, chatHistory.length]);
 
     // 🏆 SESSION END FEEDBACK GREETING (Rock-solid trigger)
@@ -777,66 +608,9 @@ const MeditationPage = ({ onClose }) => {
             
             setNeedsFeedback(false); // Reset flag
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [step, needsFeedback, ttcEnabled, speakFallback, memberName, sessionInfo, timeContext, playAudio, speak]);
 
-    // Auto detect weather using OpenWeatherMap API
-    const detectWeather = async () => {
-        try {
-            // Use geolocation if available
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    async (position) => {
-                        const { latitude, longitude } = position.coords;
-                        try {
-                            // OpenWeatherMap API (Free tier)
-                            const response = await fetch(
-                                `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=bd5e378503939ddaee76f12ad7a97608&units=metric`
-                            );
-                            const data = await response.json();
-                            const weatherMain = data.weather?.[0]?.main?.toLowerCase() || '';
-                            const weatherDesc = data.weather?.[0]?.description || '';
-                            
-                            let detected = WEATHER_OPTIONS[0]; // Default: sunny
-                            if (weatherMain.includes('rain') || weatherMain.includes('drizzle')) {
-                                detected = WEATHER_OPTIONS.find(w => w.id === 'rain');
-                            } else if (weatherMain.includes('snow')) {
-                                detected = WEATHER_OPTIONS.find(w => w.id === 'snow');
-                            } else if (weatherMain.includes('cloud') || weatherMain.includes('mist') || weatherMain.includes('fog')) {
-                                detected = WEATHER_OPTIONS.find(w => w.id === 'cloud');
-                            }
-                            
-                            // 🌡️ FULL ENVIRONMENTAL DATA for AI
-                            const fullWeatherData = {
-                                ...detected,
-                                temp: Math.round(data.main?.temp) || 20, // 온도 (°C)
-                                humidity: data.main?.humidity || 50, // 습도 (%)
-                                windSpeed: Math.round((data.wind?.speed || 0) * 3.6), // 바람 (km/h)
-                                description: weatherDesc, // 상세 설명
-                                feelsLike: Math.round(data.main?.feels_like) || 20, // 체감 온도
-                                city: data.name || '서울'
-                            };
-                            
-                            setWeatherContext(fullWeatherData);
-                            console.log('🌤️ Full Weather:', fullWeatherData);
-                        } catch (e) {
-                            console.error('Weather API failed:', e);
-                            setWeatherContext({ ...WEATHER_OPTIONS[0], temp: 20, humidity: 50, windSpeed: 5 });
-                        }
-                    },
-                    () => {
-                        // Geolocation denied
-                        setWeatherContext({ ...WEATHER_OPTIONS[0], temp: 20, humidity: 50, windSpeed: 5 });
-                    },
-                    { timeout: 5000 }
-                );
-            } else {
-                setWeatherContext({ ...WEATHER_OPTIONS[0], temp: 20, humidity: 50, windSpeed: 5 });
-            }
-        } catch (e) {
-            console.error('Weather detection failed:', e);
-            setWeatherContext({ ...WEATHER_OPTIONS[0], temp: 20, humidity: 50, windSpeed: 5 });
-        }
-    };
 
     useEffect(() => {
         if (cameraStream && videoRef.current) {
@@ -846,356 +620,27 @@ const MeditationPage = ({ onClose }) => {
 
     useEffect(() => {
         // 1. Binaural Beats Volume
-        if (gainNodeRef.current && audioContextRef.current) {
-            const currentTime = audioContextRef.current.currentTime;
-            // ✅ 음량 조절 적용
-            gainNodeRef.current.gain.setTargetAtTime(soundEnabled ? audioVolumes.binaural : 0, currentTime, 0.5);
-        }
-
+        updateBinauralVolume(soundEnabled ? audioVolumes.binaural : 0);
         // 2. Ambient Audio Volume
-        if (ambientAudioRef.current) {
-            // ✅ 음량 조절 적용
-            ambientAudioRef.current.volume = soundEnabled ? audioVolumes.ambient : 0;
-        }
-    }, [soundEnabled, audioVolumes]);
+        updateAmbientVolume(soundEnabled ? audioVolumes.ambient : 0);
+    }, [soundEnabled, audioVolumes, updateBinauralVolume, updateAmbientVolume]);
 
     // 🎵 Global Ambient Audio Manager
     useEffect(() => {
-        if (!selectedAmbient || selectedAmbient === 'none') {
-            if (ambientAudioRef.current) {
-                ambientAudioRef.current.pause();
-                ambientAudioRef.current = null;
-            }
-            return;
-        }
-
-        const ambientDef = AMBIENT_SOUNDS.find(s => s.id === selectedAmbient);
-        if (!ambientDef) return;
-
-        // Create or update audio
-        if (!ambientAudioRef.current || !ambientAudioRef.current.src.includes(ambientDef.file)) {
-            if (ambientAudioRef.current) ambientAudioRef.current.pause();
-            
-            // Note: In a real app, these should be valid URLs. 
-            // Assuming the constants/meditationConstants provides valid paths or we use a specialized player.
-            // For now, using a placeholder logic or assuming the file property is a valid path/ID.
-            // If they are local files, ensure imports work. 
-            // The user report says "only frequency sound" which implies this was missing.
-            
-            // Check if ambientDef.file is a local path or URL? 
-            // Looking at standard project structure, likely it's an import or public URL.
-            // Assuming it's a URL or path string.
-            
-            const audio = new Audio(ambientDef.file); 
-            audio.loop = true;
-            audio.volume = soundEnabled ? audioVolumes.ambient : 0;
-            ambientAudioRef.current = audio;
-        }
-
-        // 🌊 배경음 재생 조건: 처방(분석), 가이드 선택, 준비, 세션 단계에서 모두 재생
         const activeAmbientSteps = ['prescription_summary', 'interaction_select', 'prescription', 'preparation', 'session'];
-        if ((isPlaying || activeAmbientSteps.includes(step)) && soundEnabled) {
-            ambientAudioRef.current.play().catch(e => console.warn("Ambient play failed:", e));
+        const shouldPlay = (isPlaying || activeAmbientSteps.includes(step)) && soundEnabled;
+
+        if (shouldPlay) {
+            const ambientDef = AMBIENT_SOUNDS.find(s => s.id === selectedAmbient);
+            playAmbientMusic(ambientDef, audioVolumes.ambient);
         } else {
-            ambientAudioRef.current.pause();
+            stopAmbientMusic();
         }
-    }, [selectedAmbient, isPlaying, soundEnabled, audioVolumes.ambient, step]);
+    }, [selectedAmbient, isPlaying, soundEnabled, audioVolumes.ambient, step, playAmbientMusic, stopAmbientMusic]);
 
 
 
-    // ✅ fetchAIPrescription: Standalone function for diagnosis/weather handlers
-    const fetchAIPrescription = async (diagnosisId, weatherId, modeId, intType, currentSummary) => {
-        try {
-            // Don't set global loading here to avoid full screen blocker if purely background update
-            // But if we want to show "Loading..." in prescription step, we can use a local state or just let it pop in.
-            // For now, let's use isAILoading if we are transitioning.
-            
-            const startTime = Date.now();
-            const prescResult = await generateMeditationGuidance({
-                type: 'prescription',
-                memberName: memberName,
-                timeContext: timeContext,
-                weather: weatherId,
-                diagnosis: diagnosisId,
-                analysisSummary: currentSummary,
-                mode: modeId === 'breath' ? '3min' : (modeId === 'calm' ? '7min' : '15min'),
-                interactionType: intType
-            });
-            setAiLatency(Date.now() - startTime);
-            
-            if (prescResult.data) {
-                if (prescResult.data.prescriptionReason) {
-                    prescResult.data.prescriptionReason = prescResult.data.prescriptionReason.replace(/OO님/g, `${memberName}님`);
-                }
-                if (prescResult.data.message) {
-                    prescResult.data.message = prescResult.data.message.replace(/OO님/g, `${memberName}님`);
-                }
-                setAiPrescription(prescResult.data);
-                setPrescriptionReason(prescResult.data.prescriptionReason || prescResult.data.message || '');
-            }
-        } catch (err) {
-            console.error('Standalone Prescription fetch failed:', err);
-        }
-    };
 
-    const fetchAIQuestion = async (history = []) => {
-        if (aiRequestLock) return; 
-        setAiRequestLock(true);
-        setIsAILoading(true);
-
-        // 🔒 Generate New Request ID
-        const requestId = currentRequestIdRef.current + 1;
-        currentRequestIdRef.current = requestId;
-        
-        try {
-            const hour = new Date().getHours();
-            let currentContext = 'night';
-            if (hour >= 5 && hour < 12) currentContext = 'morning';
-            else if (hour >= 12 && hour < 18) currentContext = 'afternoon';
-            
-            console.log(`🤖 Fetching AI Question for: ${memberName} (ID: ${requestId})`);
-            
-            let timeoutId;
-            // ✅ TIMEOUT PROTECTION: Force fallback if API hangs > 12s
-            const timeoutPromise = new Promise((resolve) => {
-                timeoutId = setTimeout(() => {
-                    const fallbackMsg = (history && history.length > 0) 
-                        ? "잠시 연결이 늦어지네요. 계속해서 이야기 나눠볼까요?" 
-                        : "오늘 하루 마음이 어떠셨나요?";
-                        
-                    const fallbackOptions = (history && history.length > 0)
-                        ? ["네, 좋아요", "잠시 생각할게요"]
-                        : ["편안해요", "그저 그래요", "지쳤어요"];
-
-                    resolve({
-                        data: {
-                            message: fallbackMsg,
-                            isFinalAnalysis: false,
-                            options: fallbackOptions,
-                            error: "timeout"
-                        }
-                    });
-                }, 18000); 
-            });
-
-            const startTime = Date.now();
-            const apiPromise = generateMeditationGuidance({ 
-                type: 'question', 
-                memberName: memberName || '회원', 
-                timeContext: currentContext,
-                chatHistory: history,
-                intentionFocus: selectedIntention?.focus // ✅ 전문가 관점 적용
-            });
-
-            // Race API vs Timeout
-            const result = await Promise.race([apiPromise, timeoutPromise]);
-            setAiLatency(Date.now() - startTime);
-            clearTimeout(timeoutId); // ✅ Clean up timeout
-
-            // 🛡️ RACE CONDITION GUARD
-            if (requestId !== currentRequestIdRef.current) {
-                console.warn(`Ignoring stale AI response (ID: ${requestId}, Current: ${currentRequestIdRef.current})`);
-                return;
-            }
-
-            console.log("🤖 AI Response:", result.data);
-            if (result.data) {
-                // ✅ Personalization Safety: Replace placeholders if backend missed them
-                if (result.data.message) {
-                    result.data.message = result.data.message.replace(/OO님/g, `${memberName}님`);
-                }
-                if (result.data.question) {
-                    result.data.question = result.data.question.replace(/OO님/g, `${memberName}님`);
-                }
-                
-                // ✅ Phase 1: 대화 종료 상태 처리
-                if (result.data.isFinalAnalysis) {
-                    console.log('🏁 AI signaled isFinalAnalysis - ending chat');
-                    result.data.options = []; // 선택지 제거 → 시작 버튼만 표시
-                    result.data.isTransition = true; // 채팅 입력 숨김 플래그
-                }
-                
-                // ✅ Text Sync: Set active chat immediately
-                setCurrentAIChat(result.data);
-                
-                // 🔊 Play Audio & (Removed Auto Transition)
-                if (result.data.audioContent) {
-                    playAudio(result.data.audioContent);
-                } else if (result.data.isFinalAnalysis) {
-                    if (ttcEnabled) speak(result.data.message);
-                }
-            }
-        } catch (error) {
-            // 🛡️ RACE CONDITION GUARD for Error
-            if (requestId !== currentRequestIdRef.current) return;
-
-            console.error('AI Question failed:', error);
-            setCurrentAIChat({
-                message: "죄송해요, 잠시 연결이 고르지 않네요. 계속 대화해볼까요?",
-                options: ["네, 좋아요", "그냥 시작할게요"]
-            });
-        } finally {
-            // 🛡️ Check ID before unlocking (optional but safer)
-            if (requestId === currentRequestIdRef.current) {
-                setIsAILoading(false);
-                setAiRequestLock(false);
-            }
-        }
-    };
-
-    // --- Chat Handlers ---
-    const handleChatResponse = async (answer) => {
-        if (!answer || aiRequestLock) return;
-        
-        // 🛑 [FIX] 항상 오디오 먼저 중지하여 음성 겹침 및 지속 방지
-        stopAllAudioRef.current?.();
-
-        // ✅ 홈으로 가기 처리
-        if (answer === "홈으로 가기") {
-            if (onClose) onClose();
-            else navigate('/');
-            return;
-        }
-        
-        // ✅ Phase 1: 분석 완료 후 시작 요청 - 즉시 명상 타입 선택으로
-        if (currentAIChat?.isFinalAnalysis || ["네, 시작할게요", "맞춤 명상 시작하기", "명상하고 싶어요", "시작할게요", "명상 시작", "명상 시작하기"].some(trigger => answer.includes(trigger))) {
-            const diag = DIAGNOSIS_OPTIONS.find(o => o.id === currentAIChat?.mappedDiagnosis) || SELECTED_DIAGNOSIS_FALLBACK;
-            setSelectedDiagnosis(diag);
-            // 자동으로 모드/인터랙션 타입 설정
-            const defaultMode = MEDITATION_MODES.find(m => m.id === diag?.prescription?.modeId) || MEDITATION_MODES[1];
-            setActiveMode(defaultMode);
-            setTimeLeft(defaultMode.time);
-            setInteractionType(diag?.prescription?.type || 'v1');
-            setStep('interaction_select');
-            return;
-        }
-        
-        // ✅ 홈으로 가기 처리
-        stopAllAudioRef.current?.();
-
-        // 1. Move CURRENT AI chat to history BEFORE clearing
-        let updatedHistory = [...chatHistory];
-        if (currentAIChat) {
-            const aiText = currentAIChat.message || currentAIChat.question;
-            const isFallback = aiText?.includes("연결이 늦어지네요") || aiText?.includes("연결이 고르지 않네요");
-            
-            if (aiText && !isFallback) {
-                updatedHistory = [...updatedHistory, { role: 'model', content: aiText }];
-            }
-        }
-
-        // 2. Add User Answer
-        // Skip adding the answer to history if the current AI chat was a fallback message
-        const isRespondingToFallback = currentAIChat?.message?.includes("연결이 늦어지네요") || currentAIChat?.message?.includes("연결이 고르지 않네요");
-        
-        if (!isRespondingToFallback) {
-            const userMsg = { role: 'user', content: answer };
-            updatedHistory = [...updatedHistory, userMsg];
-        }
-        
-        // 3. Update States
-        setChatHistory(updatedHistory);
-        setCurrentAIChat(null); 
-        setIsAILoading(true);
-
-        // 4. Scroll to bottom
-        setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
-
-        // 5. Fetch Next Question
-        await fetchAIQuestion(updatedHistory);
-    };
-
-    const handleManualSubmit = (e) => {
-        e.preventDefault();
-        if (!manualInput.trim()) return;
-        const text = manualInput;
-        setManualInput(""); // Clear first for UX
-        handleChatResponse(text);
-    };
-
-
-    // Fetch AI session message (during meditation)
-    const consecutiveFailsRef = useRef(0); // ⚡ 연속 폴백 카운터
-    
-    const fetchAISessionMessage = async () => {
-        try {
-            // ✅ FIX: Ref에서 최신 index 읽기 (클로저 버그 방지)
-            const currentIndex = messageIndexRef.current;
-            const currentDiagnosis = sessionDiagnosisRef.current;
-            
-            const startTime = Date.now();
-            
-            // ⚡ 8초 타임아웃 — AI가 너무 오래 걸리면 즉시 폴백
-            let timeoutId;
-            const timeoutPromise = new Promise((_, reject) => {
-                timeoutId = setTimeout(() => reject(new Error('Session AI timeout (8s)')), 8000);
-            });
-            
-            const apiPromise = generateMeditationGuidance({
-                type: 'session_message',
-                memberName: memberName,
-                timeContext: timeContext,
-                diagnosis: currentDiagnosis,
-                mode: activeMode?.id === 'breath' ? '3min' : (activeMode?.id === 'calm' ? '7min' : '15min'),
-                interactionType: interactionType,
-                messageIndex: currentIndex,
-                breathLevel: interactionType === 'v2' ? micVolume : null
-            });
-            
-            const result = await Promise.race([apiPromise, timeoutPromise]);
-            clearTimeout(timeoutId);
-            setAiLatency(Date.now() - startTime);
-            
-            // ✅ ERROR HANDLING: If backend returns fallback error, force local fallback
-            if (result.data && result.data.error) {
-                throw new Error("Backend Returned Error: " + result.data.error);
-            }
-
-            if (result.data && result.data.message) {
-                // ✅ Personalization Safety
-                const personalizedMsg = result.data.message.replace(/OO님/g, `${memberName}님`);
-                console.log("🤖 [AI Session] OK:", personalizedMsg);
-                
-                // ✅ [FIX] 재생 직전 세션 상태 확인
-                if (isPlayingRef.current) {
-                    setAiMessage(personalizedMsg);
-                    setAiSessionMessageIndex(prev => prev + 1);
-                    messageIndexRef.current = currentIndex + 1;
-                    
-                    // ⚡ AI 성공 → 연속 폴백 카운터 리셋
-                    consecutiveFailsRef.current = 0;
-                    
-                    // Play Cloud Audio ONLY
-                    if (result.data.audioContent) {
-                        playAudio(result.data.audioContent);
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('AI Session message failed:', error.message);
-            // ✅ [FIX] 에러 시에도 세션 상태 확인
-            if (isPlayingRef.current) {
-                const currentIndex = messageIndexRef.current;
-                
-                // ⚡ 연속 폴백 카운터 증가
-                consecutiveFailsRef.current += 1;
-                const failCount = consecutiveFailsRef.current;
-                
-                // ⚡ [FIX] 3회 이상 연속 실패 시 폴백도 건너뛰기 (조용히 대기)
-                if (failCount > 3) {
-                    console.warn(`[Session] ${failCount}회 연속 AI 실패 — 메시지 표시 건너뜀, 다음 주기에 재시도`);
-                    return;
-                }
-                
-                // Fallback to static messages (1-3회만)
-                const messages = AI_SESSION_MESSAGES[interactionType] || AI_SESSION_MESSAGES['v1'];
-                const msg = messages[currentIndex % messages.length];
-                setAiMessage(msg);
-                setAiSessionMessageIndex(prev => prev + 1);
-                messageIndexRef.current = currentIndex + 1;
-            }
-        }
-    };
 
     const startMessageLoop = () => {
         if (messageIntervalRef.current) clearInterval(messageIntervalRef.current);
@@ -1230,35 +675,7 @@ const MeditationPage = ({ onClose }) => {
         }
     }, [chatHistory, isAILoading, currentAIChat, step]);
 
-    const getAudioContext = () => {
-        if (!audioContextRef.current) {
-            audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        return audioContextRef.current;
-    };
 
-    // --- Meditation Specialist Prescription Logic ---
-    const generateReason = (time, weatherId, diagnosisId) => {
-        const timeText = time === 'morning' ? '하루를 시작하는 아침,' : time === 'afternoon' ? '에너지가 필요한 오후,' : '하루를 정리하는 밤,';
-        
-        let coreMessage = "";
-        
-        if (diagnosisId === 'stress' || diagnosisId === 'overthink') {
-            coreMessage = "복잡한 생각은 뇌의 베타파 과잉 상태일 수 있어요. 지금 이 순간, 모든 판단을 멈추고 제 안내를 따라 호흡의 파도에 몸을 맡겨보세요. 곧 머릿속이 맑아질 거예요.";
-        } else if (diagnosisId === 'stiff') {
-            coreMessage = "몸의 긴장은 마음이 보내는 신호예요. 굳어있던 근육을 의식적으로 이완하며 호흡하면, 막혔던 에너지가 흐르기 시작할 거예요.";
-        } else if (diagnosisId === 'anxious' || diagnosisId === 'frustrated') {
-            coreMessage = "답답하고 불안한 마음은 누구나 가질 수 있는 구름 같은 거예요. 그 구름 뒤에 있는 맑은 하늘을 볼 수 있도록 제가 곁에서 도와드릴게요. 당신은 안전합니다.";
-        } else if (diagnosisId === 'tired' || diagnosisId === 'low_energy') {
-            coreMessage = "에너지가 부족할 때는 억지로 노력할 필요 없어요. 그저 편안히 앉아 있는 것만으로도 충분한 명상이 됩니다. 당신의 지친 마음을 따뜻하게 안아줄게요.";
-        } else if (diagnosisId === 'distracted') {
-            coreMessage = "흩어진 마음을 하나로 모으는 연습을 해볼까요? 호흡이라는 닻을 내리고 '지금 여기'로 돌아오는 여정을 시작해봐요.";
-        } else {
-            coreMessage = "당신의 지금 상태에 딱 맞는 명상을 준비했어요. 마음의 소리에 귀를 기울이며 편안하게 시작해볼까요?";
-        }
-
-        return `${timeText} ${coreMessage}`;
-    };
 
     // --- Flow Handlers ---
     const handleDiagnosisSelect = async (option) => {
@@ -1305,32 +722,7 @@ const MeditationPage = ({ onClose }) => {
         setStep('prescription');
     };
 
-    // 🔄 Handle Return to Chat (Fix: Silent text & Awkward flow)
-    const handleReturnToChat = async () => {
-        setStep('diagnosis');
-        setIsAILoading(true);
-        
-        // ✅ 즉시 부드러운 재개 메시지 표시 (AI 생성 전)
-        const warmReconnectMsg = `${memberName}님, 다시 돌아오셨네요. 혹시 더 나누고 싶은 이야기가 있으신가요?`;
-        setCurrentAIChat({
-            message: warmReconnectMsg,
-            options: ["네, 있어요", "괜찮아요, 명상할게요"]
-        });
-        
-        // TTS로 즉시 재생
-        if (ttcEnabled) speak(warmReconnectMsg);
 
-        // 컨텍스트 보존 프롬프트 (백그라운드에서 더 나은 응답 생성)
-        const lastUserMsg = chatHistory.filter(m => m.role === 'user').pop()?.content || '';
-        const newHistory = [...chatHistory, { 
-            role: 'system',
-            content: `[Context] User briefly viewed meditation options but chose to continue conversation. Last discussed: "${lastUserMsg}". Gently ask if they want to explore that topic more deeply, in a warm, human, conversational tone. Do NOT sound robotic or templated.` 
-        }];
-        setChatHistory(newHistory);
-        
-        // Fetch improved AI response (will replace the initial message)
-        await fetchAIQuestion(newHistory);
-    };
 
     const startFromPrescription = () => {
          logDebug("Flow:StartFromPrescription");
@@ -1346,7 +738,7 @@ const MeditationPage = ({ onClose }) => {
         // ✅ FIX: 세션 시작 시 진단 정보와 인덱스를 ref에 저장
         sessionDiagnosisRef.current = selectedDiagnosis?.id || null;
         messageIndexRef.current = 0;
-        setAiSessionMessageIndex(0);
+
         
         // ✅ 볼륨 조절 힌트 토스트 표시 (첫 세션)
         setShowVolumeHint(true);
@@ -1360,40 +752,8 @@ const MeditationPage = ({ onClose }) => {
         }
 
         // Binaural Beats
-        const carrierFreq = 200; 
-        const beatFreq = mode.freq; 
-
-        console.log(`🎵 [Binaural Debug] Creating binaural beats - Carrier: ${carrierFreq}Hz, Beat: ${beatFreq}Hz`);
-        console.log(`🎵 [Binaural Debug] Sound Enabled: ${soundEnabled}`);
-
-        const oscL = audioCtx.createOscillator();
-        const oscR = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-
-        oscL.type = 'sine'; oscR.type = 'sine';
-        oscL.frequency.value = carrierFreq;
-        oscR.frequency.value = carrierFreq + beatFreq;
-
-        const pannerL = audioCtx.createStereoPanner();
-        const pannerR = audioCtx.createStereoPanner();
-        pannerL.pan.value = -1; pannerR.pan.value = 1;
-
-        oscL.connect(pannerL); pannerL.connect(gainNode);
-        oscR.connect(pannerR); pannerR.connect(gainNode);
-
-        gainNode.connect(audioCtx.destination);
-        // ✅ Set volume based on soundEnabled (0.25 when enabled, 0 when disabled)
-        const initialVolume = soundEnabled ? 0.25 : 0;
-        gainNode.gain.value = initialVolume;
-        
-        console.log(`🎵 [Binaural Debug] Initial volume set to: ${initialVolume}`);
-
-        oscL.start(); oscR.start();
-        
-        console.log(`✅ [Binaural Debug] Oscillators started successfully`);
-
-        oscLeftRef.current = oscL; oscRightRef.current = oscR;
-        gainNodeRef.current = gainNode;
+        const initialVolume = soundEnabled ? audioVolumes.binaural : 0;
+        playBinauralBeats(200, mode.freq, initialVolume);
 
         // Sensors
         if (interactionType === 'v2') {
@@ -1435,7 +795,8 @@ const MeditationPage = ({ onClose }) => {
 
         setTimeLeft(mode.time);
         setIsPlaying(true);
-        
+        isPlayingRef.current = true; // ✅ Misting Ref Update Fix
+
         // ✨ Opening Message - Phase 4 Pre-intro Logic
         // ✨ Opening Message - Phase 4 Pre-intro Logic
         const getPreIntro = () => {
@@ -1491,34 +852,7 @@ const MeditationPage = ({ onClose }) => {
         }, 8000);
     };
 
-    const setupAudioAnalysis = (stream, audioCtx) => {
-        const analyser = audioCtx.createAnalyser();
-        const source = audioCtx.createMediaStreamSource(stream);
-        source.connect(analyser);
-        analyser.fftSize = 1024; // ✅ Phase 4: Higher resolution for breath detection
-        analyser.smoothingTimeConstant = 0.8; // ✅ Smoother transitions
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-        analyserRef.current = analyser;
-        dataArrayRef.current = dataArray;
-        sourceRef.current = source;
-        drawAudioVisualizer();
-    };
 
-    const drawAudioVisualizer = () => {
-        if (!analyserRef.current) return;
-        animationFrameRef.current = requestAnimationFrame(drawAudioVisualizer);
-        analyserRef.current.getByteTimeDomainData(dataArrayRef.current); // ✅ Phase 4: Time domain for breath
-        let sum = 0;
-        const bufferLength = dataArrayRef.current.length;
-        for (let i = 0; i < bufferLength; i++) {
-            const value = (dataArrayRef.current[i] - 128) / 128; // Normalize to -1..1
-            sum += value * value; // RMS calculation
-        }
-        const rms = Math.sqrt(sum / bufferLength);
-        const normalizedLevel = Math.min(rms * 8, 2.5); // ✅ Amplified for visual feedback
-        setMicVolume(normalizedLevel);
-    };
 
     const startTimer = () => {
         if (timerRef.current) clearInterval(timerRef.current);
@@ -1534,7 +868,7 @@ const MeditationPage = ({ onClose }) => {
         if (isPlaying) {
             clearInterval(timerRef.current); clearInterval(messageIntervalRef.current);
             if (audioContextRef.current) audioContextRef.current.suspend();
-            if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+            pauseAudioAnalysis();
             if (videoRef.current) videoRef.current.pause();
             setIsPlaying(false);
             isPlayingRef.current = false; // ✅ Ref 업데이트
@@ -1543,7 +877,7 @@ const MeditationPage = ({ onClose }) => {
             isPlayingRef.current = true; // ✅ Ref 업데이트
             startTimer(); startMessageLoop();
             if (audioContextRef.current) audioContextRef.current.resume();
-            if (interactionType === 'v2') drawAudioVisualizer();
+            if (interactionType === 'v2') resumeAudioAnalysis();
             if (videoRef.current) videoRef.current.play();
         }
     };
@@ -1578,6 +912,7 @@ const MeditationPage = ({ onClose }) => {
             stopSession(true); // Stop background audio if any
             setStep('interaction_select'); // Move to meditation type selection (바디스캔/호흡몰입/자세교정)
         }, forceStart && chatHistory.length < 3 ? 3000 : 2000);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [chatHistory.length, ttcEnabled, speak]);
 
     const completeSession = () => {
@@ -1777,7 +1112,7 @@ const MeditationPage = ({ onClose }) => {
                             </span>
                         </div>
                         <button onClick={() => { 
-                                stopAllAudioRef.current?.(); 
+                                stopAllAudio(); 
                                 if(onClose) onClose(); else navigate(-1); 
                             }} 
                             style={{ 
@@ -1983,7 +1318,7 @@ const MeditationPage = ({ onClose }) => {
                         zIndex: 20
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center' }}>
-                            <button onClick={() => { stopAllAudioRef.current?.(); if(onClose) onClose(); else navigate(-1); }} style={{ padding: '8px', border: 'none', background: 'none', cursor: 'pointer' }}>
+                            <button onClick={() => { stopAllAudio(); if(onClose) onClose(); else navigate(-1); }} style={{ padding: '8px', border: 'none', background: 'none', cursor: 'pointer' }}>
                                 <ArrowLeft size={22} color="white" />
                             </button>
                             <div onClick={handleDebugToggle} style={{ marginLeft: '10px', display: 'flex', flexDirection: 'column', cursor: 'pointer' }}>
@@ -2105,7 +1440,7 @@ const MeditationPage = ({ onClose }) => {
                         {!isAILoading && currentAIChat?.isFinalAnalysis && (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', animation: 'fadeIn 0.5s ease' }}>
                                 <button onClick={() => {
-                                    stopAllAudioRef.current?.();
+                                    stopAllAudio();
                                     const diag = DIAGNOSIS_OPTIONS.find(o => o.id === currentAIChat?.mappedDiagnosis) || SELECTED_DIAGNOSIS_FALLBACK;
                                     setSelectedDiagnosis(diag);
                                     const defaultMode = MEDITATION_MODES.find(m => m.id === diag?.prescription?.modeId) || MEDITATION_MODES[1];
@@ -2129,7 +1464,7 @@ const MeditationPage = ({ onClose }) => {
                         {!isAILoading && currentAIChat?.options?.length > 0 && !currentAIChat?.isFinalAnalysis && (
                             <div className="no-scrollbar" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '10px', scrollbarWidth: 'none', justifyContent: 'flex-start' }}>
                                 {currentAIChat.options.map((opt, i) => (
-                                    <button key={i} onClick={() => { stopAllAudioRef.current?.(); handleChatResponse(opt); }}
+                                    <button key={i} onClick={() => { stopAllAudio(); handleChatResponse(opt); }}
                                         style={{
                                             flex: '0 0 auto', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
                                             padding: '10px 18px', borderRadius: '18px', color: 'rgba(255,255,255,0.9)', 
@@ -2647,86 +1982,22 @@ const MeditationPage = ({ onClose }) => {
         const points = feedbackData?.feedbackPoints || [];
         
         return (
-            <div style={{
-                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 9999,
-                display: 'flex', flexDirection: 'column', overflow: 'hidden'
-            }}>
-                <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
-                <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', height: '100%', width: '100%', overflowY: 'auto' }} className="no-scrollbar">
-                    {/* 🛠️ Debug Overlay */}
-                    <MeditationDebugOverlay 
-                        isVisible={isDebugMode}
-                        ttsState={ttsState}
-                        currentStep={step}
-                        audioLevels={audioVolumes}
-                        currentText={aiMessage}
-                        aiLatency={aiLatency}
-                    />
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
-                        <div style={{ marginBottom: '30px', color: 'var(--primary-gold)' }}>
-                            <Sparkle size={60} weight="fill" />
-                        </div>
-                        
-                        <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'white', marginBottom: '10px', textAlign: 'center' }}>
-                            오늘의 명상을 마쳤습니다
-                        </h2>
-                        <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '40px', textAlign: 'center' }}>
-                            오늘 하루, 당신의 마음을 잘 돌보셨나요?
-                        </p>
-
-                        {/* AI Summary Card */}
-                        <div style={{ 
-                            width: '100%', maxWidth: '400px', background: 'rgba(255,255,255,0.08)', 
-                            borderRadius: '24px', padding: '25px', border: '1px solid rgba(255,255,255,0.1)',
-                            marginBottom: '40px'
-                        }}>
-                             <div style={{ color: 'var(--primary-gold)', fontWeight: 700, marginBottom: '15px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <img src="/pwa-192x192.png" alt="AI" style={{ width: '100%' }} />
-                                </div>
-                                AI 복순이의 마음 일기
-                             </div>
-                             
-                             {isAILoading ? (
-                                 <div style={{ color: 'rgba(255,255,255,0.5)', textAlign: 'center', padding: '20px' }}>
-                                     명상 결과를 정리하고 있습니다...
-                                 </div>
-                             ) : (
-                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                     {points.length > 0 ? (
-                                         points.map((p, i) => (
-                                             <div key={i} style={{ display: 'flex', gap: '10px', fontSize: '1.0rem', color: 'rgba(255,255,255,0.9)', lineHeight: 1.6 }}>
-                                                 <span style={{ color: 'var(--primary-gold)' }}>•</span>
-                                                 <span>{p}</span>
-                                             </div>
-                                         ))
-                                     ) : (
-                                         <div style={{ color: 'white', fontSize: '1.1rem', lineHeight: 1.7 }}>
-                                             {feedbackData?.message || "오늘 하루도 평온하시길 바랍니다."}
-                                         </div>
-                                     )}
-                                 </div>
-                             )}
-                        </div>
-
-                        {/* Back home button */}
-                        {!isAILoading && (
-                            <button onClick={() => { 
-                                stopAllAudioRef.current?.(true); 
-                                // ✅ 추가 상태 정리
-                                setAiMessage("");
-                                setChatHistory([]);
-                                if(onClose) onClose(); 
-                                else navigate('/member-profile'); 
-                            }} style={{
-                                width: '100%', maxWidth: '300px', background: 'white', color: 'black',
-                                padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
-                                cursor: 'pointer', transition: 'all 0.3s ease'
-                            }}>홈으로 돌아가기</button>
-                        )}
-                    </div>
-                </div>
-            </div>
+            <FeedbackView
+                visualTheme={visualTheme}
+                isDebugMode={isDebugMode}
+                ttsState={ttsState}
+                step={step}
+                audioVolumes={audioVolumes}
+                aiMessage={aiMessage}
+                aiLatency={aiLatency}
+                isAILoading={isAILoading}
+                points={points}
+                feedbackData={feedbackData}
+                stopAllAudio={stopAllAudio}
+                setAiMessage={setAiMessage}
+                setChatHistory={setChatHistory}
+                onClose={onClose}
+            />
         );
     }
 
@@ -2887,86 +2158,17 @@ const MeditationPage = ({ onClose }) => {
             </div>
 
             {/* ✅ Phase 3: Volume Control Panel */}
-            {showVolumePanel && (
-                <div style={{
-                    position: 'absolute', bottom: '180px', left: '50%', transform: 'translateX(-50%)',
-                    width: '280px', background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(20px)',
-                    borderRadius: '24px', padding: '20px', zIndex: 30,
-                    border: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
-                    animation: 'fadeIn 0.3s ease'
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                        <span style={{ color: 'var(--primary-gold)', fontSize: '0.85rem', fontWeight: 700 }}>🎛️ 볼륨 조절</span>
-                        <button onClick={() => setShowVolumePanel(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: '4px' }}>
-                            <X size={18} />
-                        </button>
-                    </div>
-                    
-                    {/* Voice Volume */}
-                    <div style={{ marginBottom: '12px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>🗣️ 음성 안내</span>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--primary-gold)' }}>{Math.round(audioVolumes.voice * 100)}%</span>
-                        </div>
-                        <input type="range" min="0" max="100" value={Math.round(audioVolumes.voice * 100)}
-                            onChange={(e) => {
-                                const val = parseInt(e.target.value) / 100;
-                                setAudioVolumes(prev => ({ ...prev, voice: val }));
-                                if (currentAudioRef.current) currentAudioRef.current.volume = val;
-                            }}
-                            style={{ width: '100%', accentColor: 'var(--primary-gold)', height: '4px' }} />
-                    </div>
-                    
-                    {/* Ambient Volume */}
-                    <div style={{ marginBottom: '12px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>🌊 환경음</span>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--primary-gold)' }}>{Math.round(audioVolumes.ambient * 100)}%</span>
-                        </div>
-                        <input type="range" min="0" max="100" value={Math.round(audioVolumes.ambient * 100)}
-                            onChange={(e) => {
-                                const val = parseInt(e.target.value) / 100;
-                                setAudioVolumes(prev => ({ ...prev, ambient: val }));
-                                if (ambientAudioRef.current) ambientAudioRef.current.volume = val;
-                            }}
-                            style={{ width: '100%', accentColor: '#4ade80', height: '4px' }} />
-                    </div>
-                    
-                    {/* Binaural Volume */}
-                    <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>🎵 주파수</span>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--primary-gold)' }}>{Math.round(audioVolumes.binaural * 100)}%</span>
-                        </div>
-                        <input type="range" min="0" max="100" value={Math.round(audioVolumes.binaural * 100)}
-                            onChange={(e) => {
-                                const val = parseInt(e.target.value) / 100;
-                                setAudioVolumes(prev => ({ ...prev, binaural: val }));
-                                if (gainNodeRef.current) gainNodeRef.current.gain.value = val;
-                            }}
-                            style={{ width: '100%', accentColor: '#a29bfe', height: '4px' }} />
-                    </div>
-                    
-                    {/* Mute All Toggle */}
-                    <button onClick={() => {
-                        setSoundEnabled(!soundEnabled);
-                        if (soundEnabled) {
-                            // Mute all
-                            if (ambientAudioRef.current) ambientAudioRef.current.volume = 0;
-                            if (gainNodeRef.current) gainNodeRef.current.gain.value = 0;
-                        } else {
-                            // Restore
-                            if (ambientAudioRef.current) ambientAudioRef.current.volume = audioVolumes.ambient;
-                            if (gainNodeRef.current) gainNodeRef.current.gain.value = audioVolumes.binaural;
-                        }
-                    }} style={{
-                        marginTop: '12px', width: '100%', padding: '10px', borderRadius: '12px',
-                        background: soundEnabled ? 'rgba(255,255,255,0.08)' : 'rgba(255,0,0,0.15)',
-                        border: '1px solid rgba(255,255,255,0.1)', color: soundEnabled ? 'rgba(255,255,255,0.7)' : '#ff6b6b',
-                        fontSize: '0.8rem', cursor: 'pointer', fontWeight: 600
-                    }}>{soundEnabled ? '🔇 전체 음소거' : '🔊 소리 켜기'}</button>
-                </div>
-            )}
+            <VolumeControlPanel
+                showVolumePanel={showVolumePanel}
+                setShowVolumePanel={setShowVolumePanel}
+                audioVolumes={audioVolumes}
+                setAudioVolumes={setAudioVolumes}
+                currentAudioRef={currentAudioRef}
+                updateAmbientVolume={updateAmbientVolume}
+                updateBinauralVolume={updateBinauralVolume}
+                soundEnabled={soundEnabled}
+                setSoundEnabled={setSoundEnabled}
+            />
 
             {/* 🔊 볼륨 조절 힌트 토스트 */}
             {showVolumeHint && !showVolumePanel && (
@@ -3034,46 +2236,6 @@ const MeditationPage = ({ onClose }) => {
     );
 };
 
-// 🛠️ Meditation Debug Overlay Component
-const MeditationDebugOverlay = ({ isVisible, ttsState, currentStep, audioLevels, currentText, aiLatency }) => {
-    if (!isVisible) return null;
 
-    return (
-        <div style={{
-            position: 'fixed', top: '80px', left: '20px', right: '20px',
-            background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(0,255,255,0.3)', borderRadius: '15px',
-            padding: '15px', color: '#00ffff', fontSize: '0.75rem', zIndex: 10000,
-            fontFamily: 'monospace', pointerEvents: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
-        }}>
-            <div style={{ fontWeight: 'bold', marginBottom: '8px', borderBottom: '1px solid rgba(0,255,255,0.2)', paddingBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
-                <span>[MEDITATION DEBUG MODE]</span>
-                <span>Latency: {aiLatency}ms</span>
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div>
-                    <div style={{ color: '#fff', marginBottom: '4px' }}>📡 AI \u0026 Step Status</div>
-                    <div>Step: {currentStep}</div>
-                    <div>TTS Engine: {ttsState.engine}</div>
-                    <div>Speaking: {ttsState.isSpeaking ? 'YES' : 'NO'}</div>
-                </div>
-                <div>
-                    <div style={{ color: '#fff', marginBottom: '4px' }}>🔊 Audio Levels</div>
-                    <div>Voice: {Math.round(audioLevels.voice * 100)}%</div>
-                    <div>Ambient: {Math.round(audioLevels.ambient * 100)}%</div>
-                    <div>Binaural: {Math.round(audioLevels.binaural * 100)}%</div>
-                </div>
-            </div>
-
-            <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid rgba(0,255,255,0.1)' }}>
-                <div style={{ color: '#fff', marginBottom: '4px' }}>📝 Raw TTS Text:</div>
-                <div style={{ background: 'rgba(0,0,0,0.3)', padding: '6px', borderRadius: '4px', maxHeight: '60px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
-                    {currentText || 'No text currently processed'}
-                </div>
-            </div>
-        </div>
-    );
-};
 
 export default MeditationPage;

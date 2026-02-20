@@ -211,17 +211,41 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
         calculateStats(branchLogs);
 
+        const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+        
+        // [Perf] Enrich logs with KST string to prevent repeated Date parsing
+        const enrichedBranchLogs = branchLogs.map(l => {
+            if (!l.timestamp) return { ...l, isValidDate: false };
+            const d = new Date(l.timestamp);
+            if (isNaN(d.getTime())) return { ...l, isValidDate: false };
+            return {
+                ...l,
+                isValidDate: true,
+                logDate: d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
+            };
+        });
+
+        // [Perf] Enrich sales
+        const enrichedSales = currentSales.map(s => {
+            const rawDate = s.date || s.timestamp;
+            let sDate = rawDate;
+            if (rawDate && rawDate.includes('T')) {
+                const d = new Date(rawDate);
+                if (!isNaN(d.getTime())) {
+                    sDate = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                }
+            }
+            return { ...s, parsedDate: sDate || null };
+        });
+
         // [New] Multi-attendance Detection (Unique Class Time Base)
         const uniqueAttendanceMap = {}; // memberId -> Set of classTimes
         
         try {
-            branchLogs.forEach(l => {
-                if (l.status !== 'denied' && l.memberId && l.timestamp) {
-                    const d = new Date(l.timestamp);
-                    if (isNaN(d.getTime())) return; // Skip invalid date
+            enrichedBranchLogs.forEach(l => {
+                if (!l.isValidDate || l.status === 'denied' || !l.memberId) return;
 
-                    const logDate = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-                    if (logDate !== todayStr) return;
+                if (l.logDate !== todayStr) return;
 
                     if (!uniqueAttendanceMap[l.memberId]) {
                         uniqueAttendanceMap[l.memberId] = new Set();
@@ -232,7 +256,6 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
                     const classTime = info?.startTime || guessClassTime(l) || '00:00';
                     
                     uniqueAttendanceMap[l.memberId].add(classTime);
-                }
             });
         } catch (err) {
             console.error('[Admin] Error calculating multi-attendance:', err);
@@ -242,8 +265,6 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             .filter(id => uniqueAttendanceMap[id].size >= 2);
 
         // Stats Calculation
-        const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-        // const today = new Date(todayStr); // Unused
         const currentMonth = todayStr.substring(0, 7);
         const isMemberInBranch = (m) => currentBranch === 'all' || m.homeBranch === currentBranch;
 
@@ -258,13 +279,10 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         let totalAttendanceToday = 0;
 
         try {
-            branchLogs.forEach(l => {
-                if (!l.timestamp) return;
-                const d = new Date(l.timestamp);
-                if (isNaN(d.getTime())) return;
-                const logDate = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            enrichedBranchLogs.forEach(l => {
+                if (!l.isValidDate) return;
                 
-                if (logDate === todayStr) {
+                if (l.logDate === todayStr) {
                     if (l.status === 'denied') {
                         deniedCount++;
                         if (l.denialReason === 'expired') deniedExpiredCount++;
@@ -295,17 +313,9 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         
         // 2. Re-reg: Sales today AND NOT New
         const todaySalesMemberIds = new Set();
-        currentSales.forEach(s => {
-            // [FIX] date가 없으면 timestamp에서 fallback
-            const rawDate = s.date || s.timestamp;
-            if (!rawDate) return;
-            let sDate = rawDate;
-            // Handle ISO string if present
-            if (rawDate.includes('T')) {
-                sDate = new Date(rawDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-            }
-            // Check if matches today
-            if (sDate === todayStr) {
+        enrichedSales.forEach(s => {
+            if (!s.parsedDate) return;
+            if (s.parsedDate === todayStr) {
                 // If branch filter applied, check sales branch OR member home branch
                 if (currentBranch === 'all' || s.branchId === currentBranch || uniqueMembers.find(m => m.id === s.memberId)?.homeBranch === currentBranch) {
                     todaySalesMemberIds.add(s.memberId);
@@ -348,43 +358,27 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         });
 
         // New Sales Data
-        currentSales.forEach(s => {
+        enrichedSales.forEach(s => {
             if (currentBranch !== 'all') {
                 const member = uniqueMembers.find(m => m.id === s.memberId);
                 const memberBranch = member?.homeBranch;
                 const saleBranch = s.branchId;
                 
-                // If branch filter applied, record must match either saleBranch or member's homeBranch
                 if ((saleBranch && saleBranch !== currentBranch) && (memberBranch && memberBranch !== currentBranch)) {
                     return;
                 }
-                // If both are missing, we can't confirm branch, so we skip to be safe in filtered view 
-                // OR we can include it if we want to be permissive. Let's be permissive if it's 'all'
                 if (!saleBranch && !memberBranch) return;
             }
 
-            // [FIX] date가 없으면 timestamp에서 fallback
-            const rawDate = s.date || s.timestamp;
-            if (!rawDate) {
-                console.warn('[Revenue] Sales record missing both date and timestamp:', s.id, s.memberName);
-                return;
-            }
-            // KST 기준 날짜 변환 (UTC ISO 대응)
-            let dateStr;
-            if (rawDate.includes('T')) {
-                const d = new Date(rawDate);
-                dateStr = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-            } else {
-                dateStr = rawDate;
-            }
+            if (!s.parsedDate) return;
 
             allRevenueItems.push({
                 id: s.id,
-                memberId: s.memberId, // [Fix] Explicit memberId
-                date: dateStr,
+                memberId: s.memberId,
+                date: s.parsedDate,
                 amount: Number(s.amount) || 0,
                 name: s.memberName,
-                type: s.type, // 'register' or 'extend'
+                type: s.type,
                 item: s.item
             });
         });
@@ -484,13 +478,9 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         setSummary(newSummary);
 
         // Today's Classes Calculation
-        const todayLogs = currentLogs.filter(l => {
-            if (!l.timestamp) return false;
-            const d = new Date(l.timestamp);
-            if (isNaN(d.getTime())) return false;
-            const logDate = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-            return logDate === todayStr && (currentBranch === 'all' || l.branchId === currentBranch);
-        });
+        const todayLogs = enrichedBranchLogs.filter(l => 
+            l.isValidDate && l.logDate === todayStr && (currentBranch === 'all' || l.branchId === currentBranch)
+        );
 
         const classGroups = {};
 
@@ -676,26 +666,22 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
     // [Added] Dormant Segments Logic
     const getDormantSegments = useCallback((targetMembers) => {
-        const now = new Date();
+        const nowMs = Date.now();
+        const fourteenDaysMs = 1000 * 60 * 60 * 24 * 14;
         const segments = { 'all': [] };
 
         targetMembers.forEach(m => {
-            if (!isMemberActive(m)) return; // Skip inactive members
+            if (!isMemberActive(m)) return;
 
-            // Check Last Attendance
-            let lastDate = m.lastAttendance ? new Date(m.lastAttendance) : null;
-            if (!lastDate && m.regDate) {
-                // If no attendance, use Reg Date if older than 14 days
-                const reg = new Date(m.regDate);
-                if ((now - reg) > 1000 * 60 * 60 * 24 * 14) lastDate = reg;
+            let lastDateMs = m.lastAttendance ? new Date(m.lastAttendance).getTime() : null;
+            if (!lastDateMs && m.regDate) {
+                const regMs = new Date(m.regDate).getTime();
+                if ((nowMs - regMs) > fourteenDaysMs) lastDateMs = regMs;
             }
 
-            if (!lastDate) return;
+            if (!lastDateMs) return;
 
-            const diffTime = now - lastDate;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-            if (diffDays >= 14) {
+            if ((nowMs - lastDateMs) >= fourteenDaysMs) {
                 segments['all'].push(m);
             }
         });

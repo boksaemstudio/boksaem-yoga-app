@@ -4,11 +4,12 @@ service firebase.storage {
 
     // ========================================
     // 📢 Notices - 공지사항 이미지
-    // Authenticated users can upload, anyone can read
+    // Authenticators with admin token can upload, anyone can read
     // ========================================
     match /notices/{fileName} {
       allow read: if true;
       allow write: if request.auth != null
+                   && request.auth.token.admin == true
                    && request.resource.size < 10 * 1024 * 1024; // Max 10MB
     }
 

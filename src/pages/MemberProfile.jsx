@@ -1,12 +1,11 @@
 import { PWAContext } from '../context/PWAContextDef';
 import { useContext, useState, useEffect, lazy, Suspense } from 'react';
 import { onSnapshot, doc, collection, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { storageService } from '../services/storage';
 import { Icons } from '../components/CommonIcons';
 import logo from '../assets/logo.png';
 import memberBg from '../assets/zen_yoga_bg.webp';
-import MemberScheduleCalendar from '../components/MemberScheduleCalendar';
 // Lazy load MeditationPage to prevent initialization errors and reduce bundle size
 const MeditationPage = lazy(() => import('./MeditationPage'));
 import timeTable1 from '../assets/timetable_gwangheungchang.png';
@@ -23,6 +22,10 @@ import ProfileHeader from '../components/profile/ProfileHeader';
 import AISection from '../components/profile/AISection';
 import MembershipInfo from '../components/profile/MembershipInfo';
 import HomeYogaSection from '../components/profile/HomeYogaSection';
+import ScheduleTab from '../components/profile/tabs/ScheduleTab';
+import NoticeTab from '../components/profile/tabs/NoticeTab';
+import PriceTab from '../components/profile/tabs/PriceTab';
+import CustomGlassModal from '../components/common/CustomGlassModal';
 
 import SocialLinks from '../components/profile/SocialLinks';
 import AttendanceHistory from '../components/profile/AttendanceHistory';
@@ -155,6 +158,23 @@ const MemberProfile = () => {
             console.log(`[Language] Updating member preference to: ${language}`);
             storageService.updateMember(member.id, { language: language });
         }
+
+        // [FIX] Restore Anonymous Auth Session if missing
+        // This ensures 'fcm_tokens' writes succeed even if the page was reloaded
+        if (member && !auth.currentUser) {
+            import("firebase/auth").then(({ signInAnonymously }) => {
+                signInAnonymously(auth)
+                    .then(() => {
+                        console.log("[MemberProfile] Anonymous session restored for push tokens");
+                        // Retry token sync if it might have failed earlier
+                        if (Notification.permission === 'granted') {
+                            storageService.requestPushPermission(member.id);
+                        }
+                    })
+                    .catch(e => console.warn("[MemberProfile] Session restore failed:", e));
+            });
+        }
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [language, member?.id, member?.language]);
 
@@ -234,7 +254,7 @@ const MemberProfile = () => {
     const [greetingVisible, setGreetingVisible] = useState(true);
 
     // Destructure styles
-    const { authInput: authInputStyle, authButton: authButtonStyle, viewToggle: viewToggleStyle } = profileStyles;
+    const { authInput: authInputStyle, authButton: authButtonStyle } = profileStyles;
 
 
     const loadMemberData = async (memberId) => {
@@ -285,7 +305,7 @@ const MemberProfile = () => {
                     loadAIExperience(memberData, validHistory);
                 }
 
-                const now = new Date();
+                // const now = new Date(); // Unused variable removed
                 storageService.getAIAnalysis(memberData.name, validHistory.length, validHistory, getKSTHour(), language, 'member')
                     .then(analysis => setAiAnalysis(analysis))
                     .catch(() => setAiAnalysis({ message: t('analysisPending'), isError: true }));
@@ -596,7 +616,7 @@ const MemberProfile = () => {
             loadAIExperience(member, validLogs, weatherData);
 
             setAiAnalysis(null);
-            const now = new Date();
+            // const now = new Date(); // Unused variable removed
             // This Effect handles LANGUAGE change. Initial load is handled by loadMemberData.
             storageService.getAIAnalysis(member.name, validLogs.length, validLogs, getKSTHour(), language, 'member')
                 .then(analysis => setAiAnalysis(analysis))
@@ -1015,135 +1035,23 @@ const MemberProfile = () => {
 
                     {/* SCHEDULE TAB - Uses Valid Logs Only */}
                     {activeTab === 'schedule' && (
-                        <div className="fade-in">
-                            <div className="glass-panel" style={{ padding: '24px', background: 'rgba(15, 15, 15, 0.9)', minHeight: '400px', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
-                                <div style={{ marginBottom: '25px', textAlign: 'left' }}>
-                                    <h2 style={{ fontSize: '1.5rem', color: 'white', fontWeight: '800', margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>{t('scheduleTitle')}</h2>
-                                    <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--primary-gold)', opacity: 0.9, lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
-                                        {t('scheduleSub')}
-                                    </p>
-                                </div>
-
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '12px', display: 'flex', gap: '4px' }}>
-                                        <button onClick={() => setScheduleView('calendar')} style={{ ...viewToggleStyle, background: scheduleView === 'calendar' ? 'white' : 'transparent', color: scheduleView === 'calendar' ? 'black' : 'white', borderRadius: '8px' }}>{t('viewCalendar')}</button>
-                                        <button onClick={() => setScheduleView('image')} style={{ ...viewToggleStyle, background: scheduleView === 'image' ? 'white' : 'transparent', color: scheduleView === 'image' ? 'black' : 'white', borderRadius: '8px' }}>{t('viewWeekly')}</button>
-                                    </div>
-                                </div>
-
-                                <div style={{ display: 'flex', gap: '10px', marginBottom: '25px' }}>
-                                    {STUDIO_CONFIG.BRANCHES.map(b => (
-                                        <button
-                                            key={b.id}
-                                            onClick={() => setScheduleBranch(b.id)}
-                                            style={{
-                                                flex: 1,
-                                                padding: '12px',
-                                                borderRadius: '12px',
-                                                fontWeight: 'bold',
-                                                border: scheduleBranch === b.id ? 'none' : '1px solid rgba(255,255,255,0.1)',
-                                                background: scheduleBranch === b.id ? 'var(--primary-gold)' : 'rgba(255,255,255,0.03)',
-                                                color: scheduleBranch === b.id ? 'black' : 'rgba(255,255,255,0.6)',
-                                                fontSize: '0.9rem',
-                                                transition: 'all 0.3s ease',
-                                                boxShadow: scheduleBranch === b.id ? '0 4px 15px rgba(212, 175, 55, 0.3)' : 'none'
-                                            }}
-                                        >
-                                            {t('branch' + (b.id === 'gwangheungchang' ? 'Gwangheungchang' : 'Mapo'))}
-                                        </button>
-                                    ))}
-                                </div>
-                                {scheduleView === 'calendar' ? (
-                                    <MemberScheduleCalendar branchId={scheduleBranch || 'gwangheungchang'} attendanceLogs={validLogs} />
-                                ) : (
-                                    (() => {
-                                        const now = new Date();
-                                        const currentYear = now.getFullYear();
-                                        const currentMonthStr = String(now.getMonth() + 1).padStart(2, '0');
-                                        const currentKeyDate = `${currentYear}-${currentMonthStr}`;
-
-                                        const nextDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-                                        const nextYear = nextDate.getFullYear();
-                                        const nextMonthStr = String(nextDate.getMonth() + 1).padStart(2, '0');
-                                        const nextKeyDate = `${nextYear}-${nextMonthStr}`;
-
-                                        const currentBranchId = scheduleBranch || 'gwangheungchang';
-
-                                        const currentKey = `timetable_${currentBranchId}_${currentKeyDate}`;
-                                        const nextKey = `timetable_${currentBranchId}_${nextKeyDate}`;
-                                        const oldKey = `timetable_${currentBranchId}`;
-
-                                        const hasNext = !!images[nextKey];
-                                        const activeMonth = scheduleMonth === 'next' && hasNext ? 'next' : 'current';
-                                        const displayImage = activeMonth === 'next' ? images[nextKey] : (images[currentKey] || images[oldKey] || (currentBranchId === 'gwangheungchang' ? timeTable1 : timeTable2));
-
-                                        return (
-                                            <div style={{ position: 'relative', width: '100%', borderRadius: '10px', overflow: 'hidden' }}>
-                                                {/* Month Navigation Overlay */}
-                                                <div style={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    alignItems: 'center',
-                                                    marginBottom: '10px',
-                                                    padding: '0 5px'
-                                                }}>
-                                                    <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 'bold', color: 'white' }}>
-                                                        {activeMonth === 'current' ? `${currentMonthStr}월 시간표` : `${nextMonthStr}월 시간표 (미리보기)`}
-                                                    </h3>
-
-                                                    {hasNext && (
-                                                        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.1)', borderRadius: '20px', padding: '2px' }}>
-                                                            <button
-                                                                onClick={() => setScheduleMonth('current')}
-                                                                style={{
-                                                                    background: activeMonth === 'current' ? 'var(--primary-gold)' : 'transparent',
-                                                                    color: activeMonth === 'current' ? 'black' : 'rgba(255,255,255,0.6)',
-                                                                    border: 'none',
-                                                                    borderRadius: '20px',
-                                                                    padding: '4px 12px',
-                                                                    fontSize: '0.8rem',
-                                                                    fontWeight: 'bold',
-                                                                    cursor: 'pointer'
-                                                                }}
-                                                            >
-                                                                {currentMonthStr}월
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setScheduleMonth('next')}
-                                                                style={{
-                                                                    background: activeMonth === 'next' ? 'var(--primary-gold)' : 'transparent',
-                                                                    color: activeMonth === 'next' ? 'black' : 'rgba(255,255,255,0.6)',
-                                                                    border: 'none',
-                                                                    borderRadius: '20px',
-                                                                    padding: '4px 12px',
-                                                                    fontSize: '0.8rem',
-                                                                    fontWeight: 'bold',
-                                                                    cursor: 'pointer'
-                                                                }}
-                                                            >
-                                                                {nextMonthStr}월 &gt;
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                <img
-                                                    src={displayImage}
-                                                    style={{ width: '100%', display: 'block', borderRadius: '8px', cursor: 'pointer' }}
-                                                    alt="timetable"
-                                                    onClick={() => setLightboxImage(displayImage)}
-                                                    onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-                                                />
-                                                <div style={{ display: 'none', height: '200px', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.3)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '10px' }}>{t('noTimetableImage')}</div>
-                                            </div>
-                                        );
-                                    })()
-                                )}
-                            </div>
-                        </div>
+                        <ScheduleTab 
+                            t={t}
+                            scheduleView={scheduleView}
+                            setScheduleView={setScheduleView}
+                            scheduleBranch={scheduleBranch}
+                            setScheduleBranch={setScheduleBranch}
+                            STUDIO_CONFIG={STUDIO_CONFIG}
+                            validLogs={validLogs}
+                            scheduleMonth={scheduleMonth}
+                            setScheduleMonth={setScheduleMonth}
+                            images={images}
+                            timeTable1={timeTable1}
+                            timeTable2={timeTable2}
+                            setLightboxImage={setLightboxImage}
+                        />
                     )}
 
-                    {/* MEDITATION TAB */}
                     {/* MEDITATION TAB - Full Screen Overlay */}
                     {activeTab === 'meditation' && (
                          <div className="fade-in" style={{ 
@@ -1163,188 +1071,36 @@ const MemberProfile = () => {
 
                     {/* PRICES TAB */}
                     {activeTab === 'prices' && (
-                        <div className="fade-in">
-                            <img src={images.price_table_1 || priceTable1} style={{ width: '100%', borderRadius: '15px', marginBottom: '15px', cursor: 'pointer' }} alt="price" onClick={() => setLightboxImage(images.price_table_1 || priceTable1)} />
-                            <img src={images.price_table_2 || priceTable2} style={{ width: '100%', borderRadius: '15px', cursor: 'pointer' }} alt="price" onClick={() => setLightboxImage(images.price_table_2 || priceTable2)} />
-                        </div>
+                        <PriceTab 
+                            images={images}
+                            priceTable1={priceTable1}
+                            priceTable2={priceTable2}
+                            setLightboxImage={setLightboxImage}
+                        />
                     )}
 
                     {/* NOTICES TAB */}
                     {activeTab === 'notices' && (
-                        <div className="fade-in">
-                            <div style={{ padding: '0 5px 20px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '25px' }}>
-                                    <Icons.Megaphone size={28} color="var(--primary-gold)" weight="fill" />
-                                    <h2 style={{ fontSize: '1.6rem', fontWeight: '800', color: 'white', margin: 0 }}>{t('noticesTitle')}</h2>
-                                </div>
-                                {Array.isArray(notices) && notices.length > 0 ? (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                                        {notices.map((notice) => {
-                                            const isSelected = selectedNoticeId && notice.id === selectedNoticeId;
-                                            return (
-                                            <div 
-                                                key={notice.id} 
-                                                ref={isSelected ? (el) => {
-                                                    if (el) {
-                                                        setTimeout(() => {
-                                                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                                            setSelectedNoticeId(null);
-                                                        }, 300);
-                                                    }
-                                                } : null}
-                                                className="glass-panel" 
-                                                style={{
-                                                padding: 0,
-                                                background: isSelected ? 'rgba(212, 175, 55, 0.2)' : 'rgba(24, 24, 27, 0.7)',
-                                                border: isSelected ? '2px solid var(--primary-gold)' : '1px solid rgba(255,255,255,0.1)',
-                                                borderRadius: '24px',
-                                                overflow: 'hidden',
-                                                boxShadow: isSelected ? '0 0 30px rgba(212, 175, 55, 0.3)' : '0 15px 35px rgba(0,0,0,0.3)',
-                                                transition: 'all 0.3s ease'
-                                            }}>
-                                                {((notice.images && notice.images.length > 0) || notice.image || notice.imageUrl) ? (
-                                                    <div>
-                                                        {/* Header (Title & Date) - Now above image */}
-                                                        <div style={{ padding: '24px 24px 15px' }}>
-                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '15px' }}>
-                                                                <h3 style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--primary-gold)', margin: 0, lineHeight: '1.3', wordBreak: 'keep-all', userSelect: 'text', WebkitUserSelect: 'text' }}>
-                                                                    {notice.title}
-                                                                </h3>
-                                                                <span style={{
-                                                                    fontSize: '0.7rem',
-                                                                    color: 'rgba(255,255,255,0.7)',
-                                                                    whiteSpace: 'nowrap',
-                                                                    background: 'rgba(255, 255, 255, 0.1)',
-                                                                    padding: '4px 12px',
-                                                                    borderRadius: '20px',
-                                                                    fontWeight: '600',
-                                                                    border: '1px solid rgba(255,255,255,0.05)'
-                                                                }}>
-                                                                    {notice.date || (notice.createdAt ? new Date(notice.createdAt).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }) : '최근')}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Image - Now below title */}
-                                                        <div style={{ 
-                                                            display: 'flex', 
-                                                            overflowX: 'auto', 
-                                                            overflowY: 'hidden',
-                                                            scrollSnapType: 'x mandatory', 
-                                                            gap: '0', 
-                                                            width: '100%',
-                                                            WebkitOverflowScrolling: 'touch'
-                                                        }}>
-                                                            {notice.images && notice.images.length > 0 ? (
-                                                                notice.images.map((img, idx) => (
-                                                                    <div key={idx} style={{ 
-                                                                        minWidth: '100%', 
-                                                                        scrollSnapAlign: 'start',
-                                                                        position: 'relative'
-                                                                    }}>
-                                                                        <img
-                                                                            src={img}
-                                                                            alt="notice"
-                                                                            style={{ 
-                                                                                width: '100%', 
-                                                                                height: 'auto', 
-                                                                                maxHeight: '500px', 
-                                                                                objectFit: 'contain',
-                                                                                display: 'block', 
-                                                                                borderTop: '1px solid rgba(255,255,255,0.05)', 
-                                                                                borderBottom: '1px solid rgba(255,255,255,0.05)', 
-                                                                                cursor: 'pointer',
-                                                                                backgroundColor: 'rgba(0,0,0,0.2)'
-                                                                            }}
-                                                                            onClick={() => setLightboxImage(img)}
-                                                                        />
-                                                                        {notice.images.length > 1 && (
-                                                                            <div style={{
-                                                                                position: 'absolute',
-                                                                                bottom: '10px',
-                                                                                right: '10px',
-                                                                                background: 'rgba(0,0,0,0.6)',
-                                                                                padding: '4px 8px',
-                                                                                borderRadius: '12px',
-                                                                                color: 'white',
-                                                                                fontSize: '0.75rem',
-                                                                                fontWeight: 'bold'
-                                                                            }}>
-                                                                                {idx + 1} / {notice.images.length}
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                ))
-                                                            ) : (
-                                                                <img
-                                                                    src={notice.image || notice.imageUrl}
-                                                                    alt="notice"
-                                                                    style={{ 
-                                                                        width: '100%', 
-                                                                        height: 'auto', 
-                                                                        display: 'block', 
-                                                                        borderTop: '1px solid rgba(255,255,255,0.05)', 
-                                                                        borderBottom: '1px solid rgba(255,255,255,0.05)', 
-                                                                        cursor: 'pointer' 
-                                                                    }}
-                                                                    onClick={() => setLightboxImage(notice.image || notice.imageUrl)}
-                                                                />
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <div style={{ padding: '24px 24px 10px' }}>
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px', gap: '10px' }}>
-                                                            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--primary-gold)', margin: 0, lineHeight: '1.4', wordBreak: 'keep-all' }}>
-                                                                {notice.title}
-                                                            </h3>
-                                                            <span style={{
-                                                                fontSize: '0.75rem',
-                                                                color: 'rgba(255,255,255,0.5)',
-                                                                whiteSpace: 'nowrap',
-                                                                background: 'rgba(212, 175, 55, 0.15)',
-                                                                padding: '4px 12px',
-                                                                borderRadius: '20px',
-                                                                fontWeight: '600'
-                                                            }}>
-                                                                {notice.date || (notice.createdAt ? new Date(notice.createdAt).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }) : '최근')}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                <div style={{ padding: '20px 24px 30px' }}>
-                                                    <p style={{
-                                                        margin: 0,
-                                                        fontSize: '1.05rem',
-                                                        color: 'rgba(255,255,255,0.9)',
-                                                        lineHeight: '1.8',
-                                                        whiteSpace: 'pre-wrap',
-                                                        wordBreak: 'break-all',
-                                                        userSelect: 'text',
-                                                        WebkitUserSelect: 'text'
-                                                    }}>
-                                                        {notice.content}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                         );
-                                         })}
-                                    </div>
-                                ) : (
-                                    <div className="glass-panel" style={{ padding: '40px 20px', textAlign: 'center', background: 'rgba(255,255,255,0.02)' }}>
-                                        <Icons.Megaphone size={40} style={{ opacity: 0.2, marginBottom: '15px' }} />
-                                        <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0, textAlign: 'center' }}>{t('noNewNotices')}</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                        <NoticeTab 
+                            t={t}
+                            notices={notices}
+                            selectedNoticeId={selectedNoticeId}
+                            setSelectedNoticeId={setSelectedNoticeId}
+                            setLightboxImage={setLightboxImage}
+                        />
                     )}
 
-                    {activeTab === 'messages' && <MessagesTab messages={messages} t={t} setActiveTab={(tab, noticeId) => {
-                            setActiveTab(tab);
-                            if (noticeId) setSelectedNoticeId(noticeId);
-                        }} />}
+                    {/* MESSAGES TAB */}
+                    {activeTab === 'messages' && (
+                        <MessagesTab 
+                            messages={messages} 
+                            t={t} 
+                            setActiveTab={(tab, noticeId) => {
+                                setActiveTab(tab);
+                                if (noticeId) setSelectedNoticeId(noticeId);
+                            }} 
+                        />
+                    )}
                 </div>
             </div> {/* End of profile-container */}
 
@@ -1376,51 +1132,5 @@ const MemberProfile = () => {
         </div>
     );
 };
-
-
-
-// [LUXURY] Glassmorphic Modal Component
-const CustomGlassModal = ({ message, isConfirm, onConfirm, onCancel }) => (
-    <div style={{
-        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-        background: 'rgba(0,0,0,0.8)', 
-        zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        animation: 'fadeIn 0.2s ease-out'
-    }}>
-        <div style={{
-            background: 'rgba(25, 25, 28, 0.95)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '24px',
-            padding: '30px',
-            width: '85%',
-            maxWidth: '320px',
-            textAlign: 'center',
-            boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-            transform: 'scale(1)',
-            animation: 'scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-        }}>
-           <h3 style={{ color: 'white', fontSize: '1.1rem', marginBottom: '20px', fontWeight: '600', lineHeight: '1.5' }}>
-               {message}
-           </h3>
-           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-               {isConfirm && (
-                   <button onClick={onCancel} style={{
-                       padding: '12px 24px', borderRadius: '14px', border: 'none',
-                       background: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: '600', flex: 1
-                   }}>
-                       취소
-                   </button>
-               )}
-               <button onClick={onConfirm || onCancel} style={{
-                   padding: '12px 24px', borderRadius: '14px', border: 'none',
-                   background: 'var(--primary-gold)', color: 'black', fontWeight: '700', flex: 1,
-                   boxShadow: '0 4px 15px rgba(255, 215, 0, 0.2)'
-               }}>
-                   확인
-               </button>
-           </div>
-        </div>
-    </div>
-);
 
 export default MemberProfile;

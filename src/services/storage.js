@@ -1,16 +1,21 @@
-﻿import { db, auth, functions, storage } from "../firebase"; // ✅ Import storage
-import { signInAnonymously } from "firebase/auth";
+﻿import { db, auth, functions } from "../firebase"; // ✅ Import storage
+import { signInAnonymously, signInWithCustomToken } from "firebase/auth";
 import { httpsCallable } from "firebase/functions";
-import { onSnapshot, doc, collection, getDocs, getDoc, addDoc, updateDoc, setDoc, deleteDoc, query, where, orderBy, limit as firestoreLimit, increment, writeBatch } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // ✅ Storage imports
+import { onSnapshot, doc, collection, getDocs, getDoc, addDoc, updateDoc, setDoc, deleteDoc, query, where, orderBy, limit as firestoreLimit, writeBatch } from 'firebase/firestore';
+// Removed firebase/storage imports
 import { STUDIO_CONFIG } from '../studioConfig';
 import { messaging, getToken } from "../firebase";
 import * as scheduleService from './scheduleService'; // [Refactor]
+import * as noticeService from './noticeService'; // [Refactor]
+import * as aiService from './aiService'; // [Refactor]
+import { memberService } from './memberService'; // [Refactor] Extreme Safety Facade
+import { attendanceService } from './attendanceService'; // [Refactor] Attendance Facade
+import { paymentService } from './paymentService'; // [Refactor] Payment Facade
+import { messageService } from './messageService'; // [Refactor] Message Facade
 import { getKSTTotalMinutes } from '../utils/dates';
 
 // Local cache for sync-like access
-let cachedMembers = [];
-let cachedAttendance = [];
+// [REMOVED] cachedMembers, phoneLast4Index, cachedAttendance moved to dedicated services
 let cachedNotices = [];
 // let cachedMessages = [];  // Unused
 let cachedImages = {};
@@ -19,9 +24,6 @@ let cachedDailyClasses = {}; // {cacheKey: { classes: [...], fetchedAt: timestam
 const DAILY_CLASS_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 let cachedPushTokens = [];
 let listeners = [];
-
-// [PERF] O(1) lookup index for phone last 4 digits
-let phoneLast4Index = {}; // { "1234": [member1, member2], ... }
 
 // [NETWORK] Timeout wrapper for Cloud Function calls
 // Prevents infinite waiting when network is slow or disconnected
@@ -39,7 +41,24 @@ const notifyListeners = () => {
 };
 
 export const storageService = {
+  subscribe(callback) {
+    listeners.push(callback);
+    return () => {
+      listeners = listeners.filter(cb => cb !== callback);
+    };
+  },
+
   async initialize({ mode = 'full' } = {}) {
+    // Wire up notifyListeners for internal services
+    memberService.setNotifyCallback(notifyListeners);
+    attendanceService.setNotifyCallback(notifyListeners);
+    paymentService.setNotifyCallback(notifyListeners);
+    messageService.setNotifyCallback(notifyListeners);
+    attendanceService.setDependencies({
+      getCurrentClass: this.getCurrentClass.bind(this),
+      logError: this.logError.bind(this)
+    });
+
     // [FIX] Check for existing session (e.g. Admin) before forcing Anonymous login
     try {
       await new Promise((resolve) => {
@@ -78,7 +97,7 @@ export const storageService = {
       console.time('[Kiosk] Full Cache Load');
       
       // [PERF] Wait for member cache to be ready before returning
-      const members = await this.loadAllMembers();
+      const members = await memberService.loadAllMembers();
       console.log(`[Storage] Kiosk member cache ready: ${members.length} members`);
       
       // [PERF] Aggressive Pre-fetch: Load today, yesterday, and tomorrow's classes
@@ -119,16 +138,11 @@ export const storageService = {
       return;
     }
 
-    // ✅ FULL MODE: Subscribe to everything (Admin/Mobile)
-    // [PERF] attendance는 최근 200건만 구독 (누적 데이터 전부 구독 방지)
-    safelySubscribe(
-      query(collection(db, 'attendance'), orderBy("timestamp", "desc"), firestoreLimit(500)),
-      (snapshot) => cachedAttendance = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
-      "Attendance"
-    );
-
     // [NEW] Real-time Member Sync
-    this._setupMemberListener(); // Ensure this is called!
+    memberService.setupMemberListener(); // Ensure this is called!
+    
+    // [NEW] Real-time Attendance Sync
+    attendanceService.setupAttendanceListener();
 
     safelySubscribe(
       query(collection(db, 'notices'), orderBy("timestamp", "desc")),
@@ -163,166 +177,24 @@ export const storageService = {
     }
   },
 
-  _setupMemberListener() {
-    console.log("[Storage] Starting Member Listener...");
-    try {
-      return onSnapshot(collection(db, 'members'), (snapshot) => {
-        const members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        cachedMembers = members;
-        console.log(`[Storage] Members updated via listener: ${members.length}`);
-        notifyListeners();
-      }, (error) => {
-        console.warn("[Storage] Member listener error:", error);
-      });
-    } catch (e) {
-      console.error("[Storage] Failed to setup member listener:", e);
-    }
-  },
+  _setupMemberListener() { return memberService.setupMemberListener(); },
 
   _safeGetItem(key) { try { return localStorage.getItem(key); } catch { return null; } },
   _safeSetItem(key, value) { try { localStorage.setItem(key, value); } catch { /* ignore */ } },
 
   async addNotice(title, content, images = [], sendPush = true) {
-    try {
-      const today = new Date();
-      const dateStr = today.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }); // YYYY-MM-DD
-      
-      // [COMPATIBILITY] Handle legacy single image call or new array call
-      // If 'images' is a string (old usage), treat as single item array or legacy field
-      // Logic: Maintain 'image' field for legacy support, 'images' field for new multi-support
-      
-      let imageList = [];
-      
-      if (Array.isArray(images)) {
-        imageList = images;
-      } else if (typeof images === 'string') {
-        imageList = [images];
-      }
-
-      // [FIX] Upload images to Storage -> Save URL to Firestore
-      // Dual strategy: Storage first, Firestore-safe Base64 fallback
-      let finalImages = [];
-      if (imageList && imageList.length > 0) {
-          const uploadPromises = imageList.map(async (imgData, index) => {
-              if (typeof imgData === 'string' && imgData.startsWith('data:image')) {
-                  try {
-                      // Strategy 1: Upload to Firebase Storage (preferred)
-                      const res = await fetch(imgData);
-                      const blob = await res.blob();
-                      
-                      const storageRef = ref(storage, `notices/${Date.now()}_${index}.webp`);
-                      
-                      // Timeout protection - prevent infinite hang
-                      const uploadPromise = uploadBytes(storageRef, blob);
-                      const timeoutPromise = new Promise((_, reject) => 
-                          setTimeout(() => reject(new Error('STORAGE_TIMEOUT')), 15000)
-                      );
-                      
-                      await Promise.race([uploadPromise, timeoutPromise]);
-                      const downloadURL = await getDownloadURL(storageRef);
-                      console.log(`[Storage] Uploaded image ${index+1}/${imageList.length} to Storage`);
-                      return downloadURL;
-                  } catch (uploadErr) {
-                      console.warn(`[Storage] Storage upload failed (${uploadErr.message}). Using compressed Base64 fallback.`);
-                      
-                      // Strategy 2: Aggressive compression for Firestore direct save
-                      // Compress to very small size to fit within Firestore 1MB doc limit
-                      try {
-                          const compressedBase64 = await new Promise((resolve) => {
-                              const img = new Image();
-                              img.onload = () => {
-                                  const canvas = document.createElement('canvas');
-                                  const MAX_WIDTH = 400; // Very small for Firestore safety
-                                  let w = img.width, h = img.height;
-                                  if (w > MAX_WIDTH) { h *= MAX_WIDTH / w; w = MAX_WIDTH; }
-                                  canvas.width = w;
-                                  canvas.height = h;
-                                  canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                                  resolve(canvas.toDataURL('image/jpeg', 0.3)); // Very low quality
-                              };
-                              img.onerror = () => resolve(null);
-                              img.src = imgData;
-                          });
-                          if (compressedBase64) return compressedBase64;
-                      } catch { /* ignore */ }
-                      
-                      return null; // Skip this image entirely if all fails
-                  }
-              } else {
-                  return imgData;
-              }
-          });
-
-          finalImages = (await Promise.all(uploadPromises)).filter(Boolean);
-      }
-    const finalPrimaryImage = finalImages.length > 0 ? finalImages[0] : null;
-
-    await addDoc(collection(db, 'notices'), {
-      title,
-      content,
-      image: finalPrimaryImage, // Legacy support (thumbnail)
-      images: finalImages,      // New multi-image support (URLs)
-      sendPush,            // Push toggle
-      date: dateStr,
-      timestamp: today.toISOString()
-    });
-    return { success: true };
-  } catch (e) {
-    console.error("Add notice failed:", e);
-    throw e;
-  }
+    return noticeService.addNotice(title, content, images, sendPush);
   },
 
   async deleteNotice(noticeId) {
-    try {
-      await deleteDoc(doc(db, 'notices', noticeId));
-      return { success: true };
-    } catch (e) {
-      console.error("Delete notice failed:", e);
-      throw e;
-    }
+    return noticeService.deleteNotice(noticeId);
   },
 
-  getMembers() { return cachedMembers; },
-  async loadAllMembers() {
-    // If cache is populated, return it (Fast)
-    if (cachedMembers.length > 0) return cachedMembers;
-
-    // Fallback: Explicit fetch if cache is empty (Robustness)
-    try {
-      console.time('[Storage] Force Fetch Members');
-      console.log("[Storage] Cache empty, force fetching members...");
-      const snapshot = await getDocs(collection(db, 'members'));
-      const members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-      // Update cache only if listener hasn't already (race condition check)
-      if (cachedMembers.length === 0) {
-        cachedMembers = members;
-      }
-      
-      // [PERF] Build O(1) lookup index for phoneLast4
-      this._buildPhoneLast4Index();
-      console.timeEnd('[Storage] Force Fetch Members');
-      
-      return cachedMembers;
-    } catch (e) {
-      console.error("Force fetch members failed:", e);
-      return [];
-    }
-  },
+  getMembers() { return memberService.getMembers(); },
+  loadAllMembers() { return memberService.loadAllMembers(); },
   
   // [PERF] Build O(1) lookup index for phoneLast4
-  _buildPhoneLast4Index() {
-    phoneLast4Index = {};
-    cachedMembers.forEach(m => {
-      const last4 = m.phoneLast4 || (m.phone && m.phone.slice(-4));
-      if (last4) {
-        if (!phoneLast4Index[last4]) phoneLast4Index[last4] = [];
-        phoneLast4Index[last4].push(m);
-      }
-    });
-    console.log(`[Storage] PhoneLast4 index built: ${Object.keys(phoneLast4Index).length} unique PINs`);
-  },
+  _buildPhoneLast4Index() { return memberService._buildPhoneLast4Index(); },
 
 
 
@@ -331,214 +203,11 @@ export const storageService = {
    * Standardizes on 'phoneLast4' nomenclature.
    * [PERF] Uses O(1) index lookup when cache is ready.
    */
-  async findMembersByPhone(last4Digits) {
-    // [PERF] O(1) Index lookup first
-    if (phoneLast4Index[last4Digits]?.length > 0) {
-      console.log(`[Storage] Index hit for ${last4Digits}: ${phoneLast4Index[last4Digits].length} member(s)`);
-      return phoneLast4Index[last4Digits];
-    }
-    
-    // Fallback: O(n) filter on cachedMembers (for new members not yet indexed)
-    const cachedResults = cachedMembers.filter(m => (m.phoneLast4 || (m.phone && m.phone.slice(-4))) === last4Digits);
-    if (cachedResults.length > 0) {
-      console.log(`[Storage] Cache filter hit for ${last4Digits}: ${cachedResults.length} member(s)`);
-      return cachedResults;
-    }
+  findMembersByPhone(last4Digits) { return memberService.findMembersByPhone(last4Digits); },
 
-    // Last resort: Cloud Function (should rarely happen in kiosk mode)
-    console.warn(`[Storage] Cache miss for ${last4Digits}, calling Cloud Function...`);
-    try {
-      const getSecureMember = httpsCallable(functions, 'getSecureMemberV2Call');
-      // [NETWORK] Apply timeout to prevent infinite waiting
-      const result = await withTimeout(
-        getSecureMember({ phoneLast4: last4Digits }),
-        10000,
-        '회원 조회 시간 초과 - 네트워크를 확인해주세요'
-      );
-      const members = result.data.members || [];
-      // Update cache and index
-      members.forEach(m => {
-        const idx = cachedMembers.findIndex(cm => cm.id === m.id);
-        if (idx !== -1) {
-          cachedMembers[idx] = { ...cachedMembers[idx], ...m };
-        } else {
-          if (!cachedMembers.some(cm => cm.id === m.id)) {
-            cachedMembers.push(m);
-          }
-        }
-        // Update index
-        if (!phoneLast4Index[last4Digits]) phoneLast4Index[last4Digits] = [];
-        if (!phoneLast4Index[last4Digits].some(im => im.id === m.id)) {
-          phoneLast4Index[last4Digits].push(m);
-        }
-      });
-      return members;
-    } catch (e) {
-      console.warn("Using Firestore fallback for findMembersByPhone:", e);
-      const q = query(collection(db, 'members'), where("phoneLast4", "==", last4Digits), firestoreLimit(10));
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    }
-  },
-
-
-  async checkInById(memberId, branchId, force = false) {
-    try {
-      const checkInMember = httpsCallable(functions, 'checkInMemberV2Call');
-      const currentClassInfo = await this.getCurrentClass(branchId);
-      const classTitle = currentClassInfo?.title || '자율수련';
-      const instructor = currentClassInfo?.instructor || '미지정';
-      
-      // Attempt Online Check-in with 1 retry on network fail
-      let lastErr = null;
-      for (let attempt = 1; attempt <= 2; attempt++) {
-        try {
-          console.log(`[Storage] Check-in attempt ${attempt}/2... (force: ${force})`);
-          const response = await withTimeout(
-            checkInMember({ 
-                memberId, 
-                branchId, 
-                classTitle, 
-                instructor, 
-                classTime: currentClassInfo?.time || null, 
-                force 
-            }),
-            5000, // [UX] Reduced to 5s for snappy fallback
-            'timeout'
-          );
-
-          if (response.data.success) {
-            const { newCredits, startDate, endDate, attendanceCount, streak, isMultiSession, sessionCount } = response.data;
-            this._updateLocalMemberCache(memberId, { 
-              credits: newCredits, 
-              attendanceCount, 
-              streak, 
-              startDate, 
-              endDate,
-              lastAttendance: new Date().toISOString()
-            });
-
-            return {
-              success: true,
-              message: isMultiSession ? `[${classTitle}] ${sessionCount}회차 출석되었습니다!` : `[${classTitle}] 출석되었습니다!`,
-              attendanceStatus: response.data.attendanceStatus, // [FIX] Propagate status
-              denialReason: response.data.denialReason,       // [FIX] Propagate reason
-              isDuplicate: response.data.isDuplicate,           // [FIX] Propagate duplicate flag
-              member: {
-                id: memberId,
-                name: response.data.memberName,
-                credits: newCredits,
-                attendanceCount,
-                streak,
-                startDate,
-                endDate,
-                isMultiSession,
-                sessionCount
-              }
-            };
-          } else {
-            console.warn(`[Storage] Check-in denied by server: ${response.data.message}`);
-            return { success: false, message: response.data.message || 'Check-in failed' };
-          }
-        } catch (error) {
-          lastErr = error;
-          const errCode = error.code;
-          const errMsg = error.message || '';
-
-          const logicErrorCodes = [
-            'invalid-argument',
-            'failed-precondition', 
-            'out-of-range',
-            'unauthenticated',
-            'permission-denied',
-            'not-found',
-            'already-exists',
-            'resource-exhausted', 
-            'aborted',
-            'cancelled',
-            'unknown'  
-          ];
-
-          if (errCode && logicErrorCodes.includes(errCode)) {
-            console.warn(`[Storage] Logic error returned: ${errCode} - ${errMsg}`);
-            return { success: false, message: errMsg };
-          }
-
-          // If it's the first attempt and we are likely online, retry immediately
-          if (attempt === 1 && navigator.onLine) {
-            console.warn(`[Storage] Attempt 1 failed (${errMsg}). Retrying immediately...`);
-            continue; 
-          }
-          break;
-        }
-      }
-
-      // [OFFLINE FALLBACK]
-      console.warn(`[Storage] Offline mode triggered. Reason: ${lastErr?.message || 'Unknown'}`);
-        
-        const member = cachedMembers.find(m => m.id === memberId);
-        const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-        const now = new Date().toISOString();
-
-        // Save to Firestore 'pending_attendance' - will auto-sync when online
-        const pendingRef = collection(db, 'pending_attendance');
-        const pendingData = {
-            memberId,
-            branchId,
-            classTitle,
-            instructor,
-            classTime: currentClassInfo?.time || null, // [NEW] Record class time in offline record
-            date: today,
-            timestamp: now,
-            status: 'pending-offline'
-        };
-
-        try {
-            await addDoc(pendingRef, pendingData);
-            console.log("[Storage] Pending record saved to Firestore (Offline mode)");
-        } catch (firestoreErr) {
-            // [CRITICAL FALLBACK] If Firestore writing itself fails (e.g. permission or absolute cutoff)
-            // Store in LocalStorage as a last resort
-            console.error("[Storage] Firestore write failed. Using LocalStorage fallback:", firestoreErr.message);
-            const localQueue = JSON.parse(localStorage.getItem('pending_checkins_queue') || '[]');
-            localQueue.push(pendingData);
-            localStorage.setItem('pending_checkins_queue', JSON.stringify(localQueue));
-        }
-
-        // Optimistically update local UI
-        const newCredits = (member?.credits || 0) > 0 ? (member.credits - 1) : 0;
-        const newCount = (member?.attendanceCount || 0) + 1;
-        
-        this._updateLocalMemberCache(memberId, {
-            credits: newCredits,
-            attendanceCount: newCount,
-            lastAttendance: now
-        });
-
-        return {
-          success: true,
-          isOffline: true,
-          message: `[${classTitle}] 출석되었습니다!`, // [UX] Same message as online success
-          member: {
-            ...member,
-            credits: newCredits,
-            attendanceCount: newCount
-          }
-        };
-      } catch (error) {
-      return { success: false, message: error.message };
-    }
-  },
-
-  _updateLocalMemberCache(memberId, updates) {
-    const idx = cachedMembers.findIndex(m => m.id === memberId);
-    if (idx !== -1) {
-      cachedMembers[idx] = { ...cachedMembers[idx], ...updates };
-      notifyListeners();
-      // Re-build index for searching
-      this._buildPhoneLast4Index();
-    }
-  },
+  checkInById(memberId, branchId, force = false) { return attendanceService.checkInById(memberId, branchId, force); },
+  
+  _updateLocalMemberCache(memberId, updates) { return memberService._updateLocalMemberCache(memberId, updates); },
 
   async _refreshDailyClassCache(branchId, date = null) {
     const targetDate = date || new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
@@ -762,73 +431,18 @@ export const storageService = {
     }
   },
 
-  // [PERF] aiModule.js로 위임 (캐시 포함 버전 사용)
   async getAIExperience(memberName, attendanceCount, day, hour, upcomingClass, weather, credits, remainingDays, language = 'ko', diligence = null, context = 'profile') {
-    const { getAIExperience } = await import('./modules/aiModule.js');
-    return getAIExperience(memberName, attendanceCount, day, hour, upcomingClass, weather, credits, remainingDays, language, diligence, context);
+    return aiService.getAIExperience(memberName, attendanceCount, day, hour, upcomingClass, weather, credits, remainingDays, language, diligence, context);
   },
 
   async getAIAnalysis(memberName, attendanceCount, logs, timeOfDay, language = 'ko', requestRole = 'member', statsData = null, context = 'profile') {
-    // 1. Check Cache
-    const cacheKey = `ai_analysis_${memberName}_${attendanceCount}_${language}_${new Date().getHours()}`;
-    const cached = this._safeGetItem(cacheKey);
-    if (cached) {
-      console.log("[AI] Returning cached analysis");
-      return JSON.parse(cached);
-    }
-
-    try {
-      const genAI = httpsCallable(functions, 'generatePageExperienceV2');
-      // [TIMEOUT RACE] If AI takes > 12s, allow fallback to trigger (handled by UI mostly, but we can return early if needed)
-      // For now, reliance on 'flash' model should be fast enough.
-
-      const res = await genAI({ memberName, attendanceCount, logs: (logs || []).slice(0, 10), type: 'analysis', timeOfDay, language, role: requestRole, statsData, context });
-
-      // 2. Set Cache
-      if (res.data && !res.data.isFallback) {
-        this._safeSetItem(cacheKey, JSON.stringify(res.data));
-      }
-      return res.data;
-    } catch (error) {
-      console.warn("AI Analysis failed, using fallback:", error);
-      const fallbacks = {
-        ko: "수련 기록을 바탕으로 분석 중입니다. 꾸준한 발걸음을 응원합니다!",
-        en: "Analyzing your practice records. Cheering for your steady progress!",
-        ru: "Анализируем ваши записи тренировок. Поддерживаем ваш постоянный прогресс!",
-        zh: "正在通过修炼记录进行分析。为您的坚持加油！",
-        ja: "練習記録を分析中です。あなたの着実な歩みを応援します！"
-      };
-      return { message: fallbacks[language] || fallbacks['ko'], isFallback: true };
-    }
+    return aiService.getAIAnalysis(memberName, attendanceCount, logs, timeOfDay, language, requestRole, statsData, context);
   },
 
 
 
   async getDailyYoga(language = 'ko') {
-    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-    const cacheKey = `daily_yoga_${today}_${language}_v2`; // v2 added to invalidate old 3-pose cache
-    const cached = this._safeGetItem(cacheKey);
-
-    if (cached) return JSON.parse(cached);
-
-    try {
-      const genYoga = httpsCallable(functions, 'generateDailyYogaV2');
-      // For context, we can pass simple approximate time/weather or let backend handle defaults
-      const response = await genYoga({ language, timeOfDay: new Date().getHours(), weather: 'Sunny' }); // Client side weather fetch is complex, simplified for now
-      const data = response.data;
-
-      this._safeSetItem(cacheKey, JSON.stringify(data));
-      return data;
-    } catch (e) {
-      console.warn("Daily Yoga fetch failed:", e);
-      // Return hardcoded fallback if everything fails
-      const fallbackData = [
-        { name: "Child's Pose", benefit: language === 'ko' ? "휴식 및 이완" : "Rest", instruction: language === 'ko' ? "이마를 매트에 대고 편안하게 쉽니다." : "Rest forehead on mat.", emoji: "👶" },
-        { name: "Cat-Cow", benefit: language === 'ko' ? "척추 유연성" : "Spine Flex", instruction: language === 'ko' ? "숨을 마시며 등을 펴고, 내쉬며 둥글게 맙니다." : "Inhale arch, exhale round.", emoji: "🐈" }
-      ];
-      fallbackData.isFallback = true;
-      return fallbackData;
-    }
+    return aiService.getDailyYoga(language);
   },
 
 
@@ -868,18 +482,7 @@ export const storageService = {
   async updateClassTypes(list) { return scheduleService.updateClassTypes(list); },
   async getClassLevels() { return scheduleService.getClassLevels(); },
   async updateClassLevels(list) { return scheduleService.updateClassLevels(list); },
-  async getMemberById(id) {
-    // Cache lookup first
-    const cached = cachedMembers.find(m => m.id === id);
-    if (cached) return cached;
-    try {
-      const docSnap = await getDoc(doc(db, 'members', id));
-      return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
-    } catch (e) {
-      console.error('getMemberById failed:', e);
-      return null;
-    }
-  },
+  getMemberById(id) { return memberService.getMemberById(id); },
 
   async logError(error, context = {}) {
     try {
@@ -952,11 +555,31 @@ export const storageService = {
       });
 
         if (filtered.length === 1) {
+          // [FIX] Sign in anonymously to enable Firestore writes (e.g. fcm_tokens)
+          try {
+            if (!auth.currentUser) {
+                await import("firebase/auth").then(({ signInAnonymously }) => signInAnonymously(auth));
+                console.log('[Storage] Anonymous auth successful for member login');
+            }
+          } catch (authErr) {
+            console.warn('[Storage] Anonymous auth failed during login:', authErr);
+          }
           return { success: true, member: { ...filtered[0], displayName: name.trim() } };
         } else if (filtered.length > 1) {
           console.warn(`Multiple members found for name ${name} and PIN ${last4Digits}`);
           // 정확히 일치하는 회원 우선
           const exact = filtered.find(m => (m.name || '').trim().toLowerCase() === inputName);
+          
+          // [FIX] Sign in anonymously here too
+          try {
+            if (!auth.currentUser) {
+                await import("firebase/auth").then(({ signInAnonymously }) => signInAnonymously(auth));
+                console.log('[Storage] Anonymous auth successful for member login');
+            }
+          } catch (authErr) {
+            console.warn('[Storage] Anonymous auth failed during login:', authErr);
+          }
+
           return { success: true, member: { ...(exact || filtered[0]), displayName: name.trim() } }; 
       } else {
         // 실패 로깅
@@ -982,6 +605,16 @@ export const storageService = {
       );
 
       if (response.data.success) {
+        // [FIX] Sign in with custom token (if provided) to pass firestore rules
+        if (response.data.token) {
+            try {
+                await signInWithCustomToken(auth, response.data.token);
+                console.log('[Storage] Instructor auth via token successful');
+            } catch (authErr) {
+                console.warn('[Storage] Instructor token auth failed:', authErr);
+            }
+        }
+        
         localStorage.setItem('instructorName', response.data.name);
         return { success: true, name: response.data.name };
       } else {
@@ -1041,98 +674,12 @@ export const storageService = {
   },
 
 
-  async updateMember(memberId, data) {
-    try {
-      const memberRef = doc(db, 'members', memberId);
-      await updateDoc(memberRef, { ...data, updatedAt: new Date().toISOString() });
-      return { success: true };
-    } catch (e) {
-      console.error('Update member failed:', e);
-      return { success: false, error: e.message };
-    }
-  },
-
-  async addMember(data) {
-    try {
-      // Check for duplicates
-      const phoneQuery = query(collection(db, 'members'), where('phone', '==', data.phone));
-      const phoneSnap = await getDocs(phoneQuery);
-      if (!phoneSnap.empty) {
-        throw new Error('이미 등록된 전화번호입니다.');
-      }
-
-      const docRef = await addDoc(collection(db, 'members'), {
-        ...data,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        phoneLast4: data.phone.slice(-4) // Optimisation for lookup
-      });
-      console.log(`[Storage] Member added to Firestore: ${docRef.id}`);
-
-      // [REMOVED] cachedMembers.push(...)
-      // We rely on the real-time listener (_setupMemberListener) to update the cache.
-      // Manually pushing here causes duplicates when the listener also fires.
-
-      return { success: true, id: docRef.id };
-    } catch (e) {
-      console.error('Add member failed:', e);
-      throw e;
-    }
-  },
-
-  getMemberStreak(memberId, attendance) {
-    try {
-      if (!attendance || attendance.length === 0) return 0;
-
-      const dates = attendance.map(a => a.date).filter(Boolean).sort().reverse();
-      const uniqueDates = [...new Set(dates)];
-
-      const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-      const yesterdayDate = new Date();
-      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-      const yesterday = yesterdayDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-
-      if (uniqueDates[0] !== today && uniqueDates[0] !== yesterday) return 0;
-
-      let streak = 1;
-      let lastDate = new Date(uniqueDates[0]);
-
-      for (let i = 1; i < uniqueDates.length; i++) {
-        const currentDate = new Date(uniqueDates[i]);
-        const diff = Math.round((lastDate - currentDate) / (1000 * 60 * 60 * 24));
-        if (diff === 1) {
-          streak++;
-          lastDate = currentDate;
-        } else {
-          break;
-        }
-      }
-      return streak;
-    } catch (e) {
-      console.warn('Streak calc failed:', e);
-      return 0;
-    }
-  },
-
-  async getMemberDiligence(memberId) {
-    try {
-      // Diligence data is calculated by server; we just fetch it
-      const docSnap = await getDoc(doc(db, 'member_diligence', memberId));
-      return docSnap.exists() ? docSnap.data() : null;
-    } catch (e) {
-      console.warn("Diligence fetch failed:", e);
-      return null;
-    }
-  },
-
-  getGreetingCache(memberId) {
-    const cached = this._safeGetItem(`greeting_${memberId}`);
-    return cached ? JSON.parse(cached) : null;
-  },
-
-  setGreetingCache(memberId, data) {
-    this._safeSetItem(`greeting_${memberId}`, JSON.stringify(data));
-  },
+  updateMember(memberId, data) { return memberService.updateMember(memberId, data); },
+  addMember(data) { return memberService.addMember(data); },
+  getMemberStreak(memberId, attendance) { return memberService.getMemberStreak(memberId, attendance); },
+  getMemberDiligence(memberId) { return memberService.getMemberDiligence(memberId); },
+  getGreetingCache(memberId) { return memberService.getGreetingCache(memberId); },
+  setGreetingCache(memberId, data) { return memberService.setGreetingCache(memberId, data); },
 
   async deletePushToken() {
     try {
@@ -1395,124 +942,12 @@ export const storageService = {
     }
   },
 
-  async getAttendanceByMemberId(memberId) {
-    try {
-      console.log('[Storage] getAttendanceByMemberId called for:', memberId);
-      const q = query(collection(db, 'attendance'), where('memberId', '==', memberId), orderBy('timestamp', 'desc'), firestoreLimit(50));
-      const snapshot = await getDocs(q);
-      const results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      console.log('[Storage] getAttendanceByMemberId results:', results.length, results);
-      return results;
-    } catch (e) {
-      console.error('[Storage] Failed to fetch attendance:', e);
-      console.error('[Storage] Error details:', e.message, e.code);
-      return [];
-    }
-  },
-
-  // [NEW] Get attendance records by date and optionally by branch
-  async getAttendanceByDate(dateStr, branchId = null) {
-    try {
-      let q;
-      if (branchId) {
-        q = query(
-          collection(db, 'attendance'),
-          where('date', '==', dateStr),
-          where('branchId', '==', branchId)
-          // [PERF] Removed orderBy to avoid "Missing Index" error.
-          // Sorting is handled client-side below.
-        );
-      } else {
-        q = query(
-          collection(db, 'attendance'),
-          where('date', '==', dateStr)
-        );
-      }
-      const snapshot = await getDocs(q);
-      const records = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      // [PERF] Sort on client side to ensure correct order
-      records.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-      return records;
-    } catch (e) {
-      console.error('[Storage] getAttendanceByDate failed:', e);
-      return [];
-    }
-  },
-
-  // [NEW] Subscribe to attendance records in real-time
-  subscribeAttendance(dateStr, branchId = null, callback) {
-    let q;
-    if (branchId) {
-      q = query(
-        collection(db, 'attendance'),
-        where('date', '==', dateStr),
-        where('branchId', '==', branchId)
-      );
-    } else {
-      q = query(
-        collection(db, 'attendance'),
-        where('date', '==', dateStr)
-      );
-    }
-    
-    return onSnapshot(q, (snapshot) => {
-      const records = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      // Sort on client side to avoid requiring composite index
-      records.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-      callback(records);
-    }, (error) => {
-      console.error('[Storage] Attendance subscription failed:', error);
-      // Fallback: try without branchId filter
-      if (branchId) {
-        console.log('[Storage] Retrying without branchId filter...');
-        const fallbackQ = query(
-          collection(db, 'attendance'),
-          where('date', '==', dateStr)
-        );
-        onSnapshot(fallbackQ, (snap) => {
-          const allRecords = snap.docs
-            .map(doc => ({ id: doc.id, ...doc.data() }))
-            .filter(r => r.branchId === branchId);
-          allRecords.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-          callback(allRecords);
-        });
-      }
-    });
-  },
-
   async translateNotices(notices, targetLang) {
-    if (targetLang === 'ko' || !notices || notices.length === 0) return notices;
-    try {
-      const translateCall = httpsCallable(functions, 'translateNoticesV2');
-      const response = await translateCall({ notices: notices.map(n => ({ id: n.id, title: n.title, content: n.content })), language: targetLang });
-      if (response.data && response.data.notices) {
-        // [FIX] Merge translated title/content with ORIGINAL object to preserve images/dates
-        return response.data.notices.map(translated => {
-          const original = notices.find(n => n.id === translated.id);
-          return { ...original, ...translated };
-        });
-      }
-      return notices;
-    } catch (e) {
-      console.warn("[Storage] Notice translation failed:", e);
-      return notices;
-    }
+    return noticeService.translateNotices(notices, targetLang);
   },
 
   async getAiUsage() {
-    try {
-      const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-      const docRef = doc(db, 'ai_quota', today);
-      const snapshot = await getDoc(docRef);
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        return { count: data.count || 0, limit: 5000 };
-      }
-      return { count: 0, limit: 5000 };
-    } catch (e) {
-      console.error("AI Usage fetch failed:", e);
-      return { count: 0, limit: 2000 };
-    }
+    return aiService.getAiUsage();
   },
 
   onAuthStateChanged(callback) {
@@ -1579,219 +1014,17 @@ export const storageService = {
     return signOut(auth);
   },
 
-  // Sales & Revenue
-  async addSalesRecord(data) {
-    try {
-      await addDoc(collection(db, 'sales'), {
-        ...data,
-        timestamp: new Date().toISOString()
-      });
-      return true;
-    } catch (e) {
-      console.error("Add sales failed:", e);
-      throw e;
-    }
-  },
+  // Sales & Revenue Facade
+  addSalesRecord(data) { return paymentService.addSalesRecord(data); },
+  deleteSalesRecord(salesId) { return paymentService.deleteSalesRecord(salesId); },
+  getSalesHistory(memberId) { return paymentService.getSalesHistory(memberId); },
+  getAllSales() { return paymentService.getAllSales(); },
+  getSales() { return paymentService.getSales(); },
 
-  async deleteSalesRecord(salesId) {
-    try {
-      await deleteDoc(doc(db, 'sales', salesId));
-      console.log(`[Storage] Sales record deleted: ${salesId}`);
-      notifyListeners();
-      return true;
-    } catch (e) {
-      console.error("Delete sales record failed:", e);
-      throw e;
-    }
-  },
+  deleteAttendance(logId) { return attendanceService.deleteAttendance(logId); },
 
-  async getSalesHistory(memberId) {
-    try {
-      const q = query(
-        collection(db, 'sales'),
-        where("memberId", "==", memberId)
-      );
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (e) {
-      console.warn("Get sales history failed:", e);
-      return [];
-    }
-  },
-
-  async getAllSales() {
-    try {
-      const q = query(
-        collection(db, 'sales'),
-        orderBy("timestamp", "desc")
-      );
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (e) {
-      console.warn("Get all sales failed:", e);
-      return [];
-    }
-  },
-
-  async getSales() { return this.getAllSales(); },
-
-  async deleteAttendance(logId) {
-    try {
-      const logRef = doc(db, 'attendance', logId);
-      const logSnap = await getDoc(logRef);
-
-      if (logSnap.exists()) {
-        const logData = logSnap.data();
-        // If it was a standard check-in or manual entry, restore credit
-        if (logData.memberId && (logData.type === 'checkin' || logData.type === 'manual')) {
-          const memberRef = doc(db, 'members', logData.memberId);
-          await updateDoc(memberRef, {
-            credits: increment(1),
-            attendanceCount: increment(-1)
-          });
-
-          // Update local cache if available
-          const idx = cachedMembers.findIndex(m => m.id === logData.memberId);
-          if (idx !== -1) {
-            cachedMembers[idx].credits = (Number(cachedMembers[idx].credits) || 0) + 1;
-            cachedMembers[idx].attendanceCount = Math.max(0, (Number(cachedMembers[idx].attendanceCount) || 0) - 1);
-          }
-        }
-      }
-
-      await deleteDoc(logRef);
-      cachedAttendance = cachedAttendance.filter(l => l.id !== logId);
-      notifyListeners();
-      return { success: true };
-    } catch (e) {
-      console.error("Delete attendance failed:", e);
-      // [FIX] Log error for debugging
-      await this.logError(e, { context: 'deleteAttendance', logId });
-      return { success: false, message: e.message };
-    }
-  },
-
-
-
-  async addManualAttendance(memberId, date, branchId, className = "수동 확인", instructor = "관리자") {
-    try {
-      // Get member info for name
-      const memberDoc = await getDoc(doc(db, 'members', memberId));
-      const memberName = memberDoc.exists() ? memberDoc.data().name : '알 수 없음';
-
-      // Use the provided date but set a reasonable time if only YYYY-MM-DD is provided
-      let finalDate = new Date(date);
-      if (isNaN(finalDate.getTime())) {
-        // Fallback to today if invalid
-        finalDate = new Date();
-      }
-      const timestamp = finalDate.toISOString();
-
-      // [FIX] Auto-match with schedule using daily_classes instead of deprecated schedules collection
-      let finalClassName = className;
-      let finalInstructor = instructor;
-
-      if (className === "수동 확인") {
-        try {
-          // Get schedule for this date/time/branch
-          const dateStr = finalDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-          const scheduleDocId = `${branchId}_${dateStr}`;
-          const scheduleDoc = await getDoc(doc(db, 'daily_classes', scheduleDocId));
-
-          if (scheduleDoc.exists()) {
-            const scheduleData = scheduleDoc.data();
-            const dayClasses = scheduleData.classes || [];
-
-            // Find matching class by time
-            const hour = finalDate.getHours();
-            const minute = finalDate.getMinutes();
-            const requestTimeMins = hour * 60 + minute;
-
-            const matchedClass = dayClasses.find(cls => {
-              if (!cls.time || cls.status === 'cancelled') return false;
-              const [classHour, classMinute] = cls.time.split(':').map(Number);
-              const classStartMins = classHour * 60 + classMinute;
-              const classDuration = cls.duration || 60;
-              const classEndMins = classStartMins + classDuration;
-
-              // Match: 30 mins before start ~ 30 mins after end
-              return requestTimeMins >= classStartMins - 30 && requestTimeMins <= classEndMins + 30;
-            });
-
-            if (matchedClass) {
-              finalClassName = matchedClass.title || matchedClass.name || "수업";
-              finalInstructor = matchedClass.instructor || "선생님";
-            } else {
-              // No matching class found
-              finalClassName = "자율수련";
-              finalInstructor = "회원";
-            }
-          } else {
-            finalClassName = "자율수련";
-            finalInstructor = "회원";
-          }
-        } catch (scheduleError) {
-          console.warn("Schedule lookup failed, using default:", scheduleError);
-          finalClassName = "자율수련";
-          finalInstructor = "회원";
-        }
-      }
-
-      const docRef = await addDoc(collection(db, 'attendance'), {
-        memberId,
-        memberName,
-        timestamp,
-        branchId,
-        className: finalClassName,
-        instructor: finalInstructor,
-        type: 'manual',
-        date: finalDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
-      });
-
-      // [CRITICAL] Deduct credit for manual attendance
-      const memberRef = doc(db, 'members', memberId);
-      await updateDoc(memberRef, {
-        credits: increment(-1),
-        attendanceCount: increment(1),
-        lastAttendance: timestamp
-      });
-
-      // [FIX] Update local cache immediately for instant UI feedback
-      const newLog = {
-        id: docRef.id,
-        memberId,
-        memberName,
-        timestamp,
-        branchId,
-        className: finalClassName,
-        instructor: finalInstructor,
-        type: 'manual',
-        date: finalDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
-      };
-
-      // [FIX] Prevent duplicate entries if listener already fired
-      const alreadyExists = cachedAttendance.some(l => l.id === docRef.id);
-      if (!alreadyExists) {
-        cachedAttendance.push(newLog);
-        // Sort immediately to prevent "jumping" UI
-        cachedAttendance.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-      }
-
-      // Update member cache too
-      const mIdx = cachedMembers.findIndex(m => m.id === memberId);
-      if (mIdx !== -1) {
-        cachedMembers[mIdx].credits = (Number(cachedMembers[mIdx].credits) || 0) - 1;
-        cachedMembers[mIdx].attendanceCount = (Number(cachedMembers[mIdx].attendanceCount) || 0) + 1;
-        cachedMembers[mIdx].lastAttendance = timestamp;
-      }
-
-      notifyListeners();
-
-      return { success: true, id: docRef.id };
-    } catch (e) {
-      console.error("Add manual attendance failed:", e);
-      return { success: false, message: e.message };
-    }
+  addManualAttendance(memberId, date, branchId, className = "수동 확인", instructor = "관리자") {
+    return attendanceService.addManualAttendance(memberId, date, branchId, className, instructor);
   },
 
   // [Monitoring] Get Error Logs
@@ -1863,6 +1096,9 @@ export const storageService = {
     }
   },
 
+  getAttendanceByMemberId(memberId) { return attendanceService.getAttendanceByMemberId(memberId); },
+  getAttendanceByDate(dateStr, branchId = null) { return attendanceService.getAttendanceByDate(dateStr, branchId); },
+  subscribeAttendance(dateStr, branchId = null, callback) { return attendanceService.subscribeAttendance(dateStr, branchId, callback); },
 
   // [Added] Delete single error log
   async deleteErrorLog(logId) {
@@ -1888,26 +1124,9 @@ export const storageService = {
     }
   },
 
-  // [Added] Clear all attendance logs
-  async clearAllAttendance() {
-    try {
-      if (!confirm('정말로 모든 출석 기록을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-        return { success: false, message: '취소되었습니다.' };
-      }
-      const snapshot = await getDocs(collection(db, 'attendance'));
-      const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
-      await Promise.all(deletePromises);
-      cachedAttendance = [];
-      notifyListeners();
-      return { success: true, count: snapshot.docs.length };
-    } catch (e) {
-      console.error("Clear all attendance failed:", e);
-      return { success: false, message: e.message };
-    }
-  },
+  clearAllAttendance() { return attendanceService.clearAllAttendance(); },
 
-  // [Added] Getters for cached data
-  getAttendance() { return cachedAttendance; },
+  getAttendance() { return attendanceService.getAttendance(); },
   getNotices() { return cachedNotices; },
 
   // [Added] Load notices with fallback for empty cache
@@ -1979,254 +1198,16 @@ export const storageService = {
 
 
   // [NEW] Get all messages (Individual + Notices) for a specific member
-  async getMessagesByMemberId(memberId) {
-    try {
-      console.log(`[Storage] Fetching messages for member: ${memberId}`);
+  getMessagesByMemberId(memberId) { return messageService.getMessagesByMemberId(memberId); },
 
-      // 1. Fetch individual messages for this member
-      const msgQuery = query(
-        collection(db, 'messages'),
-        where('memberId', '==', memberId),
-        firestoreLimit(50)
-      );
-      const msgSnap = await getDocs(msgQuery);
-      const individualMessages = msgSnap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        type: 'admin_individual'
-      }));
+  getPendingApprovals(callback) { return messageService.getPendingApprovals(callback); },
+  approvePush(id) { return messageService.approvePush(id); },
+  rejectPush(id) { return messageService.rejectPush(id); },
 
-      // 2. Fetch Global Notices to display in message list as well
-      const noticeQuery = query(
-        collection(db, 'notices'),
-        firestoreLimit(20)
-      );
-      const noticeSnap = await getDocs(noticeQuery);
-      const noticeMessages = noticeSnap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        type: 'notice',
-        content: doc.data().content, // Notices usually have content field
-        timestamp: doc.data().timestamp || doc.data().date // Normalizing timestamp
-      }));
-
-      // 3. Merge and Sort by timestamp descending
-      const allMessages = [...individualMessages, ...noticeMessages].sort((a, b) => {
-        const timeA = new Date(a.timestamp || 0).getTime();
-        const timeB = new Date(b.timestamp || 0).getTime();
-        return timeB - timeA;
-      });
-
-      return allMessages;
-    } catch (e) {
-      console.error("[Storage] getMessagesByMemberId failed:", e);
-      return [];
-    }
-  },
-
-  // [Added] Get pricing information  
-  async getPricing() {
-    try {
-      const docSnap = await getDoc(doc(db, 'settings', 'pricing'));
-      if (docSnap.exists()) {
-        return docSnap.data();
-      }
-      return null;
-    } catch (e) {
-      console.warn("Failed to fetch pricing:", e);
-      return null;
-    }
-  },
-
-  // [Added] Subscribe to global listener changes
-  subscribe(callback) {
-    listeners.push(callback);
-    // Return unsubscribe function
-    return () => {
-      listeners = listeners.filter(cb => cb !== callback);
-    };
-  },
-
-  getPendingApprovals(callback) {
-    try {
-      const q = query(
-        collection(db, 'message_approvals'),
-        orderBy('createdAt', 'desc')
-      );
-
-      return onSnapshot(q, (snapshot) => {
-        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (callback) callback(items);
-      }, (error) => {
-        console.warn("[Storage] Error fetching pending approvals:", error);
-        if (callback) callback([]);
-      });
-    } catch (e) {
-      console.error("[Storage] Failed to setup pending approvals listener:", e);
-      if (callback) callback([]);
-      return () => { };
-    }
-  },
-
-  async approvePush(id) {
-    try {
-      const docRef = doc(db, 'message_approvals', id);
-      await updateDoc(docRef, { status: 'approved', approvedAt: new Date().toISOString() });
-      return { success: true };
-    } catch (e) {
-      console.error("Approve push failed:", e);
-      throw e;
-    }
-  },
-
-  async rejectPush(id) {
-    try {
-      await deleteDoc(doc(db, 'message_approvals', id));
-      return { success: true };
-    } catch (e) {
-      console.error("Reject push failed:", e);
-      throw e;
-    }
-  },
-
-  // --- Real Push Notifications & Messaging ---
-
-  /**
-   * Sends a single push notification to a member by adding a doc to 'messages' collection.
-   * This triggers 'sendPushOnMessageV2' Cloud Function.
-   */
-  async addMessage(memberId, content, scheduledAt = null, templateId = null) {
-    try {
-      if (!memberId || !content) throw new Error("Invalid message data");
-
-      const messageData = {
-        memberId,
-        content,
-        type: 'admin_individual',
-        createdAt: new Date().toISOString(),
-        timestamp: new Date().toISOString()
-      };
-
-      if (scheduledAt) {
-          messageData.scheduledAt = scheduledAt;
-          messageData.status = 'scheduled';
-      } else {
-          messageData.status = 'pending'; // Default for immediate
-      }
-
-      // [Solapi] Add templateId if provided (for AlimTalk)
-      if (templateId) {
-          messageData.templateId = templateId;
-      }
-
-      const docRef = await addDoc(collection(db, 'messages'), messageData);
-
-      console.log(`[Storage] Message added for ${memberId}: ${docRef.id}. Template: ${templateId || 'None'}`);
-      return { success: true, id: docRef.id };
-    } catch (e) {
-      console.error("Add message failed:", e);
-      throw e;
-    }
-  },
-
-  /**
-   * Bulk send messages to multiple members
-   * Uses batch writes for efficiency (chunks of 500)
-   */
-  async sendBulkMessages(memberIds, content, scheduledAt = null, templateId = null) {
-      try {
-          if (!memberIds || memberIds.length === 0) throw new Error("No members selected");
-          if (!content) throw new Error("Content is empty");
-
-          const chunks = [];
-          for (let i = 0; i < memberIds.length; i += 400) { // Safety margin below 500 limit
-              chunks.push(memberIds.slice(i, i + 400));
-          }
-
-          let totalCount = 0;
-
-          for (const chunk of chunks) {
-              const batch = writeBatch(db);
-              
-              chunk.forEach(memberId => {
-                  const docRef = doc(collection(db, 'messages'));
-                  const messageData = {
-                      memberId,
-                      content,
-                      type: 'admin_individual',
-                      createdAt: new Date().toISOString(),
-                      timestamp: new Date().toISOString(),
-                      status: scheduledAt ? 'scheduled' : 'pending' // 'pending' triggers existing cloud functions
-                  };
-                  
-                  if (scheduledAt) {
-                      messageData.scheduledAt = scheduledAt;
-                  }
-                  
-                  // [Solapi] Add templateId if provided (for AlimTalk)
-                  if (templateId) {
-                      messageData.templateId = templateId;
-                  }
-
-                  batch.set(docRef, messageData);
-              });
-
-              await batch.commit();
-              totalCount += chunk.length;
-          }
-
-          console.log(`[Storage] Bulk sent ${totalCount} messages.`);
-          return { success: true, count: totalCount };
-
-      } catch (e) {
-          console.error("Bulk message send failed:", e);
-          throw e;
-      }
-  },
-
-  /**
-   * Fetches message history for a specific member.
-   */
-  async getMessages(memberId) {
-    try {
-      const q = query(
-        collection(db, 'messages'),
-        where("memberId", "==", memberId),
-        orderBy("timestamp", "desc"),
-        firestoreLimit(50)
-      );
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (e) {
-      console.warn("Get messages failed:", e);
-      return [];
-    }
-  },
-
-  /**
-   * Sends bulk push notifications by adding a doc to 'push_campaigns' collection.
-   * This triggers 'sendBulkPushV2' Cloud Function.
-   */
-  async sendBulkPushCampaign(targetMemberIds, title, body) {
-    try {
-      if (!body) throw new Error("Message body is required");
-
-      const docRef = await addDoc(collection(db, 'push_campaigns'), {
-        targetMemberIds: targetMemberIds || [], // Empty list = All Members in cloud function
-        title: title || STUDIO_CONFIG.NAME + " 알림",
-        body,
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-        totalTargets: targetMemberIds?.length || 0
-      });
-
-      console.log(`[Storage] Bulk push campaign created: ${docRef.id}. Status: pending.`);
-      return { success: true, id: docRef.id };
-    } catch (e) {
-      console.error("Bulk push failed:", e);
-      throw e;
-    }
-  },
+  addMessage(memberId, content, scheduledAt = null, templateId = null) { return messageService.addMessage(memberId, content, scheduledAt, templateId); },
+  sendBulkMessages(memberIds, content, scheduledAt = null, templateId = null) { return messageService.sendBulkMessages(memberIds, content, scheduledAt, templateId); },
+  getMessages(memberId) { return messageService.getMessages(memberId); },
+  sendBulkPushCampaign(targetMemberIds, title, body) { return messageService.sendBulkPushCampaign(targetMemberIds, title, body); },
 
   /**
    * CSV 회원 데이터 마이그레이션

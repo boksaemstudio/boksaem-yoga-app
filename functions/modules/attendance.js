@@ -431,6 +431,13 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
             const currentCredits = memberData.credits || 0;
             const currentCount = memberData.attendanceCount || 0;
 
+            const recentSnap = await transaction.get(
+                db.collection('attendance')
+                    .where('memberId', '==', memberId)
+                    .orderBy('timestamp', 'desc')
+                    .limit(30)
+            );
+
             // [VALIDATION] Check Validity (Expiration & Credits)
             let finalStatus = 'valid';
             let denialReason = null;
@@ -452,6 +459,9 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
                 denialReason = 'no_credits';
             }
 
+            const todayRecords = recentSnap.docs.map(d => d.data()).filter(r => r.date === date);
+            const sessionCount = todayRecords.length + 1;
+
             // 3. Create Official Attendance Record
             const attendanceData = {
                 memberId,
@@ -462,7 +472,8 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
                 instructor: instructor || '미지정',
                 timestamp: timestamp,
                 status: finalStatus,
-                syncMode: 'offline-restored'
+                syncMode: 'offline-restored',
+                sessionNumber: sessionCount
             };
 
             if (finalStatus === 'valid') {
@@ -479,9 +490,26 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
 
             // 4. Update Member (Only if Valid)
             if (finalStatus === 'valid') {
+                const records = recentSnap.docs.map(d => d.data()).filter(r => r.status === 'valid');
+                let streak = calculateStreak(records, date);
+                if (!Number.isFinite(streak)) streak = 1;
+
+                let startDate = memberData.startDate;
+                let endDate = memberData.endDate;
+
+                if (startDate === 'TBD' || !startDate || !memberData.endDate) {
+                    startDate = date;
+                    const end = new Date(date);
+                    end.setDate(end.getDate() + 30);
+                    endDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                }
+
                 transaction.update(memberRef, {
                     credits: admin.firestore.FieldValue.increment(-1),
                     attendanceCount: admin.firestore.FieldValue.increment(1),
+                    streak: streak,
+                    startDate: startDate,
+                    endDate: endDate,
                     lastAttendance: timestamp
                 });
                 console.log(`[OfflineSync] Sync SUCCESS for ${memberId} (Valid)`);
