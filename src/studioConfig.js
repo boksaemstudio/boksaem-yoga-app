@@ -190,7 +190,31 @@ export const STUDIO_CONFIG = {
                 }
             ]
         }
-    }
+    },
+
+    // 7. 솔라피 알림톡 템플릿
+    ALIMTALK_TEMPLATES: [
+        { 
+            id: '', 
+            name: '일반 문자 (LMS/SMS)',
+            content: ''
+        },
+        { 
+            id: 'KA01TP260219025216404VfhzWLRH3F5', 
+            name: '휴무일 오늘 수업변경안내 (단축)', 
+            content: '[복샘요가] 안녕하세요 회원님. 오늘 휴무로 인해 수업 일정이 변경되었습니다. 확인 부탁드립니다.' 
+        },
+        { 
+            id: 'KA01TP260219025023679E4NxugsIDNd', 
+            name: '휴무일 내일 수업변경안내 (단축)', 
+            content: '[복샘요가] 안녕하세요 회원님. 내일 휴무로 인해 수업 일정이 변경되었습니다. 확인 부탁드립니다.' 
+        },
+        { 
+            id: 'KA01TP260219024739217NOCrSlZrNo0', 
+            name: '휴무일 수업안내 (전수업휴강)', 
+            content: '[복샘요가] 안녕하세요 회원님. 이번 휴무일에는 모든 수업이 휴강입니다. 이용에 참고 부탁드립니다.' 
+        }
+    ]
 };
 
 export const getBranchName = (id) => {

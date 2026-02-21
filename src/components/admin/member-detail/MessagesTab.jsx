@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react';
 import { storageService } from '../../../services/storage';
 import { onSnapshot, collection, query, where, orderBy, limit as firestoreLimit, getDocs } from 'firebase/firestore';
 import { db } from '../../../firebase';
+import { STUDIO_CONFIG } from '../../../studioConfig';
+import { Info, Copy } from '@phosphor-icons/react';
 
 const MessagesTab = ({ memberId }) => {
     const [message, setMessage] = useState('');
@@ -18,12 +20,8 @@ const MessagesTab = ({ memberId }) => {
     const scheduleInputRef = useRef(null);
 
     // [Solapi] AlimTalk Templates
-    const alimTalkTemplates = [
-        { id: '', name: '일반 문자 (LMS/SMS)' },
-        { id: 'KA01TP260219025216404VfhzWLRH3F5', name: '휴무일 오늘 수업변경안내 (단축)', content: '(템플릿 내용에 맞춰주세요)' },
-        { id: 'KA01TP260219025023679E4NxugsIDNd', name: '휴무일 내일 수업변경안내 (단축)', content: '(템플릿 내용에 맞춰주세요)' },
-        { id: 'KA01TP260219024739217NOCrSlZrNo0', name: '휴무일 수업안내 (전수업휴강)', content: '(템플릿 내용에 맞춰주세요)' }
-    ];
+    const alimTalkTemplates = STUDIO_CONFIG.ALIMTALK_TEMPLATES || [];
+    const selectedTemplate = alimTalkTemplates.find(t => t.id === selectedTemplateId);
 
     // [UX] Auto-open picker when scheduled is checked
     const handleScheduleToggle = (e) => {
@@ -43,6 +41,12 @@ const MessagesTab = ({ memberId }) => {
     const handleTemplateSelect = (e) => {
         const id = e.target.value;
         setSelectedTemplateId(id);
+    };
+
+    const handleCopyTemplate = () => {
+        if (selectedTemplate && selectedTemplate.content) {
+            setMessage(selectedTemplate.content);
+        }
     };
 
     // [REAL-TIME] Individual Message History Listener
@@ -165,6 +169,37 @@ const MessagesTab = ({ memberId }) => {
                             </option>
                         ))}
                     </select>
+
+                    {/* [NEW] AlimTalk Template Preview */}
+                    {selectedTemplateId && selectedTemplate && (
+                        <div style={{ 
+                            marginTop: '12px', padding: '12px', 
+                            background: 'rgba(212, 175, 55, 0.05)', 
+                            borderRadius: '8px', border: '1px dashed rgba(212, 175, 55, 0.3)' 
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--primary-gold)' }}>
+                                    <Info size={14} /> 알림톡 템플릿 가이드
+                                </div>
+                                <button 
+                                    onClick={handleCopyTemplate}
+                                    style={{ 
+                                        background: 'rgba(212, 175, 55, 0.2)', color: 'white', 
+                                        border: 'none', borderRadius: '4px', padding: '4px 8px', 
+                                        fontSize: '0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' 
+                                    }}
+                                >
+                                    <Copy size={12} /> 내용 복사하기
+                                </button>
+                            </div>
+                            <div style={{ fontSize: '0.85rem', color: '#e4e4e7', lineHeight: '1.4', wordBreak: 'break-all' }}>
+                                {selectedTemplate.content}
+                            </div>
+                            <div style={{ marginTop: '8px', fontSize: '0.7rem', color: '#a1a1aa' }}>
+                                * 알림톡은 템플릿 내용과 일치해야 발송됩니다. 변수 부분만 수정하여 입력해주세요.
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <textarea

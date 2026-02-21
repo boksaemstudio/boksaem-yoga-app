@@ -120,7 +120,23 @@ const AdminDashboard = () => {
     const [showNoteModal, setShowNoteModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [bulkMessageInitialText, setBulkMessageInitialText] = useState('');
+    const [showInstallGuide, setShowInstallGuide] = useState(false); // [PWA] Install Guide State
     const { installApp } = usePWA();
+
+    // [PWA] Auto-show install guide for non-standalone users
+    useEffect(() => {
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        const hasSeenGuide = localStorage.getItem('has_seen_install_guide');
+        
+        if (!isStandalone && !hasSeenGuide) {
+            // Show guide after a short delay so it doesn't block initial render
+            const timer = setTimeout(() => {
+                setShowInstallGuide(true);
+                localStorage.setItem('has_seen_install_guide', 'true');
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, []);
 
     // Dynamic Pricing State
     const [pricingConfig, setPricingConfig] = useState(STUDIO_CONFIG.PRICING); // Default fallback
@@ -159,9 +175,6 @@ const AdminDashboard = () => {
         return saved === 'true' && Notification.permission === 'granted';
     });
     const [currentLogPage, setCurrentLogPage] = useState(1);
-    const [showInstallGuide, setShowInstallGuide] = useState(false);
-
-
 
     // Auth Logout
     const navigate = useNavigate();

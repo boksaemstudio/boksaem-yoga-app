@@ -1,5 +1,5 @@
 import { PWAContext } from '../context/PWAContextDef';
-import { useContext, useState, useEffect, lazy, Suspense } from 'react';
+import { useContext, useState, useEffect, lazy, Suspense, useRef } from 'react';
 import { onSnapshot, doc, collection, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { storageService } from '../services/storage';
@@ -26,6 +26,7 @@ import ScheduleTab from '../components/profile/tabs/ScheduleTab';
 import NoticeTab from '../components/profile/tabs/NoticeTab';
 import PriceTab from '../components/profile/tabs/PriceTab';
 import CustomGlassModal from '../components/common/CustomGlassModal';
+import InstallGuideModal from '../components/InstallGuideModal';
 
 import SocialLinks from '../components/profile/SocialLinks';
 import AttendanceHistory from '../components/profile/AttendanceHistory';
@@ -74,6 +75,10 @@ const MemberProfile = () => {
     const [langLabelIndex, setLangLabelIndex] = useState(0);
     const langLabels = ["언어", "Language", "Язык", "语言", "言語"];
 
+    // [FIX] AI 중복 호출 방지용 Ref
+    const lastAiExpArgs = useRef('');
+    const lastAiAnalysisArgs = useRef('');
+
     // Added for schedule view
     const [scheduleView, setScheduleView] = useState('calendar');
     const [scheduleMonth, setScheduleMonth] = useState('current'); // 'current' or 'next'
@@ -82,6 +87,7 @@ const MemberProfile = () => {
     const { deferredPrompt, installApp } = useContext(PWAContext) || {};
     const [isStandalone, setIsStandalone] = useState(false);
     const [deviceOS, setDeviceOS] = useState('unknown');
+    const [showInstallGuide, setShowInstallGuide] = useState(false); // [PWA] Install Guide
 
     useEffect(() => {
         const ua = navigator.userAgent.toLowerCase();
@@ -94,6 +100,16 @@ const MemberProfile = () => {
         const isInstalled = window.matchMedia('(display-mode: standalone)').matches || 
                            window.navigator.standalone === true;
         setIsStandalone(isInstalled);
+
+        // [PWA] Auto-show install guide for non-standalone users
+        const hasSeenGuide = localStorage.getItem('has_seen_member_install_guide');
+        if (!isInstalled && !hasSeenGuide) {
+            const timer = setTimeout(() => {
+                setShowInstallGuide(true);
+                localStorage.setItem('has_seen_member_install_guide', 'true');
+            }, 3000); // 3-second delay so it's not jarring
+            return () => clearTimeout(timer);
+        }
     }, []);
 
     const handleNotificationToggle = async (e) => {
@@ -305,10 +321,13 @@ const MemberProfile = () => {
                     loadAIExperience(memberData, validHistory);
                 }
 
-                // const now = new Date(); // Unused variable removed
-                storageService.getAIAnalysis(memberData.name, validHistory.length, validHistory, getKSTHour(), language, 'member')
-                    .then(analysis => setAiAnalysis(analysis))
-                    .catch(() => setAiAnalysis({ message: t('analysisPending'), isError: true }));
+                const currentAnalysisArgs = `${memberData.name}_${validHistory.length}_${getKSTHour()}_${language}`;
+                if (lastAiAnalysisArgs.current !== currentAnalysisArgs) {
+                    lastAiAnalysisArgs.current = currentAnalysisArgs;
+                    storageService.getAIAnalysis(memberData.name, validHistory.length, validHistory, getKSTHour(), language, 'member')
+                        .then(analysis => setAiAnalysis(analysis))
+                        .catch(() => setAiAnalysis({ message: t('analysisPending'), isError: true }));
+                }
 
                 // [Fix] Push Token Self-Healing: If permission already granted, re-sync with server
                 // This recovers badges even if the fcm_tokens collection was wiped.
@@ -380,10 +399,13 @@ const MemberProfile = () => {
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const day = days[now.getDay()];
 
+        const validAttendance = attendanceData ? attendanceData.filter(l => l.status !== 'denied') : [];
+        const currentArgs = `${m.id}_${validAttendance.length}_${day}_${hour}_${wData?.key || 'null'}_${language}`;
+        
+        if (lastAiExpArgs.current === currentArgs) return;
+        lastAiExpArgs.current = currentArgs;
+
         try {
-            // [FIX] Filter out denied logs if passing raw attendanceData
-            const validAttendance = attendanceData ? attendanceData.filter(l => l.status !== 'denied') : [];
-            
             // [FIX] Calculate diligence data for personalized AI
             const streak = attendanceData ? storageService.getMemberStreak(m.id, validAttendance) : 0;
             // [FIX] Use timestamp instead of date (which is typically undefined in attendance logs)
@@ -613,11 +635,13 @@ const MemberProfile = () => {
             setAiExperience(null);
             // [FIX] Filter out denied logs
             const validLogs = logs.filter(l => l.status !== 'denied');
+            
+            lastAiExpArgs.current = ''; // 강제 다시 업데이트
             loadAIExperience(member, validLogs, weatherData);
 
             setAiAnalysis(null);
-            // const now = new Date(); // Unused variable removed
-            // This Effect handles LANGUAGE change. Initial load is handled by loadMemberData.
+            const currentAnalysisArgs = `${member.name}_${validLogs.length}_${getKSTHour()}_${language}`;
+            lastAiAnalysisArgs.current = currentAnalysisArgs;
             storageService.getAIAnalysis(member.name, validLogs.length, validLogs, getKSTHour(), language, 'member')
                 .then(analysis => setAiAnalysis(analysis))
                 .catch(() => setAiAnalysis({ message: t('analysisPending'), isError: true }));
@@ -1121,11 +1145,11 @@ const MemberProfile = () => {
 
             {/* 이미지 라이트박스 모달 */}
             {lightboxImage && (
-                <ImageLightbox
-                    src={lightboxImage}
-                    onClose={() => setLightboxImage(null)}
-                />
+                <ImageLightbox src={lightboxImage} onClose={() => setLightboxImage(null)} />
             )}
+
+            <InstallGuideModal isOpen={showInstallGuide} onClose={() => setShowInstallGuide(false)} />
+            
             <div style={{ padding: '40px 20px', textAlign: 'center', opacity: 0.1, fontSize: '0.6rem', color: 'white' }}>
                 v1.0.5 | boksaem-yoga
             </div>

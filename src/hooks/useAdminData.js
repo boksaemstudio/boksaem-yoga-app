@@ -139,18 +139,13 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         console.time('[Admin] refreshData');
         
         // [PERF] Parallel data loading for faster initial render
+        // [FIX] Ensure all Promises have .catch() so one failure doesn't crash the dashboard
         const [currentMembers, currentImages, tokensResult, usageResult, currentSales] = await Promise.all([
-            storageService.loadAllMembers(),
-            storageService.getImages(),
-            storageService.getAllPushTokens().catch(err => {
-                console.error('Failed to fetch push tokens:', err);
-                return [];
-            }),
-            storageService.getAiUsage().catch(e => {
-                console.warn("Failed to fetch AI usage", e);
-                return { count: 0, limit: 2000 };
-            }),
-            storageService.getSales()
+            storageService.loadAllMembers().catch(err => { console.warn("[Admin] Member load error", err); return []; }),
+            (storageService.getImages ? storageService.getImages() : Promise.resolve({})).catch(err => ({})),
+            storageService.getAllPushTokens().catch(err => { console.error('Failed to fetch push tokens:', err); return []; }),
+            storageService.getAiUsage().catch(e => { console.warn("Failed to fetch AI usage", e); return { count: 0, limit: 2000 }; }),
+            storageService.getSales().catch(err => { console.warn("[Admin] Sales load error", err); return []; })
         ]);
         
         // Get cached data (sync, no await needed)

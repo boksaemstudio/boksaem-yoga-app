@@ -1,0 +1,150 @@
+﻿
+> yoga-app@1.3.0 lint
+> eslint .
+
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\InstallGuideModal.jsx
+  10:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+   8 |         const ua = window.navigator.userAgent.toLowerCase();
+   9 |         if (/iphone|ipad|ipod|macintosh/.test(ua) && 'ontouchend' in document) {
+> 10 |             setTab('ios');
+     |             ^^^^^^ Avoid calling setState() directly within an effect
+  11 |         } else {
+  12 |             setTab('android');
+  13 |         }  react-hooks/set-state-in-effect
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\admin\member-detail\MessagesTab.jsx
+   34:26  warning  'e' is defined but never used  no-unused-vars
+  258:45  warning  'e' is defined but never used  no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\admin\member-detail\SalesHistoryTab.jsx
+  43:8  warning  React Hook useEffect has a missing dependency: 'fetchHistory'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\admin\modals\BulkMessageModal.jsx
+    1:8   warning  'React' is defined but never used  no-unused-vars
+  218:41  warning  'e' is defined but never used      no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\admin\tabs\LogsTab.jsx
+    3:10  warning  'STUDIO_CONFIG' is defined but never used   no-unused-vars
+    4:10  warning  'guessClassTime' is defined but never used  no-unused-vars
+  322:47  warning  'idx' is defined but never used             no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\admin\tabs\MembersTab.jsx
+  1:8   warning  'React' is defined but never used                no-unused-vars
+  3:25  warning  'getBranchColor' is defined but never used       no-unused-vars
+  3:41  warning  'getBranchThemeColor' is defined but never used  no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\common\CustomGlassModal.jsx
+  1:8  warning  'React' is defined but never used  no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\common\NetworkStatus.jsx
+  3:10  warning  'WifiHigh' is defined but never used           no-unused-vars
+  3:20  warning  'WifiSlash' is defined but never used          no-unused-vars
+  8:13  warning  'isOnline' is assigned a value but never used  no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\common\SimpleImageModal.jsx
+  1:8  warning  'React' is defined but never used  no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\meditation\MeditationDebugOverlay.jsx
+  1:8  warning  'React' is defined but never used  no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\meditation\ui\ChatDialog.jsx
+  1:8  warning  'React' is defined but never used  no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\meditation\ui\FeedbackView.jsx
+   1:8   warning  'React' is defined but never used              no-unused-vars
+   5:30  warning  'Sparkle' is assigned a value but never used   no-unused-vars
+  10:5   warning  'formatTime' is defined but never used         no-unused-vars
+  15:11  warning  'navigate' is assigned a value but never used  no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\meditation\ui\PoseCanvas.jsx
+  1:8  warning  'React' is defined but never used  no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\meditation\ui\VolumeControlPanel.jsx
+  1:8  warning  'React' is defined but never used  no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\profile\AttendanceHistory.jsx
+  221:41  warning  'idx' is defined but never used  no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\profile\tabs\NoticeTab.jsx
+  1:8  warning  'React' is defined but never used  no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\profile\tabs\PriceTab.jsx
+  1:8  warning  'React' is defined but never used  no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\profile\tabs\ScheduleTab.jsx
+  1:8   warning  'React' is defined but never used  no-unused-vars
+  2:13  warning  'Icons' is defined but never used  no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\context\NetworkContext.jsx
+  34:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\hooks\useAdminData.js
+    3:10  warning  'getTodayKST' is defined but never used                                                                       no-unused-vars
+    4:10  warning  'STUDIO_CONFIG' is defined but never used                                                                     no-unused-vars
+  145:97  warning  'err' is defined but never used                                                                               no-unused-vars
+  263:15  warning  'currentMonth' is assigned a value but never used                                                             no-unused-vars
+  525:8   warning  React Hook useCallback has a missing dependency: 'members'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\hooks\useMeditationAI.js
+  152:18  warning  'error' is defined but never used  no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\hooks\useMeditationAudio.js
+  3:91   warning  'audioVolumes' is defined but never used  no-unused-vars
+  3:105  warning  'soundEnabled' is defined but never used  no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\hooks\useRevenueStats.js
+  205:15  warning  'statLastWeekStr' is assigned a value but never used  no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\main.jsx
+  101:46  warning  'colno' is defined but never used  no-unused-vars
+  101:53  warning  'error' is defined but never used  no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\pages\AdminDashboard.jsx
+   4:25  warning  'getBranchName' is defined but never used  no-unused-vars
+  10:5   warning  'Warning' is defined but never used        no-unused-vars
+  15:10  warning  'db' is defined but never used             no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\pages\CheckInPage.jsx
+    49:13  warning  'isOnline' is assigned a value but never used                                                                               no-unused-vars
+   788:8   warning  React Hook useEffect has a missing dependency: 'confirmDuplicateCheckIn'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  1431:41  warning  'isActive' is assigned a value but never used                                                                               no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\pages\InstructorPage.jsx
+  255:8  warning  React Hook useEffect has a missing dependency: 'aiGreeting'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  418:7  warning  'navBtnStyle' is assigned a value but never used                                                               no-unused-vars
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\pages\MeditationPage.jsx
+     5:10   warning  'Icons' is defined but never used                                                                                                                                                                                                                                                                      no-unused-vars
+     6:83   warning  'SPECIALIST_QUESTIONS' is defined but never used                                                                                                                                                                                                                                                       no-unused-vars
+     6:105  warning  'AI_SESSION_MESSAGES' is defined but never used                                                                                                                                                                                                                                                        no-unused-vars
+    18:10   warning  'ChatDialog' is defined but never used                                                                                                                                                                                                                                                                 no-unused-vars
+    19:10   warning  'PoseCanvas' is defined but never used                                                                                                                                                                                                                                                                 no-unused-vars
+    24:10   warning  'storageService' is defined but never used                                                                                                                                                                                                                                                             no-unused-vars
+    86:24   warning  'setTtcEnabled' is assigned a value but never used                                                                                                                                                                                                                                                     no-unused-vars
+   141:9    warning  'ambientAudioRef' is assigned a value but never used                                                                                                                                                                                                                                                   no-unused-vars
+   145:9    warning  'stopBinauralBeats' is assigned a value but never used                                                                                                                                                                                                                                                 no-unused-vars
+   149:9    warning  'stopAmbientMusicAndReset' is assigned a value but never used                                                                                                                                                                                                                                          no-unused-vars
+   154:9    warning  'stopVoiceOnly' is assigned a value but never used                                                                                                                                                                                                                                                     no-unused-vars
+   160:9    warning  'aiRequestLock' is assigned a value but never used                                                                                                                                                                                                                                                     no-unused-vars
+   165:9    warning  'aiPrescription' is assigned a value but never used                                                                                                                                                                                                                                                    no-unused-vars
+   165:25   warning  'setAiPrescription' is assigned a value but never used                                                                                                                                                                                                                                                 no-unused-vars
+   174:70   warning  'fetchAIFeedback' is assigned a value but never used                                                                                                                                                                                                                                                   no-unused-vars
+   199:31   warning  'setLastSpokenMessage' is assigned a value but never used                                                                                                                                                                                                                                              no-unused-vars
+   213:8    warning  React Hook useEffect has a missing dependency: 'logDebug'. Either include it or remove the dependency array                                                                                                                                                                                            react-hooks/exhaustive-deps
+   272:8    warning  React Hook useEffect has missing dependencies: 'logDebug', 'prepStep', 'setAiLatency', and 'step'. Either include them or remove the dependency array                                                                                                                                                  react-hooks/exhaustive-deps
+   355:8    warning  React Hook useCallback has missing dependencies: 'audioContextRef', 'currentAudioRef', 'setAiMessage', 'setChatHistory', 'setIsAILoading', 'setNeedsFeedback', 'setPrescriptionReason', 'setSessionInfo', 'setWeatherContext', and 'stopAllAudio'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+   455:30   warning  'tf' is assigned a value but never used                                                                                                                                                                                                                                                                no-unused-vars
+   455:34   warning  'tfBackend' is assigned a value but never used                                                                                                                                                                                                                                                         no-unused-vars
+  1479:92   warning  'err' is defined but never used                                                                                                                                                                                                                                                                        no-unused-vars
+  2005:11   warning  'breathingScale' is assigned a value but never used                                                                                                                                                                                                                                                    no-unused-vars
+
+??73 problems (1 error, 72 warnings)
+

@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Share, DotsThreeVertical, PlusSquare, ArrowRight, Monitor, Devices } from '@phosphor-icons/react';
 
-const InstallGuideModal = ({ onClose }) => {
-    const [tab, setTab] = useState('android'); // 'android' or 'ios'
+const InstallGuideModal = ({ isOpen, onClose }) => {
+    const [tab, setTab] = useState(() => {
+        const ua = window.navigator.userAgent.toLowerCase();
+        return (/iphone|ipad|ipod|macintosh/.test(ua) && 'ontouchend' in document) ? 'ios' : 'android';
+    });
+
+    if (!isOpen) return null;
 
     return (
         <div

@@ -8,6 +8,7 @@ import InstructorLogin from '../components/instructor/InstructorLogin';
 import InstructorSchedule from '../components/instructor/InstructorSchedule';
 import InstructorNotices from '../components/instructor/InstructorNotices';
 import InstructorHome from '../components/instructor/InstructorHome';
+import InstallGuideModal from '../components/InstallGuideModal';
 
 // === Helper for Default Greeting ===
 const getDefaultGreeting = (name, h, day) => {
@@ -27,11 +28,13 @@ const InstructorPage = () => {
     
     // Subscription Cleanup Ref
     const unsubscribesRef = useRef([]);
+    const lastAiFetchArgs = useRef(''); // [FIX] AI 중복 호출 방지용 상태 추적
 
     // AI Greeting State (Global)
     const [aiGreeting, setAiGreeting] = useState('');
     const [aiGreetingLoading, setAiGreetingLoading] = useState(false); // [AI] 로딩 애니메이션
     const [aiEnhancedGreeting, setAiEnhancedGreeting] = useState(null); // [AI] AI 보강 메시지
+    const [showInstallGuide, setShowInstallGuide] = useState(false); // [PWA] Install Guide
     
     // Attendance State (Global)
     const [attendance, setAttendance] = useState([]);
@@ -60,6 +63,21 @@ const InstructorPage = () => {
             }
         };
         loadInstructors();
+    }, []);
+
+    // [PWA] Auto-show install guide for non-standalone users
+    useEffect(() => {
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        const hasSeenGuide = localStorage.getItem('has_seen_inst_install_guide');
+        
+        // Show after a slight delay
+        if (!isStandalone && !hasSeenGuide) {
+            const timer = setTimeout(() => {
+                setShowInstallGuide(true);
+                localStorage.setItem('has_seen_inst_install_guide', 'true');
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
     }, []);
 
     // Load Attendance & Schedule in Real-time
@@ -197,9 +215,11 @@ const InstructorPage = () => {
         }
 
         // 2. Fetch fresh AI message in background
+        const currentArgs = `${instructorName}_${attendance.length}_${hour}`;
         const fetchAI = async () => {
-            if (attendanceLoading) return;
+            if (attendanceLoading || lastAiFetchArgs.current === currentArgs) return;
             
+            lastAiFetchArgs.current = currentArgs;
             setAiGreetingLoading(true); // [AI] 로딩 시작
             try {
                 const result = await storageService.getAIExperience(
@@ -228,7 +248,7 @@ const InstructorPage = () => {
             }
         };
 
-        if (!attendanceLoading && !cached) {
+        if (!attendanceLoading && !cached && lastAiFetchArgs.current !== currentArgs) {
             fetchAI();
         }
 
@@ -364,6 +384,8 @@ const InstructorPage = () => {
                 <TabButton icon={<CalendarBlank size={24} />} label="시간표" active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} />
                 <TabButton icon={<Bell size={24} />} label="공지" active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} />
             </div>
+
+            <InstallGuideModal isOpen={showInstallGuide} onClose={() => setShowInstallGuide(false)} />
         </div>
     );
 };

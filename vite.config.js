@@ -11,7 +11,7 @@ export default defineConfig({
       includeAssets: ['favicon.png', 'apple-touch-icon.png', 'logo_circle.png', '*.svg'],
       manifest: false, // We handle manifest manually in index.html for dynamic/multi-role support
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['**/*.{js,css,ico,png,svg}'],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true, // [FIX] 새 SW 즉시 활성화 — 대기 상태 방지

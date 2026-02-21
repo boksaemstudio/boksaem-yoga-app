@@ -146,10 +146,12 @@ const CheckInPage = () => {
         let timer;
         if (showInstallGuide || showKioskInstallGuide) {
             timer = setTimeout(() => {
-                handleModalClose(() => {
-                    setShowInstallGuide(false);
-                    setShowKioskInstallGuide(false);
-                });
+                // Assuming handleModalClose is a function that sets state to close modals
+                // The instruction implies adding isOpen={true} to the *rendered* component,
+                // not within this useEffect's callback.
+                // This useEffect is for auto-closing, so we should call the close functions.
+                setShowInstallGuide(false);
+                setShowKioskInstallGuide(false);
             }, 300000); // 5 minutes
         }
         return () => clearTimeout(timer);
@@ -900,7 +902,7 @@ const CheckInPage = () => {
         if (isExpiredPeriod || isExpiredCredits) {
             speak("denied"); 
         } else {
-            speak(isDuplicate ? "duplicate" : "success"); 
+            speak("success"); 
         }
 
         // [New] Duplicate Check-in Feedback
