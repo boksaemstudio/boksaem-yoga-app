@@ -41,6 +41,14 @@ const MessagesTab = ({ memberId }) => {
     const handleTemplateSelect = (e) => {
         const id = e.target.value;
         setSelectedTemplateId(id);
+        
+        // [UX] Auto-fill message content when template is selected
+        const template = alimTalkTemplates.find(t => t.id === id);
+        if (template && template.content) {
+            setMessage(template.content);
+        } else if (!id) {
+            setMessage('');
+        }
     };
 
     const handleCopyTemplate = () => {

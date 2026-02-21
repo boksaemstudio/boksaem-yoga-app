@@ -180,8 +180,8 @@ const CompCard = ({ title, amount }) => (
 );
 
 const StraightLineChart = ({ data }) => {
-    // Reverse data so the earliest date is on the left
-    const chartData = [...data].reverse();
+    // Keep data order as is (earliest to latest) so the latest date is on the right
+    const chartData = data;
 
     return (
         <div style={{ width: '100%', height: '180px' }}>

@@ -75,12 +75,18 @@ export const attendanceService = {
     try {
       let q = query(
         collection(db, 'attendance'),
-        where("date", "==", dateStr),
-        orderBy("timestamp", "desc")
+        where("date", "==", dateStr)
       );
 
       const snapshot = await getDocs(q);
       let records = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      // [FIX] Sort in memory instead of Firestore orderBy to avoid missing index errors
+      records.sort((a, b) => {
+        const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+        const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+        return timeB - timeA;
+      });
 
       if (branchId) {
         records = records.filter(r => r.branchId === branchId);
@@ -96,12 +102,18 @@ export const attendanceService = {
     try {
       let q = query(
         collection(db, 'attendance'),
-        where("date", "==", dateStr),
-        orderBy("timestamp", "desc")
+        where("date", "==", dateStr)
       );
 
       return onSnapshot(q, (snapshot) => {
         let records = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // [FIX] Sort in memory
+        records.sort((a, b) => {
+          const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+          const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+          return timeB - timeA;
+        });
         if (branchId) {
           records = records.filter(r => r.branchId === branchId);
         }

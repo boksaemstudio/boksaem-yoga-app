@@ -90,7 +90,16 @@ export const guessClassInfo = (log) => {
     const dayOfWeek = dayOfWeeks[date.getDay()];
     
     const exactMatch = branchSchedule.find(s => s.days.includes(dayOfWeek) && s.startTime === time);
-    if (exactMatch) return exactMatch;
     
-    return { startTime: time, className: log.className, instructor: log.instructor };
+    // [FIX] Prioritize the log's actual data over the static template, because
+    // the log data is generated from the dynamic daily_classes schedule.
+    // The static template is only a fallback for old/incomplete logs.
+    const className = (log.className && log.className !== '일반') ? log.className : (exactMatch?.className || '일반');
+    const instructor = (log.instructor && log.instructor !== '선생님') ? log.instructor : (exactMatch?.instructor || '미지정');
+
+    return { 
+        startTime: time, 
+        className, 
+        instructor 
+    };
 };

@@ -139,6 +139,7 @@ export const translations = {
         class_hatha_intensive: "하타 인텐시브",
         class_intensive: "심화",
         class_regular: "일반",
+        class_general: "일반",
 
         // Weather
         weather_clear: "맑음",
@@ -291,6 +292,7 @@ export const translations = {
         class_hatha_intensive: "Hatha Intensive",
         class_intensive: "Intensive",
         class_regular: "General",
+        class_general: "General",
 
         // Weather
         weather_clear: "Clear",

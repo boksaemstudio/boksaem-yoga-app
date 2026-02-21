@@ -88,7 +88,7 @@ export const STUDIO_CONFIG = {
             { days: ['금'], startTime: '14:20', className: '하타인텐시브', instructor: '은혜' },
             { days: ['금'], startTime: '19:00', className: '인요가', instructor: '한아' },
             { days: ['금'], startTime: '20:20', className: '하타', instructor: '한아' },
-            { days: ['토'], startTime: '10:00', className: '하타', instructor: '원장' }, // Rotational
+            { days: ['토'], startTime: '10:00', className: '하타', instructor: '한아' }, // Rotational
             { days: ['토'], startTime: '11:20', className: '아쉬탕가', instructor: '원장' },
             { days: ['일'], startTime: '11:20', className: '마이솔', instructor: '원장' },
             { days: ['일'], startTime: '14:00', className: '하타인텐시브', instructor: '원장' },
@@ -201,18 +201,18 @@ export const STUDIO_CONFIG = {
         },
         { 
             id: 'KA01TP260219025216404VfhzWLRH3F5', 
-            name: '휴무일 오늘 수업변경안내 (단축)', 
-            content: '[복샘요가] 안녕하세요 회원님. 오늘 휴무로 인해 수업 일정이 변경되었습니다. 확인 부탁드립니다.' 
+            name: '휴무일 오늘 수업변경안내 (수업과목단축)', 
+            content: '[복샘요가] 수업 안내드립니다.\n금일 오전 10시 하타 / 오후 2시 아쉬탕가 수업만 진행됩니다.\n이용에 참고 부탁드립니다.' 
         },
         { 
             id: 'KA01TP260219025023679E4NxugsIDNd', 
-            name: '휴무일 내일 수업변경안내 (단축)', 
-            content: '[복샘요가] 안녕하세요 회원님. 내일 휴무로 인해 수업 일정이 변경되었습니다. 확인 부탁드립니다.' 
+            name: '휴무일 내일 수업변경안내 (수업과목단축)', 
+            content: '[복샘요가] 내일 수업 안내드립니다.\n내일 오전 10시 하타 / 오후 2시 아쉬탕가 수업만 진행됩니다.\n이용에 참고 부탁드립니다.' 
         },
         { 
             id: 'KA01TP260219024739217NOCrSlZrNo0', 
             name: '휴무일 수업안내 (전수업휴강)', 
-            content: '[복샘요가] 안녕하세요 회원님. 이번 휴무일에는 모든 수업이 휴강입니다. 이용에 참고 부탁드립니다.' 
+            content: '[복샘요가] 공휴일 휴강 안내\n#{date} 공휴일로 인해 전 수업 휴강합니다.' 
         }
     ]
 };
