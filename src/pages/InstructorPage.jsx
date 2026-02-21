@@ -80,6 +80,25 @@ const InstructorPage = () => {
         }
     }, []);
 
+    // [PUSH] Request notification permission and register token for instructor
+    useEffect(() => {
+        if (!instructorName) return;
+        
+        const registerPush = async () => {
+            // Wait a bit to not overwhelm the user immediately
+            setTimeout(async () => {
+                try {
+                    console.log(`[InstructorPage] Attempting push registration for: ${instructorName}`);
+                    await storageService.requestInstructorPushPermission(instructorName);
+                } catch (e) {
+                    console.error('[InstructorPage] Push registration failed:', e);
+                }
+            }, 5000);
+        };
+        
+        registerPush();
+    }, [instructorName]);
+
     // Load Attendance & Schedule in Real-time
     useEffect(() => {
         if (!instructorName) return;

@@ -709,7 +709,6 @@ export const storageService = {
       if (permission === 'granted') {
         const token = await this.requestAndSaveToken('member');
         if (token && memberId) {
-          // [FIX] Check if token doc exists to set 'createdAt' only for new installs
           const tokenRef = doc(db, 'fcm_tokens', token);
           const tokenSnap = await getDoc(tokenRef);
           
@@ -722,9 +721,7 @@ export const storageService = {
             dataToUpdate.createdAt = new Date().toISOString();
           }
 
-          // [FIX] Use setDoc with merge to prevent "No document to update" error
           await setDoc(tokenRef, dataToUpdate, { merge: true });
-          // [SYNC] Mark member as push enabled
           await updateDoc(doc(db, 'members', memberId), { pushEnabled: true });
         }
       }
@@ -732,6 +729,41 @@ export const storageService = {
     } catch (e) {
       console.error("Push permission request failed:", e);
       return 'denied';
+    }
+  },
+
+  // [NEW] 강사용 푸시 권한 요청 및 토큰 저장
+  async requestInstructorPushPermission(instructorName) {
+    if (!instructorName) return;
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        const token = await this.requestAndSaveToken('instructor');
+        if (token) {
+          const tokenRef = doc(db, 'fcm_tokens', token);
+          const tokenSnap = await getDoc(tokenRef);
+          
+          let dataToUpdate = {
+            token,
+            role: 'instructor',
+            instructorName,
+            updatedAt: new Date().toISOString(),
+            platform: 'web'
+          };
+
+          if (!tokenSnap.exists() || !tokenSnap.data().createdAt) {
+            dataToUpdate.createdAt = new Date().toISOString();
+          }
+
+          await setDoc(tokenRef, dataToUpdate, { merge: true });
+          console.log(`[Push] Instructor token registered for ${instructorName}`);
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      console.error("Instructor push permission request failed:", e);
+      return false;
     }
   },
 
