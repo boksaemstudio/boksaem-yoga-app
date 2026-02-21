@@ -13,7 +13,10 @@ const { admin, getAI, logAIError } = require("../helpers/common");
 /**
  * 개인 메시지 푸시 알림
  */
-exports.sendPushOnMessageV2 = onDocumentCreated("messages/{messageId}", async (event) => {
+exports.sendPushOnMessageV2 = onDocumentCreated({
+    document: "messages/{messageId}",
+    region: "asia-northeast3"
+}, async (event) => {
     console.log(`[Push] Triggered for message ${event.params.messageId}`);
     const messageData = event.data.data();
     const memberId = messageData.memberId;
@@ -130,7 +133,8 @@ exports.sendPushOnMessageV2 = onDocumentCreated("messages/{messageId}", async (e
  * 대량 푸시 캠페인
  */
 exports.sendBulkPushV2 = onDocumentCreated({
-    document: "push_campaigns/{campaignId}"
+    document: "push_campaigns/{campaignId}",
+    region: "asia-northeast3"
 }, async (event) => {
     const snap = event.data;
     const data = snap.data();
@@ -237,7 +241,8 @@ exports.sendBulkPushV2 = onDocumentCreated({
  * 공지사항 전체 푸시
  */
 exports.sendPushOnNoticeV2 = onDocumentCreated({
-    document: "notices/{noticeId}"
+    document: "notices/{noticeId}",
+    region: "asia-northeast3"
 }, async (event) => {
     const noticeData = event.data.data();
     // [FEATURE] Check if push is enabled for this notice (default: true)
@@ -325,7 +330,8 @@ exports.sendPushOnNoticeV2 = onDocumentCreated({
  */
 exports.cleanupGhostTokens = onSchedule({
     schedule: '0 4 * * 0',
-    timeZone: 'Asia/Seoul'
+    timeZone: 'Asia/Seoul',
+    region: "asia-northeast3"
 }, async (event) => {
     const db = admin.firestore();
     const batchSize = 400;

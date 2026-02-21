@@ -275,7 +275,10 @@ exports.sendSolapiOnMessageV2 = onDocumentCreated("messages/{messageId}", async 
  */
 const { onCall } = require("firebase-functions/v2/https");
 
-exports.getSolapiBalance = onCall(async (request) => {
+exports.getSolapiBalance = onCall({
+    region: "asia-northeast3",
+    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
+}, async (request) => {
     try {
         if (!messageService) {
             // Check env vars again just in case

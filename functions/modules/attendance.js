@@ -291,7 +291,10 @@ exports.checkInMemberV2Call = onCall({
 /**
  * 출석 생성 시 분석 이벤트 트리거
  */
-exports.onAttendanceCreated = onDocumentCreated("attendance/{attendanceId}", async (event) => {
+exports.onAttendanceCreated = onDocumentCreated({
+    document: "attendance/{attendanceId}",
+    region: "asia-northeast3"
+}, async (event) => {
     const attendance = event.data.data();
     const memberId = attendance.memberId;
     const currentDate = attendance.date;

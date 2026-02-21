@@ -15,7 +15,8 @@ const chunk = require('lodash/chunk');
  * 크레딧 소진 알림
  */
 exports.checkLowCreditsV2 = onDocumentUpdated({
-    document: "members/{memberId}"
+    document: "members/{memberId}",
+    region: "asia-northeast3"
 }, async (event) => {
     const newData = event.data.after.data();
     const oldData = event.data.before.data();
@@ -47,7 +48,8 @@ exports.checkLowCreditsV2 = onDocumentUpdated({
  */
 exports.sendDailyAdminReportV2 = onSchedule({
     schedule: "0 23 * * *",
-    timeZone: "Asia/Seoul"
+    timeZone: "Asia/Seoul",
+    region: "asia-northeast3"
 }, async (event) => {
     const db = admin.firestore();
     const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
@@ -108,7 +110,8 @@ exports.sendDailyAdminReportV2 = onSchedule({
  */
 exports.sendScheduledMessages = onSchedule({
     schedule: "*/10 * * * *",
-    timeZone: "Asia/Seoul"
+    timeZone: "Asia/Seoul",
+    region: "asia-northeast3"
 }, async (event) => {
     const db = admin.firestore();
     const now = new Date();
