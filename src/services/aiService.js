@@ -6,7 +6,8 @@ const _safeGetItem = (key) => { try { return localStorage.getItem(key); } catch 
 const _safeSetItem = (key, value) => { try { localStorage.setItem(key, value); } catch { /* ignore */ } };
 
 export const getAIExperience = async (memberName, attendanceCount, day, hour, upcomingClass, weather, credits, remainingDays, language = 'ko', diligence = null, context = 'profile') => {
-    const cacheKey = `ai_experience_${memberName}_${hour}_${language}_${context}`;
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+    const cacheKey = `ai_experience_${memberName}_${today}_${hour}_${language}_${context}`;
     const cached = _safeGetItem(cacheKey);
     if (cached) {
         console.log("[AI] Returning cached experience");

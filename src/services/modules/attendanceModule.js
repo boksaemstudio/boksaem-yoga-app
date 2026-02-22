@@ -128,7 +128,11 @@ export const getAttendanceByDate = async (dateStr, branchId = null) => {
 /**
  * 출석 기록 삭제
  */
+// [BUILD-FIX] modify global state to defeat dead-code elimination and force hash change
+if (typeof window !== 'undefined') window.__ATTENDANCE_MODULE_VERSION = '2026.02.22.v7';
+
 export const deleteAttendance = async (logId, cachedMembers, notifyListeners) => {
+    console.log('[AttendanceModule] deleteAttendance v2026.02.22.v7');
     try {
         const logRef = doc(db, 'attendance', logId);
         const logSnap = await getDoc(logRef);
@@ -153,12 +157,14 @@ export const deleteAttendance = async (logId, cachedMembers, notifyListeners) =>
                 credits: increment(1)
             });
             
-            // Update cache
+            // [FIX] Do NOT update cache credits/attendanceCount here.
+            // The AdminMemberDetailModal has an onSnapshot listener on the member doc
+            // that will automatically update localMember when Firestore's increment(1) completes.
+            // Manually updating the cache here PLUS having onSnapshot causes double +1 (+2 total).
+            // Only notify listeners to refresh the member list after a delay (let onSnapshot go first).
             const idx = cachedMembers.findIndex(m => m.id === memberId);
-            if (idx !== -1) {
-                cachedMembers[idx].attendanceCount = (cachedMembers[idx].attendanceCount || 1) - 1;
-                cachedMembers[idx].credits = (cachedMembers[idx].credits || 0) + 1;
-                if (notifyListeners) notifyListeners();
+            if (idx !== -1 && notifyListeners) {
+                setTimeout(() => notifyListeners(), 1000);
             }
         } else if (memberId && !wasValid) {
             console.log(`[Attendance] Deleted denied record for ${memberId} - no credit restoration needed`);

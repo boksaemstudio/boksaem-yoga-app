@@ -2,23 +2,31 @@
 description: 복샘요가 앱 24시간 주기 보안 및 성능 정기 점검 가이드
 ---
 
-매일 앱의 상태를 최상으로 유지하기 위해 아래 단계를 수행하세요.
+# 일일 점검 워크플로우 (Daily Audit)
 
-1. **보안 규칙(Security Rules) 확인**
-   - Firebase Console > Firestore > Rules 탭에서 `allow if true`가 아닌지 확인합니다.
-   - 불필요한 쓰기 권한이 열려있지 않은지 점검합니다.
+## 1. 보안 규칙 점검
+- Firestore Rules(`firestore.rules`): `allow if true` 등 취약한 권한 있는지 확인
+- Storage Rules(`storage.rules`): 인증된 사용자만 접근 가능한지 확인
+- 관리자/강사/회원 권한 분리 확인
 
-2. **데이터 무결성(Data Integrity) 점검**
-   - `attendance` 컬렉션에 중복된 출석 데이터가 있는지 확인합니다.
-   - `members`의 `credits` 값이 음수(-)가 된 회원이 있는지 확인합니다.
+## 2. 데이터 무결성 점검
+- `attendance` 컬렉션: 당일 수업 인원이 대시보드와 일치하는지 확인
+- 음수(-) 크레딧 발생 여부 전수 조사
+- 중복 출석 기록 확인 (같은 회원, 같은 날, 같은 수업)
+- 출석 삭제 시 credits +1 복원 정상 작동 확인
 
-3. **AI 할당량 및 오류 모니터링**
-   - Google Cloud Console에서 Gemini API 사용량을 확인합니다.
-   - Cloud Functions 로그에서 `generatePageExperienceV2` 함수의 에러율을 확인합니다.
-   - **[중요] 에러 로그 수동 점검**: Firestore에서 `ai_error_logs` 및 `error_logs` 컬렉션을 직접 조회하여 새로운 에러가 없는지 확인합니다. (관리자 앱 탭 제거됨)
+## 3. AI/시스템 모니터링
+- Gemini API 사용량 및 할당량 잔여 확인
+- `error_logs` 컬렉션: 최근 에러 보고 내용 확인
+- Cloud Functions 로그에서 실패한 함수 확인
 
-4. **FCM 토큰 유효성 점검**
-   - `fcm_tokens` 컬렉션에 한 명의 사용자에게 너무 많은(예: 10개 이상) 토크이 등록되어 있는지 확인하고 정리합니다.
+## 4. PWA/캐시 무결성 확인
+- 최신 빌드 버전이 배포되어 있는지 확인
+- 구버전이 계속 보일 경우: `.\build.ps1` 재실행 + 브라우저 Ctrl+Shift+R
 
-5. **최신 보고서 업데이트**
-   - [codebase_audit_report.md](file:///C:/Users/boksoon/.gemini/antigravity/brain/eac62209-e55b-4db2-ba2e-50bd69b3f58c/codebase_audit_report.md)를 열어 새로운 취약점이 발견되었는지 대조합니다.
+## 5. FCM 토큰 점검
+- 과도한 토큰 등록 여부 확인 (동일 기기에서 중복 토큰)
+- 만료/비활성 토큰 정리 필요 여부 확인
+
+## 6. 보고서 업데이트
+- 발견된 이슈를 `codebase_audit_report.md`에 기록

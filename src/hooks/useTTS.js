@@ -6,6 +6,7 @@ import audioSuccess from '../assets/audio/success.mp3';
 import audioDuplicateSuccess from '../assets/audio/duplicate_success.mp3';
 import audioDenied from '../assets/audio/denied.mp3';
 import audioError from '../assets/audio/error.mp3';
+import audioLastSession from '../assets/audio/last_session.mp3';
 
 export const useTTS = () => {
     // [TTS] Voice Feedback Helper
@@ -15,7 +16,8 @@ export const useTTS = () => {
             'success': audioSuccess,
             'duplicate': audioDuplicateSuccess,
             'denied': audioDenied,
-            'error': audioError
+            'error': audioError,
+            'last_session': audioLastSession
         };
 
         const source = audioMap[type];

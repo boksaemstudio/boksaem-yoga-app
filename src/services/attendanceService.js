@@ -127,7 +127,7 @@ export const attendanceService = {
     }
   },
 
-  async deleteAttendance(logId) {
+  async deleteAttendance(logId, restoreCredit = true) {
     try {
       const logRef = doc(db, 'attendance', logId);
       const logSnap = await getDoc(logRef);
@@ -135,24 +135,22 @@ export const attendanceService = {
       if (logSnap.exists()) {
         const logData = logSnap.data();
         
-        // [FIX] Only restore credits/counts if the attendance was actually valid and deducted a credit.
-        const wasValid = logData.status === 'valid' || (!logData.status && !logData.denialReason);
+        const lowerStatus = (logData.status || '').toLowerCase();
+        const wasValid = lowerStatus === 'valid' || lowerStatus === 'success' || (!logData.status && !logData.denialReason);
         
-        if (logData.memberId && wasValid && (logData.type === 'checkin' || logData.type === 'manual')) {
+        // [FIX] Support explicit restoreCredit flag and calculate credits to restore.
+        // A multi-session check-in might use more than 1 credit.
+        if (restoreCredit && logData.memberId && wasValid && (logData.type === 'checkin' || logData.type === 'manual' || !logData.type || logData.type === 'attendance')) {
+          const creditsToRestore = logData.sessionCount || 1;
           const memberRef = doc(db, 'members', logData.memberId);
           await updateDoc(memberRef, {
-            credits: increment(1),
-            attendanceCount: increment(-1)
+            credits: increment(creditsToRestore),
+            attendanceCount: increment(-creditsToRestore)
           });
-
-          const cachedMembers = memberService.getMembers();
-          const idx = cachedMembers.findIndex(m => m.id === logData.memberId);
-          if (idx !== -1) {
-            memberService._updateLocalMemberCache(logData.memberId, {
-              credits: (Number(cachedMembers[idx].credits) || 0) + 1,
-              attendanceCount: Math.max(0, (Number(cachedMembers[idx].attendanceCount) || 0) - 1)
-            });
-          }
+          // [FIX] Do NOT manually update local cache here.
+          // The memberService real-time listener (onSnapshot) will automatically
+          // pick up the Firestore increment and sync the correct value.
+          // Previously, manual cache update + listener update caused a +2 → +1 flicker.
         }
       }
 

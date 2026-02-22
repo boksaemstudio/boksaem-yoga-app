@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <meta name="google" content="notranslate" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
+  <meta name="theme-color" content="#08080A" />
+  <link rel="apple-touch-icon" href="/logo_circle.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <!-- SEO & Open Graph (카카오톡/문자 공유 미리보기) -->
+  <meta name="description" content="나를 만나는 시간, 복샘요가 회원 전용 앱입니다. 출석체크와 수련 기록을 관리하세요.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="복샘요가 (Boksaem Yoga)">
+  <meta property="og:description" content="나를 만나는 시간, 복샘요가입니다. 간편하게 출석하고 수련을 기록해보세요.">
+  <meta property="og:image" content="/pwa-icon-512.png">
+  <meta property="og:site_name" content="복샘요가">
+  <meta property="og:locale" content="ko_KR">
+
+  <script>
+    // 경로에 따른 PWA 설정 동적 변경 로직
+    (function () {
+      var path = window.location.pathname;
+      var manifestFile = '/manifest-checkin.json';
+      var appTitle = '복샘요가 출석체크';
+
+      if (path.indexOf('/admin') === 0) {
+        manifestFile = '/manifest-admin.json';
+        appTitle = '복샘요가 관리자';
+      } else if (path.indexOf('/member') === 0) {
+        manifestFile = '/manifest-member.json';
+        appTitle = '내요가';
+      } else if (path.indexOf('/instructor') === 0) {
+        manifestFile = '/manifest-instructor.json';
+        appTitle = '복샘요가강사';
+      }
+
+      // Manifest 주입
+      var link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = manifestFile;
+      document.head.appendChild(link);
+
+      // iOS Title 및 일반 Title 주입
+      var metaTitle = document.createElement('meta');
+      metaTitle.name = 'apple-mobile-web-app-title';
+      metaTitle.content = appTitle;
+      document.head.appendChild(metaTitle);
+
+      document.title = appTitle;
+
+      
+      // [PWA] Service Worker registration is now handled by vite-plugin-pwa
+      // Manual registration removed to avoid conflicts.
+    })();
+  </script>
+
+  <!-- [FIX] One-time cache bust for critical updates (2026-02-22) -->
+  <script>
+    (function() {
+      var APP_VERSION = '20260222.v3';
+      var storedVersion = localStorage.getItem('app_version');
+      if (storedVersion !== APP_VERSION) {
+        localStorage.setItem('app_version', APP_VERSION);
+        if (storedVersion) { // Only bust cache if upgrading
+          console.log('[CacheBust] Version changed:', storedVersion, '->', APP_VERSION);
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+              regs.forEach(function(r) { r.unregister(); });
+            });
+          }
+          if ('caches' in window) {
+            caches.keys().then(function(names) {
+              names.forEach(function(name) { caches.delete(name); });
+            });
+          }
+          setTimeout(function() { window.location.reload(true); }, 500);
+        }
+      }
+    })();
+  </script>
+  <title>복샘요가</title>
+  <script type="module" crossorigin src="/assets/index-CdUgHszu-v7.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-jqtUL3Ea-v7.css">
+<link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
+
+<body>
+  <div id="root"></div>
+</body>
+
+</html>

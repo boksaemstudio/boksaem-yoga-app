@@ -27,8 +27,34 @@ const getBgForPeriod = (period) => {
 import InstallGuideModal from '../components/InstallGuideModal';
 import InstructorQRModal from '../components/InstructorQRModal';
 
+// [Helper] Robust Date Parsing
+const safeParseDate = (timestamp) => {
+    if (!timestamp) return new Date(NaN);
+    if (typeof timestamp === 'string') {
+        if (timestamp.includes('T')) return new Date(timestamp);
+        const parts = timestamp.split('-');
+        if (parts.length === 3) {
+            const [y, m, d] = parts.map(Number);
+            return new Date(y, m - 1, d);
+        }
+        return new Date(timestamp);
+    }
+    if (timestamp.toDate) return timestamp.toDate();
+    if (timestamp.seconds) return new Date(timestamp.seconds * 1000);
+    return new Date(timestamp);
+};
+
+const toKSTDateString = (date) => {
+    if (!date) return null;
+    let d = safeParseDate(date);
+    if (!d || isNaN(d.getTime())) return null;
+    return d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+};
 
 const CheckInPage = () => {
+    // [BUILD] Force CDN cache bust — v2026.02.22.15
+    const BUILD_VERSION = '2026.02.22.15';
+    console.log('[CheckInPage] Initialized version:', BUILD_VERSION);
     const [pin, setPin] = useState('');
     const [message, setMessage] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -925,10 +951,9 @@ const CheckInPage = () => {
         const credits = member.credits || 0;
         const attCount = member.attendanceCount || 0;
         const today = new Date();
-        const endDate = member.endDate ? new Date(member.endDate) : null;
         let daysLeft = 999;
-
-        if (endDate) {
+        if (member.endDate) {
+            const endDate = safeParseDate(member.endDate);
             today.setHours(0, 0, 0, 0);
             endDate.setHours(0, 0, 0, 0);
             daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
@@ -939,11 +964,17 @@ const CheckInPage = () => {
 
         // EXPIRY Check first (before duplicate msg)
         const isExpiredPeriod = daysLeft < 0;
-        const isExpiredCredits = credits <= 0 && Number.isFinite(credits);
+        // [FIX] credits === 0 means they just successfully used their LAST session. It's only an error if strictly < 0.
+        const isExpiredCredits = credits < 0 && Number.isFinite(credits);
+        const isLastSessionOrDay = (credits === 0 && Number.isFinite(credits)) || daysLeft === 0;
 
         // [TTS] Feedback logic
         if (isExpiredPeriod || isExpiredCredits) {
             speak("denied"); 
+        } else if (isLastSessionOrDay && !result.isDuplicate) {
+            speak("last_session");
+        } else if (result.isDuplicate) {
+            speak("duplicate");
         } else {
             speak("success"); 
         }
@@ -956,7 +987,9 @@ const CheckInPage = () => {
         } else if (isExpiredPeriod) {
             finalMsg = "기간이 만료되었습니다.";
         } else if (isExpiredCredits) {
-            finalMsg = "횟수가 만료되었습니다.";
+            finalMsg = "잔여 횟수가 없습니다.";
+        } else if (isLastSessionOrDay) {
+            finalMsg = "오늘 마지막 수련 후 재등록이 필요합니다.";
         // Priority Logic matches context
         } else if (streak >= 10 && Number.isFinite(streak)) { // [FIX] Check finite
             finalMsg = `${streak}일 연속 수련 중입니다. 놀라운 꾸준함입니다!`;
@@ -1681,6 +1714,10 @@ const CheckInPage = () => {
             }
 
             {/* [FIX] Message Modal as Fixed Overlay for reliable closing */}
+            
+            {/* [BUILD-FIX] Unminifiable version string inside DOM to defeat all dead-code elimination (v2026.02.22.v8) */}
+            <div style={{ display: 'none' }} data-version="2026.02.22.v8">v2026.02.22.v8</div>
+            
             {
                 message && (
                     <div
@@ -1836,21 +1873,14 @@ const CheckInPage = () => {
                 </div>
             )}
 
-            {/* PWA Install Guide for Admin Kiosk */}
-            {/* Combined Install Guide with Retry Logic */}
-            {
-                (showKioskInstallGuide || showInstallGuide) && (
-                    <InstallGuideModal
-                        onClose={() => handleModalClose(() => {
-                            setShowKioskInstallGuide(false);
-                            setShowInstallGuide(false);
-                        })}
-                        onRetry={handleInstallClick}
-                    // [New] Auto-close after 5 minutes (300s) if passed as prop, but here handled by wrapper or inside modal.
-                    // Since we can't easily change InstallGuideModal props without checking it, let's wrap it here or add a timer effect in CheckInPage that watches this state.
-                    />
-                )
-            }
+            {/* PWA Install Guide — Now uses the centralized OS-specific Modal */}
+            <InstallGuideModal 
+                isOpen={showKioskInstallGuide || showInstallGuide} 
+                onClose={() => {
+                    setShowKioskInstallGuide(false);
+                    setShowInstallGuide(false);
+                }} 
+            />
 
             {/* Instructor QR Modal */}
             <InstructorQRModal 
@@ -2001,5 +2031,9 @@ const CheckInPage = () => {
 // But CheckInPage is large, let's inject it near other effects or just add a self-closing wrapper?
 // Actually, let's just add the useEffect hook in the main component body for simplicity.
 
+
+// [BUILD-FIX] Attach unminifiable property to component object to defeat tree-shaking
+// This guarantees Rollup will generate a new chunk hash, forcing Workbox to update!
+CheckInPage.__buildVersion = '2026.02.22.v5';
 
 export default CheckInPage;

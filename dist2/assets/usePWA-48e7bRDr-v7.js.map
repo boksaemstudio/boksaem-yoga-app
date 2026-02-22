@@ -1,0 +1,1 @@
+{"version":3,"file":"usePWA-48e7bRDr-v7.js","sources":["../../src/hooks/usePWA.js"],"sourcesContent":["import { useContext } from 'react';\r\nimport { PWAContext } from '../context/PWAContextDef';\r\n\r\nexport const usePWA = () => useContext(PWAContext);\r\n"],"names":["usePWA","useContext","PWAContext"],"mappings":"kDAGY,MAACA,EAAS,IAAMC,EAAAA,WAAWC,CAAU"}

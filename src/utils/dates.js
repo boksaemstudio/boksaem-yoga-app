@@ -17,30 +17,17 @@ export const getTodayKST = () => {
  */
 export const toKSTDateString = (date) => {
     if (!date) return '';
-    let dateObj;
-    if (typeof date === 'string') {
-        dateObj = new Date(date);
-    } else if (date && typeof date.toDate === 'function') {
-        // [FIX] Handle Firestore Timestamp objects robustly
-        dateObj = date.toDate();
-    } else {
-        dateObj = date;
-    }
-    if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) return '';
+    let d;
+    if (typeof date === 'string') d = new Date(date);
+    else if (date && typeof date.toDate === 'function') d = date.toDate();
+    else if (date && date.seconds) d = new Date(date.seconds * 1000);
+    else d = new Date(date);
     
-    const formatter = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'Asia/Seoul',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-    });
-    const parts = formatter.formatToParts(dateObj);
-    const y = parts.find(p => p.type === 'year')?.value;
-    const m = parts.find(p => p.type === 'month')?.value;
-    const d = parts.find(p => p.type === 'day')?.value;
+    if (isNaN(d.getTime())) return '';
     
-    if (!y || !m || !d) return '';
-    return `${y}-${m}-${d}`;
+    // Add 9 hours to UTC time to get KST Date string robustly without browser Intl variability
+    const kstDate = new Date(d.getTime() + (9 * 60 * 60 * 1000));
+    return kstDate.toISOString().split('T')[0];
 };
 
 /**

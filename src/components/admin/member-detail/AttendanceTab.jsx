@@ -78,6 +78,7 @@ const AttendanceTab = ({ logs, member, onAdd, onDelete, isSubmitting, logLimit, 
                 language="ko"
                 t={(k) => translations.ko[k] || k}
                 onDelete={onDelete}
+                isSubmitting={isSubmitting}
                 logLimit={logLimit}
                 setLogLimit={setLogLimit}
             />

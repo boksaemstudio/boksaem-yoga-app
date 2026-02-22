@@ -6,6 +6,10 @@ Use this workflow when the user wants to run a specific javascript file immediat
 
 // turbo-all
 1. Run the javascript file specified by the user using node.
+   ```powershell
+   node <파일경로>
+   ```
    Examples:
-   - "node check_song_daemin.cjs"
-   - "node functions/scripts/fix_duplicates.js"
+   - `node check_song_daemin.cjs`
+   - `node functions/scripts/fix_duplicates.js`
+   - `node scripts/run_simulation.js`

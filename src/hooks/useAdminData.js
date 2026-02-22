@@ -4,9 +4,14 @@ import { getTodayKST, getKSTHour, toKSTDateString } from '../utils/dates';
 import { STUDIO_CONFIG } from '../studioConfig';
 import { guessClassTime, guessClassInfo } from '../utils/classUtils';
 
-
 // Helper for consistent date parsing
-
+const safeParseDate = (timestamp) => {
+    if (!timestamp) return new Date(NaN);
+    if (typeof timestamp === 'string') return new Date(timestamp);
+    if (timestamp.toDate) return timestamp.toDate();
+    if (timestamp.seconds) return new Date(timestamp.seconds * 1000);
+    return new Date(timestamp);
+};
 
 export const useAdminData = (activeTab, initialBranch = 'all') => {
     const [currentBranch, setCurrentBranch] = useState(initialBranch);
@@ -74,7 +79,9 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
     const calculateStats = useCallback((logs) => {
         const timeCount = {};
         logs.forEach(log => {
-            const hour = new Date(log.timestamp).getHours();
+            const d = safeParseDate(log.timestamp);
+            if (isNaN(d.getTime())) return;
+            const hour = d.getHours();
             const key = `${hour}:00`;
             timeCount[key] = (timeCount[key] || 0) + 1;
         });
@@ -211,7 +218,19 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         // [Perf] Enrich logs with KST string to prevent repeated Date parsing
         const enrichedBranchLogs = branchLogs.map(l => {
             if (!l.timestamp) return { ...l, isValidDate: false };
-            const d = new Date(l.timestamp);
+            
+            // [FIX] Robustly handle both ISO strings and Firestore Timestamp objects
+            let d;
+            if (typeof l.timestamp === 'string') {
+                d = new Date(l.timestamp);
+            } else if (l.timestamp && typeof l.timestamp.toDate === 'function') {
+                d = l.timestamp.toDate();
+            } else if (l.timestamp && l.timestamp.seconds) {
+                d = new Date(l.timestamp.seconds * 1000);
+            } else {
+                d = new Date(l.timestamp);
+            }
+
             if (isNaN(d.getTime())) return { ...l, isValidDate: false };
             return {
                 ...l,
@@ -223,14 +242,24 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         // [Perf] Enrich sales
         const enrichedSales = currentSales.map(s => {
             const rawDate = s.date || s.timestamp;
-            let sDate = rawDate;
-            if (rawDate && rawDate.includes('T')) {
-                const d = new Date(rawDate);
-                if (!isNaN(d.getTime())) {
-                    sDate = toKSTDateString(d);
+            let sDate = null;
+            
+            // [FIX] Robustly handle Firestore Timestamp or String
+            if (rawDate) {
+                if (typeof rawDate === 'string') {
+                    if (rawDate.includes('T')) {
+                        const d = new Date(rawDate);
+                        if (!isNaN(d.getTime())) sDate = toKSTDateString(d);
+                    } else {
+                        sDate = rawDate; // Already YYYY-MM-DD
+                    }
+                } else if (typeof rawDate.toDate === 'function') {
+                    sDate = toKSTDateString(rawDate.toDate());
+                } else if (rawDate.seconds) {
+                    sDate = toKSTDateString(new Date(rawDate.seconds * 1000));
                 }
             }
-            return { ...s, parsedDate: sDate || null };
+            return { ...s, parsedDate: sDate };
         });
 
         // [New] Multi-attendance Detection (Valid Log Count Base)

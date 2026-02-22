@@ -165,9 +165,37 @@ const SalesHistoryTab = ({ memberId, member }) => {
                                 <span style={{ color: 'white', fontWeight: 'bold' }}>{item.item}</span>
                                 <span style={{ color: '#10b981', fontWeight: 'bold' }}>{(item.amount || 0).toLocaleString()}원</span>
                             </div>
+
+                            {/* [NEW] 등록 기간 표시 */}
+                            {item.startDate && item.endDate && (
+                                <div style={{ fontSize: '0.8rem', color: '#71717a', marginBottom: '6px' }}>
+                                    📅 {item.startDate} ~ {item.endDate}
+                                </div>
+                            )}
+
+                            {/* [NEW] 이월 횟수 표시 */}
+                            {item.carryOverCredits > 0 && (
+                                <div style={{
+                                    fontSize: '0.8rem',
+                                    color: '#f59e0b',
+                                    background: 'rgba(245, 158, 11, 0.08)',
+                                    border: '1px solid rgba(245, 158, 11, 0.15)',
+                                    padding: '6px 10px',
+                                    borderRadius: '6px',
+                                    marginBottom: '8px'
+                                }}>
+                                    🔄 이전 잔여 <b>+{item.carryOverCredits}회</b> 이월 → 총 <b>{item.totalCredits}회</b>
+                                    {item.previousEndDate && (
+                                        <span style={{ color: '#a1a1aa', marginLeft: '6px' }}>
+                                            (이전 만료: {item.previousEndDate})
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
                                 <span style={{ color: '#a1a1aa' }}>
-                                    {item.paymentMethod === 'card' ? '카드' : item.paymentMethod === 'cash' ? '현금' : '이체'}
+                                    {item.paymentMethod === 'card' ? '카드' : item.paymentMethod === 'cash' ? '현금' : item.paymentMethod === 'none' ? '' : '이체'}
                                 </span>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                     <span style={{ color: '#a1a1aa' }}>{new Date(item.timestamp || item.date).toLocaleDateString()}</span>

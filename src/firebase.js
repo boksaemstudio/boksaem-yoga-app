@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, clearIndexedDbPersistence } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage"; // ✅ Import getStorage
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import { getAuth } from "firebase/auth";
@@ -18,17 +18,16 @@ export const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const storage = getStorage(app); // ✅ Initialize Storage
 
-// [FIX] Clear stale Firestore IndexedDB cache on startup to prevent 0-count bug
-// This only clears if no other tabs are using Firestore (safe)
-if (typeof window !== 'undefined') {
-    clearIndexedDbPersistence(db).catch((err) => {
-        // Expected to fail if other tabs are open or persistence wasn't enabled
-        // This is fine - it just means cache is already in use
-        if (err.code !== 'failed-precondition') {
-            console.warn('[Firebase] Cache clear skipped:', err.code);
-        }
-    });
-}
+// [FIX] Removed clearIndexedDbPersistence — it was causing 0-count data in regular browsers.
+// The call fails when other tabs are open (failed-precondition), and even when it succeeds,
+// it clears all cached Firestore data, forcing a full re-fetch from network.
+// This made data appear as 0 until the network round-trip completed.
+console.log('[Firebase] Initialized without IndexedDbPersistence clear v2026.02.22.v7');
+
+// [BUILD-FIX] Exported unminifiable version marker to force chunk hash change and bypass Workbox precache
+export const FIREBASE_INIT_VERSION = '2026.02.22.v7';
+// Defeat dead code elimination by modifying global state:
+if (typeof window !== 'undefined') window.__FIREBASE_VERSION = FIREBASE_INIT_VERSION;
 
 export const messaging = getMessaging(app);
 export const auth = getAuth(app);

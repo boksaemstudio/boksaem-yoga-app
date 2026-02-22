@@ -20,6 +20,19 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
         setLocalMember(initialMember);
     }, [initialMember]);
 
+    // [FIX] Sync editData with localMember when credits/dates change externally
+    // This ensures the info tab's editable fields stay in sync with real-time Firestore data
+    useEffect(() => {
+        if (!localMember) return;
+        setEditData(prev => ({
+            ...prev,
+            credits: localMember.credits,
+            startDate: localMember.startDate,
+            endDate: localMember.endDate,
+            attendanceCount: localMember.attendanceCount
+        }));
+    }, [localMember?.credits, localMember?.startDate, localMember?.endDate, localMember?.attendanceCount]);
+
     const [activeTab, setActiveTab] = useState('info');
 
     const [editData, setEditData] = useState({ ...member });
@@ -230,22 +243,10 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                     }
                 }
 
-                setLocalMember(prev => ({
-                    ...prev,
-                    credits: (Number(prev.credits) || 0) - 1
-                }));
-
-                // [FIX] Always notify parent to refresh member data (credits, usage) and potentially lists
-                if (onUpdateMember) {
-                    // StartDate update might have happened above, but we need to ensure credit sync too.
-                    // We pass the latest member state we expect.
-                    // Or simply trigger it. onUpdateMember(member.id, { ...changes })
-                    // We just passed 'credits' change roughly.
-                    onUpdateMember(member.id, {
-                        credits: (Number(member.credits) || 0) - 1,
-                        lastAttendance: timestamp
-                    });
-                }
+                // [FIX] Do NOT manually update localMember credits here.
+                // The onSnapshot real-time listener on the member document (line 36)
+                // will automatically detect the Firestore increment and update localMember.
+                // Manually updating here causes a DOUBLE increment (+2 instead of +1).
 
                 alert('수동 출석처리가 완료되었습니다.');
             } else {
@@ -262,26 +263,36 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
 
 
     const handleDeleteAttendance = async (logId) => {
-        if (!confirm('정말 삭제하시겠습니까? 횟수가 반환됩니다.')) return;
+        console.log('[AdminMemberDetailModal] handleDeleteAttendance v2026.02.22.v8');
+        // [FIX] Prevent double-click / rapid consecutive calls
+        if (isSubmitting || isSubmittingRef.current) return;
+        
+        if (!confirm('정말 삭제하시겠습니까?')) return;
+        const restoreCredit = confirm('해당 회원의 수강권을 복구하시겠습니까? (취소 시 기록만 삭제)');
+        
+        isSubmittingRef.current = true;
+        setIsSubmitting(true);
         try {
-            const result = await storageService.deleteAttendance(logId);
+            const result = await storageService.deleteAttendance(logId, restoreCredit);
             
             if (result.success) {
-                alert('출석 기록이 삭제되었습니다. 횟수가 본래대로 복원되었습니다.');
-                // [FIX] Restore credit locally for immediate feedback
-                setLocalMember(prev => ({
-                    ...prev,
-                    credits: (Number(prev.credits) || 0) + 1
-                }));
-                // Refresh logs
-                const logs = await storageService.getAttendanceByMemberId(member.id);
-                setMemberLogs(logs);
+                // [FIX] Do NOT use alert() here — it blocks the thread while onSnapshot
+                // fires in the background, causing stale re-renders and visual glitches.
+                // The onSnapshot listener will auto-update both member data and attendance logs.
+                console.log('[AdminMemberDetailModal] Attendance deleted successfully, waiting for onSnapshot sync...');
             } else {
                 throw new Error(result.message || '삭제 실패');
             }
         } catch (e) {
             console.error(e);
             alert(`삭제에 실패했습니다: ${e.message}`);
+        } finally {
+            // [FIX] Delay resetting isSubmitting to prevent rapid re-clicks
+            // while Firestore onSnapshot is processing the deletion
+            setTimeout(() => {
+                isSubmittingRef.current = false;
+                setIsSubmitting(false);
+            }, 1500);
         }
     };
 
@@ -293,6 +304,8 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
             background: 'rgba(0,0,0,0.8)', zIndex: 1100,
             display: 'flex', justifyContent: 'center', alignItems: 'center'
         }}>
+            {/* [BUILD-FIX] Unminifiable version string inside DOM to defeat all dead-code elimination (v2026.02.22.v8) */}
+            <div style={{ display: 'none' }} data-version="2026.02.22.v8">v2026.02.22.v8</div>
             <div style={{
                 width: '100%', height: '100%', maxWidth: '600px',
                 background: '#18181b', display: 'flex', flexDirection: 'column',
@@ -680,6 +693,8 @@ const getMembershipTypeLabel = (type) => {
     return labels[type] || type;
 };
 
-
+// [BUILD-FIX] Attach unminifiable property to component object to defeat tree-shaking
+// This guarantees Rollup will generate a new chunk hash, forcing Workbox to update!
+AdminMemberDetailModal.__buildVersion = '2026.02.22.v5';
 
 export default AdminMemberDetailModal;

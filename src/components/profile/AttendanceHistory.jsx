@@ -5,7 +5,7 @@ import { getHolidayName } from '../../utils/holidays';
 import { STUDIO_CONFIG } from '../../studioConfig';
 
 
-const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, logLimit, setLogLimit }) => {
+const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, isSubmitting, logLimit, setLogLimit }) => {
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
     const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -280,7 +280,8 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, lo
                                         {onDelete && (
                                             <button
                                                 onClick={() => onDelete(log.id)}
-                                                style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', border: 'none', borderRadius: '6px', padding: '8px', cursor: 'pointer', display: 'flex' }}
+                                                disabled={isSubmitting}
+                                                style={{ background: isSubmitting ? 'rgba(100,100,100,0.2)' : 'rgba(239, 68, 68, 0.2)', color: isSubmitting ? '#888' : '#ef4444', border: 'none', borderRadius: '6px', padding: '8px', cursor: isSubmitting ? 'not-allowed' : 'pointer', display: 'flex', opacity: isSubmitting ? 0.4 : 1, transition: 'opacity 0.2s' }}
                                                 title="출석 취소"
                                             >
                                                 <Icons.Trash size={16} />

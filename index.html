@@ -60,7 +60,31 @@
       
       // [PWA] Service Worker registration is now handled by vite-plugin-pwa
       // Manual registration removed to avoid conflicts.
+    })();
+  </script>
 
+  <!-- [FIX] One-time cache bust for critical updates (2026-02-22) -->
+  <script>
+    (function() {
+      var APP_VERSION = '20260222.v8';
+      var storedVersion = localStorage.getItem('app_version');
+      if (storedVersion !== APP_VERSION) {
+        localStorage.setItem('app_version', APP_VERSION);
+        if (storedVersion) { // Only bust cache if upgrading
+          console.log('[CacheBust] Version changed:', storedVersion, '->', APP_VERSION);
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+              regs.forEach(function(r) { r.unregister(); });
+            });
+          }
+          if ('caches' in window) {
+            caches.keys().then(function(names) {
+              names.forEach(function(name) { caches.delete(name); });
+            });
+          }
+          setTimeout(function() { window.location.reload(true); }, 500);
+        }
+      }
     })();
   </script>
   <title>복샘요가</title>

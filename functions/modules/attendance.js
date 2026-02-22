@@ -477,6 +477,7 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
                 className: finalStatus === 'valid' ? (classTitle || '자율수련') : `출석 거부 (${denialReason === 'expired' ? '기간 만료' : '횟수 부족'})`,
                 instructor: instructor || '미지정',
                 timestamp: timestamp,
+                type: 'checkin', // [FIX] Ensure type is present for proper deletion later
                 status: finalStatus,
                 syncMode: 'offline-restored',
                 sessionNumber: sessionCount

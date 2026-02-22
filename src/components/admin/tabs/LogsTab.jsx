@@ -543,7 +543,8 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                                     onClick={async (e) => {
                                                         e.stopPropagation();
                                                         if (confirm('이 출석 기록을 삭제하시겠습니까?')) {
-                                                            await storageService.deleteAttendance(log.id);
+                                                            const restoreCredit = confirm('해당 회원의 수강권을 복구하시겠습니까? (취소 시 기록만 삭제)');
+                                                            await storageService.deleteAttendance(log.id, restoreCredit);
                                                         }
                                                     }}
                                                     style={{

@@ -90,14 +90,28 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
         setPrice(calculatedPrice);
     }, [calculatedPrice]);
 
+    // [INFO] 선등록 여부 확인 (이력 기록용, 횟수 합산 안 함)
+    const currentCredits = member.credits || 0;
+    const hasRemainingCredits = currentCredits > 0 && currentCredits < 9000;
+    const isEarlyRenewal = hasRemainingCredits && member.endDate && new Date(member.endDate) >= new Date(new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }));
+
     const handleRenew = async () => {
         // 중복 클릭 방지
         if (isSubmitting || isSubmittingRef.current) return;
-        if (!confirm(`${calculatedProductName}\n금액: ${price.toLocaleString()}원\n\n등록하시겠습니까?`)) return;
+        
+        // [UX] 선등록 시 이월 정보 포함 확인 다이얼로그
+        let confirmMsg = `${calculatedProductName}\n금액: ${price.toLocaleString()}원\n`;
+        if (isEarlyRenewal) {
+            confirmMsg += `\n⚠️ 이전 회원권 잔여 ${currentCredits}회가 남아있습니다.\n새 횟수 ${calculatedCredits}회로 교체됩니다.\n`;
+        }
+        confirmMsg += `\n등록하시겠습니까?`;
+        if (!confirm(confirmMsg)) return;
 
         isSubmittingRef.current = true;
         setIsSubmitting(true);
         try {
+            const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+
             const salesData = {
                 memberId: member.id,
                 memberName: member.name,
@@ -105,22 +119,30 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                 item: calculatedProductName,
                 amount: price,
                 paymentMethod: paymentMethod,
-                date: new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }),
+                date: today,
                 startDate: startDate,
-                endDate: calculatedEndDate
+                endDate: calculatedEndDate,
+                // [NEW] 이월 정보 기록
+                ...(isEarlyRenewal && calculatedCredits < 9000 ? {
+                    carryOverCredits: currentCredits,
+                    previousEndDate: member.endDate,
+                    newCredits: calculatedCredits,
+                    totalCredits: finalCredits
+                } : {})
             };
 
             if (onAddSalesRecord) await onAddSalesRecord(salesData);
 
             const updateData = {
                 membershipType: membershipType,
-                credits: calculatedCredits,
+                credits: calculatedCredits, // 새 횟수로 교체 (합산 안 함)
                 startDate: startDate,
                 endDate: calculatedEndDate,
                 lastPaymentDate: new Date().toISOString()
             };
 
             await onUpdateMember(member.id, updateData);
+            
             alert('등록이 완료되었습니다.');
         } catch (err) {
             console.error('Registration error:', err);
@@ -222,6 +244,16 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                             <span style={{ color: '#a1a1aa' }}>지급 횟수</span>
                             <span style={{ color: 'white' }}>{calculatedCredits === 9999 ? '무제한' : `${calculatedCredits}회`}</span>
                         </div>
+                        {isEarlyRenewal && (
+                            <div style={{
+                                display: 'flex', justifyContent: 'space-between', marginBottom: '5px',
+                                background: 'rgba(245, 158, 11, 0.08)', padding: '8px 10px', borderRadius: '6px',
+                                border: '1px solid rgba(245, 158, 11, 0.15)'
+                            }}>
+                                <span style={{ color: '#f59e0b', fontSize: '0.85rem' }}>⚠️ 이전 잔여</span>
+                                <span style={{ color: '#f59e0b', fontWeight: 'bold', fontSize: '0.85rem' }}>{currentCredits}회 소멸</span>
+                            </div>
+                        )}
                         <hr style={{ borderColor: 'rgba(255,255,255,0.1)', margin: '10px 0' }} />
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{ color: 'white', fontWeight: 'bold' }}>결제 금액</span>

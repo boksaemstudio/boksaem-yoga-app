@@ -1,0 +1,26 @@
+{
+    "name": "복샘요가 출석체크",
+    "short_name": "복샘요가 출석체크",
+    "description": "복샘요가 출석체크 대시보드",
+    "start_url": "/",
+    "gcm_sender_id": "103953800507",
+    "scope": "/",
+    "display": "fullscreen",
+    "background_color": "#121212",
+    "theme_color": "#D4AF37",
+    "orientation": "landscape",
+    "icons": [
+        {
+            "src": "/logo_circle.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/logo_circle.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

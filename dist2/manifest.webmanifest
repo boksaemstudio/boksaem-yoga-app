@@ -1,0 +1,1 @@
+{"name":"요가 출석 및 관리 시스템","short_name":"요가출석","description":"복샘요가/다솔요가 출석 및 회원 관리 앱","start_url":"/","display":"standalone","background_color":"#1E1E1E","theme_color":"#1E1E1E","lang":"en","scope":"/","icons":[{"src":"/logo192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},{"src":"/logo512.png","sizes":"512x512","type":"image/png"}]}

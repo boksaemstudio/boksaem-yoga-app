@@ -65,12 +65,11 @@ const InstructorPage = () => {
         loadInstructors();
     }, []);
 
-    // [PWA] Auto-show install guide for non-standalone users
+    // [PWA] 모바일 사용자에게 설치 안내 자동 표시 (1회만)
     useEffect(() => {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
         const hasSeenGuide = localStorage.getItem('has_seen_inst_install_guide');
         
-        // Show after a slight delay
         if (!isStandalone && !hasSeenGuide) {
             const timer = setTimeout(() => {
                 setShowInstallGuide(true);
@@ -216,7 +215,8 @@ const InstructorPage = () => {
         };
     }, [instructorName, todayStr, branches]);
 
-    // Initialize AI Greeting (Instant + Fetch)
+    // Initialize AI Greeting (Instant + Background Fetch)
+    // [FIX] 의존성에서 attendance.length 제거 → 깜빡임 방지
     useEffect(() => {
         if (!instructorName) return;
 
@@ -228,22 +228,25 @@ const InstructorPage = () => {
         
         if (cached) {
             setAiGreeting(cached);
-        } else {
-            // If no cache, set default instant message (to avoid "Loading...")
-            setAiGreeting(getDefaultGreeting(instructorName, hour, dayOfWeek));
+            // 캐시가 있으면 AI 재호출하지 않음 → 깜빡임 완전 방지
+            return;
         }
+        
+        // If no cache, set default instant message
+        const defaultMsg = getDefaultGreeting(instructorName, hour, dayOfWeek);
+        setAiGreeting(defaultMsg);
 
-        // 2. Fetch fresh AI message in background
-        const currentArgs = `${instructorName}_${attendance.length}_${hour}`;
+        // 2. Fetch fresh AI message in background (한 번만)
         const fetchAI = async () => {
-            if (attendanceLoading || lastAiFetchArgs.current === currentArgs) return;
-            
+            const currentArgs = `${instructorName}_${hour}_${todayStr}`;
+            if (lastAiFetchArgs.current === currentArgs) return;
             lastAiFetchArgs.current = currentArgs;
-            setAiGreetingLoading(true); // [AI] 로딩 시작
+            
+            setAiGreetingLoading(true);
             try {
                 const result = await storageService.getAIExperience(
                     instructorName,
-                    attendance.length,
+                    0, // attendance count는 AI에 꼭 필요하지 않음
                     dayOfWeek,
                     hour,
                     null, null, null, null, 'ko', null, 'instructor'
@@ -251,27 +254,25 @@ const InstructorPage = () => {
                 
                 const greetingText = typeof result === 'string' 
                     ? result 
-                    : (result?.message || getDefaultGreeting(instructorName, hour, dayOfWeek, attendance.length));
+                    : (result?.message || defaultMsg);
                 
-                // [AI] AI 메시지가 기존과 다르면 보강 메시지로 추가 표시
-                if (greetingText && greetingText !== aiGreeting && !result?.isFallback) {
-                    setAiEnhancedGreeting(greetingText);
-                } else {
+                // [FIX] 직접 aiGreeting을 교체 (aiEnhancedGreeting 대신) → 깜빡임 방지
+                if (greetingText && !result?.isFallback) {
                     setAiGreeting(greetingText);
                 }
                 localStorage.setItem(cacheKey, greetingText);
             } catch (e) {
                 console.error('AI greeting background fetch failed:', e);
             } finally {
-                setAiGreetingLoading(false); // [AI] 로딩 종료
+                setAiGreetingLoading(false);
             }
         };
 
-        if (!attendanceLoading && !cached && lastAiFetchArgs.current !== currentArgs) {
-            fetchAI();
-        }
+        // 약간의 딜레이 후 AI 호출 (초기 렌더 안정화)
+        const timer = setTimeout(fetchAI, 1000);
+        return () => clearTimeout(timer);
 
-    }, [instructorName, attendance.length, attendanceLoading, hour, todayStr]);
+    }, [instructorName, hour, todayStr]); // [FIX] attendance.length, attendanceLoading 제거
 
     const handleLogout = () => {
         localStorage.removeItem('instructorName');

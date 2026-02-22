@@ -4,54 +4,32 @@ description: 린트 체크, 빌드, Git 커밋/푸시, Firebase 배포 자동화
 
 # 배포 워크플로우 (Deploy)
 
-이 워크플로우는 코드 변경 후 프로덕션 배포까지의 전체 과정을 자동화합니다.
-
-## 사전 조건
-- 개발 서버가 실행 중이면 먼저 종료
-
-## 단계
-
-### 1. 린트 체크
-```powershell
-npm run lint
-```
+## 방법 1: build.ps1 스크립트 (캐시 초기화 + Hosting만 배포)
 // turbo
-
-### 2. 빌드 테스트
 ```powershell
-npm run build
+.\build.ps1
 ```
-// turbo
+- Vite 캐시(`node_modules/.vite`, `dist`) 삭제 후 클린 빌드
+- `firebase deploy --only hosting` (Functions 배포 안 함)
+- PWA 캐시 문제가 있을 때 사용
 
-### 3. Git 스테이징
+## 방법 2: npm run deploy (전체 배포 - Functions 포함)
+// turbo
+```powershell
+npm run deploy
+```
+- `npm run build && firebase deploy --force`
+- Hosting + Functions + Firestore Rules + Storage Rules 전체 배포
+- 서버 측 코드(Cloud Functions) 변경이 있을 때 사용
+
+## 배포 후 Git 동기화 (선택)
 ```powershell
 git add -A
-```
-// turbo
-
-### 4. Git 커밋
-사용자에게 커밋 메시지를 확인받은 후:
-```powershell
-git commit -m "[커밋 메시지]"
-```
-
-### 5. Git 푸시
-```powershell
+git commit -m "배포: [작업 내용 요약]"
 git push
 ```
-// turbo
-
-### 6. Firebase 배포
-```powershell
-firebase deploy --only hosting
-```
-// turbo
 
 ## 완료 확인
 - 배포 URL: https://boksaem-yoga.web.app
-- Firebase 콘솔: https://console.firebase.google.com/project/boksaem-yoga/overview
-
-## 오류 발생 시
-- 린트 오류: `npm run lint -- --fix`로 자동 수정 시도
-- 빌드 오류: 에러 메시지 확인 후 코드 수정
-- Git 충돌: `git pull --rebase` 후 다시 시도
+- 브라우저 강력 새로고침: Ctrl+Shift+R
+- 출석체크 키오스크: 3~5분 대기 후 자동 업데이트됨

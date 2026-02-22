@@ -28,7 +28,7 @@ export const PWAProvider = ({ children }) => {
 
     // Handle dynamic manifest and title
     useEffect(() => {
-        const path = location.pathname;
+        const path = location.pathname.toLowerCase(); // [FIX] 대소문자 무시
         let manifestFile = '/manifest-checkin.json';
         let appTitle = '복샘요가 출석체크';
 
@@ -41,6 +41,10 @@ export const PWAProvider = ({ children }) => {
         } else if (path.startsWith('/instructor')) {
             manifestFile = '/manifest-instructor.json';
             appTitle = '복샘요가 선생님';
+        } else if (path.startsWith('/login')) {
+            appTitle = '복샘요가 로그인';
+        } else if (path.startsWith('/meditation')) {
+            appTitle = '복샘요가 명상';
         }
 
         // Update manifest link

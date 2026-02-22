@@ -54,6 +54,16 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
-    chunkSizeWarningLimit: 1000
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        // [BUILD-FIX] Appending -v8 to physically force new filenames on every single file
+        // This is a last-resort countermeasure against Workbox aggressively caching files
+        // and Vite/Rollup failing to change chunk hashes for edited React files.
+        chunkFileNames: `assets/[name]-[hash]-v10.js`,
+        entryFileNames: `assets/[name]-[hash]-v10.js`,
+        assetFileNames: `assets/[name]-[hash]-v10.[ext]`
+      }
+    }
   }
 });

@@ -35,10 +35,10 @@ service cloud.firestore {
     
     // ========================================
     // ✅ Attendance - 출석 기록
-    // Kiosk (Anonymous) can create, Staff can read
+    // Any authenticated user can read, Kiosk can create, Admin can modify/delete
     // ========================================
     match /attendance/{attendanceId} {
-      allow read: if isStaff();
+      allow read: if isAuth();
       allow create: if isAuth();
       allow update, delete: if isAdmin();
     }
@@ -76,29 +76,30 @@ service cloud.firestore {
     // Anyone can register, Admin can read/delete
     // ========================================
     match /fcm_tokens/{tokenId} {
-      allow read: if isAdmin();
+      allow read: if isAuth();
       allow create, update: if isAuth();
       allow delete: if isAdmin();
     }
     
     match /fcmTokens/{tokenId} {
-      allow read: if isAdmin();
+      allow read: if isAuth();
       allow create, update: if isAuth();
       allow delete: if isAdmin();
     }
     
     match /push_tokens/{tokenId} {
-      allow read: if isAdmin();
+      allow read: if isAuth();
       allow create, update: if isAuth();
       allow delete: if isAdmin();
     }
     
     // ========================================
     // 💰 Sales - 매출 기록
-    // Admin only
+    // Authenticated users can read, Admin can write
     // ========================================
     match /sales/{saleId} {
-      allow read, write: if isAdmin();
+      allow read: if isAuth();
+      allow write: if isAdmin();
     }
     
     // ========================================

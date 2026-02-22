@@ -65,7 +65,7 @@ const RequireAuth = ({ children }) => {
   useEffect(() => {
     const unsubscribe = storageService.onAuthStateChanged((currentUser) => {
       // For Admin, only allow non-anonymous users
-      if (currentUser) {
+      if (currentUser && !currentUser.isAnonymous) {
         setUser(currentUser);
       } else {
         setUser(null);

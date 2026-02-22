@@ -40,8 +40,14 @@ import { usePWA } from '../hooks/usePWA';
 
 
 
-// [Helper] Robust Date Parsing (Unused locally now, but maybe useful? Linter says delete)
-// const parseDate = (dateStr) => { ... }
+// [Helper] Robust Date Parsing
+const safeParseDate = (timestamp) => {
+    if (!timestamp) return new Date(NaN);
+    if (typeof timestamp === 'string') return new Date(timestamp);
+    if (timestamp.toDate) return timestamp.toDate();
+    if (timestamp.seconds) return new Date(timestamp.seconds * 1000);
+    return new Date(timestamp);
+};
 
 // [Refactor] Logic moved to useAdminData or provided by simple functions if local only
 // Removing local definitions of isMemberActive and isMemberExpiring as they are imported from useAdminData
@@ -67,14 +73,14 @@ const isMemberDormant = (m, logs, isMemberActiveFn) => {
     let lastAttDate = null;
 
     if (m.lastAttendance) {
-        lastAttDate = new Date(m.lastAttendance);
+        lastAttDate = safeParseDate(m.lastAttendance);
     } else if (m.attendanceCount > 0) {
         // Fallback: If no lastAttendance field but has count, try to find in loaded logs
         // Note: 'logs' passed here might be limited. 
         // If not found in recent logs, assume it was long ago -> Dormant.
         const lastLog = logs.find(l => l.memberId === m.id);
         if (lastLog) {
-            lastAttDate = new Date(lastLog.timestamp || lastLog.date);
+            lastAttDate = safeParseDate(lastLog.timestamp || lastLog.date);
         } else {
             // Not in recent logs -> Likely Dormant
             return true;
@@ -193,17 +199,35 @@ const AdminDashboard = () => {
             // Show ALL logs for today (allow multiple attendances per member)
             logs.forEach(l => {
                 if (!l.timestamp) return;
-                const logDate = new Date(l.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                
+                // [FIX] Robust Timestamp to Date String
+                let logDate;
+                if (typeof l.timestamp === 'string') {
+                    logDate = new Date(l.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                } else if (l.timestamp && typeof l.timestamp.toDate === 'function') {
+                    logDate = toKSTDateString(l.timestamp.toDate());
+                } else if (l.timestamp && l.timestamp.seconds) {
+                    logDate = toKSTDateString(new Date(l.timestamp.seconds * 1000));
+                } else {
+                    logDate = new Date(l.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                }
 
                 if (logDate === todayStr && (currentBranch === 'all' || l.branchId === currentBranch)) {
                     const member = members.find(m => m.id === l.memberId);
                     // Even if member is deleted, show the log if possible (or skip)
                     if (member) {
+                        // [FIX] Robust Time string
+                        let timeObj;
+                        if (typeof l.timestamp === 'string') timeObj = new Date(l.timestamp);
+                        else if (l.timestamp.toDate) timeObj = l.timestamp.toDate();
+                        else if (l.timestamp.seconds) timeObj = new Date(l.timestamp.seconds * 1000);
+                        else timeObj = new Date(l.timestamp);
+
                         attendanceList.push({
                             ...member,
                             logId: l.id, // Use log ID for unique key if possible
                             // Override member data with specific log data
-                            attendanceTime: new Date(l.timestamp).toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false }),
+                            attendanceTime: timeObj.toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false }),
                             attendanceClass: l.className,
                             instructorName: l.instructor, // Add instructor info
                             attendanceStatus: l.status, // Pass status
