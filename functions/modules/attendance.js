@@ -219,6 +219,7 @@ exports.checkInMemberV2Call = onCall({
                 className: attendanceStatus === 'valid' ? (finalClassTitle || '자율수련') : `출석 거부 (${denialReason === 'expired' ? '기간 만료' : '횟수 부족'})`,
                 instructor: finalInstructor || '미지정',
                 timestamp: now.toISOString(),
+                type: 'checkin',
                 sessionNumber: sessionCount,
                 status: attendanceStatus,
                 classTime: classTime || matched?.time || null // [FIX] Use client provided time or server matched time

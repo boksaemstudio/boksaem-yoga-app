@@ -134,7 +134,7 @@ export const attendanceService = {
 
       if (logSnap.exists()) {
         const logData = logSnap.data();
-        if (logData.memberId && (logData.type === 'checkin' || logData.type === 'manual')) {
+        if (logData.memberId && (logData.type === 'checkin' || logData.type === 'manual' || logData.status === 'valid')) {
           const memberRef = doc(db, 'members', logData.memberId);
           await updateDoc(memberRef, {
             credits: increment(1),
