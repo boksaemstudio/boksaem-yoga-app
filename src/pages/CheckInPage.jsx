@@ -11,6 +11,7 @@ import { logError } from '../services/modules/errorModule';
 import { useNetworkMonitor } from '../hooks/useNetworkMonitor';
 import { useTTS } from '../hooks/useTTS';
 import { useNetwork } from '../context/NetworkContext';
+import { usePWA } from '../hooks/usePWA';
 import TopBar from '../components/checkin/TopBar';
 
 
@@ -43,6 +44,11 @@ const CheckInPage = () => {
     const [aiLoading, setAiLoading] = useState(false); // [AI] AI 통신 중 애니메이션 표시
     const [showKioskInstallGuide, setShowKioskInstallGuide] = useState(false);
     const [showInstallGuide, setShowInstallGuide] = useState(false);
+    
+    // [NEW] Kiosk Notice & PWA Auto-Update
+    const [kioskSettings, setKioskSettings] = useState({ active: false, imageUrl: null });
+    const { needRefresh, updateServiceWorker } = usePWA();
+    const [selectedMemberId, setSelectedMemberId] = useState(null); // [UX] 2-Step Check-in: track selection
     const [showInstructorQR, setShowInstructorQR] = useState(false);
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [keypadLocked, setKeypadLocked] = useState(false); // [FIX] Prevent ghost touches
@@ -140,6 +146,43 @@ const CheckInPage = () => {
 
         return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     }, []);
+
+    // [NEW] Kiosk Notice Listener
+    useEffect(() => {
+        const unsubscribe = storageService.subscribeToKioskSettings((settings) => {
+            setKioskSettings(settings);
+        });
+        return () => unsubscribe();
+    }, []);
+
+    // [NEW] Kiosk PWA Auto-Update when Idle & Update Available
+    useEffect(() => {
+        let idleTimer;
+        
+        const resetIdleTimer = () => {
+            clearTimeout(idleTimer);
+            if (needRefresh) {
+                // If update is available, wait 3 minutes of inactivity before applying it
+                idleTimer = setTimeout(() => {
+                    // Only update if no check-in is currently in progress
+                    if (!pin && !message && !loading && !showSelectionModal && !showDuplicateConfirm) {
+                        console.log('[Kiosk] Idle update triggered.');
+                        updateServiceWorker(true);
+                    }
+                }, 3 * 60 * 1000); // 3 minutes idle
+            }
+        };
+
+        window.addEventListener('touchstart', resetIdleTimer);
+        window.addEventListener('click', resetIdleTimer);
+        resetIdleTimer();
+
+        return () => {
+            clearTimeout(idleTimer);
+            window.removeEventListener('touchstart', resetIdleTimer);
+            window.removeEventListener('click', resetIdleTimer);
+        };
+    }, [needRefresh, pin, message, loading, showSelectionModal, showDuplicateConfirm, updateServiceWorker]);
 
     // [New] Auto-close Install Guide after 5 minutes
     useEffect(() => {
@@ -951,51 +994,71 @@ const CheckInPage = () => {
             details: (
                 <div className="attendance-info" style={{
                     marginTop: '30px',
-                    padding: '30px',
+                    padding: '30px 40px',
                     background: 'rgba(255,255,255,0.05)',
                     borderRadius: '24px',
                     border: '1px solid rgba(255,255,255,0.1)'
                 }}>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '40px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '30px' }}>
                         <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '1.2rem', opacity: 0.6, marginBottom: '8px' }}>잔여 횟수</div>
-                            <div style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--primary-gold)' }}>
+                            <div style={{ fontSize: '1.1rem', opacity: 0.6, marginBottom: '6px' }}>잔여 횟수</div>
+                            <div style={{ fontSize: '2.8rem', fontWeight: 800, color: 'var(--primary-gold)' }}>
                                 {result.member.credits}회
                             </div>
                         </div>
-                        <div style={{ width: '1px', background: 'rgba(255,255,255,0.1)' }} />
+                        
+                        <div style={{ width: '1px', height: '50px', background: 'rgba(255,255,255,0.1)' }} />
 
                         <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '1.2rem', opacity: 0.6, marginBottom: '8px' }}>잔여 일수</div>
-                            <div style={{ fontSize: '3rem', fontWeight: 800, color: '#4CAF50' }}>
+                            <div style={{ fontSize: '1.1rem', opacity: 0.6, marginBottom: '6px' }}>잔여 일수</div>
+                            <div style={{ fontSize: '2.8rem', fontWeight: 800, color: '#4CAF50' }}>
                                 {(() => {
                                     if (!result.member.endDate || result.member.endDate === 'TBD') {
-                                        return <span style={{ fontSize: '2rem' }}>확정 전</span>;
+                                        return <span style={{ fontSize: '1.8rem' }}>확정 전</span>;
                                     }
                                     if (result.member.endDate === 'unlimited') {
-                                        return <span style={{ fontSize: '2rem' }}>무제한</span>;
+                                        return <span style={{ fontSize: '1.8rem' }}>무제한</span>;
                                     }
                                     const days = getDaysRemaining(result.member.endDate);
-                                    if (days === null) return <span style={{ fontSize: '2rem' }}>확정 전</span>;
+                                    if (days === null) return <span style={{ fontSize: '1.8rem' }}>확정 전</span>;
                                     if (days < 0) return <span style={{ color: '#FF5252' }}>만료</span>;
                                     return `D-${days}`;
                                 })()}
                             </div>
                         </div>
-                        <div style={{ width: '1px', background: 'rgba(255,255,255,0.1)' }} />
 
-                        <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '1.2rem', opacity: 0.6, marginBottom: '8px' }}>연속 수련</div>
-                            <div style={{ fontSize: '3rem', fontWeight: 800, color: '#FF6B6B', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                <span>🔥</span> {result.member.streak > 1 ? `${result.member.streak}일` : (result.member.attendanceCount || result.attendanceCount || 0) + '회'}
-                            </div>
-                        </div>
+                        {/* 독립적인 버튼 영역: 우측 분리 */}
+                        <div style={{ width: '1px', height: '40px', background: 'rgba(255,255,255,0.1)', marginLeft: '10px' }} />
+                        
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleModalClose(() => setMessage(null));
+                            }}
+                            className="interactive"
+                            style={{
+                                background: 'var(--primary-gold)',
+                                color: 'black',
+                                border: 'none',
+                                padding: '15px 35px',
+                                borderRadius: '15px',
+                                fontSize: '1.3rem',
+                                fontWeight: '900',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                                boxShadow: '0 8px 25px var(--primary-gold-glow)',
+                                minWidth: '120px',
+                                marginLeft: '10px'
+                            }}
+                        >
+                            닫기
+                        </button>
                     </div>
                 </div>
             )
         });
         setPin('');
-        startDismissTimer(7000); // [EXTENDED] AI 메시지 볼 시간 확보 (5s → 7s)
+        startDismissTimer(12000); // [EXTENDED] 7s -> 12s per user request
 
         // [AI] 백그라운드 AI 개인화 메시지 요청
         const now2 = new Date();
@@ -1455,100 +1518,102 @@ const CheckInPage = () => {
 
                                 return (
                                     <div style={{ display: 'flex', gap: '20px', flex: 1, minHeight: '280px' }}>
-                                        {/* LEFT: Active Members (Prominent) */}
+                                        {/* LEFT: Active Members (Prominent, Horizontal) */}
                                         <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                             <h3 style={{ fontSize: '1.2rem', color: 'var(--primary-gold)', borderBottom: '1px solid rgba(212,175,55,0.3)', paddingBottom: '8px' }}>
                                                 ✨ 이용 가능 회원
                                             </h3>
                                             <div style={{
-                                                display: 'grid',
-                                                gridTemplateColumns: activeMembers.length > 4 ? 'repeat(2, 1fr)' : '1fr',
-                                                gap: '10px',
+                                                display: 'flex',
+                                                flexWrap: 'wrap',
+                                                gap: '15px',
                                                 flex: 1,
                                                 overflowY: 'auto',
                                                 alignContent: 'start',
                                                 paddingRight: '5px'
                                             }}>
-                                                {activeMembers.length > 0 ? activeMembers.map(m => (
-                                                    <button
-                                                        key={m.id}
-                                                        onClick={(e) => {
-                                                            if (loading) return;
-                                                            e.stopPropagation();
-                                                            handleSelectMember(m.id);
-                                                        }}
-                                                        className="member-card active-member-card"
-                                                        style={{
-                                                            padding: '18px',
-                                                            borderRadius: '16px',
-                                                            background: 'linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05))',
-                                                            color: 'white',
-                                                            border: '2px solid rgba(212,175,55,0.5)',
-                                                            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                                                            display: 'flex',
-                                                            flexDirection: 'column',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            gap: '8px',
-                                                            cursor: 'pointer',
-                                                            transition: 'transform 0.2s',
-                                                            minHeight: '120px'
-                                                        }}
-                                                    >
-                                                        <span style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--primary-gold)' }}>{m.name}</span>
-                                                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                                                            <span style={{ fontSize: '1rem', background: 'rgba(0,0,0,0.4)', padding: '4px 10px', borderRadius: '50px' }}>
-                                                                {getBranchName(m.homeBranch)}
-                                                            </span>
-                                                            <span style={{ fontSize: '1rem', background: 'rgba(76, 175, 80, 0.3)', padding: '4px 10px', borderRadius: '50px', color: '#81c784' }}>
-                                                                {m.credits > 900 ? '무제한' : `${m.credits}회`}
-                                                            </span>
-                                                        </div>
-                                                    </button>
-                                                )) : (
-                                                    <div style={{ gridColumn: '1/-1', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.5, fontSize: '1.2rem' }}>
+                                                {activeMembers.length > 0 ? activeMembers.map(m => {
+                                                    const isSelected = selectedMemberId === m.id;
+                                                    return (
+                                                        <button
+                                                            key={m.id}
+                                                            onClick={(e) => {
+                                                                if (loading) return;
+                                                                e.stopPropagation();
+                                                                setSelectedMemberId(m.id);
+                                                            }}
+                                                            className={`member-card active-member-card ${isSelected ? 'selected' : ''}`}
+                                                            style={{
+                                                                flex: '1 1 calc(50% - 15px)', // 2 cards per row
+                                                                minWidth: '220px',
+                                                                padding: '20px',
+                                                                borderRadius: '16px',
+                                                                background: isSelected ? 'linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.05))' : 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02))',
+                                                                color: 'white',
+                                                                border: isSelected ? '2px solid var(--primary-gold)' : '2px solid rgba(255,255,255,0.2)',
+                                                                boxShadow: isSelected ? '0 0 20px rgba(212,175,55,0.3)' : '0 4px 15px rgba(0,0,0,0.1)',
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                gap: '12px',
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                                                                transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+                                                                minHeight: '140px'
+                                                            }}
+                                                        >
+                                                            <span style={{ fontSize: '1.9rem', fontWeight: '800', color: isSelected ? 'var(--primary-gold)' : 'white' }}>{m.name}</span>
+                                                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                                                <span style={{ fontSize: '0.9rem', background: 'rgba(0,0,0,0.5)', padding: '5px 12px', borderRadius: '50px' }}>
+                                                                    {getBranchName(m.homeBranch)}
+                                                                </span>
+                                                                <span style={{ fontSize: '0.9rem', background: isSelected ? 'rgba(76, 175, 80, 0.3)' : 'rgba(255,255,255,0.1)', padding: '5px 12px', borderRadius: '50px', color: isSelected ? '#a5d6a7' : 'rgba(255,255,255,0.8)' }}>
+                                                                    {m.credits > 900 ? '무제한' : `${m.credits}회`}
+                                                                </span>
+                                                            </div>
+                                                        </button>
+                                                    );
+                                                }) : (
+                                                    <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.5, fontSize: '1.2rem', padding: '30px' }}>
                                                         활성 회원이 없습니다.
                                                     </div>
                                                 )}
                                             </div>
                                         </div>
 
-                                        {/* RIGHT: Inactive Members (Compact) */}
-                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '20px' }}>
-                                            <h3 style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.5)', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>
-                                                💤 만료/비활성 회원
+                                        {/* RIGHT: Inactive Members (Compact, Smaller, Unclickable typically) */}
+                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '20px', maxWidth: '300px' }}>
+                                            <h3 style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.4)', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '6px' }}>
+                                                💤 만료/비활성
                                             </h3>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', overflowY: 'auto' }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto' }}>
                                                 {inactiveMembers.length > 0 ? inactiveMembers.map(m => (
-                                                    <button
+                                                    <div
                                                         key={m.id}
-                                                        onClick={(e) => {
-                                                            if (loading) return;
-                                                            e.stopPropagation();
-                                                            handleSelectMember(m.id);
-                                                        }}
                                                         className="member-card inactive-member-card"
                                                         style={{
-                                                            padding: '15px',
-                                                            borderRadius: '12px',
-                                                            background: 'rgba(0,0,0,0.2)',
-                                                            color: 'rgba(255,255,255,0.6)',
-                                                            border: '1px solid rgba(255,255,255,0.1)',
+                                                            padding: '10px 15px',
+                                                            borderRadius: '8px',
+                                                            background: 'rgba(0,0,0,0.3)',
+                                                            color: 'rgba(255,255,255,0.4)',
+                                                            border: '1px dashed rgba(255,255,255,0.1)',
                                                             display: 'flex',
                                                             alignItems: 'center',
                                                             justifyContent: 'space-between',
-                                                            cursor: 'pointer',
-                                                            textAlign: 'left'
+                                                            textAlign: 'left',
+                                                            cursor: 'default',
+                                                            opacity: 0.7
                                                         }}
                                                     >
                                                         <div>
-                                                            <div style={{ fontSize: '1.2rem', fontWeight: '600' }}>{m.name}</div>
-                                                            <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>{getBranchName(m.homeBranch)}</div>
+                                                            <div style={{ fontSize: '1.05rem', fontWeight: '600' }}>{m.name}</div>
+                                                            <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>{getBranchName(m.homeBranch)}</div>
                                                         </div>
-                                                        <div style={{ fontSize: '0.9rem', color: '#ff6b6b' }}>만료됨</div>
-                                                    </button>
+                                                        <div style={{ fontSize: '0.8rem', color: '#ff6b6b' }}>만료됨</div>
+                                                    </div>
                                                 )) : (
-                                                    <div style={{ opacity: 0.3, textAlign: 'center', padding: '20px' }}>
+                                                    <div style={{ opacity: 0.3, textAlign: 'center', padding: '15px', fontSize: '0.85rem' }}>
                                                         해당 없음
                                                     </div>
                                                 )}
@@ -1558,23 +1623,56 @@ const CheckInPage = () => {
                                 );
                             })()}
 
-                            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '20px' }}>
                                 <button
                                     onClick={() => handleModalClose(() => setShowSelectionModal(false))}
                                     style={{
                                         background: 'transparent',
-                                        border: '1px solid rgba(255,255,255,0.3)',
+                                        border: '1px solid rgba(255,255,255,0.2)',
                                         color: 'rgba(255,255,255,0.6)',
-                                        padding: '10px 30px',
+                                        padding: '12px 30px',
                                         borderRadius: '50px',
-                                        fontSize: '1rem',
+                                        fontSize: '1.1rem',
+                                        fontWeight: '500',
                                         cursor: 'pointer',
                                         transition: 'all 0.2s',
                                     }}
-                                    onMouseOver={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.8)'}
-                                    onMouseOut={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'}
+                                    onMouseOver={(e) => {
+                                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)';
+                                        e.currentTarget.style.color = 'rgba(255,255,255,0.9)';
+                                    }}
+                                    onMouseOut={(e) => {
+                                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
+                                        e.currentTarget.style.color = 'rgba(255,255,255,0.6)';
+                                    }}
                                 >
                                     취소 (닫기)
+                                </button>
+                                
+                                {/* [UX] 2-Step Check-in Final Button */}
+                                <button
+                                    onClick={(e) => {
+                                        if (loading || !selectedMemberId) return;
+                                        e.stopPropagation();
+                                        handleSelectMember(selectedMemberId);
+                                    }}
+                                    disabled={!selectedMemberId || loading}
+                                    style={{
+                                        background: selectedMemberId ? 'var(--primary-gold)' : 'rgba(255,255,255,0.1)',
+                                        border: 'none',
+                                        color: selectedMemberId ? '#000' : 'rgba(255,255,255,0.3)',
+                                        padding: '12px 40px',
+                                        borderRadius: '50px',
+                                        fontSize: '1.1rem',
+                                        fontWeight: '700',
+                                        cursor: selectedMemberId ? 'pointer' : 'not-allowed',
+                                        transition: 'all 0.2s',
+                                        boxShadow: selectedMemberId ? '0 4px 15px rgba(212,175,55,0.3)' : 'none'
+                                    }}
+                                    onMouseOver={(e) => selectedMemberId && (e.currentTarget.style.transform = 'translateY(-2px)')}
+                                    onMouseOut={(e) => selectedMemberId && (e.currentTarget.style.transform = 'translateY(0)')}
+                                >
+                                    {selectedMemberId ? '선택한 회원으로 출석하기' : '회원을 먼저 선택해주세요'}
                                 </button>
                             </div>
                         </div>
@@ -1700,11 +1798,43 @@ const CheckInPage = () => {
                                 )}
                                 {message.details}
                             </div>
-                            <p className="message-dismiss-text" style={{ fontSize: '1.2rem', opacity: 0.7 }}>화면을 터치하면 바로 닫힙니다</p>
                         </div>
                     </div>
                 )
             }
+
+            {/* [NEW] Kiosk Notice Overlay */}
+            {kioskSettings?.active && kioskSettings?.imageUrl && !message && !showSelectionModal && !showDuplicateConfirm && (
+                <div 
+                    onClick={() => {
+                        // Dismiss locally until page reloads or settings update
+                        setKioskSettings(prev => ({...prev, active: false}));
+                    }}
+                    style={{
+                        position: 'fixed',
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        backgroundColor: '#000',
+                        zIndex: 2000,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        animation: 'fadeIn 0.3s ease-in-out'
+                    }}
+                >
+                    <img 
+                        src={kioskSettings.imageUrl} 
+                        alt="키오스크 공지" 
+                        style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setKioskSettings(prev => ({...prev, active: false}));
+                        }}
+                    />
+                    <div style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(0,0,0,0.5)', color: 'white', padding: '10px 20px', borderRadius: '20px', pointerEvents: 'none', fontWeight: 'bold' }}>
+                        화면을 터치하면 출석체크로 이동합니다
+                    </div>
+                </div>
+            )}
 
             {/* PWA Install Guide for Admin Kiosk */}
             {/* Combined Install Guide with Retry Logic */}

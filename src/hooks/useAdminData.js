@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { storageService } from '../services/storage';
-import { getTodayKST, getKSTHour } from '../utils/dates';
+import { getTodayKST, getKSTHour, toKSTDateString } from '../utils/dates';
 import { STUDIO_CONFIG } from '../studioConfig';
 import { guessClassTime, guessClassInfo } from '../utils/classUtils';
 
@@ -40,7 +40,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
     // Helper: Is Member Active? (Domain Logic)
     const isMemberActive = useCallback((m) => {
         const credits = Number(m.credits || 0);
-        const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+        const todayStr = getTodayKST();
 
         // If no endDate, check only credits
         if (!m.endDate) {
@@ -154,7 +154,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         // [FIX] Fallback: 리스너가 아직 데이터를 수신하지 못한 경우 직접 fetch
         if (currentLogs.length === 0) {
             console.warn('[Admin] Attendance cache empty, fetching directly...');
-            const todayDateStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            const todayDateStr = getTodayKST();
             try {
                 const directLogs = await storageService.getAttendanceByDate(todayDateStr);
                 if (directLogs.length > 0) {
@@ -206,7 +206,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
         calculateStats(branchLogs);
 
-        const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+        const todayStr = getTodayKST();
         
         // [Perf] Enrich logs with KST string to prevent repeated Date parsing
         const enrichedBranchLogs = branchLogs.map(l => {
@@ -216,7 +216,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             return {
                 ...l,
                 isValidDate: true,
-                logDate: d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
+                logDate: toKSTDateString(d)
             };
         });
 
@@ -227,37 +227,29 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             if (rawDate && rawDate.includes('T')) {
                 const d = new Date(rawDate);
                 if (!isNaN(d.getTime())) {
-                    sDate = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                    sDate = toKSTDateString(d);
                 }
             }
             return { ...s, parsedDate: sDate || null };
         });
 
-        // [New] Multi-attendance Detection (Unique Class Time Base)
-        const uniqueAttendanceMap = {}; // memberId -> Set of classTimes
+        // [New] Multi-attendance Detection (Valid Log Count Base)
+        const attendanceCountMap = {}; // memberId -> total sessions today
         
         try {
             enrichedBranchLogs.forEach(l => {
                 if (!l.isValidDate || l.status === 'denied' || !l.memberId) return;
-
                 if (l.logDate !== todayStr) return;
 
-                    if (!uniqueAttendanceMap[l.memberId]) {
-                        uniqueAttendanceMap[l.memberId] = new Set();
-                    }
-                    
-                    // Use strict schedule time if available, otherwise strict fallback
-                    const info = guessClassInfo(l);
-                    const classTime = info?.startTime || guessClassTime(l) || '00:00';
-                    
-                    uniqueAttendanceMap[l.memberId].add(classTime);
+                // Count this valid log
+                attendanceCountMap[l.memberId] = (attendanceCountMap[l.memberId] || 0) + 1;
             });
         } catch (err) {
             console.error('[Admin] Error calculating multi-attendance:', err);
         }
 
-        const multiAttendedMemberIds = Object.keys(uniqueAttendanceMap)
-            .filter(id => uniqueAttendanceMap[id].size >= 2);
+        const multiAttendedMemberIds = Object.keys(attendanceCountMap)
+            .filter(id => attendanceCountMap[id] >= 2);
 
         // Stats Calculation
         const currentMonth = todayStr.substring(0, 7);
@@ -450,6 +442,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             expiringMembersCount,
             todayReRegMemberIds: todayReRegMembers.map(m => m.id), // [New] For Badges in MembersTab
             multiAttendedMemberIds, // [NEW] Today 2+ attendance
+            attendanceCountMap, // [NEW] ID -> Count for dynamic badges
             // [New] Denied Stats
             deniedCount,
             deniedExpiredCount,
@@ -461,7 +454,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
                 if (!isMemberInBranch(m)) return false;
                 const installDate = m.installedAt;
                 if (!installDate) return false;
-                const kstDate = new Date(installDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                const kstDate = toKSTDateString(installDate);
                 return kstDate === todayStr;
             }).length,
             pushEnabledCount: uniqueMembers.filter(m => isMemberInBranch(m) && tokensResult.some(t => t.memberId === m.id) && m.pushEnabled !== false).length,
@@ -588,7 +581,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
                     let sMonthKey;
                     if (rawDate.includes('T')) {
                         // KST conversion for ISO strings
-                        sMonthKey = new Date(rawDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }).substring(0, 7);
+                        sMonthKey = toKSTDateString(rawDate).substring(0, 7);
                     } else {
                         sMonthKey = rawDate.substring(0, 7);
                     }

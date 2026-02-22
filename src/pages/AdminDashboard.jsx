@@ -7,7 +7,7 @@ import {
     Users, ClockCounterClockwise, PlusCircle,
     Calendar, Megaphone, BellRinging,
     Tag, SignOut, ChartBar,
-    Warning, Database
+    Warning, Database, Desktop
 } from '@phosphor-icons/react';
 import AdminScheduleManager from '../components/AdminScheduleManager';
 import AdminRevenue from '../components/AdminRevenue';
@@ -35,6 +35,7 @@ import LogsTab from '../components/admin/tabs/LogsTab';
 
 import PushHistoryTab from '../components/admin/tabs/PushHistoryTab';
 import DataMigrationTab from '../components/admin/tabs/DataMigrationTab';
+import KioskSettingsTab from '../components/admin/tabs/KioskSettingsTab';
 import { usePWA } from '../hooks/usePWA';
 
 
@@ -617,6 +618,10 @@ const AdminDashboard = () => {
                         <span>데이터</span>
                     </button>
                 )}
+                <button onClick={() => setActiveTab('kiosk')} className={`nav-tab-item ${activeTab === 'kiosk' ? 'active' : ''}`}>
+                    <Desktop size={22} weight={activeTab === 'kiosk' ? "fill" : "regular"} />
+                    <span>키오스크</span>
+                </button>
             </nav>
 
             {/* Main Content Area */}
@@ -877,12 +882,16 @@ const AdminDashboard = () => {
                         setCurrentLogPage={setCurrentLogPage}
                         members={members}
                         onMemberClick={handleOpenEdit}
-                        summary={summary}
+                        summary={extendedSummary}
                     />
                 )}
 
                 {activeTab === 'data_migration' && STUDIO_CONFIG.FEATURES?.ENABLE_DATA_MIGRATION && (
                     <DataMigrationTab />
+                )}
+
+                {activeTab === 'kiosk' && (
+                    <KioskSettingsTab />
                 )}
             </div>
 

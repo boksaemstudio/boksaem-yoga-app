@@ -21,22 +21,6 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
                     {t('branch' + (member.homeBranch === 'gwangheungchang' ? 'Gwangheungchang' : 'Mapo'))}
                 </span>
 
-                {/* Smart Diligence Badge */}
-                {member.diligence ? (
-                    <span style={{ background: member.diligence.badge.color, color: 'white', padding: '3px 10px', borderRadius: '5px', fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        {(() => {
-                            const IconComponent = IconMap[member.diligence.badge.icon] || Icons.Sparkle;
-                            return <IconComponent weight="fill" />;
-                        })()}
-                        {member.diligence.badge.label}
-                    </span>
-                ) : (
-                    member.streak > 1 && (
-                        <span style={{ background: '#FF6B6B', color: 'white', padding: '3px 10px', borderRadius: '5px', fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            🔥 {t('consecutiveDays', { n: member.streak })}
-                        </span>
-                    )
-                )}
                 <span style={{ background: 'rgba(255,255,255,0.1)', color: 'white', padding: '3px 10px', borderRadius: '5px', fontSize: '0.75rem' }}>{member.phone}</span>
                 <img src={rys200Logo} alt="RYS200" style={{ height: '49px', width: 'auto', marginLeft: 'auto', filter: 'brightness(0) invert(1)' }} />
             </div>

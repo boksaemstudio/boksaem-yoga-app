@@ -312,7 +312,7 @@ const MembersTab = ({
                                                 background: 'rgba(245, 158, 11, 0.25)', color: '#FBBF24',
                                                 border: '1px solid rgba(245, 158, 11, 0.5)', fontWeight: 'bold'
                                             }}>
-                                                오늘 2회 출석 🔥
+                                                오늘 {summary?.attendanceCountMap?.[member.id] || 2}회 출석 🔥
                                             </span>
                                         )}
                                                 {/* Status Context Badges */}

@@ -527,7 +527,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                                             border: '1px solid rgba(245, 158, 11, 0.5)', fontWeight: 'bold',
                                                             height: 'max-content'
                                                         }}>
-                                                            오늘 2회 출석 🔥
+                                                            오늘 {summary?.attendanceCountMap?.[log.memberId] || 2}회 출석 🔥
                                                         </span>
                                                     )}
                                                 </div>

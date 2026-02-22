@@ -20,7 +20,9 @@ const calculateGap = (lastDate, currentDate) => {
 
 const calculateStreak = (records, currentDate) => {
     if (!records || records.length === 0) return 1;
-    const dates = records.map(r => r.date).filter(Boolean).sort().reverse();
+    // Deduplicate dates using Set to fix streak breaking on multi-session days
+    const uniqueDates = Array.from(new Set(records.map(r => r.date).filter(Boolean)));
+    const dates = uniqueDates.sort().reverse();
     let streak = 1;
     for (let i = 0; i < dates.length - 1; i++) {
         const gap = calculateGap(dates[i + 1], dates[i]);

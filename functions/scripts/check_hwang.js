@@ -1,54 +1,55 @@
 const admin = require('firebase-admin');
-if (!admin.apps.length) {
-    admin.initializeApp({ credential: admin.credential.cert(require('../service-account-key.json')) });
-}
+const serviceAccount = require('../service-account-key.json'); 
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
 const db = admin.firestore();
 
-(async () => {
-    // 1. 회원 데이터
-    const membersSnap = await db.collection('members').get();
-    let memberId = null;
-    for (const d of membersSnap.docs) {
-        const m = d.data();
-        if (m.name && m.name.includes('황화정')) {
-            memberId = d.id;
-            console.log('=== 황화정 회원 데이터 ===');
-            console.log('ID:', d.id);
-            console.log('name:', m.name);
-            console.log('startDate:', m.startDate);
-            console.log('endDate:', m.endDate);
-            console.log('credits:', m.credits);
-            console.log('attendanceCount:', m.attendanceCount);
-            console.log('branch:', m.branch);
-            console.log('phone:', m.phone);
-            console.log('membershipType:', m.membershipType);
-            console.log('');
-        }
+async function checkHwang() {
+    console.log("Searching for 황화정...");
+    const snap = await db.collection('members').where('name', '==', '황화정').get();
+    
+    if (snap.empty) {
+        console.log("Member not found");
+        return;
     }
+    
+    const member = snap.docs[0];
+    console.log("Member found:", member.id, "Total Attendance Count:", member.data().attendanceCount, "Credits:", member.data().credits);
+    
+    // Get today's local KST date string manually
+    const todayStr = new Intl.DateTimeFormat('sv-SE', {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric', month: '2-digit', day: '2-digit'
+    }).format(new Date());
 
-    // 2. 오늘 출석
-    if (memberId) {
-        const attSnap = await db.collection('attendance')
-            .where('memberId', '==', memberId)
-            .where('date', '==', '2026-02-15')
-            .get();
-        console.log(`=== 오늘 출석 (${attSnap.size}건) ===`);
-        attSnap.docs.forEach(d => {
-            const a = d.data();
-            console.log(`  ${a.className} | ${a.instructor} | ${a.status} | ${a.timestamp}`);
-            if (a.denialReason) console.log(`  denialReason: ${a.denialReason}`);
-        });
-    }
+    console.log("Today is:", todayStr);
+    
+    const attSnap = await db.collection('attendance')
+        .where('memberId', '==', member.id)
+        .where('date', '==', todayStr)
+        .get();
+    
+    console.log(`Found ${attSnap.size} attendance records today.`);
+    attSnap.docs.forEach((doc, idx) => {
+        const d = doc.data();
+        console.log(`[${idx+1}]`, doc.id, d.timestamp, d.className, d.status, d.sessionNumber, "duplicate:", d.isDuplicate);
+    });
 
-    // 3. 매출 기록
-    const salesSnap = await db.collection('sales').get();
-    console.log('\n=== 매출 기록 ===');
-    for (const d of salesSnap.docs) {
-        const s = d.data();
-        if (s.memberName && s.memberName.includes('황화정')) {
-            console.log(`  날짜: ${s.date} | 금액: ${s.amount} | 기간: ${s.months}개월 | 시작: ${s.startDate} | 종료: ${s.endDate} | 횟수: ${s.credits}`);
-        }
-    }
+    // Also get all attendances recently to see if it counted everything right
+    const recentAtt = await db.collection('attendance')
+        .where('memberId', '==', member.id)
+        .orderBy('timestamp', 'desc')
+        .limit(5)
+        .get();
+        
+    console.log("\nRecent 5 check-ins overall:");
+    recentAtt.docs.forEach((doc, idx) => {
+        const d = doc.data();
+        console.log(`[${idx+1}]`, doc.id, d.date, d.timestamp, d.className, d.status, d.sessionNumber);
+    });
+}
 
-    process.exit(0);
-})();
+checkHwang().catch(console.error);

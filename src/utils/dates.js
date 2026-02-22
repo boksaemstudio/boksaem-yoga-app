@@ -7,7 +7,7 @@
  * KST 기준으로 현재 날짜를 'YYYY-MM-DD' 형식으로 반환
  */
 export const getTodayKST = () => {
-    return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+    return toKSTDateString(new Date());
 };
 
 /**
@@ -17,8 +17,30 @@ export const getTodayKST = () => {
  */
 export const toKSTDateString = (date) => {
     if (!date) return '';
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return dateObj.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+    let dateObj;
+    if (typeof date === 'string') {
+        dateObj = new Date(date);
+    } else if (date && typeof date.toDate === 'function') {
+        // [FIX] Handle Firestore Timestamp objects robustly
+        dateObj = date.toDate();
+    } else {
+        dateObj = date;
+    }
+    if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) return '';
+    
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Seoul',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+    const parts = formatter.formatToParts(dateObj);
+    const y = parts.find(p => p.type === 'year')?.value;
+    const m = parts.find(p => p.type === 'month')?.value;
+    const d = parts.find(p => p.type === 'day')?.value;
+    
+    if (!y || !m || !d) return '';
+    return `${y}-${m}-${d}`;
 };
 
 /**
@@ -27,8 +49,7 @@ export const toKSTDateString = (date) => {
  * @returns {string} 'YYYY-MM-DD' 형식의 날짜 문자열
  */
 export const timestampToKSTDate = (timestamp) => {
-    if (!timestamp) return '';
-    return new Date(timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+    return toKSTDateString(timestamp);
 };
 
 /**
@@ -68,7 +89,7 @@ export const compareDates = (date1, date2) => {
 export const addDays = (dateStr, days) => {
     const date = new Date(dateStr);
     date.setDate(date.getDate() + days);
-    return date.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+    return toKSTDateString(date);
 };
 
 /**

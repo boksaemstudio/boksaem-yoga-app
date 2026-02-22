@@ -1411,6 +1411,50 @@ export const storageService = {
     return results;
   },
 
+  // [NEW] Kiosk Remote Settings
+  async getKioskSettings() {
+    try {
+      const docSnap = await getDoc(doc(db, 'settings', 'kiosk'));
+      if (docSnap.exists()) {
+        return docSnap.data();
+      }
+      return { active: false, imageUrl: null };
+    } catch (e) {
+      console.error('[Storage] Get kiosk settings failed:', e);
+      return { active: false, imageUrl: null };
+    }
+  },
+
+  async updateKioskSettings(data) {
+    try {
+      await setDoc(doc(db, 'settings', 'kiosk'), {
+        ...data,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+      return true;
+    } catch (e) {
+      console.error('[Storage] Update kiosk settings failed:', e);
+      throw e;
+    }
+  },
+
+  subscribeToKioskSettings(callback) {
+    try {
+      return onSnapshot(doc(db, 'settings', 'kiosk'), (docSnap) => {
+        if (docSnap.exists()) {
+          callback(docSnap.data());
+        } else {
+          callback({ active: false, imageUrl: null });
+        }
+      }, (error) => {
+        console.warn('[Storage] Kiosk settings listener error:', error);
+      });
+    } catch (e) {
+      console.error('[Storage] Failed to subscribe to kiosk settings:', e);
+      return () => {};
+    }
+  },
+
   /**
    * [DANGER] Clears all non-core data (members, sales, attendance, push, etc.) for a fresh start.
    * Keeps: notices, timetable, prices, images.

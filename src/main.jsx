@@ -19,6 +19,30 @@ import { LanguageProvider } from './context/LanguageContext'
 import { httpsCallable } from 'firebase/functions'
 import { functions } from './firebase'
 
+// [URGENT UX/DATA FIX] Polyfill for Incognito anti-fingerprinting breaking sv-SE date format
+// Browsers like Chrome in Incognito mode override locales to en-US. This breaks our "YYYY-MM-DD" expectations.
+const originalToLocaleDateString = Date.prototype.toLocaleDateString;
+Date.prototype.toLocaleDateString = function(locale, options) {
+  if (locale === 'sv-SE') {
+    try {
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Seoul',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+      const parts = formatter.formatToParts(this);
+      const y = parts.find(p => p.type === 'year')?.value;
+      const m = parts.find(p => p.type === 'month')?.value;
+      const d = parts.find(p => p.type === 'day')?.value;
+      if (y && m && d) return `${y}-${m}-${d}`;
+    } catch (e) {
+      console.warn("Date polyfill error:", e);
+    }
+  }
+  return originalToLocaleDateString.call(this, locale, options);
+};
+
 // [PERF] Critical Server Warm-up: 앱 시작 즉시 서버 깨우기 (Render 전 실행)
 // 사용자 경험을 위해 UI 렌더링을 기다리지 않고 병렬로 실행
 if (typeof window !== 'undefined') {
