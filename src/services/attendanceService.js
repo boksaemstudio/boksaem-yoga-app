@@ -134,7 +134,11 @@ export const attendanceService = {
 
       if (logSnap.exists()) {
         const logData = logSnap.data();
-        if (logData.memberId && (logData.type === 'checkin' || logData.type === 'manual' || logData.status === 'valid')) {
+        
+        // [FIX] Only restore credits/counts if the attendance was actually valid and deducted a credit.
+        const wasValid = logData.status === 'valid' || (!logData.status && !logData.denialReason);
+        
+        if (logData.memberId && wasValid && (logData.type === 'checkin' || logData.type === 'manual')) {
           const memberRef = doc(db, 'members', logData.memberId);
           await updateDoc(memberRef, {
             credits: increment(1),
