@@ -393,8 +393,12 @@ exports.onAttendanceCreated = onDocumentCreated({
                                 }
                             });
                         } catch (sendError) {
-                            if (sendError.code === 'messaging/invalid-registration-token') {
-                                await db.collection('fcm_tokens').doc(token).delete();
+                            console.warn(`[Instructor Push] Send failed for token ${token.substring(0, 20)}...: ${sendError.code}`);
+                            // Clean up invalid/expired/unregistered tokens
+                            if (sendError.code === 'messaging/invalid-registration-token' ||
+                                sendError.code === 'messaging/registration-token-not-registered') {
+                                console.log(`[Instructor Push] Deleting stale token: ${token.substring(0, 20)}...`);
+                                await db.collection('fcm_tokens').doc(token).delete().catch(() => {});
                             }
                         }
                     }
