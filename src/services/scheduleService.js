@@ -212,7 +212,7 @@ export const copyMonthlySchedule = async (branchId, fromYear, fromMonth, toYear,
         const weeks = {};
         validDays.forEach(r => {
             const dayIdx = r.date.getDay();
-            if (dayIdx === 0 || dayIdx === 6) return;
+            if (dayIdx === 0 || dayIdx === 6) return; // Skip Sun, Sat
 
             const weekNum = Math.ceil(r.day / 7);
             if (!weeks[weekNum]) weeks[weekNum] = [];
@@ -223,7 +223,12 @@ export const copyMonthlySchedule = async (branchId, fromYear, fromMonth, toYear,
         let maxScore = -1;
 
         Object.entries(weeks).forEach(([weekNum, days]) => {
-            const score = days.reduce((acc, curr) => acc + (curr.data.classes.length || 0), 0);
+            // [Refine] Score based on "healthy" classes (status !== 'cancelled')
+            const score = days.reduce((acc, curr) => {
+                const healthyCount = (curr.data.classes || []).filter(cls => cls.status !== 'cancelled').length;
+                return acc + healthyCount;
+            }, 0);
+
             if (score > maxScore) {
                 maxScore = score;
                 bestWeekNum = weekNum;
@@ -233,22 +238,29 @@ export const copyMonthlySchedule = async (branchId, fromYear, fromMonth, toYear,
         const weekdayTemplate = {};
         if (bestWeekNum && weeks[bestWeekNum]) {
             weeks[bestWeekNum].forEach(r => {
-                weekdayTemplate[getDayName(r.date)] = r.data.classes;
+                // Ensure statuses are reset to normal for the base template
+                weekdayTemplate[getDayName(r.date)] = (r.data.classes || []).map(cls => ({
+                    ...cls,
+                    status: 'normal'
+                }));
             });
         } else {
             validDays.forEach(r => {
                 const name = getDayName(r.date);
                 if (name !== '토' && name !== '일' && !weekdayTemplate[name]) {
-                    weekdayTemplate[name] = r.data.classes;
+                    weekdayTemplate[name] = (r.data.classes || []).map(cls => ({
+                        ...cls,
+                        status: 'normal'
+                    }));
                 }
             });
         }
 
-        // 3. Collect Saturdays
+        // 3. Collect Saturdays (Status reset for rotation)
         const sourceSaturdays = validDays
             .filter(r => r.date.getDay() === 6)
             .sort((a, b) => a.day - b.day)
-            .map(r => r.data.classes);
+            .map(r => (r.data.classes || []).map(cls => ({ ...cls, status: 'normal' })));
 
         // 4. Generate Target Month
         const updates = [];
