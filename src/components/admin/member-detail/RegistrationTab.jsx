@@ -127,7 +127,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                     carryOverCredits: currentCredits,
                     previousEndDate: member.endDate,
                     newCredits: calculatedCredits,
-                    totalCredits: finalCredits
+                    totalCredits: calculatedCredits
                 } : {})
             };
 

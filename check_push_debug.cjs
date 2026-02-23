@@ -5,20 +5,30 @@ admin.initializeApp({ credential: admin.credential.cert(sa) });
 const db = admin.firestore();
 
 async function main() {
-    // Delete 원장's stale tokens
-    console.log('=== Cleaning 원장 stale FCM tokens ===');
-    const tokensSnap = await db.collection('fcm_tokens')
-        .where('role', '==', 'instructor')
-        .where('instructorName', '==', '원장')
-        .get();
-    
-    for (const doc of tokensSnap.docs) {
-        console.log(`  Deleting: ${doc.id.substring(0, 30)}...`);
-        await doc.ref.delete();
+    const collections = [
+        'notices', 'members', 'attendance', 'sales', 'push_history',
+        'notifications', 'messages', 'practice_events', 'daily_classes',
+        'monthly_schedules', 'settings', 'images', 'weekly_templates',
+        'fcm_tokens', 'error_logs', 'pending_attendance'
+    ];
+
+    console.log('=== Firestore Collection Status ===');
+    for (const name of collections) {
+        try {
+            const snap = await db.collection(name).limit(5).get();
+            if (snap.empty) {
+                console.log(`  ❌ ${name}: EMPTY`);
+            } else {
+                // Get approximate count
+                const countSnap = await db.collection(name).count().get();
+                const count = countSnap.data().count;
+                console.log(`  ✅ ${name}: ${count} docs`);
+            }
+        } catch (e) {
+            console.log(`  ⚠️ ${name}: ERROR - ${e.message.substring(0, 60)}`);
+        }
     }
-    console.log(`✅ Deleted ${tokensSnap.size} stale tokens for 원장`);
-    console.log('\n원장님은 /instructor 페이지에서 푸시 알림을 다시 허용해주세요.');
-    
+
     process.exit(0);
 }
 

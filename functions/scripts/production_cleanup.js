@@ -7,20 +7,43 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-async function cleanupProductionData() {
-    console.log("🚀 Starting Production Cleanup...\n");
+const readline = require('readline');
 
-    // 1. Collections to Wipe Completely (Test Data)
-    // Note: members/attendance are wiped by CSV Migration tool, but we can wipe them here too if requested.
-    // User requested: Notices, Push History, Error Logs.
+function askConfirmation(question) {
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    return new Promise(resolve => {
+        rl.question(question, answer => {
+            rl.close();
+            resolve(answer.trim());
+        });
+    });
+}
+
+async function cleanupProductionData() {
     const collectionsToWipe = [
-        'notices',           // 공지사항
+        // 'notices' — 공지사항은 보존 (사용자 작성 데이터)
         'error_logs',        // 에러 로그
         'push_campaigns',    // 푸시 발송 내역 (대량)
         'messages',          // 개별 푸시 내역
         'push_history',      // (Legacy) 푸시 이력
         'pending_approvals'  // 승인 대기 중인 AI 메시지
     ];
+
+    // === 확인 절차 ===
+    console.log("\n⚠️  [Production Cleanup] 다음 컬렉션의 모든 데이터가 삭제됩니다:\n");
+    for (const col of collectionsToWipe) {
+        const snap = await db.collection(col).count().get();
+        console.log(`   🗑️  ${col}: ${snap.data().count}건`);
+    }
+    console.log("\n   ✅ 보존 목록: notices, daily_classes, members, attendance, sales, settings\n");
+
+    const answer = await askConfirmation("정말 삭제하시려면 'DELETE'를 입력하세요: ");
+    if (answer !== 'DELETE') {
+        console.log("❌ 취소되었습니다.");
+        process.exit(0);
+    }
+
+    console.log("\n🚀 삭제를 시작합니다...\n");
 
     for (const col of collectionsToWipe) {
         console.log(`🧹 Cleaning collection: ${col}...`);
@@ -40,14 +63,7 @@ async function cleanupProductionData() {
         console.log(`✅ ${col} cleared.\n`);
     }
 
-    console.log("----------------------------------------------------------------");
-    console.log("ℹ️  Preserved Collections (Not Deleted):");
-    console.log("   - daily_classes (시간표)");
-    console.log("   - pricing (가격표)");
-    console.log("   - studio_config (설정)");
-    console.log("   - members, attendance, sales (Will be wiped when you upload CSV)");
-    console.log("----------------------------------------------------------------");
-    console.log("✨ Cleanup Complete! Ready for Production.");
+    console.log("✨ Cleanup Complete!");
 }
 
 cleanupProductionData().catch(console.error);

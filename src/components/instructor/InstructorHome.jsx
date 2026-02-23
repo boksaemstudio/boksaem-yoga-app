@@ -12,6 +12,9 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [isStandalone, setIsStandalone] = useState(false);
     const [deviceOS, setDeviceOS] = useState('unknown');
+    const [hidePwaGuide, setHidePwaGuide] = useState(
+        localStorage.getItem('hide_pwa_guide_instructor') === 'true'
+    );
     
     const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 
@@ -31,16 +34,42 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                            window.navigator.standalone === true;
         setIsStandalone(isInstalled);
 
+        // [AUTO EXECUTIONS on load]
+        // 1. Auto PWA Install Prompt
         const handleBeforeInstall = (e) => {
             e.preventDefault();
             setDeferredPrompt(e);
+            
+            // 만약 사용자가 숨김 처리하지 않았고, 단독 앱으로 실행중이 아니라면 자동으로 설치 프롬프트를 띄움
+            if (!hidePwaGuide && !isInstalled) {
+                 setTimeout(async () => {
+                     try {
+                         e.prompt();
+                         const { outcome } = await e.userChoice;
+                         if (outcome === 'accepted') setIsStandalone(true);
+                     } catch (err) {
+                         console.error("Auto PWA prompt failed", err);
+                     }
+                 }, 2000); // UI 안정화 후 2초 뒤 자동 실행
+            }
         };
         window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+
+        // 2. Auto Push Registration
+        // 로그인 상태이고 알림 권한이 확실히 거절(denied)된 상태가 아니며 아직 부여되지 않았다면 자동 요청
+        if (instructorName && typeof window !== 'undefined' && 'Notification' in window) {
+             if (window.Notification.permission === 'default') {
+                 // 브라우저가 사용자에게 묻는 상태(default)일 경우 자동 트리거
+                 setTimeout(() => {
+                     handleEnablePush();
+                 }, 3000); // 3초 뒤 자연스럽게 권한 요청 팝업 띄움
+             }
+        }
 
         return () => {
             window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
         };
-    }, []);
+    }, [instructorName, hidePwaGuide]);
 
 
     const handleEnablePush = async () => {
@@ -82,20 +111,31 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
 
     const handleInstallPWA = async () => {
         if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') setIsStandalone(true);
-            setDeferredPrompt(null);
+            try {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    setIsStandalone(true);
+                }
+                setDeferredPrompt(null);
+            } catch (error) {
+                 console.error("Manual PWA prompt failed", error);
+            }
         } else {
             // Manual Guide
             if (deviceOS === 'ios') {
-                setPushMessage('ℹ️ 아이폰 설치 방법: Safari 하단 공유 버튼(↑) 클릭 > "홈 화면에 추가"를 눌러주세요.');
+                setPushMessage('ℹ️ 아이폰: Safari 하단 공유(↑) 클릭 > "홈 화면에 추가"');
             } else if (deviceOS === 'android') {
-                setPushMessage('ℹ️ 안드로이드 설치 방법: 브라우저 우측 상단 메뉴(⋮) 클릭 > "홈 화면에 추가" 혹은 "앱 설치"를 눌러주세요.');
+                setPushMessage('ℹ️ 안드로이드: 브라우저 메뉴(⋮) 클릭 > "앱 설치" 또는 "홈 화면에 추가"');
             } else {
-                setPushMessage('ℹ️ 브라우저 메뉴에서 "홈 화면에 추가"를 선택하여 앱을 설치하실 수 있습니다.');
+                setPushMessage('ℹ️ 브라우저 메뉴에서 "앱 설치"를 찾아주세요.');
             }
         }
+    };
+
+    const handleHidePwaGuide = () => {
+        setHidePwaGuide(true);
+        localStorage.setItem('hide_pwa_guide_instructor', 'true');
     };
 
     // Split attendance by branch
@@ -247,35 +287,69 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                 </div>
                 
                 {pushEnabled ? (
-                    <button onClick={handleDisablePush} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: 'none', background: 'rgba(76, 175, 80, 0.2)', color: '#4CAF50', fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                        <BellRinging size={18} weight="fill" /> 알림 ON
-                    </button>
+                    <div style={{ textAlign: 'center', background: 'rgba(76, 175, 80, 0.1)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(76, 175, 80, 0.3)' }}>
+                        <BellRinging size={28} weight="fill" color="#4CAF50" style={{ marginBottom: '8px' }} />
+                        <div style={{ color: '#4CAF50', fontWeight: 'bold', fontSize: '1rem', marginBottom: '4px' }}>알림 설정이 켜져 있습니다</div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>브라우저 알림 설정에서 끌 수 있습니다.</div>
+                    </div>
                 ) : (
-                    <button onClick={handleEnablePush} disabled={pushLoading} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: 'none', background: pushLoading ? 'var(--bg-input)' : 'var(--primary-gold)', color: pushLoading ? 'var(--text-secondary)' : 'black', fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer' }}>
-                        {pushLoading ? '설정 중...' : '🔔 알림 허용하기'}
+                    <button 
+                        onClick={handleEnablePush} 
+                        disabled={pushLoading} 
+                        style={{ 
+                            width: '100%', padding: '14px', borderRadius: '10px', border: 'none', 
+                            background: pushLoading ? 'var(--bg-input)' : 'var(--primary-gold)', 
+                            color: pushLoading ? 'var(--text-secondary)' : 'black', 
+                            fontWeight: 'bold', fontSize: '1.05rem', cursor: pushLoading ? 'wait' : 'pointer',
+                            transition: 'all 0.2s',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                            boxShadow: pushLoading ? 'none' : '0 4px 12px rgba(212, 175, 55, 0.2)'
+                        }}
+                    >
+                        {pushLoading ? (
+                            <>
+                                <div style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid var(--text-secondary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                                설정 중... 팝업을 확인해주세요
+                            </>
+                        ) : '🔔 알림 권한 허용하기'}
                     </button>
                 )}
                 
                 {pushMessage && (
-                    <div style={{ marginTop: '8px', fontSize: '0.85rem', textAlign: 'center', color: pushMessage.includes('✅') ? '#4CAF50' : 'var(--text-secondary)', whiteSpace: 'pre-line' }}>{pushMessage}</div>
+                    <div style={{ 
+                        marginTop: '12px', padding: '12px', borderRadius: '8px', fontSize: '0.85rem', textAlign: 'center', 
+                        background: pushMessage.includes('✅') ? 'rgba(76, 175, 80, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                        color: pushMessage.includes('✅') ? '#4CAF50' : 'var(--text-primary)', 
+                        border: pushMessage.includes('✅') ? '1px solid rgba(76, 175, 80, 0.2)' : '1px solid rgba(255, 255, 255, 0.1)',
+                        whiteSpace: 'pre-line',
+                        lineHeight: 1.5
+                    }}>
+                        {pushMessage}
+                    </div>
                 )}
             </div>
 
             {/* PWA Install Guide */}
-            {!isStandalone && (
+            {!isStandalone && !hidePwaGuide && (
                 <div style={{ 
+                    position: 'relative',
                     background: 'var(--bg-surface)', 
                     padding: '20px', 
                     borderRadius: '12px', 
                     marginBottom: '16px', 
-                    border: deviceOS === 'ios' ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(212, 175, 55, 0.3)', 
-                    boxShadow: deviceOS === 'ios' ? '0 0 15px rgba(59, 130, 246, 0.1)' : '0 0 15px rgba(212, 175, 55, 0.1)' 
+                    border: deviceOS === 'ios' ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(212, 175, 55, 0.3)'
                 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                    <button 
+                        onClick={handleHidePwaGuide}
+                        style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '1.2rem', padding: '4px', cursor: 'pointer' }}
+                    >
+                        ✕
+                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', paddingRight: '20px' }}>
                         <div style={{ 
                             background: deviceOS === 'ios' ? '#3B82F6' : 'var(--primary-gold)', 
                             borderRadius: '10px', 
-                            padding: '8px', 
+                            padding: '10px', 
                             display: 'flex' 
                         }}>
                             {deviceOS === 'ios' ? (
@@ -285,24 +359,24 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                             )}
                         </div>
                         <div>
-                            <h3 style={{ margin: 0, fontSize: '1rem', color: 'white' }}>
-                                {deviceOS === 'ios' ? '아이폰에 앱 설치하기' : '홈 화면에 앱 설치하기'}
+                            <h3 style={{ margin: 0, fontSize: '1.05rem', color: 'white' }}>
+                                화면에 앱 보관하기
                             </h3>
-                            <div style={{ margin: '2px 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                                {deviceOS === 'ios' ? '사파리(Safari)에서 홈 화면에 추가하세요' : '앱처럼 편하게 아이콘으로 접속하세요'}
+                            <div style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                {deviceOS === 'ios' ? '사파리(Safari)에서 홈 화면에 추가할 수 있습니다.' : '하단의 버튼을 누르거나 설치 팝업을 확인하세요.'}
                             </div>
                         </div>
                     </div>
                     
                     {deviceOS === 'ios' ? (
-                        <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '12px', borderRadius: '8px', marginTop: '10px' }}>
-                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '0.9rem' }}>
-                                <span style={{ background: '#3B82F6', color: 'white', width: '20px', height: '20px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold' }}>1</span>
-                                <span style={{ color: '#e0e0e0' }}>하단 <Share size={16} weight="bold" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> <strong>공유 버튼</strong> 클릭</span>
+                        <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '16px', borderRadius: '8px', marginTop: '10px' }}>
+                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', fontSize: '0.95rem' }}>
+                                <span style={{ background: '#3B82F6', color: 'white', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>1</span>
+                                <span style={{ color: '#e0e0e0' }}>하단 <Share size={18} weight="bold" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> <strong>공유 버튼</strong>을 클릭하세요.</span>
                              </div>
-                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }}>
-                                <span style={{ background: '#3B82F6', color: 'white', width: '20px', height: '20px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold' }}>2</span>
-                                <span style={{ color: '#e0e0e0' }}><PlusSquare size={16} weight="bold" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> <strong>홈 화면에 추가</strong> 선택</span>
+                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem' }}>
+                                <span style={{ background: '#3B82F6', color: 'white', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>2</span>
+                                <span style={{ color: '#e0e0e0' }}><PlusSquare size={18} weight="bold" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> <strong>홈 화면에 추가</strong>를 선택하세요.</span>
                              </div>
                         </div>
                     ) : (
