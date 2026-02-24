@@ -256,9 +256,14 @@ export const copyMonthlySchedule = async (branchId, fromYear, fromMonth, toYear,
             });
         }
 
-        // 3. Collect Saturdays (Status reset for rotation)
+        // 3. Collect Saturdays and Sundays (Status reset for rotation)
         const sourceSaturdays = validDays
             .filter(r => r.date.getDay() === 6)
+            .sort((a, b) => a.day - b.day)
+            .map(r => (r.data.classes || []).map(cls => ({ ...cls, status: 'normal' })));
+
+        const sourceSundays = validDays
+            .filter(r => r.date.getDay() === 0)
             .sort((a, b) => a.day - b.day)
             .map(r => (r.data.classes || []).map(cls => ({ ...cls, status: 'normal' })));
 
@@ -266,6 +271,7 @@ export const copyMonthlySchedule = async (branchId, fromYear, fromMonth, toYear,
         const updates = [];
         const daysInTargetMonth = new Date(toYear, toMonth, 0).getDate();
         let saturdayIndex = 0;
+        let sundayIndex = 0;
 
         for (let d = 1; d <= daysInTargetMonth; d++) {
             const targetDate = new Date(toYear, toMonth - 1, d);
@@ -279,7 +285,10 @@ export const copyMonthlySchedule = async (branchId, fromYear, fromMonth, toYear,
                     saturdayIndex++;
                 }
             } else if (dayName === '일') {
-                classesToCopy = weekdayTemplate['일'] || [];
+                if (sourceSundays.length > 0) {
+                    classesToCopy = sourceSundays[sundayIndex % sourceSundays.length];
+                    sundayIndex++;
+                }
             } else {
                 classesToCopy = weekdayTemplate[dayName] || [];
             }
@@ -305,7 +314,7 @@ export const copyMonthlySchedule = async (branchId, fromYear, fromMonth, toYear,
                 branchId, year: toYear, month: toMonth, isSaved: true, createdAt: new Date().toISOString(), createdBy: auth.currentUser?.email || 'admin'
             });
 
-            return { success: true, message: `지난달 데이터를 기반으로 새 스케줄이 생성되었습니다.\n(평일: ${bestWeekNum || 1}주차 패턴, 토요일: 순차 적용)` };
+            return { success: true, message: `지난달 데이터를 기반으로 새 스케줄이 생성되었습니다.\n(평일: ${bestWeekNum || 1}주차 패턴, 주말: 순차 적용)` };
         }
 
         return { success: false, message: "복사할 데이터가 없습니다." };
@@ -313,6 +322,52 @@ export const copyMonthlySchedule = async (branchId, fromYear, fromMonth, toYear,
     } catch (e) {
         console.error("Copy schedule failed:", e);
         throw e;
+    }
+};
+
+export const backupMonthlySchedule = async (branchId, year, month, classesData) => {
+    try {
+        console.log(`[Backup] Creating backup for ${branchId} ${year}-${month}`);
+        const timestamp = new Date().toISOString();
+        const backupId = `${branchId}_${year}_${month}_${Date.now()}`;
+        
+        // Save to backup collection
+        await setDoc(doc(db, 'monthly_schedules_backup', backupId), {
+            branchId,
+            year,
+            month,
+            classes: classesData, // The entire state of daily_classes for this month
+            timestamp,
+            createdBy: auth.currentUser?.email || 'admin'
+        });
+
+        // Cleanup old backups - keep only the last 2
+        const q = query(
+            collection(db, 'monthly_schedules_backup'),
+            where('branchId', '==', branchId),
+            where('year', '==', year),
+            where('month', '==', month)
+        );
+        const snapshot = await getDocs(q);
+        
+        if (snapshot.size > 2) {
+            // Sort to find oldest
+            const backups = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            backups.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+            
+            // Delete anything beyond the 2 most recent
+            const batch = writeBatch(db);
+            for (let i = 2; i < backups.length; i++) {
+                batch.delete(doc(db, 'monthly_schedules_backup', backups[i].id));
+            }
+            await batch.commit();
+        }
+        
+        return { success: true, backupId };
+    } catch (e) {
+        console.error("Backup failed:", e);
+        // Don't throw, let deletion proceed even if backup fails slightly (though ideal is to succeed)
+        return { success: false, error: e };
     }
 };
 
@@ -331,6 +386,15 @@ export const deleteMonthlySchedule = async (branchId, year, month) => {
         );
 
         const snapshot = await getDocs(q);
+        
+        // [NEW] Backup before deletion
+        if (!snapshot.empty) {
+            const classesData = {};
+            snapshot.docs.forEach(doc => {
+                classesData[doc.id] = doc.data();
+            });
+            await backupMonthlySchedule(branchId, year, month, classesData);
+        }
 
         const batch = writeBatch(db);
         let count = 0;
@@ -348,6 +412,65 @@ export const deleteMonthlySchedule = async (branchId, year, month) => {
         return { success: true, count };
     } catch (e) {
         console.error("Delete schedule failed:", e);
+        throw e;
+    }
+};
+
+export const getMonthlyBackups = async (branchId, year, month) => {
+    try {
+        const q = query(
+            collection(db, 'monthly_schedules_backup'),
+            where('branchId', '==', branchId),
+            where('year', '==', year),
+            where('month', '==', month)
+        );
+        const snapshot = await getDocs(q);
+        const backups = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // Sort newest first
+        backups.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        return backups;
+    } catch (e) {
+        console.error("Failed to get backups:", e);
+        return [];
+    }
+};
+
+export const restoreMonthlyBackup = async (branchId, year, month, backupId) => {
+    try {
+        console.log(`Restoring backup ${backupId} for ${branchId} ${year}-${month}`);
+        
+        const backupRef = doc(db, 'monthly_schedules_backup', backupId);
+        const backupSnap = await getDoc(backupRef);
+        
+        if (!backupSnap.exists()) {
+            throw new Error("Backup not found");
+        }
+        
+        const backupData = backupSnap.data();
+        const classesData = backupData.classes || {};
+        
+        // 1. Delete current schedule (if any) without backing it up again?
+        // Actually, if we are restoring, we probably shouldn't backup the empty/messed up state. 
+        // Let's just overwrite.
+        
+        const batch = writeBatch(db);
+        
+        // 2. Restore daily_classes
+        Object.entries(classesData).forEach(([docId, data]) => {
+            batch.set(doc(db, 'daily_classes', docId), data);
+        });
+        
+        // 3. Restore metadata
+        const metaDocId = `${branchId}_${year}_${month}`;
+        batch.set(doc(db, 'monthly_schedules', metaDocId), {
+            branchId, year, month, isSaved: true, restoredAt: new Date().toISOString(), restoredFrom: backupId
+        });
+        
+        await batch.commit();
+        
+        return { success: true };
+    } catch (e) {
+        console.error("Restore failed:", e);
         throw e;
     }
 };

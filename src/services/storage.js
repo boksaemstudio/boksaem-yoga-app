@@ -475,6 +475,10 @@ export const storageService = {
     return scheduleService.deleteMonthlySchedule(branchId, year, month);
   },
 
+  async updatePastAttendanceRecords(branchId, dateStr, oldClasses, newClasses) {
+    return attendanceService.updatePastAttendanceRecords(branchId, dateStr, oldClasses, newClasses);
+  },
+
   // Delegated Config Getters
   async getInstructors() { return scheduleService.getInstructors(); },
   async updateInstructors(list) { return scheduleService.updateInstructors(list); },
@@ -483,6 +487,15 @@ export const storageService = {
   async getClassLevels() { return scheduleService.getClassLevels(); },
   async updateClassLevels(list) { return scheduleService.updateClassLevels(list); },
   getMemberById(id) { return memberService.getMemberById(id); },
+  async fetchMemberById(id) { return memberService.fetchMemberById(id); },
+
+  async getMonthlyBackups(branchId, year, month) {
+    return scheduleService.getMonthlyBackups(branchId, year, month);
+  },
+  
+  async restoreMonthlyBackup(branchId, year, month, backupId) {
+    return scheduleService.restoreMonthlyBackup(branchId, year, month, backupId);
+  },
 
   async logError(error, context = {}) {
     try {

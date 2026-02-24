@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { storageService } from '../services/storage';
-import { CaretLeft, CaretRight, Plus, Trash, X, Image as ImageIcon, UploadSimple, Gear } from '@phosphor-icons/react';
+import { CaretLeft, CaretRight, Plus, Trash, X, Image as ImageIcon, UploadSimple, Gear, ClockCounterClockwise, Warning } from '@phosphor-icons/react';
 import { getHolidayName } from '../utils/holidays';
 import { ScheduleClassEditor, SettingsModal } from './ScheduleHelpers';
 import { getTagColor } from '../utils/colors';
@@ -47,6 +47,9 @@ const AdminScheduleManager = ({ branchId }) => {
     const [selectedDate, setSelectedDate] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showSettings, setShowSettings] = useState(false); // [Added] Internal state for settings
+    const [showResetConfirm, setShowResetConfirm] = useState(false);
+    const [showRestoreModal, setShowRestoreModal] = useState(false);
+    const [backupList, setBackupList] = useState([]);
     const [loading, setLoading] = useState(false);
     const [dayClasses, setDayClasses] = useState([]);
     const [instructors, setInstructors] = useState([]);
@@ -115,17 +118,50 @@ const AdminScheduleManager = ({ branchId }) => {
     // [Removed handleCreate as per user request to only allow Copy]
 
     // [New] Clear/Reset Logic
-    const handleReset = async () => {
-        if (!window.confirm('⚠️ 정말로 이 달의 스케줄을 초기화하시겠습니까?\n\n모든 수업 데이터가 삭제되며, 상태가 [미정]으로 돌아갑니다.')) return;
+    const handleReset = () => {
+        setShowResetConfirm(true);
+    };
 
+    const confirmReset = async () => {
+        setShowResetConfirm(false);
         setLoading(true);
         try {
             await storageService.deleteMonthlySchedule(branchId, year, month);
-            alert('스케줄이 초기화되었습니다.');
+            alert('스케줄이 초기화되었습니다.\n(혹시 실수로 지웠다면 [백업 복원] 버튼으로 살릴 수 있습니다)');
             await loadMonthlyData(); // Refresh UI
         } catch (error) {
             console.error("Reset failed:", error);
             alert("초기화 중 오류가 발생했습니다: " + error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleOpenRestore = async () => {
+        setLoading(true);
+        try {
+            const list = await storageService.getMonthlyBackups(branchId, year, month);
+            setBackupList(list);
+            setShowRestoreModal(true);
+        } catch (e) {
+            alert('백업 목록을 불러오는데 실패했습니다.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRestoreBackup = async (backupId) => {
+        if (!window.confirm('선택한 이전 스케줄로 복원하시겠습니까?\n현재 시간표 내용이 덮어씌워집니다.')) return;
+        
+        setShowRestoreModal(false);
+        setLoading(true);
+        try {
+            await storageService.restoreMonthlyBackup(branchId, year, month, backupId);
+            alert('스케줄이 원상복구 되었습니다.');
+            await loadMonthlyData();
+        } catch (e) {
+            console.error("Restore failed:", e);
+            alert('복원 중 오류가 발생했습니다.');
         } finally {
             setLoading(false);
         }
@@ -172,6 +208,33 @@ const AdminScheduleManager = ({ branchId }) => {
         if (!selectedDate) return;
         setLoading(true);
         try {
+            // [NEW] Retroactive Attendance Update Logic
+            let shouldUpdatePastAttendance = false;
+            let oldClassesSnapshot = monthlyClasses[selectedDate] || [];
+            
+            // Check if there are changes in instructor or title compared to existing snapshot
+            let hasRelevantChanges = false;
+            dayClasses.forEach(newCls => {
+                if (!newCls.time) return;
+                const oldCls = oldClassesSnapshot.find(c => c.time === newCls.time);
+                if (oldCls) {
+                    const isTitleChanged = (oldCls.title || oldCls.className) !== (newCls.title || newCls.className);
+                    const isInstChanged = oldCls.instructor !== newCls.instructor;
+                    if (isTitleChanged || isInstChanged) {
+                        hasRelevantChanges = true;
+                    }
+                }
+            });
+
+            if (hasRelevantChanges && !applyToAll) {
+                // If this is a single day update, ask if they want to retroactively update attendance
+                shouldUpdatePastAttendance = window.confirm(
+                    `해당 날짜(${selectedDate})의 수업명이나 강사명이 변경되었습니다.\n\n` +
+                    `이 변경 사항을 과거 출석 기록(이미 등록된 출석부)에도 일괄 적용하시겠습니까?\n` +
+                    `(적용 시 강사앱 통계 등이 수정되며, 회원의 남은 횟수/기간은 변동되지 않아 안전합니다.)`
+                );
+            }
+
             if (applyToAll) {
                 const targetDate = new Date(selectedDate);
                 const targetDayIndex = targetDate.getDay();
@@ -196,8 +259,21 @@ const AdminScheduleManager = ({ branchId }) => {
                 }
 
                 await storageService.batchUpdateDailyClasses(branchId, datesToUpdate);
+                
+                // [NEW] Retroactive Attendance Update for Batch
+                if (shouldUpdatePastAttendance) {
+                    for (const dateObj of datesToUpdate) {
+                        const oldClassesForDate = monthlyClasses[dateObj.date] || [];
+                        await storageService.updatePastAttendanceRecords(branchId, dateObj.date, oldClassesForDate, dateObj.classes);
+                    }
+                }
             } else {
                 await storageService.updateDailyClasses(branchId, selectedDate, dayClasses);
+                
+                // [NEW] Retroactive Attendance Update for Single Day
+                if (shouldUpdatePastAttendance) {
+                    await storageService.updatePastAttendanceRecords(branchId, selectedDate, oldClassesSnapshot, dayClasses);
+                }
             }
 
             setShowEditModal(false);
@@ -312,185 +388,76 @@ const AdminScheduleManager = ({ branchId }) => {
         );
     };
 
-    // [New] Image Upload Logic
-    const handleImageUpload = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+    const handleCopyPrevMonth = async () => {
+        // Calculate previous month
+        const d = new Date(year, month - 1, 1);
+        d.setMonth(d.getMonth() - 1);
+        const prevYear = d.getFullYear();
+        const prevMonth = d.getMonth() + 1;
 
-        if (file.size > 5 * 1024 * 1024) {
-            alert('파일 용량이 너무 큽니다. (최대 5MB)');
-            return;
+        if (!confirm(`${prevYear}년 ${prevMonth}월의 스케줄 패턴을 복사하여\n${year}년 ${month}월 스케줄을 생성하시겠습니까?\n\n(일요일과 토요일 일정도 순차적으로 복사됩니다.)`)) return;
+
+        setLoading(true);
+        try {
+            await storageService.copyMonthlySchedule(branchId, prevYear, prevMonth, year, month);
+            alert('이전 달 내용을 바탕으로 스케줄이 생성되었습니다.');
+            await loadMonthlyData();
+        } catch (e) {
+            console.error(e);
+            alert(e.message);
+        } finally {
+            setLoading(false);
         }
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 1000;
-                let width = img.width;
-                let height = img.height;
-
-                if (width > MAX_WIDTH) {
-                    height *= MAX_WIDTH / width;
-                    width = MAX_WIDTH;
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-
-                // Use high quality (0.8) to prevent text blur
-                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
-                const kbSize = Math.round(compressedBase64.length / 1024);
-                const targetKey = `timetable_${branchId}_${year}-${String(month).padStart(2, '0')}`;
-
-
-                // Optimistic Update
-                const previousImage = images[targetKey];
-                setImages(prev => ({ ...prev, [targetKey]: compressedBase64 }));
-
-                // Async Save & Verify
-                storageService.updateImage(targetKey, compressedBase64)
-                    .then(async () => {
-                        // [VERIFICATION] Explicitly check if it exists in DB
-                        await storageService.getImages();
-                        // Note: getImages returns cache from listener, which might be slightly delayed. 
-                        // Let's rely on the promise resolution of updateImage which implies write complete.
-                        alert(`${year}년 ${month}월 시간표가 저장되었습니다.\n(전송 크기: ${kbSize}KB)`);
-                    })
-                    .catch(err => {
-                        console.error("Image upload failed:", err);
-                        alert(`저장 실패: ${err.message}\n(크기: ${kbSize}KB)`);
-                        setImages(prev => ({ ...prev, [targetKey]: previousImage }));
-                    });
-            };
-            img.src = event.target.result;
-        };
-        reader.readAsDataURL(file);
     };
 
     const renderUndefinedView = () => {
-        // Priority: Specific Month Image -> Branch Default -> Global Default (if any)
-        const specificKey = `timetable_${branchId}_${year}-${String(month).padStart(2, '0')}`;
-        const fallbackKey = `timetable_${branchId}`;
-
-        // Check if we have a specific image for this month
-        const hasSpecificImage = !!images[specificKey];
-        const imageUrl = images[specificKey] || images[fallbackKey];
-
         return (
-            <div style={{ textAlign: 'center', padding: '60px 20px', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px dashed rgba(255,255,255,0.1)' }}>
-                <div style={{ marginBottom: '30px' }}>
-                    <h3 style={{ fontSize: '1.4rem', color: 'var(--text-primary)', marginBottom: '10px' }}>
-                        🟡 {year}년 {month}월 스케줄이 아직 생성되지 않았습니다.
-                    </h3>
-                    <p style={{ color: 'var(--text-secondary)' }}>
-                        이번 달에 적용할 주간 시간표 이미지를 등록하고, 스케줄을 생성해주세요.
-                    </p>
-                </div>
-
-                <div style={{ position: 'relative', maxWidth: '600px', margin: '0 auto 30px' }}>
-                    {imageUrl ? (
-                        <img src={imageUrl} alt="Weekly Timetable" style={{ width: '100%', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.3)', maxHeight: '400px', objectFit: 'contain' }} />
-                    ) : (
-                        <div style={{ width: '100%', height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '12px', color: 'var(--text-secondary)', border: '1px dashed var(--border-color)' }}>
-                            <ImageIcon size={48} opacity={0.5} />
-                        </div>
-                    )}
-
-                    {/* Floating Upload Button */}
-                    <div style={{ position: 'absolute', bottom: '10px', right: '10px' }}>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            style={{ display: 'none' }}
-                            id={`upload-schedule-${year}-${month}`}
-                        />
-                        <label
-                            htmlFor={`upload-schedule-${year}-${month}`}
-                            className="action-btn sm"
-                            style={{
-                                background: 'rgba(0,0,0,0.85)',
-                                color: 'white',
-                                border: '1px solid rgba(255,255,255,0.2)',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                padding: '8px 12px'
-                            }}
-                        >
-                            <UploadSimple size={16} />
-                            {hasSpecificImage ? '이미지 변경' : '전용 이미지 업로드'}
-                        </label>
+            <div style={{ padding: '0px' }}>
+                <div style={{
+                    marginBottom: '20px',
+                    padding: '24px',
+                    backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(59, 130, 246, 0.2)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '16px',
+                    textAlign: 'center'
+                }}>
+                    <div>
+                        <h3 style={{ fontSize: '1.2rem', color: '#60A5FA', margin: '0 0 8px 0' }}>
+                            {year}년 {month}월 일정이 비어 있습니다.
+                        </h3>
+                        <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.95rem' }}>
+                            일일이 등록할 필요 없이, 지난 달 일정을 그대로 복사해서 편하게 시작하세요.
+                        </p>
                     </div>
-                    {hasSpecificImage && (
-                        <div style={{ position: 'absolute', top: '10px', left: '10px', background: '#10B981', color: 'white', fontSize: '0.7rem', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}>
-                            {month}월 전용
-                        </div>
-                    )}
-                </div>
-
-                <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-                    {/* [User Request] Removed 'Create from Template' button to avoid confusion with Image Generation */}
 
                     <button
-                        onClick={handleCreateStandard}
+                        onClick={handleCopyPrevMonth}
                         style={{
-                            padding: '16px 25px',
-                            fontSize: '1rem',
-                            backgroundColor: '#4b5563', // Grey for standard
+                            padding: '14px 32px',
+                            fontSize: '1.05rem',
+                            backgroundColor: '#3B82F6',
                             color: 'white',
                             border: 'none',
-                            borderRadius: '12px',
+                            borderRadius: '8px',
                             fontWeight: 'bold',
                             cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', gap: '8px',
-                            boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+                            transition: 'all 0.2s'
                         }}
                     >
-                        ✨ 표준 시간표 생성 (기본)
-                    </button>
-
-                    <button
-                        onClick={async () => {
-                            // Calculate previous month
-                            const d = new Date(year, month - 1, 1);
-                            d.setMonth(d.getMonth() - 1);
-                            const prevYear = d.getFullYear();
-                            const prevMonth = d.getMonth() + 1;
-
-                            if (!confirm(`${prevYear}년 ${prevMonth}월의 스케줄 패턴을 복사하여\\n${year}년 ${month}월 스케줄을 생성하시겠습니까?`)) return;
-
-                            setLoading(true);
-                            try {
-                                await storageService.copyMonthlySchedule(branchId, prevYear, prevMonth, year, month);
-                                alert('이전 달 내용을 바탕으로 스케줄이 생성되었습니다.');
-                                await loadMonthlyData();
-                            } catch (e) {
-                                console.error(e);
-                                alert(e.message);
-                            } finally {
-                                setLoading(false);
-                            }
-                        }}
-                        style={{
-                            padding: '16px 40px',
-                            fontSize: '1.1rem',
-                            backgroundColor: 'rgba(255,255,255,0.1)',
-                            color: 'white',
-                            border: '1px solid rgba(255,255,255,0.2)',
-                            borderRadius: '12px',
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                        }}
-                    >
-                        📥 지난달 복사하여 생성
+                        📥 지난달 스케줄 그대로 복사하기
                     </button>
                 </div>
+
+                {/* Always show the calendar grid below, even if empty */}
+                {renderCalendar()}
             </div>
         );
     };
@@ -510,6 +477,9 @@ const AdminScheduleManager = ({ branchId }) => {
                     <button onClick={handleNextMonth} style={navBtnStyle}><CaretRight /></button>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    <button onClick={handleOpenRestore} style={{ ...actionBtnStyle, backgroundColor: '#6366F1', opacity: 0.9 }}>
+                        <ClockCounterClockwise size={18} /> 백업 복원
+                    </button>
                     <button onClick={() => setShowSettings(true)} style={{ ...actionBtnStyle, backgroundColor: 'rgba(255,255,255,0.1)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
                         <Gear size={18} /> 설정
                     </button>
@@ -582,6 +552,91 @@ const AdminScheduleManager = ({ branchId }) => {
                 </div>
             )
             }
+
+            {/* Reset Confirm Modal */}
+            {showResetConfirm && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, backdropFilter: 'blur(5px)'
+                }}>
+                    <div style={{ ...modalContentStyle, maxWidth: '400px', textAlign: 'center' }}>
+                        <Warning size={48} color="#EF4444" style={{ marginBottom: '16px' }} />
+                        <h3 style={{ margin: '0 0 16px 0', fontSize: '1.3rem' }}>스케줄 초기화</h3>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', lineHeight: '1.5' }}>
+                            정말로 {year}년 {month}월 스케줄을 초기화하시겠습니까?<br/><br/>
+                            모든 수업 데이터가 삭제되며, 상태가 [미정]으로 돌아갑니다.<br/>
+                            <span style={{ fontSize: '0.85rem', color: '#6366F1', marginTop: '8px', display: 'block' }}>(초기화 직전 상태는 임시 백업됩니다)</span>
+                        </p>
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                            <button onClick={() => setShowResetConfirm(false)} style={{ ...actionBtnStyle, backgroundColor: 'var(--bg-input)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', flex: 1 }}>
+                                취소
+                            </button>
+                            <button onClick={confirmReset} style={{ ...actionBtnStyle, backgroundColor: '#EF4444', flex: 1 }}>
+                                네, 초기화합니다
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Restore Backup Modal */}
+            {showRestoreModal && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, backdropFilter: 'blur(5px)'
+                }}>
+                    <div style={{ ...modalContentStyle, maxWidth: '500px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <ClockCounterClockwise size={24} color="#6366F1" /> 백업에서 복원하기
+                            </h3>
+                            <button onClick={() => setShowRestoreModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}><X size={24} /></button>
+                        </div>
+                        
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '0.9rem' }}>
+                            스케줄을 초기화할 때마다 가장 최근 2개의 스케줄이 자동으로 백업됩니다. 이전 상태로 되돌리려면 아래 목록에서 선택하세요.
+                        </p>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto' }}>
+                            {backupList.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '30px', backgroundColor: 'var(--bg-input)', borderRadius: '8px', color: 'var(--text-secondary)' }}>
+                                    사용 가능한 백업이 없습니다.
+                                </div>
+                            ) : (
+                                backupList.map((backup, idx) => {
+                                    const date = new Date(backup.timestamp);
+                                    let clsCount = 0;
+                                    if(backup.classes) Object.values(backup.classes).forEach(day => clsCount += (day.classes?.length || 0));
+                                    
+                                    return (
+                                        <div key={backup.id} style={{ 
+                                            display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+                                            padding: '16px', backgroundColor: 'var(--bg-input)', borderRadius: '8px',
+                                            border: '1px solid rgba(255,255,255,0.05)'
+                                        }}>
+                                            <div>
+                                                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+                                                    {date.toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}에 백업됨
+                                                </div>
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                                    총 {clsCount}개의 수업 데이터 포함
+                                                    {idx === 0 && <span style={{ marginLeft: '8px', color: '#10B981', padding: '2px 6px', borderRadius: '4px', backgroundColor: 'rgba(16, 185, 129, 0.1)' }}>가장 최근</span>}
+                                                </div>
+                                            </div>
+                                            <button 
+                                                onClick={() => handleRestoreBackup(backup.id)}
+                                                style={{ ...actionBtnStyle, backgroundColor: '#6366F1', padding: '8px 16px', fontSize: '0.9rem' }}
+                                            >
+                                                이 지점으로 복원
+                                            </button>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <SettingsModal
                 show={showSettings}

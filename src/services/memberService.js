@@ -133,6 +133,30 @@ export const memberService = {
     return cachedMembers.find(m => m.id === id) || null;
   },
 
+  async fetchMemberById(id) {
+    if (!id) return null;
+    const cached = this.getMemberById(id);
+    if (cached) return cached;
+
+    try {
+      const docRef = doc(db, 'members', id);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = { id: docSnap.id, ...docSnap.data() };
+        // Insert into cache to prevent subsequent fetches
+        if (!cachedMembers.some(m => m.id === id)) {
+           cachedMembers.push(data);
+           this._buildPhoneLast4Index();
+        }
+        return data;
+      }
+      return null;
+    } catch (e) {
+      console.error('Fetch member failed:', e);
+      return null;
+    }
+  },
+
   async updateMember(memberId, data) {
     try {
       const memberRef = doc(db, 'members', memberId);

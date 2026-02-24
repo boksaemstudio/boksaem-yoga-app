@@ -250,9 +250,10 @@ const MemberProfile = () => {
         return 'default';
     });
 
-    // PWA Install State - Moved to top
-    // const { deferredPrompt, installApp } = useContext(PWAContext) || {};
-
+    // PWA Install State - Restored and updated
+    const pwaCtx = useContext(PWAContext) || {};
+    const { deferredPrompt, installApp, deviceOS } = pwaCtx;
+    const isPwaStandalone = pwaCtx.isStandalone;
 
     // Login States
     const [name, setName] = useState('');
@@ -273,7 +274,7 @@ const MemberProfile = () => {
 
             // [PERFORMANCE] Parallel Data Loading
             const [memberData, history, noticeData, imagesData, messagesData] = await Promise.all([
-                storageService.getMemberById(memberId),
+                storageService.fetchMemberById(memberId),
                 storageService.getAttendanceByMemberId(memberId),
                 storageService.loadNotices(),
                 storageService.getImages(),
@@ -475,7 +476,7 @@ const MemberProfile = () => {
             const imgs = await storageService.getImages();
             setImages(imgs);
             if (member) {
-                storageService.getMemberById(member.id).then(m => {
+                storageService.fetchMemberById(member.id).then(m => {
                     if (m) setMember(m);
                 });
                 storageService.getAttendanceByMemberId(member.id).then(h => {
@@ -968,7 +969,7 @@ const MemberProfile = () => {
                                 </div>
 
                                 {/* [RESTORED] PWA Install Guide */}
-                                {!isStandalone && (deferredPrompt || deviceOS === 'ios') && (
+                                {!isPwaStandalone && (deferredPrompt || deviceOS === 'ios') && (
                                     <div className="glass-panel" style={{
                                         padding: '20px 25px',
                                         background: deviceOS === 'ios' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(212, 175, 55, 0.1)',

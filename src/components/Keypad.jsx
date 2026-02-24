@@ -48,6 +48,7 @@ const KeyButton = memo(({ onPress, disabled, children, special, className, style
             // [FIX] 터치 시작 시점에 즉시 입력 처리 → 롱프레스와 무관하게 동작
             onTouchStart={(e) => {
                 e.preventDefault(); // 브라우저 기본 동작(스크롤, 롱프레스 메뉴 등) 차단
+                if (disabled) return; // [FIX] touchStart 무시
                 touchHandledRef.current = true;
                 if (navigator.vibrate) {
                     navigator.vibrate(10);
@@ -56,6 +57,7 @@ const KeyButton = memo(({ onPress, disabled, children, special, className, style
             }}
             // [FIX] PC 마우스 클릭은 정상 유지, 터치 후 중복 click은 무시
             onClick={(e) => {
+                if (disabled) return; // [FIX] 혹시 모를 안전장치
                 if (touchHandledRef.current) {
                     touchHandledRef.current = false;
                     return; // 터치에서 이미 처리됨, 중복 방지

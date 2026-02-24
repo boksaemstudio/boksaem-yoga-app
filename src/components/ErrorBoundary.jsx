@@ -77,7 +77,7 @@ class ErrorBoundary extends Component {
             return (
                 <div style={{ padding: '40px', color: '#ff6b6b', background: '#121212', height: '100vh', overflow: 'auto', fontFamily: 'monospace' }}>
                     <h1 style={{ marginBottom: '20px' }}>⚠️ 시스템 오류 발생</h1>
-                    <p style={{ color: 'white', marginBottom: '10px' }}>관리자 페이지 로딩 중 문제가 발생했습니다.</p>
+                    <p style={{ color: 'white', marginBottom: '10px' }}>애플리케이션을 불러오는 중 문제가 발생했습니다.</p>
 
                     <div style={{ background: 'rgba(255,107,107,0.1)', border: '1px solid #ff6b6b', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
                         <h3 style={{ margin: '0 0 10px 0' }}>{this.state.error && this.state.error.toString()}</h3>

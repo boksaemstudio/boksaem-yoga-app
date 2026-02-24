@@ -459,5 +459,98 @@ export const attendanceService = {
       console.error("Add manual attendance failed:", e);
       return { success: false, message: e.message };
     }
+  },
+
+  // [NEW] Update Past Attendance Records when Schedule Changes
+  async updatePastAttendanceRecords(branchId, dateStr, oldClasses, newClasses) {
+    try {
+      console.log(`[attendanceService] Checking retroactive updates for ${dateStr} at ${branchId}`);
+      if (!oldClasses || !newClasses) return { success: true, count: 0 };
+
+      // Find changed classes
+      const changedClasses = [];
+      newClasses.forEach(newCls => {
+        if (!newCls.time) return;
+        
+        // Find matching class in old schedule (by time)
+        const oldCls = oldClasses.find(c => c.time === newCls.time);
+        
+        // If not found, it's totally new (no past attendance to update).
+        // If found, check if instructor or title changed.
+        if (oldCls) {
+           const isTitleChanged = (oldCls.title || oldCls.className) !== (newCls.title || newCls.className);
+           const isInstChanged = oldCls.instructor !== newCls.instructor;
+           
+           if (isTitleChanged || isInstChanged) {
+               changedClasses.push({
+                   time: newCls.time,
+                   duration: newCls.duration || 60,
+                   oldTitle: oldCls.title || oldCls.className,
+                   oldInst: oldCls.instructor,
+                   newTitle: newCls.title || newCls.className,
+                   newInst: newCls.instructor
+               });
+           }
+        }
+      });
+
+      if (changedClasses.length === 0) {
+        console.log('[attendanceService] No relevant class changes found for retroactive update.');
+        return { success: true, count: 0 };
+      }
+
+      // Fetch attendance for that date
+      const q = query(
+          collection(db, 'attendance'),
+          where("date", "==", dateStr),
+          where("branchId", "==", branchId)
+      );
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) return { success: true, count: 0 };
+
+      // Batch update references
+      let updateCount = 0;
+      const batchRef = window.firebaseWriteBatch || (await import('firebase/firestore')).writeBatch;
+      const batch = batchRef(db);
+
+      snapshot.docs.forEach(docSnap => {
+          const log = docSnap.data();
+          
+          Object.values(changedClasses).forEach(changedCls => {
+              // Time matching logic: -30 mins ~ End time + 30 mins
+              const [classH, classM] = changedCls.time.split(':').map(Number);
+              const classStartMins = classH * 60 + classM;
+              const classEndMins = classStartMins + changedCls.duration;
+
+              // Extract hour/min from attendance timestamp
+              const logDate = new Date(log.timestamp);
+              const logMins = logDate.getHours() * 60 + logDate.getMinutes();
+
+               // If the attendance was recorded roughly during the time window of the exchanged class
+              if (logMins >= classStartMins - 30 && logMins <= classEndMins + 30) {
+                  
+                  // Double check: if it still holds the OLD text, update it.
+                  if (log.className === changedCls.oldTitle || log.instructor === changedCls.oldInst) {
+                      const docRef = doc(db, 'attendance', docSnap.id);
+                      batch.update(docRef, {
+                          className: changedCls.newTitle,
+                          instructor: changedCls.newInst
+                      });
+                      updateCount++;
+                  }
+              }
+          });
+      });
+
+      if (updateCount > 0) {
+          await batch.commit();
+          console.log(`[attendanceService] Retroactively updated ${updateCount} attendance records.`);
+      }
+
+      return { success: true, count: updateCount };
+    } catch (e) {
+      console.error("[attendanceService] Failed retroactive update:", e);
+      return { success: false, message: e.message };
+    }
   }
 };
