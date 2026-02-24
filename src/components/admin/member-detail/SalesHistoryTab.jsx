@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { ClockCounterClockwise, Trash } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 
-// [FIX] 멤버십 타입 영어→한글 변환 매핑
 const MEMBERSHIP_TYPE_LABELS = {
     'general': '일반',
     'advanced': '심화',
+    'intensive': '심화',
     'kids': '키즈',
     'pregnant': '임산부',
     'saturday': '토요하타',
@@ -13,7 +13,8 @@ const MEMBERSHIP_TYPE_LABELS = {
 
 const getMembershipLabel = (type) => {
     if (!type) return '회원권';
-    return MEMBERSHIP_TYPE_LABELS[type] || type;
+    const lowerType = type.toLowerCase();
+    return MEMBERSHIP_TYPE_LABELS[lowerType] || type;
 };
 
 const SalesHistoryTab = ({ memberId, member }) => {
@@ -58,8 +59,10 @@ const SalesHistoryTab = ({ memberId, member }) => {
     };
 
     // Derived active membership info
-    const isActive = member && member.endDate && new Date(member.endDate) >= new Date();
-    const isExpired = member && member.endDate && new Date(member.endDate) < new Date();
+    const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+    const isPending = member && member.startDate && member.startDate > todayStr;
+    const isActive = !isPending && member && member.endDate && new Date(member.endDate) >= new Date();
+    const isExpired = !isPending && member && member.endDate && new Date(member.endDate) < new Date();
 
     if (loading) {
         return (
@@ -83,29 +86,33 @@ const SalesHistoryTab = ({ memberId, member }) => {
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <span style={{ color: 'var(--primary-gold)', fontWeight: 'bold', fontSize: '1.2rem' }}>
-                                    {getMembershipLabel(member.membershipType)}
-                                </span>
-                                <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)' }}>
-                                    {member.subject || getMembershipLabel(member.membershipType)}
+                                <span style={{ color: 'var(--primary-gold)', fontWeight: 'bold', fontSize: '1.1rem' }}>
+                                    {(() => {
+                                        // Find matching sales record for current membership period
+                                        const matchingSale = history.find(h => h.startDate === member.startDate && h.endDate === member.endDate);
+                                        if (matchingSale && matchingSale.item) {
+                                            return `${getMembershipLabel(matchingSale.item.split(' ')[0])} ${matchingSale.item.split(' ').slice(1).join(' ')}`;
+                                        }
+                                        return getMembershipLabel(member.membershipType);
+                                    })()}
                                 </span>
                             </div>
                             <span style={{
-                                color: isActive ? '#10b981' : (isExpired ? '#ef4444' : '#a1a1aa'),
+                                color: isPending ? '#38bdf8' : (isActive ? '#10b981' : (isExpired ? '#ef4444' : '#a1a1aa')),
                                 fontWeight: 'bold',
                                 fontSize: '0.9rem',
                                 padding: '4px 10px',
-                                background: isActive ? 'rgba(16,185,129,0.1)' : (isExpired ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.05)'),
+                                background: isPending ? 'rgba(56,189,248,0.1)' : (isActive ? 'rgba(16,185,129,0.1)' : (isExpired ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.05)')),
                                 borderRadius: '12px',
-                                border: `1px solid ${isActive ? 'rgba(16,185,129,0.2)' : (isExpired ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.1)')}`
+                                border: `1px solid ${isPending ? 'rgba(56,189,248,0.3)' : (isActive ? 'rgba(16,185,129,0.2)' : (isExpired ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.1)'))}`
                             }}>
-                                {isActive ? '이용 중' : (isExpired ? '만료됨' : '미보유')}
+                                {isPending ? '대기 중 (선등록)' : (isActive ? '이용 중' : (isExpired ? '만료됨' : '미보유'))}
                             </span>
                         </div>
 
                         <div style={{
                             display: 'grid',
-                            gridTemplateColumns: '1fr 1fr',
+                            gridTemplateColumns: '1fr 1fr 1fr',
                             gap: '10px',
                             fontSize: '0.9rem',
                             color: '#e4e4e7',
@@ -118,18 +125,12 @@ const SalesHistoryTab = ({ memberId, member }) => {
                                 <span style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>시작일</span>
                                 <span style={{ fontWeight: '600' }}>{member.startDate || '-'}</span>
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'right' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'center' }}>
                                 <span style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>종료일</span>
                                 <span style={{ fontWeight: '600' }}>{member.endDate || '-'}</span>
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                <span style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>이용권 상세</span>
-                                <span style={{ fontWeight: '600' }}>
-                                    {member.credits >= 9000 ? '무제한 기간권' : `${member.credits}회권`}
-                                </span>
-                            </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'right' }}>
-                                <span style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>현재 잔여</span>
+                                <span style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>잔여 횟수</span>
                                 <span style={{ fontWeight: '600', color: 'var(--primary-gold)' }}>
                                     {member.credits >= 9000 ? '무제한' : `${member.credits}회`}
                                 </span>
@@ -154,15 +155,36 @@ const SalesHistoryTab = ({ memberId, member }) => {
                 </div>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {history.map((item) => (
+                    {history.map((item) => {
+                        const itemStart = item.startDate ? new Date(`${item.startDate}T00:00:00+09:00`).getTime() : null;
+                        const itemEnd = item.endDate ? new Date(`${item.endDate}T23:59:59+09:00`).getTime() : null;
+                        const now = new Date().getTime();
+                        let isItemActive = false;
+                        let isItemUpcoming = false;
+
+                        if (itemStart && itemEnd) {
+                            if (now >= itemStart && now <= itemEnd) {
+                                isItemActive = true;
+                            } else if (now < itemStart) {
+                                isItemUpcoming = true;
+                            }
+                        }
+
+                        return (
                         <div key={item.id} style={{
                             background: 'rgba(255,255,255,0.05)',
                             padding: '15px',
                             borderRadius: '10px',
-                            border: '1px solid rgba(255,255,255,0.1)'
+                            border: isItemActive ? '1px solid var(--primary-gold)' : '1px solid rgba(255,255,255,0.1)'
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                <span style={{ color: 'white', fontWeight: 'bold' }}>{item.item}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ color: 'white', fontWeight: 'bold' }}>
+                                        {item.item ? `${getMembershipLabel(item.item.split(' ')[0])} ${item.item.split(' ').slice(1).join(' ')}` : '결제 항목'}
+                                    </span>
+                                    {isItemActive && <span style={{ fontSize: '0.7rem', background: 'rgba(212, 175, 55, 0.15)', color: 'var(--primary-gold)', border: '1px solid rgba(212, 175, 55, 0.3)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>현재 이용 중</span>}
+                                    {isItemUpcoming && <span style={{ fontSize: '0.7rem', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>대기 중 (선등록)</span>}
+                                </div>
                                 <span style={{ color: '#10b981', fontWeight: 'bold' }}>{(item.amount || 0).toLocaleString()}원</span>
                             </div>
 
@@ -173,25 +195,7 @@ const SalesHistoryTab = ({ memberId, member }) => {
                                 </div>
                             )}
 
-                            {/* [NEW] 이월 횟수 표시 */}
-                            {item.carryOverCredits > 0 && (
-                                <div style={{
-                                    fontSize: '0.8rem',
-                                    color: '#f59e0b',
-                                    background: 'rgba(245, 158, 11, 0.08)',
-                                    border: '1px solid rgba(245, 158, 11, 0.15)',
-                                    padding: '6px 10px',
-                                    borderRadius: '6px',
-                                    marginBottom: '8px'
-                                }}>
-                                    🔄 이전 잔여 <b>+{item.carryOverCredits}회</b> 이월 → 총 <b>{item.totalCredits}회</b>
-                                    {item.previousEndDate && (
-                                        <span style={{ color: '#a1a1aa', marginLeft: '6px' }}>
-                                            (이전 만료: {item.previousEndDate})
-                                        </span>
-                                    )}
-                                </div>
-                            )}
+
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
                                 <span style={{ color: '#a1a1aa' }}>
@@ -222,7 +226,8 @@ const SalesHistoryTab = ({ memberId, member }) => {
                                 </div>
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>

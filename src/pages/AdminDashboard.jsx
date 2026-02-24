@@ -267,6 +267,11 @@ const AdminDashboard = () => {
                 if (!b.installedAt) return -1;
                 return new Date(b.installedAt) - new Date(a.installedAt);
             }
+            if (filterType === 'registration') {
+                const dateA = new Date(a.lastPaymentDate || a.regDate || 0);
+                const dateB = new Date(b.lastPaymentDate || b.regDate || 0);
+                return dateB - dateA; // Descending (latest first)
+            }
             return a.name.localeCompare(b.name, 'ko');
         });
     }, [members, logs, searchTerm, filterType, currentBranch, isMemberActive, isMemberExpiring, todayReRegMemberIds]);

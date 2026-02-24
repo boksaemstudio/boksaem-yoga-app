@@ -9,6 +9,7 @@ import InstructorSchedule from '../components/instructor/InstructorSchedule';
 import InstructorNotices from '../components/instructor/InstructorNotices';
 import InstructorHome from '../components/instructor/InstructorHome';
 import InstallGuideModal from '../components/InstallGuideModal';
+import InstallBanner from '../components/common/InstallBanner';
 
 // === Helper for Default Greeting ===
 const getDefaultGreeting = (name, h, day) => {
@@ -65,19 +66,7 @@ const InstructorPage = () => {
         loadInstructors();
     }, []);
 
-    // [PWA] 모바일 사용자에게 설치 안내 자동 표시 (1회만)
-    useEffect(() => {
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-        const hasSeenGuide = localStorage.getItem('has_seen_inst_install_guide');
-        
-        if (!isStandalone && !hasSeenGuide) {
-            const timer = setTimeout(() => {
-                setShowInstallGuide(true);
-                localStorage.setItem('has_seen_inst_install_guide', 'true');
-            }, 3000);
-            return () => clearTimeout(timer);
-        }
-    }, []);
+    // [PWA] Install Guide State is handled via InstallBanner component now.
 
     // [PUSH] Request notification permission and register token for instructor
     useEffect(() => {
@@ -405,6 +394,7 @@ const InstructorPage = () => {
                 <TabButton icon={<Bell size={24} />} label="공지" active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} />
             </div>
 
+            <InstallBanner onManualInstallClick={() => setShowInstallGuide(true)} />
             <InstallGuideModal isOpen={showInstallGuide} onClose={() => setShowInstallGuide(false)} />
         </div>
     );

@@ -24,7 +24,7 @@ const getBgForPeriod = (period) => {
         default: return import('../assets/bg_night.webp');
     }
 };
-import InstallGuideModal from '../components/InstallGuideModal';
+import KioskInstallGuideModal from '../components/checkin/KioskInstallGuideModal';
 import InstructorQRModal from '../components/InstructorQRModal';
 
 // [Helper] Robust Date Parsing
@@ -1874,7 +1874,8 @@ const CheckInPage = () => {
             )}
 
             {/* PWA Install Guide — Now uses the centralized OS-specific Modal */}
-            <InstallGuideModal 
+            {/* Install Guide Modal tailored for Landscape Kiosk */}
+            <KioskInstallGuideModal 
                 isOpen={showKioskInstallGuide || showInstallGuide} 
                 onClose={() => {
                     setShowKioskInstallGuide(false);

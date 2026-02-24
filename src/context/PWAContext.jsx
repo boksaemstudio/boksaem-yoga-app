@@ -4,9 +4,22 @@ import { PWAContext } from './PWAContextDef';
 
 export const PWAProvider = ({ children }) => {
     const [deferredPrompt, setDeferredPrompt] = useState(null);
+    const [isStandalone, setIsStandalone] = useState(false);
+    const [deviceOS, setDeviceOS] = useState('unknown');
     const location = useLocation();
 
     useEffect(() => {
+        // OS 감지
+        const ua = navigator.userAgent.toLowerCase();
+        if (/iphone|ipad|ipod/.test(ua)) setDeviceOS('ios');
+        else if (/android/.test(ua)) setDeviceOS('android');
+        
+        // PWA 설치 상태 감지
+        const checkStandalone = () => {
+            const isInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+            setIsStandalone(isInstalled);
+        };
+        checkStandalone();
         const handleBeforeInstallPrompt = (e) => {
             console.log('[PWA] beforeinstallprompt event fired');
             e.preventDefault();
@@ -19,6 +32,7 @@ export const PWAProvider = ({ children }) => {
         window.addEventListener('appinstalled', () => {
             console.log('[PWA] App was installed');
             setDeferredPrompt(null);
+            setIsStandalone(true);
         });
 
         return () => {
@@ -88,7 +102,7 @@ export const PWAProvider = ({ children }) => {
     };
 
     return (
-        <PWAContext.Provider value={{ deferredPrompt, installApp }}>
+        <PWAContext.Provider value={{ deferredPrompt, installApp, isStandalone, deviceOS }}>
             {children}
         </PWAContext.Provider>
     );

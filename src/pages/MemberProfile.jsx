@@ -27,6 +27,7 @@ import NoticeTab from '../components/profile/tabs/NoticeTab';
 import PriceTab from '../components/profile/tabs/PriceTab';
 import CustomGlassModal from '../components/common/CustomGlassModal';
 import InstallGuideModal from '../components/InstallGuideModal';
+import InstallBanner from '../components/common/InstallBanner';
 
 import SocialLinks from '../components/profile/SocialLinks';
 import AttendanceHistory from '../components/profile/AttendanceHistory';
@@ -84,33 +85,26 @@ const MemberProfile = () => {
     const [scheduleMonth, setScheduleMonth] = useState('current'); // 'current' or 'next'
     
     // PWA Install State
-    const { deferredPrompt, installApp } = useContext(PWAContext) || {};
-    const [isStandalone, setIsStandalone] = useState(false);
-    const [deviceOS, setDeviceOS] = useState('unknown');
     const [showInstallGuide, setShowInstallGuide] = useState(false); // [PWA] Install Guide
 
+    // [Push] Auto Push Permission Request
     useEffect(() => {
-        const ua = navigator.userAgent.toLowerCase();
-        if (/iphone|ipad|ipod/.test(ua)) {
-            setDeviceOS('ios');
-        } else if (/android/.test(ua)) {
-            setDeviceOS('android');
+        if (member && typeof window !== 'undefined' && 'Notification' in window) {
+            if (window.Notification.permission === 'default') {
+                const pushTimer = setTimeout(() => {
+                    console.log("[Push Check] Auto-requesting push permission for member...");
+                    // Try to request permission automatically
+                    window.Notification.requestPermission().then(permission => {
+                        setPushStatus(permission);
+                        if (permission === 'granted') {
+                            storageService.requestPushPermission(member.id).catch(err => console.warn(err));
+                        }
+                    });
+                }, 3500); // UI 안정화 후 3.5초 뒤 띄움
+                return () => clearTimeout(pushTimer);
+            }
         }
-
-        const isInstalled = window.matchMedia('(display-mode: standalone)').matches || 
-                           window.navigator.standalone === true;
-        setIsStandalone(isInstalled);
-
-        // [PWA] Auto-show install guide for non-standalone users
-        const hasSeenGuide = localStorage.getItem('has_seen_member_install_guide');
-        if (!isInstalled && !hasSeenGuide) {
-            const timer = setTimeout(() => {
-                setShowInstallGuide(true);
-                localStorage.setItem('has_seen_member_install_guide', 'true');
-            }, 3000); // 3-second delay so it's not jarring
-            return () => clearTimeout(timer);
-        }
-    }, []);
+    }, [member]);
 
     const handleNotificationToggle = async (e) => {
         if (e.target.checked) {
@@ -1148,6 +1142,7 @@ const MemberProfile = () => {
                 <ImageLightbox src={lightboxImage} onClose={() => setLightboxImage(null)} />
             )}
 
+            <InstallBanner onManualInstallClick={() => setShowInstallGuide(true)} />
             <InstallGuideModal isOpen={showInstallGuide} onClose={() => setShowInstallGuide(false)} />
             
             <div style={{ padding: '40px 20px', textAlign: 'center', opacity: 0.1, fontSize: '0.6rem', color: 'white' }}>

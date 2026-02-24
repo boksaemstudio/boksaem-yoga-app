@@ -221,7 +221,7 @@ const MembersTab = ({
                     {filterType === 'dormant' && '잠든 회원'}
                     {filterType === 'installed' && '앱 설치 회원'}
                 </strong> 목록을 <strong style={{ color: 'var(--text-secondary)' }}>
-                    {filterType === 'attendance' ? '최신 출석 순' : (filterType === 'installed' ? '최신 설치 순' : '이름 가나다순')}
+                    {filterType === 'attendance' ? '최신 출석 순' : (filterType === 'installed' ? '최신 설치 순' : (filterType === 'registration' ? '최신 등록순' : '이름 가나다순'))}
                 </strong>으로 보고 계십니다.
             </div>
 

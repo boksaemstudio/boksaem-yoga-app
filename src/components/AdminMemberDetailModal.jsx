@@ -358,6 +358,25 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                                         ? `~ ${member.endDate}`
                                         : '만료일 미설정'
                             }</span>
+                            {(() => {
+                                const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                                if (member.startDate && member.startDate > todayStr) {
+                                    return (
+                                        <span style={{ 
+                                            fontSize: '0.7rem', 
+                                            background: 'rgba(56, 189, 248, 0.15)', 
+                                            color: '#38bdf8', 
+                                            border: '1px solid rgba(56, 189, 248, 0.3)', 
+                                            padding: '2px 6px', 
+                                            borderRadius: '4px', 
+                                            fontWeight: 'bold' 
+                                        }}>
+                                            대기 중 (선등록)
+                                        </span>
+                                    );
+                                }
+                                return null;
+                            })()}
                         </div>
                     </div>
                     <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'white', padding: '10px' }}>
@@ -574,8 +593,28 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig }) => {
 
             <InputGroup label="등록일" value={editData.regDate || ''} onChange={v => setEditData({ ...editData, regDate: v })} type="date" />
 
-            <hr style={{ borderColor: 'rgba(255,255,255,0.1)', margin: '5px 0' }} />
-            <h4 style={{ color: 'var(--primary-gold)', margin: 0, fontSize: '0.9rem' }}>• 수강권 기간 관리 (관리자 수정용)</h4>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <h4 style={{ color: 'var(--primary-gold)', margin: 0, fontSize: '0.9rem' }}>• 수강권 기간 관리 (관리자 수정용)</h4>
+                {(() => {
+                    const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                    if (editData.startDate && editData.startDate > todayStr) {
+                        return (
+                            <span style={{ 
+                                fontSize: '0.65rem', 
+                                background: 'rgba(56, 189, 248, 0.15)', 
+                                color: '#38bdf8', 
+                                border: '1px solid rgba(56, 189, 248, 0.3)', 
+                                padding: '1px 5px', 
+                                borderRadius: '4px', 
+                                fontWeight: 'bold' 
+                            }}>
+                                대기 중 (선등록)
+                            </span>
+                        );
+                    }
+                    return null;
+                })()}
+            </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <InputGroup

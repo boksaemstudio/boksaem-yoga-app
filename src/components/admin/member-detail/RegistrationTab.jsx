@@ -11,7 +11,9 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
     const [selectedOption, setSelectedOption] = useState('');
     const [duration, setDuration] = useState(1);
     const [paymentMethod, setPaymentMethod] = useState('card');
+    
     // [Smart Date Logic]
+    const [startDateMode, setStartDateMode] = useState('fixed'); // 'fixed' | 'first'
     const [startDate, setStartDate] = useState(() => {
         const today = new Date();
         const end = member.endDate ? new Date(member.endDate) : null;
@@ -24,6 +26,9 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
         }
         return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
     });
+
+    // [New] Base duration for upcoming memberships
+    const [durationMonths, setDurationMonths] = useState(1);
 
     // Computed
     const [price, setPrice] = useState(0);
@@ -54,6 +59,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
         // Price Calculation with Cash Price support
         if (paymentMethod === 'cash' && option.cashPrice) {
             p = option.cashPrice;
+            setDurationMonths(months); // Track base duration
         } else {
             if (option.type === 'ticket') {
                 p = option.basePrice;
@@ -70,6 +76,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
             if (paymentMethod === 'cash' && duration >= 3 && p > 0 && !option.cashPrice) {
                 p = Math.round(p * 0.95);
             }
+            setDurationMonths(months); // Track base duration
         }
 
         const start = new Date(startDate);
@@ -90,21 +97,20 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
         setPrice(calculatedPrice);
     }, [calculatedPrice]);
 
-    // [INFO] 선등록 여부 확인 (이력 기록용, 횟수 합산 안 함)
-    const currentCredits = member.credits || 0;
-    const hasRemainingCredits = currentCredits > 0 && currentCredits < 9000;
-    const isEarlyRenewal = hasRemainingCredits && member.endDate && new Date(member.endDate) >= new Date(new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }));
+    // [INFO] 선등록 여부 확인
+    const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+    const isAdvance = member.endDate && new Date(member.endDate) >= new Date(todayStr); // 잔여 기간이 남아있으면 선등록 가능
+
+    // Computed Info for TBD mode
+    const finalStartDate = (isAdvance && startDateMode === 'first') ? 'TBD' : startDate;
+    const finalEndDate = (isAdvance && startDateMode === 'first') ? 'TBD' : calculatedEndDate;
 
     const handleRenew = async () => {
         // 중복 클릭 방지
         if (isSubmitting || isSubmittingRef.current) return;
         
-        // [UX] 선등록 시 이월 정보 포함 확인 다이얼로그
-        let confirmMsg = `${calculatedProductName}\n금액: ${price.toLocaleString()}원\n`;
-        if (isEarlyRenewal) {
-            confirmMsg += `\n⚠️ 이전 회원권 잔여 ${currentCredits}회가 남아있습니다.\n새 횟수 ${calculatedCredits}회로 교체됩니다.\n`;
-        }
-        confirmMsg += `\n등록하시겠습니까?`;
+        // [UX] 선등록 시 확인 다이얼로그
+        let confirmMsg = `${calculatedProductName}\n금액: ${price.toLocaleString()}원\n\n등록하시겠습니까?`;
         if (!confirm(confirmMsg)) return;
 
         isSubmittingRef.current = true;
@@ -120,26 +126,31 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                 amount: price,
                 paymentMethod: paymentMethod,
                 date: today,
-                startDate: startDate,
-                endDate: calculatedEndDate,
-                // [NEW] 이월 정보 기록
-                ...(isEarlyRenewal && calculatedCredits < 9000 ? {
-                    carryOverCredits: currentCredits,
-                    previousEndDate: member.endDate,
-                    newCredits: calculatedCredits,
-                    totalCredits: calculatedCredits
-                } : {})
+                startDate: finalStartDate,
+                endDate: finalEndDate,
+                // 선등록 데이터는 이력 저장만 함
             };
 
             if (onAddSalesRecord) await onAddSalesRecord(salesData);
 
-            const updateData = {
-                membershipType: membershipType,
-                credits: calculatedCredits, // 새 횟수로 교체 (합산 안 함)
-                startDate: startDate,
-                endDate: calculatedEndDate,
-                lastPaymentDate: new Date().toISOString()
-            };
+            const updateData = {};
+            if (isAdvance) {
+                // 선등록인 경우 upcomingMembership 필드에 저장하여 즉시 덮어쓰지 않음
+                updateData.upcomingMembership = {
+                    membershipType: membershipType,
+                    credits: calculatedCredits,
+                    startDate: finalStartDate,
+                    endDate: finalEndDate,
+                    durationMonths: durationMonths // TBD의 경우 계산을 위해 개월 수 저장
+                };
+                updateData.lastPaymentDate = new Date().toISOString();
+            } else {
+                updateData.membershipType = membershipType;
+                updateData.credits = calculatedCredits;
+                updateData.startDate = finalStartDate;
+                updateData.endDate = finalEndDate;
+                updateData.lastPaymentDate = new Date().toISOString();
+            }
 
             await onUpdateMember(member.id, updateData);
             
@@ -232,26 +243,67 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                         />
                     </div>
 
-                    <InputGroup label="시작일 (재시작일)" value={startDate} onChange={setStartDate} type="date" />
+                    {/* Start Date Selection */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                        <label style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>시작일 설정</label>
+                        {isAdvance && (
+                            <div style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
+                                <button
+                                    onClick={() => setStartDateMode('fixed')}
+                                    style={{
+                                        flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid',
+                                        borderColor: startDateMode === 'fixed' ? 'var(--primary-gold)' : 'rgba(255,255,255,0.1)',
+                                        background: startDateMode === 'fixed' ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.05)',
+                                        color: startDateMode === 'fixed' ? 'var(--primary-gold)' : '#71717a',
+                                        fontSize: '0.85rem', cursor: 'pointer'
+                                    }}
+                                >
+                                    📆 날짜 지정
+                                </button>
+                                <button
+                                    onClick={() => setStartDateMode('first')}
+                                    style={{
+                                        flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid',
+                                        borderColor: startDateMode === 'first' ? 'var(--primary-gold)' : 'rgba(255,255,255,0.1)',
+                                        background: startDateMode === 'first' ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.05)',
+                                        color: startDateMode === 'first' ? 'var(--primary-gold)' : '#71717a',
+                                        fontSize: '0.85rem', cursor: 'pointer'
+                                    }}
+                                >
+                                    🧘‍♀️ 기존 마감 후 첫 출석 시
+                                </button>
+                            </div>
+                        )}
+                        {(startDateMode === 'fixed' || !isAdvance) ? (
+                            <CustomDatePicker value={startDate} onChange={setStartDate} />
+                        ) : (
+                            <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', textAlign: 'center', fontSize: '0.9rem' }}>
+                                첫 출석일에 시작일/마감일 자동 확정
+                            </div>
+                        )}
+                    </div>
 
                     {/* Summary Card */}
                     <div style={{ background: 'rgba(20,20,20,0.5)', padding: '15px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
                             <span style={{ color: '#a1a1aa' }}>예상 종료일</span>
-                            <span style={{ color: 'white' }}>{calculatedEndDate}</span>
+                            <span style={{ color: startDateMode === 'first' && isAdvance ? '#38bdf8' : 'white' }}>
+                                {startDateMode === 'first' && isAdvance ? '첫 출석 시 확정' : calculatedEndDate}
+                            </span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
                             <span style={{ color: '#a1a1aa' }}>지급 횟수</span>
                             <span style={{ color: 'white' }}>{calculatedCredits === 9999 ? '무제한' : `${calculatedCredits}회`}</span>
                         </div>
-                        {isEarlyRenewal && (
+                        {isAdvance && (
                             <div style={{
                                 display: 'flex', justifyContent: 'space-between', marginBottom: '5px',
-                                background: 'rgba(245, 158, 11, 0.08)', padding: '8px 10px', borderRadius: '6px',
-                                border: '1px solid rgba(245, 158, 11, 0.15)'
+                                background: 'rgba(56, 189, 248, 0.08)', padding: '8px 10px', borderRadius: '6px',
+                                border: '1px solid rgba(56, 189, 248, 0.15)'
                             }}>
-                                <span style={{ color: '#f59e0b', fontSize: '0.85rem' }}>⚠️ 이전 잔여</span>
-                                <span style={{ color: '#f59e0b', fontWeight: 'bold', fontSize: '0.85rem' }}>{currentCredits}회 소멸</span>
+                                <span style={{ color: '#38bdf8', fontSize: '0.85rem' }}>
+                                    ℹ️ 선등록 ({startDateMode === 'first' ? '첫 출석 시 연달아 활성화' : '기존 이용권 사용 후 활성화'})
+                                </span>
                             </div>
                         )}
                         <hr style={{ borderColor: 'rgba(255,255,255,0.1)', margin: '10px 0' }} />

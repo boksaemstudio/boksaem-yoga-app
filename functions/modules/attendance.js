@@ -166,16 +166,79 @@ exports.checkInMemberV2Call = onCall({
                 }
             }
             
-            const currentCredits = memberData.credits || 0;
-            const currentCount = memberData.attendanceCount || 0;
-            
             let attendanceStatus = 'valid';
             let denialReason = null;
 
+            // [NEW] Check and activate upcomingMembership if it exists and is due
+            let appliedUpcoming = false;
+            let swappedData = null;
+            if (memberData.upcomingMembership && memberData.upcomingMembership.startDate) {
+                const isTBD = memberData.upcomingMembership.startDate === 'TBD';
+                
+                let shouldActivate = false;
+                let newStartDate = memberData.upcomingMembership.startDate;
+                let newEndDate = memberData.upcomingMembership.endDate;
+
+                if (isTBD) {
+                    // TBD인 경우 현재 회원권이 소진/만료되었을 때만 첫 출석으로 간주해 활성화
+                    const currentCredits = memberData.credits || 0;
+                    const isCurrentExpired = memberData.endDate ? (new Date(today) > new Date(memberData.endDate)) : false;
+                    const isCurrentExhausted = currentCredits <= 0 || isCurrentExpired;
+
+                    if (isCurrentExhausted) {
+                        shouldActivate = true;
+                        newStartDate = today;
+                        const durationMonths = memberData.upcomingMembership.durationMonths || 1;
+                        if (durationMonths === 9999) { // 무제한 같은 특수 케이스 처리 (fallback)
+                            const end = new Date(today);
+                            end.setMonth(end.getMonth() + 1);
+                            end.setDate(end.getDate() - 1);
+                            newEndDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                        } else {
+                            const end = new Date(today);
+                            end.setMonth(end.getMonth() + durationMonths);
+                            end.setDate(end.getDate() - 1);
+                            newEndDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                        }
+                    }
+                } else {
+                    const upcomingStart = new Date(memberData.upcomingMembership.startDate);
+                    const todayDate = new Date(today);
+                    if (todayDate >= upcomingStart) {
+                        shouldActivate = true;
+                    }
+                }
+                
+                if (shouldActivate) {
+                    console.log(`[Attendance] Activating upcoming membership for ${memberId}`);
+                    // Override memberData fields in memory for current check-in logic
+                    memberData.membershipType = memberData.upcomingMembership.membershipType;
+                    memberData.credits = memberData.upcomingMembership.credits;
+                    memberData.startDate = newStartDate;
+                    memberData.endDate = newEndDate;
+                    
+                    swappedData = {
+                        membershipType: memberData.membershipType,
+                        credits: memberData.credits,
+                        startDate: memberData.startDate,
+                        endDate: memberData.endDate,
+                        upcomingMembership: admin.firestore.FieldValue.delete()
+                    };
+                    appliedUpcoming = true;
+                }
+            }
+
+            const currentCredits = memberData.credits || 0;
+            const currentCount = memberData.attendanceCount || 0;
+            
             // 1. Check Expiration
             if (memberData.endDate) {
                 const todayDate = new Date(today);
                 const endDate = new Date(memberData.endDate);
+                
+                // [DEBUG] Diagnosing unexpected 'expired' status
+                console.log(`[Attendance] Expiry Check - Member: ${memberData.name} (${memberId}) | Today: ${today} | EndDate: ${memberData.endDate} | IsExpired: ${todayDate > endDate}`);
+                
                 if (todayDate > endDate) {
                     attendanceStatus = 'denied';
                     denialReason = 'expired';
@@ -258,16 +321,29 @@ exports.checkInMemberV2Call = onCall({
                     endDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
                 }
 
-                transaction.update(memberRef, {
+                const updates = {
                     credits: newCredits,
                     attendanceCount: newCount,
                     streak: streak,
                     startDate: startDate,
                     endDate: endDate,
                     lastAttendance: now.toISOString()
-                });
+                };
+                
+                if (appliedUpcoming && swappedData) {
+                    // Include membership swap if applied
+                    Object.assign(updates, swappedData);
+                }
+
+                transaction.update(memberRef, updates);
             } else {
                  console.log(`[Attendance] Denied check-in for ${memberId}: ${denialReason}`);
+                 
+                 // Even if denied, if we applied an upcoming membership (e.g., started but 0 credits or something weird),
+                 // we should still save the swap.
+                 if (appliedUpcoming && swappedData) {
+                     transaction.update(memberRef, swappedData);
+                 }
             }
 
             return {
