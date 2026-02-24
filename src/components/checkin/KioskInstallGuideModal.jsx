@@ -31,8 +31,8 @@ const KioskInstallGuideModal = ({ isOpen, onClose }) => {
                 style={{
                     width: '90%',
                     maxWidth: '850px',
-                    height: '80vh',
-                    maxHeight: '550px',
+                    height: '85vh',
+                    maxHeight: '620px',
                     background: bgColor,
                     borderRadius: '16px',
                     display: 'flex',
@@ -57,7 +57,7 @@ const KioskInstallGuideModal = ({ isOpen, onClose }) => {
                         margin: '0 0 10px 0',
                         fontWeight: 'bold'
                     }}>
-                        📲 출석앱 설치 안내
+                        📲 앱 설치 안내
                     </h2>
                     <p style={{
                         color: '#aaa',
@@ -66,7 +66,7 @@ const KioskInstallGuideModal = ({ isOpen, onClose }) => {
                         margin: '0 0 40px 0',
                         wordBreak: 'keep-all'
                     }}>
-                        태블릿 홈 화면에 앱을 추가해두고 언제든 바로 출석체크를 진행하세요.
+                        홈 화면에 앱을 추가해두고 언제든 바로 실행하세요.
                     </p>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -79,7 +79,7 @@ const KioskInstallGuideModal = ({ isOpen, onClose }) => {
                         />
                         <DeviceTabBtn
                             active={tab === 'ios'}
-                            label="iPad / iOS"
+                            label="iPhone / iPad / iOS"
                             icon="🍎"
                             activeColor="#007aff"
                             onClick={() => setTab('ios')}
@@ -198,15 +198,15 @@ const TabletAndroidGuide = () => (
         <div style={{
             background: '#2a3a1f',
             color: '#c5e884',
-            padding: '16px 20px',
+            padding: '14px 20px',
             borderRadius: '12px',
-            marginBottom: '30px',
-            fontSize: '1.1rem',
+            marginBottom: '20px',
+            fontSize: '1.05rem',
             display: 'flex',
             alignItems: 'center',
             gap: '10px'
         }}>
-            💡 태블릿의 <b>Chrome(크롬) ব্র라우저</b>에서 진행을 권장합니다.
+            💡 <b>Chrome(크롬) 브라우저</b>에서 진행을 권장합니다.
         </div>
 
         <TabletStep
@@ -227,7 +227,7 @@ const TabletAndroidGuide = () => (
             number="3"
             icon={<span style={{ fontSize: '1.2rem', fontWeight: 800 }}>설치</span>}
             title="바탕화면 확인"
-            desc="화면에 나오는 설치 버튼을 누르면, 태블릿 바탕화면에 출석체크 아이콘이 생성됩니다."
+            desc="화면에 나오는 설치 버튼을 누르면, 홈 화면에 앱 아이콘이 생성됩니다."
             color="#a4c639"
         />
     </div>
@@ -238,15 +238,15 @@ const TabletIOSGuide = () => (
         <div style={{
             background: '#1c3454',
             color: '#8cb9f2',
-            padding: '16px 20px',
+            padding: '14px 20px',
             borderRadius: '12px',
-            marginBottom: '30px',
-            fontSize: '1.1rem',
+            marginBottom: '20px',
+            fontSize: '1.05rem',
             display: 'flex',
             alignItems: 'center',
             gap: '10px'
         }}>
-            💡 iPad <b>Safari(사파리) 브라우저</b>에서만 가능합니다.
+            💡 <b>Safari(사파리) 브라우저</b>에서만 가능합니다.
         </div>
 
         <TabletStep
@@ -267,7 +267,7 @@ const TabletIOSGuide = () => (
             number="3"
             icon={<span style={{ fontSize: '1.2rem', fontWeight: 800 }}>추가</span>}
             title="바탕화면 확인"
-            desc="우측 상단의 '추가'를 누르면, iPad 바탕화면에 출석체크 앱이 생성됩니다."
+            desc="우측 상단의 '추가'를 누르면, 홈 화면에 앱 아이콘이 생성됩니다."
             color="#007aff"
         />
     </div>
