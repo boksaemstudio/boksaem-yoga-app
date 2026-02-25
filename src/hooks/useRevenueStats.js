@@ -112,11 +112,12 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch) => {
         const dailyAmountsMap = new Map();
         finalItems.forEach(item => {
             const currentObj = dailyAmountsMap.get(item.date) || { 
-                amount: 0, count: 0, amountNew: 0, amountReReg: 0, amountNewCount: 0, amountReRegCount: 0 
+                amount: 0, count: 0, amountNew: 0, amountReReg: 0, amountNewCount: 0, amountReRegCount: 0, salesList: [] 
             };
             
             currentObj.amount += item.amount;
             currentObj.count += 1;
+            currentObj.salesList.push(item);
             
             if (item.isNew) {
                 currentObj.amountNew += item.amount;
@@ -162,7 +163,7 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch) => {
             
             // Fetch aggregated data from map (O(1) instead of filter loop)
             const dayData = dailyAmountsMap.get(dKey) || { 
-                amount: 0, count: 0, amountNew: 0, amountReReg: 0, amountNewCount: 0, amountReRegCount: 0 
+                amount: 0, count: 0, amountNew: 0, amountReReg: 0, amountNewCount: 0, amountReRegCount: 0, salesList: [] 
             };
 
             daily[dKey] = {
@@ -173,6 +174,7 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch) => {
                 amountReReg: dayData.amountReReg,
                 amountNewCount: dayData.amountNewCount,
                 amountReRegCount: dayData.amountReRegCount,
+                salesList: dayData.salesList,
                 isSunday: dayOfWeek === 0,
                 isSaturday: dayOfWeek === 6,
                 holidayName: holidayRaw ? (holidayMap[holidayRaw] || '공휴일') : null

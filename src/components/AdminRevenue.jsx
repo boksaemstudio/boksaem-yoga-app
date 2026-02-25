@@ -47,17 +47,18 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
                         </div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                        <div className="revenue-count-title">총 결제 건수</div>
-                        <div className="revenue-count">{monthlyStats.totalCount}건</div>
+                        <div style={{ marginBottom: '12px' }}>
+                            <div className="revenue-count-title">오늘 매출</div>
+                            <div className="revenue-summary-amount" style={{ fontSize: '1.4rem', color: 'var(--primary-gold)' }}>
+                                {formatCurrency(comparativeStats.today)}원
+                            </div>
+                        </div>
+                        <div>
+                            <div className="revenue-count-title">총 결제 건수</div>
+                            <div className="revenue-count">{monthlyStats.totalCount}건</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            {/* Comparative Cards (Day Before, Yesterday, Today) */}
-            <div className="revenue-comp-cards">
-                <CompCard title="그제 매출" amount={comparativeStats.dayBefore} subLabel="전전일" />
-                <CompCard title="어제 매출" amount={comparativeStats.yesterday} subLabel="전일" />
-                <CompCard title="오늘 매출" amount={comparativeStats.today} subLabel="실시간" />
             </div>
 
             {/* Revenue Graph (Straight Line) */}
@@ -147,6 +148,13 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
                             {/* Detailed breakdown */}
                             {day.amount > 0 && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    {day.salesList && day.salesList.map((sale, idx) => (
+                                        <div key={idx} className="calendar-amount-row" style={{ justifyContent: 'space-between', fontSize: '0.8rem', color: '#ccc' }}>
+                                            <span>{sale.name}</span>
+                                            <span>{formatCurrency(sale.amount)}</span>
+                                        </div>
+                                    ))}
+                                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', margin: '4px 0' }}></div>
                                     {day.amountNew > 0 && (
                                         <div className="calendar-amount-row new">
                                             <span>신규:</span>
@@ -216,7 +224,7 @@ const StraightLineChart = ({ data }) => {
                         labelStyle={{ color: '#a1a1aa', marginBottom: '4px' }}
                     />
                     <Line 
-                        type="monotone" 
+                        type="linear" 
                         dataKey="amount" 
                         stroke="var(--primary-gold)" 
                         strokeWidth={2} 
