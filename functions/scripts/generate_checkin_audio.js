@@ -15,7 +15,7 @@ async function generateAudio() {
     
     const messages = [
         { name: 'welcome', text: '안녕하세요, 반갑습니다.' },
-        { name: 'success', text: '출석되었습니다. 즐거운 수련 하세요.' },
+        { name: 'success', text: '출석되었습니다.' },
         { name: 'duplicate_success', text: '두 번 연속 출석입니다.' },
         { name: 'denied', text: '선생님에게 문의해 주세요.' },
         { name: 'error', text: '번호를 다시 확인해 주세요.' }

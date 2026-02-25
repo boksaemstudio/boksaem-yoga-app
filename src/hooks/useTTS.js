@@ -8,6 +8,9 @@ import audioDenied from '../assets/audio/denied.mp3';
 import audioError from '../assets/audio/error.mp3';
 import audioLastSession from '../assets/audio/last_session.mp3';
 
+let currentAudio = null;
+let currentTimeout = null;
+
 export const useTTS = () => {
     // [TTS] Voice Feedback Helper
     const speak = useCallback((type) => {
@@ -36,10 +39,23 @@ export const useTTS = () => {
                 window.speechSynthesis.speak(wakeUp);
             }
 
+            // [FIX] 기존 재생 중인 오디오와 대기 중인 타이머 취소 (겹침 방지)
+            if (currentTimeout) {
+                clearTimeout(currentTimeout);
+                currentTimeout = null;
+            }
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+
             // 앞부분이 잘리지 않도록 앰프가 켜질 시간(500ms)을 확보한 뒤 재생합니다.
-            const audio = new Audio(source);
-            setTimeout(() => {
-                audio.play().catch(e => console.warn('[TTS] Playback failed', e));
+            currentAudio = new Audio(source);
+            currentTimeout = setTimeout(() => {
+                if (currentAudio) {
+                    currentAudio.play().catch(e => console.warn('[TTS] Playback failed', e));
+                }
+                currentTimeout = null;
             }, 500);
         } catch (e) {
             console.error('[TTS] Audio creation failed', e);

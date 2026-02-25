@@ -81,9 +81,9 @@ export const useMeditationAudio = (ttcEnabled, isPlayingRef, step, logDebug, set
             return;
         }
 
-        if (!ambientAudioRef.current || !ambientAudioRef.current.src.includes(ambientDef.file)) {
+        if (!ambientAudioRef.current || !ambientAudioRef.current.src.includes(ambientDef.audioUrl)) {
             if (ambientAudioRef.current) ambientAudioRef.current.pause();
-            const audio = new Audio(ambientDef.file);
+            const audio = new Audio(ambientDef.audioUrl);
             audio.loop = true;
             audio.volume = volume;
             ambientAudioRef.current = audio;

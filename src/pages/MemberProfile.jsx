@@ -21,6 +21,7 @@ import InteractiveParticles from '../components/InteractiveParticles';
 import ProfileHeader from '../components/profile/ProfileHeader';
 import AISection from '../components/profile/AISection';
 import MembershipInfo from '../components/profile/MembershipInfo';
+import MemberSalesHistory from '../components/profile/MemberSalesHistory';
 import HomeYogaSection from '../components/profile/HomeYogaSection';
 import ScheduleTab from '../components/profile/tabs/ScheduleTab';
 import NoticeTab from '../components/profile/tabs/NoticeTab';
@@ -1091,6 +1092,8 @@ const MemberProfile = () => {
                     {/* PRICES TAB */}
                     {activeTab === 'prices' && (
                         <PriceTab 
+                            memberId={member.id}
+                            member={member}
                             images={images}
                             priceTable1={priceTable1}
                             priceTable2={priceTable2}

@@ -66,6 +66,43 @@ const InstructorPage = () => {
         loadInstructors();
     }, []);
 
+    // [Deep Link] Parse 'tab' from URL to auto-navigate
+    useEffect(() => {
+        const handleLocationChange = () => {
+            const params = new URLSearchParams(window.location.search);
+            const tab = params.get('tab');
+            
+            if (tab && ['home', 'schedule', 'notices'].includes(tab)) {
+                console.log(`[InstructorPage] Navigating to tab: ${tab}`);
+                setActiveTab(tab);
+                
+                // Clear the query param after use so browser reload returns to home
+                setTimeout(() => {
+                    const newUrl = window.location.pathname;
+                    window.history.replaceState({}, '', newUrl);
+                }, 500);
+            }
+        };
+
+        // Initial check
+        handleLocationChange();
+
+        // Listen for history changes
+        window.addEventListener('popstate', handleLocationChange);
+
+        // Special listener for deep links if app is already open
+        const interval = setInterval(() => {
+            if (window.location.search.includes('tab=')) {
+                handleLocationChange();
+            }
+        }, 1000);
+
+        return () => {
+            window.removeEventListener('popstate', handleLocationChange);
+            clearInterval(interval);
+        };
+    }, []);
+
     // [PWA] Install Guide State is handled via InstallBanner component now.
 
     // [PUSH] Request notification permission and register token for instructor

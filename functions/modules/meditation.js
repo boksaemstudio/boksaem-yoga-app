@@ -613,9 +613,9 @@ JSON Output:
             result.message = result.message.replace(/OO님/g, `${memberName}님`).replace(/OO/g, memberName);
         }
 
-        // [PERF] TTS 생성 — session_message에서는 v1(음성안내) 모드만 TTS 생성
+        // [PERF] TTS를 항상 생성하도록 수정 (v2/v3에서도 음성 안내 필요)
         let audioContent = null;
-        const skipTTS = (type === 'session_message' && interactionType !== 'v1');
+        const skipTTS = type === 'question'; // 질문 단계(채팅)에서만 생략
         
         const mainAudioPromise = (result.message && !skipTTS) ? (async () => {
             try {

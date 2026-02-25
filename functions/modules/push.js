@@ -258,16 +258,18 @@ exports.sendPushOnNoticeV2 = onDocumentCreated({
         const db = admin.firestore();
         const ai = getAI();
         const collections = ["fcm_tokens", "fcmTokens", "push_tokens"];
-        const tokensByLang = {};
+        const tokensByGroup = {};
 
         for (const col of collections) {
             const snap = await db.collection(col).get();
             snap.docs.forEach(doc => {
                 const data = doc.data();
                 const lang = data.language || 'ko';
-                if (!tokensByLang[lang]) tokensByLang[lang] = [];
-                if (!tokensByLang[lang].includes(doc.id)) {
-                    tokensByLang[lang].push(doc.id);
+                const role = data.role === 'instructor' ? 'instructor' : 'member';
+                const groupKey = `${lang}_${role}`;
+                if (!tokensByGroup[groupKey]) tokensByGroup[groupKey] = [];
+                if (!tokensByGroup[groupKey].includes(doc.id)) {
+                    tokensByGroup[groupKey].push(doc.id);
                 }
             });
         }
@@ -275,11 +277,17 @@ exports.sendPushOnNoticeV2 = onDocumentCreated({
         let successTotal = 0;
         let failureTotal = 0;
 
-        for (const [lang, tokens] of Object.entries(tokensByLang)) {
+        for (const [groupKey, tokens] of Object.entries(tokensByGroup)) {
             if (tokens.length === 0) continue;
+
+            const [lang, role] = groupKey.split('_');
 
             const title = await ai.translate(titleOriginal, lang);
             const body = await ai.translate(bodyOriginal.substring(0, 100), lang);
+
+            const clickUrl = role === 'instructor' 
+                ? "https://boksaem-yoga.web.app/instructor?tab=notices" 
+                : "https://boksaem-yoga.web.app/member?tab=notices";
 
             const chunkSize = 500;
             for (let i = 0; i < tokens.length; i += chunkSize) {
@@ -287,8 +295,11 @@ exports.sendPushOnNoticeV2 = onDocumentCreated({
                 const response = await admin.messaging().sendEachForMulticast({
                     tokens: chunk,
                     notification: { title, body },
-                    data: { url: "https://boksaem-yoga.web.app/member?tab=notices" },
-                    webpush: { notification: { icon: "https://boksaem-yoga.web.app/logo_circle.png" } },
+                    data: { url: clickUrl },
+                    webpush: { 
+                        notification: { icon: "https://boksaem-yoga.web.app/logo_circle.png" },
+                        fcm_options: { link: clickUrl }
+                    },
                     android: { notification: { color: "#D4AF37" } }
                 });
                 successTotal += response.successCount;

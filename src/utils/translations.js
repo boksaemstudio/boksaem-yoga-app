@@ -21,7 +21,7 @@ export const translations = {
         tabHome: "홈",
         tabHistory: "수련기록",
         tabSchedule: "시간표",
-        tabPrices: "수강료",
+        tabPrices: "수강권/결제",
         tabNotices: "공지",
         tabMessages: "메시지",
 
@@ -656,7 +656,23 @@ export const translations = {
         tabHome: "ホーム",
         tabHistory: "記録",
         tabSchedule: "時間割",
-        tabPrices: "受講료",
+        tabPrices: "수강권/결제",
+    },
+    en: {
+        // ...
+        tabPrices: "Membership",
+    },
+    ru: {
+        // ...
+        tabPrices: "Абонемент",
+    },
+    zh: {
+        // ...
+        tabPrices: "会员",
+    },
+    ja: {
+        // ...
+        tabPrices: "利用券",
         tabNotices: "お知らせ事項",
         tabMessages: "メッセージ",
         currentMembership: "現在の会員権",

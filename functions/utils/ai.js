@@ -8,9 +8,9 @@ class AIService {
         if (!key) throw new Error("API Key is missing for AIService (Check .env or config)");
         this.client = new GoogleGenerativeAI(key);
         
-        // Using "gemini-3-flash-preview" as requested by USER (Latest & Greatest)
+        // Using "gemini-2.5-flash" for extremely low latency chat generation
         this.model = this.client.getGenerativeModel({
-            model: "gemini-3-flash-preview",
+            model: "gemini-2.5-flash",
             generationConfig: { maxOutputTokens: 500 }
         });
         
@@ -25,7 +25,7 @@ class AIService {
         };
 
         this.jsonModel = this.client.getGenerativeModel({
-            model: "gemini-3-flash-preview",
+            model: "gemini-2.5-flash",
             generationConfig: this.jsonConfig
         });
         this.langMap = { 'ko': 'Korean', 'en': 'English', 'ru': 'Russian', 'zh': 'Chinese (Simplified)', 'ja': 'Japanese' };

@@ -37,7 +37,7 @@ export const useMeditationAI = ({
     // Session Tracking
     const [sessionInfo, setSessionInfo] = useState(null);
     const [feedbackData, setFeedbackData] = useState(null);
-    const [needsFeedback, setNeedsFeedback] = useState(false);
+
 
     // Refs
     const currentRequestIdRef = useRef(0);
@@ -114,7 +114,7 @@ export const useMeditationAI = ({
                             error: "timeout"
                         }
                     });
-                }, 18000); 
+                }, 45000); // Increased timeout to prevent premature disconnects
             });
 
             const startTime = Date.now();
@@ -145,9 +145,8 @@ export const useMeditationAI = ({
                 
                 if (result.data.audioContent) {
                     playAudio(result.data.audioContent);
-                } else if (result.data.isFinalAnalysis) {
-                    if (ttcEnabled) speak(result.data.message);
                 }
+                // [FIX] Removed local TTS (speak) for final analysis as requested by user to keep chat silent
             }
         } catch (error) {
             if (requestId !== currentRequestIdRef.current) return;
@@ -248,7 +247,7 @@ export const useMeditationAI = ({
             const startTime = Date.now();
             let timeoutId;
             const timeoutPromise = new Promise((_, reject) => {
-                timeoutId = setTimeout(() => reject(new Error('Session AI timeout (8s)')), 8000);
+                timeoutId = setTimeout(() => reject(new Error('Session AI timeout (15s)')), 15000);
             });
             
             const apiPromise = generateMeditationGuidance({
@@ -274,9 +273,10 @@ export const useMeditationAI = ({
                     setAiMessage(personalizedMsg);
                     messageIndexRef.current = currentIndex + 1;
                     consecutiveFailsRef.current = 0;
-                    
                     if (result.data.audioContent) {
                         playAudio(result.data.audioContent);
+                    } else if (ttcEnabled && speak) {
+                        speak(personalizedMsg);
                     }
                 }
             }
@@ -293,9 +293,12 @@ export const useMeditationAI = ({
                 const msg = messages[currentIndex % messages.length];
                 setAiMessage(msg);
                 messageIndexRef.current = currentIndex + 1;
+                if (ttcEnabled && speak) {
+                    speak(msg);
+                }
             }
         }
-    }, [memberName, timeContext, activeMode, interactionType, micVolume, isPlayingRef, playAudio, setAiLatency]);
+    }, [memberName, timeContext, activeMode, interactionType, micVolume, isPlayingRef, playAudio, speak, ttcEnabled, setAiLatency]);
 
     // -----------------------------------------------------
     // 4. Post-Session: fetchAIFeedback
@@ -354,7 +357,7 @@ export const useMeditationAI = ({
         aiMessage, setAiMessage,
         sessionInfo, setSessionInfo,
         feedbackData, setFeedbackData,
-        needsFeedback, setNeedsFeedback,
+
         
         messageIndexRef,
         sessionDiagnosisRef,

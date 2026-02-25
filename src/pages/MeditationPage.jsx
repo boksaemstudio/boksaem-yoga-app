@@ -13,8 +13,42 @@ import { MEDITATION_MODES, INTERACTION_TYPES, DIAGNOSIS_OPTIONS, WEATHER_OPTIONS
 import { useAudioAnalyzer } from '../hooks/useAudioAnalyzer';
 import { useMeditationAudio } from '../hooks/useMeditationAudio';
 import { useMeditationAI } from '../hooks/useMeditationAI';
+import { useTypewriter } from '../hooks/useTypewriter';
 import { useWeatherAwareness } from '../hooks/useWeatherAwareness';
 import { AILoadingIndicator } from '../components/meditation/ui/AILoadingIndicator';
+
+// ✅ Typewriter Component for smooth text appearance
+const TypewriterText = ({ text, speed = 40 }) => {
+    const [displayedText, setDisplayedText] = useState('');
+    
+    useEffect(() => {
+        setDisplayedText('');
+        if (!text) return;
+        
+        // Simple internal state to prevent StrictMode double-fire issues on refs
+        let index = 0;
+        let isCancelled = false;
+        
+        const interval = setInterval(() => {
+            if (isCancelled) return;
+            
+            setDisplayedText(text.slice(0, index + 1));
+            index++;
+            
+            if (index >= text.length) {
+                clearInterval(interval);
+            }
+        }, speed);
+        
+        return () => {
+            isCancelled = true;
+            clearInterval(interval);
+        };
+    }, [text, speed]);
+    
+    return <span>{displayedText || '...'}</span>;
+};
+
 import { ChatDialog } from '../components/meditation/ui/ChatDialog';
 import { PoseCanvas } from '../components/meditation/ui/PoseCanvas';
 import { VolumeControlPanel } from '../components/meditation/ui/VolumeControlPanel';
@@ -167,7 +201,7 @@ const MeditationPage = ({ onClose }) => {
         aiMessage, setAiMessage,
         sessionInfo, setSessionInfo,
         feedbackData, setFeedbackData,
-        needsFeedback, setNeedsFeedback,
+
         
         messageIndexRef, sessionDiagnosisRef, consecutiveFailsRef,
 
@@ -346,8 +380,7 @@ const MeditationPage = ({ onClose }) => {
         setSelectedCategory(null);
         setChatHistory([]);
         setIsAILoading(false); 
-        setNeedsFeedback(true); // ✅ Signal that we need to show feedback greeting
-        console.log("🛑 stopSession: needsFeedback set to true, step to diagnosis");
+        console.log("🛑 stopSession: step to diagnosis");
         setAiMessage("");
         setPrescriptionReason('');
         setWeatherContext(null);
@@ -509,6 +542,9 @@ const MeditationPage = ({ onClose }) => {
         }
     };
 
+    const stopSessionRef = useRef(stopSession);
+    useEffect(() => { stopSessionRef.current = stopSession; }, [stopSession]);
+
     // 🤖 Cleanup on Unmount
     useEffect(() => {
         const hour = new Date().getHours();
@@ -519,14 +555,11 @@ const MeditationPage = ({ onClose }) => {
         
         setTimeContext(context);
         
-
-
         // 🌤️ AUTO WEATHER DETECTION
         detectWeather();
 
-        return () => { stopSession(); };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [stopSession]);
+        return () => { stopSessionRef.current(); };
+    }, []);
 
     // 🧠 Initial AI Question Load: Immediate Fetch (All AI)
     useEffect(() => {
@@ -537,79 +570,7 @@ const MeditationPage = ({ onClose }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [step, chatHistory.length]);
 
-    // 🏆 SESSION END FEEDBACK GREETING (Rock-solid trigger)
-    useEffect(() => {
-        console.log(`🔍 Feedback Effect check: step=${step}, needsFeedback=${needsFeedback}`);
-        if (step === 'diagnosis' && needsFeedback) {
-            console.log("🎯 Session Ended - Injecting Feedback Greeting for:", memberName);
-            
-            // ✅ 폴백 메시지 (AI 실패 시)
-            const hour = new Date().getHours();
-            let fallbackMsg;
-            if (hour >= 5 && hour < 12) {
-                fallbackMsg = `${memberName}님, 아침 명상은 어떠셨나요? 상쾌한 하루를 시작하는 데 도움이 되셨길 바라요. 더 나누고 싶은 이야기가 있으신가요?`;
-            } else if (hour >= 12 && hour < 18) {
-                fallbackMsg = `${memberName}님, 명상은 어떠셨나요? 오후 시간이 조금 더 편안해지셨길 바라요. 더 나누고 싶은 이야기가 있으신가요?`;
-            } else {
-                fallbackMsg = `${memberName}님, 오늘의 명상은 어떠셨나요? 편안한 밤 되시길 바라요. 더 나누고 싶은 이야기가 있으신가요?`;
-            }
-            
-            // ✅ Clean up state
-            setAiRequestLock(false);
-            setIsAILoading(false);
-            
-            // 초기 폴백 메시지 표시
-            setCurrentAIChat({
-                message: fallbackMsg,
-                options: ["네, 더 이야기할래요", "충분해요, 종료할게요"]
-            });
-            
-            // ✅ AI 피드백 메시지 생성 (비동기)
-            if (sessionInfo) {
-                (async () => {
-                    try {
-                        const feedbackResult = await generateMeditationGuidance({
-                            type: 'feedback_message',
-                            memberName: memberName,
-                            timeContext: timeContext,
-                            modeName: sessionInfo.modeName,
-                            duration: sessionInfo.duration,
-                            diagnosis: sessionInfo.diagnosis
-                        });
-                        
-                        if (feedbackResult.data?.message) {
-                            const aiMsg = feedbackResult.data.message.replace(/OO님/g, `${memberName}님`);
-                            setCurrentAIChat({
-                                message: aiMsg,
-                                options: ["홈으로 가기"] // ✅ "다시 할까요?" → "홈으로 가기"
-                            });
-                            
-                            // AI 음성 재생
-                            if (feedbackResult.data.audioContent) {
-                                playAudio(feedbackResult.data.audioContent);
-                            } else if (ttcEnabled) {
-                                speak(aiMsg);
-                            }
-                        }
-                    } catch (err) {
-                        console.error('Feedback message AI failed, using fallback:', err);
-                        // 폴백은 이미 표시됨
-                        if (ttcEnabled) {
-                            speakFallback(fallbackMsg);
-                        }
-                    }
-                })();
-            } else {
-                // 세션 정보 없으면 폴백 TTS만
-                if (ttcEnabled) {
-                    speakFallback(fallbackMsg);
-                }
-            }
-            
-            setNeedsFeedback(false); // Reset flag
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [step, needsFeedback, ttcEnabled, speakFallback, memberName, sessionInfo, timeContext, playAudio, speak]);
+    // Removed Session End Feedback Greeting as per user request (returning to Home instead)
 
 
     useEffect(() => {
@@ -1414,7 +1375,7 @@ const MeditationPage = ({ onClose }) => {
                                          background: 'rgba(255,255,255,0.08)', color: 'white', padding: '14px 18px',
                                          borderRadius: '4px 18px 18px 18px', maxWidth: '75vw', fontSize: '1.0rem', lineHeight: '1.6',
                                          boxShadow: '0 4px 15px rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)'
-                                     }}>{currentAIChat.message || currentAIChat.question || "오늘 하루는 어떠셨나요?"}</div>
+                                     }}><TypewriterText text={currentAIChat.message || currentAIChat.question || "오늘 하루는 어떠셨나요?"} speed={40} /></div>
                                      <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginBottom: '2px' }}>
                                          {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                      </span>
@@ -1983,6 +1944,13 @@ const MeditationPage = ({ onClose }) => {
         
         return (
             <FeedbackView
+                activeMode={activeMode}
+                feedbackData={feedbackData}
+                formatTime={formatTime}
+                timeLeft={timeLeft}
+                modeName={activeMode?.name || "AI 맞춤 명상"}
+                onClose={onClose}
+                // Optional debug/legacy props
                 visualTheme={visualTheme}
                 isDebugMode={isDebugMode}
                 ttsState={ttsState}
@@ -1992,11 +1960,9 @@ const MeditationPage = ({ onClose }) => {
                 aiLatency={aiLatency}
                 isAILoading={isAILoading}
                 points={points}
-                feedbackData={feedbackData}
                 stopAllAudio={stopAllAudio}
                 setAiMessage={setAiMessage}
                 setChatHistory={setChatHistory}
-                onClose={onClose}
             />
         );
     }
@@ -2059,9 +2025,9 @@ const MeditationPage = ({ onClose }) => {
                         color: 'white', fontSize: '1.2rem', fontWeight: 500, lineHeight: 1.6,
                         opacity: isPlaying ? 1 : 0.5, transition: 'opacity 1s ease',
                         textShadow: '0 4px 20px rgba(0,0,0,0.8)', background: interactionType === 'v3' ? 'rgba(0,0,0,0.6)' : 'transparent',
-                        padding: interactionType === 'v3' ? '15px' : '0', borderRadius: '15px'
+                        padding: interactionType === 'v3' ? '15px' : '0', borderRadius: '15px', wordBreak: 'keep-all'
                     }}>
-                        {aiMessage}
+                        {isPlaying ? <TypewriterText text={aiMessage} speed={50} /> : aiMessage}
                     </p>
                 </div>
 

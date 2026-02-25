@@ -180,13 +180,17 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
         // [FIX] Ensure Unique Members by ID (Prevent UI Duplicates) & Enrich with Install Date
         const memberInstallDate = {};
+        const instructorNamesWithPush = new Set();
         if (tokensResult) {
             tokensResult.forEach(t => {
-                if (!t.memberId) return;
-                const date = t.createdAt || null; // Only count tracked installs with createdAt
-                if (date) {
-                    if (!memberInstallDate[t.memberId] || date > memberInstallDate[t.memberId]) {
-                        memberInstallDate[t.memberId] = date;
+                if (t.role === 'instructor' && t.instructorName) {
+                    instructorNamesWithPush.add(t.instructorName);
+                } else if (t.memberId) {
+                    const date = t.createdAt || null; // Only count tracked installs with createdAt
+                    if (date) {
+                        if (!memberInstallDate[t.memberId] || date > memberInstallDate[t.memberId]) {
+                            memberInstallDate[t.memberId] = date;
+                        }
                     }
                 }
             });
@@ -487,6 +491,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
                 return kstDate === todayStr;
             }).length,
             pushEnabledCount: uniqueMembers.filter(m => isMemberInBranch(m) && tokensResult.some(t => t.memberId === m.id) && m.pushEnabled !== false).length,
+            instructorPushCount: instructorNamesWithPush.size,
             
             // [New] Ratios for UI
             installRatio: activeMembers > 0 ? Math.round((uniqueMembers.filter(m => isMemberInBranch(m) && tokensResult.some(t => t.memberId === m.id)).length / activeMembers) * 100) : 0,
