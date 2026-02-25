@@ -699,7 +699,8 @@ select option {
    ========================================= */
 
 .checkin-wrapper {
-  min-height: 100dvh;
+  min-height: 100vh; /* fallback for older browsers */
+  min-height: calc(var(--vh, 1vh) * 100); /* JS calculated true height */
   /* robust mobile viewport */
   width: 100vw;
   background-color: #0a0a0c;

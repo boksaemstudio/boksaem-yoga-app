@@ -142,6 +142,24 @@ const CheckInPage = () => {
         getBgForPeriod(period).then(m => setBgImage(m.default));
     }, [period]);
 
+    // [FIX] 계산된 동적 뷰포트 높이(vh)를 CSS 변수로 설정 (100dvh 미지원 태블릿용)
+    useEffect(() => {
+        const setVh = () => {
+            // 브라우저 UI를 제외한 실제 보이는 화면의 1% 높이
+            let vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        };
+        // 초기 실행
+        setVh();
+        // 리사이즈, 전체화면 화면 회전 등 이벤트마다 갱신
+        window.addEventListener('resize', setVh);
+        window.addEventListener('orientationchange', setVh);
+        return () => {
+            window.removeEventListener('resize', setVh);
+            window.removeEventListener('orientationchange', setVh);
+        };
+    }, []);
+
     // [New] Auto-reset input after 20s of inactivity
     useEffect(() => {
         if (pin.length > 0) {
@@ -1156,7 +1174,7 @@ const CheckInPage = () => {
         <div className="checkin-wrapper" style={{
             position: 'relative',
             width: '100%',
-            height: '100dvh',
+            height: 'calc(var(--vh, 1vh) * 100)',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
