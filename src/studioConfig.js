@@ -180,9 +180,9 @@ export const STUDIO_CONFIG = {
             options: [
                 {
                     id: 'ttc_standard',
-                    label: 'TTC 6개월 과정',
-                    basePrice: 3520000,
-                    cashPrice: 3200000,
+                    label: 'TTC',
+                    basePrice: 0,
+                    cashPrice: 0,
                     credits: 9999,
                     months: 6,
                     type: 'ticket',

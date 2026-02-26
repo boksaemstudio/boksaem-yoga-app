@@ -81,10 +81,26 @@ export const useMeditationAI = ({
     // -----------------------------------------------------
     // 2. Pre-Session: fetchAIQuestion
     // -----------------------------------------------------
-    const fetchAIQuestion = useCallback(async (history = []) => {
+    const fetchAIQuestion = useCallback(async (history = [], isInitial = false) => {
         if (aiRequestLock) return; 
         setAiRequestLock(true);
         setIsAILoading(true);
+
+        // [NEW] Progressive Initialization: Immediately show a welcoming message
+        if (isInitial && history.length === 0) {
+            const intentionLabel = selectedIntention?.label || "명상";
+            const initialMessage = `${intentionLabel} 시간을 가져볼까요? 오늘 하루 마음이 어떠셨나요?`;
+            setCurrentAIChat({
+                message: initialMessage,
+                isFinalAnalysis: false,
+                options: ["편안해요", "조금 지쳤어요", "복잡해요"]
+            });
+            // User requested less TTS during chat to speed things up. It's skipped in backend, keep it skipped here unless explicitly toggled on a previous session
+            // We will purposely omit `speak(initialMessage)` here for perceived speed and quiet text-based chat.
+            setIsAILoading(false);
+            setAiRequestLock(false);
+            return;
+        }
 
         const requestId = currentRequestIdRef.current + 1;
         currentRequestIdRef.current = requestId;

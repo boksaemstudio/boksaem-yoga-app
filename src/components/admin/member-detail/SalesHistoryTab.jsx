@@ -156,17 +156,22 @@ const SalesHistoryTab = ({ memberId, member }) => {
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {history.map((item) => {
-                        const itemStart = item.startDate ? new Date(`${item.startDate}T00:00:00+09:00`).getTime() : null;
-                        const itemEnd = item.endDate ? new Date(`${item.endDate}T23:59:59+09:00`).getTime() : null;
-                        const now = new Date().getTime();
                         let isItemActive = false;
                         let isItemUpcoming = false;
 
-                        if (itemStart && itemEnd) {
-                            if (now >= itemStart && now <= itemEnd) {
-                                isItemActive = true;
-                            } else if (now < itemStart) {
-                                isItemUpcoming = true;
+                        if (item.startDate === 'TBD' || item.endDate === 'TBD') {
+                            isItemUpcoming = true;
+                        } else {
+                            const itemStart = item.startDate ? new Date(`${item.startDate}T00:00:00+09:00`).getTime() : null;
+                            const itemEnd = item.endDate ? new Date(`${item.endDate}T23:59:59+09:00`).getTime() : null;
+                            const now = new Date().getTime();
+
+                            if (itemStart && itemEnd) {
+                                if (now >= itemStart && now <= itemEnd) {
+                                    isItemActive = true;
+                                } else if (now < itemStart) {
+                                    isItemUpcoming = true;
+                                }
                             }
                         }
 
@@ -188,10 +193,10 @@ const SalesHistoryTab = ({ memberId, member }) => {
                                 <span style={{ color: '#10b981', fontWeight: 'bold' }}>{(item.amount || 0).toLocaleString()}원</span>
                             </div>
 
-                            {/* [NEW] 등록 기간 표시 */}
+                            {/* [NEW] 등록 기간 표시 (TBD 예외 처리 포함) */}
                             {item.startDate && item.endDate && (
                                 <div style={{ fontSize: '0.8rem', color: '#71717a', marginBottom: '6px' }}>
-                                    📅 {item.startDate} ~ {item.endDate}
+                                    📅 {item.startDate === 'TBD' ? '첫 출석 시 확정' : item.startDate} ~ {item.endDate === 'TBD' ? '미정' : item.endDate}
                                 </div>
                             )}
 

@@ -1224,7 +1224,7 @@ const MeditationPage = ({ onClose }) => {
                                     onClick={() => {
                                         setSelectedIntention(intention);
                                         setStep('diagnosis');
-                                        fetchAIQuestion([{ role: 'user', content: intention.label }]);
+                                        fetchAIQuestion([], true); // [MOD] Pass true for instant progressive initial message
                                     }}
                                     style={{
                                         padding: '20px', background: 'rgba(255, 255, 255, 0.05)',
@@ -1659,6 +1659,40 @@ const MeditationPage = ({ onClose }) => {
                                 </div>
                             </button>
                         ))}
+                    </div>
+
+                    {/* ✅ Restored Time & Ambient Options */}
+                    <div style={{ padding: '0 20px', marginTop: '30px', maxWidth: '400px', margin: '30px auto 0 auto', width: '100%' }}>
+                        <div style={{ marginBottom: '20px' }}>
+                            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', marginBottom: '10px' }}>⏱️ 명상 시간</div>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                {MEDITATION_MODES.map(m => (
+                                    <button key={m.id} onClick={() => { setActiveMode(m); setTimeLeft(m.time); }}
+                                        style={{
+                                            flex: 1, padding: '12px 8px', borderRadius: '14px', fontSize: '0.9rem',
+                                            background: (activeMode && activeMode.id === m.id) ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.05)',
+                                            color: (activeMode && activeMode.id === m.id) ? 'white' : 'rgba(255,255,255,0.6)',
+                                            border: (activeMode && activeMode.id === m.id) ? '1px solid rgba(255,255,255,0.3)' : '1px solid rgba(255,255,255,0.05)', fontWeight: 600
+                                        }}>{m.label.split(' ')[0]}</button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', marginBottom: '10px' }}>🎵 자연음 배경 (켜기/끄기)</div>
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                {AMBIENT_SOUNDS.map(a => (
+                                    <button key={a.id} onClick={() => setSelectedAmbient(a.id)}
+                                        style={{
+                                            padding: '8px 16px', borderRadius: '16px', fontSize: '0.85rem',
+                                            background: selectedAmbient === a.id ? `${a.color}30` : 'rgba(255,255,255,0.05)',
+                                            color: selectedAmbient === a.id ? a.color : 'rgba(255,255,255,0.5)',
+                                            border: selectedAmbient === a.id ? `1px solid ${a.color}50` : '1px solid transparent',
+                                            fontWeight: 600, cursor: 'pointer'
+                                        }}>{a.label}</button>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

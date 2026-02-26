@@ -613,9 +613,10 @@ JSON Output:
             result.message = result.message.replace(/OO님/g, `${memberName}님`).replace(/OO/g, memberName);
         }
 
-        // [PERF] TTS를 항상 생성하도록 수정 (v2/v3에서도 음성 안내 필요)
+        // [PERF] User request: Only generate TTS for actual meditation guidance phases (prescription, session, transition).
+        // Chat phase (type === 'question') should explicitly skip TTS generation to avoid 1-2 second delays.
         let audioContent = null;
-        const skipTTS = type === 'question'; // 질문 단계(채팅)에서만 생략
+        const skipTTS = type === 'question' || type === 'options_refresh' || type === 'warmup'; 
         
         const mainAudioPromise = (result.message && !skipTTS) ? (async () => {
             try {

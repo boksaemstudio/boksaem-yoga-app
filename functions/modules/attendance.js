@@ -91,13 +91,14 @@ exports.checkInMemberV2Call = onCall({
 
             const memberData = memberSnap.data();
             
+            // [FIX] Move 'today' and 'now' outside of the if block to fix ReferenceError
+            const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            const now = new Date();
+            
             // [CRITICAL] Check for Duplicates (Idempotency) inside Transaction
             // Same member, same date, within last 15 seconds = Duplicate
             // [UX] If 'force' is provided (Member Confirmed Dual Check-in), SKIP this check completely
             if (!request.data.force) {
-                const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-                const now = new Date();
-                
                 const duplicateWindowSeconds = 15;
                 const duplicateCutoff = new Date(now.getTime() - duplicateWindowSeconds * 1000).toISOString();
     

@@ -51,8 +51,10 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
         let label = option.label;
 
         // Price Calculation with Cash Price support
-        if (paymentMethod === 'cash' && option.cashPrice) {
+        if (paymentMethod === 'cash' && option.cashPrice !== undefined) {
             p = option.cashPrice;
+            // [FIX] Preserve credits for cash payments if option defines it
+            c = option.credits === 9999 ? 9999 : option.credits * duration;
         } else {
             if (option.type === 'ticket') {
                 p = option.basePrice;
@@ -84,7 +86,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
         return {
             calculatedPrice: p,
             calculatedCredits: c,
-            calculatedEndDate: newMember.autoStart ? '첫 출석 시 확정' : end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }),
+            calculatedEndDate: newMember.autoStart ? '첫 출석 시 확정' : (membershipType === 'ttc' && newMember.manualEndDate ? newMember.manualEndDate : end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })),
             calculatedProductName: `${label} ${duration > 1 && option.type !== 'ticket' ? `(${duration}개월)` : ''}`
         };
     }, [newMember, pricingConfig, isOpen]);
@@ -183,7 +185,8 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                 credits: 0, amount: 0, regDate: new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }),
                 startDate: new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }), endDate: '', subject: '', autoStart: true,
                 includeToday: false,
-                todayClass: null
+                todayClass: null,
+                manualEndDate: ''
             });
         } catch (err) {
             console.error('Error adding member:', err);
@@ -425,6 +428,20 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                             )}
                         </div>
                     </div>
+                    {/* [NEW] TTC End Date Selection for New Member */}
+                    {newMember.membershipType === 'ttc' && (
+                        <div className="form-group">
+                            <label className="form-label" style={{ color: '#f59e0b' }}>✓ 종료일 수동 지정 (TTC)</label>
+                            <input
+                                type="date"
+                                className="form-input fade-in"
+                                style={{ width: '100%', cursor: 'pointer', borderColor: '#f59e0b', color: '#f59e0b' }}
+                                value={newMember.manualEndDate || ''}
+                                onClick={(e) => e.target.showPicker && e.target.showPicker()}
+                                onChange={e => setNewMember({ ...newMember, manualEndDate: e.target.value })}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 <div className="form-group">

@@ -33,12 +33,13 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
     // Computed
     const [price, setPrice] = useState(0);
 
-    // Init Logic
+    // Init Logic & Changed Membership Type hook
     useEffect(() => {
-        if (pricingConfig && pricingConfig.general && pricingConfig.general.options.length > 0) {
-            setSelectedOption(pricingConfig.general.options[0].id);
+        if (pricingConfig && pricingConfig[membershipType] && pricingConfig[membershipType].options.length > 0) {
+            // [FIX] Reset selected option when membershipType changes
+            setSelectedOption(pricingConfig[membershipType].options[0].id);
         }
-    }, [pricingConfig]);
+    }, [membershipType, pricingConfig]);
 
     // Calculation Logic - Use useMemo for derived values
     const { calculatedPrice, calculatedCredits, calculatedEndDate, calculatedProductName } = useMemo(() => {
@@ -57,9 +58,11 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
         let label = option.label;
 
         // Price Calculation with Cash Price support
-        if (paymentMethod === 'cash' && option.cashPrice) {
+        if (paymentMethod === 'cash' && option.cashPrice !== undefined) {
             p = option.cashPrice;
-            setDurationMonths(months); // Track base duration
+            // [FIX] Preserve credits for cash payments if option defines it
+            c = option.credits === 9999 ? 9999 : option.credits * duration;
+            setDurationMonths(months);
         } else {
             if (option.type === 'ticket') {
                 p = option.basePrice;
@@ -103,6 +106,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
 
     // Computed Info for TBD mode
     const finalStartDate = (isAdvance && startDateMode === 'first') ? 'TBD' : startDate;
+    // [FIX] For TTC logic, we allow using the directly modified manual end date on UI instead of calculated End Date
     const finalEndDate = (isAdvance && startDateMode === 'first') ? 'TBD' : calculatedEndDate;
 
     const handleRenew = async () => {
@@ -127,7 +131,8 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                 paymentMethod: paymentMethod,
                 date: today,
                 startDate: finalStartDate,
-                endDate: finalEndDate,
+                // [FIX] Uses TTC custom end date if applicable
+                endDate: membershipType === 'ttc' ? member.endDate : finalEndDate,
                 // 선등록 데이터는 이력 저장만 함
             };
 
@@ -140,7 +145,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                     membershipType: membershipType,
                     credits: calculatedCredits,
                     startDate: finalStartDate,
-                    endDate: finalEndDate,
+                    endDate: membershipType === 'ttc' ? member.endDate : finalEndDate,
                     durationMonths: durationMonths // TBD의 경우 계산을 위해 개월 수 저장
                 };
                 updateData.lastPaymentDate = new Date().toISOString();
@@ -148,7 +153,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                 updateData.membershipType = membershipType;
                 updateData.credits = calculatedCredits;
                 updateData.startDate = finalStartDate;
-                updateData.endDate = finalEndDate;
+                updateData.endDate = membershipType === 'ttc' ? member.endDate : finalEndDate;
                 updateData.lastPaymentDate = new Date().toISOString();
             }
 
@@ -282,13 +287,22 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                             </div>
                         )}
                     </div>
+                    
+                    {/* [NEW] TTC End Date Selection */}
+                    {membershipType === 'ttc' && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                            <label style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>종료일 (수동 지정)</label>
+                            <CustomDatePicker value={member.endDate || ''} onChange={(d) => onUpdateMember(member.id, { endDate: d })} />
+                            <small style={{ color: '#f59e0b' }}>* TTC 과정은 종료일을 직접 지정합니다.</small>
+                        </div>
+                    )}
 
                     {/* Summary Card */}
                     <div style={{ background: 'rgba(20,20,20,0.5)', padding: '15px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
                             <span style={{ color: '#a1a1aa' }}>예상 종료일</span>
                             <span style={{ color: startDateMode === 'first' && isAdvance ? '#38bdf8' : 'white' }}>
-                                {startDateMode === 'first' && isAdvance ? '첫 출석 시 확정' : calculatedEndDate}
+                                {membershipType === 'ttc' ? member.endDate || '미지정' : (startDateMode === 'first' && isAdvance ? '첫 출석 시 확정' : calculatedEndDate)}
                             </span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>

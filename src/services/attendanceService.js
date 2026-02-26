@@ -279,7 +279,7 @@ export const attendanceService = {
       const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
       const now = new Date().toISOString();
 
-      // [FIX] Offline Expiry Validation
+      // [FIX] Offline Expiry Validation & upcomingMembership fallback
       if (member) {
           let isExpired = false;
           let denialReason = null;
@@ -295,6 +295,50 @@ export const attendanceService = {
           if (!isExpired && (member.credits || 0) <= 0) {
               isExpired = true;
               denialReason = 'no_credits';
+          }
+
+          // [NEW] Offline fallback: Activate upcomingMembership if current is exhausted
+          if (isExpired && member.upcomingMembership && member.upcomingMembership.startDate) {
+              const isTBD = member.upcomingMembership.startDate === 'TBD';
+              let shouldActivate = false;
+              let newStartDate = member.upcomingMembership.startDate;
+              let newEndDate = member.upcomingMembership.endDate;
+
+              if (isTBD) {
+                  shouldActivate = true;
+                  newStartDate = today;
+                  const durationMonths = member.upcomingMembership.durationMonths || 1;
+                  if (durationMonths === 9999) {
+                      const end = new Date(today);
+                      end.setMonth(end.getMonth() + 1);
+                      end.setDate(end.getDate() - 1);
+                      newEndDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                  } else {
+                      const end = new Date(today);
+                      end.setMonth(end.getMonth() + durationMonths);
+                      end.setDate(end.getDate() - 1);
+                      newEndDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                  }
+              } else {
+                  const upcomingStart = new Date(member.upcomingMembership.startDate);
+                  const todayDate = new Date(today);
+                  if (todayDate >= upcomingStart) {
+                      shouldActivate = true;
+                  }
+              }
+
+              if (shouldActivate) {
+                  console.log(`[attendanceService] Activating upcoming membership for ${memberId} in offline mode`);
+                  // Modify the in-memory member object. The actual update will happen in memberService._updateLocalMemberCache later.
+                  member.membershipType = member.upcomingMembership.membershipType;
+                  member.credits = member.upcomingMembership.credits;
+                  member.startDate = newStartDate;
+                  member.endDate = newEndDate;
+                  
+                  // Reset expiration since we just activated a new one
+                  isExpired = false;
+                  denialReason = null;
+              }
           }
 
           if (isExpired) {
@@ -334,11 +378,22 @@ export const attendanceService = {
       const newCredits = (member?.credits || 0) > 0 ? (member.credits - 1) : 0;
       const newCount = (member?.attendanceCount || 0) + 1;
       
-      memberService._updateLocalMemberCache(memberId, {
+      const updatePayload = {
           credits: newCredits,
           attendanceCount: newCount,
           lastAttendance: now
-      });
+      };
+
+      // [NEW] If upcomingMembership was activated, include those changes in the local cache update
+      if (member && !member.upcomingMembership && Object.keys(member).includes('upcomingMembership') === false || (member && member.upcomingMembership && member.startDate !== 'TBD' && member.startDate === today)) {
+          // It was activated if we modified the in-memory member object
+          updatePayload.membershipType = member.membershipType;
+          updatePayload.startDate = member.startDate;
+          updatePayload.endDate = member.endDate;
+          updatePayload.upcomingMembership = null; // Clear the upcoming membership locally
+      }
+
+      memberService._updateLocalMemberCache(memberId, updatePayload);
 
       return {
         success: true,

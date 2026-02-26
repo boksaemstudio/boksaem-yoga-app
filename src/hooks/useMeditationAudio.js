@@ -149,8 +149,9 @@ export const useMeditationAudio = (ttcEnabled, isPlayingRef, step, logDebug, set
                 });
             }
             
-            // Race condition check
-            if (!isPlayingRef.current && step === 'session') {
+            // [FIX] More robust race condition check to ensure audio isn't prematurely paused
+            // Only pause if we are explicitly IN a session and the user has actively hit pause.
+            if (step === 'session' && isPlayingRef && isPlayingRef.current === false) {
                 audio.pause();
                 currentAudioRef.current = null;
             }
