@@ -1639,31 +1639,41 @@ const CheckInPage = () => {
                                                 💤 만료/비활성
                                             </h3>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto' }}>
-                                                {inactiveMembers.length > 0 ? inactiveMembers.map(m => (
-                                                    <div
-                                                        key={m.id}
-                                                        className="member-card inactive-member-card"
-                                                        style={{
-                                                            padding: '10px 15px',
-                                                            borderRadius: '8px',
-                                                            background: 'rgba(0,0,0,0.3)',
-                                                            color: 'rgba(255,255,255,0.4)',
-                                                            border: '1px dashed rgba(255,255,255,0.1)',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'space-between',
-                                                            textAlign: 'left',
-                                                            cursor: 'default',
-                                                            opacity: 0.7
-                                                        }}
-                                                    >
-                                                        <div>
-                                                            <div style={{ fontSize: '1.05rem', fontWeight: '600' }}>{m.name}</div>
-                                                            <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>{getBranchName(m.homeBranch)}</div>
+                                                {inactiveMembers.length > 0 ? inactiveMembers.map(m => {
+                                                    const isSelected = selectedMemberId === m.id;
+                                                    return (
+                                                        <div
+                                                            key={m.id}
+                                                            onClick={(e) => {
+                                                                if (loading) return;
+                                                                e.stopPropagation();
+                                                                setSelectedMemberId(m.id);
+                                                            }}
+                                                            className={`member-card inactive-member-card ${isSelected ? 'selected' : ''}`}
+                                                            style={{
+                                                                padding: '10px 15px',
+                                                                borderRadius: '8px',
+                                                                background: isSelected ? 'rgba(212,175,55,0.15)' : 'rgba(0,0,0,0.3)',
+                                                                color: isSelected ? 'var(--primary-gold)' : 'rgba(255,255,255,0.4)',
+                                                                border: isSelected ? '1px solid var(--primary-gold)' : '1px dashed rgba(255,255,255,0.1)',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'space-between',
+                                                                textAlign: 'left',
+                                                                cursor: 'pointer',
+                                                                opacity: isSelected ? 1 : 0.7,
+                                                                transform: isSelected ? 'scale(1.02)' : 'none',
+                                                                transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                                                            }}
+                                                        >
+                                                            <div>
+                                                                <div style={{ fontSize: '1.05rem', fontWeight: isSelected ? '800' : '600' }}>{m.name}</div>
+                                                                <div style={{ fontSize: '0.75rem', opacity: isSelected ? 0.9 : 0.6 }}>{getBranchName(m.homeBranch)}</div>
+                                                            </div>
+                                                            <div style={{ fontSize: '0.8rem', color: '#ff6b6b' }}>만료/비활성</div>
                                                         </div>
-                                                        <div style={{ fontSize: '0.8rem', color: '#ff6b6b' }}>만료됨</div>
-                                                    </div>
-                                                )) : (
+                                                    );
+                                                }) : (
                                                     <div style={{ opacity: 0.3, textAlign: 'center', padding: '15px', fontSize: '0.85rem' }}>
                                                         해당 없음
                                                     </div>

@@ -122,12 +122,14 @@ export const storageService = {
         await Promise.all(fetchPromises);
         console.log(`[Storage] Kiosk daily_classes cache ready (3 days for all branches)`);
 
-        // [ALWAYS-ON] Periodic background refresh (every 1 hour)
+        // [ALWAYS-ON] Periodic background refresh (every 10m)
         if (!this._refreshInterval) {
           this._refreshInterval = setInterval(() => {
-            console.log("[Storage] Scheduled background refresh for today's classes...");
+            console.log("[Storage] Scheduled background refresh for today's classes and member cache...");
             branches.forEach(bid => this._refreshDailyClassCache(bid));
-          }, 10 * 60 * 1000); // [FIX] Shortened from 1h to 10m to prevent stale empty cache
+            // [UX] Refresh members periodically in Kiosk mode to prevent stale "Expired" states
+            memberService.loadAllMembers();
+          }, 10 * 60 * 1000); // 10m
         }
 
       } catch (err) {
