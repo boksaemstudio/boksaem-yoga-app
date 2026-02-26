@@ -1015,7 +1015,7 @@ const CheckInPage = () => {
             finalMsg = `${streak}일째 수련을 이어가고 계시네요. 좋은 흐름입니다.`;
         } else if (daysLeft <= 7 && daysLeft >= 0) {
             finalMsg = `회원권 만료가 ${daysLeft}일 남았습니다.`;
-        } else if (credits <= 3 && credits > 0 && Number.isFinite(credits)) { // [FIX] Check finite
+        } else if (credits <= 2 && credits > 0 && Number.isFinite(credits)) { // [FIX] Check finite
             finalMsg = `잔여 횟수가 ${credits}회 남았습니다.`;
         } else if (attCount >= 100) {
             finalMsg = `${attCount}번째 수련입니다. 항상 함께해 주셔서 감사합니다.`;

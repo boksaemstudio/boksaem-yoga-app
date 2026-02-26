@@ -138,7 +138,7 @@ const MembersTab = ({
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
                             <span className="tooltip-text" style={{ width: '220px', left: '-100px' }}>
-                                잔여 1회 이하 또는<br />만료 7일 전 ~ 만료 후 30일 이내
+                                잔여 2회 이하 또는<br />만료 7일 전 ~ 만료 후 30일 이내
                             </span>
                         </div>
                     </div>
@@ -253,9 +253,9 @@ const MembersTab = ({
 
                 {/* Legend (Moved here per user request) */}
                 <div style={{ display: 'flex', gap: '15px', fontSize: '0.8rem', color: 'var(--text-tertiary)', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-error)' }} /> 만료/소진</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b' }} /> 임박 (7일/3회↓)</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--text-tertiary)' }} /> 일반</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--accent-error)' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-error)' }} /> 만료/소진</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#f59e0b' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b' }} /> 임박 (7일/2회↓)</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#ffffff' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ffffff' }} /> 일반</div>
                 </div>
 
                 <select 
@@ -349,7 +349,7 @@ const MembersTab = ({
                                                     
                                                     if (diff < 0 || member.credits === 0) {
                                                         return <span className="badge" style={{ background: 'rgba(255, 59, 48, 0.15)', color: '#FF3B30', border: '1px solid rgba(255, 59, 48, 0.3)' }}>만료/소진</span>;
-                                                    } else if (diff <= 7 || member.credits <= 3) {
+                                                    } else if (diff <= 7 || member.credits <= 2) {
                                                         return <span className="badge" style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#FBBF24', border: '1px solid rgba(245, 158, 11, 0.4)' }}>만료/임박</span>;
                                                     } else {
                                                         return <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34D399', border: '1px solid rgba(16, 185, 129, 0.4)' }}>활동중</span>;
@@ -491,7 +491,7 @@ const MembersTab = ({
                                             <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
                                                 <span>{member.subject || '일반'}</span>
                                                 <span style={{ opacity: 0.3 }}>|</span>
-                                                <span style={{ color: member.credits <= 0 ? 'var(--accent-error)' : (member.credits <= 3 ? '#f59e0b' : 'var(--text-primary)'), fontWeight: 'bold' }}>잔여 {member.credits}회</span>
+                                                <span style={{ color: member.credits <= 0 ? 'var(--accent-error)' : (member.credits <= 2 ? '#f59e0b' : 'var(--text-primary)'), fontWeight: 'bold' }}>잔여 {member.credits}회</span>
                                                 <span style={{ opacity: 0.3 }}>|</span>
                                                 <span style={{
                                                     color: (() => {

@@ -61,7 +61,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
     const isMemberExpiring = useCallback((m) => {
         // If no endDate, just check credits
         const credits = Number(m.credits || 0);
-        const hasNoCredits = credits <= 1;
+        const hasNoCredits = credits <= 2;
 
         if (!m.endDate) return hasNoCredits;
 

@@ -716,7 +716,7 @@ const determineStatusColor = (member) => {
 
     if (end < today || credits <= 0) return '#ef4444';
     const diff = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
-    if (diff <= 7 || credits <= 3) return '#f59e0b';
+    if (diff <= 7 || credits <= 2) return '#f59e0b';
     return '#10b981';
 };
 
