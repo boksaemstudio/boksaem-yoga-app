@@ -1,5 +1,5 @@
 import { db, functions } from '../firebase';
-import { collection, doc, query, where, getDocs, getDoc, addDoc, updateDoc, onSnapshot, limit as firestoreLimit } from 'firebase/firestore';
+import { collection, doc, query, where, getDocs, getDoc, addDoc, updateDoc, setDoc, onSnapshot, limit as firestoreLimit } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 
 // [NETWORK] Timeout wrapper for Cloud Function calls
@@ -17,6 +17,17 @@ let memberListenerUnsubscribe = null;
 let notifyCallback = () => {};
 
 export const memberService = {
+  // [NEW] Trigger Kiosk Sync
+  async triggerKioskSync() {
+    try {
+      const syncRef = doc(db, 'system_state', 'kiosk_sync');
+      await setDoc(syncRef, { lastMemberUpdate: new Date().toISOString() }, { merge: true });
+      console.log('[memberService] Kiosk sync triggered');
+    } catch (e) {
+      console.warn('[memberService] Failed to trigger kiosk sync:', e);
+    }
+  },
+
   // --- Initialization & Listener ---
   setNotifyCallback(callback) {
     notifyCallback = callback;
@@ -161,6 +172,7 @@ export const memberService = {
     try {
       const memberRef = doc(db, 'members', memberId);
       await updateDoc(memberRef, { ...data, updatedAt: new Date().toISOString() });
+      this.triggerKioskSync();
       return { success: true };
     } catch (e) {
       console.error('Update member failed:', e);
@@ -192,6 +204,7 @@ export const memberService = {
         phoneLast4: data.phone.slice(-4)
       });
       console.log(`[memberService] Member added to Firestore: ${docRef.id}`);
+      this.triggerKioskSync();
       return { success: true, id: docRef.id };
     } catch (e) {
       console.error('Add member failed:', e);

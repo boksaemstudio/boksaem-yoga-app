@@ -132,6 +132,25 @@ export const storageService = {
           }, 10 * 60 * 1000); // 10m
         }
 
+        // [NEW] Real-time Kiosk Trigger: 단일 문서 리스너 (가벼운 실시간 동기화)
+        try {
+          const syncRef = doc(db, 'system_state', 'kiosk_sync');
+          onSnapshot(syncRef, (snapshot) => {
+            if (snapshot.exists()) {
+              const data = snapshot.data();
+              if (data.lastMemberUpdate && data.lastMemberUpdate > (this._lastKioskSync || '')) {
+                console.log('[Storage] Kiosk sync triggered by Admin. Refreshing members...');
+                this._lastKioskSync = data.lastMemberUpdate;
+                memberService.loadAllMembers();
+              }
+            }
+          }, (err) => {
+            console.warn('[Storage] Kiosk sync listener error:', err);
+          });
+        } catch (syncErr) {
+          console.error('[Storage] Setup kiosk sync failed:', syncErr);
+        }
+
       } catch (err) {
         console.warn('[Storage] Kiosk pre-fetch error:', err);
       }
