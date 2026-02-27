@@ -926,8 +926,21 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                                 <div 
                                     key={record.id} 
                                     onClick={() => {
-                                        setEditingSale(record);
                                         const isCurrent = record.startDate && record.endDate && originalData.startDate === record.startDate && originalData.endDate === record.endDate;
+                                        
+                                        if (isCurrent) {
+                                            // Scroll to top to focus on "진행 중인 회원정보"
+                                            const container = document.querySelector('.fade-in');
+                                            if (container) {
+                                                container.scrollTo({ top: 0, behavior: 'smooth' });
+                                                // Prevent setting edit mode for the current active membership
+                                                setEditingSale(null);
+                                                setSaleEditData(null);
+                                            }
+                                            return;
+                                        }
+
+                                        setEditingSale(record);
                                         const isUpcoming = originalData.upcomingMembership && record.startDate && record.endDate && originalData.upcomingMembership.startDate === record.startDate && originalData.upcomingMembership.endDate === record.endDate;
                                         
                                         let initialCredits = record.credits;
