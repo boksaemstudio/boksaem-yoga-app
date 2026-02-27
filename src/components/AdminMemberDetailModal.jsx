@@ -721,7 +721,8 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
             </div>
 
             {(() => {
-                const hasChanges = Object.keys(originalData).some(key => {
+                const editableKeys = ['name', 'phone', 'membershipType', 'subject', 'regDate', 'startDate', 'endDate', 'credits', 'price', 'notes'];
+                const hasChanges = editableKeys.some(key => {
                     const orig = originalData[key] ?? '';
                     const curr = editData[key] ?? '';
                     if (key === 'price') return Number(orig) !== Number(curr);
