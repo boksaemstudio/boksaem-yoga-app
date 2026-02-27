@@ -10,16 +10,16 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 async function checkMember() {
-    const mems = await db.collection('members').where('name', '==', '변은정').get();
+    const mems = await db.collection('members').where('name', '==', '김지수').get();
     for (const doc of mems.docs) {
         console.log("MEMBER ID:", doc.id);
-        const sales = await db.collection(`members/${doc.id}/salesHistory`).get();
-        sales.forEach(s => {
-            console.log("SALE:", s.id, JSON.stringify(s.data(), null, 2));
-        });
+        
+        // Also fetch sales history
+       const sales = await db.collection(`members/${doc.id}/salesHistory`).get();
+       sales.forEach(s => {
+           console.log("SALE:", s.id, JSON.stringify(s.data(), null, 2));
+       });
     }
 }
 
-checkMember().then(() => {
-    setTimeout(() => process.exit(0), 1000);
-});
+checkMember().then(() => process.exit(0));

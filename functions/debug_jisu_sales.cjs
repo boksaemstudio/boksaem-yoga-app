@@ -1,6 +1,6 @@
 const admin = require('firebase-admin');
 const path = require('path');
-const serviceAccount = require(path.join(__dirname, 'functions/service-account-key.json'));
+const serviceAccount = require(path.join(__dirname, 'service-account-key.json'));
 
 if (!admin.apps.length) {
     admin.initializeApp({
@@ -10,10 +10,10 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 async function checkMember() {
-    const mems = await db.collection('members').where('name', '==', '변은정').get();
+    const mems = await db.collection('members').where('name', '==', '김지수').get();
     for (const doc of mems.docs) {
         console.log("MEMBER ID:", doc.id);
-        const sales = await db.collection(`members/${doc.id}/salesHistory`).get();
+        const sales = await db.collection('sales').where('memberId', '==', doc.id).get();
         sales.forEach(s => {
             console.log("SALE:", s.id, JSON.stringify(s.data(), null, 2));
         });

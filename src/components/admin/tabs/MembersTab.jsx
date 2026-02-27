@@ -251,12 +251,7 @@ const MembersTab = ({
                     </strong>으로 보고 계십니다.
                 </div>
 
-                {/* Legend (Moved here per user request) */}
-                <div style={{ display: 'flex', gap: '15px', fontSize: '0.8rem', color: 'var(--text-tertiary)', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--accent-error)' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-error)' }} /> 만료/소진</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#f59e0b' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b' }} /> 임박 (7일/2회↓)</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#ffffff' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ffffff' }} /> 일반</div>
-                </div>
+                {/* Legend removed per user request */}
 
                 <select 
                     value={localSort} 
