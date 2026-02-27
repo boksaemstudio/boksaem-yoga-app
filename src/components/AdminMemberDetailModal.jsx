@@ -119,6 +119,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
         startDate: '수강 시작일',
         endDate: '종료일',
         credits: '잔여 횟수',
+        price: '결제 금액',
         notes: '메모'
     };
 
@@ -139,7 +140,18 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
             // Special handling for null/undefined to empty string if needed
             const original = member[key] ?? '';
             const current = editData[key] ?? '';
-            if (original != current) { // != to handle loose type (e.g. number vs string) if needed, otherwise !==
+            
+            // special check for price since it might be numeric vs string
+            if (key === 'price') {
+                if (Number(original) !== Number(current)) {
+                     changes.push({
+                        key,
+                        label: FIELD_LABELS[key],
+                        oldValue: original,
+                        newValue: current
+                    });
+                }
+            } else if (original != current) { // != to handle loose type (e.g. number vs string) if needed, otherwise !==
                 changes.push({
                     key,
                     label: FIELD_LABELS[key],
@@ -414,6 +426,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                                 setEditData={setEditData}
                                 onSave={handlePreSave}
                                 pricingConfig={pricingConfig}
+                                originalData={member}
                             />
                         </div>
                     )}
@@ -546,7 +559,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
 };
 
 // MemberInfoTab remains in this file as it's simpler
-const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig }) => {
+const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalData }) => {
     // Helper to get Korean label for membership type
     const getTypeLabel = (key) => {
         const map = {
@@ -658,16 +671,50 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig }) => {
                 </div>
             </div>
 
-            <button
-                onClick={onSave}
-                style={{
-                    padding: '15px', borderRadius: '10px', border: 'none',
-                    background: 'var(--primary-gold)', color: 'black',
-                    fontWeight: 'bold', fontSize: '1.1rem', marginTop: '10px'
-                }}
-            >
-                저장하기
-            </button>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '8px' }}>
+                    <span style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>결제 금액</span>
+                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <input
+                            type="text"
+                            value={(editData.price || 0).toLocaleString()}
+                            onChange={(e) => {
+                                const val = Number(e.target.value.replace(/[^0-9]/g, ''));
+                                setEditData({ ...editData, price: val });
+                            }}
+                            style={{
+                                background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--primary-gold)',
+                                fontSize: '1rem', fontWeight: 'bold', textAlign: 'right', width: '120px', padding: '5px', borderRadius: '6px'
+                            }}
+                        />
+                        <span style={{ color: '#a1a1aa', fontSize: '0.9rem' }}>원</span>
+                    </div>
+                </div>
+            </div>
+
+            {(() => {
+                const hasChanges = Object.keys(originalData).some(key => {
+                    const orig = originalData[key] ?? '';
+                    const curr = editData[key] ?? '';
+                    if (key === 'price') return Number(orig) !== Number(curr);
+                    return orig != curr;
+                });
+                
+                if (!hasChanges) return null;
+
+                return (
+                    <button
+                        onClick={onSave}
+                        style={{
+                            padding: '15px', borderRadius: '10px', border: 'none',
+                            background: 'var(--primary-gold)', color: 'black',
+                            fontWeight: 'bold', fontSize: '1.1rem', marginTop: '10px'
+                        }}
+                    >
+                        저장하기
+                    </button>
+                );
+            })()}
         </div>
     );
 };

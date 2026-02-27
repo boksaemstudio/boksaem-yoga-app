@@ -31,6 +31,8 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
 
     // Computed
     const [price, setPrice] = useState(0);
+    const [customEndDate, setCustomEndDate] = useState('');
+    const [customCredits, setCustomCredits] = useState(0);
 
     // Init Logic & Changed Membership Type hook
     useEffect(() => {
@@ -98,6 +100,14 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
         setPrice(calculatedPrice);
     }, [calculatedPrice]);
 
+    useEffect(() => {
+        setCustomEndDate(calculatedEndDate);
+    }, [calculatedEndDate]);
+
+    useEffect(() => {
+        setCustomCredits(calculatedCredits);
+    }, [calculatedCredits]);
+
     // [INFO] 선등록 여부 확인
     const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
     const isAdvance = member.endDate && new Date(member.endDate) >= new Date(todayStr); // 잔여 기간이 남아있으면 선등록 가능
@@ -105,7 +115,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
     // Computed Info for TBD mode
     const finalStartDate = (isAdvance && startDateMode === 'first') ? 'TBD' : startDate;
     // [FIX] For TTC logic, we allow using the directly modified manual end date on UI instead of calculated End Date
-    const finalEndDate = (isAdvance && startDateMode === 'first') ? 'TBD' : calculatedEndDate;
+    const finalEndDate = (isAdvance && startDateMode === 'first') ? 'TBD' : customEndDate;
 
     const handleRenew = async () => {
         // 중복 클릭 방지
@@ -141,7 +151,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                 // 선등록인 경우 upcomingMembership 필드에 저장하여 즉시 덮어쓰지 않음
                 updateData.upcomingMembership = {
                     membershipType: membershipType,
-                    credits: calculatedCredits,
+                    credits: customCredits,
                     startDate: finalStartDate,
                     endDate: membershipType === 'ttc' ? member.endDate : finalEndDate,
                     durationMonths: durationMonths // TBD의 경우 계산을 위해 개월 수 저장
@@ -149,7 +159,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                 updateData.lastPaymentDate = new Date().toISOString();
             } else {
                 updateData.membershipType = membershipType;
-                updateData.credits = calculatedCredits;
+                updateData.credits = customCredits;
                 updateData.startDate = finalStartDate;
                 updateData.endDate = membershipType === 'ttc' ? member.endDate : finalEndDate;
                 updateData.lastPaymentDate = new Date().toISOString();
@@ -279,15 +289,36 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
 
                     {/* Summary Card */}
                     <div style={{ background: 'rgba(20,20,20,0.5)', padding: '15px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', alignItems: 'center' }}>
                             <span style={{ color: '#a1a1aa' }}>예상 종료일</span>
-                            <span style={{ color: startDateMode === 'first' && isAdvance ? '#38bdf8' : 'white' }}>
-                                {membershipType === 'ttc' ? member.endDate || '미지정' : (startDateMode === 'first' && isAdvance ? '첫 출석 시 확정' : calculatedEndDate)}
-                            </span>
+                            {startDateMode === 'first' && isAdvance ? (
+                                <span style={{ color: '#38bdf8' }}>첫 출석 시 확정</span>
+                            ) : membershipType === 'ttc' ? (
+                                <span style={{ color: 'white' }}>{member.endDate || '미지정'}</span>
+                            ) : (
+                                <div style={{ width: '150px' }}>
+                                    <CustomDatePicker value={customEndDate} onChange={setCustomEndDate} />
+                                </div>
+                            )}
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', alignItems: 'center' }}>
                             <span style={{ color: '#a1a1aa' }}>지급 횟수</span>
-                            <span style={{ color: 'white' }}>{calculatedCredits === 9999 ? '무제한' : `${calculatedCredits}회`}</span>
+                            {customCredits === 9999 ? (
+                                <span style={{ color: 'white' }}>무제한</span>
+                            ) : (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                    <input
+                                        type="number"
+                                        value={customCredits}
+                                        onChange={(e) => setCustomCredits(Number(e.target.value))}
+                                        style={{
+                                            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white',
+                                            fontSize: '1rem', textAlign: 'right', width: '60px', padding: '5px', borderRadius: '6px'
+                                        }}
+                                    />
+                                    <span style={{ color: 'white' }}>회</span>
+                                </div>
+                            )}
                         </div>
                         {isAdvance && (
                             <div style={{
