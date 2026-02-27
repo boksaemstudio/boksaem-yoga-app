@@ -116,11 +116,18 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
             try {
                 const sales = await storageService.getSalesHistory(member.id);
                 if (sales && sales.length > 0 && isMounted) {
-                    const sorted = [...sales].sort((a, b) => new Date(b.timestamp || b.date).getTime() - new Date(a.timestamp || a.date).getTime());
-                    const latest = sorted.find(s => s.type === 'register') || sorted[0];
-                    if (latest && latest.amount !== undefined) {
-                        setLocalMember(prev => ({ ...prev, price: latest.amount }));
-                        setEditData(prev => ({ ...prev, price: latest.amount }));
+                    // Try to find the exact sales record that matches the current membership period
+                    let matchedSale = sales.find(s => s.startDate === member.startDate && s.endDate === member.endDate && s.type === 'register');
+                    
+                    if (!matchedSale) {
+                        // Fallback: sort descending and pick the latest registration
+                        const sorted = [...sales].sort((a, b) => new Date(b.timestamp || b.date).getTime() - new Date(a.timestamp || a.date).getTime());
+                        matchedSale = sorted.find(s => s.type === 'register') || sorted[0];
+                    }
+
+                    if (matchedSale && matchedSale.amount !== undefined) {
+                        setLocalMember(prev => ({ ...prev, price: matchedSale.amount }));
+                        setEditData(prev => ({ ...prev, price: matchedSale.amount }));
                     }
                 }
             } catch (e) {
