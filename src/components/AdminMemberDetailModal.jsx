@@ -917,8 +917,20 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                     </div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        {history.map((record) => {
-                            const isSelected = editingSale?.id === record.id;
+                        {[...history].sort((a, b) => {
+                            // Sort currently active to the top
+                            const aIsCurrent = a.startDate && a.endDate && originalData.startDate === a.startDate && originalData.endDate === a.endDate;
+                            const bIsCurrent = b.startDate && b.endDate && originalData.startDate === b.startDate && originalData.endDate === b.endDate;
+                            if (aIsCurrent && !bIsCurrent) return -1;
+                            if (!aIsCurrent && bIsCurrent) return 1;
+                            
+                            // Then sort by timestamp descending
+                            const aTime = a.timestamp ? new Date(a.timestamp).getTime() : new Date(a.date || 0).getTime();
+                            const bTime = b.timestamp ? new Date(b.timestamp).getTime() : new Date(b.date || 0).getTime();
+                            return bTime - aTime;
+                        }).map((record) => {
+                            const isCurrent = record.startDate && record.endDate && originalData.startDate === record.startDate && originalData.endDate === record.endDate;
+                            const isSelected = editingSale?.id === record.id || (!editingSale && isCurrent);
                             const dDate = record.timestamp ? new Date(record.timestamp) : new Date(record.date || Date.now());
                             const isAdvance = record.startDate && record.startDate > new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 
