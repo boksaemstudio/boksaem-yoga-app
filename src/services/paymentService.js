@@ -21,6 +21,19 @@ export const paymentService = {
     }
   },
 
+  async updateSalesRecord(salesId, updates) {
+    try {
+      const { updateDoc } = await import('firebase/firestore');
+      await updateDoc(doc(db, 'sales', salesId), updates);
+      console.log(`[paymentService] Sales record updated: ${salesId}`);
+      notifyCallback();
+      return true;
+    } catch (e) {
+      console.error("Update sales record failed:", e);
+      throw e;
+    }
+  },
+
   async deleteSalesRecord(salesId) {
     try {
       await deleteDoc(doc(db, 'sales', salesId));

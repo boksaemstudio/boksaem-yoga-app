@@ -626,7 +626,12 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                 await storageService.updateSalesRecord(editingSale.id, updates);
                 
                 // [SYNC] If the edited sales record perfectly matches the CURRENT member's root dates, automatically sync the changes to the member profile!
-                if (originalData.startDate === editingSale.startDate && originalData.endDate === editingSale.endDate) {
+                const isCurrentMembership = originalData.startDate === editingSale.startDate && originalData.endDate === editingSale.endDate;
+                const isUpcomingMembership = originalData.upcomingMembership && 
+                                             originalData.upcomingMembership.startDate === editingSale.startDate && 
+                                             originalData.upcomingMembership.endDate === editingSale.endDate;
+
+                if (isCurrentMembership) {
                     const memberUpdates = {};
                     if (updates.startDate) memberUpdates.startDate = updates.startDate;
                     if (updates.endDate) memberUpdates.endDate = updates.endDate;
@@ -640,7 +645,45 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                            console.error("Auto sync to member failed:", memberErr);
                         }
                     }
-                } else if (updates.startDate || updates.endDate) {
+                } else if (isUpcomingMembership) {
+                    const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                    const newStartDate = updates.startDate || editingSale.startDate;
+                    
+                    if (newStartDate !== 'TBD' && newStartDate <= todayStr) {
+                        if (confirm("수정된 시작일이 오늘(또는 과거)입니다. 이 결제건을 현재 '진행 중인 수강권'으로 즉시 갱신/적용하시겠습니까?")) {
+                            const memberUpdates = {
+                                startDate: newStartDate,
+                                endDate: updates.endDate || editingSale.endDate,
+                                credits: updates.credits !== undefined ? updates.credits : editingSale.credits,
+                                price: updates.amount !== undefined ? updates.amount : editingSale.amount,
+                                upcomingMembership: null // Clear upcoming
+                            };
+                            if (originalData.upcomingMembership.membershipType) {
+                                memberUpdates.membershipType = originalData.upcomingMembership.membershipType;
+                            }
+                            try {
+                                await storageService.updateMember(originalData.id, memberUpdates);
+                                alert("선결제 수강권이 현재 진행 중인 수강권으로 갱신되었습니다.");
+                            } catch(memberErr) {
+                                console.error("Auto promote member failed:", memberErr);
+                            }
+                        }
+                    } else {
+                        // Just update upcomingMembership
+                        const upcomingUpdates = { ...originalData.upcomingMembership };
+                        if (updates.startDate) upcomingUpdates.startDate = updates.startDate;
+                        if (updates.endDate) upcomingUpdates.endDate = updates.endDate;
+                        if (updates.credits !== undefined) upcomingUpdates.credits = updates.credits;
+                        if (updates.amount !== undefined) upcomingUpdates.price = updates.amount;
+                        
+                        try {
+                            await storageService.updateMember(originalData.id, { upcomingMembership: upcomingUpdates });
+                            alert("결제 내역 수정사항이 대기 중인(선결제) 수강권 정보에도 연동되었습니다.");
+                        } catch(memberErr) {
+                            console.error("Auto sync upcoming member failed:", memberErr);
+                        }
+                    }
+                } else if (updates.startDate || updates.endDate || updates.credits !== undefined) {
                     alert("수정이 완료되었습니다.\n\n이 결제건이 [현재 진행 중]이거나 [선결제 대기 중]인 수강권이라면, 반드시 위의 '메인 프로필 정보'에서도 날짜를 동일하게 수정해 주셔야 강사 앱이나 시스템에 즉시 반영됩니다.");
                 }
             }

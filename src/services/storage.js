@@ -1082,6 +1082,7 @@ export const storageService = {
 
   // Sales & Revenue Facade
   addSalesRecord(data) { return paymentService.addSalesRecord(data); },
+  updateSalesRecord(salesId, updates) { return paymentService.updateSalesRecord(salesId, updates); },
   deleteSalesRecord(salesId) { return paymentService.deleteSalesRecord(salesId); },
   getSalesHistory(memberId) { return paymentService.getSalesHistory(memberId); },
   getAllSales() { return paymentService.getAllSales(); },
