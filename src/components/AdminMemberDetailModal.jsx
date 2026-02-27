@@ -738,7 +738,13 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                                     onClick={() => setSaleEditData({ ...saleEditData, credits: Math.max(0, (saleEditData.credits || 0) - 1) })}
                                     style={{ padding: '4px 8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', color: 'white' }}
                                 >-</button>
-                                <span style={{ fontWeight: 'bold', color: 'white', minWidth: '30px', textAlign: 'center' }}>{saleEditData.credits}</span>
+                                <input
+                                    type="number"
+                                    value={saleEditData.credits}
+                                    onChange={(e) => setSaleEditData({ ...saleEditData, credits: Number(e.target.value) })}
+                                    style={{ background: 'transparent', border: 'none', color: 'white', fontWeight: 'bold', width: '40px', textAlign: 'center', fontSize: '1rem', outline: 'none' }}
+                                    min="0"
+                                />
                                 <button
                                     onClick={() => setSaleEditData({ ...saleEditData, credits: (saleEditData.credits || 0) + 1 })}
                                     style={{ padding: '4px 8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', color: 'white' }}
@@ -921,13 +927,23 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                                     key={record.id} 
                                     onClick={() => {
                                         setEditingSale(record);
+                                        const isCurrent = record.startDate && record.endDate && originalData.startDate === record.startDate && originalData.endDate === record.endDate;
+                                        const isUpcoming = originalData.upcomingMembership && record.startDate && record.endDate && originalData.upcomingMembership.startDate === record.startDate && originalData.upcomingMembership.endDate === record.endDate;
+                                        
+                                        let initialCredits = record.credits;
+                                        if (initialCredits === undefined || initialCredits === 0) {
+                                            if (isCurrent) initialCredits = originalData.credits;
+                                            else if (isUpcoming) initialCredits = originalData.upcomingMembership.credits;
+                                            else initialCredits = 0;
+                                        }
+
                                         setSaleEditData({
                                             startDate: record.startDate || '',
                                             endDate: record.endDate || '',
                                             amount: record.amount !== undefined ? record.amount : 0,
                                             item: record.item || '',
                                             method: record.method || '',
-                                            credits: record.credits || 0
+                                            credits: initialCredits
                                         });
                                         // Scroll to top
                                         document.querySelector('.fade-in').scrollTo({ top: 0, behavior: 'smooth' });
@@ -943,9 +959,14 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                                         <div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                 <span style={{ color: 'white', fontWeight: 'bold' }}>{record.item || '알 수 없음'}</span>
-                                                {isAdvance && (
-                                                    <span style={{ fontSize: '0.65rem', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', padding: '2px 5px', borderRadius: '4px' }}>
-                                                        대기 중 (선등록)
+                                                {record.startDate && record.endDate && originalData.startDate === record.startDate && originalData.endDate === record.endDate && (
+                                                    <span style={{ fontSize: '0.65rem', background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', padding: '2px 5px', borderRadius: '4px', fontWeight: 'bold', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
+                                                        현재 활동 중
+                                                    </span>
+                                                )}
+                                                {isAdvance && !(record.startDate && record.endDate && originalData.startDate === record.startDate && originalData.endDate === record.endDate) && (
+                                                    <span style={{ fontSize: '0.65rem', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', padding: '2px 5px', borderRadius: '4px', fontWeight: 'bold', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
+                                                        선등록 대기중
                                                     </span>
                                                 )}
                                             </div>
