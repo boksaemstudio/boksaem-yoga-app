@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { onSnapshot, doc, collection, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
 import { db } from '../firebase';
-import { X, User, Calendar, CreditCard, ClockCounterClockwise, Chats, CheckSquare, Square, BellRinging } from '@phosphor-icons/react';
+import { X, User, Calendar, CreditCard, ClockCounterClockwise, Chats, CheckSquare, Square, BellRinging, Trash, PencilSimple } from '@phosphor-icons/react';
 import RegistrationTab from './admin/member-detail/RegistrationTab';
 import AttendanceTab from './admin/member-detail/AttendanceTab';
-import SalesHistoryTab from './admin/member-detail/SalesHistoryTab';
 import MessagesTab from './admin/member-detail/MessagesTab';
 import { storageService } from '../services/storage';
 import { getBranchName, getBranchColor } from '../studioConfig';
@@ -154,11 +153,10 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
 
 
     const tabs = [
-        { id: 'info', label: '회원정보', icon: <User size={18} /> },
-        { id: 'attendance', label: '출석부', icon: <Calendar size={18} /> },
-        { id: 'registration', label: '재등록', icon: <CreditCard size={18} /> },
-        { id: 'history', label: '판매이력', icon: <ClockCounterClockwise size={18} /> },
-        { id: 'messages', label: '메시지', icon: <Chats size={18} /> },
+        { id: 'info', label: '회원정보', icon: <User size={20} /> },
+        { id: 'attendance', label: '출석부', icon: <Calendar size={20} /> },
+        { id: 'registration', label: '재등록', icon: <CreditCard size={20} /> },
+        { id: 'messages', label: '메시지', icon: <Chats size={20} /> }
     ];
 
     const getChangedFields = () => {
@@ -481,11 +479,6 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                             />
                         </div>
                     )}
-                    {activeTab === 'history' && (
-                        <div className="fade-in">
-                            <SalesHistoryTab memberId={member.id} member={member} />
-                        </div>
-                    )}
                     {activeTab === 'messages' && (
                         <div className="fade-in">
                             <MessagesTab memberId={member.id} />
@@ -586,164 +579,369 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
     );
 };
 
-// MemberInfoTab remains in this file as it's simpler
+// Unified MemberInfoTab including history editing
 const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalData }) => {
-    // Helper to get Korean label for membership type
+    const [history, setHistory] = useState([]);
+    const [editingSale, setEditingSale] = useState(null);
+    const [saleEditData, setSaleEditData] = useState(null);
+    const [isSavingSale, setIsSavingSale] = useState(false);
+
+    useEffect(() => {
+        if (!originalData?.id) return;
+        let isMounted = true;
+        const fetchHistory = async () => {
+            try {
+                const data = await storageService.getSalesHistory(originalData.id);
+                if (!isMounted) return;
+                const sorted = [...data].sort((a, b) => new Date(b.timestamp || b.date).getTime() - new Date(a.timestamp || a.date).getTime());
+                setHistory(sorted);
+            } catch (e) {
+                console.error("Fetch sales history failed:", e);
+            }
+        };
+        fetchHistory();
+        return () => { isMounted = false; };
+    }, [originalData?.id, isSavingSale]);
+
     const getTypeLabel = (key) => {
         const map = {
-            'general': '일반',
-            'intensive': '심화',
-            'kids': '키즈',
-            'pregnancy': '임신부',
-            'sat_hatha': '토요하타',
-            'ttc': 'TTC'
+            'general': '일반', 'intensive': '심화', 'kids': '키즈',
+            'pregnancy': '임신부', 'sat_hatha': '토요하타', 'ttc': 'TTC'
         };
         return map[key] || key;
     };
 
-    return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            <InputGroup
-                label="이름"
-                value={editData.name}
-                onChange={v => setEditData({ ...editData, name: v })}
-                lang="ko"
-                autoComplete="off"
-            />
-            <InputGroup
-                label="전화번호"
-                value={editData.phone}
-                onChange={v => setEditData({ ...editData, phone: v })}
-                type="tel"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                autoComplete="off"
-            />
-
-            {/* Membership Type & Subject */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <InputGroup
-                    label="회원권 구분"
-                    value={editData.membershipType}
-                    onChange={v => setEditData({ ...editData, membershipType: v })}
-                    type="select"
-                    options={Object.keys(pricingConfig || {}).map(k => ({ value: k, label: getTypeLabel(k) }))}
-                />
-                <InputGroup label="세부 이용권" value={editData.subject || ''} onChange={v => setEditData({ ...editData, subject: v })} />
-            </div>
-
-            <InputGroup label="등록일" value={editData.regDate || ''} onChange={v => setEditData({ ...editData, regDate: v })} type="date" />
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <h4 style={{ color: 'var(--primary-gold)', margin: 0, fontSize: '0.9rem' }}>• 수강권 기간 관리 (관리자 수정용)</h4>
-                {(() => {
-                    const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-                    if (editData.startDate && editData.startDate > todayStr) {
-                        return (
-                            <span style={{ 
-                                fontSize: '0.65rem', 
-                                background: 'rgba(56, 189, 248, 0.15)', 
-                                color: '#38bdf8', 
-                                border: '1px solid rgba(56, 189, 248, 0.3)', 
-                                padding: '1px 5px', 
-                                borderRadius: '4px', 
-                                fontWeight: 'bold' 
-                            }}>
-                                대기 중 (선등록)
-                            </span>
-                        );
-                    }
-                    return null;
-                })()}
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <InputGroup
-                    label="시작일"
-                    value={editData.startDate || ''}
-                    onChange={v => {
-                        const updates = { startDate: v };
-                        // [NEW] Smart End Date Calculation when Start Date is manually changed/assigned
-                        if (v && v !== 'TBD' && editData.duration) {
-                            const start = new Date(v);
-                            const end = new Date(start);
-                            end.setMonth(end.getMonth() + (Number(editData.duration) || 1));
-                            end.setDate(end.getDate() - 1);
-                            const newEndDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-
-                            if (confirm(`시작일 변경에 따라 종료일을 ${newEndDate}로 자동 조정하시겠습니까?`)) {
-                                updates.endDate = newEndDate;
-                            }
-                        }
-                        setEditData({ ...editData, ...updates });
-                    }}
-                    type="date"
-                />
-                <InputGroup label="종료일" value={editData.endDate || ''} onChange={v => setEditData({ ...editData, endDate: v })} type="date" />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '8px' }}>
-                    <span style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>잔여 횟수</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <button
-                            onClick={() => setEditData({ ...editData, credits: Math.max(0, (editData.credits || 0) - 1) })}
-                            style={{ padding: '4px 8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', color: 'white' }}
-                        >-</button>
-                        <span style={{ fontWeight: 'bold', color: 'white', minWidth: '30px', textAlign: 'center' }}>{editData.credits}</span>
-                        <button
-                            onClick={() => setEditData({ ...editData, credits: (editData.credits || 0) + 1 })}
-                            style={{ padding: '4px 8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', color: 'white' }}
-                        >+</button>
-                    </div>
-                </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '8px' }}>
-                    <span style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>결제 금액</span>
-                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <input
-                            type="text"
-                            value={(editData.price || 0).toLocaleString()}
-                            onChange={(e) => {
-                                const val = Number(e.target.value.replace(/[^0-9]/g, ''));
-                                setEditData({ ...editData, price: val });
-                            }}
-                            style={{
-                                background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--primary-gold)',
-                                fontSize: '1rem', fontWeight: 'bold', textAlign: 'right', width: '120px', padding: '5px', borderRadius: '6px'
-                            }}
-                        />
-                        <span style={{ color: '#a1a1aa', fontSize: '0.9rem' }}>원</span>
-                    </div>
-                </div>
-            </div>
-
-            {(() => {
-                const editableKeys = ['name', 'phone', 'membershipType', 'subject', 'regDate', 'startDate', 'endDate', 'credits', 'price', 'notes'];
-                const hasChanges = editableKeys.some(key => {
-                    const orig = originalData[key] ?? '';
-                    const curr = editData[key] ?? '';
-                    if (key === 'price') return Number(orig) !== Number(curr);
-                    return orig != curr;
-                });
+    const handleSaleSave = async () => {
+        try {
+            setIsSavingSale(true);
+            const updates = {};
+            if (saleEditData.startDate !== editingSale.startDate) updates.startDate = saleEditData.startDate;
+            if (saleEditData.endDate !== editingSale.endDate) updates.endDate = saleEditData.endDate;
+            if (saleEditData.amount !== editingSale.amount) updates.amount = saleEditData.amount;
+            if (saleEditData.item !== editingSale.item) updates.item = saleEditData.item;
+            if (saleEditData.method !== editingSale.method) updates.method = saleEditData.method;
+            if (saleEditData.credits !== editingSale.credits) updates.credits = saleEditData.credits;
+            
+            if (Object.keys(updates).length > 0) {
+                await storageService.updateSalesRecord(editingSale.id, updates);
                 
-                if (!hasChanges) return null;
+                // [SYNC] If the edited sales record perfectly matches the CURRENT member's root dates, automatically sync the changes to the member profile!
+                if (originalData.startDate === editingSale.startDate && originalData.endDate === editingSale.endDate) {
+                    const memberUpdates = {};
+                    if (updates.startDate) memberUpdates.startDate = updates.startDate;
+                    if (updates.endDate) memberUpdates.endDate = updates.endDate;
+                    if (updates.amount !== undefined) memberUpdates.price = updates.amount;
+                    if (updates.credits !== undefined) memberUpdates.credits = updates.credits;
+                    if (Object.keys(memberUpdates).length > 0) {
+                        try {
+                           await storageService.updateMember(originalData.id, memberUpdates);
+                           alert("결제 내역 수정사항이 현재 이용권 정보에도 함께 연동되었습니다.\n(주의: 필요시 수동으로 출석부에서 소급 출석을 진행해주세요.)");
+                        } catch(memberErr) {
+                           console.error("Auto sync to member failed:", memberErr);
+                        }
+                    }
+                } else if (updates.startDate || updates.endDate) {
+                    alert("수정이 완료되었습니다.\n\n이 결제건이 [현재 진행 중]이거나 [선결제 대기 중]인 수강권이라면, 반드시 위의 '메인 프로필 정보'에서도 날짜를 동일하게 수정해 주셔야 강사 앱이나 시스템에 즉시 반영됩니다.");
+                }
+            }
+            setEditingSale(null);
+            setSaleEditData(null);
+        } catch (e) {
+            alert("결제 내역 저장에 실패했습니다.");
+        } finally {
+            setIsSavingSale(false);
+        }
+    };
 
-                return (
-                    <button
-                        onClick={onSave}
-                        style={{
-                            padding: '15px', borderRadius: '10px', border: 'none',
-                            background: 'var(--primary-gold)', color: 'black',
-                            fontWeight: 'bold', fontSize: '1.1rem', marginTop: '10px'
-                        }}
-                    >
-                        저장하기
-                    </button>
-                );
-            })()}
+    const handleDeleteSale = async (salesId, itemName) => {
+        if (!confirm(`"${itemName}" 결제 내역을 삭제하시겠습니까?\n\n⚠️ 삭제된 내역은 복구할 수 없습니다.`)) return;
+        try {
+            await storageService.deleteSalesRecord(salesId);
+            setHistory(prev => prev.filter(h => h.id !== salesId));
+        } catch (e) {
+            alert('삭제 중 오류가 발생했습니다: ' + e.message);
+        }
+    };
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* --- TOP: EDIT FORM --- */}
+            {editingSale ? (
+                <div style={{ background: 'rgba(212, 175, 55, 0.05)', border: '1px solid var(--primary-gold)', borderRadius: '12px', padding: '15px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                        <h3 style={{ color: 'var(--primary-gold)', margin: 0, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <PencilSimple size={20} /> 과거/선결제 내역 수정 모드
+                        </h3>
+                        <button onClick={() => { setEditingSale(null); setSaleEditData(null); }} style={{ background: 'none', border: '1px solid #52525b', color: '#a1a1aa', padding: '4px 10px', borderRadius: '4px', fontSize: '0.8rem' }}>
+                            취소 (현재 회원정보로 돌아가기)
+                        </button>
+                    </div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        <InputGroup label="수강권 항목 이름" value={saleEditData.item || ''} onChange={v => setSaleEditData({ ...saleEditData, item: v })} />
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                            <InputGroup label="결제수단" value={saleEditData.method || ''} onChange={v => setSaleEditData({ ...saleEditData, method: v })} type="select" options={[
+                                {label: '현금', value: 'cash'}, {label: '이체', value: 'transfer'}, {label: '카드', value: 'card'}
+                            ]} />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                            <InputGroup label="시작일" value={saleEditData.startDate || ''} onChange={v => setSaleEditData({ ...saleEditData, startDate: v })} type="date" />
+                            <InputGroup label="종료일" value={saleEditData.endDate || ''} onChange={v => setSaleEditData({ ...saleEditData, endDate: v })} type="date" />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '8px' }}>
+                            <span style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>잔여 횟수</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <button
+                                    onClick={() => setSaleEditData({ ...saleEditData, credits: Math.max(0, (saleEditData.credits || 0) - 1) })}
+                                    style={{ padding: '4px 8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', color: 'white' }}
+                                >-</button>
+                                <span style={{ fontWeight: 'bold', color: 'white', minWidth: '30px', textAlign: 'center' }}>{saleEditData.credits}</span>
+                                <button
+                                    onClick={() => setSaleEditData({ ...saleEditData, credits: (saleEditData.credits || 0) + 1 })}
+                                    style={{ padding: '4px 8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', color: 'white' }}
+                                >+</button>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '8px' }}>
+                            <span style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>결제 금액</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                <input
+                                    type="text"
+                                    value={(saleEditData.amount || 0).toLocaleString()}
+                                    onChange={(e) => {
+                                        const val = Number(e.target.value.replace(/[^0-9]/g, ''));
+                                        setSaleEditData({ ...saleEditData, amount: val });
+                                    }}
+                                    style={{
+                                        background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--primary-gold)',
+                                        fontSize: '1rem', fontWeight: 'bold', textAlign: 'right', width: '120px', padding: '5px', borderRadius: '6px'
+                                    }}
+                                />
+                                <span style={{ color: '#a1a1aa', fontSize: '0.9rem' }}>원</span>
+                            </div>
+                        </div>
+
+                        {(() => {
+                            const hasChanges = saleEditData.startDate !== editingSale.startDate ||
+                                saleEditData.endDate !== editingSale.endDate ||
+                                saleEditData.amount !== editingSale.amount ||
+                                saleEditData.item !== editingSale.item ||
+                                saleEditData.method !== editingSale.method ||
+                                saleEditData.credits !== editingSale.credits;
+                            if (!hasChanges) return null;
+                            
+                            return (
+                                <button
+                                    onClick={handleSaleSave}
+                                    disabled={isSavingSale}
+                                    style={{
+                                        padding: '15px', borderRadius: '10px', border: 'none',
+                                        background: 'var(--primary-gold)', color: 'black',
+                                        fontWeight: 'bold', fontSize: '1.1rem', marginTop: '10px'
+                                    }}
+                                >
+                                    {isSavingSale ? '저장 중...' : '결제 내역 수정 저장'}
+                                </button>
+                            );
+                        })()}
+                    </div>
+                </div>
+            ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <h3 style={{ color: 'white', margin: 0, fontSize: '1rem' }}>진행 중인 회원정보</h3>
+                    </div>
+                    
+                    <InputGroup label="이름" value={editData.name} onChange={v => setEditData({ ...editData, name: v })} lang="ko" autoComplete="off" />
+                    <InputGroup label="전화번호" value={editData.phone} onChange={v => setEditData({ ...editData, phone: v })} type="tel" inputMode="numeric" pattern="[0-9]*" autoComplete="off" />
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <InputGroup
+                            label="회원권 구분"
+                            value={editData.membershipType}
+                            onChange={v => setEditData({ ...editData, membershipType: v })}
+                            type="select"
+                            options={Object.keys(pricingConfig || {}).map(k => ({ value: k, label: getTypeLabel(k) }))}
+                        />
+                        <InputGroup label="세부 이용권" value={editData.subject || ''} onChange={v => setEditData({ ...editData, subject: v })} />
+                    </div>
+
+                    <InputGroup label="등록일" value={editData.regDate || ''} onChange={v => setEditData({ ...editData, regDate: v })} type="date" />
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <h4 style={{ color: 'var(--primary-gold)', margin: 0, fontSize: '0.9rem' }}>• 수강권 기간 관리</h4>
+                        {(() => {
+                            const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                            if (editData.startDate && editData.startDate > todayStr) {
+                                return (
+                                    <span style={{ fontSize: '0.65rem', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', padding: '2px 5px', borderRadius: '4px', fontWeight: 'bold' }}>
+                                        대기 중 (선등록)
+                                    </span>
+                                );
+                            }
+                            return null;
+                        })()}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <InputGroup
+                            label="시작일"
+                            value={editData.startDate || ''}
+                            onChange={v => {
+                                const updates = { startDate: v };
+                                if (v && v !== 'TBD' && editData.duration) {
+                                    const start = new Date(v);
+                                    const end = new Date(start);
+                                    end.setMonth(end.getMonth() + (Number(editData.duration) || 1));
+                                    end.setDate(end.getDate() - 1);
+                                    const newEndDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                                    if (confirm(`시작일 변경에 따라 종료일을 ${newEndDate}로 자동 조정하시겠습니까?`)) {
+                                        updates.endDate = newEndDate;
+                                    }
+                                }
+                                setEditData({ ...editData, ...updates });
+                            }}
+                            type="date"
+                        />
+                        <InputGroup label="종료일" value={editData.endDate || ''} onChange={v => setEditData({ ...editData, endDate: v })} type="date" />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '8px' }}>
+                            <span style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>잔여 횟수</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <button onClick={() => setEditData({ ...editData, credits: Math.max(0, (editData.credits || 0) - 1) })} style={{ padding: '4px 8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', color: 'white' }}>-</button>
+                                <span style={{ fontWeight: 'bold', color: 'white', minWidth: '30px', textAlign: 'center' }}>{editData.credits}</span>
+                                <button onClick={() => setEditData({ ...editData, credits: (editData.credits || 0) + 1 })} style={{ padding: '4px 8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', color: 'white' }}>+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '8px' }}>
+                            <span style={{ color: '#a1a1aa', fontSize: '0.8rem' }}>결제 금액</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                <input
+                                    type="text"
+                                    value={(editData.price || 0).toLocaleString()}
+                                    onChange={(e) => {
+                                        const val = Number(e.target.value.replace(/[^0-9]/g, ''));
+                                        setEditData({ ...editData, price: val });
+                                    }}
+                                    style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--primary-gold)', fontSize: '1rem', fontWeight: 'bold', textAlign: 'right', width: '120px', padding: '5px', borderRadius: '6px' }}
+                                />
+                                <span style={{ color: '#a1a1aa', fontSize: '0.9rem' }}>원</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {(() => {
+                        const editableKeys = ['name', 'phone', 'membershipType', 'subject', 'regDate', 'startDate', 'endDate', 'credits', 'price', 'notes'];
+                        const hasChanges = editableKeys.some(key => {
+                            const orig = originalData[key] ?? '';
+                            const curr = editData[key] ?? '';
+                            if (key === 'price') return Number(orig) !== Number(curr);
+                            return orig != curr;
+                        });
+                        
+                        if (!hasChanges) return null;
+
+                        return (
+                            <button
+                                onClick={onSave}
+                                style={{ padding: '15px', borderRadius: '10px', border: 'none', background: 'var(--primary-gold)', color: 'black', fontWeight: 'bold', fontSize: '1.1rem', marginTop: '10px' }}
+                            >
+                                현재 회원정보 저장하기
+                            </button>
+                        );
+                    })()}
+                </div>
+            )}
+
+            {/* --- BOTTOM: HISTORY LIST --- */}
+            <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', margin: '15px 0' }} />
+            <div>
+                <h3 style={{ color: 'white', fontSize: '1rem', marginBottom: '15px' }}>상세 결제 내역 (역대 이력)</h3>
+                {!history || history.length === 0 ? (
+                    <div style={{ textAlign: 'center', color: '#a1a1aa', padding: '20px', fontSize: '0.9rem' }}>
+                        결제 내역이 없습니다.
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {history.map((record) => {
+                            const isSelected = editingSale?.id === record.id;
+                            const dDate = record.timestamp ? new Date(record.timestamp) : new Date(record.date || Date.now());
+                            const isAdvance = record.startDate && record.startDate > new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+
+                            return (
+                                <div 
+                                    key={record.id} 
+                                    onClick={() => {
+                                        setEditingSale(record);
+                                        setSaleEditData({
+                                            startDate: record.startDate || '',
+                                            endDate: record.endDate || '',
+                                            amount: record.amount !== undefined ? record.amount : 0,
+                                            item: record.item || '',
+                                            method: record.method || '',
+                                            credits: record.credits || 0
+                                        });
+                                        // Scroll to top
+                                        document.querySelector('.fade-in').scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
+                                    style={{
+                                        background: isSelected ? 'rgba(212, 175, 55, 0.15)' : 'rgba(255,255,255,0.05)',
+                                        border: isSelected ? '1px solid var(--primary-gold)' : '1px solid rgba(255,255,255,0.1)',
+                                        borderRadius: '8px', padding: '15px', cursor: 'pointer',
+                                        transition: 'all 0.2s ease', position: 'relative'
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                                        <div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <span style={{ color: 'white', fontWeight: 'bold' }}>{record.item || '알 수 없음'}</span>
+                                                {isAdvance && (
+                                                    <span style={{ fontSize: '0.65rem', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', padding: '2px 5px', borderRadius: '4px' }}>
+                                                        대기 중 (선등록)
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {record.startDate && record.endDate && (
+                                                <div style={{ fontSize: '0.75rem', color: '#a1a1aa', marginTop: '4px' }}>
+                                                    📅 {record.startDate} ~ {record.endDate}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div style={{ color: 'var(--primary-gold)', fontWeight: 'bold' }}>
+                                            {(record.amount || 0).toLocaleString()}원
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ fontSize: '0.8rem', color: '#71717a' }}>
+                                            {record.method === 'transfer' ? '이체' : record.method === 'cash' ? '현금' : record.method === 'card' ? '카드' : record.method}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <span style={{ fontSize: '0.8rem', color: '#71717a' }}>
+                                                {dDate.toLocaleDateString('ko-KR')}
+                                            </span>
+                                            <button 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteSale(record.id, record.item);
+                                                }}
+                                                style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', padding: '4px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem' }}
+                                            >
+                                                <Trash size={14} /> 삭제
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
