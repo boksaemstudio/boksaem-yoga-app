@@ -29,9 +29,10 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
             credits: localMember.credits,
             startDate: localMember.startDate,
             endDate: localMember.endDate,
-            attendanceCount: localMember.attendanceCount
+            attendanceCount: localMember.attendanceCount,
+            price: localMember.price !== undefined ? localMember.price : prev.price
         }));
-    }, [localMember?.credits, localMember?.startDate, localMember?.endDate, localMember?.attendanceCount]);
+    }, [localMember?.credits, localMember?.startDate, localMember?.endDate, localMember?.attendanceCount, localMember?.price]);
 
     const [activeTab, setActiveTab] = useState('info');
 
@@ -104,6 +105,32 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
 
         return () => unsubAt();
     }, [member?.id, member.endDate, member.duration, logLimit]);
+
+    // [NEW] Fetch the latest sales amount to autofill price if missing for existing members
+    useEffect(() => {
+        if (!member?.id) return;
+        if (member.price !== undefined) return; // If already exists in DB
+
+        let isMounted = true;
+        const fetchLatestPrice = async () => {
+            try {
+                const sales = await storageService.getSalesHistory(member.id);
+                if (sales && sales.length > 0 && isMounted) {
+                    const sorted = [...sales].sort((a, b) => new Date(b.timestamp || b.date).getTime() - new Date(a.timestamp || a.date).getTime());
+                    const latest = sorted.find(s => s.type === 'register') || sorted[0];
+                    if (latest && latest.amount !== undefined) {
+                        setLocalMember(prev => ({ ...prev, price: latest.amount }));
+                        setEditData(prev => ({ ...prev, price: latest.amount }));
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to fetch sales history for price autofill:", e);
+            }
+        };
+        fetchLatestPrice();
+        
+        return () => { isMounted = false; };
+    }, [member?.id, member?.price]);
 
     // Selective Save State
     const [showChangeModal, setShowChangeModal] = useState(false);

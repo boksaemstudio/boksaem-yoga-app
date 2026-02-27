@@ -154,15 +154,18 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                     credits: customCredits,
                     startDate: finalStartDate,
                     endDate: membershipType === 'ttc' ? member.endDate : finalEndDate,
-                    durationMonths: durationMonths // TBD의 경우 계산을 위해 개월 수 저장
+                    durationMonths: durationMonths, // TBD의 경우 계산을 위해 개월 수 저장
+                    price: price // [FIX] Store price
                 };
                 updateData.lastPaymentDate = new Date().toISOString();
+                updateData.price = price; // Store at root level as well
             } else {
                 updateData.membershipType = membershipType;
                 updateData.credits = customCredits;
                 updateData.startDate = finalStartDate;
                 updateData.endDate = membershipType === 'ttc' ? member.endDate : finalEndDate;
                 updateData.lastPaymentDate = new Date().toISOString();
+                updateData.price = price; // [FIX] Store price
             }
 
             await onUpdateMember(member.id, updateData);
