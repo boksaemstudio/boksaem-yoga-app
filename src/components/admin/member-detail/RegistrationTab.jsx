@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import CustomDatePicker from '../../common/CustomDatePicker';
 
 const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMember }) => {
-    const [mode, setMode] = useState('renew'); // 'renew' or 'extend'
     const [isSubmitting, setIsSubmitting] = useState(false);
     const isSubmittingRef = useRef(false);
 
@@ -43,7 +42,6 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
 
     // Calculation Logic - Use useMemo for derived values
     const { calculatedPrice, calculatedCredits, calculatedEndDate, calculatedProductName } = useMemo(() => {
-        if (mode === 'extend') return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedProductName: '' };
         if (!pricingConfig) return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedProductName: '' };
 
         const category = pricingConfig[membershipType];
@@ -93,7 +91,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
             calculatedEndDate: end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }),
             calculatedProductName: `${label} ${duration > 1 && option.type !== 'ticket' ? `(${duration}개월)` : ''}`
         };
-    }, [mode, membershipType, selectedOption, duration, paymentMethod, startDate, pricingConfig]);
+    }, [membershipType, selectedOption, duration, paymentMethod, startDate, pricingConfig]);
 
     // Update price state separately since it's editable
     useEffect(() => {
@@ -171,26 +169,8 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {/* Toggle Mode */}
-            <div style={{ display: 'flex', gap: '10px', background: 'rgba(255,255,255,0.05)', padding: '5px', borderRadius: '10px' }}>
-                {['renew', 'extend'].map(m => (
-                    <button
-                        key={m} onClick={() => setMode(m)}
-                        style={{
-                            flex: 1, padding: '12px', border: 'none', borderRadius: '8px', fontWeight: 'bold',
-                            background: mode === m ? 'var(--primary-gold)' : 'transparent',
-                            color: mode === m ? 'black' : '#71717a'
-                        }}
-                    >
-                        {m === 'renew' ? '시작/재등록' : '기간 연장'}
-                    </button>
-                ))}
-            </div>
-
-            {mode === 'renew' ? (
-                <>
-                    {/* Membership Type Grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+            {/* Membership Type Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
                         {pricingConfig && Object.entries(pricingConfig).map(([key, conf]) => (
                             <button
                                 key={key}
@@ -353,46 +333,6 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                     >
                         {isSubmitting ? '처리 중...' : '등록 하기'}
                     </button>
-                </>
-            ) : (
-                <>
-                    <h3 style={{ color: 'white', fontSize: '1.1rem', marginBottom: '10px' }}>만료일 직접 변경</h3>
-                    <p style={{ color: '#a1a1aa', fontSize: '0.9rem', marginBottom: '20px' }}>
-                        달력을 클릭하여 새로운 만료일을 선택하면 즉시 변경됩니다.
-                    </p>
-
-                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '12px', textAlign: 'center' }}>
-                        <label style={{ display: 'block', color: '#a1a1aa', marginBottom: '10px' }}>현재 만료일</label>
-                        <div style={{ maxWidth: '300px', margin: '0 auto' }}>
-                            <CustomDatePicker
-                                value={member.endDate || ''}
-                                onChange={async (newDate) => {
-                                    if (!newDate) return;
-                                    if (confirm(`만료일을 ${newDate}로 변경하시겠습니까?`)) {
-                                        const salesData = {
-                                            memberId: member.id,
-                                            memberName: member.name,
-                                            type: 'extend',
-                                            item: `만료일 변경 (${member.endDate} -> ${newDate})`,
-                                            amount: 0,
-                                            paymentMethod: 'none',
-                                            date: new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }),
-                                            memo: '기간 연장/단축'
-                                        };
-
-                                        if (onAddSalesRecord) await onAddSalesRecord(salesData);
-                                        await onUpdateMember(member.id, { endDate: newDate });
-                                        alert('변경되었습니다.');
-                                    }
-                                }}
-                            />
-                        </div>
-                        <p style={{ marginTop: '10px', fontSize: '0.8rem', color: '#71717a' }}>
-                            📅 날짜를 누르면 변경할 수 있습니다.
-                        </p>
-                    </div>
-                </>
-            )}
         </div >
     );
 };

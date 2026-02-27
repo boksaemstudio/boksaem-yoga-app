@@ -127,7 +127,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
     const tabs = [
         { id: 'info', label: '회원정보', icon: <User size={18} /> },
         { id: 'attendance', label: '출석부', icon: <Calendar size={18} /> },
-        { id: 'registration', label: '등록/연장', icon: <CreditCard size={18} /> },
+        { id: 'registration', label: '재등록', icon: <CreditCard size={18} /> },
         { id: 'history', label: '판매이력', icon: <ClockCounterClockwise size={18} /> },
         { id: 'messages', label: '메시지', icon: <Chats size={18} /> },
     ];
