@@ -524,7 +524,7 @@ const AdminDashboard = () => {
                         title="클릭하여 최신 버전으로 업데이트"
                     >
                         <ClockCounterClockwise size={12} />
-                        v{STUDIO_CONFIG.APP_VERSION}
+                        최신동기화 (v{STUDIO_CONFIG.APP_VERSION})
                     </button>
 
                     <button onClick={handleInstallClick} style={{ marginLeft: '6px', background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.3)', color: 'var(--primary-gold)', cursor: 'pointer', padding: '4px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem' }} title="홈 화면에 추가">
