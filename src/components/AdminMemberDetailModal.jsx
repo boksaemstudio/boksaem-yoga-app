@@ -884,6 +884,13 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                         </div>
                     </div>
 
+                    <InputGroup 
+                        label="원장 메모 / 기타 특이사항" 
+                        value={editData.notes || ''} 
+                        onChange={v => setEditData({ ...editData, notes: v })} 
+                        type="textarea" 
+                    />
+
                     {(() => {
                         const editableKeys = ['name', 'phone', 'membershipType', 'subject', 'regDate', 'startDate', 'endDate', 'credits', 'price', 'notes'];
                         const hasChanges = editableKeys.some(key => {

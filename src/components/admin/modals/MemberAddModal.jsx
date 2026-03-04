@@ -22,7 +22,8 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
         subject: '',
         autoStart: true,
         includeToday: false, // [NEW] Option for "Attended today"
-        todayClass: null // [NEW] To store matched class info
+        todayClass: null, // [NEW] To store matched class info
+        notes: '' // [NEW] Member notes
     });
 
     useEffect(() => {
@@ -146,7 +147,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                 duration: newMember.duration,
                 attendanceCount: newMember.includeToday ? 1 : 0, // [NEW] Mark initial attendance
                 lastAttendance: newMember.includeToday ? new Date().toISOString() : null,
-                notes: ''
+                notes: newMember.notes || ''
             });
 
             if (newMember.amount > 0) {
@@ -186,7 +187,8 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                 startDate: new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }), endDate: '', subject: '', autoStart: true,
                 includeToday: false,
                 todayClass: null,
-                manualEndDate: ''
+                manualEndDate: '',
+                notes: ''
             });
         } catch (err) {
             console.error('Error adding member:', err);
@@ -503,6 +505,17 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                         <span style={{ fontWeight: 600 }}>{newMember.credits > 200 ? '무제한 수련' : `총 ${newMember.credits}회`}</span>
                         <span style={{ color: 'var(--primary-gold)', fontWeight: '800' }}>마감: {newMember.endDate}</span>
                     </div>
+                </div>
+
+                <div className="form-group" style={{ marginTop: '10px' }}>
+                    <label className="form-label" style={{ marginBottom: '6px' }}>원장 메모 (선택)</label>
+                    <textarea 
+                        className="form-input" 
+                        style={{ fontFamily: 'var(--font-main)', padding: '14px 18px', fontSize: '1rem', minHeight: '80px', resize: 'vertical' }} 
+                        value={newMember.notes || ''} 
+                        onChange={(e) => setNewMember({ ...newMember, notes: e.target.value })} 
+                        placeholder="특이사항이나 메모를 입력하세요" 
+                    />
                 </div>
 
                 <div className="modal-actions" style={{ gap: '12px', marginTop: '10px' }}>

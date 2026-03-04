@@ -774,6 +774,7 @@ const AdminDashboard = () => {
                         getDormantSegments={getDormantSegments}
                         setBulkMessageInitialText={setBulkMessageInitialText}
                         setActiveTab={setActiveTab}
+                        onNoteClick={(m) => { setSelectedMember(m); setShowNoteModal(true); }}
                     />
                 )}
 

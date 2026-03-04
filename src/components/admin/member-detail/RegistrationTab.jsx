@@ -31,6 +31,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
 
     // Computed
     const [price, setPrice] = useState(0);
+    const [notesText, setNotesText] = useState(member?.notes || '');
     const [customEndDate, setCustomEndDate] = useState('');
     const [customCredits, setCustomCredits] = useState(0);
 
@@ -159,6 +160,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                 };
                 updateData.lastPaymentDate = new Date().toISOString();
                 updateData.price = price; // Store at root level as well
+                if (notesText !== (member.notes || '')) updateData.notes = notesText;
             } else {
                 updateData.membershipType = membershipType;
                 updateData.credits = customCredits;
@@ -166,6 +168,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                 updateData.endDate = membershipType === 'ttc' ? member.endDate : finalEndDate;
                 updateData.lastPaymentDate = new Date().toISOString();
                 updateData.price = price; // [FIX] Store price
+                if (notesText !== (member.notes || '')) updateData.notes = notesText;
             }
 
             await onUpdateMember(member.id, updateData);
@@ -289,6 +292,14 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                             <small style={{ color: '#f59e0b' }}>* TTC 과정은 종료일을 직접 지정합니다.</small>
                         </div>
                     )}
+
+                    {/* Director's Note */}
+                    <InputGroup 
+                        label="원장 메모 / 기타 특이사항" 
+                        value={notesText} 
+                        onChange={setNotesText} 
+                        type="textarea" 
+                    />
 
                     {/* Summary Card */}
                     <div style={{ background: 'rgba(20,20,20,0.5)', padding: '15px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>

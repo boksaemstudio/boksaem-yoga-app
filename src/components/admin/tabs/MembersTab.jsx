@@ -22,8 +22,10 @@ const MembersTab = ({
     setShowAddModal,
     pushTokens,
     setActiveTab,
-    setShowBulkMessageModal, // [FIX] Add this prop
-    getDormantSegments // [FIX] Receive this prop
+    setShowBulkMessageModal,
+    getDormantSegments,
+    setBulkMessageInitialText,
+    onNoteClick
 }) => {
     const [localSort, setLocalSort] = useState('default'); // 'default', 'credits_asc', 'credits_desc', 'enddate_asc', 'enddate_desc'
 
@@ -328,9 +330,18 @@ const MembersTab = ({
                                             />
                                         </div>
                                         <div style={{ flex: 1, marginLeft: '10px', width: '100%' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                                    <strong style={{ fontSize: '1.1rem', fontWeight: 800 }}>{member.name}</strong>
+                                                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{member.phone}</span>
+                                                    <button 
+                                                        onClick={(e) => { e.stopPropagation(); onNoteClick && onNoteClick(member); }}
+                                                        style={{ background: 'none', border: 'none', color: member.notes ? 'var(--primary-gold)' : '#52525b', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px', marginLeft: 'auto' }}
+                                                        title="메모 작성/수정"
+                                                    >
+                                                        <NotePencil size={18} weight={member.notes ? "fill" : "regular"} />
+                                                    </button>
+                                                </div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                                                <strong style={{ fontWeight: 800, fontSize: '1.1rem' }}>{member.name}</strong>
-
                                                 {/* [NEW] Explicit Membership Status Badge */}
                                                 {(() => {
                                                     if (!member.endDate || member.endDate === 'TBD' || member.endDate === 'unlimited') {
@@ -504,7 +515,10 @@ const MembersTab = ({
                                                 </span>
                                             </div>
                                             {member.notes && (
-                                                <div style={{ marginTop: '8px', padding: '8px', background: 'rgba(212,175,55,0.1)', borderRadius: '4px', fontSize: '0.8rem', color: 'var(--primary-gold)' }}>
+                                                <div 
+                                                    onClick={(e) => { e.stopPropagation(); onNoteClick && onNoteClick(member); }}
+                                                    style={{ marginTop: '8px', padding: '8px', background: 'rgba(212,175,55,0.1)', borderRadius: '4px', fontSize: '0.8rem', color: 'var(--primary-gold)', cursor: 'pointer', border: '1px dashed rgba(212,175,55,0.3)' }}
+                                                >
                                                     <NotePencil size={12} style={{ marginRight: '4px' }} /> {member.notes}
                                                 </div>
                                             )}
