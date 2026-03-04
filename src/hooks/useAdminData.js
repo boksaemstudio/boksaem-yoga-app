@@ -431,10 +431,10 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
                 if (salesKeys.has(key)) return; // Skip legacy if sale exists
             }
 
-            // 2. Self Deduplication
+            // 2. Self Deduplication Removed to match Revenue Tab
+            // Ensures admins can see and delete duplicate sales if they occur
             // Key: MemberId + Date + Amount
             const uniqueKey = `${resolvedMemberId}-${item.date}-${item.amount}`;
-            if (seenKeys.has(uniqueKey)) return;
             seenKeys.add(uniqueKey);
 
             // Attach resolved ID if missing
