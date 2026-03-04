@@ -610,14 +610,14 @@ export const translations = {
         // Calendar
         sun: "日", mon: "月", tue: "火", wed: "水", thu: "木", fri: "金", sat: "土",
         date_header: "{year}年 {month}月",
-        legend_regular: "一般",
-        legend_pregnancy: "妊婦",
-        legend_intensive: "深化/キッズ",
-        legend_saturday: "土曜ハタ/別途",
-        legend_my_practice: "私の修練",
-        stats_title: "私の受講統計 (全体)",
-        stats_empty: "まだ受講履歴がありません。",
-        auto_practice: "自律修練",
+        legend_regular: "常规",
+        legend_pregnancy: "孕妇",
+        legend_intensive: "进阶/儿童",
+        legend_saturday: "周六哈他/特别",
+        legend_my_practice: "我的修炼",
+        stats_title: "我的课程统计 (全部)",
+        stats_empty: "暂无课程记录。",
+        auto_practice: "自主修炼",
         // Holidays
         holiday_new_year: "元旦",
         holiday_lunar_new_year: "春节",
@@ -656,22 +656,6 @@ export const translations = {
         tabHome: "ホーム",
         tabHistory: "記録",
         tabSchedule: "時間割",
-        tabPrices: "수강권/결제",
-    },
-    en: {
-        // ...
-        tabPrices: "Membership",
-    },
-    ru: {
-        // ...
-        tabPrices: "Абонемент",
-    },
-    zh: {
-        // ...
-        tabPrices: "会员",
-    },
-    ja: {
-        // ...
         tabPrices: "利用券",
         tabNotices: "お知らせ事項",
         tabMessages: "メッセージ",
