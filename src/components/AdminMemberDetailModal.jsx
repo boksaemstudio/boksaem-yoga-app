@@ -108,17 +108,39 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
     // [NEW] Fetch the latest sales amount to autofill price if missing for existing members
     useEffect(() => {
         if (!member?.id || member?.role === 'instructor') return;
-        if (member.price !== undefined) return; // If already exists in DB
+        if (member.price !== undefined && member.price !== 0) return; // If already exists and non-zero in DB
 
         let isMounted = true;
         const fetchLatestPrice = async () => {
             try {
                 const sales = await storageService.getSalesHistory(member.id);
                 if (sales && sales.length > 0 && isMounted) {
-                    // Try to find the exact sales record that matches the current membership period
+                    // 1. Try exact match by startDate + endDate + type='register'
                     let matchedSale = sales.find(s => s.startDate === member.startDate && s.endDate === member.endDate && s.type === 'register');
                     
-                    if (matchedSale && matchedSale.amount !== undefined) {
+                    // 2. Try matching by registration date (regDate)
+                    if (!matchedSale) {
+                        matchedSale = sales.find(s => {
+                            const saleDate = s.date || s.timestamp;
+                            if (!saleDate || !member.regDate) return false;
+                            const saleDateStr = typeof saleDate === 'string' && saleDate.includes('T')
+                                ? saleDate.split('T')[0]
+                                : typeof saleDate === 'string' ? saleDate : '';
+                            return saleDateStr === member.regDate;
+                        });
+                    }
+
+                    // 3. Fallback: use the most recent sale record
+                    if (!matchedSale) {
+                        const sorted = [...sales].sort((a, b) => {
+                            const aTime = new Date(a.timestamp || a.date || 0).getTime();
+                            const bTime = new Date(b.timestamp || b.date || 0).getTime();
+                            return bTime - aTime;
+                        });
+                        matchedSale = sorted[0];
+                    }
+                    
+                    if (matchedSale && matchedSale.amount !== undefined && matchedSale.amount > 0) {
                         setLocalMember(prev => ({ ...prev, price: matchedSale.amount }));
                         setEditData(prev => ({ ...prev, price: matchedSale.amount }));
                     }
@@ -587,6 +609,33 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
     );
 };
 
+// Helper: Determine if a sales record matches the currently active membership
+const isCurrentRecord = (record, originalData) => {
+    if (!originalData) return false;
+    // Exact match by startDate + endDate
+    if (record.startDate && record.endDate && originalData.startDate === record.startDate && originalData.endDate === record.endDate) {
+        return true;
+    }
+    // For TBD members: match by regDate comparison
+    if ((originalData.startDate === 'TBD' || originalData.endDate === 'TBD') && record.date) {
+        const recordDate = typeof record.date === 'string' && record.date.includes('T')
+            ? record.date.split('T')[0]
+            : record.date;
+        if (recordDate === originalData.regDate) return true;
+    }
+    // For members with item matching their subject
+    if (record.item && originalData.subject && record.item === originalData.subject) {
+        const recordDate = record.date || record.timestamp;
+        if (recordDate) {
+            const rDateStr = typeof recordDate === 'string' && recordDate.includes('T')
+                ? recordDate.split('T')[0]
+                : typeof recordDate === 'string' ? recordDate : '';
+            if (rDateStr === originalData.regDate) return true;
+        }
+    }
+    return false;
+};
+
 // Unified MemberInfoTab including history editing
 const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalData }) => {
     const [history, setHistory] = useState([]);
@@ -934,8 +983,8 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         {[...history].sort((a, b) => {
                             // Sort currently active to the top
-                            const aIsCurrent = a.startDate && a.endDate && originalData.startDate === a.startDate && originalData.endDate === a.endDate;
-                            const bIsCurrent = b.startDate && b.endDate && originalData.startDate === b.startDate && originalData.endDate === b.endDate;
+                            const aIsCurrent = isCurrentRecord(a, originalData);
+                            const bIsCurrent = isCurrentRecord(b, originalData);
                             if (aIsCurrent && !bIsCurrent) return -1;
                             if (!aIsCurrent && bIsCurrent) return 1;
                             
@@ -944,7 +993,7 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                             const bTime = b.timestamp ? new Date(b.timestamp).getTime() : new Date(b.date || 0).getTime();
                             return bTime - aTime;
                         }).map((record) => {
-                            const isCurrent = record.startDate && record.endDate && originalData.startDate === record.startDate && originalData.endDate === record.endDate;
+                            const isCurrent = isCurrentRecord(record, originalData);
                             const isSelected = editingSale?.id === record.id || (!editingSale && isCurrent);
                             const dDate = record.timestamp ? new Date(record.timestamp) : new Date(record.date || Date.now());
                             const isAdvance = record.startDate && record.startDate > new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
@@ -953,7 +1002,7 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                                 <div 
                                     key={record.id} 
                                     onClick={() => {
-                                        const isCurrent = record.startDate && record.endDate && originalData.startDate === record.startDate && originalData.endDate === record.endDate;
+                                        const isCurrent = isCurrentRecord(record, originalData);
                                         
                                         if (isCurrent) {
                                             // Scroll to top to focus on "진행 중인 회원정보"
