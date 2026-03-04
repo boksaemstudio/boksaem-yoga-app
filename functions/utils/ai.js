@@ -35,6 +35,20 @@ class AIService {
         return this.langMap[langCode] || 'Korean';
     }
 
+    async translate(text, targetLangCode) {
+        if (!text || targetLangCode === 'ko') return text;
+        const targetLang = this.getLangName(targetLangCode);
+        const prompt = `Translate the following text to ${targetLang}. Return ONLY the translation without any preamble, explanation, or markdown:\n\n${text}`;
+        try {
+            const result = await this.model.generateContent(prompt);
+            const response = result.response.text();
+            return response ? response.trim() : text;
+        } catch (e) {
+            console.error(`Translation to ${targetLangCode} failed:`, e.message);
+            return text; // fallback to original
+        }
+    }
+
     /**
      * ✅ 잘린 JSON 문자열 복구
      * 한글이 잘리면 multi-byte 깨짐 발생 → 정리 후 닫는 괄호 추가

@@ -9,10 +9,15 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch) => {
 
         const allItems = [];
         const salesKeySet = new Set(); // Format: `${memberId}_${date}`
+        const seenSalesKeys = new Set(); // Format: `${memberId}_${date}_${amount}`
+        const memberNameMap = new Map();
+        
+        (members || []).forEach(m => memberNameMap.set(m.name, m.id));
 
         // 1. Process New Sales Data First (Primary Source)
         (sales || []).forEach(s => {
-            const member = (members || []).find(m => m.id === s.memberId);
+            const resolvedMemberId = s.memberId || memberNameMap.get(s.memberName);
+            const member = (members || []).find(m => m.id === resolvedMemberId);
             const saleBranch = s.branchId;
             const memberBranch = member?.homeBranch;
 
@@ -54,11 +59,22 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch) => {
                 }
             }
 
+            const rawAmount = Number(s.amount) || 0;
+
+            // Self Deduplication to match useAdminData.js
+            if (resolvedMemberId) {
+                const uniqueSaleKey = `${resolvedMemberId}_${dateStr}_${rawAmount}`;
+                if (seenSalesKeys.has(uniqueSaleKey)) {
+                    return; // Drop duplicate
+                }
+                seenSalesKeys.add(uniqueSaleKey);
+            }
+
             allItems.push({
                 id: s.id,
-                memberId: s.memberId,
+                memberId: resolvedMemberId,
                 date: dateStr,
-                amount: Number(s.amount) || 0, // Ensure amount is numeric
+                amount: rawAmount,
                 name: s.memberName,
                 type: s.type, // 'register' or 'extend'
                 item: s.item,
@@ -66,8 +82,8 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch) => {
             });
 
             // Add to dedup set
-            if (s.memberId) {
-                salesKeySet.add(`${s.memberId}_${dateStr}`);
+            if (resolvedMemberId) {
+                salesKeySet.add(`${resolvedMemberId}_${dateStr}`);
             }
         });
 

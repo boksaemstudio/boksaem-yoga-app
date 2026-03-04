@@ -43,7 +43,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
 
     // [REAL-TIME] Dedicated listener for the viewed member to ensure header/stats are always fresh
     useEffect(() => {
-        if (!member?.id) return;
+        if (!member?.id || member?.role === 'instructor') return;
 
         console.log(`[AdminMemberDetailModal] Setting up real-time listener for member: ${member.id}`);
         const unsub = onSnapshot(doc(db, 'members', member.id), (snap) => {
@@ -64,7 +64,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
 
     // [REAL-TIME] Dedicated listener for attendance logs to ensure list is always fresh
     useEffect(() => {
-        if (!member?.id) return;
+        if (!member?.id || member?.role === 'instructor') return;
 
         console.log(`[AdminMemberDetailModal] Setting up logs listener for: ${member.id}`);
         const q = query(
@@ -107,7 +107,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
 
     // [NEW] Fetch the latest sales amount to autofill price if missing for existing members
     useEffect(() => {
-        if (!member?.id) return;
+        if (!member?.id || member?.role === 'instructor') return;
         if (member.price !== undefined) return; // If already exists in DB
 
         let isMounted = true;
@@ -152,12 +152,14 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
 
 
 
-    const tabs = [
-        { id: 'info', label: '회원정보', icon: <User size={20} /> },
-        { id: 'attendance', label: '출석부', icon: <Calendar size={20} /> },
-        { id: 'registration', label: '재등록', icon: <CreditCard size={20} /> },
-        { id: 'messages', label: '메시지', icon: <Chats size={20} /> }
-    ];
+    const tabs = member.role === 'instructor' 
+        ? [{ id: 'info', label: '강사 정보', icon: <User size={20} /> }]
+        : [
+            { id: 'info', label: '회원정보', icon: <User size={20} /> },
+            { id: 'attendance', label: '출석부', icon: <Calendar size={20} /> },
+            { id: 'registration', label: '재등록', icon: <CreditCard size={20} /> },
+            { id: 'messages', label: '메시지', icon: <Chats size={20} /> }
+        ];
 
     const getChangedFields = () => {
         const changes = [];
@@ -384,38 +386,44 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                                 </div>
                             )}
                         </h2>
-                        <div style={{ fontSize: '0.8rem', color: determineStatusColor(member), display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                            <span>{getMembershipTypeLabel(member.membershipType)} | </span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '12px' }}>
-                                <span style={{ fontWeight: 'bold' }}>{member.credits}회 남음</span>
+                        {member.role === 'instructor' ? (
+                            <div style={{ fontSize: '0.85rem', color: '#FBBF24', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', fontWeight: 'bold' }}>
+                                선생님 (푸시 수신 전용 프로필)
                             </div>
-                            <span> | {
-                                member.endDate === 'TBD'
-                                    ? '첫 출석 시 기간 확정'
-                                    : member.endDate
-                                        ? `~ ${member.endDate}`
-                                        : '만료일 미설정'
-                            }</span>
-                            {(() => {
-                                const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-                                if (member.startDate && member.startDate > todayStr) {
-                                    return (
-                                        <span style={{ 
-                                            fontSize: '0.7rem', 
-                                            background: 'rgba(56, 189, 248, 0.15)', 
-                                            color: '#38bdf8', 
-                                            border: '1px solid rgba(56, 189, 248, 0.3)', 
-                                            padding: '2px 6px', 
-                                            borderRadius: '4px', 
-                                            fontWeight: 'bold' 
-                                        }}>
-                                            대기 중 (선등록)
-                                        </span>
-                                    );
-                                }
-                                return null;
-                            })()}
-                        </div>
+                        ) : (
+                            <div style={{ fontSize: '0.8rem', color: determineStatusColor(member), display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                                <span>{getMembershipTypeLabel(member.membershipType)} | </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '12px' }}>
+                                    <span style={{ fontWeight: 'bold' }}>{member.credits}회 남음</span>
+                                </div>
+                                <span> | {
+                                    member.endDate === 'TBD'
+                                        ? '첫 출석 시 기간 확정'
+                                        : member.endDate
+                                            ? `~ ${member.endDate}`
+                                            : '만료일 미설정'
+                                }</span>
+                                {(() => {
+                                    const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                                    if (member.startDate && member.startDate > todayStr) {
+                                        return (
+                                            <span style={{ 
+                                                fontSize: '0.7rem', 
+                                                background: 'rgba(56, 189, 248, 0.15)', 
+                                                color: '#38bdf8', 
+                                                border: '1px solid rgba(56, 189, 248, 0.3)', 
+                                                padding: '2px 6px', 
+                                                borderRadius: '4px', 
+                                                fontWeight: 'bold' 
+                                            }}>
+                                                대기 중 (선등록)
+                                            </span>
+                                        );
+                                    }
+                                    return null;
+                                })()}
+                            </div>
+                        )}
                     </div>
                     <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'white', padding: '10px' }}>
                         <X size={24} />

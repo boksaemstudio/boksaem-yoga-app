@@ -149,8 +149,8 @@ const MembersTab = ({
                 {/* [NEW] Dormant Members Card */}
                 <div className={`dashboard-card interactive ${filterType === 'dormant' ? 'highlight' : ''}`}
                     onClick={() => handleToggleFilter('dormant')}
-                    style={{ transition: 'all 0.3s ease', background: filterType === 'dormant' ? 'var(--primary-gold)' : 'linear-gradient(135deg, rgba(30, 30, 60, 0.4), rgba(50, 50, 80, 0.6))', border: filterType === 'dormant' ? 'none' : '1px solid rgba(100, 100, 255, 0.2)' }}>
-                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: filterType === 'dormant' ? 'black' : '#A0A0FF' }}>
+                    style={{ transition: 'all 0.3s ease' }}>
+                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         잠든 회원
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
@@ -159,13 +159,12 @@ const MembersTab = ({
                             </span>
                         </div>
                     </div>
-                    <div className="card-value" style={{ color: filterType === 'dormant' ? 'black' : '#E0E0FF' }}>{summary.dormantMembersCount || 0}명</div>
+                    <div className="card-value error">{summary.dormantMembersCount || 0}명</div>
                 </div>
                 {/* [NEW] App Usage & Push Stats (Redesigned) */}
                 <div className={`dashboard-card interactive ${filterType === 'installed' ? 'highlight' : ''}`}
-                    onClick={() => handleToggleFilter('installed')}
-                    style={{ background: filterType === 'installed' ? 'var(--primary-gold)' : 'linear-gradient(135deg, rgba(20, 30, 48, 0.6), rgba(36, 59, 85, 0.4))', border: filterType === 'installed' ? 'none' : '1px solid rgba(16, 185, 129, 0.2)' }}>
-                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: filterType === 'installed' ? 'black' : '#6EE7B7' }}>
+                    onClick={() => handleToggleFilter('installed')}>
+                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <BellRinging size={16} weight="fill" /> 알림 수신 가능
                         <div className="tooltip-container">
                             <Info size={14} style={{ opacity: 0.7 }} />
@@ -176,21 +175,21 @@ const MembersTab = ({
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', marginTop: '4px' }}>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                            <span style={{ fontSize: '0.9rem', color: filterType === 'installed' ? 'rgba(0,0,0,0.8)' : '#A7F3D0', fontWeight: 'bold' }}>회원</span>
-                            <div className="card-value" style={{ color: filterType === 'installed' ? 'black' : '#10B981', fontSize: '1.4rem', textShadow: filterType !== 'installed' ? '0 0 15px rgba(16, 185, 129, 0.4)' : 'none' }}>
+                            <span style={{ fontSize: '0.9rem', color: '#A7F3D0', fontWeight: 'bold' }}>회원</span>
+                            <div className="card-value success" style={{ fontSize: '1.4rem' }}>
                                 {summary.pushEnabledCount}명
                             </div>
-                            <span style={{ fontSize: '0.85rem', color: filterType === 'installed' ? 'rgba(0,0,0,0.6)' : '#6EE7B7', fontWeight: 'bold' }}>
+                            <span style={{ fontSize: '0.85rem', color: '#6EE7B7', fontWeight: 'bold' }}>
                                 ({summary.reachableRatio}%)
                             </span>
-                            <span style={{ margin: '0 6px', opacity: 0.3, color: filterType === 'installed' ? 'black' : 'white' }}>|</span>
-                            <span style={{ fontSize: '0.9rem', color: filterType === 'installed' ? 'rgba(0,0,0,0.8)' : '#FDE047', fontWeight: 'bold' }}>선생님</span>
-                            <div className="card-value" style={{ color: filterType === 'installed' ? 'black' : '#FBBF24', fontSize: '1.4rem', textShadow: filterType !== 'installed' ? '0 0 15px rgba(251, 191, 36, 0.4)' : 'none' }}>
+                            <span style={{ margin: '0 6px', opacity: 0.3, color: 'white' }}>|</span>
+                            <span style={{ fontSize: '0.9rem', color: '#FDE047', fontWeight: 'bold' }}>선생님</span>
+                            <div className="card-value gold" style={{ fontSize: '1.4rem' }}>
                                 {summary.instructorPushCount || 0}명
                             </div>
                         </div>
-                        <div style={{ fontSize: '0.8rem', color: filterType === 'installed' ? 'rgba(0,0,0,0.7)' : 'var(--text-secondary)', marginTop: '8px', paddingTop: '6px', borderTop: `1px solid rgba(${filterType === 'installed' ? '0,0,0' : '255,255,255'},0.1)` }}>
-                            <span style={{ color: filterType === 'installed' ? 'black' : '#93C5FD' }}>앱 설치 회원 {summary.installedCount}명 ({summary.installRatio}%)</span>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '8px', paddingTop: '6px', borderTop: `1px solid rgba(255,255,255,0.1)` }}>
+                            <span style={{ color: '#93C5FD' }}>앱 설치 회원 {summary.installedCount}명 ({summary.installRatio}%)</span>
                             <span style={{ margin: '0 4px', opacity: 0.3 }}>|</span>
                              오늘 +{summary.todayInstalledCount}
                         </div>
@@ -332,7 +331,19 @@ const MembersTab = ({
                                         <div style={{ flex: 1, marginLeft: '10px', width: '100%' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                                                     <strong style={{ fontSize: '1.1rem', fontWeight: 800 }}>{member.name}</strong>
+                                                    {filterType === 'installed' && (
+                                                        <span className="badge" style={{
+                                                            fontSize: '0.7rem',
+                                                            background: member.role === 'instructor' ? 'rgba(251, 191, 36, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                                                            color: member.role === 'instructor' ? '#FBBF24' : '#34D399',
+                                                            border: member.role === 'instructor' ? '1px solid rgba(251, 191, 36, 0.4)' : '1px solid rgba(16, 185, 129, 0.4)',
+                                                            padding: '2px 6px'
+                                                        }}>
+                                                            {member.role === 'instructor' ? '선생님' : '회원'}
+                                                        </span>
+                                                    )}
                                                     <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{member.phone}</span>
+                                                    {member.role !== 'instructor' && (
                                                     <button 
                                                         onClick={(e) => { e.stopPropagation(); onNoteClick && onNoteClick(member); }}
                                                         style={{ background: 'none', border: 'none', color: member.notes ? 'var(--primary-gold)' : '#52525b', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px', marginLeft: 'auto' }}
@@ -340,6 +351,7 @@ const MembersTab = ({
                                                     >
                                                         <NotePencil size={18} weight={member.notes ? "fill" : "regular"} />
                                                     </button>
+                                                    )}
                                                 </div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px', flexWrap: 'wrap' }}>
                                                 {/* [NEW] Explicit Membership Status Badge */}

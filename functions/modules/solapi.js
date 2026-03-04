@@ -242,6 +242,12 @@ exports.sendSolapiOnMessageV2 = onDocumentCreated("messages/{messageId}", async 
              };
         }
 
+        // Add a random delay to prevent Solapi API rate limits (TooManyRequests) during bulk sends.
+        // This spreads the requests over 30 seconds.
+        const jitterMs = Math.floor(Math.random() * 30000);
+        console.log(`[Solapi] Waiting ${jitterMs}ms before sending to ${cleanPhone} to prevent rate limit...`);
+        await new Promise(resolve => setTimeout(resolve, jitterMs));
+
         console.log(`[Solapi] Sending message to ${cleanPhone} (ID: ${messageId})`);
         const result = await messageService.sendOne(payload);
         

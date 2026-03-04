@@ -588,7 +588,7 @@ const MeditationPage = ({ onClose }) => {
 
     // 🎵 Global Ambient Audio Manager
     useEffect(() => {
-        const activeAmbientSteps = ['prescription_summary', 'interaction_select', 'prescription', 'preparation', 'session'];
+        const activeAmbientSteps = ['session'];
         const shouldPlay = (isPlaying || activeAmbientSteps.includes(step)) && soundEnabled;
 
         if (shouldPlay) {

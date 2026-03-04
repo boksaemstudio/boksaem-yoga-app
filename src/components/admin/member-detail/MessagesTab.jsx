@@ -351,11 +351,31 @@ const MessagesTab = ({ memberId }) => {
                                             </span>
                                         </div>
                                         {log.type === 'individual' && (
-                                            log.pushStatus?.sent ? (
-                                                <span style={{ fontSize: '0.8rem', color: '#10b981' }}>✅ 수신 확인</span>
-                                            ) : (
-                                                <span style={{ fontSize: '0.8rem', color: '#f59e0b' }}>전송 완료</span>
-                                            )
+                                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                                {/* Push Status */}
+                                                {log.pushStatus && (
+                                                    log.pushStatus.sent ? (
+                                                        <span style={{ fontSize: '0.75rem', color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>앱푸시 성공</span>
+                                                    ) : (
+                                                        <span style={{ fontSize: '0.75rem', color: '#6b7280', background: 'rgba(107, 114, 128, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>앱푸시 실패</span>
+                                                    )
+                                                )}
+                                                
+                                                {/* Solapi Status */}
+                                                {log.solapiStatus ? (
+                                                    log.solapiStatus.sent ? (
+                                                        <span style={{ fontSize: '0.75rem', color: '#3B82F6', background: 'rgba(59, 130, 246, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>
+                                                            {log.solapiStatus.method === 'ALIMTALK' ? '알림톡 성공' : '문자 성공'}
+                                                        </span>
+                                                    ) : (
+                                                        <span style={{ fontSize: '0.75rem', color: '#ef4444', background: 'rgba(239, 68, 68, 0.1)', padding: '2px 6px', borderRadius: '4px' }} title={log.solapiStatus.error || '알 수 없는 오류'}>
+                                                            문자 실패 {log.solapiStatus.error && log.solapiStatus.error.includes('TooManyRequests') ? '(요청 초과)' : ''}
+                                                        </span>
+                                                    )
+                                                ) : (
+                                                    <span style={{ fontSize: '0.75rem', color: '#f59e0b' }}>전송 완료</span>
+                                                )}
+                                            </div>
                                         )}
                                     </div>
                                     <div style={{ color: 'white', fontSize: '0.9rem' }}>{log.content || log.body}</div>

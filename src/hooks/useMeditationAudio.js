@@ -120,14 +120,14 @@ export const useMeditationAudio = (ttcEnabled, isPlayingRef, step, logDebug, set
         }
     }, []);
 
-    const playAudio = useCallback((base64String, volume, onEndedCallback) => {
+    const playAudio = useCallback((base64String, customVolume, onEndedCallback) => {
         if (!ttcEnabled || !base64String) return null;
         
         try {
             stopVoiceOnly();
             
             const audio = new Audio(`data:audio/mp3;base64,${base64String}`);
-            audio.volume = volume;
+            audio.volume = customVolume !== undefined ? customVolume : (soundEnabled ? audioVolumes.voice : 0);
             currentAudioRef.current = audio;
 
             setTtsState && setTtsState({ isSpeaking: true, engine: 'Cloud TTS', volume: audio.volume });

@@ -1446,10 +1446,11 @@ export const storageService = {
     return results;
   },
 
-  // [NEW] Kiosk Remote Settings
-  async getKioskSettings() {
+  // [NEW] Kiosk Remote Settings (지점별 분리: kiosk_all, kiosk_gwangheungchang, kiosk_mapo)
+  async getKioskSettings(branchId = 'all') {
     try {
-      const docSnap = await getDoc(doc(db, 'settings', 'kiosk'));
+      const docId = branchId === 'all' ? 'kiosk' : `kiosk_${branchId}`;
+      const docSnap = await getDoc(doc(db, 'settings', docId));
       if (docSnap.exists()) {
         return docSnap.data();
       }
@@ -1460,9 +1461,10 @@ export const storageService = {
     }
   },
 
-  async updateKioskSettings(data) {
+  async updateKioskSettings(branchId = 'all', data) {
     try {
-      await setDoc(doc(db, 'settings', 'kiosk'), {
+      const docId = branchId === 'all' ? 'kiosk' : `kiosk_${branchId}`;
+      await setDoc(doc(db, 'settings', docId), {
         ...data,
         updatedAt: new Date().toISOString()
       }, { merge: true });
@@ -1473,9 +1475,10 @@ export const storageService = {
     }
   },
 
-  subscribeToKioskSettings(callback) {
+  subscribeToKioskSettings(branchId = 'all', callback) {
     try {
-      return onSnapshot(doc(db, 'settings', 'kiosk'), (docSnap) => {
+      const docId = branchId === 'all' ? 'kiosk' : `kiosk_${branchId}`;
+      return onSnapshot(doc(db, 'settings', docId), (docSnap) => {
         if (docSnap.exists()) {
           callback(docSnap.data());
         } else {

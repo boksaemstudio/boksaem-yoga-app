@@ -7,14 +7,16 @@ const KioskSettingsTab = () => {
     const [isUploading, setIsUploading] = useState(false);
     const [previewUrl, setPreviewUrl] = useState(null);
 
+    const [selectedBranch, setSelectedBranch] = useState('all');
+
     useEffect(() => {
         const loadSettings = async () => {
-            const data = await storageService.getKioskSettings();
+            const data = await storageService.getKioskSettings(selectedBranch);
             setSettings(data);
             setPreviewUrl(data.imageUrl);
         };
         loadSettings();
-    }, []);
+    }, [selectedBranch]);
 
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
@@ -52,10 +54,11 @@ const KioskSettingsTab = () => {
                 setPreviewUrl(compressedBase64);
                 
                 try {
-                    await storageService.updateImage('kiosk_notice', compressedBase64);
+                    const imageKey = `kiosk_notice_${selectedBranch}`;
+                    await storageService.updateImage(imageKey, compressedBase64);
                     // Update settings with the same key reference conceptually, 
                     // though we store the data in images collection to reuse logic
-                    await storageService.updateKioskSettings({ ...settings, imageUrl: compressedBase64 });
+                    await storageService.updateKioskSettings(selectedBranch, { ...settings, imageUrl: compressedBase64 });
                     setSettings(prev => ({ ...prev, imageUrl: compressedBase64 }));
                     alert('이미지가 성공적으로 업로드되었습니다.');
                 } catch (err) {
@@ -74,7 +77,7 @@ const KioskSettingsTab = () => {
     const handleToggleActive = async () => {
         const newActive = !settings.active;
         try {
-            await storageService.updateKioskSettings({ ...settings, active: newActive });
+            await storageService.updateKioskSettings(selectedBranch, { ...settings, active: newActive });
             setSettings(prev => ({ ...prev, active: newActive }));
         } catch (err) {
             alert('설정 변경에 실패했습니다.');
@@ -84,7 +87,7 @@ const KioskSettingsTab = () => {
     const handleRemoveImage = async () => {
         if (!window.confirm('이미지를 삭제하시겠습니까?')) return;
         try {
-            await storageService.updateKioskSettings({ ...settings, imageUrl: null, active: false });
+            await storageService.updateKioskSettings(selectedBranch, { ...settings, imageUrl: null, active: false });
             setSettings({ active: false, imageUrl: null });
             setPreviewUrl(null);
         } catch (err) {
@@ -104,8 +107,35 @@ const KioskSettingsTab = () => {
                 <Info size={20} color="var(--primary-gold)" style={{ flexShrink: 0, marginTop: '2px' }} />
                 <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
                     <p style={{ margin: '0 0 8px 0', color: 'var(--text-primary)', fontWeight: 'bold' }}>키오스크 공지 기능 안내</p>
-                    이곳에서 이미지를 업로드하고 활성화하면, 출석체크 태블릿(키오스크) 화면 전체에 해당 이미지가 표시됩니다. 이벤트 안내나 휴관일 공지 등에 활용하세요.
+                    이곳에서 이미지를 업로드하고 활성화하면, 출석체크 태블릿(키오스크) 화면 전체에 해당 이미지가 표시됩니다. 지점별로 설정하거나 전체 공통으로 설정할 수 있습니다.
                 </div>
+            </div>
+
+            {/* Branch Selector */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+                {[
+                    { id: 'all', label: '전체' },
+                    { id: 'gwangheungchang', label: '광흥창' },
+                    { id: 'mapo', label: '마포' }
+                ].map(branch => (
+                    <button
+                        key={branch.id}
+                        onClick={() => setSelectedBranch(branch.id)}
+                        style={{
+                            flex: 1,
+                            padding: '12px',
+                            background: selectedBranch === branch.id ? 'var(--primary-gold)' : 'rgba(255,255,255,0.05)',
+                            color: selectedBranch === branch.id ? 'black' : 'var(--text-secondary)',
+                            border: `1px solid ${selectedBranch === branch.id ? 'var(--primary-gold)' : 'var(--border-color)'}`,
+                            borderRadius: '8px',
+                            fontWeight: selectedBranch === branch.id ? 'bold' : 'normal',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        {branch.label}
+                    </button>
+                ))}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

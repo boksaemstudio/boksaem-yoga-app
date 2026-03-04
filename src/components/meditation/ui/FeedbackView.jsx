@@ -13,15 +13,18 @@ export const FeedbackView = ({
     onClose 
 }) => {
     const navigate = useNavigate();
-    const duration = activeMode?.id === 'breath' ? 3 * 60 : (activeMode?.id === 'calm' ? 7 * 60 : 15 * 60);
-    const actualTime = duration - timeLeft;
+    const duration = activeMode?.time || (activeMode?.id === 'breath' ? 3 * 60 : (activeMode?.id === 'calm' ? 7 * 60 : 15 * 60));
+    const actualTime = Math.max(0, duration - timeLeft);
 
     return (
         <div style={{
             position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 4000,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            padding: '20px', overflowY: 'auto'
+            overflowY: 'auto', padding: '20px', WebkitOverflowScrolling: 'touch'
         }}>
+            <div style={{
+                minHeight: '100%', display: 'flex', flexDirection: 'column', 
+                alignItems: 'center', justifyContent: 'flex-start', margin: 'auto'
+            }}>
             <button onClick={onClose} style={{
                 position: 'absolute', top: '20px', right: '20px',
                 background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white',
@@ -105,6 +108,7 @@ export const FeedbackView = ({
                 }}>
                     마음 챙김 마치고 돌아가기
                 </button>
+            </div>
             </div>
         </div>
     );

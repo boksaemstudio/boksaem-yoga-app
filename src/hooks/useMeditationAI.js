@@ -322,17 +322,22 @@ export const useMeditationAI = ({
     const fetchAIFeedback = useCallback(async (stabilityScore, customSummary) => {
         try {
             const result = await generateMeditationGuidance({
-                type: 'feedback',
+                type: 'feedback_message',
                 memberName: memberName,
                 sessionInfo: sessionInfo,
                 postureFeedback: customSummary,
                 stabilityScore: stabilityScore
             });
             
-            if (result.data && result.data.feedbackMessage) {
+            if (result.data) {
+                const data = result.data;
+                const points = data.feedbackPoints || [];
+                // API might return message as well
+                const rawMsg = data.message ? (data.message + '\n\n' + points.join('\n')) : points.join('\n');
+                
                 setFeedbackData({ 
-                    message: result.data.feedbackMessage.replace(/OO님/g, `${memberName}님`),
-                    analysis: result.data.analysis 
+                    message: rawMsg ? rawMsg.replace(/OO님/g, `${memberName}님`) : "명상 관찰 일지가 준비되지 않았습니다.",
+                    analysis: data.analysis 
                 });
             }
             return result.data;

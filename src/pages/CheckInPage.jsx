@@ -191,13 +191,37 @@ const CheckInPage = () => {
         return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     }, []);
 
-    // [NEW] Kiosk Notice Listener
+    // [NEW] Kiosk Notice Listener (지점별 + 전체)
     useEffect(() => {
-        const unsubscribe = storageService.subscribeToKioskSettings((settings) => {
-            setKioskSettings(settings);
+        let branchSettings = { active: false, imageUrl: null };
+        let allSettings = { active: false, imageUrl: null };
+
+        const updateCombinedSettings = () => {
+            // Priority: Branch specific > All
+            if (branchSettings.active) {
+                setKioskSettings(branchSettings);
+            } else if (allSettings.active) {
+                setKioskSettings(allSettings);
+            } else {
+                setKioskSettings({ active: false, imageUrl: null });
+            }
+        };
+
+        const unsubscribeBranch = storageService.subscribeToKioskSettings(currentBranch, (settings) => {
+            branchSettings = settings;
+            updateCombinedSettings();
         });
-        return () => unsubscribe();
-    }, []);
+
+        const unsubscribeAll = storageService.subscribeToKioskSettings('all', (settings) => {
+            allSettings = settings;
+            updateCombinedSettings();
+        });
+
+        return () => {
+            unsubscribeBranch();
+            unsubscribeAll();
+        };
+    }, [currentBranch]);
 
     // [NEW] Kiosk PWA Auto-Update when Idle & Update Available
     useEffect(() => {

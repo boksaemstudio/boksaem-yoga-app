@@ -243,7 +243,30 @@ const AdminDashboard = () => {
             return attendanceList.sort((a, b) => b.attendanceTime.localeCompare(a.attendanceTime));
         }
 
-        return members.filter(m => {
+        let baseList = members;
+        if (filterType === 'installed' && pushTokens) {
+            const instructorTokens = pushTokens.filter(t => t.role === 'instructor');
+            const uniqueInstructors = [];
+            const seenIds = new Set();
+            instructorTokens.forEach(t => {
+                const id = t.memberId || t.token;
+                if (id && !seenIds.has(id)) {
+                    seenIds.add(id);
+                    uniqueInstructors.push({
+                        id: id,
+                        name: t.memberName || '선생님',
+                        phone: '',
+                        role: 'instructor',
+                        installedAt: t.updatedAt || t.createdAt || new Date().toISOString(),
+                        pushEnabled: true,
+                        homeBranch: t.branchId || 'Mapo'
+                    });
+                }
+            });
+            baseList = [...members, ...uniqueInstructors];
+        }
+
+        return baseList.filter(m => {
             if (currentBranch !== 'all' && m.homeBranch !== currentBranch) return false;
 
             const matchesSearch = (m.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -274,7 +297,7 @@ const AdminDashboard = () => {
             }
             return a.name.localeCompare(b.name, 'ko');
         });
-    }, [members, logs, searchTerm, filterType, currentBranch, isMemberActive, isMemberExpiring, todayReRegMemberIds]);
+    }, [members, logs, searchTerm, filterType, currentBranch, isMemberActive, isMemberExpiring, todayReRegMemberIds, pushTokens]);
 
     const dormantCount = useMemo(() => {
         return members.filter(m => {
@@ -415,6 +438,26 @@ const AdminDashboard = () => {
         setSelectedMember(member);
         setShowEditModal(true);
     };
+
+    const handleOpenEditById = useCallback((memberId) => {
+        let member = members.find(m => m.id === memberId);
+        if (!member) {
+            const instructorToken = pushTokens.find(t => t.memberId === memberId && t.role === 'instructor');
+            if (instructorToken) {
+                member = {
+                    id: memberId,
+                    name: instructorToken.memberName || '선생님',
+                    phone: '',
+                    role: 'instructor'
+                };
+            }
+        }
+        if (member) {
+            handleOpenEdit(member);
+        } else {
+            alert("삭제되거나 찾을 수 없는 회원입니다.");
+        }
+    }, [members, pushTokens]);
 
     const handleAddSalesRecord = async (salesData) => {
         try {
@@ -710,7 +753,7 @@ const AdminDashboard = () => {
                             </div>
                         )}
                         <PushHistoryTab 
-                            onSelectMember={handleOpenEdit} 
+                            onSelectMember={handleOpenEditById} 
                             setActiveTab={setActiveTab} 
                             pendingApprovals={pendingApprovals}
                             onApprove={handleApprovePush}
