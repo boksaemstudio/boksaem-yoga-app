@@ -128,7 +128,7 @@ export const storageService = {
             console.log("[Storage] Scheduled background refresh for today's classes and member cache...");
             branches.forEach(bid => this._refreshDailyClassCache(bid));
             // [UX] Refresh members periodically in Kiosk mode to prevent stale "Expired" states
-            memberService.loadAllMembers();
+            memberService.loadAllMembers(true);
           }, 10 * 60 * 1000); // 10m
         }
 
@@ -145,7 +145,7 @@ export const storageService = {
                 if (data.lastMemberUpdate && data.lastMemberUpdate > (this._lastKioskSync || '')) {
                   console.log('[Storage] Kiosk sync triggered by Admin. Refreshing members...');
                   this._lastKioskSync = data.lastMemberUpdate;
-                  memberService.loadAllMembers();
+                  memberService.loadAllMembers(true);
                 }
               }
             }, (err) => {
@@ -159,7 +159,7 @@ export const storageService = {
           window.addEventListener('online', () => {
               console.log('[Storage] Network reconnected. Restoring Kiosk sync listener and forcing refresh...');
               setupSyncListener();
-              memberService.loadAllMembers(); // 강제 1회 동기화 (오프라인 동안 놓친 업데이트 보완)
+              memberService.loadAllMembers(true); // 강제 1회 동기화 (오프라인 동안 놓친 업데이트 보완)
           });
         } catch (syncErr) {
           console.error('[Storage] Setup kiosk sync failed:', syncErr);
@@ -226,7 +226,7 @@ export const storageService = {
   },
 
   getMembers() { return memberService.getMembers(); },
-  loadAllMembers() { return memberService.loadAllMembers(); },
+  loadAllMembers(force = false) { return memberService.loadAllMembers(force); },
   
   // [PERF] Build O(1) lookup index for phoneLast4
   _buildPhoneLast4Index() { return memberService._buildPhoneLast4Index(); },

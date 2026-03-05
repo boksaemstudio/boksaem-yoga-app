@@ -387,7 +387,7 @@ const CheckInPage = () => {
                 if (sleepDuration > 60 * 1000) {
                     try {
                         console.log('[AlwaysOn] Refreshing cache after short sleep...');
-                        await storageService.loadAllMembers();
+                        await storageService.loadAllMembers(true);
                         fetchWeatherAndAI();
                     } catch (e) {
                         console.warn('[AlwaysOn] Cache refresh failed:', e);
@@ -459,7 +459,7 @@ const CheckInPage = () => {
             // 매 30번째(~90분)마다 예방적 캐시 갱신
             if (heartbeatCount % 30 === 0) {
                 console.log('[AlwaysOn] Heartbeat: Preventive cache refresh');
-                storageService.loadAllMembers().catch(() => {});
+                storageService.loadAllMembers(true).catch(() => {});
             }
         }, 3 * 60 * 1000); // 3분
 

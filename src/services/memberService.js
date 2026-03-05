@@ -59,18 +59,16 @@ export const memberService = {
     return cachedMembers;
   },
 
-  async loadAllMembers() {
-    if (cachedMembers.length > 0) return cachedMembers;
+  async loadAllMembers(force = false) {
+    if (!force && cachedMembers.length > 0) return cachedMembers;
 
     try {
       console.time('[memberService] Force Fetch Members');
-      console.log("[memberService] Cache empty, force fetching members...");
+      console.log("[memberService] Cache empty or forced, fetching members...");
       const snapshot = await getDocs(collection(db, 'members'));
       const members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      if (cachedMembers.length === 0) {
-        cachedMembers = members;
-      }
+      cachedMembers = members;
       
       this._buildPhoneLast4Index();
       console.timeEnd('[memberService] Force Fetch Members');
