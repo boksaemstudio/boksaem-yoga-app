@@ -58,6 +58,7 @@ const CheckInPage = () => {
     
     // [NEW] Kiosk Notice & PWA Auto-Update
     const [kioskSettings, setKioskSettings] = useState({ active: false, imageUrl: null });
+    const [kioskNoticeHidden, setKioskNoticeHidden] = useState(false); // [UX] 5분 후 자동 복구용 상태
     const { needRefresh, updateServiceWorker } = usePWA();
     const [selectedMemberId, setSelectedMemberId] = useState(null); // [UX] 2-Step Check-in: track selection
     const [showInstructorQR, setShowInstructorQR] = useState(false);
@@ -236,6 +237,17 @@ const CheckInPage = () => {
             window.removeEventListener('click', resetIdleTimer);
         };
     }, [needRefresh, pin, message, loading, showSelectionModal, showDuplicateConfirm, updateServiceWorker]);
+
+    // [NEW] Kiosk Notice Auto-Restore Timer (5 minutes)
+    useEffect(() => {
+        let timer;
+        if (kioskNoticeHidden) {
+            timer = setTimeout(() => {
+                setKioskNoticeHidden(false); // 5분 뒤 다시 표시
+            }, 5 * 60 * 1000); // 300,000ms
+        }
+        return () => clearTimeout(timer);
+    }, [kioskNoticeHidden]);
 
     // [New] Auto-close Install Guide after 5 minutes
     useEffect(() => {
@@ -1879,11 +1891,11 @@ const CheckInPage = () => {
             }
 
             {/* [NEW] Kiosk Notice Overlay */}
-            {kioskSettings?.active && kioskSettings?.imageUrl && !message && !showSelectionModal && !showDuplicateConfirm && (
+            {kioskSettings?.active && kioskSettings?.imageUrl && !kioskNoticeHidden && !message && !showSelectionModal && !showDuplicateConfirm && (
                 <div 
                     onClick={() => {
-                        // Dismiss locally until page reloads or settings update
-                        setKioskSettings(prev => ({...prev, active: false}));
+                        // Dismiss locally, auto-restores after 5 min
+                        setKioskNoticeHidden(true);
                     }}
                     style={{
                         position: 'fixed',
@@ -1902,7 +1914,7 @@ const CheckInPage = () => {
                         style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} 
                         onClick={(e) => {
                             e.stopPropagation();
-                            setKioskSettings(prev => ({...prev, active: false}));
+                            setKioskNoticeHidden(true);
                         }}
                     />
                     <div style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(0,0,0,0.5)', color: 'white', padding: '10px 20px', borderRadius: '20px', pointerEvents: 'none', fontWeight: 'bold' }}>
