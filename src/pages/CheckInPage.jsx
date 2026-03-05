@@ -1237,8 +1237,8 @@ const CheckInPage = () => {
                 zIndex: 5,
                 flex: 1,
                 display: 'flex',
-                gap: '40px',
-                padding: '50px 40px 60px', /* 상/하단 여백 충분히 확보 (위 50, 아래 60) */
+                gap: 'clamp(15px, 3vh, 40px)',
+                padding: 'clamp(10px, 3vh, 50px) clamp(20px, 3vw, 40px) clamp(10px, 3vh, 60px)', /* 뷰포트 높이 기반 동적 여백 */
                 width: '100%',
                 margin: '0 auto',
                 alignItems: 'stretch',
@@ -1250,11 +1250,11 @@ const CheckInPage = () => {
                     justifyContent: 'space-between' /* 중앙 정렬에서 양끝 정렬로 변경해 상/하단 잘림 방지 */
                 }}>
                     {!message && (
-                        <header className="info-header" style={{ marginBottom: '40px' }}>
+                        <header className="info-header" style={{ marginBottom: 'clamp(10px, 3vh, 40px)' }}>
                             <div className="logo-container" style={{ display: 'flex', alignItems: 'center', gap: '35px', justifyContent: 'center' }}>
                                 {/* [ADJUSTED] Logo sizes: RYS200 (80px), Main Logo (80px) per user request */}
-                                <img src={rys200Logo} alt="RYS200" style={{ height: '80px', width: 'auto', filter: 'brightness(0) invert(1)', opacity: 0.8 }} />
-                                <img src={logoWide} alt="logo" style={{ height: '78px', width: 'auto' }} />
+                                <img src={rys200Logo} alt="RYS200" style={{ height: 'clamp(50px, 10vh, 80px)', width: 'auto', filter: 'brightness(0) invert(1)', opacity: 0.8 }} />
+                                <img src={logoWide} alt="logo" style={{ height: 'clamp(48px, 10vh, 78px)', width: 'auto' }} />
                             </div>
                         </header>
                     )}
@@ -1391,12 +1391,12 @@ const CheckInPage = () => {
                             style={{
                                 background: 'rgba(0,0,0,0.6)', // Simple background
                                 borderRadius: '20px',
-                                padding: '20px 30px',
+                                padding: 'clamp(10px, 2vh, 20px) clamp(15px, 2vw, 30px)',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                gap: '25px',
+                                gap: 'clamp(12px, 2vw, 25px)',
                                 alignSelf: 'center',
                                 border: '1px solid rgba(255, 215, 0, 0.4)',
                                 touchAction: 'none'
@@ -1406,8 +1406,8 @@ const CheckInPage = () => {
                                 if (e.button === 0) handleQRInteraction(e);
                             }}
                         >
-                            <div className="qr-img-wrapper" style={{ background: 'white', padding: '12px', borderRadius: '16px', flexShrink: 0 }}>
-                                <img src={qrCodeUrl} alt="QR" style={{ width: '130px', height: '130px', display: 'block' }} />
+                            <div className="qr-img-wrapper" style={{ background: 'white', padding: 'clamp(6px, 1.5vh, 12px)', borderRadius: '16px', flexShrink: 0 }}>
+                                <img src={qrCodeUrl} alt="QR" style={{ width: 'clamp(80px, 15vh, 130px)', height: 'clamp(80px, 15vh, 130px)', display: 'block' }} />
                             </div>
                             <div className="qr-text" style={{
                                 textAlign: 'left',
@@ -1416,10 +1416,10 @@ const CheckInPage = () => {
                                 justifyContent: 'center',
                                 marginTop: '-5px' // Adjusted alignment
                             }}>
-                                <h3 style={{ fontSize: '1.9rem', color: 'var(--primary-gold)', marginBottom: '16px', fontWeight: 900, lineHeight: 1 }}>
+                                <h3 style={{ fontSize: 'clamp(1.3rem, 3vh, 1.9rem)', color: 'var(--primary-gold)', marginBottom: 'clamp(6px, 1.5vh, 16px)', fontWeight: 900, lineHeight: 1 }}>
                                     내 요가
                                 </h3>
-                                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 'clamp(2px, 0.5vh, 5px)' }}>
                                     <li style={{ fontSize: '1.2rem', color: 'rgba(255, 255, 255, 0.95)', display: 'flex', alignItems: 'center', gap: '8px', lineHeight: 1.1 }}>
                                         ✓ 잔여 횟수 확인
                                     </li>
