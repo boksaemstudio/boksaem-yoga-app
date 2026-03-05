@@ -323,6 +323,30 @@ class AIService {
         return null;
     }
 
+    async generateDailyYoga(language = 'ko') {
+        const targetLang = this.getLangName(language);
+        const prompt = `
+            Recommend 2 simple home yoga poses for a 3-minute daily routine.
+            The user wants DETAILED step-by-step instructions on how to perform the poses correctly, 
+            including breathing tips and posture alignment. Do not just give a 1-sentence instruction; 
+            explain the method in detail so a beginner can follow along perfectly within 3.
+            
+            Language: ${targetLang}
+            Output MUST be ONLY a valid JSON array of objects with this EXACT format:
+            [
+                { 
+                    "name": "Pose Name (e.g., Cat-Cow)", 
+                    "emoji": "🧘", 
+                    "benefit": "Core benefit of this pose", 
+                    "instruction": "Detailed step-by-step instructions. E.g., 1. Start on your hands and knees. 2. Inhale and arch your back... 3. Exhale and round your spine... focus on your breath." 
+                },
+                ...
+            ]
+        `;
+        const result = await this.generateExperience(prompt);
+        return Array.isArray(result) ? result : (result?.poses || result);
+    }
+
     // Helper to get Gemini Client if needed directly
     getClient() { return this.client; }
 }

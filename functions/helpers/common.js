@@ -18,6 +18,35 @@ if (admin.apps.length === 0) {
 const FCM_COLLECTIONS = ["fcm_tokens", "fcmTokens", "push_tokens"];
 
 /**
+ * 한국 표준시(KST) 기준의 "YYYY-MM-DD" 포맷 문자열 반환
+ * 클라우드 함수의 언어 환경에 종속되지 않는 안전한 유틸리티
+ * @param {Date} [date] - 기준 날짜 (기본값: 현재 시간)
+ * @returns {string} "YYYY-MM-DD"
+ */
+const getKSTDateString = (date = new Date()) => {
+    try {
+        const formatter = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'Asia/Seoul',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+        const parts = formatter.formatToParts(date);
+        const y = parts.find(p => p.type === 'year')?.value;
+        const m = parts.find(p => p.type === 'month')?.value;
+        const d = parts.find(p => p.type === 'day')?.value;
+        if (y && m && d) return `${y}-${m}-${d}`;
+    } catch (e) {
+        console.warn("Date polyfill fallback active:", e);
+    }
+    
+    // Fallback if Intl fails
+    const kstOffset = 9 * 60 * 60 * 1000;
+    const kstDate = new Date(date.getTime() + kstOffset);
+    return kstDate.toISOString().split('T')[0];
+};
+
+/**
  * 모든 FCM 컬렉션에서 토큰을 조회하는 공통 헬퍼
  * @param {Object} db - Firestore instance
  * @param {Object} filters - { memberId, role, instructorName } 등 필터 조건
@@ -92,9 +121,10 @@ const getAI = () => {
  * AI 일일 할당량 체크
  */
 const checkAIQuota = async () => {
-    const db = admin.firestore();
-    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-    const quotaRef = db.collection('ai_quota').doc(today);
+    // [FIX] 순환 require('./common') 제거 — 동일 파일 스코프의 getKSTDateString 직접 사용
+    const today = getKSTDateString();
+    // [FIX] 미선언 변수 db → admin.firestore() 사용
+    const quotaRef = admin.firestore().collection('ai_quota').doc(today);
     
     const quotaSnap = await quotaRef.get();
     const currentCount = quotaSnap.exists ? quotaSnap.data().count || 0 : 0;
@@ -136,5 +166,6 @@ module.exports = {
     checkAIQuota,
     createPendingApproval,
     FCM_COLLECTIONS,
-    getAllFCMTokens
+    getAllFCMTokens,
+    getKSTDateString // [NEW] 안전한 날짜 생성기
 };

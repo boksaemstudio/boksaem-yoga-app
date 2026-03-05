@@ -1637,11 +1637,13 @@ const MeditationPage = ({ onClose }) => {
                         {Object.values(INTERACTION_TYPES).map(t => (
                             <button key={t.id} onClick={() => {
                                 setInteractionType(t.id);
-                                const defaultMode = MEDITATION_MODES.find(m => m.id === selectedDiagnosis?.prescription.modeId) || MEDITATION_MODES[1];
-                                setActiveMode(defaultMode);
-                                setTimeLeft(defaultMode.time);
+                                // ✅ [FIX 2] 사용자가 '⏱️ 명상 시간'을 먼저 눌렀다가(activeMode가 있는 상태) 
+                                // 이 버튼을 터치했을 때時間が 15분 등 기본으로 다시 덮어씌워지는 오류 수정
+                                const modeToUse = activeMode || MEDITATION_MODES.find(m => m.id === selectedDiagnosis?.prescription.modeId) || MEDITATION_MODES[1];
+                                setActiveMode(modeToUse);
+                                setTimeLeft(modeToUse.time);
                                 // Fetch real prescription details in background
-                                fetchAIPrescription(selectedDiagnosis?.id || 'stress', weatherContext?.id || 'sun', defaultMode.id, t.id, "");
+                                fetchAIPrescription(selectedDiagnosis?.id || 'stress', weatherContext?.id || 'sun', modeToUse.id, t.id, "");
                                 setStep('preparation');
                                 setPrepStep(3); // Go to Posture Guide
                             }}

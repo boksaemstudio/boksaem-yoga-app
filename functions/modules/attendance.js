@@ -8,7 +8,7 @@
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
-const { admin, logAIError } = require("../helpers/common");
+const { admin, logAIError, getKSTDateString } = require("../helpers/common");
 
 // Helper functions
 const calculateGap = (lastDate, currentDate) => {
@@ -92,12 +92,12 @@ exports.checkInMemberV2Call = onCall({
             const memberData = memberSnap.data();
             
             // [FIX] Move 'today' and 'now' outside of the if block to fix ReferenceError
-            const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            const today = getKSTDateString(new Date());
             const now = new Date();
             
             // [CRITICAL] Check for Duplicates (Idempotency) inside Transaction
             // Same member, same date, within last 15 seconds = Duplicate
-            // [UX] If 'force' is provided (Member Confirmed Dual Check-in), SKIP this check completely
+            // [UX] If 'force' is provided (Member Confirmed Dual Check-in after 25s), SKIP this check completely
             if (!request.data.force) {
                 const duplicateWindowSeconds = 15;
                 const duplicateCutoff = new Date(now.getTime() - duplicateWindowSeconds * 1000).toISOString();
@@ -126,6 +126,8 @@ exports.checkInMemberV2Call = onCall({
                         isDuplicate: true
                     };
                 }
+            } else {
+                console.log(`[Attendance] Force Check-in requested for ${memberId}. Skipping 15s duplicate check.`);
             }
 
 
@@ -194,12 +196,12 @@ exports.checkInMemberV2Call = onCall({
                             const end = new Date(today);
                             end.setMonth(end.getMonth() + 1);
                             end.setDate(end.getDate() - 1);
-                            newEndDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                            newEndDate = getKSTDateString(end);
                         } else {
                             const end = new Date(today);
                             end.setMonth(end.getMonth() + durationMonths);
                             end.setDate(end.getDate() - 1);
-                            newEndDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                            newEndDate = getKSTDateString(end);
                         }
                     }
                 } else {
@@ -319,7 +321,7 @@ exports.checkInMemberV2Call = onCall({
                     startDate = today;
                     const end = new Date();
                     end.setDate(end.getDate() + 30);
-                    endDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                    endDate = getKSTDateString(end);
                 }
 
                 const updates = {
@@ -386,7 +388,7 @@ exports.onAttendanceCreated = onDocumentCreated({
         // Get recent attendance for analysis
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        const cutoffDate = thirtyDaysAgo.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+        const cutoffDate = getKSTDateString(thirtyDaysAgo);
 
         const recentSnap = await db.collection('attendance')
             .where('memberId', '==', memberId)
@@ -589,7 +591,7 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
                     startDate = date;
                     const end = new Date(date);
                     end.setDate(end.getDate() + 30);
-                    endDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                    endDate = getKSTDateString(end);
                 }
 
                 transaction.update(memberRef, {

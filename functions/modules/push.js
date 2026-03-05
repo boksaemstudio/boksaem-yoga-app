@@ -8,7 +8,7 @@
 
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { admin, getAI, logAIError } = require("../helpers/common");
+const { admin, getAI, logAIError, getAllFCMTokens } = require("../helpers/common");
 
 /**
  * 개인 메시지 푸시 알림
@@ -32,19 +32,8 @@ exports.sendPushOnMessageV2 = onDocumentCreated({
 
     try {
         const db = admin.firestore();
-        const collections = ["fcm_tokens", "fcmTokens", "push_tokens"];
-        let tokens = [];
-        let tokenSources = {};
-
-        for (const col of collections) {
-            const snap = await db.collection(col).where("memberId", "==", memberId).get();
-            snap.forEach(d => {
-                if (d.id && !tokens.includes(d.id)) {
-                    tokens.push(d.id);
-                    tokenSources[d.id] = col;
-                }
-            });
-        }
+        // [FIX] 인라인 3중 컬렉션 순회 → getAllFCMTokens 헬퍼로 통합
+        const { tokens, tokenSources } = await getAllFCMTokens(db, { memberId });
 
         if (tokens.length === 0) {
             await event.data.ref.update({
@@ -257,22 +246,23 @@ exports.sendPushOnNoticeV2 = onDocumentCreated({
     try {
         const db = admin.firestore();
         const ai = getAI();
-        const collections = ["fcm_tokens", "fcmTokens", "push_tokens"];
+        // [FIX] 인라인 3중 컬렉션 순회 → getAllFCMTokens 헬퍼 + 그룹핑
+        const { tokens: allTokens } = await getAllFCMTokens(db);
         const tokensByGroup = {};
 
-        for (const col of collections) {
-            const snap = await db.collection(col).get();
-            snap.docs.forEach(doc => {
-                const data = doc.data();
-                const lang = data.language || 'ko';
-                const role = data.role === 'instructor' ? 'instructor' : 'member';
-                const groupKey = `${lang}_${role}`;
-                if (!tokensByGroup[groupKey]) tokensByGroup[groupKey] = [];
-                if (!tokensByGroup[groupKey].includes(doc.id)) {
-                    tokensByGroup[groupKey].push(doc.id);
-                }
-            });
-        }
+        // getAllFCMTokens은 토큰 ID만 반환하므로, 개별 문서 데이터로 그룹핑 필요
+        // 기존 로직을 유지하되 fcm_tokens 단일 컬렉션 기준으로 조회
+        const snap = await db.collection('fcm_tokens').get();
+        snap.docs.forEach(doc => {
+            const data = doc.data();
+            const lang = data.language || 'ko';
+            const role = data.role === 'instructor' ? 'instructor' : 'member';
+            const groupKey = `${lang}_${role}`;
+            if (!tokensByGroup[groupKey]) tokensByGroup[groupKey] = [];
+            if (!tokensByGroup[groupKey].includes(doc.id)) {
+                tokensByGroup[groupKey].push(doc.id);
+            }
+        });
 
         let successTotal = 0;
         let failureTotal = 0;

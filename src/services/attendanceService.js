@@ -50,9 +50,7 @@ export const attendanceService = {
 
   async clearAllAttendance() {
     try {
-      if (!window.confirm('정말로 모든 출석 기록을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-        return { success: false, message: '취소되었습니다.' };
-      }
+      // [FIX] window.confirm 제거 — UI 확인은 호출측(AdminDashboard 등)에서 처리
       const snapshot = await getDocs(collection(db, 'attendance'));
       const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
       await Promise.all(deletePromises);
@@ -132,29 +130,31 @@ export const attendanceService = {
       const logRef = doc(db, 'attendance', logId);
       const logSnap = await getDoc(logRef);
 
+      // [FIX] writeBatch로 원자적 처리 — 크레딧 복원과 출석 삭제를 한 번에
+      const { writeBatch } = await import('firebase/firestore');
+      const batch = writeBatch(db);
+
       if (logSnap.exists()) {
         const logData = logSnap.data();
         
         const lowerStatus = (logData.status || '').toLowerCase();
         const wasValid = lowerStatus === 'valid' || lowerStatus === 'success' || (!logData.status && !logData.denialReason);
         
-        // [FIX] Support explicit restoreCredit flag and calculate credits to restore.
-        // A multi-session check-in might use more than 1 credit.
         if (restoreCredit && logData.memberId && wasValid && (logData.type === 'checkin' || logData.type === 'manual' || !logData.type || logData.type === 'attendance')) {
           const creditsToRestore = logData.sessionCount || 1;
           const memberRef = doc(db, 'members', logData.memberId);
-          await updateDoc(memberRef, {
+          // [FIX] batch에 크레딧 복원을 포함 (기존: 별도 await로 원자성 깨짐)
+          batch.update(memberRef, {
             credits: increment(creditsToRestore),
             attendanceCount: increment(-creditsToRestore)
           });
-          // [FIX] Do NOT manually update local cache here.
-          // The memberService real-time listener (onSnapshot) will automatically
-          // pick up the Firestore increment and sync the correct value.
-          // Previously, manual cache update + listener update caused a +2 → +1 flicker.
         }
       }
 
-      await deleteDoc(logRef);
+      // [FIX] batch에 출석 삭제를 포함 — 크레딧 복원과 동시에 커밋
+      batch.delete(logRef);
+      await batch.commit();
+
       cachedAttendance = cachedAttendance.filter(l => l.id !== logId);
       notifyCallback();
       return { success: true };
@@ -465,26 +465,12 @@ export const attendanceService = {
         }
       }
 
-      const docRef = await addDoc(collection(db, 'attendance'), {
-        memberId,
-        memberName,
-        timestamp,
-        branchId,
-        className: finalClassName,
-        instructor: finalInstructor,
-        type: 'manual',
-        date: finalDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
-      });
+      // [FIX] writeBatch로 출석 생성 + 크레딧 차감을 원자적으로 처리
+      const { writeBatch } = await import('firebase/firestore');
+      const batch = writeBatch(db);
 
-      const memberRef = doc(db, 'members', memberId);
-      await updateDoc(memberRef, {
-        credits: increment(-1),
-        attendanceCount: increment(1),
-        lastAttendance: timestamp
-      });
-
-      const newLog = {
-        id: docRef.id,
+      const newAttRef = doc(collection(db, 'attendance'));
+      const attendanceData = {
         memberId,
         memberName,
         timestamp,
@@ -495,7 +481,24 @@ export const attendanceService = {
         date: finalDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
       };
 
-      const alreadyExists = cachedAttendance.some(l => l.id === docRef.id);
+      batch.set(newAttRef, attendanceData);
+
+      const memberRef = doc(db, 'members', memberId);
+      batch.update(memberRef, {
+        credits: increment(-1),
+        attendanceCount: increment(1),
+        lastAttendance: timestamp
+      });
+
+      // [FIX] 원자적 커밋 — 출석 기록과 크레딧 차감이 동시에 성공하거나 동시에 실패
+      await batch.commit();
+
+      const newLog = {
+        id: newAttRef.id,
+        ...attendanceData
+      };
+
+      const alreadyExists = cachedAttendance.some(l => l.id === newAttRef.id);
       if (!alreadyExists) {
         cachedAttendance.push(newLog);
         cachedAttendance.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -509,7 +512,7 @@ export const attendanceService = {
 
       notifyCallback();
 
-      return { success: true, id: docRef.id };
+      return { success: true, id: newAttRef.id };
     } catch (e) {
       console.error("Add manual attendance failed:", e);
       return { success: false, message: e.message };

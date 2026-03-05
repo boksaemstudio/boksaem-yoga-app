@@ -8,7 +8,7 @@
 
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
-const { admin, getAI, createPendingApproval, logAIError } = require("../helpers/common");
+const { admin, getAI, createPendingApproval, logAIError, getKSTDateString } = require("../helpers/common");
 const chunk = require('lodash/chunk');
 
 /**
@@ -24,7 +24,8 @@ exports.checkLowCreditsV2 = onDocumentUpdated({
     const db = admin.firestore();
 
     if (newData.credits === oldData.credits) return null;
-    if (newData.credits !== 0 || newData.credits >= oldData.credits) return null;
+    // [FIX] || → && : 크레딧이 정확히 0이 되었고(newData.credits !== 0이면 skip), 감소 방향일 때만 알림
+    if (newData.credits !== 0 && newData.credits >= oldData.credits) return null;
 
     try {
         const attendanceSnap = await db.collection('attendance').where('memberId', '==', memberId).limit(10).get();
@@ -52,7 +53,7 @@ exports.sendDailyAdminReportV2 = onSchedule({
     region: "asia-northeast3"
 }, async (event) => {
     const db = admin.firestore();
-    const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+    const todayStr = getKSTDateString(new Date());
 
     try {
         // Gather stats

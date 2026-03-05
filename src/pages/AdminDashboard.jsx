@@ -3,6 +3,7 @@ import { storageService } from '../services/storage';
 import { useAdminData } from '../hooks/useAdminData'; // [Refactor]
 import { STUDIO_CONFIG, getBranchName, getBranchThemeColor, getBranchColor } from '../studioConfig';
 import { useNavigate } from 'react-router-dom';
+import { safeParseDate } from '../utils/dates';
 import {
     Users, ClockCounterClockwise, PlusCircle,
     Calendar, Megaphone, BellRinging,
@@ -37,17 +38,10 @@ import PushHistoryTab from '../components/admin/tabs/PushHistoryTab';
 import DataMigrationTab from '../components/admin/tabs/DataMigrationTab';
 import KioskSettingsTab from '../components/admin/tabs/KioskSettingsTab';
 import { usePWA } from '../hooks/usePWA';
+import ScheduleTab from '../components/admin/tabs/ScheduleTab';
 
 
 
-// [Helper] Robust Date Parsing
-const safeParseDate = (timestamp) => {
-    if (!timestamp) return new Date(NaN);
-    if (typeof timestamp === 'string') return new Date(timestamp);
-    if (timestamp.toDate) return timestamp.toDate();
-    if (timestamp.seconds) return new Date(timestamp.seconds * 1000);
-    return new Date(timestamp);
-};
 
 // [Refactor] Logic moved to useAdminData or provided by simple functions if local only
 // Removing local definitions of isMemberActive and isMemberExpiring as they are imported from useAdminData
@@ -100,7 +94,7 @@ const isMemberDormant = (m, logs, isMemberActiveFn) => {
 
 const AdminDashboard = () => {
 
-    const [activeTab, setActiveTab] = useState('members');
+    const [activeTab, setActiveTab] = useState('logs');
     // [Refactor] Use Custom Hook for Data & Logic
     const {
         currentBranch, setCurrentBranch,
@@ -150,12 +144,7 @@ const AdminDashboard = () => {
     // const [subTab, setSubTab] = useState('notices'); // notices | history
     // const [isSubmitting, setIsSubmitting] = useState(false);  // Unused
 
-
-    const [scheduleSubTab, setScheduleSubTab] = useState('monthly');
     // const [showScheduleSettings, setShowScheduleSettings] = useState(false);
-
-
-
 
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -254,7 +243,7 @@ const AdminDashboard = () => {
                     seenIds.add(id);
                     uniqueInstructors.push({
                         id: id,
-                        name: t.memberName || '선생님',
+                        name: t.instructorName || '선생님',
                         phone: '',
                         role: 'instructor',
                         installedAt: t.updatedAt || t.createdAt || new Date().toISOString(),
@@ -316,7 +305,7 @@ const AdminDashboard = () => {
     };
 
     const handleForceUpdate = async () => {
-        if (!window.confirm(`최신 버전(v${STUDIO_CONFIG.APP_VERSION})으로 업데이트 및 캐시를 초기화하시겠습니까?\n(로그아웃 될 수 있습니다)`)) return;
+        if (!window.confirm(`업데이트 및 캐시를 초기화하시겠습니까?\n(로그아웃 될 수 있습니다)`)) return;
 
         console.log('[App] Forcing update and clearing ALL caches...');
         
@@ -446,7 +435,7 @@ const AdminDashboard = () => {
             if (instructorToken) {
                 member = {
                     id: memberId,
-                    name: instructorToken.memberName || '선생님',
+                    name: instructorToken.instructorName || '선생님',
                     phone: '',
                     role: 'instructor'
                 };
@@ -564,7 +553,7 @@ const AdminDashboard = () => {
                             alignItems: 'center',
                             gap: '3px'
                         }} 
-                        title="클릭하여 최신 버전으로 업데이트"
+                        title="업데이트 및 캐시 초기화"
                     >
                         <ClockCounterClockwise size={12} />
                         최신동기화
@@ -822,121 +811,11 @@ const AdminDashboard = () => {
                 )}
 
                 {activeTab === 'schedule' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                        <div style={{ display: 'flex', gap: '10px', background: 'rgba(255,255,255,0.05)', padding: '5px', borderRadius: '12px' }}>
-                            <button
-                                onClick={() => setScheduleSubTab('monthly')}
-                                style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: scheduleSubTab === 'monthly' ? 'var(--primary-gold)' : 'transparent', color: scheduleSubTab === 'monthly' ? 'black' : 'white', fontWeight: 'bold', cursor: 'pointer' }}
-                            >월간 시간표</button>
-                            <button
-                                onClick={() => setScheduleSubTab('weekly')}
-                                style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: scheduleSubTab === 'weekly' ? 'var(--primary-gold)' : 'transparent', color: scheduleSubTab === 'weekly' ? 'black' : 'white', fontWeight: 'bold', cursor: 'pointer' }}
-                            >주간 시간표</button>
-                        </div>
-
-                        {scheduleSubTab === 'monthly' ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                                {STUDIO_CONFIG.BRANCHES.map((branch) => {
-                                    // 지점별 테마 색상 및 스타일 정의
-                                    const isGwang = branch.id === 'gwangheungchang';
-                                    const themeColor = getBranchThemeColor(branch.id);
-                                    const bgTint = `${getBranchColor(branch.id)}0D`; // 05 opacity hex
-
-                                    return (
-                                        <div key={branch.id} className="dashboard-card" style={{ 
-                                            position: 'relative',
-                                            border: `1px solid ${getBranchColor(branch.id)}4D`, // 0.3 opacity hex
-                                            background: `linear-gradient(180deg, ${bgTint} 0%, rgba(20, 20, 25, 0.5) 100%)`
-                                        }}>
-                                            <div style={{ 
-                                                display: 'flex', 
-                                                justifyContent: 'space-between', 
-                                                alignItems: 'center', 
-                                                marginBottom: '20px',
-                                                borderBottom: `1px solid ${getBranchColor(branch.id)}1A`, // 0.1 opacity hex
-                                                paddingBottom: '10px'
-                                            }}>
-                                                <h3 style={{ 
-                                                    fontSize: '1.8rem', 
-                                                    fontWeight: '800', 
-                                                    color: themeColor,
-                                                    textShadow: `0 0 10px ${getBranchColor(branch.id)}4D`
-                                                }}>
-                                                    {branch.name}
-                                                </h3>
-                                                <div style={{
-                                                    padding: '4px 12px',
-                                                    borderRadius: '20px',
-                                                    background: `${getBranchColor(branch.id)}1A`,
-                                                    border: `1px solid ${getBranchColor(branch.id)}33`,
-                                                    color: themeColor,
-                                                    fontSize: '0.8rem',
-                                                    fontWeight: 'bold'
-                                                }}>
-                                                    {isGwang ? '본점' : '지점'}
-                                                </div>
-                                            </div>
-                                            <AdminScheduleManager branchId={branch.id} />
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                            <div className="dashboard-card">
-                                <h3 className="card-label" style={{ marginBottom: '20px' }}>주간 시간표 (이미지)</h3>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
-                                    {STUDIO_CONFIG.BRANCHES.map(branch => {
-                                        const now = new Date();
-                                        const curYear = now.getFullYear();
-                                        const curMonth = (now.getMonth() + 1).toString().padStart(2, '0');
-                                        const nextDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-                                        const nextYear = nextDate.getFullYear();
-                                        const nextMonth = (nextDate.getMonth() + 1).toString().padStart(2, '0');
-                                        const curKey = `timetable_${branch.id}_${curYear}-${curMonth}`;
-                                        const nextKey = `timetable_${branch.id}_${nextYear}-${nextMonth}`;
-                                        const curImage = images[curKey] || images[`timetable_${branch.id}`] || (branch.id === 'gwangheungchang' ? timeTable1 : timeTable2);
-                                        const nextImage = images[nextKey];
-
-                                        return (
-                                            <div key={branch.id} style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                                                <h3 style={{ fontSize: '1.6rem', fontWeight: '800', marginBottom: '20px' }}>{branch.name}</h3>
-                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                                        <h4 style={{ margin: 0, color: 'var(--primary-gold)' }}>{curMonth}월 (현재)</h4>
-                                                        <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '12px', overflow: 'hidden', minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed rgba(255,255,255,0.1)' }}>
-                                                            {(optimisticImages[curKey] || curImage) ? (
-                                                                <img src={optimisticImages[curKey] || curImage} alt="Current" style={{ width: '100%' }} />
-                                                            ) : (
-                                                                <span style={{ color: 'var(--text-secondary)' }}>이미지 없음</span>
-                                                            )}
-                                                        </div>
-                                                        <div style={{ textAlign: 'right' }}>
-                                                            <input type="file" accept="image/*" onChange={e => handleImageUpload(e, curKey)} style={{ display: 'none' }} id={`up-cur-${branch.id}`} />
-                                                            <label htmlFor={`up-cur-${branch.id}`} className="action-btn sm" style={{ padding: '6px 12px', fontSize: '0.8rem', cursor: 'pointer' }}>이미지 변경</label>
-                                                        </div>
-                                                    </div>
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                                        <h4 style={{ margin: 0, color: '#a1a1aa' }}>{nextMonth}월 (다음달)</h4>
-                                                        <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '12px', overflow: 'hidden', minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed rgba(255,255,255,0.1)' }}>
-                                                            {(optimisticImages[nextKey] || nextImage) ? (
-                                                                <img src={optimisticImages[nextKey] || nextImage} alt="Next" style={{ width: '100%' }} />
-                                                            ) : (
-                                                                <span style={{ color: 'var(--text-secondary)' }}>이미지 없음</span>
-                                                            )}
-                                                        </div>
-                                                        <div style={{ textAlign: 'right' }}>
-                                                            <input type="file" accept="image/*" onChange={e => handleImageUpload(e, nextKey)} style={{ display: 'none' }} id={`up-next-${branch.id}`} />
-                                                            <label htmlFor={`up-next-${branch.id}`} className="action-btn sm" style={{ padding: '6px 12px', fontSize: '0.8rem', cursor: 'pointer' }}>이미지 등록/변경</label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                    <ScheduleTab 
+                        images={images} 
+                        optimisticImages={optimisticImages} 
+                        handleImageUpload={handleImageUpload} 
+                    />
                 )}
 
                 {activeTab === 'stats' && (

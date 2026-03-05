@@ -8,7 +8,7 @@
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { admin, getAI, createPendingApproval } = require("../helpers/common");
+const { admin, getAI, createPendingApproval, getKSTDateString } = require("../helpers/common");
 
 /**
  * 보안 회원 조회 (PIN 기반)
@@ -82,6 +82,81 @@ exports.getSecureMemberV2Call = onCall({
 });
 
 /**
+ * [NEW] 정식 회원 로그인 (이름 & PIN 기반)
+ * 클라이언트의 무분별한 익명 로그인(Anonymous Auth)을 막고, 
+ * 서버에서 검증 후 Custom Token을 발급하여 안전한 인증 세션을 수립합니다.
+ */
+exports.memberLoginV2Call = onCall({
+    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
+}, async (request) => {
+    const db = admin.firestore();
+    const { name, phoneLast4 } = request.data;
+
+    // Input validation
+    if (!name || typeof name !== 'string' || !phoneLast4 || typeof phoneLast4 !== 'string' || !/^\d{4}$/.test(phoneLast4)) {
+        throw new HttpsError('invalid-argument', '이름과 4자리 숫자를 입력해주세요');
+    }
+
+    try {
+        const snapshot = await db.collection('members').where('phoneLast4', '==', phoneLast4).limit(10).get();
+        let targetDoc = null;
+
+        // [FIX] 이름 부분 매칭 처리 (공백, 대소문자 무시)
+        const inputNameLower = name.trim().toLowerCase();
+
+        for (const doc of snapshot.docs) {
+            const data = doc.data();
+            if (!data.name) continue;
+            
+            const memberNameLower = data.name.trim().toLowerCase();
+            if (memberNameLower === inputNameLower || 
+                memberNameLower.startsWith(inputNameLower) || 
+                memberNameLower.includes(inputNameLower)) {
+                targetDoc = doc;
+                break;
+            }
+        }
+
+        if (!targetDoc) {
+            return { success: false, message: '일치하는 회원 정보가 없습니다.' };
+        }
+
+        const data = targetDoc.data();
+        const memberInfo = {
+            id: targetDoc.id, 
+            name: data.name, 
+            credits: data.credits, 
+            attendanceCount: data.attendanceCount || 0,
+            streak: data.streak || 0, 
+            homeBranch: data.homeBranch, 
+            endDate: data.endDate,
+            phoneMasked: data.phone ? data.phone.substring(0, 3) + "-****-" + data.phone.slice(-4) : "****"
+        };
+
+        // Create Custom Token for Member Auth
+        const uid = `member_${targetDoc.id}`;
+        let token = null;
+        try {
+            token = await admin.auth().createCustomToken(uid, { 
+                member: true,
+                name: data.name,
+                memberId: targetDoc.id
+            });
+        } catch (tokenError) {
+            console.error("[memberLoginV2Call] Error creating custom token:", tokenError);
+            // Fallback (might fail firestore rules but allows login via Anonymous auth fallback in frontend)
+        }
+        
+        return { success: true, member: memberInfo, token };
+
+    } catch (e) {
+        console.error('[memberLoginV2Call] Error:', e.code, e.message, e.stack);
+        if (e.code) throw e;
+        throw new HttpsError('internal', '회원 조회 중 서버 오류가 발생했습니다.');
+    }
+});
+
+/**
  * 강사 인증 (이름 & PIN 기반)
  */
 exports.verifyInstructorV2Call = onCall({
@@ -90,7 +165,7 @@ exports.verifyInstructorV2Call = onCall({
     const db = admin.firestore();
     const { name, phoneLast4 } = request.data;
 
-    if (!name || !phoneLast4) {
+    if (!name || typeof name !== 'string' || !phoneLast4) {
         throw new HttpsError('invalid-argument', '이름과 전화번호 뒷자리가 필요합니다.');
     }
 
@@ -158,7 +233,7 @@ exports.checkExpiringMembersV2 = onSchedule({
     const db = admin.firestore();
     const ai = getAI();
     const today = new Date();
-    const targetDateStr = today.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+    const targetDateStr = getKSTDateString(today);
 
     try {
         const snapshot = await db.collection('members').where('endDate', '==', targetDateStr).get();

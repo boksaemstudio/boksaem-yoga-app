@@ -4,6 +4,27 @@
  */
 
 /**
+ * Robust Date Parsing - handles Firestore Timestamps, ISO strings, and YYYY-MM-DD strings
+ * @param {any} timestamp - Date object, Firestore Timestamp, ISO string, or YYYY-MM-DD string
+ * @returns {Date} Parsed Date object (may be invalid if input is falsy)
+ */
+export const safeParseDate = (timestamp) => {
+    if (!timestamp) return new Date(NaN);
+    if (typeof timestamp === 'string') {
+        if (timestamp.includes('T')) return new Date(timestamp);
+        const parts = timestamp.split('-');
+        if (parts.length === 3) {
+            const [y, m, d] = parts.map(Number);
+            return new Date(y, m - 1, d);
+        }
+        return new Date(timestamp);
+    }
+    if (timestamp.toDate) return timestamp.toDate();
+    if (timestamp.seconds) return new Date(timestamp.seconds * 1000);
+    return new Date(timestamp);
+};
+
+/**
  * KST 기준으로 현재 날짜를 'YYYY-MM-DD' 형식으로 반환
  */
 export const getTodayKST = () => {
@@ -101,12 +122,19 @@ export const getDaysRemaining = (endDate) => {
     // Handle special cases
     if (!endDate || endDate === 'TBD' || endDate === 'unlimited') return null;
 
-    const end = new Date(endDate);
+    // [FIX] endDate를 로컬 Date로 파싱 (YYYY-MM-DD 직접 파싱하여 타임존 영향 제거)
+    const parts = String(endDate).split('-');
+    if (parts.length !== 3) return null;
+    const [y, m, d] = parts.map(Number);
+    if (!y || !m || !d) return null;
+    const end = new Date(y, m - 1, d);
     if (isNaN(end.getTime())) return null;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    end.setHours(0, 0, 0, 0);
+    // [FIX] KST 기준 오늘 날짜 사용 (해외 접속 시에도 정확한 만료 판정)
+    const todayStr = getTodayKST(); // 'YYYY-MM-DD'
+    const [ty, tm, td] = todayStr.split('-').map(Number);
+    const today = new Date(ty, tm - 1, td);
+
     const diffTime = end - today;
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };

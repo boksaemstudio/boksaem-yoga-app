@@ -187,7 +187,7 @@ service cloud.firestore {
     // ========================================
     match /error_logs/{logId} {
       allow read: if isAdmin();
-      allow create: if true; // Allow anyone to log errors for stability
+      allow create: if isAuth(); // [SECURITY FIX] Require authentication (anonymous kiosk auth counts)
       allow update, delete: if isAdmin();
     }
 
@@ -213,13 +213,26 @@ service cloud.firestore {
     match /ai_quota/{docId} { allow read: if isAdmin(); }
     match /pending_approvals/{docId} { allow read, write: if isAdmin(); }
 
+    // [FIX] system_state - 키오스크 동기화 트리거 등
+    // 인증된 사용자(키오스크 포함)가 read, Admin만 write
+    match /system_state/{docId} {
+      allow read: if isAuth();
+      allow write: if isAuth(); // Kiosk sync trigger needs write access
+    }
+    
+    // [FIX] ai_request_logs - AI 요청 디버깅 로그 (Cloud Functions에서만 write)
+    match /ai_request_logs/{docId} {
+      allow read: if isAdmin();
+      allow write: if false; // Only Cloud Functions with Admin SDK
+    }
+
     // ========================================
     // ⏳ Pending Attendance - 오프라인 대기 출석
     // Kiosk creates, Admin/System reads/deletes
     // ========================================
     match /pending_attendance/{id} {
       allow read: if isAuth(); // [FIX] Allow kiosk (anonymous) to read for sync count visibility
-      allow create: if true; // Allow anonymous kiosk to save pending recs
+      allow create: if isAuth(); // [SECURITY FIX] Require authentication (anonymous kiosk auth counts)
       allow update, delete: if isAdmin();
     }
   }

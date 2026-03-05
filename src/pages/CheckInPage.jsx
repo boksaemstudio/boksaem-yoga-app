@@ -6,7 +6,7 @@ import { signInAnonymously } from 'firebase/auth';
 import { getAllBranches, getBranchName } from '../studioConfig';
 import logoWide from '../assets/logo_wide.png';
 import rys200Logo from '../assets/RYS200.png';
-import { getKSTHour, getDaysRemaining } from '../utils/dates';
+import { getKSTHour, getDaysRemaining, safeParseDate } from '../utils/dates';
 import { logError } from '../services/modules/errorModule';
 import { useNetworkMonitor } from '../hooks/useNetworkMonitor';
 import { useTTS } from '../hooks/useTTS';
@@ -27,22 +27,7 @@ const getBgForPeriod = (period) => {
 import KioskInstallGuideModal from '../components/checkin/KioskInstallGuideModal';
 import InstructorQRModal from '../components/InstructorQRModal';
 
-// [Helper] Robust Date Parsing
-const safeParseDate = (timestamp) => {
-    if (!timestamp) return new Date(NaN);
-    if (typeof timestamp === 'string') {
-        if (timestamp.includes('T')) return new Date(timestamp);
-        const parts = timestamp.split('-');
-        if (parts.length === 3) {
-            const [y, m, d] = parts.map(Number);
-            return new Date(y, m - 1, d);
-        }
-        return new Date(timestamp);
-    }
-    if (timestamp.toDate) return timestamp.toDate();
-    if (timestamp.seconds) return new Date(timestamp.seconds * 1000);
-    return new Date(timestamp);
-};
+// safeParseDate imported from utils/dates
 
 const toKSTDateString = (date) => {
     if (!date) return null;
@@ -87,7 +72,7 @@ const CheckInPage = () => {
     const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
     const [pendingPin, setPendingPin] = useState(null);
     const duplicateAutoCloseRef = useRef(null);
-    const [duplicateTimer, setDuplicateTimer] = useState(10); // [UX] 10s countdown for auto-confirm
+    const [duplicateTimer, setDuplicateTimer] = useState(25); // [UX] 25s countdown for auto-confirm
     // [FIX] State to track if we are in a forced duplicate check-in flow
     const [isDuplicateFlow, setIsDuplicateFlow] = useState(false);
     // [FIX] Always use Korean for Check-in Page as requested
@@ -832,7 +817,7 @@ const CheckInPage = () => {
         setPendingPin(null);
         setPin('');
         setLoading(false);
-        setDuplicateTimer(10); // Reset
+        setDuplicateTimer(25); // Reset
     };
 
     const handleSubmit = async (code) => {
@@ -861,8 +846,8 @@ const CheckInPage = () => {
             setShowDuplicateConfirm(true);
             setPin('');
             
-            // [UX] Start 10s Countdown for Auto-Confirm (Request: "If I do nothing, attendance should be checked")
-            setDuplicateTimer(10);
+            // [UX] Start 25s Countdown for Auto-Confirm (Request: "If I do nothing, attendance should be checked")
+            setDuplicateTimer(25);
             
             // Clear existing timer if any
             if (duplicateAutoCloseRef.current) clearInterval(duplicateAutoCloseRef.current);
@@ -1199,6 +1184,7 @@ const CheckInPage = () => {
             position: 'relative',
             width: '100%',
             height: 'calc(var(--vh, 1vh) * 100)',
+            minHeight: '100vh',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
@@ -1252,7 +1238,7 @@ const CheckInPage = () => {
                 flex: 1,
                 display: 'flex',
                 gap: '40px',
-                padding: '20px 40px 40px',
+                padding: '50px 40px 60px', /* 상/하단 여백 충분히 확보 (위 50, 아래 60) */
                 width: '100%',
                 margin: '0 auto',
                 alignItems: 'stretch',
@@ -1261,7 +1247,7 @@ const CheckInPage = () => {
                 <div className="checkin-info-section" style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'center'
+                    justifyContent: 'space-between' /* 중앙 정렬에서 양끝 정렬로 변경해 상/하단 잘림 방지 */
                 }}>
                     {!message && (
                         <header className="info-header" style={{ marginBottom: '40px' }}>

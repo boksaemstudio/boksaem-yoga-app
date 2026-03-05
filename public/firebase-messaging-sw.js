@@ -1,5 +1,9 @@
-importScripts('https://www.gstatic.com/firebasejs/12.7.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/12.7.0/firebase-messaging-compat.js');
+// [SYNC] Firebase SDK 버전 — package.json의 'firebase' 버전과 반드시 일치시킬 것
+// 변경 시: package.json의 firebase 버전 확인 후 아래 값만 수정
+const FIREBASE_SDK_VERSION = '12.7.0';
+
+importScripts(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-app-compat.js`);
+importScripts(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-messaging-compat.js`);
 
 firebase.initializeApp({
     apiKey: "AIzaSyCTjDayI1tiZO15eynRzKqrDK3TKj3D-yw",

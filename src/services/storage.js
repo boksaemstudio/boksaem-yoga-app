@@ -135,17 +135,31 @@ export const storageService = {
         // [NEW] Real-time Kiosk Trigger: 단일 문서 리스너 (가벼운 실시간 동기화)
         try {
           const syncRef = doc(db, 'system_state', 'kiosk_sync');
-          onSnapshot(syncRef, (snapshot) => {
-            if (snapshot.exists()) {
-              const data = snapshot.data();
-              if (data.lastMemberUpdate && data.lastMemberUpdate > (this._lastKioskSync || '')) {
-                console.log('[Storage] Kiosk sync triggered by Admin. Refreshing members...');
-                this._lastKioskSync = data.lastMemberUpdate;
-                memberService.loadAllMembers();
+          let unsubSync = null;
+
+          const setupSyncListener = () => {
+            if (unsubSync) unsubSync();
+            unsubSync = onSnapshot(syncRef, (snapshot) => {
+              if (snapshot.exists()) {
+                const data = snapshot.data();
+                if (data.lastMemberUpdate && data.lastMemberUpdate > (this._lastKioskSync || '')) {
+                  console.log('[Storage] Kiosk sync triggered by Admin. Refreshing members...');
+                  this._lastKioskSync = data.lastMemberUpdate;
+                  memberService.loadAllMembers();
+                }
               }
-            }
-          }, (err) => {
-            console.warn('[Storage] Kiosk sync listener error:', err);
+            }, (err) => {
+              console.warn('[Storage] Kiosk sync listener error:', err);
+            });
+          };
+
+          setupSyncListener();
+
+          // [FIX] Network Resilience - Reconnect on Wake/Online
+          window.addEventListener('online', () => {
+              console.log('[Storage] Network reconnected. Restoring Kiosk sync listener and forcing refresh...');
+              setupSyncListener();
+              memberService.loadAllMembers(); // 강제 1회 동기화 (오프라인 동안 놓친 업데이트 보완)
           });
         } catch (syncErr) {
           console.error('[Storage] Setup kiosk sync failed:', syncErr);
@@ -252,7 +266,7 @@ export const storageService = {
     }
   },
 
-  async getCurrentClass(branchId, instructorName = null) {
+  async getCurrentClass(branchId, instructorName = null, membershipTypeHint = null) {
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
     const cacheKey = `${branchId}_${today}`;
     
@@ -295,6 +309,32 @@ export const storageService = {
 
     let selectedClass = null;
     let logicReason = "No Match";
+
+    // === [NEW] Priority 0: Membership Type Hint Matching ===
+    // If a hint like "키즈플라잉" is provided, look for a class containing that keyword first.
+    if (membershipTypeHint) {
+        const keyword = membershipTypeHint.trim().toLowerCase();
+        // Ignore generic labels like "일반", "심화" when matching class names, 
+        // focus on specific class types like "키즈플라잉", "임산부", "토요하타"
+        const ignoredHints = ['일반', '심화', 'ttc (지도자과정)'];
+        
+        if (!ignoredHints.includes(keyword)) {
+            const hintMatchedClass = classes.find(c => {
+                const title = (c.title || c.className || '').toLowerCase();
+                return title.includes(keyword) || keyword.includes(title);
+            });
+
+            if (hintMatchedClass) {
+                console.log(`[SmartAttendance] Matched by Hint (${membershipTypeHint}): ${hintMatchedClass.title || hintMatchedClass.className}`);
+                return {
+                    title: hintMatchedClass.title || hintMatchedClass.className,
+                    instructor: hintMatchedClass.instructor,
+                    time: hintMatchedClass.time,
+                    debugReason: `회원권 기반 매칭: ${membershipTypeHint}`
+                };
+            }
+        }
+    }
 
     // === [SMART MATCHING ALGORITHM] ===
     // Priority 1: Next Class Incoming (30 mins before start) -> "Next Instructor's Territory"
@@ -577,54 +617,48 @@ export const storageService = {
   // Member login (PIN-based authentication)
   async loginMember(name, last4Digits) {
     try {
-      // [FIX] Use Cloud Function via findMembersByPhone to bypass Firestore security rules
-      const matches = await this.findMembersByPhone(last4Digits);
+      if (!name || !last4Digits) {
+        return { success: false, error: 'INVALID_INPUT', message: '이름과 비밀번호를 모두 입력해주세요.' };
+      }
+
+      // [SECURITY FIX] 서버 사이드 검증 후 Custom Token 발급 (익명 우회 로그인 방지)
+      const loginFunc = httpsCallable(functions, 'memberLoginV2Call');
+      const safeName = String(name || '').trim();
+      const response = await loginFunc({ name: safeName, phoneLast4: last4Digits });
       
-      // [FIX] 이름 부분 매칭 - 데이터에 "노효원TTC2기" 같은 추가 정보가 있어도 "노효원"으로 로그인 가능
-      const inputName = name.trim().toLowerCase();
-      const filtered = matches.filter(m => {
-        const memberName = (m.name || '').trim().toLowerCase();
-        // 입력한 이름이 회원 이름에 포함되어 있거나, 회원 이름이 입력한 이름으로 시작하면 매칭
-        return memberName.startsWith(inputName) || memberName.includes(inputName);
-      });
-
-        if (filtered.length === 1) {
-          // [FIX] Sign in anonymously to enable Firestore writes (e.g. fcm_tokens)
-          try {
-            if (!auth.currentUser) {
-                await import("firebase/auth").then(({ signInAnonymously }) => signInAnonymously(auth));
-                console.log('[Storage] Anonymous auth successful for member login');
-            }
-          } catch (authErr) {
-            console.warn('[Storage] Anonymous auth failed during login:', authErr);
-          }
-          return { success: true, member: { ...filtered[0], displayName: name.trim() } };
-        } else if (filtered.length > 1) {
-          console.warn(`Multiple members found for name ${name} and PIN ${last4Digits}`);
-          // 정확히 일치하는 회원 우선
-          const exact = filtered.find(m => (m.name || '').trim().toLowerCase() === inputName);
-          
-          // [FIX] Sign in anonymously here too
-          try {
-            if (!auth.currentUser) {
-                await import("firebase/auth").then(({ signInAnonymously }) => signInAnonymously(auth));
-                console.log('[Storage] Anonymous auth successful for member login');
-            }
-          } catch (authErr) {
-            console.warn('[Storage] Anonymous auth failed during login:', authErr);
-          }
-
-          return { success: true, member: { ...(exact || filtered[0]), displayName: name.trim() } }; 
+      if (response.data.success && response.data.token) {
+        try {
+          // signInWithCustomToken requires import from firebase/auth which is already available via storage.js top level
+          await signInWithCustomToken(auth, response.data.token);
+          console.log('[Storage] Secure custom token auth successful for member login');
+        } catch (authErr) {
+          console.error('[Storage] Custom token auth failed:', authErr);
+        }
+        return { success: true, member: { ...response.data.member, displayName: name.trim() } };
       } else {
-        // 실패 로깅
-        await this.logLoginFailure('member', name, last4Digits, 'NOT_FOUND');
-        return { success: false, error: 'NOT_FOUND', message: '일치하는 회원 정보가 없습니다.' };
+        await this.logLoginFailure('member', name, last4Digits, response.data.message || 'NOT_FOUND');
+        return { success: false, error: 'NOT_FOUND', message: response.data.message || '일치하는 회원 정보가 없습니다.' };
       }
     } catch (e) {
       console.error('Login failed:', e);
-      // 실패 로깅
       await this.logLoginFailure('member', name, last4Digits, e.message || 'SYSTEM_ERROR');
-      return { success: false, error: 'SYSTEM_ERROR', message: '로그인 중 오류가 발생했습니다.' };
+      
+      // Firebase httpsCallable 에러 코드를 한글 메시지로 변환
+      const firebaseErrorMessages = {
+        'internal': '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+        'unavailable': '서버에 연결할 수 없습니다. 인터넷 연결을 확인해주세요.',
+        'deadline-exceeded': '서버 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.',
+        'unauthenticated': '인증 정보가 올바르지 않습니다.',
+        'permission-denied': '접근 권한이 없습니다.',
+        'resource-exhausted': '너무 많은 시도입니다. 잠시 후 다시 시도해주세요.',
+        'invalid-argument': '입력 정보를 확인해주세요.',
+        'not-found': '일치하는 회원 정보가 없습니다.'
+      };
+      
+      const errorCode = (e.code || '').replace('functions/', '');
+      const userMessage = firebaseErrorMessages[errorCode] || '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      
+      return { success: false, error: 'SYSTEM_ERROR', message: userMessage };
     }
   },
 
@@ -632,8 +666,9 @@ export const storageService = {
   async loginInstructor(name, last4Digits) {
     try {
       const verifyInstructor = httpsCallable(functions, 'verifyInstructorV2Call');
+      const safeName = String(name || '').trim();
       const response = await withTimeout(
-        verifyInstructor({ name, phoneLast4: last4Digits }),
+        verifyInstructor({ name: safeName, phoneLast4: last4Digits }),
         10000,
         '선생님 인증 시간 초과'
       );

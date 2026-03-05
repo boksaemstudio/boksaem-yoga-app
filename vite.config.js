@@ -51,10 +51,16 @@ export default defineConfig({
     port: 5173,
     host: true
   },
+  esbuild: {
+    drop: ['debugger'],
+    pure: ['console.log', 'console.debug'],
+  },
   build: {
     outDir: 'dist',
     sourcemap: true,
     chunkSizeWarningLimit: 1000,
+    // [PERF] Strip console.log and console.debug in production builds
+    // console.warn and console.error are preserved for important diagnostics
     rollupOptions: {
       output: {
         // [BUILD-FIX] Appending -v8 to physically force new filenames on every single file

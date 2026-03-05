@@ -1,17 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { storageService } from '../services/storage';
-import { getTodayKST, getKSTHour, toKSTDateString } from '../utils/dates';
+import { getTodayKST, getKSTHour, toKSTDateString, safeParseDate } from '../utils/dates';
 import { STUDIO_CONFIG } from '../studioConfig';
 import { guessClassTime, guessClassInfo } from '../utils/classUtils';
 
-// Helper for consistent date parsing
-const safeParseDate = (timestamp) => {
-    if (!timestamp) return new Date(NaN);
-    if (typeof timestamp === 'string') return new Date(timestamp);
-    if (timestamp.toDate) return timestamp.toDate();
-    if (timestamp.seconds) return new Date(timestamp.seconds * 1000);
-    return new Date(timestamp);
-};
 
 export const useAdminData = (activeTab, initialBranch = 'all') => {
     const [currentBranch, setCurrentBranch] = useState(initialBranch);
@@ -331,13 +323,19 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         // 1. New: regDate === today
         const todayNewMembers = uniqueMembers.filter(m => isMemberInBranch(m) && checkIsRegistered(m));
         
+        // [PERF FIX] O(N^2) 방지를 위한 멤버 단일 조회 Map 생성
+        const memberMapCache = new Map();
+        for (let i = 0; i < uniqueMembers.length; i++) {
+            memberMapCache.set(uniqueMembers[i].id, uniqueMembers[i]);
+        }
+
         // 2. Re-reg: Sales today AND NOT New
         const todaySalesMemberIds = new Set();
         enrichedSales.forEach(s => {
             if (!s.parsedDate) return;
             if (s.parsedDate === todayStr) {
                 // If branch filter applied, check sales branch OR member home branch
-                if (currentBranch === 'all' || s.branchId === currentBranch || uniqueMembers.find(m => m.id === s.memberId)?.homeBranch === currentBranch) {
+                if (currentBranch === 'all' || s.branchId === currentBranch || memberMapCache.get(s.memberId)?.homeBranch === currentBranch) {
                     todaySalesMemberIds.add(s.memberId);
                 }
             }
@@ -380,7 +378,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         // New Sales Data
         enrichedSales.forEach(s => {
             if (currentBranch !== 'all') {
-                const member = uniqueMembers.find(m => m.id === s.memberId);
+                const member = memberMapCache.get(s.memberId);
                 const memberBranch = member?.homeBranch;
                 const saleBranch = s.branchId;
                 
@@ -598,6 +596,12 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
     // [Feature 1] Calculate Chart Data (Memoized or inside refreshData)
     const calculateChartData = useCallback((currentSales, uniqueMembers, isMemberActiveFn) => {
+        // [PERF FIX] O(N^2) 병목 제거: uniqueMembers 배열 순회를 O(1) Map 검색으로 대체
+        const memberMap = new Map();
+        for (let i = 0; i < uniqueMembers.length; i++) {
+            memberMap.set(uniqueMembers[i].id, uniqueMembers[i]);
+        }
+
         // 1. Revenue Trend (Last 6 Months)
         const trends = [];
         const today = new Date();
@@ -620,7 +624,8 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
                         sMonthKey = rawDate.substring(0, 7);
                     }
 
-                    const member = uniqueMembers.find(m => m.id === s.memberId);
+                    // [PERF FIX] array.find() -> map.get()
+                    const member = memberMap.get(s.memberId);
                     const branchMatch = currentBranch === 'all' || s.branchId === currentBranch || member?.homeBranch === currentBranch;
                     
                     return sMonthKey === key && branchMatch;

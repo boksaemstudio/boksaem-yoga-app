@@ -62,17 +62,31 @@ export const FeedbackView = ({
                         border: '1px solid rgba(255,255,255,0.05)'
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
-                            <Heartbeat size={24} color={activeMode?.color} />
+                            <Heartbeat size={24} color={activeMode?.color || '#d4af37'} />
                             <h3 style={{ color: 'white', fontSize: '1.2rem', fontWeight: 500, margin: 0 }}>
                                 복순이의 마음 관찰 일지
                             </h3>
                         </div>
-                        <p style={{ 
+                        
+                        {/* ✅ [FIX 3] 관찰일지 출력 로직 개선: message 외에 feedbackPoints도 제대로 노출 */}
+                        <div style={{ 
                             color: 'rgba(255,255,255,0.9)', lineHeight: 1.8, fontSize: '1.1rem',
-                            whiteSpace: 'pre-wrap'
+                            whiteSpace: 'pre-wrap', marginBottom: '20px'
                         }}>
-                            {feedbackData.message}
-                        </p>
+                            {feedbackData.message && <p style={{ marginBottom: '15px' }}>{feedbackData.message}</p>}
+                            {feedbackData.feedbackPoints && feedbackData.feedbackPoints.length > 0 ? (
+                                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    {feedbackData.feedbackPoints.map((point, index) => (
+                                        <li key={index} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                                            <Sparkle size={18} color={activeMode?.color || '#d4af37'} style={{ marginTop: '4px', flexShrink: 0 }} />
+                                            <span>{point}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (!feedbackData.message && (
+                                <p style={{ color: 'rgba(255,255,255,0.5)', fontStyle: 'italic' }}>명상 데이터 분석 내용을 요약하지 못했습니다.</p>
+                            ))}
+                        </div>
                         
                         {feedbackData.analysis && (
                             <div style={{ 
@@ -100,11 +114,12 @@ export const FeedbackView = ({
                     </div>
                 )}
 
+                {/* ✅ [FIX 1] 버튼이 검은색 배경에 묻히지 않도록 기본 Fallback Color 적용 */}
                 <button onClick={onClose} style={{
                     width: '100%', padding: '20px', marginTop: '30px',
-                    background: activeMode?.color, border: 'none', borderRadius: '15px',
+                    background: activeMode?.color || '#d4af37', border: 'none', borderRadius: '15px',
                     color: '#000', fontSize: '1.2rem', fontWeight: 600, cursor: 'pointer',
-                    boxShadow: `0 10px 30px ${activeMode?.color}40`
+                    boxShadow: `0 10px 30px ${activeMode?.color || '#d4af37'}40`
                 }}>
                     마음 챙김 마치고 돌아가기
                 </button>

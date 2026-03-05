@@ -29,7 +29,9 @@ try {
  */
 exports.sendMessageOnApproval = onDocumentUpdated({
     document: "message_approvals/{approvalId}",
-    region: "asia-northeast3"
+    region: "asia-northeast3",
+    timeoutSeconds: 300, // [PERF FIX] V2 타임아웃 5분으로 연장하여 타임아웃으로 인한 중도 끊김 방지
+    memory: "512MiB"
 }, async (event) => {
     const newData = event.data.after.data();
     const oldData = event.data.before.data();
@@ -177,7 +179,12 @@ exports.sendMessageOnApproval = onDocumentUpdated({
  * 개인 메시지 발송 시 Solapi (알림톡/문자) 전송
  * messages 컬렉션에 문서 생성을 트리거로 함
  */
-exports.sendSolapiOnMessageV2 = onDocumentCreated("messages/{messageId}", async (event) => {
+exports.sendSolapiOnMessageV2 = onDocumentCreated({
+    document: "messages/{messageId}",
+    region: "asia-northeast3",
+    timeoutSeconds: 120, // [PERF FIX] 최대 30초 대기(Jitter)를 버틸 수 있도록 연장
+    maxInstances: 100 // [PERF FIX] 급격하게 쌓일 때 병렬 실행 개수 제한으로 쿼터 초과 방지
+}, async (event) => {
     const messageId = event.params.messageId;
     console.log(`[Solapi] Triggered for message ${messageId}`);
     const messageData = event.data.data();

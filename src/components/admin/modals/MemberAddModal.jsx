@@ -386,7 +386,8 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
 
                                             if (isChecked) {
                                                 try {
-                                                    matchedClass = await storageService.getCurrentClass(newMember.branch);
+                                                    const typeHint = pricingConfig[newMember.membershipType]?.label;
+                                                    matchedClass = await storageService.getCurrentClass(newMember.branch, null, typeHint);
                                                 } catch (err) {
                                                     console.error("Failed to fetch today's class during registration", err);
                                                 }

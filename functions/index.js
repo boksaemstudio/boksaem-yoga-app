@@ -13,29 +13,7 @@ const { setGlobalOptions } = require("firebase-functions/v2");
 // Set Global Options immediately
 setGlobalOptions({ region: "asia-northeast3" });
 
-// [URGENT DATA FIX] Polyfill for sv-SE date format
-// Ensures that "YYYY-MM-DD" expectations never break even if Node environment locales change.
-const originalToLocaleDateString = Date.prototype.toLocaleDateString;
-Date.prototype.toLocaleDateString = function(locale, options) {
-    if (locale === 'sv-SE') {
-        try {
-            const formatter = new Intl.DateTimeFormat('en-US', {
-                timeZone: 'Asia/Seoul',
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit'
-            });
-            const parts = formatter.formatToParts(this);
-            const y = parts.find(p => p.type === 'year')?.value;
-            const m = parts.find(p => p.type === 'month')?.value;
-            const d = parts.find(p => p.type === 'day')?.value;
-            if (y && m && d) return `${y}-${m}-${d}`;
-        } catch (e) {
-            console.warn("Date polyfill error:", e);
-        }
-    }
-    return originalToLocaleDateString.call(this, locale, options);
-};
+
 
 // Import all modules
 const pushFunctions = require('./modules/push');
@@ -84,20 +62,28 @@ module.exports = {
  *   - translateNoticesV2
  *   - generateDailyYogaV2
  * 
- * memberFunctions (2):
+ * memberFunctions (4):
  *   - getSecureMemberV2Call
+ *   - memberLoginV2Call
+ *   - verifyInstructorV2Call
  *   - checkExpiringMembersV2
  * 
  * attendanceFunctions (2):
  *   - checkInMemberV2Call
  *   - onAttendanceCreated
  * 
- * scheduledFunctions (2):
+ * scheduledFunctions (3):
  *   - checkLowCreditsV2
  *   - sendDailyAdminReportV2
+ *   - sendScheduledMessages
  * 
  * meditationFunctions (1):
  *   - generateMeditationGuidance
  * 
- * Total: 14 Cloud Functions
+ * solapiFunctions (3):
+ *   - sendMessageOnApproval
+ *   - sendSolapiOnMessageV2
+ *   - getSolapiBalance
+ * 
+ * Total: 20 Cloud Functions
  */
