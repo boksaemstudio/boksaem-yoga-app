@@ -165,7 +165,7 @@ const CheckInPage = () => {
         }
 
         let msg = "오늘의 수련이 시작됩니다.";
-        if (isDup) { msg = "이미 출석 처리되었습니다."; speak("duplicate"); }
+        if (isDup) { msg = "연속 출석입니다."; speak("duplicate"); }
         else if (daysLeft < 0) { msg = "기간이 만료되었습니다."; speak("denied"); }
         else if (credits < 0) { msg = "잔여 횟수가 없습니다."; speak("denied"); }
         else if (credits === 0 || daysLeft === 0) { msg = "오늘 마지막 수련 후 재등록이 필요합니다."; speak("last_session"); }
