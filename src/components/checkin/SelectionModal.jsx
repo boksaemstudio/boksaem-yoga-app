@@ -1,3 +1,4 @@
+import React, { useState, useEffect, memo } from 'react';
 import { getBranchName } from '../../studioConfig';
 import { CHECKIN_CONFIG } from '../../constants/CheckInConfig';
 
