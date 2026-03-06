@@ -1,5 +1,5 @@
-import React, { memo, useState, useEffect } from 'react';
 import { getBranchName } from '../../studioConfig';
+import { CHECKIN_CONFIG } from '../../constants/CheckInConfig';
 
 const SelectionModal = memo(({ 
     show, 
@@ -9,12 +9,12 @@ const SelectionModal = memo(({
     onSelect 
 }) => {
     const [selectedMemberId, setSelectedMemberId] = useState(null);
-    const [timeLeft, setTimeLeft] = useState(30);
+    const [timeLeft, setTimeLeft] = useState(CHECKIN_CONFIG.TIMEOUTS.AUTO_CLOSE_MODAL / 1000);
 
     useEffect(() => {
         if (!show) {
             setSelectedMemberId(null);
-            setTimeLeft(30);
+            setTimeLeft(CHECKIN_CONFIG.TIMEOUTS.AUTO_CLOSE_MODAL / 1000);
             return;
         }
         if (loading) return; // 로딩 중에는 타이머 정지

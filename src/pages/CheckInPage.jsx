@@ -7,6 +7,7 @@ import { getKSTHour, getDaysRemaining, safeParseDate } from '../utils/dates';
 import { logError } from '../services/modules/errorModule';
 import { getStaticStandbyMessage } from '../utils/aiStandbyHelper';
 import { AIMessages } from '../constants/aiMessages';
+import { CHECKIN_CONFIG } from '../constants/CheckInConfig';
 
 // Hooks
 import { useAlwaysOnGuardian } from '../hooks/useAlwaysOnGuardian';
@@ -85,9 +86,9 @@ const CheckInPage = () => {
     const { setIsOnline } = useNetwork();
     const { speak } = useTTS();
     const { videoRef, canvasRef, capturePhoto, uploadPhoto } = useAttendanceCamera(true);
-    const language = 'ko';
+    const language = CHECKIN_CONFIG.LOCALE;
     const branches = getAllBranches();
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '/member')}&bgcolor=ffffff&color=2c2c2c&margin=10`;
+    const qrCodeUrl = `${CHECKIN_CONFIG.ASSETS.QR_CODE_BASE_URL}?${CHECKIN_CONFIG.ASSETS.QR_CODE_PARAMS}&data=${encodeURIComponent(window.location.origin + '/member')}`;
 
     // Effects
     useEffect(() => { autoUpdateRef.current = { pin, message, loading, showSelectionModal, showDuplicateConfirm }; }, [pin, message, loading, showSelectionModal, showDuplicateConfirm]);
@@ -114,7 +115,7 @@ const CheckInPage = () => {
         const isStandby = name === "방문 회원";
         try {
             const h = getKSTHour();
-            if (h < 7 || h >= 23) {
+            if (h < CHECKIN_CONFIG.SERVICE_HOURS.AI_READY_START || h >= CHECKIN_CONFIG.SERVICE_HOURS.AI_READY_END) {
                 setAiExperience({ message: AIMessages.FALLBACK_MESSAGE_OUTSIDE_BUSINESS_HOURS, isFallback: true });
                 return;
             }
@@ -171,7 +172,7 @@ const CheckInPage = () => {
 
         setMessage({ type: 'success', member: m, text: `${m.name}님`, subText: msg });
         if (timerRef.current) clearTimeout(timerRef.current);
-        timerRef.current = setTimeout(() => handleModalClose(() => setMessage(null)), 12000);
+        timerRef.current = setTimeout(() => handleModalClose(() => setMessage(null)), CHECKIN_CONFIG.TIMEOUTS.SUCCESS_MODAL);
 
         storageService.getAIExperience(m.name, m.attendanceCount, '오늘', getKSTHour(), null, weather, credits, daysLeft, language, null, 'member', 'checkin')
             .then(ai => { if (ai?.message && !ai.isFallback) setAiEnhancedMsg(ai.message.replace(/나마스테[.]?\s*🙏?/gi, '').trim()); })
@@ -217,7 +218,7 @@ const CheckInPage = () => {
         const pinCode = p || pin;
         if (pinCode.length !== 4 || loading) return;
         capturePhoto();
-        const isDup = recentCheckInsRef.current.some(e => e.pin === pinCode && (Date.now() - e.timestamp) < 600000);
+        const isDup = recentCheckInsRef.current.some(e => e.pin === pinCode && (Date.now() - e.timestamp) < CHECKIN_CONFIG.TIMEOUTS.DUPLICATE_CHECK);
         if (isDup) {
             setPendingPin(pinCode);
             setShowDuplicateConfirm(true);
