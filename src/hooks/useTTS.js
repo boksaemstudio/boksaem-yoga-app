@@ -49,14 +49,14 @@ export const useTTS = () => {
                 currentAudio.currentTime = 0;
             }
 
-            // 앞부분이 잘리지 않도록 앰프가 켜질 시간(800ms)을 확보한 뒤 재생합니다.
+            // 대기 시간을 최소화하여 화면 팝업과 동시에 소리가 나도록 수정
             currentAudio = new Audio(source);
             currentTimeout = setTimeout(() => {
                 if (currentAudio) {
                     currentAudio.play().catch(e => console.warn('[TTS] Playback failed', e));
                 }
                 currentTimeout = null;
-            }, 800);
+            }, 50);
         } catch (e) {
             console.error('[TTS] Audio creation failed', e);
         }

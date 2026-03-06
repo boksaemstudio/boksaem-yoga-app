@@ -51,12 +51,9 @@ const MessageOverlay = memo(({ message, onClose, aiExperience }) => {
                     
                     {message.subText && (
                         <div className="message-subtext" style={{ 
-                            fontSize: 'clamp(1.2rem, 3vh, 1.8rem)', 
-                            opacity: 0.9, 
                             marginBottom: '30px', 
                             whiteSpace: 'pre-wrap', 
-                            lineHeight: '1.4',
-                            fontWeight: 500
+                            lineHeight: '1.4'
                         }}>
                             {message.subText}
                         </div>
