@@ -4,6 +4,7 @@ import { getToken } from 'firebase/messaging';
 import { messaging } from '../../firebase';
 import { storageService } from '../../services/storage';
 import { getKSTTotalMinutes } from '../../utils/dates';
+import ImageLightbox from '../common/ImageLightbox';
 
 const InstructorHome = ({ instructorName, attendance, attendanceLoading, instructorClasses = [] }) => {
     const [pushEnabled, setPushEnabled] = useState(false);
@@ -15,6 +16,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
     const [hidePwaGuide, setHidePwaGuide] = useState(
         localStorage.getItem('hide_pwa_guide_instructor') === 'true'
     );
+    const [lightboxImage, setLightboxImage] = useState(null);
     
     const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 
@@ -194,7 +196,26 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                                 padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px',
                                 borderLeft: `2px solid ${color}`
                             }}>
-                                <div>
+                                {/* 사진 썸네일 */}
+                                <div
+                                    onClick={(e) => { if (record.photoUrl) { e.stopPropagation(); setLightboxImage(record.photoUrl); } }}
+                                    style={{
+                                        width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0, marginRight: '10px',
+                                        overflow: 'hidden', background: 'rgba(255,255,255,0.08)',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        cursor: record.photoUrl ? 'pointer' : 'default',
+                                        border: record.photoUrl ? '2px solid rgba(212,175,55,0.4)' : '2px solid rgba(255,255,255,0.1)'
+                                    }}
+                                >
+                                    {record.photoUrl ? (
+                                        <img src={record.photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    ) : (
+                                        <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'rgba(255,255,255,0.4)' }}>
+                                            {(record.memberName || '?').charAt(0)}
+                                        </span>
+                                    )}
+                                </div>
+                                <div style={{ flex: 1 }}>
                                     <div style={{ fontWeight: 'bold', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         {record.memberName}
                                         {(() => {
@@ -403,6 +424,10 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                      <span>Classes: {instructorClasses.length} / Att: {attendance.length}</span>
                 </div>
             </div>
+
+            {lightboxImage && (
+                <ImageLightbox src={lightboxImage} onClose={() => setLightboxImage(null)} />
+            )}
         </div>
     );
 };

@@ -3,7 +3,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recha
 const COLORS = ['#D4AF37', '#FF6B6B', '#48dbfb', '#1dd1a1', '#feca57', '#5f27cd'];
 
 const MyStatsChart = ({ logs }) => {
-    if (!logs || logs.length === 0) return null;
+    if (!logs || !Array.isArray(logs) || logs.length === 0) return null;
 
     // Aggregate by className
     const classCounts = {};

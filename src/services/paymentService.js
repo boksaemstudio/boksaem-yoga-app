@@ -2,10 +2,35 @@ import { db } from '../firebase';
 import { collection, doc, query, where, orderBy, getDocs, addDoc, deleteDoc } from 'firebase/firestore';
 
 let notifyCallback = () => {};
+let cachedSales = [];
 
 export const paymentService = {
   setNotifyCallback(callback) {
     notifyCallback = callback;
+  },
+
+  setupSalesListener() {
+    try {
+      const { onSnapshot } = require('firebase/firestore'); // ensure onSnapshot is available if not top-level
+      const q = query(
+        collection(db, 'sales'),
+        orderBy("timestamp", "desc")
+      );
+
+      return onSnapshot(q, (snapshot) => {
+        cachedSales = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        notifyCallback();
+      }, (error) => {
+        console.warn('[paymentService] Sales listener error:', error);
+      });
+    } catch (e) {
+      console.error('[paymentService] Failed to setup sales listener:', e);
+      return () => {};
+    }
+  },
+
+  getSales() {
+    return cachedSales;
   },
 
   async addSalesRecord(data) {

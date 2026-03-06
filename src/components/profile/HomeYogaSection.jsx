@@ -22,7 +22,12 @@ const HomeYogaCards = ({ language, onDataLoad }) => {
     }, [language, onDataLoad]);
 
     if (loading) return <div style={{ color: 'gray', fontSize: '0.8rem', padding: '10px' }}>AI 추천 로딩 중...</div>;
-    if (!poses) return null;
+    if (!poses || !Array.isArray(poses)) {
+        if (poses && poses.message) {
+            return <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', padding: '10px' }}>{poses.message}</div>;
+        }
+        return null;
+    }
 
     return (
         <>
@@ -58,9 +63,9 @@ const HomeYogaSection = ({ language, t }) => {
     return (
         <div style={{ marginBottom: '25px', padding: '15px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
             <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: 'var(--primary-gold)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                🧘 {(poses && poses.isFallback) ? (t('homeYogaBasicTitle') || "기본 추천 요가") : (t('homeYogaTitle') || "오늘의 AI 추천 요가")}
+                🧘 {(poses && (!Array.isArray(poses) || poses.isFallback)) ? (t('homeYogaBasicTitle') || "기본 추천 요가") : (t('homeYogaTitle') || "오늘의 AI 추천 요가")}
                 <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', marginLeft: '8px', fontWeight: 'normal' }}>
-                    {(poses && poses.isFallback) ? "서비스 연결이 원활하지 않아 기본 코스를 안내합니다." : t('homeYogaSub')}
+                    {(poses && (!Array.isArray(poses) || poses.isFallback)) ? "서비스 연결이 원활하지 않아 기본 코스를 안내합니다." : t('homeYogaSub')}
                 </span>
             </h3>
 

@@ -71,6 +71,7 @@ module.exports = {
  * attendanceFunctions (2):
  *   - checkInMemberV2Call
  *   - onAttendanceCreated
+ *   - onAttendancePhotoAdded
  * 
  * scheduledFunctions (3):
  *   - checkLowCreditsV2
@@ -85,5 +86,5 @@ module.exports = {
  *   - sendSolapiOnMessageV2
  *   - getSolapiBalance
  * 
- * Total: 20 Cloud Functions
+ * Total: 21 Cloud Functions
  */

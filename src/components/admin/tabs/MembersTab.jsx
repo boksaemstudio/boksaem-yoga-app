@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { BellRinging, Check, Info, Plus, NotePencil, PaperPlaneTilt } from '@phosphor-icons/react';
 import { getBranchName, getBranchColor, getBranchThemeColor } from '../../../studioConfig';
 
@@ -29,12 +29,20 @@ const MembersTab = ({
 }) => {
     const [localSort, setLocalSort] = useState('default'); // 'default', 'credits_asc', 'credits_desc', 'enddate_asc', 'enddate_desc'
 
-    const todayKstStr = useMemo(() => new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }), []);
+    // [FIX] 자정 넘김 시 날짜 자동 갱신 — dateKey가 변경되면 todayKstStr/todayStartMs도 재계산
+    const [dateKey, setDateKey] = useState(() => new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }));
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const now = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            if (now !== dateKey) setDateKey(now);
+        }, 60000); // 매 1분 체크
+        return () => clearInterval(interval);
+    }, [dateKey]);
+
+    const todayKstStr = useMemo(() => dateKey, [dateKey]);
     const todayStartMs = useMemo(() => {
-        const d = new Date();
-        d.setHours(0,0,0,0);
-        return d.getTime();
-    }, []);
+        return new Date(dateKey).getTime();
+    }, [dateKey]);
 
     const finalFiltered = useMemo(() => {
         let result = filteredMembers;
@@ -357,6 +365,12 @@ const MembersTab = ({
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px', flexWrap: 'wrap' }}>
                                                 {/* [NEW] Explicit Membership Status Badge */}
                                                 {(() => {
+                                                    const isUpcomingActive = member.upcomingMembership && member.upcomingMembership.startDate !== 'TBD' && new Date(member.upcomingMembership.startDate).getTime() <= todayStartMs;
+                                                    
+                                                    if (isUpcomingActive) {
+                                                        return <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34D399', border: '1px solid rgba(16, 185, 129, 0.4)' }}>활동중</span>;
+                                                    }
+
                                                     const isCurrentExhausted = member.credits <= 0 || (member.endDate && member.endDate !== 'TBD' && member.endDate !== 'unlimited' && new Date(member.endDate).getTime() < todayStartMs);
                                                     
                                                     if (isCurrentExhausted && member.upcomingMembership && member.upcomingMembership.startDate === 'TBD') {
@@ -385,7 +399,7 @@ const MembersTab = ({
                                                 })()}
 
                                                 {/* [NEW] Advance Registration Badge */}
-                                                {member.upcomingMembership && (
+                                                {member.upcomingMembership && !(member.upcomingMembership.startDate !== 'TBD' && new Date(member.upcomingMembership.startDate).getTime() <= todayStartMs) && (
                                                     <span className="badge" style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#C084FC', border: '1px solid rgba(168, 85, 247, 0.4)', fontWeight: 'bold' }}>
                                                         선등록 대기중
                                                     </span>

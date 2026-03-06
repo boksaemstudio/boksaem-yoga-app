@@ -101,11 +101,13 @@ export const getDailyYoga = async (language = 'ko') => {
         return data;
     } catch (e) {
         console.warn("Daily Yoga fetch failed:", e);
+        // [FIX] Always return an array. If we need to flag it as fallback, we can't just add a property to the array easily 
+        // without it potentially being lost or causing confusion. But for our UI, we check 'isFallback' on the data if it's an object.
+        // Let's return the array and HomeYogaSection will handle the fallback UI.
         const fallbackData = [
             { name: "Child's Pose", benefit: language === 'ko' ? "휴식 및 이완" : "Rest", instruction: language === 'ko' ? "이마를 매트에 대고 편안하게 쉽니다." : "Rest forehead on mat.", emoji: "👶" },
             { name: "Cat-Cow", benefit: language === 'ko' ? "척추 유연성" : "Spine Flex", instruction: language === 'ko' ? "숨을 마시며 등을 펴고, 내쉬며 둥글게 맙니다." : "Inhale arch, exhale round.", emoji: "🐈" }
         ];
-        fallbackData.isFallback = true;
         return fallbackData;
     }
 };

@@ -98,6 +98,30 @@ exports.memberLoginV2Call = onCall({
     }
 
     try {
+        // [FIX] Rate limiting — same pattern as getSecureMemberV2Call
+        const clientIdentifier = request.auth?.uid || 
+                               request.rawRequest?.headers?.['x-forwarded-for'] || 
+                               request.rawRequest?.ip || 
+                               'unknown';
+        const rateLimitRef = db.collection('rate_limits').doc(`login_${clientIdentifier.replace(/[^a-zA-Z0-9]/g, '_')}`);
+        
+        const rateLimitDoc = await rateLimitRef.get();
+        const now = Date.now();
+        const windowMs = 60000; // 1 minute
+        const maxAttempts = 10;
+        
+        if (rateLimitDoc.exists) {
+            const rlData = rateLimitDoc.data();
+            if (rlData.lastAttempt && (now - rlData.lastAttempt) < windowMs && rlData.attempts >= maxAttempts) {
+                throw new HttpsError('resource-exhausted', '너무 많은 시도. 1분 후 다시 시도해주세요.');
+            }
+        }
+
+        await rateLimitRef.set({
+            attempts: admin.firestore.FieldValue.increment(1),
+            lastAttempt: now
+        }, { merge: true });
+
         const snapshot = await db.collection('members').where('phoneLast4', '==', phoneLast4).limit(10).get();
         let targetDoc = null;
 

@@ -506,8 +506,8 @@ const MemberProfile = () => {
 
                 // For messages tab, we still want to show both notices and individual messages
                 // So we combine them here as well
-                const currentNotices = storageService.getNotices();
-                const noticeMessages = currentNotices.slice(0, 10).map(n => ({
+                const currentNotices = storageService.getNotices() || [];
+                const noticeMessages = (Array.isArray(currentNotices) ? currentNotices : []).slice(0, 10).map(n => ({
                     ...n,
                     type: 'notice',
                     content: n.content,

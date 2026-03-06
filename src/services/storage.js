@@ -23,7 +23,15 @@ let pendingImageWrites = {}; // Buffer for optimistic updates
 let cachedDailyClasses = {}; // {cacheKey: { classes: [...], fetchedAt: timestamp }}
 const DAILY_CLASS_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 let cachedPushTokens = [];
-let listeners = [];
+// [NEW] Pub/Sub Listeners by Event Type
+let listeners = {
+  members: [],
+  logs: [],
+  sales: [],
+  images: [],
+  notices: [],
+  general: [] // fallback
+};
 
 // [NETWORK] Timeout wrapper for Cloud Function calls
 // Prevents infinite waiting when network is slow or disconnected
@@ -36,24 +44,40 @@ const withTimeout = (promise, timeoutMs = 10000, errorMsg = '서버 응답 시�
   ]);
 };
 
-const notifyListeners = () => {
-  listeners.forEach(callback => callback());
+const notifyListeners = (eventType = 'general') => {
+  // Notify specific event listeners
+  if (listeners[eventType]) {
+    listeners[eventType].forEach(callback => callback(eventType));
+  }
+  // All subscribers with no specific event type ('all' or 'general')
+  if (eventType !== 'general' && listeners['general']) {
+      listeners['general'].forEach(callback => callback(eventType));
+  }
 };
 
 export const storageService = {
-  subscribe(callback) {
-    listeners.push(callback);
+  subscribe(callback, eventTypes = ['general']) {
+    const types = Array.isArray(eventTypes) ? eventTypes : [eventTypes];
+    types.forEach(type => {
+        if (!listeners[type]) listeners[type] = [];
+        listeners[type].push(callback);
+    });
+
     return () => {
-      listeners = listeners.filter(cb => cb !== callback);
+      types.forEach(type => {
+          if (listeners[type]) {
+              listeners[type] = listeners[type].filter(cb => cb !== callback);
+          }
+      });
     };
   },
 
   async initialize({ mode = 'full' } = {}) {
-    // Wire up notifyListeners for internal services
-    memberService.setNotifyCallback(notifyListeners);
-    attendanceService.setNotifyCallback(notifyListeners);
-    paymentService.setNotifyCallback(notifyListeners);
-    messageService.setNotifyCallback(notifyListeners);
+    // Wire up notifyListeners for internal services with specific events
+    memberService.setNotifyCallback(() => notifyListeners('members'));
+    attendanceService.setNotifyCallback(() => notifyListeners('logs'));
+    paymentService.setNotifyCallback(() => notifyListeners('sales'));
+    messageService.setNotifyCallback(() => notifyListeners('general'));
     attendanceService.setDependencies({
       getCurrentClass: this.getCurrentClass.bind(this),
       logError: this.logError.bind(this)
@@ -75,11 +99,11 @@ export const storageService = {
       console.error("Auth initialization failed:", authError);
     }
 
-    const safelySubscribe = (queryOrRef, cacheUpdater, name) => {
+    const safelySubscribe = (queryOrRef, cacheUpdater, name, eventType = 'general') => {
       try {
         return onSnapshot(queryOrRef, (snapshot) => {
           cacheUpdater(snapshot);
-          notifyListeners();
+          notifyListeners(eventType);
         }, (error) => {
           console.warn(`[Storage] Listener error for ${name}:`, error);
         });
@@ -182,7 +206,8 @@ export const storageService = {
     safelySubscribe(
       query(collection(db, 'notices'), orderBy("timestamp", "desc")),
       (snapshot) => cachedNotices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
-      "Notices"
+      "Notices",
+      "notices"
     );
 
     // [PERF] messages 빈 리스너 제거 — 아무것도 하지 않으면서 Firestore 연결 점유했음
@@ -198,18 +223,20 @@ export const storageService = {
       "FCMTokens"
     );
 
-    // [PERF] images: 1회 로드로 변경 (실시간 구독 불필요 — 이미지는 거의 변하지 않음)
-    try {
-      const imgSnapshot = await getDocs(collection(db, 'images'));
-      const imgs = {};
-      imgSnapshot.docs.forEach(d => {
-        imgs[d.id] = d.data().url || d.data().base64;
-      });
-      cachedImages = imgs;
-      console.log(`[Storage] Images loaded (one-time): ${Object.keys(cachedImages).length} items`);
-    } catch (imgErr) {
-      console.warn('[Storage] Images load failed:', imgErr);
-    }
+    // [FIX] images: 실시간 리스너로 변경하여 관리자가 업로드한 이미지가 즉시 모든 기기에 반영되도록 함
+    safelySubscribe(
+      collection(db, 'images'),
+      (snapshot) => {
+        const imgs = {};
+        snapshot.docs.forEach(d => {
+          imgs[d.id] = d.data().url || d.data().base64;
+        });
+        cachedImages = imgs;
+        console.log(`[Storage] Images updated (real-time): ${Object.keys(cachedImages).length} items`);
+      },
+      "Images",
+      "images"
+    );
   },
 
   _setupMemberListener() { return memberService.setupMemberListener(); },
@@ -1125,7 +1152,7 @@ export const storageService = {
   getAllSales() { return paymentService.getAllSales(); },
   getSales() { return paymentService.getSales(); },
 
-  deleteAttendance(logId) { return attendanceService.deleteAttendance(logId); },
+  deleteAttendance(logId, restoreCredit) { return attendanceService.deleteAttendance(logId, restoreCredit); },
 
   addManualAttendance(memberId, date, branchId, className = "수동 확인", instructor = "관리자") {
     return attendanceService.addManualAttendance(memberId, date, branchId, className, instructor);

@@ -1,5 +1,6 @@
-import { db, functions } from '../firebase';
+import { db, functions, app } from '../firebase';
 import { collection, doc, query, where, orderBy, getDocs, getDoc, addDoc, updateDoc, deleteDoc, onSnapshot, limit as firestoreLimit, increment } from 'firebase/firestore';
+import { getStorage, ref, deleteObject } from 'firebase/storage';
 import { httpsCallable } from 'firebase/functions';
 import { memberService } from './memberService';
 
@@ -155,7 +156,44 @@ export const attendanceService = {
       batch.delete(logRef);
       await batch.commit();
 
+      // [NEW] 출석 기록이 성공적으로 삭제(commit)된 후, 연관된 사진 파일이 있으면 Storage에서 삭제
+      if (logSnap.exists()) {
+        const logData = logSnap.data();
+        if (logData.photoUrl) {
+          try {
+            const storage = getStorage(app);
+            // URL에서 경로 추출 로직 (Firebase Storage 다운로드 URL 패턴 대응)
+            // ex: https://firebasestorage.googleapis.com/v0/b/boksaem-yoga.firebasestorage.app/o/attendance-photos%2F2026-03-06%2Fphoto_1741235332306.webp?alt=media...
+            const urlObj = new URL(logData.photoUrl);
+            const pathParts = urlObj.pathname.split('/o/');
+            if (pathParts.length > 1) {
+              const filePath = decodeURIComponent(pathParts[1]);
+              const photoRef = ref(storage, filePath);
+              await deleteObject(photoRef);
+              console.log(`[attendanceService] Deleted associated photo: ${filePath}`);
+            }
+          } catch (photoErr) {
+            console.warn(`[attendanceService] Failed to delete associated photo:`, photoErr);
+            // 사진 삭제 실패가 전체 출석 삭제 실패로 이어지지 않도록 예외 무시
+          }
+        }
+      }
+
+      const deletedLog = logSnap.exists() ? logSnap.data() : null;
       cachedAttendance = cachedAttendance.filter(l => l.id !== logId);
+      
+      // [NEW] 낙관적 업데이트: 실시간 리스너에만 의존하지 않고 로컬 캐시를 즉시 갱신하여 UX 향상
+      if (deletedLog && deletedLog.memberId && restoreCredit) {
+          const creditsToRestore = deletedLog.sessionCount || 1;
+          const currentM = memberService.getMemberById(deletedLog.memberId);
+          if (currentM) {
+              memberService._updateLocalMemberCache(deletedLog.memberId, {
+                  credits: (currentM.credits || 0) + creditsToRestore,
+                  attendanceCount: Math.max(0, (currentM.attendanceCount || 0) - creditsToRestore)
+              });
+          }
+      }
+
       notifyCallback();
       return { success: true };
     } catch (e) {
@@ -363,7 +401,14 @@ export const attendanceService = {
           classTime: currentClassInfo?.time || null,
           date: today,
           timestamp: now,
-          status: 'pending-offline'
+          status: 'pending-offline',
+          // [NEW] 만약 오프라인에서 회원권이 활성화되었다면 해당 정보 포함 (서버 동기화 시 필요)
+          activatedUpcomingMembership: member && member.startDate === today ? {
+              membershipType: member.membershipType,
+              startDate: member.startDate,
+              endDate: member.endDate,
+              credits: member.credits // 차감 전 혹은 후의 크레딧 (서버에서 최종 결정하겠지만 참고용)
+          } : null
       };
 
       try {
@@ -386,12 +431,11 @@ export const attendanceService = {
       };
 
       // [NEW] If upcomingMembership was activated, include those changes in the local cache update
-      if (member && !member.upcomingMembership && Object.keys(member).includes('upcomingMembership') === false || (member && member.upcomingMembership && member.startDate !== 'TBD' && member.startDate === today)) {
-          // It was activated if we modified the in-memory member object
+      if (pendingData.activatedUpcomingMembership) {
           updatePayload.membershipType = member.membershipType;
           updatePayload.startDate = member.startDate;
           updatePayload.endDate = member.endDate;
-          updatePayload.upcomingMembership = null; // Clear the upcoming membership locally
+          updatePayload.upcomingMembership = null; 
       }
 
       memberService._updateLocalMemberCache(memberId, updatePayload);
@@ -403,7 +447,10 @@ export const attendanceService = {
         member: {
           ...member,
           credits: newCredits,
-          attendanceCount: newCount
+          attendanceCount: newCount,
+          membershipType: updatePayload.membershipType || member.membershipType,
+          startDate: updatePayload.startDate || member.startDate,
+          endDate: updatePayload.endDate || member.endDate
         }
       };
     } catch (error) {
@@ -427,6 +474,10 @@ export const attendanceService = {
       let finalClassName = className;
       let finalInstructor = instructor;
 
+      const kstH = String(finalDate.getHours()).padStart(2, '0');
+      const kstM = String(finalDate.getMinutes()).padStart(2, '0');
+      let finalClassTime = `${kstH}:${kstM}`;
+
       if (className === "수동 확인") {
         try {
           const scheduleDocId = `${branchId}_${dateStr}`;
@@ -440,18 +491,24 @@ export const attendanceService = {
             const minute = finalDate.getMinutes();
             const requestTimeMins = hour * 60 + minute;
 
-            const matchedClass = dayClasses.find(cls => {
-              if (!cls.time || cls.status === 'cancelled') return false;
-              const [classHour, classMinute] = cls.time.split(':').map(Number);
-              const classStartMins = classHour * 60 + classMinute;
-              const classDuration = cls.duration || 60;
-              const classEndMins = classStartMins + classDuration;
-              return requestTimeMins >= classStartMins - 30 && requestTimeMins <= classEndMins + 30;
-            });
+            // [FIX] Prefer exact hour:minute match first to avoid fuzzy grouping errors (e.g. 14:00 matching to 14:20 class)
+            let matchedClass = dayClasses.find(cls => cls.time === finalClassTime && cls.status !== 'cancelled');
+
+            if (!matchedClass) {
+              matchedClass = dayClasses.find(cls => {
+                if (!cls.time || cls.status === 'cancelled') return false;
+                const [classHour, classMinute] = cls.time.split(':').map(Number);
+                const classStartMins = classHour * 60 + classMinute;
+                const classDuration = cls.duration || 60;
+                const classEndMins = classStartMins + classDuration;
+                return requestTimeMins >= classStartMins - 30 && requestTimeMins <= classEndMins + 30;
+              });
+            }
 
             if (matchedClass) {
               finalClassName = matchedClass.title || matchedClass.name || "수업";
               finalInstructor = matchedClass.instructor || "선생님";
+              finalClassTime = matchedClass.time; // Use the matched class's official time
             } else {
               finalClassName = "자율수련";
               finalInstructor = "회원";
@@ -525,6 +582,7 @@ export const attendanceService = {
         branchId,
         className: finalClassName,
         instructor: finalInstructor,
+        classTime: finalClassTime,
         type: 'manual',
         date: dateStr
       };

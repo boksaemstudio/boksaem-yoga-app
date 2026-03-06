@@ -3,7 +3,7 @@ import CustomDatePicker from '../../common/CustomDatePicker';
 import AttendanceHistory from '../../profile/AttendanceHistory';
 import { translations } from '../../../utils/translations';
 
-const AttendanceTab = ({ logs, member, onAdd, onDelete, isSubmitting, logLimit, setLogLimit }) => {
+const AttendanceTab = ({ logs, member, aiAnalysis, onAdd, onDelete, isSubmitting, logLimit, setLogLimit }) => {
     // [FIX] Use safe YYYY-MM-DD format manually to avoid locale fallback issues (e.g. YYYY. MM. DD.)
     const getSafeToday = () => {
         const d = new Date();
@@ -16,8 +16,6 @@ const AttendanceTab = ({ logs, member, onAdd, onDelete, isSubmitting, logLimit, 
     const [manualDate, setManualDate] = useState(getSafeToday());
     const [manualTime, setManualTime] = useState('10:00');
     const [manualBranch, setManualBranch] = useState(member.homeBranch || 'mapo');
-
-    // ... (rest of the component state)
 
     return (
         <div>
@@ -75,6 +73,7 @@ const AttendanceTab = ({ logs, member, onAdd, onDelete, isSubmitting, logLimit, 
             <AttendanceHistory
                 logs={logs}
                 member={member}
+                aiAnalysis={aiAnalysis}
                 language="ko"
                 t={(k) => translations.ko[k] || k}
                 onDelete={onDelete}

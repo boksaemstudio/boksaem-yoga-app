@@ -35,6 +35,19 @@ export const memberService = {
 
   setupMemberListener() {
     console.log("[memberService] Starting Member Listener...");
+    
+    // [NEW] Load from LocalStorage for immediate UI response (Optimistic)
+    const stored = localStorage.getItem('kiosk_member_cache');
+    if (stored && cachedMembers.length === 0) {
+      try {
+        cachedMembers = JSON.parse(stored);
+        console.log(`[memberService] Booting from local cache: ${cachedMembers.length} members`);
+        this._buildPhoneLast4Index();
+      } catch (e) {
+        console.warn('[memberService] Local cache corrupt');
+      }
+    }
+
     try {
       if (memberListenerUnsubscribe) {
         memberListenerUnsubscribe();
@@ -182,6 +195,14 @@ export const memberService = {
     const idx = cachedMembers.findIndex(m => m.id === memberId);
     if (idx !== -1) {
       cachedMembers[idx] = { ...cachedMembers[idx], ...updates };
+      
+      // [NEW] Persist for offline durability
+      try {
+        localStorage.setItem('kiosk_member_cache', JSON.stringify(cachedMembers));
+      } catch (e) {
+        console.warn('[memberService] Cache persistence failed (Storage full?)');
+      }
+
       notifyCallback();
       this._buildPhoneLast4Index();
     }

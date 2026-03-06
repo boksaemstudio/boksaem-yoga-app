@@ -29,9 +29,11 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
             startDate: localMember.startDate,
             endDate: localMember.endDate,
             attendanceCount: localMember.attendanceCount,
+            subject: localMember.subject || prev.subject,
+            regDate: localMember.regDate || prev.regDate,
             price: localMember.price !== undefined ? localMember.price : prev.price
         }));
-    }, [localMember?.credits, localMember?.startDate, localMember?.endDate, localMember?.attendanceCount, localMember?.price]);
+    }, [localMember?.credits, localMember?.startDate, localMember?.endDate, localMember?.attendanceCount, localMember?.price, localMember?.subject, localMember?.regDate]);
 
     const [activeTab, setActiveTab] = useState('info');
 
@@ -39,6 +41,8 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
     const [memberLogs, setMemberLogs] = useState(propMemberLogs || []);
     const [logLimit, setLogLimit] = useState(50);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [aiAnalysis, setAiAnalysis] = useState(null);
+    const [isDirtyByUser, setIsDirtyByUser] = useState(false); // [FIX] Track user manual changes vs autofill
     const isSubmittingRef = useRef(false);
 
     // [REAL-TIME] Dedicated listener for the viewed member to ensure header/stats are always fresh
@@ -108,7 +112,12 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
     // [NEW] Fetch the latest sales amount to autofill price if missing for existing members
     useEffect(() => {
         if (!member?.id || member?.role === 'instructor') return;
-        if (member.price !== undefined && member.price !== 0) return; // If already exists and non-zero in DB
+        // Check if any of these are missing
+        const isMissingPrice = member.price === undefined || member.price === 0;
+        const isMissingSubject = !member.subject;
+        const isMissingRegDate = !member.regDate;
+
+        if (!isMissingPrice && !isMissingSubject && !isMissingRegDate) return; 
 
         let isMounted = true;
         const fetchLatestPrice = async () => {
@@ -140,9 +149,24 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                         matchedSale = sorted[0];
                     }
                     
-                    if (matchedSale && matchedSale.amount !== undefined && matchedSale.amount > 0) {
-                        setLocalMember(prev => ({ ...prev, price: matchedSale.amount }));
-                        setEditData(prev => ({ ...prev, price: matchedSale.amount }));
+                    if (matchedSale) {
+                        const updates = {};
+                        if (isMissingPrice && matchedSale.amount !== undefined && matchedSale.amount > 0) {
+                            updates.price = matchedSale.amount;
+                        }
+                        if (isMissingSubject && matchedSale.item) {
+                            updates.subject = matchedSale.item;
+                        }
+                        if (isMissingRegDate && matchedSale.date) {
+                            updates.regDate = matchedSale.date.includes('T') ? matchedSale.date.split('T')[0] : matchedSale.date;
+                        }
+
+                        if (Object.keys(updates).length > 0) {
+                            console.log("[Autofill] Found matching sales record, applying missing fields:", updates);
+                            // [FIX] Do NOT update localMember here, otherwise getChangedFields() thinks there are no changes
+                            // and the Save button won't appear. Only update editData so the user can review and save.
+                            setEditData(prev => ({ ...prev, ...updates }));
+                        }
                     }
                 }
             } catch (e) {
@@ -152,7 +176,27 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
         fetchLatestPrice();
         
         return () => { isMounted = false; };
-    }, [member?.id, member?.price]);
+    }, [member?.id, member?.price, member?.subject, member?.regDate]);
+
+    // [NEW] AI Practice Analysis Fetcher for Admin
+    useEffect(() => {
+        if (!member?.id || member?.role === 'instructor') return;
+        if (activeTab !== 'attendance') return;
+
+        let isMounted = true;
+        const fetchAI = async () => {
+             try {
+                // Use 12 (noon) as a generic time for admin analysis if current time is not relevant
+                const analysis = await storageService.getAIAnalysis(member.name, memberLogs.length, memberLogs, 12, 'ko', 'admin');
+                if (isMounted) setAiAnalysis(analysis);
+            } catch (e) {
+                console.error("AI Analysis fetch failed:", e);
+                if (isMounted) setAiAnalysis({ message: "데이터 분석 중 오류가 발생했습니다.", isError: true });
+            }
+        };
+        fetchAI();
+        return () => { isMounted = false; };
+    }, [member?.id, activeTab, memberLogs.length]);
 
     // Selective Save State
     const [showChangeModal, setShowChangeModal] = useState(false);
@@ -248,6 +292,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                         console.log(`[SYNC] Updating sales record ${primarySale.id} date to ${dataToUpdate.regDate}`);
                         await storageService.updateSalesRecord(primarySale.id, { date: dataToUpdate.regDate });
                         alert(`저장되었습니다.\n(회원 등록일 변경에 맞춰 매출 날짜도 ${dataToUpdate.regDate}로 자동 변경되었습니다.)`);
+                        setIsDirtyByUser(false);
                         setShowChangeModal(false);
                         onClose();
                         return; // Exit early to avoid double alert
@@ -258,15 +303,18 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
             }
             
             alert('저장되었습니다.');
+            setIsDirtyByUser(false);
             setShowChangeModal(false);
             onClose();
         }
     };
 
-    // [FIX] 안전한 닫기 처리 (저장하지 않은 데이터 존재 시 경고)
+    // [FIX] 안전한 닫기 처리 (저장하지 않은 직접 변경 데이터 존재 시 경고)
     const handleSafeClose = () => {
         const changes = getChangedFields();
-        if (changes.length > 0) {
+        // Only warn if the user manually modified something AND there's a difference.
+        // If it was just autofill updating editData, let them close without annoying warnings.
+        if (isDirtyByUser && changes.length > 0) {
             if (!confirm('저장하지 않은 변경 사항이 있습니다. 변경을 취소하고 창을 닫으시겠습니까?')) {
                 return;
             }
@@ -498,7 +546,10 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                         <div className="fade-in">
                             <MemberInfoTab
                                 editData={editData}
-                                setEditData={setEditData}
+                                setEditData={(updater) => {
+                                    setIsDirtyByUser(true);
+                                    setEditData(updater);
+                                }}
                                 onSave={handlePreSave}
                                 pricingConfig={pricingConfig}
                                 originalData={member}
@@ -510,6 +561,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                             <AttendanceTab
                                 logs={memberLogs}
                                 member={member}
+                                aiAnalysis={aiAnalysis}
                                 onAdd={handleManualAttendance}
                                 onDelete={handleDeleteAttendance}
                                 isSubmitting={isSubmitting}

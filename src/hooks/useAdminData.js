@@ -134,88 +134,76 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
     // [New] Re-registration Logic State
     const [todayReRegMemberIds, setTodayReRegMemberIds] = useState([]);
 
-    const refreshData = useCallback(async () => {
-        console.time('[Admin] refreshData');
+    const [isInitialLoadDone, setIsInitialLoadDone] = useState(false);
+
+    const loadInitialData = useCallback(async () => {
+        if (isInitialLoadDone) return;
+        console.time('[Admin] loadInitialData');
         
-        // [PERF] Parallel data loading for faster initial render
-        // [FIX] Ensure all Promises have .catch() so one failure doesn't crash the dashboard
-        const [currentMembers, currentImages, tokensResult, usageResult, currentSales] = await Promise.all([
-            storageService.loadAllMembers().catch(err => { console.warn("[Admin] Member load error", err); return []; }),
-            (storageService.getImages ? storageService.getImages() : Promise.resolve({})).catch(err => ({})),
-            storageService.getAllPushTokens().catch(err => { console.error('Failed to fetch push tokens:', err); return []; }),
-            storageService.getAiUsage().catch(e => { console.warn("Failed to fetch AI usage", e); return { count: 0, limit: 2000 }; }),
-            storageService.getSales().catch(err => { console.warn("[Admin] Sales load error", err); return []; })
-        ]);
-        
-        // Get cached data (sync, no await needed)
-        let currentLogs = storageService.getAttendance();
-        
-        // [FIX] Fallback: 리스너가 아직 데이터를 수신하지 못한 경우 직접 fetch
-        if (currentLogs.length === 0) {
-            console.warn('[Admin] Attendance cache empty, fetching directly...');
-            const todayDateStr = getTodayKST();
-            try {
-                const directLogs = await storageService.getAttendanceByDate(todayDateStr);
-                if (directLogs.length > 0) {
-                    currentLogs = directLogs;
-                    console.log(`[Admin] Fallback fetched ${directLogs.length} attendance logs for today`);
-                }
-            } catch (e) {
-                console.warn('[Admin] Fallback attendance fetch failed:', e);
-            }
+        try {
+            const [currentMembers, currentImages, tokensResult, usageResult, currentSales] = await Promise.all([
+                storageService.loadAllMembers().catch(err => { console.warn("[Admin] Member load error", err); return []; }),
+                (storageService.getImages ? storageService.getImages() : Promise.resolve({})).catch(err => ({})),
+                storageService.getAllPushTokens().catch(err => { console.error('Failed to fetch push tokens:', err); return []; }),
+                storageService.getAiUsage().catch(e => { console.warn("Failed to fetch AI usage", e); return { count: 0, limit: 2000 }; }),
+                storageService.getSales().catch(err => { console.warn("[Admin] Sales load error", err); return []; })
+            ]);
+
+            const currentLogs = storageService.getAttendance();
+            const currentNotices = storageService.getNotices();
+
+            setMembers(Array.from(new Map(currentMembers.map(m => [m.id, m])).values()));
+            setPushTokens(tokensResult);
+            setAiUsage(usageResult);
+            setLogs([...currentLogs]);
+            setNotices([...currentNotices]);
+            setImages({ ...currentImages });
+            setSales([...currentSales]);
+            setIsInitialLoadDone(true);
+        } catch (err) {
+            console.error("[Admin] Initial data load failed", err);
+        } finally {
+            console.timeEnd('[Admin] loadInitialData');
         }
-        const currentNotices = storageService.getNotices();
-        
-        // Set state from parallel results
-        setPushTokens(tokensResult);
-        setAiUsage(usageResult);
+    }, [isInitialLoadDone]);
 
-        // [FIX] Ensure Unique Members by ID (Prevent UI Duplicates) & Enrich with Install Date
-        const memberInstallDate = {};
-        const instructorNamesWithPush = new Set();
-        if (tokensResult) {
-            tokensResult.forEach(t => {
-                if (t.role === 'instructor' && t.instructorName) {
-                    instructorNamesWithPush.add(t.instructorName);
-                } else if (t.memberId) {
-                    const date = t.createdAt || null; // Only count tracked installs with createdAt
-                    if (date) {
-                        if (!memberInstallDate[t.memberId] || date > memberInstallDate[t.memberId]) {
-                            memberInstallDate[t.memberId] = date;
-                        }
-                    }
-                }
-            });
+    // [Refactored] 1. Data Subscriptions - Only Updates Raw State
+    const handleDataUpdate = useCallback(async (eventType = 'general') => {
+        console.log(`[Admin] Data update detected (${eventType}), syncing raw states...`);
+        
+        if (eventType === 'members' || eventType === 'general' || eventType === 'all') {
+            setMembers(Array.from(new Map(storageService.getMembers().map(m => [m.id, m])).values()));
         }
+        if (eventType === 'logs' || eventType === 'general' || eventType === 'all') {
+            setLogs([...storageService.getAttendance()]);
+        }
+        if (eventType === 'sales' || eventType === 'general' || eventType === 'all') {
+            storageService.getSales().then(s => setSales([...s]));
+        }
+        if (eventType === 'images' || eventType === 'general' || eventType === 'all') {
+            if (storageService.getImages) setImages({ ...storageService.getImages() });
+        }
+        if (eventType === 'notices' || eventType === 'general' || eventType === 'all') {
+            setNotices([...storageService.getNotices()]);
+        }
+    }, []);
 
-        const uniqueMembers = Array.from(new Map(currentMembers.map(m => [m.id, m])).values())
-            .map(m => ({
-                ...m,
-                installedAt: memberInstallDate[m.id] || null
-            }));
+    // [Refactored] 2. Derived State Calculation - Runs when raw state changes
+    useEffect(() => {
+        if (!isInitialLoadDone) return;
+        console.time('[Admin] Calculate Derived Data');
 
-        setMembers(uniqueMembers);
-        setLogs([...currentLogs]); // Force new reference
-        setNotices([...currentNotices]);
-        setImages({ ...currentImages }); // Force new object for images too
-        setSales([...currentSales]);
-        
-        console.timeEnd('[Admin] refreshData');
-
-        // Branch Filtering for Stats
+        const currentTodayKST = getTodayKST();
         const branchLogs = currentBranch === 'all'
-            ? currentLogs
-            : currentLogs.filter(l => l.branchId === currentBranch);
+            ? logs
+            : logs.filter(l => l.branchId === currentBranch);
 
         calculateStats(branchLogs);
-
-        const todayStr = getTodayKST();
         
         // [Perf] Enrich logs with KST string to prevent repeated Date parsing
         const enrichedBranchLogs = branchLogs.map(l => {
             if (!l.timestamp) return { ...l, isValidDate: false };
             
-            // [FIX] Robustly handle both ISO strings and Firestore Timestamp objects
             let d;
             if (typeof l.timestamp === 'string') {
                 d = new Date(l.timestamp);
@@ -236,11 +224,10 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         });
 
         // [Perf] Enrich sales
-        const enrichedSales = currentSales.map(s => {
+        const enrichedSales = sales.map(s => {
             const rawDate = s.date || s.timestamp;
             let sDate = null;
             
-            // [FIX] Robustly handle Firestore Timestamp or String
             if (rawDate) {
                 if (typeof rawDate === 'string') {
                     if (rawDate.includes('T')) {
@@ -258,6 +245,9 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             return { ...s, parsedDate: sDate };
         });
 
+        const todayStr = currentTodayKST;
+        const uniqueMembers = members;
+
         // [New] Multi-attendance Detection (Valid Log Count Base)
         const attendanceCountMap = {}; // memberId -> total sessions today
         
@@ -265,42 +255,32 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             enrichedBranchLogs.forEach(l => {
                 if (!l.isValidDate || l.status === 'denied' || !l.memberId) return;
                 if (l.logDate !== todayStr) return;
-
-                // Count this valid log
                 attendanceCountMap[l.memberId] = (attendanceCountMap[l.memberId] || 0) + 1;
             });
         } catch (err) {
             console.error('[Admin] Error calculating multi-attendance:', err);
         }
 
-        const multiAttendedMemberIds = Object.keys(attendanceCountMap)
-            .filter(id => attendanceCountMap[id] >= 2);
+        const multiAttendedMemberIds = Object.keys(attendanceCountMap).filter(id => attendanceCountMap[id] >= 2);
 
         // Stats Calculation
-        const currentMonth = todayStr.substring(0, 7);
         const isMemberInBranch = (m) => currentBranch === 'all' || m.homeBranch === currentBranch;
-
         const attendedMemberIds = new Set();
         
-        // [New] Denied Stats
         let deniedCount = 0;
         let deniedExpiredCount = 0;
         let deniedNoCreditsCount = 0;
-
-        // [New] Valid Total Attendance (Session Count)
         let totalAttendanceToday = 0;
 
         try {
             enrichedBranchLogs.forEach(l => {
                 if (!l.isValidDate) return;
-                
                 if (l.logDate === todayStr) {
                     if (l.status === 'denied') {
                         deniedCount++;
                         if (l.denialReason === 'expired') deniedExpiredCount++;
                         if (l.denialReason === 'no_credits') deniedNoCreditsCount++;
                     } else {
-                        // Valid Attendance
                         attendedMemberIds.add(l.memberId);
                         totalAttendanceToday++;
                     }
@@ -315,26 +295,20 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
         const totalMembers = uniqueMembers.filter(m => isMemberInBranch(m)).length;
         const activeMembers = uniqueMembers.filter(m => isMemberInBranch(m) && isMemberActive(m)).length;
-
-        // [Logic] Unique individuals attended (VALID only)
         const todayAttendance = uniqueMembers.filter(m => isMemberInBranch(m) && checkIsAttended(m)).length;
 
         // [Logic] Today Registration (New & Re-reg)
-        // 1. New: regDate === today
         const todayNewMembers = uniqueMembers.filter(m => isMemberInBranch(m) && checkIsRegistered(m));
         
-        // [PERF FIX] O(N^2) 방지를 위한 멤버 단일 조회 Map 생성
         const memberMapCache = new Map();
         for (let i = 0; i < uniqueMembers.length; i++) {
             memberMapCache.set(uniqueMembers[i].id, uniqueMembers[i]);
         }
 
-        // 2. Re-reg: Sales today AND NOT New
         const todaySalesMemberIds = new Set();
         enrichedSales.forEach(s => {
             if (!s.parsedDate) return;
             if (s.parsedDate === todayStr) {
-                // If branch filter applied, check sales branch OR member home branch
                 if (currentBranch === 'all' || s.branchId === currentBranch || memberMapCache.get(s.memberId)?.homeBranch === currentBranch) {
                     todaySalesMemberIds.add(s.memberId);
                 }
@@ -342,32 +316,27 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         });
 
         const todayReRegMembers = uniqueMembers.filter(m => 
-            isMemberInBranch(m) && 
-            todaySalesMemberIds.has(m.id) && 
-            !checkIsRegistered(m) // Not new
+            isMemberInBranch(m) && todaySalesMemberIds.has(m.id) && !checkIsRegistered(m)
         );
 
         setTodayReRegMemberIds(todayReRegMembers.map(m => m.id));
 
         const todayNewCount = todayNewMembers.length;
         const todayReRegCount = todayReRegMembers.length;
-        const todayRegistrationTotal = todayNewCount + todayReRegCount; // Combined
+        const todayRegistrationTotal = todayNewCount + todayReRegCount;
 
         const expiringMembersCount = uniqueMembers.filter(m => isMemberInBranch(m) && isMemberExpiring(m)).length;
 
-        // [Unified Revenue Logic] Match AdminRevenue.jsx
-        // 1. Prepare All Items (Legacy + Sales)
+        // [Unified Revenue Logic]
         const allRevenueItems = [];
-
-        // Legacy Members Data
         uniqueMembers.forEach(m => {
             const amt = Number(m.amount) || 0;
             if (m.regDate && amt > 0) {
                 if (currentBranch !== 'all' && m.homeBranch !== currentBranch) return;
                 allRevenueItems.push({
                     id: m.id,
-                    memberId: m.id, // [Fix] Explicit memberId
-                    date: m.regDate, // 'YYYY-MM-DD'
+                    memberId: m.id,
+                    date: m.regDate,
                     amount: amt,
                     name: m.name,
                     type: 'legacy'
@@ -375,19 +344,14 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             }
         });
 
-        // New Sales Data
         enrichedSales.forEach(s => {
             if (currentBranch !== 'all') {
                 const member = memberMapCache.get(s.memberId);
                 const memberBranch = member?.homeBranch;
                 const saleBranch = s.branchId;
-                
-                if ((saleBranch && saleBranch !== currentBranch) && (memberBranch && memberBranch !== currentBranch)) {
-                    return;
-                }
+                if ((saleBranch && saleBranch !== currentBranch) && (memberBranch && memberBranch !== currentBranch)) return;
                 if (!saleBranch && !memberBranch) return;
             }
-
             if (!s.parsedDate) return;
 
             allRevenueItems.push({
@@ -401,10 +365,6 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             });
         });
 
-        // [Fix] Deduplicate: Remove 'legacy' item if a 'register' item exists for same member on same date
-        // AND remove duplicate sales items if they exist matches (MemberId + Date + Amount)
-        
-        // [Fix V4] Resolve Member IDs for Sales Items that lack them (backward compatibility)
         const memberNameMap = new Map();
         members.forEach(m => memberNameMap.set(m.name, m.id));
 
@@ -412,30 +372,15 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         const salesKeys = new Set(
             allRevenueItems
                 .filter(i => i.type !== 'legacy')
-                .map(i => {
-                     const resolvedId = i.memberId || memberNameMap.get(i.name);
-                     return `${resolvedId}-${i.date}`;
-                })
+                .map(i => `${i.memberId || memberNameMap.get(i.name)}-${i.date}`)
         );
-
-        const seenKeys = new Set();
 
         allRevenueItems.forEach(item => {
             const resolvedMemberId = item.memberId || memberNameMap.get(item.name);
-
-            // 1. Legacy Deduplication
             if (item.type === 'legacy') {
                 const key = `${item.memberId}-${item.date}`;
-                if (salesKeys.has(key)) return; // Skip legacy if sale exists
+                if (salesKeys.has(key)) return;
             }
-
-            // 2. Self Deduplication Removed to match Revenue Tab
-            // Ensures admins can see and delete duplicate sales if they occur
-            // Key: MemberId + Date + Amount
-            const uniqueKey = `${resolvedMemberId}-${item.date}-${item.amount}`;
-            seenKeys.add(uniqueKey);
-
-            // Attach resolved ID if missing
             if (!item.memberId && resolvedMemberId) {
                 uniqueRevenueItems.push({ ...item, memberId: resolvedMemberId });
             } else {
@@ -447,53 +392,40 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             .filter(i => i.date === todayStr)
             .reduce((sum, item) => sum + item.amount, 0);
 
-        const currentMonthStr = todayStr.substring(0, 7); // 'YYYY-MM'
+        const currentMonthStr = todayStr.substring(0, 7);
         const monthlyRevenue = uniqueRevenueItems
             .filter(i => i.date.startsWith(currentMonthStr))
             .reduce((sum, item) => sum + item.amount, 0);
 
-        // ... Note: This logic assumes 'uniqueRevenueItems' covers all needed revenue data.
-        // Also note that 'members.amount' is usually the MOST RECENT payment amount.
-        // If a member paid last month AND this month, 'members' object only holds the LATEST.
-        // So 'legacy' logic is inherently flawed for historical data if only using 'members' snapshot.
-        // But for "This Month" revenue, it works IF the member registered/paid this month.
-        // The `sales` collection is the correct way forward.
-        // The dedup ensures we don't double count the *latest* payment if it's in both.
+        // [Fix] Restore Missing Variables for Push Count
+        const instructorNamesWithPush = new Set();
+        pushTokens.forEach(t => {
+            if (t.instructorName) instructorNamesWithPush.add(t.instructorName);
+        });
 
         const newSummary = {
             totalMembers,
             activeMembers,
             todayAttendance,
             totalAttendanceToday,
-            todayRegistration: todayRegistrationTotal, // Updated to Combined
-            todayNewCount, // [New]
-            todayReRegCount, // [New]
+            todayRegistration: todayRegistrationTotal,
+            todayNewCount,
+            todayReRegCount,
             totalRevenueToday: todayRevenue,
             monthlyRevenue,
             expiringMembersCount,
-            todayReRegMemberIds: todayReRegMembers.map(m => m.id), // [New] For Badges in MembersTab
-            multiAttendedMemberIds, // [NEW] Today 2+ attendance
-            attendanceCountMap, // [NEW] ID -> Count for dynamic badges
-            // [New] Denied Stats
+            todayReRegMemberIds: todayReRegMembers.map(m => m.id),
+            multiAttendedMemberIds,
+            attendanceCountMap,
             deniedCount,
             deniedExpiredCount,
             deniedNoCreditsCount,
-            
-            // [New] App Installation Stats
-            installedCount: uniqueMembers.filter(m => isMemberInBranch(m) && tokensResult.some(t => t.memberId === m.id)).length,
-            todayInstalledCount: uniqueMembers.filter(m => {
-                if (!isMemberInBranch(m)) return false;
-                const installDate = m.installedAt;
-                if (!installDate) return false;
-                const kstDate = toKSTDateString(installDate);
-                return kstDate === todayStr;
-            }).length,
-            pushEnabledCount: uniqueMembers.filter(m => isMemberInBranch(m) && tokensResult.some(t => t.memberId === m.id) && m.pushEnabled !== false).length,
+            installedCount: uniqueMembers.filter(m => isMemberInBranch(m) && pushTokens.some(t => t.memberId === m.id)).length,
+            todayInstalledCount: uniqueMembers.filter(m => isMemberInBranch(m) && m.installedAt && toKSTDateString(m.installedAt) === todayStr).length,
+            pushEnabledCount: uniqueMembers.filter(m => isMemberInBranch(m) && pushTokens.some(t => t.memberId === m.id) && m.pushEnabled !== false).length,
             instructorPushCount: instructorNamesWithPush.size,
-            
-            // [New] Ratios for UI
-            installRatio: activeMembers > 0 ? Math.round((uniqueMembers.filter(m => isMemberInBranch(m) && tokensResult.some(t => t.memberId === m.id)).length / activeMembers) * 100) : 0,
-            reachableRatio: activeMembers > 0 ? Math.round((uniqueMembers.filter(m => isMemberInBranch(m) && tokensResult.some(t => t.memberId === m.id) && m.pushEnabled !== false).length / activeMembers) * 100) : 0
+            installRatio: activeMembers > 0 ? Math.round((uniqueMembers.filter(m => isMemberInBranch(m) && pushTokens.some(t => t.memberId === m.id)).length / activeMembers) * 100) : 0,
+            reachableRatio: activeMembers > 0 ? Math.round((uniqueMembers.filter(m => isMemberInBranch(m) && pushTokens.some(t => t.memberId === m.id) && m.pushEnabled !== false).length / activeMembers) * 100) : 0
         };
         setSummary(newSummary);
 
@@ -520,14 +452,13 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
                     classTime: classTime,
                     count: 0,
                     deniedCount: 0,
-                    memberNames: [] // [NEW] Track member names for the card
+                    memberNames: []
                 };
             }
             if (log.status === 'denied') {
                 classGroups[key].deniedCount++;
             } else {
                 classGroups[key].count++;
-                // Add name if it's a multi-attended member or specifically passion-member
                 if (log.memberName && (multiAttendedMemberIds.includes(log.memberId) || log.sessionCount > 1 || log.isMultiSession)) {
                     if (!classGroups[key].memberNames.includes(log.memberName)) {
                         classGroups[key].memberNames.push(log.memberName);
@@ -536,7 +467,6 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             }
         });
         
-        // [UX] Sort by classTime Descending (Latest First) as requested
         const newTodayClasses = Object.values(classGroups).sort((a, b) => {
             if (!a.classTime) return 1;
             if (!b.classTime) return -1;
@@ -544,15 +474,20 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         });
         setTodayClasses(newTodayClasses);
 
-        // Trigger AI Insight if tab matches (handled by caller effectively)
-        // Returning summary for caller to decide on AI call
+        console.timeEnd('[Admin] Calculate Derived Data');
 
-    }, [currentBranch, calculateStats, isMemberActive, isMemberExpiring]);
+    }, [isInitialLoadDone, members, logs, sales, currentBranch, pushTokens, isMemberActive, isMemberExpiring, calculateStats]);
+
+    const refreshData = useCallback(async () => {
+        // [Legacy Support] Force full refresh
+        setIsInitialLoadDone(false);
+        await loadInitialData();
+    }, [loadInitialData]);
 
     // Subscriptions
     useEffect(() => {
-        refreshData();
-        const unsubscribe = storageService.subscribe(refreshData);
+        loadInitialData();
+        const unsubscribe = storageService.subscribe(handleDataUpdate);
         // AI Pending Approvals (New)
         const unsubPending = storageService.getPendingApprovals((items) => {
             setPendingApprovals(items);
@@ -562,7 +497,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             unsubscribe();
             if (unsubPending) unsubPending();
         };
-    }, [refreshData]);
+    }, [loadInitialData, handleDataUpdate]);
 
     const handleApprovePush = async (id, title) => {
         if (confirm(`'${title}' 메시지 발송을 승인하시겠습니까?`)) {

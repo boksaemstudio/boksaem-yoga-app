@@ -7,7 +7,7 @@
  */
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
-const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const { admin, logAIError, getKSTDateString } = require("../helpers/common");
 
 // Helper functions
@@ -33,11 +33,12 @@ const calculateStreak = (records, currentDate) => {
 };
 
 const getTimeBand = (timestamp) => {
-    const hour = new Date(timestamp).getHours();
-    if (hour < 9) return 'early';
-    if (hour < 12) return 'morning';
-    if (hour < 15) return 'afternoon';
-    if (hour < 18) return 'evening';
+    // [FIX] Use KST (UTC+9) instead of server UTC time for accurate time band classification
+    const kstHour = new Date(new Date(timestamp).getTime() + 9 * 60 * 60 * 1000).getUTCHours();
+    if (kstHour < 9) return 'early';
+    if (kstHour < 12) return 'morning';
+    if (kstHour < 15) return 'afternoon';
+    if (kstHour < 18) return 'evening';
     return 'night';
 };
 
@@ -473,6 +474,7 @@ exports.onAttendanceCreated = onDocumentCreated({
                         body = `${className} | ${credits} ${expiry}`;
                     }
 
+                    const attendanceId = event.params.attendanceId;
                     for (const token of tokens) {
                         try {
                             await admin.messaging().send({
@@ -484,7 +486,8 @@ exports.onAttendanceCreated = onDocumentCreated({
                                 webpush: { 
                                     notification: { 
                                         icon: 'https://boksaem-yoga.web.app/logo_circle.png',
-                                        badge: 'https://boksaem-yoga.web.app/logo_circle.png'
+                                        badge: 'https://boksaem-yoga.web.app/logo_circle.png',
+                                        tag: `att-${attendanceId}`
                                     },
                                     fcm_options: { link: 'https://boksaem-yoga.web.app/instructor' }
                                 }
@@ -630,5 +633,83 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
         });
     } catch (e) {
         console.error(`[OfflineSync] Sync failed for ${memberId}:`, e);
+    }
+});
+
+/**
+ * 출석 사진 업로드 감지 → 강사 푸시 알림에 사진 추가
+ * photoUrl이 추가되면 기존 알림을 사진 포함 버전으로 교체 (같은 tag 사용)
+ */
+exports.onAttendancePhotoAdded = onDocumentUpdated({
+    document: "attendance/{attendanceId}",
+    region: "asia-northeast3"
+}, async (event) => {
+    const before = event.data.before.data();
+    const after = event.data.after.data();
+
+    // photoUrl이 새로 추가된 경우에만 실행
+    if (before.photoUrl || !after.photoUrl) return;
+
+    const db = admin.firestore();
+    const attendanceId = event.params.attendanceId;
+    const instructorName = after.instructor;
+
+    if (!instructorName || instructorName === '미지정' || instructorName === '회원') return;
+
+    try {
+        const tokensSnap = await db.collection('fcm_tokens')
+            .where('role', '==', 'instructor')
+            .where('instructorName', '==', instructorName)
+            .get();
+
+        if (tokensSnap.empty) return;
+
+        const memberName = after.memberName || '회원';
+        const className = after.className || '수업';
+
+        let rankLabel = '';
+        const totalCount = after.cumulativeCount || 0;
+        if (totalCount === 1) rankLabel = ' [신규]';
+        else if (totalCount >= 2 && totalCount <= 3) rankLabel = ` [${totalCount}회차]`;
+
+        let body = `${memberName}님이 출석하셨습니다.`;
+        if (after.credits !== undefined || after.endDate) {
+            const credits = after.credits !== undefined ? `${after.credits}회 남음` : '';
+            const expiry = after.endDate ? `(~${after.endDate.slice(2)})` : '';
+            body = `${className} | ${credits} ${expiry}`;
+        }
+
+        const tokens = tokensSnap.docs.map(doc => doc.data().token).filter(Boolean);
+
+        for (const token of tokens) {
+            try {
+                await admin.messaging().send({
+                    token,
+                    notification: {
+                        title: `🧘‍♀️ ${memberName}${rankLabel}님 출석`,
+                        body: body,
+                        imageUrl: after.photoUrl
+                    },
+                    webpush: {
+                        notification: {
+                            icon: 'https://boksaem-yoga.web.app/logo_circle.png',
+                            badge: 'https://boksaem-yoga.web.app/logo_circle.png',
+                            image: after.photoUrl,
+                            tag: `att-${attendanceId}`,
+                            renotify: false
+                        },
+                        fcm_options: { link: 'https://boksaem-yoga.web.app/instructor' }
+                    }
+                });
+            } catch (sendErr) {
+                if (sendErr.code === 'messaging/invalid-registration-token' ||
+                    sendErr.code === 'messaging/registration-token-not-registered') {
+                    await db.collection('fcm_tokens').doc(token).delete().catch(() => {});
+                }
+            }
+        }
+        console.log(`[Photo Push] Sent photo notification for ${attendanceId}`);
+    } catch (err) {
+        console.warn('[Photo Push] Error:', err.message);
     }
 });

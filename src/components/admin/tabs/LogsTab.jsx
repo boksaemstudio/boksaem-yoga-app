@@ -4,6 +4,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import { STUDIO_CONFIG, getBranchName, getBranchColor, getBranchThemeColor } from '../../../studioConfig';
 import { guessClassTime, guessClassInfo } from '../../../utils/classUtils';
 import { storageService } from '../../../services/storage';
+import ImageLightbox from '../../common/ImageLightbox';
 
 // ─── Mini Calendar Popup ───
 const MiniCalendar = ({ selectedDate, onSelect, onClose }) => {
@@ -126,6 +127,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
     const [showCalendar, setShowCalendar] = useState(false);
     const [historicalLogs, setHistoricalLogs] = useState([]);
     const [loadingHistorical, setLoadingHistorical] = useState(false);
+    const [lightboxImage, setLightboxImage] = useState(null);
 
     const isToday = selectedDate === todayStr;
 
@@ -363,6 +365,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
     };
 
     return (
+        <>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* ─── Date Navigation ─── */}
             <div style={{
@@ -668,6 +671,19 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                             <div style={{ width: '60px', fontSize: '0.75rem', opacity: 0.6, textAlign: 'center' }}>
                                                 {new Date(log.timestamp).toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false })}
                                             </div>
+                                            {/* 사진 썸네일 */}
+                                            {log.photoUrl && (
+                                                <div
+                                                    onClick={(e) => { e.stopPropagation(); setLightboxImage(log.photoUrl); }}
+                                                    style={{
+                                                        width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0,
+                                                        overflow: 'hidden', cursor: 'pointer',
+                                                        border: '2px solid rgba(212,175,55,0.4)'
+                                                    }}
+                                                >
+                                                    <img src={log.photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                </div>
+                                            )}
                                             <div style={{ flex: 1, paddingLeft: '12px' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                                     <span style={{ fontWeight: 'bold' }}>{log.memberName || log.name || '알 수 없음'}</span>
@@ -757,6 +773,11 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                 </div>
             )}
         </div>
+
+            {lightboxImage && (
+                <ImageLightbox src={lightboxImage} onClose={() => setLightboxImage(null)} />
+            )}
+    </>
     );
 };
 

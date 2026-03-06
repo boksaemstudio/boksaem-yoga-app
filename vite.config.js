@@ -66,9 +66,9 @@ export default defineConfig({
         // [BUILD-FIX] Appending -v8 to physically force new filenames on every single file
         // This is a last-resort countermeasure against Workbox aggressively caching files
         // and Vite/Rollup failing to change chunk hashes for edited React files.
-        chunkFileNames: `assets/[name]-[hash]-v10.js`,
-        entryFileNames: `assets/[name]-[hash]-v10.js`,
-        assetFileNames: `assets/[name]-[hash]-v10.[ext]`
+        chunkFileNames: `assets/[name]-[hash]-v11.js`,
+        entryFileNames: `assets/[name]-[hash]-v11.js`,
+        assetFileNames: `assets/[name]-[hash]-v11.[ext]`
       }
     }
   }
