@@ -61,6 +61,7 @@ const CheckInPage = () => {
     const [showInstructorQR, setShowInstructorQR] = useState(false);
     const [keypadLocked, setKeypadLocked] = useState(false);
     const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
+    const [showKioskInstallGuide, setShowKioskInstallGuide] = useState(false);
     const [pendingPin, setPendingPin] = useState(null);
     const [duplicateTimer, setDuplicateTimer] = useState(25);
     const [isDuplicateFlow, setIsDuplicateFlow] = useState(false);
