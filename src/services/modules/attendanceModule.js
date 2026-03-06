@@ -32,9 +32,10 @@ export const checkInById = async (memberId, branchId, getCurrentClass, cachedMem
         const currentClassInfo = await getCurrentClass(branchId);
         const classTitle = currentClassInfo?.title || '자율수련';
         const instructor = currentClassInfo?.instructor || '관리자';
+        const classTime = currentClassInfo?.time || null; // [FIX] Pass classTime from dynamic schedule
         
         const response = await withTimeout(
-            checkInMember({ memberId, branchId, classTitle, instructor }),
+            checkInMember({ memberId, branchId, classTitle, instructor, classTime }),
             10000,
             '출석 처리 시간 초과 - 다시 시도해주세요'
         );
@@ -180,18 +181,25 @@ export const deleteAttendance = async (logId, cachedMembers, notifyListeners) =>
 /**
  * 수동 출석 추가
  */
-export const addManualAttendance = async (memberId, date, branchId, className = "수동 확인", instructor = "관리자", cachedMembers, notifyListeners) => {
+export const addManualAttendance = async (memberId, timestampInput, branchId, className = "수동 출석", instructor = "관리자", cachedMembers, notifyListeners) => {
     try {
+        const d = new Date(timestampInput);
+        const kstDateStr = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+        const kstH = String(d.getHours()).padStart(2, '0');
+        const kstM = String(d.getMinutes()).padStart(2, '0');
+        const classTimeStr = `${kstH}:${kstM}`;
+
         // Add attendance record
         await addDoc(collection(db, 'attendance'), {
             memberId,
             branchId,
-            date,
+            date: kstDateStr,
             className,
             instructor,
+            classTime: classTimeStr,
             type: 'manual',
             status: 'valid',
-            timestamp: new Date().toISOString()
+            timestamp: timestampInput
         });
         
         // Update member stats

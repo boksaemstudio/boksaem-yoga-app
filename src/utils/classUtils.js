@@ -41,15 +41,23 @@ export const guessClassTime = (log) => {
     // 2. 수업명 또는 강사명이 일치하는 스케줄 찾기 (Normal Case)
     // 3. 그냥 시간상 가장 가까운 스케줄 찾기 (Fallback)
 
+    // Remove spaces for robust matching
+    const norm = str => (str || '').replace(/\s+/g, '');
+    const logNameNorm = norm(log.className);
+    const logInstNorm = norm(log.instructor);
+
     let candidates = daySchedule.filter(s => {
-        const nameMatch = log.className && s.className && (log.className.includes(s.className) || s.className.includes(log.className));
-        const instructorMatch = log.instructor && s.instructor && (log.instructor === s.instructor || log.instructor.includes(s.instructor));
+        const schNameNorm = norm(s.className);
+        const schInstNorm = norm(s.instructor);
+        const nameMatch = logNameNorm && schNameNorm && (logNameNorm.includes(schNameNorm) || schNameNorm.includes(logNameNorm));
+        const instructorMatch = logInstNorm && schInstNorm && (logInstNorm === schInstNorm || logInstNorm.includes(schInstNorm));
         return nameMatch || instructorMatch;
     });
 
     if (candidates.length === 0) {
-        // 일치하는 정보가 없으면, 오늘 스케줄 전체를 후보로
-        candidates = daySchedule;
+        // [FIX] 일치하는 스케줄(이름 또는 강사)이 없다면, 억지로 시간에 맞춰 다른 수업에 매핑하지 않고
+        // 실제 출석 시간(actualTime)을 반환하여 잘못된 수업에 묶이는 현상을 방지합니다.
+        return actualTime;
     }
 
     // 후보군 중에서 시간 차이가 가장 적은 것 선택
