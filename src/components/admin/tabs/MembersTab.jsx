@@ -219,15 +219,16 @@ const MembersTab = ({
             <div className="search-row" style={{ display: 'flex', gap: '10px', marginBottom: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
                     <input
+                        type="text"
                         className="search-input"
                         placeholder="🔍 이름 또는 전화번호 검색..."
                         value={searchTerm}
                         onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                         style={{ margin: 0 }}
-                        lang="ko"
-                        inputMode="search"
+                        lang="ko-KR"
                         spellCheck="false"
                         autoCorrect="off"
+                        autoCapitalize="off"
                     />
                 </div>
             </div>
@@ -356,16 +357,25 @@ const MembersTab = ({
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px', flexWrap: 'wrap' }}>
                                                 {/* [NEW] Explicit Membership Status Badge */}
                                                 {(() => {
+                                                    const isCurrentExhausted = member.credits <= 0 || (member.endDate && member.endDate !== 'TBD' && member.endDate !== 'unlimited' && new Date(member.endDate).getTime() < todayStartMs);
+                                                    
+                                                    if (isCurrentExhausted && member.upcomingMembership && member.upcomingMembership.startDate === 'TBD') {
+                                                        return <span className="badge" style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)' }}>시작 대기중</span>;
+                                                    }
+
                                                     if (!member.endDate || member.endDate === 'TBD' || member.endDate === 'unlimited') {
                                                         if (member.credits > 0 || member.credits === 9999) {
                                                             return <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34D399', border: '1px solid rgba(16, 185, 129, 0.4)' }}>활동중</span>;
+                                                        }
+                                                        if (isCurrentExhausted && !member.upcomingMembership) {
+                                                            return <span className="badge" style={{ background: 'rgba(255, 59, 48, 0.15)', color: '#FF3B30', border: '1px solid rgba(255, 59, 48, 0.3)' }}>만료/소진</span>;
                                                         }
                                                         return null;
                                                     }
                                                     const endMs = new Date(member.endDate).getTime();
                                                     const diff = (endMs - todayStartMs) / (1000 * 60 * 60 * 24);
                                                     
-                                                    if (diff < 0 || member.credits === 0) {
+                                                    if (diff < 0 || member.credits <= 0) {
                                                         return <span className="badge" style={{ background: 'rgba(255, 59, 48, 0.15)', color: '#FF3B30', border: '1px solid rgba(255, 59, 48, 0.3)' }}>만료/소진</span>;
                                                     } else if (diff <= 7 || member.credits <= 2) {
                                                         return <span className="badge" style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#FBBF24', border: '1px solid rgba(245, 158, 11, 0.4)' }}>만료/임박</span>;
@@ -509,22 +519,44 @@ const MembersTab = ({
                                             <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
                                                 <span>{member.subject || '일반'}</span>
                                                 <span style={{ opacity: 0.3 }}>|</span>
-                                                <span style={{ color: member.credits <= 0 ? 'var(--accent-error)' : (member.credits <= 2 ? '#f59e0b' : 'var(--text-primary)'), fontWeight: 'bold' }}>잔여 {member.credits}회</span>
-                                                <span style={{ opacity: 0.3 }}>|</span>
-                                                <span style={{
-                                                    color: (() => {
-                                                        if (!member.endDate || member.endDate === 'TBD' || member.endDate === 'unlimited') return 'var(--text-tertiary)';
-                                                        const endMs = new Date(member.endDate).getTime();
-                                                        const diff = (endMs - todayStartMs) / (1000 * 60 * 60 * 24);
-                                                        
-                                                        if (diff < 0) return 'var(--accent-error)';
-                                                        if (diff <= 7) return '#f59e0b';
-                                                        return 'var(--text-tertiary)';
-                                                    })(),
-                                                    fontSize: '0.85rem'
-                                                }}>
-                                                    종료일: {member.endDate === 'TBD' ? '첫 출석 시 확정' : (member.endDate || '무제한')}
-                                                </span>
+                                                {(() => {
+                                                    const isCurrentExhausted = member.credits <= 0 || (member.endDate && member.endDate !== 'TBD' && member.endDate !== 'unlimited' && new Date(member.endDate).getTime() < todayStartMs);
+                                                    
+                                                    if (isCurrentExhausted && member.upcomingMembership) {
+                                                        const up = member.upcomingMembership;
+                                                        return (
+                                                            <>
+                                                                <span style={{ color: 'var(--text-primary)', fontWeight: 'bold' }}>
+                                                                    선결제 잔여 {up.credits === 9999 ? '무제한' : `${up.credits}회`}
+                                                                </span>
+                                                                <span style={{ opacity: 0.3 }}>|</span>
+                                                                <span style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>
+                                                                    종료일: {up.startDate === 'TBD' || up.endDate === 'TBD' ? '첫 출석 시 확정' : (up.endDate || '무제한')}
+                                                                </span>
+                                                            </>
+                                                        );
+                                                    }
+
+                                                    return (
+                                                        <>
+                                                            <span style={{ color: member.credits <= 0 ? 'var(--accent-error)' : (member.credits <= 2 ? '#f59e0b' : 'var(--text-primary)'), fontWeight: 'bold' }}>잔여 {member.credits}회</span>
+                                                            <span style={{ opacity: 0.3 }}>|</span>
+                                                            <span style={{
+                                                                color: (() => {
+                                                                    if (!member.endDate || member.endDate === 'TBD' || member.endDate === 'unlimited') return 'var(--text-tertiary)';
+                                                                    const endMs = new Date(member.endDate).getTime();
+                                                                    const diff = (endMs - todayStartMs) / (1000 * 60 * 60 * 24);
+                                                                    if (diff < 0) return 'var(--accent-error)';
+                                                                    if (diff <= 7) return '#f59e0b';
+                                                                    return 'var(--text-tertiary)';
+                                                                })(),
+                                                                fontSize: '0.85rem'
+                                                            }}>
+                                                                종료일: {member.endDate === 'TBD' ? '첫 출석 시 확정' : (member.endDate || '무제한')}
+                                                            </span>
+                                                        </>
+                                                    );
+                                                })()}
                                             </div>
                                             {member.notes && (
                                                 <div 

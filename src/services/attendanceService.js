@@ -235,6 +235,7 @@ export const attendanceService = {
             return {
               success: true,
               message: isMultiSession ? `[${classTitle}] ${sessionCount}회차 출석되었습니다!` : `[${classTitle}] 출석되었습니다!`,
+              attendanceId: response.data.attendanceId,
               attendanceStatus: response.data.attendanceStatus,
               denialReason: response.data.denialReason,
               isDuplicate: response.data.isDuplicate,
@@ -413,20 +414,21 @@ export const attendanceService = {
   async addManualAttendance(memberId, date, branchId, className = "수동 확인", instructor = "관리자") {
     try {
       const memberDoc = await getDoc(doc(db, 'members', memberId));
-      const memberName = memberDoc.exists() ? memberDoc.data().name : '알 수 없음';
+      const memberData = memberDoc.exists() ? memberDoc.data() : null;
+      const memberName = memberData ? memberData.name : '알 수 없음';
 
       let finalDate = new Date(date);
       if (isNaN(finalDate.getTime())) {
         finalDate = new Date();
       }
       const timestamp = finalDate.toISOString();
+      const dateStr = finalDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 
       let finalClassName = className;
       let finalInstructor = instructor;
 
       if (className === "수동 확인") {
         try {
-          const dateStr = finalDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
           const scheduleDocId = `${branchId}_${dateStr}`;
           const scheduleDoc = await getDoc(doc(db, 'daily_classes', scheduleDocId));
 
@@ -465,8 +467,54 @@ export const attendanceService = {
         }
       }
 
+      // [FIX] upcomingMembership 활성화 로직 (Cloud Function과 동일)
+      // 수동 출석 시에도 선등록 회원권이 활성화되어야 함
+      let membershipUpdate = null;
+      if (memberData && memberData.upcomingMembership && memberData.upcomingMembership.startDate) {
+        const upcoming = memberData.upcomingMembership;
+        const isTBD = upcoming.startDate === 'TBD';
+        let shouldActivate = false;
+        let newStartDate = upcoming.startDate;
+        let newEndDate = upcoming.endDate;
+
+        if (isTBD) {
+          // TBD: 현재 회원권이 소진/만료 시 활성화
+          const currentCredits = memberData.credits || 0;
+          const isCurrentExpired = memberData.endDate ? (new Date(dateStr) > new Date(memberData.endDate)) : false;
+          const isCurrentExhausted = currentCredits <= 0 || isCurrentExpired;
+
+          if (isCurrentExhausted) {
+            shouldActivate = true;
+            newStartDate = dateStr;
+            const durationMonths = upcoming.durationMonths || 1;
+            const end = new Date(dateStr);
+            end.setMonth(end.getMonth() + durationMonths);
+            end.setDate(end.getDate() - 1);
+            newEndDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+          }
+        } else {
+          // 시작일이 지정된 경우: 출석일 >= 시작일이면 활성화
+          const upcomingStart = new Date(upcoming.startDate);
+          const attendanceDate = new Date(dateStr);
+          if (attendanceDate >= upcomingStart) {
+            shouldActivate = true;
+          }
+        }
+
+        if (shouldActivate) {
+          console.log(`[Manual Attendance] Activating upcoming membership for ${memberId}`);
+          membershipUpdate = {
+            membershipType: upcoming.membershipType,
+            credits: upcoming.credits,
+            startDate: newStartDate,
+            endDate: newEndDate,
+            upcomingMembership: null // Firestore에서 삭제
+          };
+        }
+      }
+
       // [FIX] writeBatch로 출석 생성 + 크레딧 차감을 원자적으로 처리
-      const { writeBatch } = await import('firebase/firestore');
+      const { writeBatch, deleteField } = await import('firebase/firestore');
       const batch = writeBatch(db);
 
       const newAttRef = doc(collection(db, 'attendance'));
@@ -478,17 +526,32 @@ export const attendanceService = {
         className: finalClassName,
         instructor: finalInstructor,
         type: 'manual',
-        date: finalDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
+        date: dateStr
       };
 
       batch.set(newAttRef, attendanceData);
 
       const memberRef = doc(db, 'members', memberId);
-      batch.update(memberRef, {
-        credits: increment(-1),
-        attendanceCount: increment(1),
-        lastAttendance: timestamp
-      });
+
+      if (membershipUpdate) {
+        // 선등록 회원권 활성화 + 크레딧 차감 (새 크레딧에서 -1)
+        batch.update(memberRef, {
+          membershipType: membershipUpdate.membershipType,
+          credits: membershipUpdate.credits - 1,
+          startDate: membershipUpdate.startDate,
+          endDate: membershipUpdate.endDate,
+          upcomingMembership: deleteField(),
+          attendanceCount: increment(1),
+          lastAttendance: timestamp
+        });
+      } else {
+        // 기존 로직: 단순 크레딧 차감
+        batch.update(memberRef, {
+          credits: increment(-1),
+          attendanceCount: increment(1),
+          lastAttendance: timestamp
+        });
+      }
 
       // [FIX] 원자적 커밋 — 출석 기록과 크레딧 차감이 동시에 성공하거나 동시에 실패
       await batch.commit();

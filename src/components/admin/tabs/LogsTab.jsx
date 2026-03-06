@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { ClockCounterClockwise, Trash, Sparkle, CaretLeft, CaretRight, CalendarBlank } from '@phosphor-icons/react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { ClockCounterClockwise, Trash, Sparkle, CaretLeft, CaretRight, CalendarBlank, TrendUp } from '@phosphor-icons/react';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts';
 import { STUDIO_CONFIG, getBranchName, getBranchColor, getBranchThemeColor } from '../../../studioConfig';
 import { guessClassTime, guessClassInfo } from '../../../utils/classUtils';
 import { storageService } from '../../../services/storage';
@@ -151,6 +152,97 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
         setCurrentLogPage(1);
     }, [selectedDate, isToday, fetchHistoricalData, setCurrentLogPage]);
 
+    const [trendData, setTrendData] = useState(null);
+    const [loadingTrend, setLoadingTrend] = useState(false);
+
+    // [NEW] Fetch past 30 days data for the selected class
+    useEffect(() => {
+        if (!selectedClassKey) {
+            setTrendData(null);
+            return;
+        }
+
+        const [tName, tInst, tBranch, tTime] = selectedClassKey.split('-');
+        let isMounted = true;
+
+        const loadTrend = async () => {
+            setLoadingTrend(true);
+            try {
+                // Determine past 21 days (3 weeks)
+                const datesToFetch = [];
+                const d = new Date(selectedDate + 'T00:00:00+09:00');
+                
+                // Start from the currently selected date, and go backwards 21 days
+                for (let i = 0; i < 21; i++) {
+                    const temp = new Date(d);
+                    temp.setDate(temp.getDate() - i);
+                    datesToFetch.push(temp.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }));
+                }
+
+                // Fetch all dates in parallel
+                const results = await Promise.all(datesToFetch.map(dateStr => 
+                    storageService.getAttendanceByDate(dateStr, tBranch)
+                ));
+
+                const chartDataMap = {};
+                
+                // Initialize map with empty counts to maintain timeline gaps
+                datesToFetch.forEach(dateStr => {
+                    const md = dateStr.slice(5); // "MM-DD"
+                    // Only plotting days where checking actually found the class, 
+                    // or keeping zeros? Let's keep zeros only if the class was actually scheduled.
+                    // simpler approach: just find instances of the class.
+                });
+
+                const rawPlotData = [];
+
+                results.forEach((dayLogs, idx) => {
+                    const targetDateStr = datesToFetch[idx];
+                    let count = 0;
+                    
+                    dayLogs.forEach(log => {
+                        const info = guessClassInfo(log);
+                        const cName = info?.className || log.className || '일반';
+                        const cInst = info?.instructor || log.instructor || '선생님';
+                        const cTime = info?.startTime || '00:00';
+                        
+                        if (log.status !== 'denied' && cName === tName && cInst === tInst && cTime === tTime) {
+                            count++;
+                        }
+                    });
+
+                    // Only add to chart if count > 0, to avoid connecting empty dots 
+                    // for days the class doesn't run.
+                    if (count > 0 || idx === 0 /* Always show current selected date */) {
+                        const dObj = new Date(targetDateStr + 'T00:00:00+09:00');
+                        rawPlotData.push({
+                            date: targetDateStr.slice(5).replace('-', '/'), // "MM/DD"
+                            fullDate: targetDateStr,
+                            timestamp: dObj.getTime(),
+                            count: count,
+                            dayName: ['일', '월', '화', '수', '목', '금', '토'][dObj.getDay()]
+                        });
+                    }
+                });
+
+                // Sort chronologically (oldest first)
+                rawPlotData.sort((a, b) => a.timestamp - b.timestamp);
+
+                if (isMounted) {
+                    setTrendData(rawPlotData);
+                }
+            } catch (err) {
+                console.error("[LogsTab] Failed to fetch trend data:", err);
+            } finally {
+                if (isMounted) setLoadingTrend(false);
+            }
+        };
+
+        loadTrend();
+
+        return () => { isMounted = false; };
+    }, [selectedClassKey, selectedDate]);
+
     // 현재 표시할 로그 결정
     const activeLogs = (() => {
         if (isToday) {
@@ -243,6 +335,31 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
         const day = d.getDate();
         const dayName = ['일', '월', '화', '수', '목', '금', '토'][d.getDay()];
         return `${m}월 ${day}일 (${dayName})`;
+    };
+
+    // [UI] Custom Tooltip for Chart
+    const CustomTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+            const data = payload[0].payload;
+            return (
+                <div style={{
+                    background: 'rgba(20,20,30,0.95)',
+                    border: '1px solid rgba(212,175,55,0.3)',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    color: 'white',
+                    fontSize: '0.85rem'
+                }}>
+                    <div style={{ color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                        {data.fullDate} ({data.dayName})
+                    </div>
+                    <div style={{ color: 'var(--primary-gold)', fontWeight: 'bold', fontSize: '1rem' }}>
+                        출석: {payload[0].value}명
+                    </div>
+                </div>
+            );
+        }
+        return null;
     };
 
     return (
@@ -388,6 +505,72 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                             );
                         })}
                     </div>
+                    
+                    {/* [NEW] Class Attendance Trend Chart */}
+                    {selectedClassKey && (
+                        <div style={{ 
+                            marginTop: '20px', 
+                            paddingTop: '20px', 
+                            borderTop: '1px solid rgba(212, 175, 55, 0.2)',
+                            animation: 'fadeInDown 0.3s ease-out'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                                <TrendUp size={18} color="var(--primary-gold)" />
+                                <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-primary)' }}>해당 수업 과거 출석 추세 (최근 3주)</h4>
+                            </div>
+                            
+                            {loadingTrend ? (
+                                <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
+                                    데이터 분석 중...
+                                </div>
+                            ) : trendData && trendData.length > 0 ? (
+                                <div style={{ width: '100%', height: '200px' }}>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart
+                                            data={trendData}
+                                            margin={{ top: 20, right: 20, left: -20, bottom: 0 }}
+                                        >
+                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                            <XAxis 
+                                                dataKey="date" 
+                                                stroke="rgba(255,255,255,0.3)" 
+                                                fontSize={12} 
+                                                tickMargin={10}
+                                                tickFormatter={(value, idx) => {
+                                                    // Only show first, last, and middle ticks if many data points to avoid clutter
+                                                    if (trendData.length > 10 && idx !== 0 && idx !== trendData.length - 1 && idx !== Math.floor(trendData.length / 2)) {
+                                                        return '';
+                                                    }
+                                                    return value;
+                                                }}
+                                            />
+                                            <YAxis 
+                                                stroke="rgba(255,255,255,0.3)" 
+                                                fontSize={12} 
+                                                allowDecimals={false}
+                                                domain={[0, 'dataMax + 2']}
+                                            />
+                                            <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(212,175,55,0.2)', strokeWidth: 2 }} />
+                                            <Line 
+                                                type="monotone" 
+                                                dataKey="count" 
+                                                stroke="var(--primary-gold)" 
+                                                strokeWidth={3}
+                                                activeDot={{ r: 6, fill: '#fff', stroke: 'var(--primary-gold)', strokeWidth: 2 }}
+                                                animationDuration={1000}
+                                            >
+                                                <LabelList dataKey="count" position="top" fill="rgba(255,255,255,0.8)" fontSize={11} offset={8} />
+                                            </Line>
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            ) : (
+                                <div style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                                    최근 3주 내에 동일한 시간대의 수업 기록이 없습니다.
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             )}
 

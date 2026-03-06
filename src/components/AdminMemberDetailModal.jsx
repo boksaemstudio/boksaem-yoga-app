@@ -186,12 +186,9 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
     const getChangedFields = () => {
         const changes = [];
         Object.keys(FIELD_LABELS).forEach(key => {
-            // loose comparison for dates/numbers if needed, but strict is usually fine for strings
-            // Special handling for null/undefined to empty string if needed
             const original = member[key] ?? '';
             const current = editData[key] ?? '';
             
-            // special check for price since it might be numeric vs string
             if (key === 'price') {
                 if (Number(original) !== Number(current)) {
                      changes.push({
@@ -241,29 +238,27 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
     };
 
     const handleFinalSave = async (dataToUpdate) => {
-        // If credits changed, we might still want the specific credit confirmation? 
-        // Or we assume the user reviewed it in the list.
-        // The original requirement had a special confirmation for credits.
-        // We can integrate that into the flow or trust the new UI.
-        // For now, removing the double-confirmation for credits since the new UI shows the change explicitly.
-
         const success = await onUpdateMember(member.id, dataToUpdate);
         if (success) {
             alert('저장되었습니다.');
             setShowChangeModal(false);
             if (Object.keys(dataToUpdate).length === getChangedFields().length) {
-                // If we saved everything (or we were in single save mode), close modal
-                // Actually, if we are in the selective save modal, we might want to stay if not everything was saved?
-                // But typically "Save" means we are done with this session.
                 onClose();
             } else {
-                // Partial save - update "member" prop is tricky since it comes from parent.
-                // We rely on parent to update "member" prop which triggers re-render?
-                // If parent updates member, "editData" might not sync automatically unless we use useEffect.
-                // Ideally, we close the main modal on success.
                 onClose();
             }
         }
+    };
+
+    // [FIX] 안전한 닫기 처리 (저장하지 않은 데이터 존재 시 경고)
+    const handleSafeClose = () => {
+        const changes = getChangedFields();
+        if (changes.length > 0) {
+            if (!confirm('저장하지 않은 변경 사항이 있습니다. 변경을 취소하고 창을 닫으시겠습니까?')) {
+                return;
+            }
+        }
+        onClose();
     };
 
     const handleManualAttendance = async (dateStr, timeStr, branchId) => {
@@ -305,10 +300,26 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                     }
                 }
 
-                // [FIX] Do NOT manually update localMember credits here.
-                // The onSnapshot real-time listener on the member document (line 36)
-                // will automatically detect the Firestore increment and update localMember.
-                // Manually updating here causes a DOUBLE increment (+2 instead of +1).
+                // [FIX] upcomingMembership이 활성화된 경우 UI 갱신
+                // addManualAttendance에서 Firestore를 이미 업데이트했으므로
+                // 최신 데이터를 다시 가져와서 반영
+                if (member.upcomingMembership) {
+                    try {
+                        const freshDoc = await storageService.getMemberById(member.id);
+                        if (freshDoc) {
+                            setLocalMember(prev => ({
+                                ...prev,
+                                credits: freshDoc.credits,
+                                startDate: freshDoc.startDate,
+                                endDate: freshDoc.endDate,
+                                membershipType: freshDoc.membershipType,
+                                upcomingMembership: freshDoc.upcomingMembership || null
+                            }));
+                        }
+                    } catch (refreshErr) {
+                        console.warn('[Manual Attendance] Failed to refresh member data:', refreshErr);
+                    }
+                }
 
                 alert('수동 출석처리가 완료되었습니다.');
             } else {
@@ -338,9 +349,6 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
             const result = await storageService.deleteAttendance(logId, restoreCredit);
             
             if (result.success) {
-                // [FIX] Do NOT use alert() here — it blocks the thread while onSnapshot
-                // fires in the background, causing stale re-renders and visual glitches.
-                // The onSnapshot listener will auto-update both member data and attendance logs.
                 console.log('[AdminMemberDetailModal] Attendance deleted successfully, waiting for onSnapshot sync...');
             } else {
                 throw new Error(result.message || '삭제 실패');
@@ -349,8 +357,6 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
             console.error(e);
             alert(`삭제에 실패했습니다: ${e.message}`);
         } finally {
-            // [FIX] Delay resetting isSubmitting to prevent rapid re-clicks
-            // while Firestore onSnapshot is processing the deletion
             setTimeout(() => {
                 isSubmittingRef.current = false;
                 setIsSubmitting(false);
@@ -366,8 +372,8 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
             background: 'rgba(0,0,0,0.8)', zIndex: 1100,
             display: 'flex', justifyContent: 'center', alignItems: 'center'
         }}>
-            {/* [BUILD-FIX] Unminifiable version string inside DOM to defeat all dead-code elimination (v2026.02.22.v8) */}
-            <div style={{ display: 'none' }} data-version="2026.02.22.v8">v2026.02.22.v8</div>
+            {/* [BUILD-FIX] Unminifiable version string inside DOM to defeat all dead-code elimination (v2026.03.06.v1) */}
+            <div style={{ display: 'none' }} data-version="2026.03.06.v1">v2026.03.06.v1</div>
             <div style={{
                 width: '100%', height: '100%', maxWidth: '600px',
                 background: '#18181b', display: 'flex', flexDirection: 'column',
@@ -447,7 +453,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                             </div>
                         )}
                     </div>
-                    <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'white', padding: '10px' }}>
+                    <button onClick={handleSafeClose} style={{ background: 'none', border: 'none', color: 'white', padding: '10px' }}>
                         <X size={24} />
                     </button>
                 </div>
@@ -1061,7 +1067,7 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                                             </div>
                                             {record.startDate && record.endDate && (
                                                 <div style={{ fontSize: '0.75rem', color: '#a1a1aa', marginTop: '4px' }}>
-                                                    📅 {record.startDate} ~ {record.endDate}
+                                                    📅 {record.startDate === 'TBD' ? '시작일 미정' : record.startDate} ~ {record.endDate === 'TBD' ? '첫 출석 시 확정' : record.endDate}
                                                 </div>
                                             )}
                                         </div>

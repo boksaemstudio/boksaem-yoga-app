@@ -137,6 +137,11 @@ exports.checkInMemberV2Call = onCall({
             let finalClassTitle = classTitle;
             let finalInstructor = instructor;
             let matched = null;
+            
+            const nowTime = new Date();
+            const kstString = nowTime.toLocaleString('en-US', { timeZone: 'Asia/Seoul', hour12: false, hour: '2-digit', minute: '2-digit' });
+            const [kstH, kstM] = kstString.split(':').map(Number);
+            const currentMin = kstH * 60 + kstM;
 
             if (!classTitle || classTitle === '자율수련') {
                 try {
@@ -145,10 +150,6 @@ exports.checkInMemberV2Call = onCall({
                     
                     if (schedSnap.exists) {
                         const classes = (schedSnap.data().classes || []).filter(c => c.status !== 'cancelled');
-                        const now = new Date();
-                        const kstString = now.toLocaleString('en-US', { timeZone: 'Asia/Seoul', hour12: false, hour: '2-digit', minute: '2-digit' });
-                        const [kstH, kstM] = kstString.split(':').map(Number);
-                        const currentMin = kstH * 60 + kstM;
 
                         const matchedCls = classes.find(cls => {
                              const [h, m] = cls.time.split(':').map(Number);
@@ -162,10 +163,26 @@ exports.checkInMemberV2Call = onCall({
                              finalClassTitle = matchedCls.title || matchedCls.className || classTitle;
                              finalInstructor = matchedCls.instructor || instructor;
                              console.log(`[Attendance] Server-side matched: ${finalClassTitle} (${finalInstructor}) for ${memberId}`);
+                        } else {
+                             // [FIX] No daily class matched. It's truly a self-practice.
+                             finalClassTitle = '자율수련';
+                             finalInstructor = '회원';
+                             matched = { time: kstString }; // Use actual check-in time
+                             console.log(`[Attendance] Server-side matched: ${finalClassTitle} (${finalInstructor}) at ${kstString} for ${memberId}`);
                         }
+                    } else {
+                         // [FIX] No daily_classes doc exists. It's truly a self-practice.
+                         finalClassTitle = '자율수련';
+                         finalInstructor = '회원';
+                         matched = { time: kstString }; // Use actual check-in time
+                         console.log(`[Attendance] No schedule found. Server-side matched: ${finalClassTitle} (${finalInstructor}) at ${kstString} for ${memberId}`);
                     }
                 } catch (schedErr) {
                     console.warn("[Attendance] Server-side schedule match failed:", schedErr);
+                    // [FIX] Fallback to check-in time on error
+                    finalClassTitle = '자율수련';
+                    finalInstructor = '회원';
+                    matched = { time: kstString };
                 }
             }
             
@@ -351,6 +368,7 @@ exports.checkInMemberV2Call = onCall({
 
             return {
                 success: true,
+                attendanceId: newAttRef.id,
                 attendanceStatus,
                 denialReason,
                 newCredits,

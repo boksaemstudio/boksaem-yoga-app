@@ -15,6 +15,15 @@ export const guessClassTime = (log) => {
     if (!log.timestamp) return null;
     
     const date = new Date(log.timestamp);
+    const h = String(date.getHours()).padStart(2, '0');
+    const m = String(date.getMinutes()).padStart(2, '0');
+    const actualTime = `${h}:${m}`;
+
+    // [FIX] 자율수련, 자율수업인 경우 정규 스케줄에 억지로 끼워맞추지 않고 무조건 실제 출석 시간 반환
+    if (log.className === '자율수련' || log.className === '자율수업') {
+        return actualTime;
+    }
+
     const checkInMinutes = date.getHours() * 60 + date.getMinutes();
     const dayOfWeeks = ['일', '월', '화', '수', '목', '금', '토'];
     const dayOfWeek = dayOfWeeks[date.getDay()];
@@ -25,8 +34,7 @@ export const guessClassTime = (log) => {
 
     if (daySchedule.length === 0) {
         // 스케줄이 아예 없는 날이면 어쩔 수 없이 시각 반환 (거의 발생 안 함)
-        const h = String(date.getHours()).padStart(2, '0');
-        return `${h}:00`;
+        return actualTime;
     }
 
     // 1. 수업명 + 강사명 모두 일치하는 스케줄 찾기 (Best Case)
@@ -49,8 +57,8 @@ export const guessClassTime = (log) => {
     let bestDiff = Infinity;
 
     for (const m of candidates) {
-        const [h, min] = m.startTime.split(':').map(Number);
-        const startMin = h * 60 + min;
+        const [schH, schMin] = m.startTime.split(':').map(Number);
+        const startMin = schH * 60 + schMin;
         
         let diff = checkInMinutes - startMin; 
         const absDiff = Math.abs(diff);
@@ -67,9 +75,7 @@ export const guessClassTime = (log) => {
     }
     
     // Fallback: Use actual check-in time if no close match found
-    const h = String(date.getHours()).padStart(2, '0');
-    const m = String(date.getMinutes()).padStart(2, '0');
-    return `${h}:${m}`;
+    return actualTime;
 };
 
 /**
@@ -79,9 +85,15 @@ export const guessClassInfo = (log) => {
     if (!log.timestamp) return null;
     
     const time = guessClassTime(log);
-    // guessClassTime이 내부적으로 스케줄을 찾지만 문자열만 반환하므로,
-    // 여기서 다시 찾거나 guessClassTime을 리팩토링해야 함.
-    // 성능상 guessClassTime을 단순 유지하고, 여기서 필요시 Lookup.
+    
+    // [FIX] 자율수련인 경우 DB에 저장된 그대로 반환 (스태틱 템플릿 참조 X)
+    if (log.className === '자율수련' || log.className === '자율수업') {
+        return {
+            startTime: time,
+            className: log.className,
+            instructor: log.instructor || '회원' // 보통 자율수련은 강사가 없습니다
+        };
+    }
     
     const branchSchedule = STUDIO_CONFIG.DEFAULT_SCHEDULE_TEMPLATE[log.branchId] || [];
     // time과 요일로 역추적

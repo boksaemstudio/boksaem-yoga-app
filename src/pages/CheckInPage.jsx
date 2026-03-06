@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import Keypad from '../components/Keypad';
 import { storageService } from '../services/storage';
-import { auth } from '../firebase';
+import { auth, storage } from '../firebase';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { signInAnonymously } from 'firebase/auth';
 import { getAllBranches, getBranchName } from '../studioConfig';
 import logoWide from '../assets/logo_wide.png';
@@ -67,6 +68,16 @@ const CheckInPage = () => {
     const { isOnline, checkConnection } = useNetworkMonitor();
     const { setIsOnline } = useNetwork(); // [NETWORK] GLOBAL Connectivity state
     const { speak } = useTTS();
+
+    // [PHOTO] 출석 사진 촬영 기능 플래그 — false로 설정하면 카메라 비활성화
+    // 키오스크 태블릿에서 카메라 권한 허용 후 true로 변경
+    const PHOTO_ENABLED = false;
+
+    // [PHOTO] 출석 사진 촬영용 카메라
+    const videoRef = useRef(null);
+    const canvasRef = useRef(null);
+    const cameraStreamRef = useRef(null);
+    const capturedPhotoRef = useRef(null); // 촬영된 blob 저장
 
     // [DUPLICATE] 중복 입력 방지
     const recentCheckInsRef = useRef([]); // [{pin, timestamp}, ...]
@@ -157,6 +168,82 @@ const CheckInPage = () => {
         }
     }, [pin]);
 
+    // [PHOTO] 카메라 초기화 — 마운트 시 한 번만 실행
+    // 태블릿에서 최초 1회 카메라 권한 허용 후 자동 작동 (회원별 아님)
+    useEffect(() => {
+        if (!PHOTO_ENABLED) return;
+        const initCamera = async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+                });
+                cameraStreamRef.current = stream;
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                }
+                console.log('[PHOTO] Camera initialized successfully');
+            } catch (err) {
+                console.warn('[PHOTO] Camera init failed (permission denied or no camera):', err.message);
+            }
+        };
+        initCamera();
+        return () => {
+            if (cameraStreamRef.current) {
+                cameraStreamRef.current.getTracks().forEach(t => t.stop());
+            }
+        };
+    }, []);
+
+    // [PHOTO] 현재 프레임을 캡처하여 blob으로 저장
+    const capturePhoto = () => {
+        if (!PHOTO_ENABLED) return;
+        if (!videoRef.current || !canvasRef.current || !cameraStreamRef.current) return;
+        const video = videoRef.current;
+        const canvas = canvasRef.current;
+        canvas.width = 320;
+        canvas.height = 240;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, 320, 240);
+        canvas.toBlob((blob) => {
+            if (blob) {
+                capturedPhotoRef.current = blob;
+                console.log(`[PHOTO] Captured: ${(blob.size / 1024).toFixed(1)}KB`);
+            }
+        }, 'image/webp', 0.6);
+    };
+
+    // [PHOTO] 비동기 업로드 (체크인 결과와 무관하게 실행)
+    const uploadPhoto = async (attendanceId, memberName, status) => {
+        if (!PHOTO_ENABLED) return;
+        const blob = capturedPhotoRef.current;
+        if (!blob || !navigator.onLine) {
+            capturedPhotoRef.current = null;
+            return;
+        }
+        try {
+            const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            const fileName = `${attendanceId || Date.now()}.webp`;
+            const path = `attendance-photos/${today}/${fileName}`;
+            const fileRef = storageRef(storage, path);
+            await uploadBytes(fileRef, blob, { contentType: 'image/webp' });
+            const url = await getDownloadURL(fileRef);
+
+            // Firestore에 photoUrl 저장 (출석 기록이 있는 경우)
+            if (attendanceId) {
+                const { doc: firestoreDoc, updateDoc } = await import('firebase/firestore');
+                const { db } = await import('../firebase');
+                await updateDoc(firestoreDoc(db, 'attendance', attendanceId), {
+                    photoUrl: url,
+                    photoStatus: status || 'unknown'
+                });
+            }
+            console.log(`[PHOTO] Uploaded: ${path} for ${memberName || 'unknown'}`);
+        } catch (err) {
+            console.warn('[PHOTO] Upload failed (non-blocking):', err.message);
+        } finally {
+            capturedPhotoRef.current = null;
+        }
+    };
 
     const branches = getAllBranches();
 
@@ -699,6 +786,8 @@ const CheckInPage = () => {
             if (prev.length === 0) {
                 console.log('[CheckIn] User started typing - Triggering background network check');
                 checkConnection().catch(e => console.debug('[CheckIn] Background check failed', e));
+                // [PHOTO] 첫 번째 숫자 입력 시 사진 촬영
+                capturePhoto();
             }
 
             if (prev.length < 4) {
@@ -796,16 +885,23 @@ const CheckInPage = () => {
                 }
 
                 if (result.attendanceStatus === 'denied') {
+                    // [PHOTO] 출석 거부되어도 사진 업로드 (fire-and-forget)
+                    uploadPhoto(result.attendanceId, result.member?.name, 'denied');
                     handleCheckInError(`기간 혹은 횟수가 만료되었습니다.`);
                 } else {
                     // 출석 성공 → 기록 추가
                     recentCheckInsRef.current.push({ pin: pinCode, timestamp: Date.now() });
+                    // [PHOTO] 출석 성공 사진 업로드 (fire-and-forget)
+                    uploadPhoto(result.attendanceId, result.member?.name, 'valid');
                     showCheckInSuccess(result, isDuplicateConfirm);
                 }
             } else {
+                // [PHOTO] 실패 시에도 사진 업로드 시도
+                uploadPhoto(null, null, 'error');
                 handleCheckInError(result.message);
             }
         } catch (err) {
+            uploadPhoto(null, null, 'error');
             handleCheckInError(err.message || String(err));
         } finally {
             setLoading(false);
@@ -2073,6 +2169,43 @@ const CheckInPage = () => {
                     </div>
                 </div>
             )}
+
+            {/* [NEW] Kiosk Notice Overlay */}
+            {kioskSettings?.active && !kioskNoticeHidden && kioskSettings.imageUrl && (
+                <div 
+                    onClick={() => setKioskNoticeHidden(true)}
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        zIndex: 99999, // Highest possible z-index
+                        backgroundColor: '#000',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer'
+                    }}
+                >
+                    <img 
+                        src={kioskSettings.imageUrl} 
+                        alt="키오스크 공지사항" 
+                        style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+                    />
+                    <div style={{
+                        position: 'absolute',
+                        bottom: '40px',
+                        backgroundColor: 'rgba(0,0,0,0.6)',
+                        color: 'white',
+                        padding: '12px 30px',
+                        borderRadius: '30px',
+                        fontSize: '1.2rem',
+                        fontWeight: 'bold',
+                        animation: 'pulse 2s infinite',
+                        border: '1px solid rgba(255,255,255,0.2)'
+                    }}>
+                        화면을 터치하면 출석 화면으로 이동합니다
+                    </div>
+                </div>
+            )}
         </div >
     );
 };
@@ -2085,6 +2218,6 @@ const CheckInPage = () => {
 
 // [BUILD-FIX] Attach unminifiable property to component object to defeat tree-shaking
 // This guarantees Rollup will generate a new chunk hash, forcing Workbox to update!
-CheckInPage.__buildVersion = '2026.02.22.v5';
+CheckInPage.__buildVersion = '2026.03.06.v1';
 
 export default CheckInPage;

@@ -628,16 +628,18 @@ export const storageService = {
       
       if (response.data.success && response.data.token) {
         try {
-          // signInWithCustomToken requires import from firebase/auth which is already available via storage.js top level
           await signInWithCustomToken(auth, response.data.token);
           console.log('[Storage] Secure custom token auth successful for member login');
         } catch (authErr) {
           console.error('[Storage] Custom token auth failed:', authErr);
+          // 토큰 인증 실패 시에만 예외적으로 에러 반환 (보안성 강화)
+          return { success: false, error: 'AUTH_FAILED', message: '인증 세션 생성에 실패했습니다.' };
         }
         return { success: true, member: { ...response.data.member, displayName: name.trim() } };
       } else {
-        await this.logLoginFailure('member', name, last4Digits, response.data.message || 'NOT_FOUND');
-        return { success: false, error: 'NOT_FOUND', message: response.data.message || '일치하는 회원 정보가 없습니다.' };
+        const errorMsg = response.data.message || '일치하는 회원 정보가 없습니다.';
+        await this.logLoginFailure('member', name, last4Digits, errorMsg);
+        return { success: false, error: 'NOT_FOUND', message: errorMsg };
       }
     } catch (e) {
       console.error('Login failed:', e);

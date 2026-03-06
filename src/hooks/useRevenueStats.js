@@ -10,6 +10,7 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch) => {
         const allItems = [];
         const salesKeySet = new Set(); // Format: `${memberId}_${date}`
         const seenSalesKeys = new Set(); // Format: `${memberId}_${date}_${amount}`
+        const memberIdsWithRegisterSales = new Set(); // [FIX] Members with primary sales records
         const memberNameMap = new Map();
         
         (members || []).forEach(m => memberNameMap.set(m.name, m.id));
@@ -51,7 +52,8 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch) => {
             let isNew = false;
             if (s.type === 'extend') {
                 isNew = false;
-            } else if (s.type === 'register') {
+            } else if (s.type === 'register' || !s.type) {
+                // [FIX] Assume 'register' if type is missing and it matches registration date
                 if (member && member.regDate === dateStr) {
                     isNew = true;
                 } else {
@@ -68,6 +70,11 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch) => {
                     return; // Drop duplicate
                 }
                 seenSalesKeys.add(uniqueSaleKey);
+                
+                // Track register sales to prevent legacy fallback duplicate
+                if (s.type === 'register' || s.type === 'legacy' || (!s.type && isNew)) {
+                    memberIdsWithRegisterSales.add(resolvedMemberId);
+                }
             }
 
             allItems.push({
@@ -76,7 +83,7 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch) => {
                 date: dateStr,
                 amount: rawAmount,
                 name: s.memberName,
-                type: s.type, // 'register' or 'extend'
+                type: s.type || 'register', // Fallback type
                 item: s.item,
                 isNew: isNew
             });
@@ -99,7 +106,9 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch) => {
 
                 if (currentBranch !== 'all' && m.homeBranch !== currentBranch) return;
 
-                // [FIX] Deduplication Check
+                // [FIX] Deduplication Check: Ignore if a register sales record exists for this member
+                if (memberIdsWithRegisterSales.has(m.id)) return;
+                // Double fallback using legacy matching (just in case they have multiple)
                 if (salesKeySet.has(`${m.id}_${m.regDate}`)) return;
 
                 legacyMemberData.set(m.id, {
