@@ -680,6 +680,7 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
             const updates = {};
             if (saleEditData.startDate !== editingSale.startDate) updates.startDate = saleEditData.startDate;
             if (saleEditData.endDate !== editingSale.endDate) updates.endDate = saleEditData.endDate;
+            if (saleEditData.date !== editingSale.date) updates.date = saleEditData.date;
             if (saleEditData.amount !== editingSale.amount) updates.amount = saleEditData.amount;
             if (saleEditData.item !== editingSale.item) updates.item = saleEditData.item;
             if (saleEditData.method !== editingSale.method) updates.method = saleEditData.method;
@@ -791,6 +792,10 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                             ]} />
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                            <InputGroup label="결제일(매출일)" value={saleEditData.date || ''} onChange={v => setSaleEditData({ ...saleEditData, date: v })} type="date" />
+                            <div />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                             <InputGroup label="시작일" value={saleEditData.startDate || ''} onChange={v => setSaleEditData({ ...saleEditData, startDate: v })} type="date" />
                             <InputGroup label="종료일" value={saleEditData.endDate || ''} onChange={v => setSaleEditData({ ...saleEditData, endDate: v })} type="date" />
                         </div>
@@ -836,6 +841,7 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                         {(() => {
                             const hasChanges = saleEditData.startDate !== editingSale.startDate ||
                                 saleEditData.endDate !== editingSale.endDate ||
+                                saleEditData.date !== editingSale.date ||
                                 saleEditData.amount !== editingSale.amount ||
                                 saleEditData.item !== editingSale.item ||
                                 saleEditData.method !== editingSale.method ||
@@ -1035,6 +1041,7 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                                         setSaleEditData({
                                             startDate: record.startDate || '',
                                             endDate: record.endDate || '',
+                                            date: record.date || (record.timestamp ? record.timestamp.split('T')[0] : ''),
                                             amount: record.amount !== undefined ? record.amount : 0,
                                             item: record.item || '',
                                             method: record.method || '',
