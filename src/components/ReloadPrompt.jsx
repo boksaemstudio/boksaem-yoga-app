@@ -55,41 +55,41 @@ function ReloadPrompt() {
       }
     };
 
-    if (isKiosk) {
-      // 키오스크는 발견 즉시 업데이트 (약간의 안정성 딜레이 후)
-      console.log(`[SW-Update] Kiosk mode detected. Forcing update in 3s...`);
-      const timer = setTimeout(() => triggerUpdate('Kiosk Force'), 3000);
-      return () => clearTimeout(timer);
-    } else {
-      // 일반 모드 (관리자/회원/강사): 방해 금지를 위해 영리하게 업데이트 처리
-      console.log(`[SW-Update] Normal mode detected. Waiting for idle or visibility change...`);
+    console.log(`[SW-Update] ${isKiosk ? 'Kiosk' : 'Normal'} mode detected. Waiting for idle or visibility change...`);
 
-      // 1. Idle Detection (3분 터치 없음)
-      let idleTimer;
-      const resetIdleTimer = () => {
-        clearTimeout(idleTimer);
-        idleTimer = setTimeout(() => triggerUpdate('Idle Timeout (3m)'), 3 * 60 * 1000);
-      };
+    // [FIX] Kiosk: 30s idle, Normal: 3m idle
+    const idleTime = isKiosk ? 30 * 1000 : 3 * 60 * 1000;
+    
+    // 1. Idle Detection
+    let idleTimer;
+    const resetIdleTimer = () => {
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => triggerUpdate(`Idle Timeout (${idleTime}ms)`), idleTime);
+    };
 
-      window.addEventListener('touchstart', resetIdleTimer, { passive: true });
-      window.addEventListener('click', resetIdleTimer, { passive: true });
-      resetIdleTimer();
+    // [FIX] Listen to touch, mouse, and keyboard to prevent reloading while user is active
+    window.addEventListener('touchstart', resetIdleTimer, { passive: true });
+    window.addEventListener('mousedown', resetIdleTimer, { passive: true });
+    window.addEventListener('keydown', resetIdleTimer, { passive: true });
+    
+    // Start the timer
+    resetIdleTimer();
 
-      // 2. Visibility Change (앱 밖으로 나갔다가 돌아왔을 때)
-      const handleVisibilityChange = () => {
-        if (document.visibilityState === 'visible') {
-           triggerUpdate('Returned to Foreground');
-        }
-      };
-      document.addEventListener('visibilitychange', handleVisibilityChange);
+    // 2. Visibility Change (앱 밖으로 나갔다가 돌아왔을 때 즉시 업데이트)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+         triggerUpdate('Returned to Foreground');
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
-      return () => {
-        clearTimeout(idleTimer);
-        window.removeEventListener('touchstart', resetIdleTimer);
-        window.removeEventListener('click', resetIdleTimer);
-        document.removeEventListener('visibilitychange', handleVisibilityChange);
-      };
-    }
+    return () => {
+      clearTimeout(idleTimer);
+      window.removeEventListener('touchstart', resetIdleTimer);
+      window.removeEventListener('mousedown', resetIdleTimer);
+      window.removeEventListener('keydown', resetIdleTimer);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [needRefresh, updateServiceWorker]);
 
   // 프롬프트 UI는 이제 아예 렌더링하지 않음 (완전 자동)

@@ -126,7 +126,12 @@ try {
     console.error('[Global Safety] Uncaught Error:', message, source, lineno);
     
     const isKiosk = window.location.pathname === '/';
-    if (isKiosk) {
+    const errorMsg = String(message || '');
+    const isFatal = errorMsg.includes('ChunkLoadError') || 
+                    errorMsg.includes('Failed to fetch dynamically imported module') ||
+                    errorMsg.includes('Loading chunk');
+                    
+    if (isKiosk && isFatal) {
       const reloadCount = parseInt(sessionStorage.getItem('auto_reload_count') || '0');
       if (reloadCount < 3) {
         sessionStorage.setItem('auto_reload_count', String(reloadCount + 1));

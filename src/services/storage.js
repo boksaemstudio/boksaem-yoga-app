@@ -56,6 +56,7 @@ const notifyListeners = (eventType = 'general') => {
 };
 
 export const storageService = {
+  notifyListeners, // [FIX] Expose to allow manual refresh triggers from UI
   subscribe(callback, eventTypes = ['general']) {
     const types = Array.isArray(eventTypes) ? eventTypes : [eventTypes];
     types.forEach(type => {

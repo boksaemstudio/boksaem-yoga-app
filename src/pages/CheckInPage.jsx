@@ -154,7 +154,7 @@ const CheckInPage = () => {
         setTimeout(() => setKeypadLocked(false), 350);
     }, []);
 
-    const showCheckInSuccess = (res, isDup = false) => {
+    const showCheckInSuccess = async (res, isDup = false) => {
         const m = res.member;
         const credits = m.credits ?? 0;
         let daysLeft = 999;
@@ -171,6 +171,9 @@ const CheckInPage = () => {
         else if (credits === 0 || daysLeft === 0) { msg = "오늘 마지막 수련 후 재등록이 필요합니다."; speak("last_session"); }
         else { speak("success"); }
 
+        // [UX] Delay visual rendering slightly so the TTS audio can load and play in sync.
+        await new Promise(r => setTimeout(r, 300));
+
         setMessage({ type: 'success', member: m, text: `${m.name}님`, subText: msg });
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => handleModalClose(() => setMessage(null)), CHECKIN_CONFIG.TIMEOUTS.SUCCESS_MODAL);
@@ -180,36 +183,45 @@ const CheckInPage = () => {
             .finally(() => setAiLoading(false));
     };
 
-    const proceedWithCheckIn = async (p, isDup = false) => {
+    const proceedWithCheckIn = async (p, isDup = false, memberIdToForce = null) => {
         setLoading(true);
         try {
-            const members = await storageService.findMembersByPhone(p);
-            if (members.length === 0) {
-                setMessage({ type: 'error', text: '회원 정보를 찾을 수 없습니다.' });
-                speak("error");
-                return;
+            let targetMemberId = memberIdToForce;
+
+            if (!targetMemberId) {
+                const members = await storageService.findMembersByPhone(p);
+                if (members.length === 0) {
+                    speak("error");
+                    await new Promise(r => setTimeout(r, 300));
+                    setMessage({ type: 'error', text: '회원 정보를 찾을 수 없습니다.' });
+                    return;
+                }
+                if (members.length > 1) {
+                    setDuplicateMembers(members);
+                    setIsDuplicateFlow(isDup);
+                    setShowSelectionModal(true);
+                    return;
+                }
+                targetMemberId = members[0].id;
             }
-            if (members.length > 1) {
-                setDuplicateMembers(members);
-                setIsDuplicateFlow(isDup);
-                setShowSelectionModal(true);
-                return;
-            }
-            const res = await storageService.checkInById(members[0].id, currentBranch, isDup);
+
+            const res = await storageService.checkInById(targetMemberId, currentBranch, isDup);
             if (res.success) {
                 setIsOnline(!res.isOffline);
                 if (res.attendanceStatus === 'denied') {
                     uploadPhoto(res.attendanceId, res.member?.name, 'denied');
-                    setMessage({ type: 'error', text: '기간 혹은 횟수가 만료되었습니다.' });
                     speak("denied");
+                    await new Promise(r => setTimeout(r, 300));
+                    setMessage({ type: 'error', text: '기간 혹은 횟수가 만료되었습니다.' });
                 } else {
                     recentCheckInsRef.current.push({ pin: p, timestamp: Date.now() });
                     uploadPhoto(res.attendanceId, res.member?.name, 'valid');
-                    showCheckInSuccess(res, isDup);
+                    await showCheckInSuccess(res, isDup);
                 }
             } else {
-                setMessage({ type: 'error', text: res.message });
                 speak("error");
+                await new Promise(r => setTimeout(r, 300));
+                setMessage({ type: 'error', text: res.message });
             }
         } catch (e) { logError(e, { context: 'Kiosk', branch: currentBranch }); }
         finally { setLoading(false); }
@@ -282,7 +294,7 @@ const CheckInPage = () => {
                 <CheckInKeypadSection pin={pin} loading={loading} isReady={isReady} loadingMessage={loadingMessage} keypadLocked={keypadLocked} showSelectionModal={showSelectionModal} message={message} handleKeyPress={handleKeyPress} handleClear={() => setPin(p => p.slice(0, -1))} handleSubmit={handleSubmit} />
             </div >
 
-            <SelectionModal show={showSelectionModal} duplicateMembers={duplicateMembers} loading={loading} onClose={() => setShowSelectionModal(false)} onSelect={id => { setShowSelectionModal(false); proceedWithCheckIn(pin, isDuplicateFlow); }} />
+            <SelectionModal show={showSelectionModal} duplicateMembers={duplicateMembers} loading={loading} onClose={() => setShowSelectionModal(false)} onSelect={id => { setShowSelectionModal(false); proceedWithCheckIn(pin, isDuplicateFlow, id); }} />
             <MessageOverlay message={message} onClose={closeMessage} aiExperience={aiExperience} />
             <DuplicateConfirmModal show={showDuplicateConfirm} duplicateTimer={duplicateTimer} onCancel={() => { setShowDuplicateConfirm(false); setPin(''); }} onConfirm={() => { setShowDuplicateConfirm(false); proceedWithCheckIn(pendingPin, true); }} />
             

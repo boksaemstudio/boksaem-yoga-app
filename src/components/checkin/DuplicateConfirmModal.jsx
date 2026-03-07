@@ -49,7 +49,8 @@ const DuplicateConfirmModal = ({
 
                 <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
                     <button
-                        onClick={onCancel}
+                        onClick={(e) => { e.stopPropagation(); onCancel(); }}
+                        onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onCancel(); }}
                         style={{
                             flex: '1 1 280px',
                             padding: '20px 15px',
@@ -73,7 +74,8 @@ const DuplicateConfirmModal = ({
                     </button>
 
                     <button
-                        onClick={onConfirm}
+                        onClick={(e) => { e.stopPropagation(); onConfirm(); }}
+                        onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onConfirm(); }}
                         style={{
                             flex: '1 1 280px',
                             padding: '20px 15px',

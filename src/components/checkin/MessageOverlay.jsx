@@ -88,7 +88,8 @@ const MessageOverlay = memo(({ message, onClose, aiExperience }) => {
                     
                     {message.type !== 'success' && (
                         <button 
-                            onClick={onClose}
+                            onClick={(e) => { e.stopPropagation(); onClose(); }}
+                            onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onClose(); }}
                             style={{
                                 marginTop: '30px',
                                 background: 'rgba(255,255,255,0.1)',

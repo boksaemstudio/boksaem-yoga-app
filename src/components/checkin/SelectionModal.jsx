@@ -117,7 +117,7 @@ const SelectionModal = memo(({
                             flex: 1,
                             overflowY: 'auto',
                             alignContent: 'start',
-                            paddingRight: '5px'
+                            padding: '10px 5px 10px 10px' // Added padding to prevent border/scale clipping
                         }}>
                             {activeMembers.length > 0 ? activeMembers.map(m => {
                                 const isSelected = selectedMemberId === m.id;
@@ -220,12 +220,13 @@ const SelectionModal = memo(({
 
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '20px' }}>
                     <button
-                        onClick={onClose}
+                        onClick={(e) => { e.stopPropagation(); onClose(); }}
+                        onTouchEnd={(e) => { e.stopPropagation(); onClose(); }}
                         style={{
                             background: 'transparent',
                             border: '1px solid rgba(255,255,255,0.2)',
                             color: 'rgba(255,255,255,0.6)',
-                            padding: '12px 30px',
+                            padding: '16px 30px',
                             borderRadius: '50px',
                             fontSize: '1.1rem',
                             fontWeight: '500',
@@ -238,14 +239,19 @@ const SelectionModal = memo(({
                     
                     <button
                         onClick={handleConfirm}
+                        onTouchEnd={(e) => { 
+                            if (loading || !selectedMemberId) return;
+                            e.preventDefault(); // Prevent ghost clicks
+                            handleConfirm(e); 
+                        }}
                         disabled={!selectedMemberId || loading}
                         style={{
                             background: selectedMemberId ? 'var(--primary-gold)' : 'rgba(255,255,255,0.1)',
                             border: 'none',
                             color: selectedMemberId ? '#000' : 'rgba(255,255,255,0.3)',
-                            padding: '12px 40px',
+                            padding: '16px 40px',
                             borderRadius: '50px',
-                            fontSize: '1.1rem',
+                            fontSize: '1.2rem',
                             fontWeight: '700',
                             cursor: selectedMemberId ? 'pointer' : 'not-allowed',
                             transition: 'all 0.2s',

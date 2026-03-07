@@ -194,7 +194,9 @@ export const memberService = {
   _updateLocalMemberCache(memberId, updates) {
     const idx = cachedMembers.findIndex(m => m.id === memberId);
     if (idx !== -1) {
-      cachedMembers[idx] = { ...cachedMembers[idx], ...updates };
+      const newMembers = [...cachedMembers];
+      newMembers[idx] = { ...newMembers[idx], ...updates };
+      cachedMembers = newMembers;
       
       // [NEW] Persist for offline durability
       try {

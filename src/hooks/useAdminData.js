@@ -172,7 +172,8 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         console.log(`[Admin] Data update detected (${eventType}), syncing raw states...`);
         
         if (eventType === 'members' || eventType === 'general' || eventType === 'all') {
-            setMembers(Array.from(new Map(storageService.getMembers().map(m => [m.id, m])).values()));
+            // [FIX] Deep copy to defeat React's shallow comparison memoization for inner objects
+            setMembers(Array.from(new Map(storageService.getMembers().map(m => [m.id, { ...m }])).values()));
         }
         if (eventType === 'logs' || eventType === 'general' || eventType === 'all') {
             setLogs([...storageService.getAttendance()]);

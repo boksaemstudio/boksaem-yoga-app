@@ -53,7 +53,8 @@ const SuccessDetails = memo(({ member, onClose }) => {
                 <div style={{ width: '1px', height: '40px', background: 'rgba(255,255,255,0.1)', marginLeft: '10px' }} />
                 
                 <button 
-                    onClick={onClose}
+                    onClick={(e) => { e.stopPropagation(); onClose(); }}
+                    onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onClose(); }}
                     className="interactive"
                     style={{
                         background: 'var(--primary-gold)',

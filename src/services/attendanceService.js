@@ -179,20 +179,9 @@ export const attendanceService = {
         }
       }
 
+      // Rely on onSnapshot listener for UI update (prevents race condition / double-increment)
       const deletedLog = logSnap.exists() ? logSnap.data() : null;
       cachedAttendance = cachedAttendance.filter(l => l.id !== logId);
-      
-      // [NEW] 낙관적 업데이트: 실시간 리스너에만 의존하지 않고 로컬 캐시를 즉시 갱신하여 UX 향상
-      if (deletedLog && deletedLog.memberId && restoreCredit) {
-          const creditsToRestore = deletedLog.sessionCount || 1;
-          const currentM = memberService.getMemberById(deletedLog.memberId);
-          if (currentM) {
-              memberService._updateLocalMemberCache(deletedLog.memberId, {
-                  credits: (currentM.credits || 0) + creditsToRestore,
-                  attendanceCount: Math.max(0, (currentM.attendanceCount || 0) - creditsToRestore)
-              });
-          }
-      }
 
       notifyCallback();
       return { success: true };
@@ -260,15 +249,8 @@ export const attendanceService = {
           );
 
           if (response.data.success) {
-            const { newCredits, startDate, endDate, attendanceCount, streak, isMultiSession, sessionCount } = response.data;
-            memberService._updateLocalMemberCache(memberId, { 
-              credits: newCredits, 
-              attendanceCount, 
-              streak, 
-              startDate, 
-              endDate,
-              lastAttendance: new Date().toISOString()
-            });
+            // Updated member data will flow via Firebase onSnapshot listener
+            // (avoids redundant local cache mutation)
 
             return {
               success: true,
@@ -619,17 +601,7 @@ export const attendanceService = {
         ...attendanceData
       };
 
-      const alreadyExists = cachedAttendance.some(l => l.id === newAttRef.id);
-      if (!alreadyExists) {
-        cachedAttendance.push(newLog);
-        cachedAttendance.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-      }
-
-      memberService._updateLocalMemberCache(memberId, {
-        credits: (Number(memberService.getMemberById(memberId)?.credits) || 0) - 1,
-        attendanceCount: (Number(memberService.getMemberById(memberId)?.attendanceCount) || 0) + 1,
-        lastAttendance: timestamp
-      });
+      // Member credits and log additions will flow via real-time Firestore listeners
 
       notifyCallback();
 
