@@ -117,7 +117,7 @@ const SelectionModal = memo(({
                             flex: 1,
                             overflowY: 'auto',
                             alignContent: 'start',
-                            padding: '10px 5px 10px 10px' // Added padding to prevent border/scale clipping
+                            padding: '15px' // Increased padding to prevent border/scale clipping
                         }}>
                             {activeMembers.length > 0 ? activeMembers.map(m => {
                                 const isSelected = selectedMemberId === m.id;

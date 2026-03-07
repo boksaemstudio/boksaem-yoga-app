@@ -553,6 +553,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                                 onSave={handlePreSave}
                                 pricingConfig={pricingConfig}
                                 originalData={member}
+                                isDirtyByUser={isDirtyByUser}
                             />
                         </div>
                     )}
@@ -708,7 +709,7 @@ const isCurrentRecord = (record, originalData) => {
 };
 
 // Unified MemberInfoTab including history editing
-const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalData }) => {
+const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalData, isDirtyByUser }) => {
     const [history, setHistory] = useState([]);
     const [editingSale, setEditingSale] = useState(null);
     const [saleEditData, setSaleEditData] = useState(null);
@@ -1028,7 +1029,7 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                             return orig != curr;
                         });
                         
-                        if (!hasChanges) return null;
+                        if (!hasChanges || !isDirtyByUser) return null;
 
                         return (
                             <button
