@@ -250,7 +250,7 @@ export const attendanceService = {
 
           if (response.data.success) {
             // Updated member data will flow via Firebase onSnapshot listener
-            // (avoids redundant local cache mutation)
+            const { newCredits, startDate, endDate, attendanceCount, streak, isMultiSession, sessionCount } = response.data;
 
             return {
               success: true,
