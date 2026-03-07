@@ -99,9 +99,18 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         try {
             const statsData = {
                 activeCount: currentSummary.activeMembers,
+                totalMembers: currentSummary.totalMembers,
+                monthlyRevenue: currentSummary.monthlyRevenue,
+                todayRevenue: currentSummary.totalRevenueToday,
+                todayRegistration: currentSummary.todayRegistration,
+                newRegCount: currentSummary.todayNewCount,
+                reRegCount: currentSummary.todayReRegCount,
                 attendanceToday: currentSummary.todayAttendance,
                 expiringCount: currentSummary.expiringMembersCount,
-                topClasses: currentTodayClasses.slice(0, 3)
+                dormantCount: currentSummary.dormantMembersCount,
+                installedCount: currentSummary.installedCount,
+                branch: currentBranch,
+                topClasses: currentTodayClasses.slice(0, 5)
             };
 
             const aiPromise = storageService.getAIAnalysis(

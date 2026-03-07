@@ -804,11 +804,7 @@ const AdminDashboard = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                         {aiInsight && (
                             <AdminInsights 
-                                members={members} 
                                 briefing={aiInsight.message} 
-                                currentBranch={currentBranch}
-                                filterType={filterType}
-                                onFilterSelect={handleToggleFilter}
                             />
                         )}
                         <MembersTab

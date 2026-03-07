@@ -48,12 +48,25 @@ exports.generatePageExperienceV2 = onCall({
 
         if (type === 'analysis' || role === 'admin') {
             const logs = request.data.logs || [];
-            const statsData = request.data.statsData;
+            const statsData = request.data.statsData || {};
+            const branchInfo = statsData.branch === 'all' ? '전체 지점(마포/광흥창)' : `${statsData.branch}점`;
+            
             prompt = `
-                Generate a brief 1-sentence insight about ${memberName}'s practice.
-                Logs: ${JSON.stringify(logs.slice(0, 5))}
-                Stats: ${JSON.stringify(statsData)}
-                Language: ${targetLang}
+                You are a highly experienced Yoga Studio Director and Business Consultant.
+                Analyze the following data for ${branchInfo} and provide 1-2 sentences of strategic management advice in ${targetLang}.
+                
+                Data Summary:
+                - Active Members: ${statsData.activeCount} / Total: ${statsData.totalMembers}
+                - Monthly Revenue: ${statsData.monthlyRevenue?.toLocaleString()} KRW
+                - Today's Registration: ${statsData.todayRegistration} (New: ${statsData.newRegCount}, Re-reg: ${statsData.reRegCount})
+                - Today's Attendance: ${statsData.attendanceToday}
+                - Dormant Members (Risk): ${statsData.dormantCount}
+                - Expiring Soon: ${statsData.expiringCount}
+                - App Adoption: ${statsData.installedCount} members
+                - Top Classes: ${JSON.stringify(statsData.topClasses)}
+                
+                Goal: Provide a concise, professional, and actionable insight. 
+                Focus on: Member retention (dormant/expiring), revenue growth (re-registration), or operational efficiency based on attendance patterns.
                 Format: { "message": "...", "bgTheme": "dawn" }
             `;
         } else {
