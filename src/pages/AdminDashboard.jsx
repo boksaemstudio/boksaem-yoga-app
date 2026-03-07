@@ -37,6 +37,7 @@ import LogsTab from '../components/admin/tabs/LogsTab';
 import PushHistoryTab from '../components/admin/tabs/PushHistoryTab';
 import DataMigrationTab from '../components/admin/tabs/DataMigrationTab';
 import KioskSettingsTab from '../components/admin/tabs/KioskSettingsTab';
+import AdminInsights from '../components/AdminInsights';
 import { usePWA } from '../hooks/usePWA';
 import ScheduleTab from '../components/admin/tabs/ScheduleTab';
 
@@ -99,7 +100,7 @@ const AdminDashboard = () => {
     const {
         currentBranch, setCurrentBranch,
         members, sales, logs, notices, stats,
-        // aiInsight, loadingInsight,  // Unused
+        aiInsight, loadingInsight,
         images, optimisticImages, setOptimisticImages,
         todayClasses, pushTokens, aiUsage,
         pendingApprovals, summary,
@@ -568,25 +569,41 @@ const AdminDashboard = () => {
                     </button>
                 </div>
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
-                    {/* [RESTORED] AI Status Indicator */}
-                    <div style={{
-                        padding: '6px 10px',
-                        borderRadius: '6px',
-                        background: 'rgba(212, 175, 55, 0.1)',
-                        border: '1px solid rgba(212, 175, 55, 0.3)',
-                        color: 'var(--primary-gold)',
-                        fontSize: '0.7rem',
-                        fontWeight: 'bold',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                    }}>
+                    {/* [RESTORED] AI Status && Refresh Button */}
+                    <button 
+                        onClick={() => {
+                            if (confirm('AI 분석을 최신 데이터로 다시 실행하시겠습니까? (약 5~10초 소요)')) {
+                                refreshData();
+                            }
+                        }}
+                        style={{
+                            padding: '6px 10px',
+                            borderRadius: '6px',
+                            background: 'rgba(212, 175, 55, 0.1)',
+                            border: '1px solid rgba(212, 175, 55, 0.3)',
+                            color: 'var(--primary-gold)',
+                            fontSize: '0.7rem',
+                            fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(212, 175, 55, 0.1)'}
+                        title="AI 분석 결과 새로고침 (수동)"
+                    >
                         <span>✨ AI 분석</span>
-                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4CD964', boxShadow: '0 0 5px #4CD964' }}></span>
+                        {loadingInsight ? (
+                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', border: '1px solid var(--primary-gold)', borderTopColor: 'transparent', animation: 'spin 0.6s linear infinite' }} />
+                        ) : (
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4CD964', boxShadow: '0 0 5px #4CD964' }}></span>
+                        )}
                         <span style={{ fontSize: '0.65rem', opacity: 0.8, marginLeft: '4px', paddingLeft: '4px', borderLeft: '1px solid rgba(212,175,55,0.3)' }}>
                             {aiUsage.count}/{aiUsage.limit}
                         </span>
-                    </div>
+                    </button>
 
                     <button
                         onClick={handleSubscribePush}
@@ -784,8 +801,18 @@ const AdminDashboard = () => {
                 )}
 
                 {activeTab === 'members' && (
-                    <MembersTab
-                        members={members}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        {aiInsight && (
+                            <AdminInsights 
+                                members={members} 
+                                briefing={aiInsight.message} 
+                                currentBranch={currentBranch}
+                                filterType={filterType}
+                                onFilterSelect={handleToggleFilter}
+                            />
+                        )}
+                        <MembersTab
+                            members={members}
                         filteredMembers={filteredMembers}
                         summary={extendedSummary}
                         searchTerm={searchTerm}
@@ -808,7 +835,8 @@ const AdminDashboard = () => {
                         setActiveTab={setActiveTab}
                         onNoteClick={(m) => { setSelectedMember(m); setShowNoteModal(true); }}
                     />
-                )}
+                </div>
+            )}
 
                 {activeTab === 'schedule' && (
                     <ScheduleTab 

@@ -111,6 +111,62 @@ const CheckInPage = () => {
         getBgForPeriod(period).then(m => setBgImage(m.default));
     }, [period]);
 
+    // [FIX] Kiosk Notice Image Subscriber
+    useEffect(() => {
+        if (!isReady) return;
+        
+        let unsubscribeBranch = null;
+        let unsubscribeAll = null;
+
+        // 1. First listen to branch specific settings
+        unsubscribeBranch = storageService.subscribeToKioskSettings(currentBranch, (branchData) => {
+            if (branchData && branchData.active && branchData.imageUrl) {
+                setKioskSettings(branchData);
+                setKioskNoticeHidden(false);
+            } else {
+                // 2. If branch is off, listen to 'all' shared settings
+                unsubscribeAll = storageService.subscribeToKioskSettings('all', (allData) => {
+                    if (allData && allData.active && allData.imageUrl) {
+                        setKioskSettings(allData);
+                        setKioskNoticeHidden(false);
+                    } else {
+                        setKioskSettings({ active: false, imageUrl: null });
+                    }
+                });
+            }
+        });
+
+        return () => {
+            if (unsubscribeBranch) unsubscribeBranch();
+            if (unsubscribeAll) unsubscribeAll();
+        };
+    }, [isReady, currentBranch]);
+
+    // [FIX] Kiosk Notice Auto-Restore Timer (5 minutes)
+    useEffect(() => {
+        if (!kioskSettings?.active || !kioskNoticeHidden || message || showSelectionModal || showDuplicateConfirm) return;
+
+        let idleTimer;
+        const resetNoticeTimer = () => {
+            clearTimeout(idleTimer);
+            if (kioskNoticeHidden) {
+                idleTimer = setTimeout(() => setKioskNoticeHidden(false), 5 * 60 * 1000); // 5 minutes
+            }
+        };
+
+        resetNoticeTimer();
+        window.addEventListener('touchstart', resetNoticeTimer, { passive: true });
+        window.addEventListener('mousedown', resetNoticeTimer, { passive: true });
+        window.addEventListener('keydown', resetNoticeTimer, { passive: true });
+
+        return () => {
+            clearTimeout(idleTimer);
+            window.removeEventListener('touchstart', resetNoticeTimer);
+            window.removeEventListener('mousedown', resetNoticeTimer);
+            window.removeEventListener('keydown', resetNoticeTimer);
+        };
+    }, [kioskSettings?.active, kioskNoticeHidden, message, showSelectionModal, showDuplicateConfirm]);
+
     // Business Logic: Full Restoration
     const loadAIExperience = async (name = "방문 회원", credits = null, days = null, w = null) => {
         const isStandby = name === "방문 회원";
@@ -205,7 +261,8 @@ const CheckInPage = () => {
                 targetMemberId = members[0].id;
             }
 
-            const res = await storageService.checkInById(targetMemberId, currentBranch, isDup);
+            const currentEventId = crypto.randomUUID();
+            const res = await storageService.checkInById(targetMemberId, currentBranch, isDup, currentEventId);
             if (res.success) {
                 setIsOnline(!res.isOffline);
                 if (res.attendanceStatus === 'denied') {
@@ -244,8 +301,8 @@ const CheckInPage = () => {
     }, [pin, loading, currentBranch]);
 
     const handleKeyPress = useCallback((n) => {
+        if (pin.length === 0) { checkConnection(); capturePhoto(); }
         setPin(prev => {
-            if (prev.length === 0) { checkConnection(); capturePhoto(); }
             const next = prev + n;
             if (next.length === 4) handleSubmit(next);
             return next.length <= 4 ? next : prev;
@@ -261,7 +318,7 @@ const CheckInPage = () => {
     }, [handleModalClose]);
 
     // Guard & PWA
-    useAlwaysOnGuardian(isReady, () => storageService.checkKioskSettings(currentBranch));
+    useAlwaysOnGuardian(isReady);
 
     // [CRITICAL FIX] Memory/CPU Leak - Clear interval when modal closes or timer hits 0
     useEffect(() => { 
@@ -299,15 +356,18 @@ const CheckInPage = () => {
             <DuplicateConfirmModal show={showDuplicateConfirm} duplicateTimer={duplicateTimer} onCancel={() => { setShowDuplicateConfirm(false); setPin(''); }} onConfirm={() => { setShowDuplicateConfirm(false); proceedWithCheckIn(pendingPin, true); }} />
             
             {kioskSettings?.active && kioskSettings?.imageUrl && !kioskNoticeHidden && !message && (
-                <div onClick={() => setKioskNoticeHidden(true)} style={{ position: 'fixed', inset: 0, backgroundColor: '#000', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div onClick={() => setKioskNoticeHidden(true)} style={{ position: 'fixed', inset: 0, backgroundColor: '#000', zIndex: 2000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                     <img src={kioskSettings.imageUrl} alt="notice" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                    <div style={{ position: 'absolute', bottom: '6vh', background: 'rgba(0, 0, 0, 0.85)', color: 'white', padding: '16px 36px', borderRadius: '50px', fontSize: '1.6rem', fontWeight: 'bold', border: '3px solid rgba(212,175,55,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', pointerEvents: 'none' }}>
+                        <span style={{ fontSize: '2rem' }}>👆</span> 화면을 터치하면 출석부로 이동합니다
+                    </div>
                 </div>
             )}
 
             <KioskInstallGuideModal isOpen={showKioskInstallGuide} onClose={() => setShowKioskInstallGuide(false)} />
             <InstructorQRModal isOpen={showInstructorQR} onClose={() => setShowInstructorQR(false)} />
-            <video ref={videoRef} autoPlay playsInline muted style={{ display: 'none' }} />
-            <canvas ref={canvasRef} style={{ display: 'none' }} />
+            <video ref={videoRef} autoPlay playsInline muted style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: '1px', height: '1px' }} />
+            <canvas ref={canvasRef} style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: '1px', height: '1px' }} />
             <div style={{ display: 'none' }} data-version={BUILD_VERSION}>{BUILD_VERSION}</div>
         </div>
     );

@@ -71,11 +71,11 @@ exports.checkInMemberV2Call = onCall({
         return { success: true, message: 'pong', timestamp: Date.now() };
     }
 
-    const { memberId, branchId, classTitle, instructor, classTime } = request.data;
+    const { memberId, branchId, classTitle, instructor, classTime, force, eventId } = request.data;
     const db = admin.firestore();
 
-    // [DEBUG] Check force flag
-    console.log(`[Attendance] Check-in request for ${memberId} in ${branchId}. Force: ${request.data.force}`);
+    // [DEBUG] Check force flag and eventId
+    console.log(`[Attendance] Check-in request for ${memberId} in ${branchId}. Force: ${force}, EventId: ${eventId}`);
 
     if (!memberId || !branchId) {
         throw new HttpsError('invalid-argument', '회원 ID와 지점 ID가 필요합니다.');
@@ -96,24 +96,22 @@ exports.checkInMemberV2Call = onCall({
             const today = getKSTDateString(new Date());
             const now = new Date();
             
-            // [CRITICAL] Check for Duplicates (Idempotency) inside Transaction
-            // Same member, same date, within last 15 seconds = Duplicate
-            // [UX] If 'force' is provided (Member Confirmed Dual Check-in after 25s), SKIP this check completely
-            if (!request.data.force) {
-                const duplicateWindowSeconds = 15;
-                const duplicateCutoff = new Date(now.getTime() - duplicateWindowSeconds * 1000).toISOString();
-    
+            // [CRITICAL] Check for Duplicates (UUID Idempotency) inside Transaction
+            // If the client provided an eventId, we ensure it hasn't been processed yet.
+            // [UX] If 'force' is provided (Member Confirmed Dual Check-in after 25s), SKIP this check.
+            if (!force && eventId) {
                 const duplicateQuery = db.collection('attendance')
                     .where('memberId', '==', memberId)
                     .where('date', '==', today)
-                    .where('timestamp', '>=', duplicateCutoff);
+                    .where('eventId', '==', eventId)
+                    .limit(1);
                 
                 const duplicateSnap = await transaction.get(duplicateQuery);
                 
                 if (!duplicateSnap.empty) {
                     // If duplicate found, return the EXISTING success response (Idempotent)
                     const existing = duplicateSnap.docs[0].data();
-                    console.log(`[Attendance] Duplicate check-in blocked for ${memberId}`);
+                    console.log(`[Attendance] Duplicate check-in blocked for ${memberId} (EventId: ${eventId})`);
                     return {
                         success: true,
                         message: '이미 출석 처리되었습니다.',
@@ -128,7 +126,7 @@ exports.checkInMemberV2Call = onCall({
                     };
                 }
             } else {
-                console.log(`[Attendance] Force Check-in requested for ${memberId}. Skipping 15s duplicate check.`);
+                console.log(`[Attendance] Force Check-in or No EventId for ${memberId}. Skipping deduplication.`);
             }
 
 
@@ -306,6 +304,7 @@ exports.checkInMemberV2Call = onCall({
                 instructor: finalInstructor || '미지정',
                 timestamp: now.toISOString(),
                 type: 'checkin',
+                eventId: eventId || null,
                 sessionNumber: sessionCount,
                 status: attendanceStatus,
                 classTime: classTime || matched?.time || null // [FIX] Use client provided time or server matched time
@@ -525,7 +524,7 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
     if (!snapshot) return;
 
     const data = snapshot.data();
-    const { memberId, branchId, classTitle, instructor, timestamp, date } = data;
+    const { memberId, branchId, classTitle, instructor, timestamp, date, eventId } = data;
     const db = admin.firestore();
 
     console.log(`[OfflineSync] Processing pending check-in for member: ${memberId}`);
@@ -540,6 +539,24 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
             const memberData = memberSnap.data();
             const currentCredits = memberData.credits || 0;
             const currentCount = memberData.attendanceCount || 0;
+
+            // [CRITICAL] Check for UUID Idempotency to prevent Double-Charging on Offline Sync
+            if (eventId) {
+                const duplicateQuery = await transaction.get(
+                    db.collection('attendance')
+                        .where('memberId', '==', memberId)
+                        .where('date', '==', date)
+                        .where('eventId', '==', eventId)
+                        .limit(1)
+                );
+
+                if (!duplicateQuery.empty) {
+                    console.warn(`[OfflineSync] Duplicate caught for ${memberId}. EventId ${eventId} was already processed safely. Deleting pending document.`);
+                    // Delete the pending document without producing an attendance record to prevent loops
+                    transaction.delete(db.collection('pending_attendance').doc(event.params.id));
+                    return;
+                }
+            }
 
             const recentSnap = await transaction.get(
                 db.collection('attendance')
@@ -582,6 +599,7 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
                 instructor: instructor || '미지정',
                 timestamp: timestamp,
                 type: 'checkin', // [FIX] Ensure type is present for proper deletion later
+                eventId: eventId || null, // [NEW] Track eventId for safety
                 status: finalStatus,
                 syncMode: 'offline-restored',
                 sessionNumber: sessionCount
@@ -598,6 +616,9 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
 
             const attRef = db.collection('attendance').doc();
             transaction.set(attRef, attendanceData);
+
+            // [NEW] Delete the pending record since it was successfully migrated to official attendance
+            transaction.delete(db.collection('pending_attendance').doc(event.params.id));
 
             // 4. Update Member (Only if Valid)
             if (finalStatus === 'valid') {

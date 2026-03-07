@@ -224,7 +224,7 @@ export const attendanceService = {
     return { successCount, remainingCount: remainingQueue.length };
   },
 
-  async checkInById(memberId, branchId, force = false) {
+  async checkInById(memberId, branchId, force = false, eventId = null) {
     try {
       const checkInMember = httpsCallable(functions, 'checkInMemberV2Call');
       const currentClassInfo = await deps.getCurrentClass(branchId);
@@ -242,7 +242,8 @@ export const attendanceService = {
                 classTitle, 
                 instructor, 
                 classTime: currentClassInfo?.time || null, 
-                force 
+                force,
+                eventId
             }),
             5000,
             'timeout'
@@ -384,6 +385,7 @@ export const attendanceService = {
           date: today,
           timestamp: now,
           status: 'pending-offline',
+          eventId: eventId || crypto.randomUUID(),
           // [NEW] 만약 오프라인에서 회원권이 활성화되었다면 해당 정보 포함 (서버 동기화 시 필요)
           activatedUpcomingMembership: member && member.startDate === today ? {
               membershipType: member.membershipType,

@@ -128,6 +128,8 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
     const [historicalLogs, setHistoricalLogs] = useState([]);
     const [loadingHistorical, setLoadingHistorical] = useState(false);
     const [lightboxImage, setLightboxImage] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [localBranch, setLocalBranch] = useState('all');
 
     const isToday = selectedDate === todayStr;
 
@@ -153,6 +155,10 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
         setSelectedClassKey(null);
         setCurrentLogPage(1);
     }, [selectedDate, isToday, fetchHistoricalData, setCurrentLogPage]);
+
+    useEffect(() => {
+        setCurrentLogPage(1);
+    }, [searchTerm, localBranch, setCurrentLogPage]);
 
     const [trendData, setTrendData] = useState(null);
     const [loadingTrend, setLoadingTrend] = useState(false);
@@ -594,13 +600,16 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
             {!loadingHistorical && (
                 <div className="dashboard-card">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <h3 className="card-label" style={{ margin: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                            <h3 className="card-label" style={{ margin: 0, whiteSpace: 'nowrap' }}>
                                 {isToday ? '오늘 활동 로그' : `${formatDisplayDate(selectedDate)} 활동 로그`}
                             </h3>
                             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>
                                 {activeLogs.length}건
                             </span>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                             {selectedClassKey && (
                                 <button
                                     onClick={() => setSelectedClassKey(null)}
@@ -608,12 +617,60 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                         background: 'var(--primary-gold)', color: 'black', border: 'none',
                                         padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem',
                                         fontWeight: 'bold', cursor: 'pointer',
-                                        display: 'flex', alignItems: 'center', gap: '4px'
+                                        display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap'
                                     }}
                                 >
                                     <ClockCounterClockwise size={14} /> 필터 해제
                                 </button>
                             )}
+                            
+                            {/* Branch Filter */}
+                            <select 
+                                value={localBranch}
+                                onChange={(e) => setLocalBranch(e.target.value)}
+                                style={{
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: '6px',
+                                    padding: '4px 8px',
+                                    color: 'var(--text-primary)',
+                                    fontSize: '0.8rem',
+                                    outline: 'none',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <option value="all">전체 지점</option>
+                                {STUDIO_CONFIG.BRANCHES.map(b => (
+                                    <option key={b.id} value={b.id}>{b.name}</option>
+                                ))}
+                            </select>
+
+                            {/* Name Search */}
+                            <div style={{ position: 'relative' }}>
+                                <input 
+                                    type="text"
+                                    placeholder="이름 검색..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    style={{
+                                        background: 'rgba(255,255,255,0.05)',
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        borderRadius: '6px',
+                                        padding: '4px 8px',
+                                        paddingRight: '25px',
+                                        color: 'var(--text-primary)',
+                                        fontSize: '0.8rem',
+                                        width: '120px',
+                                        outline: 'none'
+                                    }}
+                                />
+                                {searchTerm && (
+                                    <button 
+                                        onClick={() => setSearchTerm('')}
+                                        style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#71717a', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center' }}
+                                    >×</button>
+                                )}
+                            </div>
                         </div>
 
                     </div>
@@ -628,7 +685,14 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                     return `${canonicalClassName}-${canonicalInstructor}-${l.branchId}-${classTime}` === selectedClassKey;
                                 })
                                 : activeLogs
-                            ).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                            ).filter(l => {
+                                // Apply local filters
+                                const matchesBranch = localBranch === 'all' || l.branchId === localBranch;
+                                const matchesSearch = !searchTerm || 
+                                    (l.memberName && l.memberName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                                    (l.name && l.name.toLowerCase().includes(searchTerm.toLowerCase()));
+                                return matchesBranch && matchesSearch;
+                            }).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
                             const itemsPerPage = 15;
                             const startIndex = (currentLogPage - 1) * itemsPerPage;

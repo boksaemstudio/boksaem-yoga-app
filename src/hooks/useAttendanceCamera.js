@@ -26,6 +26,8 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
                     cameraStreamRef.current = stream;
                     if (videoRef.current) {
                         videoRef.current.srcObject = stream;
+                        // [FIX] Ensure the hidden video actively plays stream data 
+                        videoRef.current.play().catch(e => console.warn('[PHOTO] Autoplay blocked:', e));
                     }
                     console.log('[PHOTO] Camera initialized successfully');
                 } else {
