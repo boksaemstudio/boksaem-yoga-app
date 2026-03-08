@@ -266,6 +266,21 @@ export const storageService = {
   // [PERF] Build O(1) lookup index for phoneLast4
   _buildPhoneLast4Index() { return memberService._buildPhoneLast4Index(); },
 
+  getImages() { return cachedImages; },
+  getNotices() { return [...cachedNotices].sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0)); },
+
+  getSales() { return paymentService.getSales(); },
+  getAllSales() { return paymentService.getAllSales(); },
+  getSalesHistory(memberId) { return paymentService.getSalesHistory(memberId); },
+  updateSalesRecord(salesId, updates) { return paymentService.updateSalesRecord(salesId, updates); },
+  deleteSalesRecord(salesId) { return paymentService.deleteSalesRecord(salesId); },
+
+  getAttendance() { return attendanceService.getAttendance(); },
+  getAttendanceByMemberId(memberId) { return attendanceService.getAttendanceByMemberId(memberId); },
+  getAttendanceByDate(dateStr, branchId = null) { return attendanceService.getAttendanceByDate(dateStr, branchId); },
+  deleteAttendance(logId, restoreCredit) { return attendanceService.deleteAttendance(logId, restoreCredit); },
+  clearAllAttendance() { return attendanceService.clearAllAttendance(); },
+
 
 
   /**
