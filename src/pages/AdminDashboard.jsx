@@ -790,7 +790,7 @@ const AdminDashboard = () => {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                                 <div style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
                                     <h3 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '15px' }}>심화</h3>
-                                    <img src={images.price_table_1 || ''} alt="가격표 1" style={{ width: '100%', borderRadius: '12px', marginBottom: '15px' }} />
+                                    <img src={optimisticImages.price_table_1 || images.price_table_1 || ''} alt="가격표 1" style={{ width: '100%', borderRadius: '12px', marginBottom: '15px' }} />
                                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                         <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'price_table_1')} style={{ display: 'none' }} id="up-price-1" />
                                         <label htmlFor="up-price-1" className="action-btn sm" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', fontSize: '0.7rem', border: 'none', cursor: 'pointer' }}>가격표 변경</label>
@@ -798,7 +798,7 @@ const AdminDashboard = () => {
                                 </div>
                                 <div style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
                                     <h3 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '15px' }}>일반</h3>
-                                    <img src={images.price_table_2 || ''} alt="가격표 2" style={{ width: '100%', borderRadius: '12px', marginBottom: '15px' }} />
+                                    <img src={optimisticImages.price_table_2 || images.price_table_2 || ''} alt="가격표 2" style={{ width: '100%', borderRadius: '12px', marginBottom: '15px' }} />
                                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                         <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'price_table_2')} style={{ display: 'none' }} id="up-price-2" />
                                         <label htmlFor="up-price-2" className="action-btn sm" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', fontSize: '0.7rem', border: 'none', cursor: 'pointer' }}>가격표 변경</label>
