@@ -1,14 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-// [Refactor] Hook logic synchronization for dynamic config
 import { storageService } from '../services/storage';
 import { getTodayKST, getKSTHour, toKSTDateString, safeParseDate } from '../utils/dates';
-// [Refactor] Purged static config. Logic moved to useStudioConfig context.
+import { STUDIO_CONFIG } from '../studioConfig';
 import { guessClassTime, guessClassInfo } from '../utils/classUtils';
-import { useStudioConfig } from '../contexts/StudioContext';
 
 
 export const useAdminData = (activeTab, initialBranch = 'all') => {
-    const { config } = useStudioConfig();
     const [currentBranch, setCurrentBranch] = useState(initialBranch);
     const [members, setMembers] = useState([]);
     const [sales, setSales] = useState([]);
@@ -34,50 +31,42 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         monthlyRevenue: 0,
         expiringMembersCount: 0,
         installedCount: 0,
-        pushEnabledCount: 0,
-        facialDataCount: 0,
-        facialDataRatio: 0,
-        bioMissingCount: 0
+        pushEnabledCount: 0
     });
 
     // Helper: Is Member Active? (Domain Logic)
     const isMemberActive = useCallback((m) => {
-        if (!m) return false;
         const credits = Number(m.credits || 0);
-        const hasCredits = credits > 0 || credits === Infinity;
-        
-        // TBD is always considered valid/infinite in membership context
-        if (m.endDate === 'TBD' || m.endDate === 'unlimited') return true;
-        
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        let hasValidDate = true;
-        if (m.endDate) {
-            const endDate = safeParseDate(m.endDate);
-            if (endDate < today) hasValidDate = false;
+        const todayStr = getTodayKST();
+
+        // If no endDate, check only credits
+        if (!m.endDate) {
+            return credits > 0;
         }
-        
-        return hasCredits && hasValidDate;
+
+        // If has endDate, must be future/today AND have credits > 0
+        // (If credits are 0, member allows entry? usually no, unless unlimited type which has high credits)
+        return m.endDate >= todayStr && credits > 0;
     }, []);
 
     // Helper: Is Member Expiring?
     const isMemberExpiring = useCallback((m) => {
-        if (!m || !isMemberActive(m)) return false;
-        if (m.endDate === 'TBD' || m.endDate === 'unlimited') return false; // Never expires
-        
+        // If no endDate, just check credits
         const credits = Number(m.credits || 0);
-        if (credits <= 2 && credits > 0) return true; // Low credits
-        
-        if (m.endDate) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const endDate = safeParseDate(m.endDate);
-            const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
-            return diffDays <= 7 && diffDays >= 0;
-        }
-        return false;
-    }, [isMemberActive]);
+        const hasNoCredits = credits <= 2;
+
+        if (!m.endDate) return hasNoCredits;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const end = new Date(m.endDate);
+        const diffDays = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+
+        const isExpiringSoon = diffDays <= 7 && diffDays >= -30;
+        // [Logic] Imminent (0-7 days) or Recently Expired (within 30 days)
+
+        return isExpiringSoon || hasNoCredits;
+    }, []);
 
     const calculateStats = useCallback((logs) => {
         const timeCount = {};
@@ -102,81 +91,6 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         setStats({ byTime: sortedTime, bySubject: sortedSubject });
     }, []);
 
-    // [Feature 1] Chart Data States
-    const [revenueTrend, setRevenueTrend] = useState([]);
-    const [memberStatusDist, setMemberStatusDist] = useState([]);
-
-    // [PERF OPTIMIZATION] O(N) single-pass chart data calculation
-    const calculateChartData = useCallback((currentSales, uniqueMembers, isMemberActiveFn) => {
-        if (!uniqueMembers || uniqueMembers.length === 0) return;
-
-        const memberMap = new Map(uniqueMembers.map(m => [m.id, m]));
-        
-        // 1. Revenue Trend (Single Pass over Sales)
-        const today = new Date();
-        const monthBuckets = {};
-        for (let i = 0; i < 6; i++) {
-            const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-            monthBuckets[key] = 0;
-        }
-
-        currentSales.forEach(s => {
-            const rawDate = s.date || s.timestamp;
-            if (!rawDate) return;
-            const sMonthKey = rawDate.includes('T') ? toKSTDateString(rawDate).substring(0, 7) : rawDate.substring(0, 7);
-            
-            if (monthBuckets[sMonthKey] !== undefined) {
-                const member = memberMap.get(s.memberId);
-                const branchMatch = currentBranch === 'all' || s.branchId === currentBranch || member?.homeBranch === currentBranch;
-                if (branchMatch) {
-                    monthBuckets[sMonthKey] += (Number(s.amount) || 0);
-                }
-            }
-        });
-
-        const trends = Object.entries(monthBuckets)
-            .sort((a, b) => a[0].localeCompare(b[0]))
-            .map(([key, amount]) => ({
-                month: `${parseInt(key.split('-')[1], 10)}월`,
-                amount,
-                fullKey: key
-            }));
-        setRevenueTrend(trends);
-
-        // 2. Member Status Distribution (Single Pass over Members)
-        let activeCount = 0;
-        let dormantCount = 0;
-        let expiredCount = 0;
-        const twoWeeksAgo = new Date();
-        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - (config.POLICIES?.DORMANT_THRESHOLD_DAYS || 14));
-
-        uniqueMembers.forEach(m => {
-            const branchMatch = currentBranch === 'all' || m.homeBranch === currentBranch;
-            if (!branchMatch) return;
-
-            if (!isMemberActiveFn(m)) {
-                expiredCount++;
-            } else {
-                const lastAttDate = m.lastAttendance ? new Date(m.lastAttendance) : null;
-                if (lastAttDate && lastAttDate >= twoWeeksAgo) {
-                    activeCount++;
-                } else if (m.regDate && new Date(m.regDate) >= twoWeeksAgo && !lastAttDate) {
-                    activeCount++;
-                } else {
-                    dormantCount++;
-                }
-            }
-        });
-
-        setMemberStatusDist([
-            { name: '활동중', value: activeCount },
-            { name: '주춤(잠듦)', value: dormantCount },
-            { name: '만료', value: expiredCount }
-        ]);
-    }, [currentBranch]);
-
-
     const loadAIInsight = useCallback(async (members, logs, currentSummary, currentTodayClasses) => {
         if (loadingRef.current) return; // Check Ref
         loadingRef.current = true;      // Set Ref
@@ -185,20 +99,9 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         try {
             const statsData = {
                 activeCount: currentSummary.activeMembers,
-                totalMembers: currentSummary.totalMembers,
-                monthlyRevenue: currentSummary.monthlyRevenue,
-                todayRevenue: currentSummary.totalRevenueToday,
-                todayRegistration: currentSummary.todayRegistration,
-                newRegCount: currentSummary.todayNewCount,
-                reRegCount: currentSummary.todayReRegCount,
                 attendanceToday: currentSummary.todayAttendance,
                 expiringCount: currentSummary.expiringMembersCount,
-                dormantCount: currentSummary.dormantMembersCount,
-                installedCount: currentSummary.installedCount,
-                branch: currentBranch,
-                topClasses: currentTodayClasses.slice(0, 5),
-                facialDataCount: currentSummary.facialDataCount,
-                facialDataRatio: currentSummary.facialDataRatio
+                topClasses: currentTodayClasses.slice(0, 3)
             };
 
             const aiPromise = storageService.getAIAnalysis(
@@ -228,12 +131,6 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         }
     }, []); // Removed [loadingInsight] dependency to prevent loop
 
-    useEffect(() => {
-        if (activeTab === 'members' && summary.activeMembers > 0) {
-            loadAIInsight(members, logs, summary, todayClasses);
-        }
-    }, [activeTab, summary, loadAIInsight, members, logs, todayClasses]);
-
     // [New] Re-registration Logic State
     const [todayReRegMemberIds, setTodayReRegMemberIds] = useState([]);
 
@@ -243,30 +140,9 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         if (isInitialLoadDone) return;
         console.time('[Admin] loadInitialData');
         
-        // [FIX] Wait for Firebase auth to be ready before querying Firestore
-        // storageService.initialize() in App.jsx is fire-and-forget, so auth may not be ready yet
-        try {
-            const { auth } = await import('../firebase');
-            if (!auth.currentUser) {
-                console.log('[Admin] Waiting for auth to be ready...');
-                await new Promise((resolve, reject) => {
-                    const timeout = setTimeout(() => { resolve(null); }, 5000); // 5s max wait
-                    const unsub = auth.onAuthStateChanged((user) => {
-                        clearTimeout(timeout);
-                        unsub();
-                        resolve(user);
-                    });
-                });
-            }
-            // Also ensure storageService.initialize has run
-            await storageService.initialize({ mode: 'full' });
-        } catch (authErr) {
-            console.warn('[Admin] Auth wait failed:', authErr);
-        }
-        
         try {
             const [currentMembers, currentImages, tokensResult, usageResult, currentSales] = await Promise.all([
-                storageService.loadAllMembers(true).catch(err => { console.warn("[Admin] Member load error", err); return []; }),
+                storageService.loadAllMembers().catch(err => { console.warn("[Admin] Member load error", err); return []; }),
                 (storageService.getImages ? storageService.getImages() : Promise.resolve({})).catch(err => ({})),
                 storageService.getAllPushTokens().catch(err => { console.error('Failed to fetch push tokens:', err); return []; }),
                 storageService.getAiUsage().catch(e => { console.warn("Failed to fetch AI usage", e); return { count: 0, limit: 2000 }; }),
@@ -284,37 +160,6 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             setImages({ ...currentImages });
             setSales([...currentSales]);
             setIsInitialLoadDone(true);
-
-            // [FIX] Retry if members came back empty (auth/timing race condition)
-            // Use getMembers() (cache from real-time listener) as fallback
-            if (currentMembers.length === 0) {
-                console.warn('[Admin] Members returned empty from getDocs, trying cache fallback...');
-                
-                // Immediate fallback: check if listener already populated cache
-                const cachedMembers = storageService.getMembers();
-                if (cachedMembers && cachedMembers.length > 0) {
-                    console.log(`[Admin] Cache fallback success: ${cachedMembers.length} members from listener cache`);
-                    setMembers(Array.from(new Map(cachedMembers.map(m => [m.id, m])).values()));
-                } else {
-                    // Delayed retry: wait for listener to receive data
-                    setTimeout(async () => {
-                        try {
-                            const retryCached = storageService.getMembers();
-                            if (retryCached && retryCached.length > 0) {
-                                console.log(`[Admin] Delayed cache fallback success: ${retryCached.length} members`);
-                                setMembers(Array.from(new Map(retryCached.map(m => [m.id, m])).values()));
-                            } else {
-                                // Last resort: force fetch again 
-                                const retryMembers = await storageService.loadAllMembers(true);
-                                if (retryMembers.length > 0) {
-                                    console.log(`[Admin] Force retry success: ${retryMembers.length} members loaded`);
-                                    setMembers(Array.from(new Map(retryMembers.map(m => [m.id, m])).values()));
-                                }
-                            }
-                        } catch (e) { console.warn('[Admin] Retry member load failed', e); }
-                    }, 3000);
-                }
-            }
         } catch (err) {
             console.error("[Admin] Initial data load failed", err);
         } finally {
@@ -323,208 +168,316 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
     }, [isInitialLoadDone]);
 
     // [Refactored] 1. Data Subscriptions - Only Updates Raw State
-    // IMPORTANT: Must be defined BEFORE the useEffect that references it (TDZ fix for production builds)
     const handleDataUpdate = useCallback(async (eventType = 'general') => {
         console.log(`[Admin] Data update detected (${eventType}), syncing raw states...`);
         
-        if (eventType === 'members' || eventType === 'all') {
-            const mems = storageService.getMembers();
-            if (mems && mems.length > 0) {
-                setMembers(Array.from(new Map(mems.map(m => [m.id, { ...m }])).values()));
-            }
+        if (eventType === 'members' || eventType === 'general' || eventType === 'all') {
+            // [FIX] Deep copy to defeat React's shallow comparison memoization for inner objects
+            setMembers(Array.from(new Map(storageService.getMembers().map(m => [m.id, { ...m }])).values()));
         }
-        if (eventType === 'logs' || eventType === 'all') {
-            const atts = storageService.getAttendance();
-            if (atts && atts.length > 0) {
-                setLogs([...atts]);
-            }
+        if (eventType === 'logs' || eventType === 'general' || eventType === 'all') {
+            setLogs([...storageService.getAttendance()]);
         }
-        if (eventType === 'sales' || eventType === 'all') {
-            storageService.getSales().then(s => {
-                if (s && s.length > 0) setSales([...s]);
-            });
+        if (eventType === 'sales' || eventType === 'general' || eventType === 'all') {
+            storageService.getSales().then(s => setSales([...s]));
         }
-        if (eventType === 'images' || eventType === 'all') {
-            if (storageService.getImages) {
-                const updatedImgs = await storageService.getImages();
-                setImages({ ...updatedImgs });
-            }
+        if (eventType === 'images' || eventType === 'general' || eventType === 'all') {
+            if (storageService.getImages) setImages({ ...storageService.getImages() });
         }
-        if (eventType === 'notices' || eventType === 'all') {
-            const nots = storageService.getNotices();
-            if (nots && nots.length > 0) {
-                setNotices([...nots]);
-            }
-        }
-        // [NEW] Settings & Classes
-        if (eventType === 'settings' || eventType === 'dailyClasses' || eventType === 'all') {
-            refreshTodayClasses();
+        if (eventType === 'notices' || eventType === 'general' || eventType === 'all') {
+            setNotices([...storageService.getNotices()]);
         }
     }, []);
 
-    // [ROOT SOLUTION] Reactive Event Subscription (Unified GULL Pipeline)
-    // 땜질식 중복 구독을 걷어내고, 단일 파이프라인으로 통합하여 레이스 컨디션 및 메모리 누수 원천 차단
+    // [Refactored] 2. Derived State Calculation - Runs when raw state changes
     useEffect(() => {
         if (!isInitialLoadDone) return;
-
-        console.log("[Admin] Establishing unified real-time event subscriptions...");
-        
-        // [GULL] 모든 핵심 이벤트를 단일 리스너에서 통합 관리
-        const unsubscribe = storageService.subscribe((eventType) => {
-            // console.log(`[Admin] Reactive Trigger: ${eventType}`);
-            handleDataUpdate(eventType);
-        }, ['members', 'logs', 'sales', 'notices', 'images', 'settings', 'dailyClasses']);
-
-        // [FIX] Immediately sync from cache to catch events that fired before subscription was ready
-        // The real-time listener may have already populated the cache during initialize(),
-        // but this useEffect only runs after isInitialLoadDone=true, missing those events.
-        handleDataUpdate('all');
-
-        // [GULL] AI Pending Approvals (독립적 라이프사이클 유지하되 단일 Effect 내에서 관리)
-        const unsubPending = storageService.getPendingApprovals((items) => {
-            console.log('[Admin] Pending approvals updated');
-            setPendingApprovals(items);
-        });
-
-        return () => {
-            console.log("[Admin] Cleaning up unified subscriptions...");
-            unsubscribe();
-            if (unsubPending) unsubPending();
-        };
-    }, [isInitialLoadDone, handleDataUpdate]);
-
-    const refreshTodayClasses = useCallback(async () => {
-        const branchToFetch = currentBranch === 'all' ? 'gwangheungchang' : currentBranch;
-        try {
-            // [FIX] getDailyClasses internalizes 'today', so no need to pass it as instructorName
-            const data = await storageService.getDailyClasses(branchToFetch);
-            setTodayClasses(data || []);
-        } catch (e) {
-            console.warn("[Admin] Today classes fetch failed", e);
-        }
-    }, [currentBranch]);
-
-    // [ROOT SOLUTION] 2. Derived State Calculation (Phase 3 Optimized)
-    // 수천 건의 데이터에서도 60fps에 가까운 반응성을 위해 O(N) 단일 패스 알고리즘 적용
-    useEffect(() => {
-        if (!isInitialLoadDone) return;
-        console.time('[Admin] Optimized Data Pass');
+        console.time('[Admin] Calculate Derived Data');
 
         const currentTodayKST = getTodayKST();
-        const branchLogs = currentBranch === 'all' ? logs : logs.filter(l => l.branchId === currentBranch);
+        const branchLogs = currentBranch === 'all'
+            ? logs
+            : logs.filter(l => l.branchId === currentBranch);
+
+        calculateStats(branchLogs);
         
-        // 1. Logs Single Pass (Stats, Summary, Groups)
+        // [Perf] Enrich logs with KST string to prevent repeated Date parsing
+        const enrichedBranchLogs = branchLogs.map(l => {
+            if (!l.timestamp) return { ...l, isValidDate: false };
+            
+            let d;
+            if (typeof l.timestamp === 'string') {
+                d = new Date(l.timestamp);
+            } else if (l.timestamp && typeof l.timestamp.toDate === 'function') {
+                d = l.timestamp.toDate();
+            } else if (l.timestamp && l.timestamp.seconds) {
+                d = new Date(l.timestamp.seconds * 1000);
+            } else {
+                d = new Date(l.timestamp);
+            }
+
+            if (isNaN(d.getTime())) return { ...l, isValidDate: false };
+            return {
+                ...l,
+                isValidDate: true,
+                logDate: toKSTDateString(d)
+            };
+        });
+
+        // [Perf] Enrich sales
+        const enrichedSales = sales.map(s => {
+            const rawDate = s.date || s.timestamp;
+            let sDate = null;
+            
+            if (rawDate) {
+                if (typeof rawDate === 'string') {
+                    if (rawDate.includes('T')) {
+                        const d = new Date(rawDate);
+                        if (!isNaN(d.getTime())) sDate = toKSTDateString(d);
+                    } else {
+                        sDate = rawDate; // Already YYYY-MM-DD
+                    }
+                } else if (typeof rawDate.toDate === 'function') {
+                    sDate = toKSTDateString(rawDate.toDate());
+                } else if (rawDate.seconds) {
+                    sDate = toKSTDateString(new Date(rawDate.seconds * 1000));
+                }
+            }
+            return { ...s, parsedDate: sDate };
+        });
+
+        const todayStr = currentTodayKST;
+        const uniqueMembers = members;
+
+        // [New] Multi-attendance Detection (Valid Log Count Base)
+        const attendanceCountMap = {}; // memberId -> total sessions today
+        
+        try {
+            enrichedBranchLogs.forEach(l => {
+                if (!l.isValidDate || l.status === 'denied' || !l.memberId) return;
+                if (l.logDate !== todayStr) return;
+                attendanceCountMap[l.memberId] = (attendanceCountMap[l.memberId] || 0) + 1;
+            });
+        } catch (err) {
+            console.error('[Admin] Error calculating multi-attendance:', err);
+        }
+
+        const multiAttendedMemberIds = Object.keys(attendanceCountMap).filter(id => attendanceCountMap[id] >= 2);
+
+        // Stats Calculation
+        const isMemberInBranch = (m) => currentBranch === 'all' || m.homeBranch === currentBranch;
         const attendedMemberIds = new Set();
-        const attendanceCountMap = {};
-        let statsState = { timeCount: {}, subjectCount: {} };
-        let denied = { total: 0, expired: 0, credits: 0 };
+        
+        let deniedCount = 0;
+        let deniedExpiredCount = 0;
+        let deniedNoCreditsCount = 0;
+        let totalAttendanceToday = 0;
+
+        try {
+            enrichedBranchLogs.forEach(l => {
+                if (!l.isValidDate) return;
+                if (l.logDate === todayStr) {
+                    if (l.status === 'denied') {
+                        deniedCount++;
+                        if (l.denialReason === 'expired') deniedExpiredCount++;
+                        if (l.denialReason === 'no_credits') deniedNoCreditsCount++;
+                    } else {
+                        attendedMemberIds.add(l.memberId);
+                        totalAttendanceToday++;
+                    }
+                }
+            });
+        } catch (err) {
+            console.error('[Admin] Error calculating stats:', err);
+        }
+
+        const checkIsAttended = (m) => attendedMemberIds.has(m.id);
+        const checkIsRegistered = (m) => m.regDate === todayStr;
+
+        const totalMembers = uniqueMembers.filter(m => isMemberInBranch(m)).length;
+        const activeMembers = uniqueMembers.filter(m => isMemberInBranch(m) && isMemberActive(m)).length;
+        const todayAttendance = uniqueMembers.filter(m => isMemberInBranch(m) && checkIsAttended(m)).length;
+
+        // [Logic] Today Registration (New & Re-reg)
+        const todayNewMembers = uniqueMembers.filter(m => isMemberInBranch(m) && checkIsRegistered(m));
+        
+        const memberMapCache = new Map();
+        for (let i = 0; i < uniqueMembers.length; i++) {
+            memberMapCache.set(uniqueMembers[i].id, uniqueMembers[i]);
+        }
+
+        const todaySalesMemberIds = new Set();
+        enrichedSales.forEach(s => {
+            if (!s.parsedDate) return;
+            if (s.parsedDate === todayStr) {
+                if (currentBranch === 'all' || s.branchId === currentBranch || memberMapCache.get(s.memberId)?.homeBranch === currentBranch) {
+                    todaySalesMemberIds.add(s.memberId);
+                }
+            }
+        });
+
+        const todayReRegMembers = uniqueMembers.filter(m => 
+            isMemberInBranch(m) && todaySalesMemberIds.has(m.id) && !checkIsRegistered(m)
+        );
+
+        setTodayReRegMemberIds(todayReRegMembers.map(m => m.id));
+
+        const todayNewCount = todayNewMembers.length;
+        const todayReRegCount = todayReRegMembers.length;
+        const todayRegistrationTotal = todayNewCount + todayReRegCount;
+
+        const expiringMembersCount = uniqueMembers.filter(m => isMemberInBranch(m) && isMemberExpiring(m)).length;
+
+        // [Unified Revenue Logic]
+        const allRevenueItems = [];
+        uniqueMembers.forEach(m => {
+            const amt = Number(m.amount) || 0;
+            if (m.regDate && amt > 0) {
+                if (currentBranch !== 'all' && m.homeBranch !== currentBranch) return;
+                allRevenueItems.push({
+                    id: m.id,
+                    memberId: m.id,
+                    date: m.regDate,
+                    amount: amt,
+                    name: m.name,
+                    type: 'legacy'
+                });
+            }
+        });
+
+        enrichedSales.forEach(s => {
+            if (currentBranch !== 'all') {
+                const member = memberMapCache.get(s.memberId);
+                const memberBranch = member?.homeBranch;
+                const saleBranch = s.branchId;
+                if ((saleBranch && saleBranch !== currentBranch) && (memberBranch && memberBranch !== currentBranch)) return;
+                if (!saleBranch && !memberBranch) return;
+            }
+            if (!s.parsedDate) return;
+
+            allRevenueItems.push({
+                id: s.id,
+                memberId: s.memberId,
+                date: s.parsedDate,
+                amount: Number(s.amount) || 0,
+                name: s.memberName,
+                type: s.type,
+                item: s.item
+            });
+        });
+
+        const memberNameMap = new Map();
+        members.forEach(m => memberNameMap.set(m.name, m.id));
+
+        const uniqueRevenueItems = [];
+        const salesKeys = new Set(
+            allRevenueItems
+                .filter(i => i.type !== 'legacy')
+                .map(i => `${i.memberId || memberNameMap.get(i.name)}-${i.date}`)
+        );
+
+        allRevenueItems.forEach(item => {
+            const resolvedMemberId = item.memberId || memberNameMap.get(item.name);
+            if (item.type === 'legacy') {
+                const key = `${item.memberId}-${item.date}`;
+                if (salesKeys.has(key)) return;
+            }
+            if (!item.memberId && resolvedMemberId) {
+                uniqueRevenueItems.push({ ...item, memberId: resolvedMemberId });
+            } else {
+                uniqueRevenueItems.push(item);
+            }
+        });
+
+        const todayRevenue = uniqueRevenueItems
+            .filter(i => i.date === todayStr)
+            .reduce((sum, item) => sum + item.amount, 0);
+
+        const currentMonthStr = todayStr.substring(0, 7);
+        const monthlyRevenue = uniqueRevenueItems
+            .filter(i => i.date.startsWith(currentMonthStr))
+            .reduce((sum, item) => sum + item.amount, 0);
+
+        // [Fix] Restore Missing Variables for Push Count
+        const instructorNamesWithPush = new Set();
+        pushTokens.forEach(t => {
+            if (t.instructorName) instructorNamesWithPush.add(t.instructorName);
+        });
+
+        const newSummary = {
+            totalMembers,
+            activeMembers,
+            todayAttendance,
+            totalAttendanceToday,
+            todayRegistration: todayRegistrationTotal,
+            todayNewCount,
+            todayReRegCount,
+            totalRevenueToday: todayRevenue,
+            monthlyRevenue,
+            expiringMembersCount,
+            todayReRegMemberIds: todayReRegMembers.map(m => m.id),
+            multiAttendedMemberIds,
+            attendanceCountMap,
+            deniedCount,
+            deniedExpiredCount,
+            deniedNoCreditsCount,
+            installedCount: uniqueMembers.filter(m => isMemberInBranch(m) && pushTokens.some(t => t.memberId === m.id)).length,
+            todayInstalledCount: uniqueMembers.filter(m => isMemberInBranch(m) && m.installedAt && toKSTDateString(m.installedAt) === todayStr).length,
+            pushEnabledCount: uniqueMembers.filter(m => isMemberInBranch(m) && pushTokens.some(t => t.memberId === m.id) && m.pushEnabled !== false).length,
+            instructorPushCount: instructorNamesWithPush.size,
+            installRatio: activeMembers > 0 ? Math.round((uniqueMembers.filter(m => isMemberInBranch(m) && pushTokens.some(t => t.memberId === m.id)).length / activeMembers) * 100) : 0,
+            reachableRatio: activeMembers > 0 ? Math.round((uniqueMembers.filter(m => isMemberInBranch(m) && pushTokens.some(t => t.memberId === m.id) && m.pushEnabled !== false).length / activeMembers) * 100) : 0
+        };
+        setSummary(newSummary);
+
+        // Today's Classes Calculation
+        const todayLogs = enrichedBranchLogs.filter(l => 
+            l.isValidDate && l.logDate === todayStr && (currentBranch === 'all' || l.branchId === currentBranch)
+        );
+
         const classGroups = {};
 
-        branchLogs.forEach(l => {
-            const d = safeParseDate(l.timestamp);
-            if (isNaN(d.getTime())) return;
-            const logDate = toKSTDateString(d);
+        todayLogs.forEach(log => {
+            const info = guessClassInfo(log);
+            const classTime = info?.startTime || '00:00';
+            const canonicalClassName = info?.className || log.className || '일반';
+            const canonicalInstructor = info?.instructor || log.instructor || '선생님';
+
+            const key = `${canonicalClassName}-${canonicalInstructor}-${log.branchId}-${classTime}`;
             
-            // Time Stats
-            const hourKey = `${d.getHours()}:00`;
-            statsState.timeCount[hourKey] = (statsState.timeCount[hourKey] || 0) + 1;
-            if (l.subject) statsState.subjectCount[l.subject] = (statsState.subjectCount[l.subject] || 0) + 1;
-
-            if (logDate === currentTodayKST) {
-                if (l.status === 'denied') {
-                    denied.total++;
-                    if (l.denialReason === 'expired') denied.expired++;
-                    if (l.denialReason === 'no_credits') denied.credits++;
-                } else if (l.memberId) {
-                    attendedMemberIds.add(l.memberId);
-                    attendanceCountMap[l.memberId] = (attendanceCountMap[l.memberId] || 0) + 1;
-                    if (l.facialMatched) {
-                        statsState.todayFacialMatchCount = (statsState.todayFacialMatchCount || 0) + 1;
-                    }
-                }
-
-                // Class Grouping
-                const info = guessClassInfo(l, config.DEFAULT_SCHEDULE_TEMPLATE);
-                const classTime = info?.startTime || '00:00';
-                const cName = info?.className || l.className || '일반';
-                const inst = info?.instructor || l.instructor || '선생님';
-                const gKey = `${cName}-${inst}-${l.branchId}-${classTime}`;
-                
-                if (!classGroups[gKey]) {
-                    classGroups[gKey] = { className: cName, instructor: inst, branchId: l.branchId, classTime, count: 0, deniedCount: 0, memberNames: [] };
-                }
-                if (l.status === 'denied') classGroups[gKey].deniedCount++;
-                else {
-                    classGroups[gKey].count++;
-                    if (l.memberName && (attendanceCountMap[l.memberId] >= 2 || l.sessionCount > 1)) {
-                        if (!classGroups[gKey].memberNames.includes(l.memberName)) classGroups[gKey].memberNames.push(l.memberName);
+            if (!classGroups[key]) {
+                classGroups[key] = {
+                    className: canonicalClassName,
+                    instructor: canonicalInstructor,
+                    branchId: log.branchId,
+                    classTime: classTime,
+                    count: 0,
+                    deniedCount: 0,
+                    memberNames: []
+                };
+            }
+            if (log.status === 'denied') {
+                classGroups[key].deniedCount++;
+            } else {
+                classGroups[key].count++;
+                if (log.memberName && (multiAttendedMemberIds.includes(log.memberId) || log.sessionCount > 1 || log.isMultiSession)) {
+                    if (!classGroups[key].memberNames.includes(log.memberName)) {
+                        classGroups[key].memberNames.push(log.memberName);
                     }
                 }
             }
         });
-
-        // 2. Members & Sales Processing (Revenue & Status)
-        const memberMap = new Map(members.map(m => [m.id, m]));
-        const todayRevenue = { total: 0, monthly: 0 };
-        const currentMonthStr = currentTodayKST.substring(0, 7);
-        const todaySalesMemberIds = new Set();
-
-        sales.forEach(s => {
-            const rawDate = s.date || s.timestamp;
-            let sDate = toKSTDateString(rawDate);
-            if (!sDate) return;
-
-            const member = memberMap.get(s.memberId);
-            const branchMatch = currentBranch === 'all' || s.branchId === currentBranch || member?.homeBranch === currentBranch;
-            if (!branchMatch) return;
-
-            const amt = Number(s.amount) || 0;
-            if (sDate === currentTodayKST) {
-                todayRevenue.total += amt;
-                todaySalesMemberIds.add(s.memberId);
-            }
-            if (sDate.startsWith(currentMonthStr)) todayRevenue.monthly += amt;
+        
+        const newTodayClasses = Object.values(classGroups).sort((a, b) => {
+            if (!a.classTime) return 1;
+            if (!b.classTime) return -1;
+            return b.classTime.localeCompare(a.classTime);
         });
+        setTodayClasses(newTodayClasses);
 
-        // Combined Summary Update
-        const activeInBranch = members.filter(m => currentBranch === 'all' || m.homeBranch === currentBranch);
-        const expiringInBranch = activeInBranch.filter(isMemberExpiring);
-        const instructorNamesWithPush = new Set(pushTokens.filter(t => t.instructorName).map(t => t.instructorName));
+        console.timeEnd('[Admin] Calculate Derived Data');
 
-        setStats({
-            byTime: Object.entries(statsState.timeCount).sort((a, b) => b[1] - a[1]),
-            bySubject: Object.entries(statsState.subjectCount).sort((a, b) => b[1] - a[1])
-        });
-
-        setSummary({
-            totalMembers: activeInBranch.length,
-            activeMembers: activeInBranch.filter(isMemberActive).length,
-            todayAttendance: attendedMemberIds.size,
-            totalRevenueToday: todayRevenue.total,
-            monthlyRevenue: todayRevenue.monthly,
-            expiringMembersCount: expiringInBranch.length,
-            deniedCount: denied.total,
-            deniedExpiredCount: denied.expired,
-            deniedNoCreditsCount: denied.credits,
-            installedCount: activeInBranch.filter(m => pushTokens.some(t => t.memberId === m.id)).length,
-            pushEnabledCount: activeInBranch.filter(m => pushTokens.some(t => t.memberId === m.id) && m.pushEnabled !== false).length,
-            instructorPushCount: instructorNamesWithPush.size,
-            facialDataCount: activeInBranch.filter(m => m.hasFaceDescriptor).length,
-            facialDataRatio: activeInBranch.length > 0 ? Math.round((activeInBranch.filter(m => m.hasFaceDescriptor).length / activeInBranch.length) * 100) : 0,
-            bioMissingCount: activeInBranch.filter(m => !m.hasFaceDescriptor).length,
-            todayFacialMatchCount: statsState.todayFacialMatchCount || 0,
-            todayFacialRatio: attendedMemberIds.size > 0 ? Math.round(((statsState.todayFacialMatchCount || 0) / attendedMemberIds.size) * 100) : 0
-        });
-
-        setTodayClasses(Object.values(classGroups).sort((a, b) => b.classTime.localeCompare(a.classTime)));
-        setTodayReRegMemberIds(activeInBranch.filter(m => todaySalesMemberIds.has(m.id) && m.regDate !== currentTodayKST).map(m => m.id));
-
-        // [FIX] Call missing stats algorithms so StatsTab has correctly formatted arrays instead of `{}`.
-        calculateStats(branchLogs);
-        calculateChartData(sales, activeInBranch, isMemberActive);
-
-        console.timeEnd('[Admin] Optimized Data Pass');
-    }, [isInitialLoadDone, members, logs, sales, currentBranch, pushTokens, isMemberActive, isMemberExpiring, calculateStats, calculateChartData]);
+    }, [isInitialLoadDone, members, logs, sales, currentBranch, pushTokens, isMemberActive, isMemberExpiring, calculateStats]);
 
     const refreshData = useCallback(async () => {
         // [Legacy Support] Force full refresh
@@ -532,9 +485,20 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         await loadInitialData();
     }, [loadInitialData]);
 
-    // [GULL] Subscriptions (Unified baseline subscriptions - handled in the GULL pipeline above)
-    // Legacy subscription logic removed to prevent double-firing and memory leaks.
+    // Subscriptions
+    useEffect(() => {
+        loadInitialData();
+        const unsubscribe = storageService.subscribe(handleDataUpdate);
+        // AI Pending Approvals (New)
+        const unsubPending = storageService.getPendingApprovals((items) => {
+            setPendingApprovals(items);
+        });
 
+        return () => {
+            unsubscribe();
+            if (unsubPending) unsubPending();
+        };
+    }, [loadInitialData, handleDataUpdate]);
 
     const handleApprovePush = async (id, title) => {
         if (confirm(`'${title}' 메시지 발송을 승인하시겠습니까?`)) {
@@ -556,12 +520,103 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         }
     };
 
+    // [Feature 1] Chart Data States
+    const [revenueTrend, setRevenueTrend] = useState([]);
+    const [memberStatusDist, setMemberStatusDist] = useState([]);
+
+    useEffect(() => {
+        if (activeTab === 'members' && summary.activeMembers > 0) {
+            loadAIInsight(members, logs, summary, todayClasses);
+        }
+    }, [activeTab, summary, loadAIInsight, members, logs, todayClasses]);
+
+    // [Feature 1] Calculate Chart Data (Memoized or inside refreshData)
+    const calculateChartData = useCallback((currentSales, uniqueMembers, isMemberActiveFn) => {
+        // [PERF FIX] O(N^2) 병목 제거: uniqueMembers 배열 순회를 O(1) Map 검색으로 대체
+        const memberMap = new Map();
+        for (let i = 0; i < uniqueMembers.length; i++) {
+            memberMap.set(uniqueMembers[i].id, uniqueMembers[i]);
+        }
+
+        // 1. Revenue Trend (Last 6 Months)
+        const trends = [];
+        const today = new Date();
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const key = `${yyyy}-${mm}`;
+
+            const monthRevenue = currentSales
+                .filter(s => {
+                    const rawDate = s.date || s.timestamp;
+                    if (!rawDate) return false;
+                    
+                    let sMonthKey;
+                    if (rawDate.includes('T')) {
+                        // KST conversion for ISO strings
+                        sMonthKey = toKSTDateString(rawDate).substring(0, 7);
+                    } else {
+                        sMonthKey = rawDate.substring(0, 7);
+                    }
+
+                    // [PERF FIX] array.find() -> map.get()
+                    const member = memberMap.get(s.memberId);
+                    const branchMatch = currentBranch === 'all' || s.branchId === currentBranch || member?.homeBranch === currentBranch;
+                    
+                    return sMonthKey === key && branchMatch;
+                })
+                .reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
+
+            trends.push({ month: `${mm}월`, amount: monthRevenue, fullKey: key });
+        }
+        setRevenueTrend(trends);
+
+        // 2. Member Status Distribution
+        // Active: Currently attending (Active & Attended within 14 days)
+        // Dormant: Active but no attendance > 14 days
+        // Expired: No credits or expired date
+        let activeCount = 0;
+        let dormantCount = 0;
+        let expiredCount = 0;
+
+        const twoWeeksAgo = new Date();
+        twoWeeksAgo.setDate(today.getDate() - 14);
+
+        uniqueMembers.filter(m => currentBranch === 'all' || m.homeBranch === currentBranch).forEach(m => {
+            const isActive = isMemberActiveFn(m);
+            if (!isActive) {
+                expiredCount++;
+            } else {
+                // Check dormancy
+                let lastAttDate = m.lastAttendance ? new Date(m.lastAttendance) : null;
+                // If no lastAttendance, check join date? Or assume dormant if old reg?
+                // Simple logic: if Active and lastAtt < 14 days ago -> Active, else Dormant
+                if (lastAttDate && lastAttDate >= twoWeeksAgo) {
+                    activeCount++;
+                } else if (m.regDate && new Date(m.regDate) >= twoWeeksAgo && !lastAttDate) {
+                    // New member (joined < 14 days) but no attendance yet -> Treat as Active (New)
+                    activeCount++;
+                } else {
+                    dormantCount++;
+                }
+            }
+        });
+
+        setMemberStatusDist([
+            { name: '활동중', value: activeCount },
+            { name: '주춤(잠듦)', value: dormantCount },
+            { name: '만료', value: expiredCount }
+        ]);
+
+    }, [currentBranch]);
+
     // Hook into refreshData to trigger chart calc
     useEffect(() => {
         if (members.length > 0) {
             calculateChartData(sales, members, isMemberActive);
         }
-    }, [members, sales, calculateChartData, isMemberActive]);
+    }, [calculateStats, members, sales, calculateChartData, isMemberActive]);
 
 
     // [Added] AI Quota Check
