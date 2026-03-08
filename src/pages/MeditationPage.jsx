@@ -16,6 +16,7 @@ import { useMeditationAI } from '../hooks/useMeditationAI';
 import { useTypewriter } from '../hooks/useTypewriter';
 import { useWeatherAwareness } from '../hooks/useWeatherAwareness';
 import { AILoadingIndicator } from '../components/meditation/ui/AILoadingIndicator';
+import { useStudioConfig } from '../contexts/StudioContext';
 
 // ✅ Typewriter Component for smooth text appearance
 const TypewriterText = ({ text, speed = 40 }) => {
@@ -54,13 +55,12 @@ import { PoseCanvas } from '../components/meditation/ui/PoseCanvas';
 import { VolumeControlPanel } from '../components/meditation/ui/VolumeControlPanel';
 import { FeedbackView } from '../components/meditation/ui/FeedbackView';
 import { MeditationDebugOverlay } from '../components/meditation/MeditationDebugOverlay';
-import { Icons as PhosphorIcons } from '../components/CommonIcons';
+import {
+    Play, Pause, X, Wind, SpeakerHigh, SpeakerSlash, Brain, Microphone, VideoCamera,
+    LockKey, Heartbeat, SmileySad, Lightning, Barbell, Sparkle, Sun, CloudRain,
+    CloudSnow, Cloud, User
+} from '../components/CommonIcons';
 import { storageService } from '../services/storage';
-const { 
-    Play, Pause, X, Wind, SpeakerHigh, SpeakerSlash, Brain, Microphone, VideoCamera, 
-    LockKey, Heartbeat, SmileySad, Lightning, Barbell, Sparkle, Sun, CloudRain, 
-    CloudSnow, Cloud
-} = PhosphorIcons;
 
 // [HOTFIX] Local ArrowLeft to prevent 'Ar' ReferenceError
 const ArrowLeft = ({ size = 24, color = "currentColor" }) => (
@@ -86,6 +86,7 @@ const SELECTED_DIAGNOSIS_FALLBACK = DIAGNOSIS_OPTIONS[0];
 
 
 const MeditationPage = ({ onClose }) => {
+    const { config } = useStudioConfig();
     const navigate = useNavigate();
     
     // Stable Refs for cleanup without re-triggering effects
@@ -402,7 +403,7 @@ const MeditationPage = ({ onClose }) => {
         ctx.clearRect(0, 0, width, height);
         
         // 🎨 Draw Golden Skeleton
-        ctx.strokeStyle = '#d4af37'; // Gold
+        ctx.strokeStyle = config.THEME?.PRIMARY_COLOR || '#d4af37'; // Gold
         ctx.lineWidth = 4;
         ctx.lineJoin = 'round';
         ctx.lineCap = 'round';
@@ -606,7 +607,7 @@ const MeditationPage = ({ onClose }) => {
     const startMessageLoop = () => {
         if (messageIntervalRef.current) clearInterval(messageIntervalRef.current);
         
-        // ⚡ 연속 폴백 카운터 리셋
+        // ⚡ 연속 폴백 재시도 횟수 리셋
         consecutiveFailsRef.current = 0;
         
         // First message - try AI
@@ -961,7 +962,7 @@ const MeditationPage = ({ onClose }) => {
     if (step === 'initial_prep') {
         return (
             <div style={{
-                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 9999,
+                position: 'fixed', inset: 0, background: config.THEME?.BACKGROUND || '#0a0a0c', zIndex: 9999,
                 display: 'flex', flexDirection: 'column', padding: '20px', overflow: 'hidden'
             }}>
                 <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
@@ -990,7 +991,7 @@ const MeditationPage = ({ onClose }) => {
                                 borderRadius: '15px', padding: '15px', marginTop: '10px',
                                 textAlign: 'left', fontSize: '0.85rem'
                             }}>
-                                <div style={{ color: '#4c9bfb', fontWeight: 700, marginBottom: '5px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                <div style={{ color: config.THEME?.PRIMARY_COLOR || '#4c9bfb', fontWeight: 700, marginBottom: '5px', display: 'flex', alignItems: 'center', gap: '5px' }}>
                                     <SpeakerHigh size={14} weight="fill" /> 안심하세요
                                 </div>
                                 <div style={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
@@ -1019,7 +1020,7 @@ const MeditationPage = ({ onClose }) => {
         if (isOptionsLoading) {
              return (
                 <div style={{
-                    position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 9999,
+                    position: 'fixed', inset: 0, background: config.THEME?.BACKGROUND || '#0a0a0c', zIndex: 9999,
                     display: 'flex', flexDirection: 'column',
                     justifyContent: 'center', alignItems: 'center', overflow: 'hidden'
                 }}>
@@ -1044,7 +1045,7 @@ const MeditationPage = ({ onClose }) => {
         if (!selectedCategory) {
             return (
                 <div style={{
-                    position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 9999,
+                    position: 'fixed', inset: 0, background: config.THEME?.BACKGROUND || '#0a0a0c', zIndex: 9999,
                     display: 'flex', flexDirection: 'column', overflow: 'hidden'
                 }}>
                     <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
@@ -1103,7 +1104,7 @@ const MeditationPage = ({ onClose }) => {
                         {/* Title */}
                         <div style={{ textAlign: 'center', marginBottom: '50px' }}>
                             <h2 style={{ 
-                                fontSize: '1.6rem', fontWeight: 600, color: '#4c9bfb', 
+                                fontSize: '1.6rem', fontWeight: 600, color: config.THEME?.PRIMARY_COLOR || '#4c9bfb', 
                                 marginBottom: '15px', lineHeight: 1.4
                             }}>
                                 지금 당신의 마음은<br/>어디를 향하고 있나요?
@@ -1133,7 +1134,7 @@ const MeditationPage = ({ onClose }) => {
                                     }}
                                     onMouseEnter={(e) => {
                                         e.currentTarget.style.background = 'rgba(76, 155, 251, 0.15)';
-                                        e.currentTarget.style.borderColor = '#4c9bfb';
+                                        e.currentTarget.style.borderColor = config.THEME?.PRIMARY_COLOR || '#4c9bfb';
                                         e.currentTarget.style.transform = 'translateY(-2px)';
                                     }}
                                     onMouseLeave={(e) => {
@@ -1166,7 +1167,7 @@ const MeditationPage = ({ onClose }) => {
         
         return (
             <div style={{
-                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 9999,
+                position: 'fixed', inset: 0, background: config.THEME?.BACKGROUND || '#0a0a0c', zIndex: 9999,
                 display: 'flex', flexDirection: 'column', overflow: 'hidden'
             }}>
                 <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
@@ -1206,7 +1207,7 @@ const MeditationPage = ({ onClose }) => {
                         {/* Title */}
                         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
                             <h2 style={{ 
-                                fontSize: '1.5rem', fontWeight: 600, color: '#4c9bfb', 
+                                fontSize: '1.5rem', fontWeight: 600, color: config.THEME?.PRIMARY_COLOR || '#4c9bfb', 
                                 marginBottom: '10px' 
                             }}>
                                 조금 더 구체적으로 들여다볼까요?
@@ -1256,7 +1257,7 @@ const MeditationPage = ({ onClose }) => {
     if (step === 'diagnosis') {
         return (
             <div style={{
-                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 9999, // 🌑 Dark Mode
+                position: 'fixed', inset: 0, background: config.THEME?.BACKGROUND || '#0a0a0c', zIndex: 9999, // 🌑 Dark Mode
                 display: 'flex', flexDirection: 'column', overflow: 'hidden'
             }}>
                 <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
@@ -1283,9 +1284,9 @@ const MeditationPage = ({ onClose }) => {
                                 <ArrowLeft size={22} color="white" />
                             </button>
                             <div onClick={handleDebugToggle} style={{ marginLeft: '10px', display: 'flex', flexDirection: 'column', cursor: 'pointer' }}>
-                                <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>복순 (마음 챙김이)</span>
+                                <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>{config.AI_CONFIG?.NAME || 'AI'} (마음 챙김이)</span>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <SpeakerHigh size={12} color={ttcEnabled ? "#4caf50" : "#666"} weight="fill" />
+                                    <SpeakerHigh size={12} color={ttcEnabled ? (config.THEME?.SUCCESS_COLOR || "#4caf50") : "#666"} weight="fill" />
                                     <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)' }}>
                                         {isAnalyzing ? (
                                             <span className="blinking-text">분석 중...</span> // ✅ Blinking Effect
@@ -1303,8 +1304,8 @@ const MeditationPage = ({ onClose }) => {
                                     padding: '6px 12px',
                                     borderRadius: '20px',
                                     background: 'rgba(76, 155, 251, 0.2)',
-                                    border: '1px solid #4c9bfb',
-                                    color: '#4c9bfb',
+                                    border: `1px solid ${config.THEME?.PRIMARY_COLOR || '#4c9bfb'}`,
+                                    color: config.THEME?.PRIMARY_COLOR || '#4c9bfb',
                                     fontSize: '0.8rem',
                                     fontWeight: '600',
                                     cursor: 'pointer'
@@ -1345,7 +1346,7 @@ const MeditationPage = ({ onClose }) => {
                                     )}
                                     <div style={{ display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: '6px' }}>
                                          <div style={{
-                                             background: isMe ? 'linear-gradient(135deg, #d4af37, #f1c40f)' : 'rgba(255,255,255,0.08)',
+                                             background: isMe ? `linear-gradient(135deg, ${config.THEME?.PRIMARY_COLOR || '#d4af37'}, #f1c40f)` : 'rgba(255,255,255,0.08)',
                                              color: isMe ? '#000' : '#fff', padding: '12px 16px',
                                              borderRadius: isMe ? '18px 4px 18px 18px' : '4px 18px 18px 18px',
                                              maxWidth: '75vw', fontSize: '0.95rem', lineHeight: '1.6',
@@ -1365,10 +1366,11 @@ const MeditationPage = ({ onClose }) => {
                              <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', gap: '8px' }}>
                                  <div style={{
                                      width: '40px', height: '40px', borderRadius: '50%',
-                                     background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                     overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0
+                                     background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                     overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0,
+                                     color: 'var(--primary-gold)'
                                  }}>
-                                      <img src="/pwa-192x192.png" alt="AI" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display='none'; e.target.parentNode.innerText='🧘‍♀️'; }} />
+                                       <User size={24} weight="fill" />
                                  </div>
                                  <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', gap: '6px' }}>
                                      <div style={{
@@ -1385,7 +1387,7 @@ const MeditationPage = ({ onClose }) => {
 
                         {isAILoading && (
                              <div style={{ alignSelf: 'center', marginTop: '10px' }}>
-                                 <AILoadingIndicator compact={true} message={chatHistory.length === 0 ? "AI 복순이가 당신의 마음을 듣고 있어요..." : null} />
+                                 <AILoadingIndicator compact={true} message={chatHistory.length === 0 ? `AI ${config.AI_CONFIG?.NAME || 'AI'}가 당신의 마음을 듣고 있어요...` : null} />
                              </div>
                         )}
                         <div ref={chatEndRef} style={{ height: '2px', width: '100%' }} />
@@ -1393,7 +1395,7 @@ const MeditationPage = ({ onClose }) => {
 
                     {/* 3. Bottom Options & Input */}
                     <div style={{
-                        background: '#1a1a1d', borderTop: '1px solid rgba(255,255,255,0.1)',
+                        background: config.THEME?.SURFACE || '#1a1a1d', borderTop: '1px solid rgba(255,255,255,0.1)',
                         padding: '15px', paddingBottom: 'calc(15px + env(safe-area-inset-bottom))',
                         display: 'flex', flexDirection: 'column', gap: '12px', zIndex: 20
                     }}>
@@ -1463,7 +1465,7 @@ const MeditationPage = ({ onClose }) => {
     if (step === 'diagnosis_manual') {
         return (
             <div style={{
-                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 2000,
+                position: 'fixed', inset: 0, background: config.THEME?.BACKGROUND || '#0a0a0c', zIndex: 2000,
                 display: 'flex', flexDirection: 'column', padding: '20px', overflow: 'hidden'
             }}>
                 <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
@@ -1518,7 +1520,7 @@ const MeditationPage = ({ onClose }) => {
     if (step === 'weather') {
         return (
              <div style={{
-                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 2000,
+                position: 'fixed', inset: 0, background: config.THEME?.BACKGROUND || '#0a0a0c', zIndex: 2000,
                 display: 'flex', flexDirection: 'column', padding: '20px', overflow: 'hidden'
             }}>
                 <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
@@ -1572,7 +1574,7 @@ const MeditationPage = ({ onClose }) => {
         const summary = currentAIChat?.analysisSummary || prescriptionReason || "당신의 마음 상태를 깊이 들여다보았습니다.";
         return (
             <div style={{
-                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 2000,
+                position: 'fixed', inset: 0, background: config.THEME?.BACKGROUND || '#0a0a0c', zIndex: 2000,
                 display: 'flex', flexDirection: 'column', padding: '20px', overflow: 'hidden'
             }}>
                 <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
@@ -1623,7 +1625,7 @@ const MeditationPage = ({ onClose }) => {
     if (step === 'interaction_select') {
         return (
             <div style={{
-                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 2000,
+                position: 'fixed', inset: 0, background: config.THEME?.BACKGROUND || '#0a0a0c', zIndex: 2000,
                 display: 'flex', flexDirection: 'column', padding: '20px', overflow: 'hidden'
             }}>
                 <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
@@ -1706,7 +1708,7 @@ const MeditationPage = ({ onClose }) => {
         
         return (
             <div style={{
-                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 2000,
+                position: 'fixed', inset: 0, background: config.THEME?.BACKGROUND || '#0a0a0c', zIndex: 2000,
                 display: 'flex', flexDirection: 'column', padding: '20px', overflow: 'hidden'
             }}>
                 <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
@@ -1733,7 +1735,7 @@ const MeditationPage = ({ onClose }) => {
                         }}>
                             {/* 1. AI Analysis */}
                             <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '15px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)', lineHeight: 1.6 }}>
-                                <div style={{ color: 'var(--primary-gold)', fontWeight: 700, marginBottom: '8px', fontSize: '0.85rem' }}>📋 AI 복순이의 심리 분석</div>
+                                 <div style={{ color: 'var(--primary-gold)', fontWeight: 700, marginBottom: '8px', fontSize: '0.85rem' }}>📋 AI 심리 분석 결과</div>
                                 <div>{currentAIChat?.isFinalAnalysis ? (currentAIChat.analysisSummary || prescriptionReason) : prescriptionReason}</div>
                             </div>
 
@@ -1842,7 +1844,7 @@ const MeditationPage = ({ onClose }) => {
 
         return (
             <div style={{
-                position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 2000,
+                position: 'fixed', inset: 0, background: config.THEME?.BACKGROUND || '#0a0a0c', zIndex: 2000,
                 display: 'flex', flexDirection: 'column', padding: '20px', overflow: 'hidden'
             }}>
                 <div className={`soul-light-base soul-theme-${visualTheme} active`} style={{ transition: 'all 1s ease', opacity: 0.4 }} />
@@ -1885,7 +1887,7 @@ const MeditationPage = ({ onClose }) => {
                                         borderRadius: '15px', padding: '15px', marginTop: '10px',
                                         textAlign: 'left', fontSize: '0.85rem'
                                     }}>
-                                        <div style={{ color: '#4c9bfb', fontWeight: 700, marginBottom: '5px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <div style={{ color: config.THEME?.PRIMARY_COLOR || '#4c9bfb', fontWeight: 700, marginBottom: '5px', display: 'flex', alignItems: 'center', gap: '5px' }}>
                                             <SpeakerHigh size={14} weight="fill" /> 안심하세요
                                         </div>
                                         <div style={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
@@ -1956,7 +1958,7 @@ const MeditationPage = ({ onClose }) => {
                                     {interactionType === 'v2' && (
                                         <div style={{ 
                                             marginTop: '20px', padding: '12px', background: 'rgba(74, 222, 128, 0.1)', 
-                                            borderRadius: '12px', border: '1px solid rgba(74, 222, 128, 0.2)', fontSize: '0.85rem', color: '#4ade80'
+                                            borderRadius: '12px', border: `1px solid ${config.THEME?.SUCCESS_COLOR || '#4ade80'}33`, fontSize: '0.85rem', color: config.THEME?.SUCCESS_COLOR || '#4ade80'
                                         }}>💡 <b>Tip:</b> 마이크가 포함된 이어폰을 사용하시면 숨소리를 훨씬 더 정확하게 감지할 수 있어요.</div>
                                     )}
                                 </div>
@@ -2008,7 +2010,7 @@ const MeditationPage = ({ onClose }) => {
 
     return (
         <div style={{
-            position: 'fixed', inset: 0, background: '#0a0a0c', zIndex: 3000,
+            position: 'fixed', inset: 0, background: config.THEME?.BACKGROUND || '#0a0a0c', zIndex: 3000,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             overflow: 'hidden'
         }}>
@@ -2077,7 +2079,7 @@ const MeditationPage = ({ onClose }) => {
                         marginTop: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
                         animation: 'fadeIn 0.5s ease'
                     }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: micVolume > 0.1 ? '#4ade80' : 'rgba(255,255,255,0.3)', transition: 'color 0.2s' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: micVolume > 0.1 ? (config.THEME?.SUCCESS_COLOR || '#4ade80') : 'rgba(255,255,255,0.3)', transition: 'color 0.2s' }}>
                             <Microphone size={20} weight={micVolume > 0.1 ? "fill" : "regular"} style={{ transform: `scale(${1 + Math.min(micVolume, 0.5)})` }} />
                             <span style={{ fontSize: '0.8rem', fontWeight: 600, letterSpacing: '1px' }}>BREATH LEVEL</span>
                         </div>
@@ -2088,13 +2090,13 @@ const MeditationPage = ({ onClose }) => {
                             <div style={{ 
                                 height: '100%', 
                                 width: `${Math.min(micVolume * 100, 100)}%`, 
-                                background: 'linear-gradient(90deg, #4ade80, #32ff7e)',
+                                background: `linear-gradient(90deg, ${config.THEME?.SUCCESS_COLOR || '#4ade80'}, #32ff7e)`,
                                 transition: 'width 0.1s ease-out',
                                 boxShadow: '0 0 10px rgba(74, 222, 128, 0.5)'
                             }} />
                         </div>
                         {micVolume > 0.1 && (
-                            <span style={{ fontSize: '0.7rem', color: '#4ade80', animation: 'pulse 1s infinite' }}>감지 중...</span>
+                            <span style={{ fontSize: '0.7rem', color: config.THEME?.SUCCESS_COLOR || '#4ade80', animation: 'pulse 1s infinite' }}>감지 중...</span>
                         )}
                     </div>
                 )}
@@ -2108,14 +2110,14 @@ const MeditationPage = ({ onClose }) => {
                     ) : (
                         (interactionType === 'v2' || interactionType === 'v3') && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>
-                                <LockKey size={12} weight="fill" color="#4ade80" /> 데이터는 기기 내에서만 처리됩니다
+                                <LockKey size={12} weight="fill" color={config.THEME?.SUCCESS_COLOR || "#4ade80"} /> 데이터는 기기 내에서만 처리됩니다
                             </div>
                         )
                     )}
                 </div>
                 
                 {permissionError && (
-                    <div style={{ marginTop: '20px', padding: '10px', background: 'rgba(255,0,0,0.2)', color: '#ff6b6b', borderRadius: '8px', fontSize: '0.9rem' }}>
+                    <div style={{ marginTop: '20px', padding: '10px', background: `${config.THEME?.DANGER_COLOR || '#ff6b6b'}33`, color: config.THEME?.DANGER_COLOR || '#ff6b6b', borderRadius: '8px', fontSize: '0.9rem' }}>
                         ⚠️ {permissionError}
                     </div>
                 )}

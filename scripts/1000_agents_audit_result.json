@@ -1,0 +1,2619 @@
+{
+  "summary": {
+    "totalFilesScanned": 0,
+    "categories": {
+      "memoryLeaks": 6,
+      "reactAntiPatterns": 9,
+      "securityRisks": 12,
+      "hardcodedStrings": 491,
+      "unhandledPromises": 1,
+      "accessibility": 1,
+      "architecture": 4
+    }
+  },
+  "details": {
+    "memoryLeaks": [
+      {
+        "file": "components\\checkin\\DigitalClock.jsx",
+        "issue": "Potential missing cleanup for interval/listener in useEffect"
+      },
+      {
+        "file": "components\\common\\CustomDatePicker.jsx",
+        "issue": "Potential missing cleanup for interval/listener in useEffect"
+      },
+      {
+        "file": "components\\common\\ImageLightbox.jsx",
+        "issue": "Potential missing cleanup for interval/listener in useEffect"
+      },
+      {
+        "file": "components\\meditation\\ui\\AILoadingIndicator.jsx",
+        "issue": "Potential missing cleanup for interval/listener in useEffect"
+      },
+      {
+        "file": "pages\\CheckInPage.jsx",
+        "issue": "Potential missing cleanup for interval/listener in useEffect"
+      },
+      {
+        "file": "pages\\MemberProfile.jsx",
+        "issue": "Potential missing cleanup for interval/listener in useEffect"
+      }
+    ],
+    "reactAntiPatterns": [
+      {
+        "file": "components\\admin\\tabs\\LogsTab.jsx",
+        "issue": "Found 11 inline functions in render (performance hit)"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "issue": "Found 18 inline functions in render (performance hit)"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "issue": "Found 11 inline functions in render (performance hit)"
+      },
+      {
+        "file": "components\\AdminScheduleManager.jsx",
+        "issue": "Found 10 inline functions in render (performance hit)"
+      },
+      {
+        "file": "components\\profile\\AttendanceHistory.jsx",
+        "issue": "Found 6 inline functions in render (performance hit)"
+      },
+      {
+        "file": "components\\profile\\ProfileTabs.jsx",
+        "issue": "Found 7 inline functions in render (performance hit)"
+      },
+      {
+        "file": "components\\profile\\tabs\\ScheduleTab.jsx",
+        "issue": "Found 6 inline functions in render (performance hit)"
+      },
+      {
+        "file": "pages\\AdminDashboard.jsx",
+        "issue": "Found 13 inline functions in render (performance hit)"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "issue": "Found 28 inline functions in render (performance hit)"
+      }
+    ],
+    "securityRisks": [
+      {
+        "file": "components\\common\\InstallBanner.jsx",
+        "issue": "Uses localStorage directly (Warning: sensitive data exposure risk)"
+      },
+      {
+        "file": "components\\instructor\\InstructorHome.jsx",
+        "issue": "Uses localStorage directly (Warning: sensitive data exposure risk)"
+      },
+      {
+        "file": "context\\LanguageContext.jsx",
+        "issue": "Uses localStorage directly (Warning: sensitive data exposure risk)"
+      },
+      {
+        "file": "main.jsx",
+        "issue": "Uses localStorage directly (Warning: sensitive data exposure risk)"
+      },
+      {
+        "file": "pages\\AdminDashboard.jsx",
+        "issue": "Uses localStorage directly (Warning: sensitive data exposure risk)"
+      },
+      {
+        "file": "pages\\InstructorPage.jsx",
+        "issue": "Uses localStorage directly (Warning: sensitive data exposure risk)"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "issue": "Uses localStorage directly (Warning: sensitive data exposure risk)"
+      },
+      {
+        "file": "pages\\MemberProfile.jsx",
+        "issue": "Uses localStorage directly (Warning: sensitive data exposure risk)"
+      },
+      {
+        "file": "services\\attendanceService.js",
+        "issue": "Uses localStorage directly (Warning: sensitive data exposure risk)"
+      },
+      {
+        "file": "services\\memberService.js",
+        "issue": "Uses localStorage directly (Warning: sensitive data exposure risk)"
+      },
+      {
+        "file": "services\\modules\\aiModule.js",
+        "issue": "Uses localStorage directly (Warning: sensitive data exposure risk)"
+      },
+      {
+        "file": "services\\storage.js",
+        "issue": "Uses localStorage directly (Warning: sensitive data exposure risk)"
+      }
+    ],
+    "hardcodedStrings": [
+      {
+        "file": "App.jsx",
+        "line": 24,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "App.jsx",
+        "line": 28,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "App.jsx",
+        "line": 39,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\charts\\AdminCharts.jsx",
+        "line": 7,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\charts\\AdminCharts.jsx",
+        "line": 16,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\charts\\AdminCharts.jsx",
+        "line": 18,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\charts\\AdminCharts.jsx",
+        "line": 20,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\charts\\AdminCharts.jsx",
+        "line": 38,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\charts\\AdminCharts.jsx",
+        "line": 40,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\charts\\AdminCharts.jsx",
+        "line": 42,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\charts\\AdminCharts.jsx",
+        "line": 45,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\charts\\AdminCharts.jsx",
+        "line": 66,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\charts\\AdminCharts.jsx",
+        "line": 76,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\MessagesTab.jsx",
+        "line": 165,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\MessagesTab.jsx",
+        "line": 176,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\MessagesTab.jsx",
+        "line": 204,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\MessagesTab.jsx",
+        "line": 207,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\MessagesTab.jsx",
+        "line": 225,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\MessagesTab.jsx",
+        "line": 237,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\MessagesTab.jsx",
+        "line": 254,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\MessagesTab.jsx",
+        "line": 289,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\MessagesTab.jsx",
+        "line": 302,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\MessagesTab.jsx",
+        "line": 310,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\MessagesTab.jsx",
+        "line": 328,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\MessagesTab.jsx",
+        "line": 342,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\MessagesTab.jsx",
+        "line": 350,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\MessagesTab.jsx",
+        "line": 359,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\MessagesTab.jsx",
+        "line": 361,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\MessagesTab.jsx",
+        "line": 368,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\MessagesTab.jsx",
+        "line": 372,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\MessagesTab.jsx",
+        "line": 377,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\MessagesTab.jsx",
+        "line": 394,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\RegistrationTab.jsx",
+        "line": 198,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\RegistrationTab.jsx",
+        "line": 219,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\RegistrationTab.jsx",
+        "line": 229,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\RegistrationTab.jsx",
+        "line": 249,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\RegistrationTab.jsx",
+        "line": 258,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\RegistrationTab.jsx",
+        "line": 270,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\RegistrationTab.jsx",
+        "line": 290,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\RegistrationTab.jsx",
+        "line": 292,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\RegistrationTab.jsx",
+        "line": 307,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\RegistrationTab.jsx",
+        "line": 309,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\RegistrationTab.jsx",
+        "line": 319,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\RegistrationTab.jsx",
+        "line": 343,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\RegistrationTab.jsx",
+        "line": 374,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\RegistrationTab.jsx",
+        "line": 387,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\member-detail\\RegistrationTab.jsx",
+        "line": 405,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\modals\\BulkMessageModal.jsx",
+        "line": 113,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\modals\\BulkMessageModal.jsx",
+        "line": 123,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\modals\\BulkMessageModal.jsx",
+        "line": 128,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\modals\\BulkMessageModal.jsx",
+        "line": 134,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\modals\\BulkMessageModal.jsx",
+        "line": 145,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\modals\\BulkMessageModal.jsx",
+        "line": 173,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\modals\\BulkMessageModal.jsx",
+        "line": 193,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\modals\\BulkMessageModal.jsx",
+        "line": 196,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\modals\\BulkMessageModal.jsx",
+        "line": 198,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\modals\\BulkMessageModal.jsx",
+        "line": 215,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\modals\\BulkMessageModal.jsx",
+        "line": 246,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\modals\\BulkMessageModal.jsx",
+        "line": 254,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\modals\\BulkMessageModal.jsx",
+        "line": 270,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\modals\\MemberAddModal.jsx",
+        "line": 370,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\modals\\MemberAddModal.jsx",
+        "line": 372,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\modals\\MemberAddModal.jsx",
+        "line": 430,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\modals\\MemberAddModal.jsx",
+        "line": 439,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\modals\\MemberAddModal.jsx",
+        "line": 443,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\modals\\NoticeModal.jsx",
+        "line": 117,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\DataMigrationTab.jsx",
+        "line": 95,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\DataMigrationTab.jsx",
+        "line": 161,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\DataMigrationTab.jsx",
+        "line": 201,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\DataMigrationTab.jsx",
+        "line": 205,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\DataMigrationTab.jsx",
+        "line": 212,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\DataMigrationTab.jsx",
+        "line": 216,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\DataMigrationTab.jsx",
+        "line": 220,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\DataMigrationTab.jsx",
+        "line": 236,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\DataMigrationTab.jsx",
+        "line": 242,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\DataMigrationTab.jsx",
+        "line": 283,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\DataMigrationTab.jsx",
+        "line": 286,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\KioskSettingsTab.jsx",
+        "line": 162,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\KioskSettingsTab.jsx",
+        "line": 229,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\KioskSettingsTab.jsx",
+        "line": 240,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\LogsTab.jsx",
+        "line": 9,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\LogsTab.jsx",
+        "line": 46,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\LogsTab.jsx",
+        "line": 84,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\LogsTab.jsx",
+        "line": 438,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\LogsTab.jsx",
+        "line": 444,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\LogsTab.jsx",
+        "line": 447,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\LogsTab.jsx",
+        "line": 525,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\LogsTab.jsx",
+        "line": 603,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\LogsTab.jsx",
+        "line": 705,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\LogsTab.jsx",
+        "line": 760,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\LogsTab.jsx",
+        "line": 763,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\LogsTab.jsx",
+        "line": 804,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\LogsTab.jsx",
+        "line": 824,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\LogsTab.jsx",
+        "line": 835,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\LogsTab.jsx",
+        "line": 843,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\LogsTab.jsx",
+        "line": 863,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 108,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 128,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 177,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 181,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 185,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 191,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 202,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 210,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 215,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 287,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 288,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 290,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 311,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 360,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 371,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 384,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 390,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 395,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 398,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 406,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 408,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 410,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 416,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 423,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 437,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 443,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 453,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 461,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 477,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 499,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 509,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 521,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 569,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 577,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\MembersTab.jsx",
+        "line": 646,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\NoticesTab.jsx",
+        "line": 28,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\NoticesTab.jsx",
+        "line": 65,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\NoticesTab.jsx",
+        "line": 71,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\PushHistoryTab.jsx",
+        "line": 8,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\PushHistoryTab.jsx",
+        "line": 41,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\PushHistoryTab.jsx",
+        "line": 55,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\PushHistoryTab.jsx",
+        "line": 60,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\PushHistoryTab.jsx",
+        "line": 81,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\PushHistoryTab.jsx",
+        "line": 90,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\PushHistoryTab.jsx",
+        "line": 157,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\PushHistoryTab.jsx",
+        "line": 165,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\PushHistoryTab.jsx",
+        "line": 193,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\ScheduleTab.jsx",
+        "line": 9,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\ScheduleTab.jsx",
+        "line": 108,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\StatsTab.jsx",
+        "line": 7,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\StatsTab.jsx",
+        "line": 16,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\StatsTab.jsx",
+        "line": 22,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\StatsTab.jsx",
+        "line": 25,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\StatsTab.jsx",
+        "line": 29,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\StatsTab.jsx",
+        "line": 31,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\StudioSettingsTab.jsx",
+        "line": 17,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\StudioSettingsTab.jsx",
+        "line": 130,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\StudioSettingsTab.jsx",
+        "line": 155,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\StudioSettingsTab.jsx",
+        "line": 216,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\admin\\tabs\\StudioSettingsTab.jsx",
+        "line": 232,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminInsights.jsx",
+        "line": 21,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 17,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 446,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 453,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 458,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 475,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 487,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 502,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 525,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 553,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 567,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 623,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 627,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 658,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 665,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 677,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 693,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 867,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 884,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 904,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 918,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 975,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 1009,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 1020,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 1031,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 1071,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 1144,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 1149,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 1155,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 1166,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 1170,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 1178,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 1197,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 1210,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 1230,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 1236,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "line": 1238,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminPriceManager.jsx",
+        "line": 166,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminPriceManager.jsx",
+        "line": 210,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminPriceManager.jsx",
+        "line": 257,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminPriceManager.jsx",
+        "line": 281,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminRevenue.jsx",
+        "line": 80,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminRevenue.jsx",
+        "line": 81,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminRevenue.jsx",
+        "line": 86,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminRevenue.jsx",
+        "line": 87,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminRevenue.jsx",
+        "line": 96,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminRevenue.jsx",
+        "line": 99,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminRevenue.jsx",
+        "line": 104,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminRevenue.jsx",
+        "line": 108,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminRevenue.jsx",
+        "line": 153,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminRevenue.jsx",
+        "line": 202,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminRevenue.jsx",
+        "line": 203,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminRevenue.jsx",
+        "line": 209,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminRevenue.jsx",
+        "line": 210,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminRevenue.jsx",
+        "line": 217,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminRevenue.jsx",
+        "line": 220,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminRevenue.jsx",
+        "line": 225,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminRevenue.jsx",
+        "line": 232,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminRevenue.jsx",
+        "line": 233,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminScheduleManager.jsx",
+        "line": 14,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminScheduleManager.jsx",
+        "line": 342,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminScheduleManager.jsx",
+        "line": 346,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminScheduleManager.jsx",
+        "line": 372,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminScheduleManager.jsx",
+        "line": 373,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminScheduleManager.jsx",
+        "line": 439,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminScheduleManager.jsx",
+        "line": 452,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminScheduleManager.jsx",
+        "line": 483,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminScheduleManager.jsx",
+        "line": 490,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminScheduleManager.jsx",
+        "line": 497,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminScheduleManager.jsx",
+        "line": 553,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminScheduleManager.jsx",
+        "line": 573,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminScheduleManager.jsx",
+        "line": 578,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminScheduleManager.jsx",
+        "line": 584,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminScheduleManager.jsx",
+        "line": 601,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminScheduleManager.jsx",
+        "line": 633,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\AdminScheduleManager.jsx",
+        "line": 638,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\CheckInInfoSection.jsx",
+        "line": 43,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\DuplicateConfirmModal.jsx",
+        "line": 38,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\DuplicateConfirmModal.jsx",
+        "line": 46,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\DuplicateConfirmModal.jsx",
+        "line": 49,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\DuplicateConfirmModal.jsx",
+        "line": 60,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\DuplicateConfirmModal.jsx",
+        "line": 62,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\DuplicateConfirmModal.jsx",
+        "line": 86,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\DuplicateConfirmModal.jsx",
+        "line": 113,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 15,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 16,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 50,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 51,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 65,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 79,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 86,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 108,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 110,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 129,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 146,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 147,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 148,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 174,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 189,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 191,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 201,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 219,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 226,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 233,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 241,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 259,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 266,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\KioskInstallGuideModal.jsx",
+        "line": 273,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\MessageOverlay.jsx",
+        "line": 50,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\SelectionModal.jsx",
+        "line": 101,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\SelectionModal.jsx",
+        "line": 156,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\SelectionModal.jsx",
+        "line": 206,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\SelectionModal.jsx",
+        "line": 241,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\SuccessDetails.jsx",
+        "line": 23,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\checkin\\SuccessDetails.jsx",
+        "line": 48,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\common\\CustomDatePicker.jsx",
+        "line": 114,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\common\\CustomDatePicker.jsx",
+        "line": 137,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\common\\CustomDatePicker.jsx",
+        "line": 145,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\common\\CustomDatePicker.jsx",
+        "line": 172,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\common\\CustomDatePicker.jsx",
+        "line": 178,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\common\\CustomDatePicker.jsx",
+        "line": 195,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\common\\InstallBanner.jsx",
+        "line": 77,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\common\\InstallBanner.jsx",
+        "line": 79,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\common\\InstallBanner.jsx",
+        "line": 86,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\common\\NetworkStatus.jsx",
+        "line": 51,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\ErrorBoundary.jsx",
+        "line": 56,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\ErrorBoundary.jsx",
+        "line": 60,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\ErrorBoundary.jsx",
+        "line": 66,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\ErrorBoundary.jsx",
+        "line": 78,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\ErrorBoundary.jsx",
+        "line": 82,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\ErrorBoundary.jsx",
+        "line": 92,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\InstallGuideModal.jsx",
+        "line": 44,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\InstallGuideModal.jsx",
+        "line": 107,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\InstallGuideModal.jsx",
+        "line": 114,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\InstallGuideModal.jsx",
+        "line": 137,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\InstallGuideModal.jsx",
+        "line": 191,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\InstallGuideModal.jsx",
+        "line": 236,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\InstallGuideModal.jsx",
+        "line": 279,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\InstallGuideModal.jsx",
+        "line": 286,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\InstallGuideModal.jsx",
+        "line": 293,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\InstallGuideModal.jsx",
+        "line": 314,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\InstallGuideModal.jsx",
+        "line": 323,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\InstallGuideModal.jsx",
+        "line": 330,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\InstallGuideModal.jsx",
+        "line": 337,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\instructor\\InstructorHome.jsx",
+        "line": 163,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\instructor\\InstructorHome.jsx",
+        "line": 164,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\instructor\\InstructorHome.jsx",
+        "line": 234,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\instructor\\InstructorHome.jsx",
+        "line": 239,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\instructor\\InstructorHome.jsx",
+        "line": 326,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\instructor\\InstructorHome.jsx",
+        "line": 357,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\instructor\\InstructorHome.jsx",
+        "line": 385,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\instructor\\InstructorHome.jsx",
+        "line": 409,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\instructor\\InstructorHome.jsx",
+        "line": 413,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\instructor\\InstructorLogin.jsx",
+        "line": 78,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\instructor\\InstructorSchedule.jsx",
+        "line": 133,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\instructor\\InstructorSchedule.jsx",
+        "line": 135,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\instructor\\InstructorSchedule.jsx",
+        "line": 180,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\instructor\\InstructorSchedule.jsx",
+        "line": 270,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\instructor\\InstructorSchedule.jsx",
+        "line": 281,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\instructor\\InstructorSchedule.jsx",
+        "line": 283,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\InstructorQRModal.jsx",
+        "line": 18,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\InstructorQRModal.jsx",
+        "line": 28,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\InstructorQRModal.jsx",
+        "line": 80,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\LanguageSelector.jsx",
+        "line": 40,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\LanguageSelector.jsx",
+        "line": 88,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\meditation\\MeditationDebugOverlay.jsx",
+        "line": 12,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\meditation\\MeditationDebugOverlay.jsx",
+        "line": 22,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\meditation\\MeditationDebugOverlay.jsx",
+        "line": 28,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\meditation\\MeditationDebugOverlay.jsx",
+        "line": 36,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\meditation\\ui\\AILoadingIndicator.jsx",
+        "line": 39,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\meditation\\ui\\AILoadingIndicator.jsx",
+        "line": 59,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\meditation\\ui\\ChatDialog.jsx",
+        "line": 94,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\meditation\\ui\\FeedbackView.jsx",
+        "line": 22,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\meditation\\ui\\FeedbackView.jsx",
+        "line": 66,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\meditation\\ui\\FeedbackView.jsx",
+        "line": 82,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\meditation\\ui\\FeedbackView.jsx",
+        "line": 121,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\meditation\\ui\\FeedbackView.jsx",
+        "line": 123,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\meditation\\ui\\VolumeControlPanel.jsx",
+        "line": 61,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\meditation\\ui\\VolumeControlPanel.jsx",
+        "line": 76,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\meditation\\ui\\VolumeControlPanel.jsx",
+        "line": 94,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\member\\PushNotificationSettings.jsx",
+        "line": 67,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\member\\PushNotificationSettings.jsx",
+        "line": 68,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\member\\PushNotificationSettings.jsx",
+        "line": 69,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\member\\PushNotificationSettings.jsx",
+        "line": 71,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\member\\PushNotificationSettings.jsx",
+        "line": 75,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\member\\PushNotificationSettings.jsx",
+        "line": 77,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\member\\PushNotificationSettings.jsx",
+        "line": 137,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\member\\PushNotificationSettings.jsx",
+        "line": 180,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\member\\PushNotificationSettings.jsx",
+        "line": 233,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\member\\PushNotificationSettings.jsx",
+        "line": 252,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\member\\PushNotificationSettings.jsx",
+        "line": 255,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\member\\PushNotificationSettings.jsx",
+        "line": 259,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\member\\PushNotificationSettings.jsx",
+        "line": 263,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\member\\PushNotificationSettings.jsx",
+        "line": 280,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\member\\PushNotificationSettings.jsx",
+        "line": 289,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\member\\PushNotificationSettings.jsx",
+        "line": 300,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\member\\PushNotificationSettings.jsx",
+        "line": 325,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\member\\PushNotificationSettings.jsx",
+        "line": 332,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\MemberScheduleCalendar.jsx",
+        "line": 243,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\MemberScheduleCalendar.jsx",
+        "line": 248,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\MemberScheduleCalendar.jsx",
+        "line": 265,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\MemberScheduleCalendar.jsx",
+        "line": 267,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\MemberScheduleCalendar.jsx",
+        "line": 287,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\MemberScheduleCalendar.jsx",
+        "line": 291,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\MemberScheduleCalendar.jsx",
+        "line": 311,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\MemberScheduleCalendar.jsx",
+        "line": 312,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\MemberScheduleCalendar.jsx",
+        "line": 338,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\MemberScheduleCalendar.jsx",
+        "line": 350,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\profile\\AttendanceHistory.jsx",
+        "line": 90,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\profile\\AttendanceHistory.jsx",
+        "line": 97,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\profile\\AttendanceHistory.jsx",
+        "line": 112,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\profile\\AttendanceHistory.jsx",
+        "line": 182,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\profile\\AttendanceHistory.jsx",
+        "line": 241,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\profile\\AttendanceHistory.jsx",
+        "line": 252,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\profile\\AttendanceHistory.jsx",
+        "line": 284,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\profile\\MemberSalesHistory.jsx",
+        "line": 88,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\profile\\MemberSalesHistory.jsx",
+        "line": 105,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\profile\\MemberSalesHistory.jsx",
+        "line": 169,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\profile\\MemberSalesHistory.jsx",
+        "line": 171,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\profile\\MyStatsChart.jsx",
+        "line": 5,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\profile\\MyStatsChart.jsx",
+        "line": 51,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\profile\\MyStatsChart.jsx",
+        "line": 60,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\profile\\PWAInstallPrompts.jsx",
+        "line": 14,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\profile\\PWAInstallPrompts.jsx",
+        "line": 47,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\profile\\SocialLinks.jsx",
+        "line": 17,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\profile\\tabs\\ScheduleTab.jsx",
+        "line": 36,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\ScheduleHelpers.jsx",
+        "line": 117,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\ScheduleHelpers.jsx",
+        "line": 207,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\ScheduleHelpers.jsx",
+        "line": 210,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\ScheduleHelpers.jsx",
+        "line": 263,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\ScheduleHelpers.jsx",
+        "line": 283,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\ScheduleHelpers.jsx",
+        "line": 331,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\ScheduleHelpers.jsx",
+        "line": 338,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\ScheduleHelpers.jsx",
+        "line": 361,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\ScheduleHelpers.jsx",
+        "line": 397,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\ScheduleHelpers.jsx",
+        "line": 404,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\ScheduleHelpers.jsx",
+        "line": 433,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\ScheduleHelpers.jsx",
+        "line": 577,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "components\\ScheduleHelpers.jsx",
+        "line": 598,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "constants\\meditationConstants.js",
+        "line": 107,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "constants\\meditationConstants.js",
+        "line": 109,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "constants\\meditationConstants.js",
+        "line": 120,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "constants\\meditationConstants.js",
+        "line": 122,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "constants\\meditationConstants.js",
+        "line": 124,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "constants\\meditationConstants.js",
+        "line": 126,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "constants\\meditationConstants.js",
+        "line": 131,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "constants\\meditationConstants.js",
+        "line": 133,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "constants\\meditationConstants.js",
+        "line": 144,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "constants\\meditationConstants.js",
+        "line": 152,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "constants\\meditationConstants.js",
+        "line": 161,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "constants\\meditationConstants.js",
+        "line": 169,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "constants\\meditationConstants.js",
+        "line": 177,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "contexts\\StudioContext.jsx",
+        "line": 112,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "contexts\\StudioContext.jsx",
+        "line": 160,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "main.jsx",
+        "line": 161,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\AdminDashboard.jsx",
+        "line": 109,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\AdminDashboard.jsx",
+        "line": 143,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\AdminDashboard.jsx",
+        "line": 553,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\AdminDashboard.jsx",
+        "line": 606,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\AdminDashboard.jsx",
+        "line": 683,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\AdminDashboard.jsx",
+        "line": 689,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\AdminDashboard.jsx",
+        "line": 744,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\AdminDashboard.jsx",
+        "line": 950,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\AdminDashboard.jsx",
+        "line": 952,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\AdminDashboard.jsx",
+        "line": 955,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\AdminDashboard.jsx",
+        "line": 957,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\AdminDashboard.jsx",
+        "line": 959,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\AdminDashboard.jsx",
+        "line": 961,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\AdminDashboard.jsx",
+        "line": 967,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\AdminDashboard.jsx",
+        "line": 968,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\CheckInPage.jsx",
+        "line": 440,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\CheckInPage.jsx",
+        "line": 458,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\LoginPage.jsx",
+        "line": 32,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\LoginPage.jsx",
+        "line": 43,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\LoginPage.jsx",
+        "line": 87,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 171,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 407,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 966,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 995,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 1024,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 1049,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 1108,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 1138,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 1171,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 1211,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 1261,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 1290,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 1308,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 1350,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 1399,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 1469,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 1524,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 1578,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 1629,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 1712,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 1848,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 1891,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 1962,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 2014,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 2083,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 2094,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 2100,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 2114,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 2121,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MeditationPage.jsx",
+        "line": 2142,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MemberProfile.jsx",
+        "line": 680,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MemberProfile.jsx",
+        "line": 709,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MemberProfile.jsx",
+        "line": 806,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MemberProfile.jsx",
+        "line": 993,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MemberProfile.jsx",
+        "line": 1012,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MemberProfile.jsx",
+        "line": 1016,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "pages\\MemberProfile.jsx",
+        "line": 1087,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "services\\aiService.js",
+        "line": 45,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "services\\aiService.js",
+        "line": 55,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "services\\modules\\aiModule.js",
+        "line": 50,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "services\\modules\\aiModule.js",
+        "line": 60,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "styles\\commonStyles.js",
+        "line": 10,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "styles\\commonStyles.js",
+        "line": 35,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "styles\\commonStyles.js",
+        "line": 70,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "styles\\commonStyles.js",
+        "line": 191,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "styles\\commonStyles.js",
+        "line": 201,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "styles\\commonStyles.js",
+        "line": 211,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "utils\\colors.js",
+        "line": 9,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "utils\\colors.js",
+        "line": 36,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "utils\\colors.js",
+        "line": 39,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "utils\\colors.js",
+        "line": 43,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "utils\\colors.js",
+        "line": 45,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "utils\\colors.js",
+        "line": 76,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "utils\\colors.js",
+        "line": 79,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "utils\\colors.js",
+        "line": 82,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "utils\\colors.js",
+        "line": 86,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "utils\\diligence.js",
+        "line": 14,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "utils\\diligence.js",
+        "line": 16,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "utils\\diligence.js",
+        "line": 18,
+        "issue": "Hardcoded HEX color"
+      },
+      {
+        "file": "utils\\diligence.js",
+        "line": 20,
+        "issue": "Hardcoded HEX color"
+      }
+    ],
+    "unhandledPromises": [
+      {
+        "file": "App.jsx",
+        "line": 49,
+        "issue": "Promise chain missing .catch()"
+      }
+    ],
+    "accessibility": [
+      {
+        "file": "components\\admin\\modals\\NoticeModal.jsx",
+        "line": 124,
+        "issue": "<img> tag missing alt attribute"
+      }
+    ],
+    "architecture": [
+      {
+        "file": "components\\AdminMemberDetailModal.jsx",
+        "issue": "Direct DOM manipulation detected (violates React paradigm)"
+      },
+      {
+        "file": "components\\ScheduleHelpers.jsx",
+        "issue": "Direct DOM manipulation detected (violates React paradigm)"
+      },
+      {
+        "file": "context\\PWAContext.jsx",
+        "issue": "Direct DOM manipulation detected (violates React paradigm)"
+      },
+      {
+        "file": "main.jsx",
+        "issue": "Direct DOM manipulation detected (violates React paradigm)"
+      }
+    ]
+  }
+}

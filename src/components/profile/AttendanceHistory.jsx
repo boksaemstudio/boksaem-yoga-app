@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { Icons } from '../CommonIcons';
 import { getTranslatedClass } from '../../utils/classMapping';
 import { getHolidayName } from '../../utils/holidays';
-import { STUDIO_CONFIG } from '../../studioConfig';
-
+import { useStudioConfig } from '../../contexts/StudioContext';
 
 const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, isSubmitting, logLimit, setLogLimit }) => {
+    const { config } = useStudioConfig();
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
     const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -108,7 +108,7 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, is
                         }}>
                             {dayLogs.map((log, idx) => {
                                 const isExpired = isExpiredLog(log);
-                                const branchConfig = STUDIO_CONFIG.BRANCHES.find(b => b.id === log.branchId);
+                                const branchConfig = config.BRANCHES?.find(b => b.id === log.branchId);
                                 const badgeColor = isExpired ? '#ff4d4f' : (branchConfig ? branchConfig.color : 'var(--primary-gold)');
                                 return (
                                     <div key={idx} style={{
@@ -263,7 +263,7 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, is
                                             {log.instructor && `(${log.instructor})`}
                                         </div>
                                         <div style={{ fontSize: '0.75rem', opacity: 0.4, color: 'white' }}>
-                                            {log.branchId === 'gwangheungchang' ? t('branchGwangheungchang') : (log.branchId === 'mapo' ? t('branchMapo') : log.branchId)} |
+                                            {(config.BRANCHES?.find(b => b.id === log.branchId)?.name || log.branchId)} |
                                             {member.membershipType ? (t(`class_${member.membershipType}`) !== `class_${member.membershipType}` ? t(`class_${member.membershipType}`) : member.membershipType) : t('class_regular')}
                                         </div>
                                     </div>
@@ -324,7 +324,7 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, is
                     <div className="fade-in">
                         {/* Legend for Branches */}
                         <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginBottom: '15px' }}>
-                            {STUDIO_CONFIG.BRANCHES.map(branch => (
+                            {(config.BRANCHES || []).map(branch => (
                                 <div key={branch.id} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: branch.color }}></div>
                                     <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>{branch.name}</span>

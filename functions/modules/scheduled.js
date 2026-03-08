@@ -8,7 +8,7 @@
 
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
-const { admin, getAI, createPendingApproval, logAIError, getKSTDateString } = require("../helpers/common");
+const { admin, getAI, createPendingApproval, logAIError, getKSTDateString, getStudioName } = require("../helpers/common");
 const chunk = require('lodash/chunk');
 
 /**
@@ -37,7 +37,8 @@ exports.checkLowCreditsV2 = onDocumentUpdated({
 
         const tokensSnap = await db.collection('fcm_tokens').where('memberId', '==', memberId).get();
         if (!tokensSnap.empty) {
-            await createPendingApproval('low_credits', [memberId], "나의요가 알림", body, { credits: 0, prevCredits: oldData.credits });
+            const studioName = await getStudioName();
+            await createPendingApproval('low_credits', [memberId], `${studioName} 알림`, body, { credits: 0, prevCredits: oldData.credits });
         }
     } catch (e) {
         console.error(e);
@@ -69,7 +70,8 @@ exports.sendDailyAdminReportV2 = onSchedule({
         const anomalyCount = anomalySnap.size;
         const ghostCount = ghostSnap.size;
 
-        const reportBody = `[복샘요가 일일 리포트] ${todayStr}
+        const studioName = await getStudioName();
+        const reportBody = `[${studioName} 일일 리포트] ${todayStr}
 
 [출석 / 가입]
 - 오늘 출석: ${attendanceCount} 명

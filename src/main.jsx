@@ -16,6 +16,7 @@ import App from './App.jsx'
 import './styles/index.css'
 import ErrorBoundary from './components/ErrorBoundary'
 import { LanguageProvider } from './context/LanguageContext'
+import { StudioProvider } from './contexts/StudioContext'
 import { httpsCallable } from 'firebase/functions'
 import { functions } from './firebase'
 
@@ -89,9 +90,11 @@ try {
   root.render(
     <StrictMode>
       <ErrorBoundary>
-        <LanguageProvider>
-          <App />
-        </LanguageProvider>
+        <StudioProvider>
+          <LanguageProvider>
+            <App />
+          </LanguageProvider>
+        </StudioProvider>
       </ErrorBoundary>
     </StrictMode>,
   );

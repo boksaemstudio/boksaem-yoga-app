@@ -9,8 +9,6 @@ import {
     where,
     writeBatch
 } from "firebase/firestore";
-import { STUDIO_CONFIG } from '../studioConfig';
-
 // [Refactoring] Extracted from storage.js for better modularity
 
 // Helper to get daily classes
@@ -110,8 +108,13 @@ export const batchUpdateDailyClasses = async (branchId, updates) => {
     }
 };
 
-// [NEW] Smart Creation Logic
-export const createMonthlySchedule = async (branchId, year, month) => {
+/**
+ * @param {string} branchId 
+ * @param {number} year 
+ * @param {number} month 
+ * @param {Object} defaultScheduleTemplate - SaaS Core Config fallback
+ */
+export const createMonthlySchedule = async (branchId, year, month, defaultScheduleTemplate = {}) => {
     console.log(`[Schedule] Creating for ${branchId} ${year}-${month}`);
     try {
         // 1. Fetch Weekly Template (Blueprint) from Firestore
@@ -123,14 +126,8 @@ export const createMonthlySchedule = async (branchId, year, month) => {
             template = templateSnap.data().classes || [];
         } else {
             console.warn("Weekly template not found in Firestore, using config fallback.");
-            template = STUDIO_CONFIG.DEFAULT_SCHEDULE_TEMPLATE[branchId] || [];
+            template = defaultScheduleTemplate[branchId] || [];
         }
-
-        // We delegate the logic back to the helper if passed, or implement it here?
-        // Ideally duplicate helper here or import it.
-        // Looking at storage.js, _generateScheduleFromTemplate seems missing in the view?
-        // Wait, I missed _generateScheduleFromTemplate in the preview of storage.js!
-        // It must be there but I missed it. I will implement it here to be safe.
 
         return generateScheduleFromTemplateImpl(branchId, year, month, template);
     } catch (e) {
@@ -476,13 +473,13 @@ export const restoreMonthlyBackup = async (branchId, year, month, backupId) => {
 };
 
 // Config Getters
-export const getInstructors = async () => {
+export const getInstructors = async (defaultScheduleTemplate = {}) => {
     try {
         const docSnap = await getDoc(doc(db, 'settings', 'instructors'));
         if (docSnap.exists() && docSnap.data().list) return docSnap.data().list;
 
         const instructors = new Set();
-        Object.values(STUDIO_CONFIG.DEFAULT_SCHEDULE_TEMPLATE).forEach(schedule => {
+        Object.values(defaultScheduleTemplate).forEach(schedule => {
             schedule.forEach(cls => {
                 if (cls.instructor) instructors.add(cls.instructor);
             });
@@ -494,13 +491,13 @@ export const getInstructors = async () => {
     }
 };
 
-export const getClassTypes = async () => {
+export const getClassTypes = async (defaultScheduleTemplate = {}) => {
     try {
         const docSnap = await getDoc(doc(db, 'settings', 'classTypes'));
         if (docSnap.exists() && docSnap.data().list) return docSnap.data().list;
 
         const types = new Set();
-        Object.values(STUDIO_CONFIG.DEFAULT_SCHEDULE_TEMPLATE).forEach(schedule => {
+        Object.values(defaultScheduleTemplate).forEach(schedule => {
             schedule.forEach(cls => {
                 if (cls.className) types.add(cls.className);
             });

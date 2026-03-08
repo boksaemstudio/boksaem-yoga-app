@@ -1,8 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Icons as PhosphorIcons } from '../../../components/CommonIcons';
-
-const { X, Heartbeat, Brain, Sparkle } = PhosphorIcons;
+import { useStudioConfig } from '../../../contexts/StudioContext';
+import { X, Heartbeat, Brain, Sparkle } from '../../../components/CommonIcons';
 
 export const FeedbackView = ({ 
     activeMode, 
@@ -12,6 +11,7 @@ export const FeedbackView = ({
     modeName, 
     onClose 
 }) => {
+    const { config } = useStudioConfig();
     const navigate = useNavigate();
     const duration = activeMode?.time || (activeMode?.id === 'breath' ? 3 * 60 : (activeMode?.id === 'calm' ? 7 * 60 : 15 * 60));
     const actualTime = Math.max(0, duration - timeLeft);
@@ -62,9 +62,9 @@ export const FeedbackView = ({
                         border: '1px solid rgba(255,255,255,0.05)'
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
-                            <Heartbeat size={24} color={activeMode?.color || '#d4af37'} />
+                            <Heartbeat size={24} color={activeMode?.color || config.THEME?.PRIMARY_COLOR || '#d4af37'} />
                             <h3 style={{ color: 'white', fontSize: '1.2rem', fontWeight: 500, margin: 0 }}>
-                                복순이의 마음 관찰 일지
+                                AI의 마음 관찰 일지
                             </h3>
                         </div>
                         
@@ -78,7 +78,7 @@ export const FeedbackView = ({
                                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                     {feedbackData.feedbackPoints.map((point, index) => (
                                         <li key={index} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                                            <Sparkle size={18} color={activeMode?.color || '#d4af37'} style={{ marginTop: '4px', flexShrink: 0 }} />
+                                            <Sparkle size={18} color={activeMode?.color || config.THEME?.PRIMARY_COLOR || '#d4af37'} style={{ marginTop: '4px', flexShrink: 0 }} />
                                             <span>{point}</span>
                                         </li>
                                     ))}
@@ -117,9 +117,9 @@ export const FeedbackView = ({
                 {/* ✅ [FIX 1] 버튼이 검은색 배경에 묻히지 않도록 기본 Fallback Color 적용 */}
                 <button onClick={onClose} style={{
                     width: '100%', padding: '20px', marginTop: '30px',
-                    background: activeMode?.color || '#d4af37', border: 'none', borderRadius: '15px',
-                    color: '#000', fontSize: '1.2rem', fontWeight: 600, cursor: 'pointer',
-                    boxShadow: `0 10px 30px ${activeMode?.color || '#d4af37'}40`
+                    background: activeMode?.color || config.THEME?.PRIMARY_COLOR || '#d4af37', border: 'none', borderRadius: '15px',
+                    color: 'black', fontWeight: 800, fontSize: '1.2rem', cursor: 'pointer',
+                    boxShadow: `0 10px 30px ${activeMode?.color || config.THEME?.PRIMARY_COLOR || '#d4af37'}40`
                 }}>
                     마음 챙김 마치고 돌아가기
                 </button>

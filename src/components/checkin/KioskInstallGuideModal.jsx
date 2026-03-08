@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { X, Share, DotsThreeVertical, PlusSquare } from '@phosphor-icons/react';
+import { useStudioConfig } from '../../contexts/StudioContext';
 
 const KioskInstallGuideModal = ({ isOpen, onClose }) => {
+    const { config } = useStudioConfig();
     const [tab, setTab] = useState(() => {
         const ua = window.navigator.userAgent.toLowerCase();
         return (/iphone|ipad|ipod|macintosh/.test(ua) && 'ontouchend' in document) ? 'ios' : 'android';
@@ -11,7 +13,7 @@ const KioskInstallGuideModal = ({ isOpen, onClose }) => {
 
     // CheckInPage Native Style (Low Spec, Solid Colors, No Blur)
     const bgColor = '#18181b'; // Dark gray, matches typical CheckIn app bg
-    const goldColor = '#d4af37';
+    const goldColor = config.THEME?.PRIMARY_COLOR || '#d4af37';
 
     return (
         <div
@@ -124,7 +126,7 @@ const KioskInstallGuideModal = ({ isOpen, onClose }) => {
                         flex: 1,
                         padding: '0 40px 40px 40px',
                         overflowY: 'auto',
-                        color: '#fff'
+                        color: config.THEME?.PRIMARY_COLOR || '#d4af37'
                     }}>
                         {tab === 'android' ? <TabletAndroidGuide /> : <TabletIOSGuide />}
                     </div>

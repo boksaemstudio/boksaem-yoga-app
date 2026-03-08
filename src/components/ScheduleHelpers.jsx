@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, X } from '@phosphor-icons/react';
 import { storageService } from '../services/storage';
+import { useStudioConfig } from '../contexts/StudioContext';
 
 const ScheduleClassEditor = ({ cls, idx, dayClasses, setDayClasses, instructors, classTypes, classLevels }) => {
     const editorInputStyle = { ...inputStyle, fontSize: '0.85rem', padding: '6px' };
@@ -123,6 +124,7 @@ const ScheduleClassEditor = ({ cls, idx, dayClasses, setDayClasses, instructors,
 
 
 const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes, setClassTypes, classLevels, setClassLevels }) => {
+    const { config } = useStudioConfig();
     const [newInstructor, setNewInstructor] = useState('');
     const [newPhone, setNewPhone] = useState('');
     const [editingIdx, setEditingIdx] = useState(null);
@@ -202,8 +204,15 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                         <div style={sectionHeaderStyle}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <span style={{ fontSize: '1.2rem' }}>👩‍🏫</span>
-                                <h4 style={{ margin: 0, color: '#d4af37', fontWeight: '600' }}>선생님 목록</h4>
-                                <span style={badgeStyle}>{normalizedInstructors.length}명</span>
+                        <h4 style={{ margin: 0, color: config.THEME?.PRIMARY_COLOR || '#d4af37', fontWeight: '600' }}>선생님 목록</h4>
+                                <span style={{
+                                    background: 'rgba(212,175,55,0.2)',
+                                    color: config.THEME?.PRIMARY_COLOR || '#d4af37',
+                                    padding: '4px 10px',
+                                    borderRadius: '12px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '600'
+                                }}>{normalizedInstructors.length}명</span>
                             </div>
                         </div>
                         <p style={hintTextStyle}>
@@ -251,7 +260,7 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                                 >
                                     {editingIdx === idx ? (
                                         <>
-                                            <span style={{ fontWeight: '600', color: '#d4af37' }}>{inst.name}</span>
+                                            <span style={{ fontWeight: '600', color: config.THEME?.PRIMARY_COLOR || '#d4af37' }}>{inst.name}</span>
                                             <input
                                                 type="tel"
                                                 value={editPhone}
@@ -270,7 +279,16 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                                                     setInstructors(updated);
                                                     setEditingIdx(null);
                                                 }}
-                                                style={saveBtnStyle}
+                                                style={{
+                                                    background: `linear-gradient(135deg, ${config.THEME?.PRIMARY_COLOR || '#d4af37'} 0%, #c9a227 100%)`, 
+                                                    border: 'none', 
+                                                    color: 'white', 
+                                                    cursor: 'pointer', 
+                                                    padding: '6px 12px',
+                                                    borderRadius: '6px',
+                                                    fontWeight: '600',
+                                                    fontSize: '0.85rem'
+                                                }}
                                             >
                                                 저장
                                             </button>
@@ -311,7 +329,14 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <span style={{ fontSize: '1.2rem' }}>📚</span>
                                 <h4 style={{ margin: 0, color: '#00cec9', fontWeight: '600' }}>수업 종류</h4>
-                                <span style={{ ...badgeStyle, background: 'rgba(0,206,201,0.2)', color: '#00cec9' }}>{classTypes.length}개</span>
+                                <span style={{ 
+                                    padding: '4px 10px',
+                                    borderRadius: '12px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '600',
+                                    background: 'rgba(0,206,201,0.2)', 
+                                    color: '#00cec9' 
+                                }}>{classTypes.length}개</span>
                             </div>
                         </div>
                         <div style={inputRowStyle}>
@@ -370,7 +395,14 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <span style={{ fontSize: '1.2rem' }}>🎯</span>
                                 <h4 style={{ margin: 0, color: '#9b59b6', fontWeight: '600' }}>수업 레벨</h4>
-                                <span style={{ ...badgeStyle, background: 'rgba(155,89,182,0.2)', color: '#9b59b6' }}>{classLevels?.length || 0}개</span>
+                                <span style={{ 
+                                    padding: '4px 10px',
+                                    borderRadius: '12px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '600',
+                                    background: 'rgba(155,89,182,0.2)', 
+                                    color: '#9b59b6' 
+                                }}>{classLevels?.length || 0}개</span>
                             </div>
                             <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>플라잉/키즈 수업용</span>
                         </div>
@@ -509,14 +541,6 @@ const sectionHeaderStyle = {
     marginBottom: '16px'
 };
 
-const badgeStyle = {
-    background: 'rgba(212,175,55,0.2)',
-    color: '#d4af37',
-    padding: '4px 10px',
-    borderRadius: '12px',
-    fontSize: '0.75rem',
-    fontWeight: '600'
-};
 
 const hintTextStyle = {
     fontSize: '0.8rem', 
@@ -581,15 +605,5 @@ const deleteIconBtnStyle = {
     transition: 'all 0.2s ease'
 };
 
-const saveBtnStyle = {
-    background: 'linear-gradient(135deg, #d4af37 0%, #c9a227 100%)', 
-    border: 'none', 
-    color: 'white', 
-    cursor: 'pointer', 
-    padding: '6px 12px',
-    borderRadius: '6px',
-    fontWeight: '600',
-    fontSize: '0.85rem'
-};
 
 export { ScheduleClassEditor, SettingsModal };

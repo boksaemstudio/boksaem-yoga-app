@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Bell, BellSlash, CheckCircle, Warning, Info } from '@phosphor-icons/react';
 import { storageService } from '../../services/storage';
+import { useStudioConfig } from '../../contexts/StudioContext';
 
 const PushNotificationSettings = ({ memberId }) => {
+    const { config } = useStudioConfig();
     const [status, setStatus] = useState(null);
     const [loading, setLoading] = useState(true);
     const [reregistering, setReregistering] = useState(false);
@@ -284,7 +286,7 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'var(--primary-gold, #D4AF37)',
+        background: config.THEME?.PRIMARY_COLOR || '#D4AF37',
         color: 'black',
         border: 'none',
         borderRadius: '8px',

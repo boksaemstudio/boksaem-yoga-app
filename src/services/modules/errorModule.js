@@ -10,12 +10,27 @@ import { db } from "../../firebase";
 import { collection, addDoc, deleteDoc, getDocs, doc, query, orderBy, limit as firestoreLimit, writeBatch } from "firebase/firestore";
 
 /**
+ * 정보성 로그 기록
+ */
+export const logInfo = async (message, context = {}) => {
+    try {
+        await addDoc(collection(db, 'error_logs'), {
+            message: `[INFO] ${message}`,
+            context,
+            timestamp: new Date().toISOString()
+        });
+    } catch (e) {
+        console.error("[Error Module] Failed to log info:", e);
+    }
+};
+
+/**
  * 에러 로그 기록
  */
 export const logError = async (error, context = {}) => {
     try {
         await addDoc(collection(db, 'error_logs'), {
-            message: error?.message || String(error),
+            message: `[ERROR] ${error?.message || String(error)}`,
             stack: error?.stack || null,
             context,
             timestamp: new Date().toISOString()

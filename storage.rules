@@ -13,6 +13,25 @@ service firebase.storage {
                    && request.resource.size < 10 * 1024 * 1024; // Max 10MB
     }
 
+    // Helper: Check if authenticated
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Helper: Check if admin
+    function isAdmin() {
+      return isAuth() && request.auth.token.admin == true;
+    }
+
+    // ========================================
+    // 📸 Attendance Photos - 출석 확인 사진
+    // Authenticators can upload, anyone can read
+    // ========================================
+    match /attendance-photos/{allPaths=**} {
+      allow read: if isAuth() && request.auth.token.admin == true || request.auth.token.instructor == true;
+      allow write: if isAuth() && request.resource.size < 5 * 1024 * 1024;
+    }
+
     // ========================================
     // 🛡️ Default - 기본 거부
     // ========================================

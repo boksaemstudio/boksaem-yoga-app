@@ -15,6 +15,7 @@ const withTimeout = (promise, timeoutMs = 10000, errorMsg = '서버 응답 시�
 // --- Local Cache ---
 let cachedAttendance = [];
 let notifyCallback = () => {};
+let attendanceListenerUnsubscribe = null; // [FIX] Declare missing variable
 let deps = {
   getCurrentClass: async () => null,
   logError: async () => {} 
@@ -30,8 +31,13 @@ export const attendanceService = {
   },
 
   setupAttendanceListener() {
+    console.log("[attendanceService] Starting Attendance Listener...");
     try {
-      return onSnapshot(
+      if (attendanceListenerUnsubscribe) {
+        console.log("[attendanceService] Cleaning up existing attendance listener...");
+        attendanceListenerUnsubscribe();
+      }
+      attendanceListenerUnsubscribe = onSnapshot(
         query(collection(db, 'attendance'), orderBy("timestamp", "desc"), firestoreLimit(500)),
         (snapshot) => {
           cachedAttendance = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -39,6 +45,7 @@ export const attendanceService = {
         },
         (error) => console.warn(`[attendanceService] Listener error:`, error)
       );
+      return attendanceListenerUnsubscribe;
     } catch (e) {
       console.error(`[attendanceService] Failed to subscribe:`, e);
       return null;
@@ -51,13 +58,27 @@ export const attendanceService = {
 
   async clearAllAttendance() {
     try {
-      // [FIX] window.confirm 제거 — UI 확인은 호출측(AdminDashboard 등)에서 처리
+      const { writeBatch } = await import('firebase/firestore');
       const snapshot = await getDocs(collection(db, 'attendance'));
-      const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
-      await Promise.all(deletePromises);
+      if (snapshot.empty) return { success: true, count: 0 };
+
+      // [PHASE 3 AUDIT FIX] Bulk delete using batches (limit 500 per batch)
+      const docs = snapshot.docs;
+      const CHUNK_SIZE = 500;
+      let deletedCount = 0;
+
+      for (let i = 0; i < docs.length; i += CHUNK_SIZE) {
+        const batch = writeBatch(db);
+        const chunk = docs.slice(i, i + CHUNK_SIZE);
+        chunk.forEach(d => batch.delete(d.ref));
+        await batch.commit();
+        deletedCount += chunk.length;
+        console.log(`[attendanceService] Batch deleted ${deletedCount}/${docs.length} records...`);
+      }
+
       cachedAttendance = [];
       notifyCallback();
-      return { success: true, count: snapshot.docs.length };
+      return { success: true, count: deletedCount };
     } catch (e) {
       console.error("Clear all attendance failed:", e);
       return { success: false, message: e.message };
@@ -224,7 +245,7 @@ export const attendanceService = {
     return { successCount, remainingCount: remainingQueue.length };
   },
 
-  async checkInById(memberId, branchId, force = false, eventId = null) {
+  async checkInById(memberId, branchId, force = false, eventId = null, facialMatched = false) {
     try {
       const checkInMember = httpsCallable(functions, 'checkInMemberV2Call');
       const currentClassInfo = await deps.getCurrentClass(branchId);
@@ -235,6 +256,7 @@ export const attendanceService = {
       for (let attempt = 1; attempt <= 2; attempt++) {
         try {
           console.log(`[attendanceService] Check-in attempt ${attempt}/2... (force: ${force})`);
+          const safeUUID = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'id_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
           const response = await withTimeout(
             checkInMember({ 
                 memberId, 
@@ -243,9 +265,10 @@ export const attendanceService = {
                 instructor, 
                 classTime: currentClassInfo?.time || null, 
                 force,
-                eventId
+                eventId: eventId || safeUUID(), // [FIX] Generate UUID safely to prevent crashes on older iPads/tablets
+                facialMatched
             }),
-            5000,
+            12000,
             'timeout'
           );
 
@@ -375,6 +398,7 @@ export const attendanceService = {
           }
       }
 
+      const safeUUIDFallback = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'id_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
       const pendingRef = collection(db, 'pending_attendance');
       const pendingData = {
           memberId,
@@ -385,7 +409,8 @@ export const attendanceService = {
           date: today,
           timestamp: now,
           status: 'pending-offline',
-          eventId: eventId || crypto.randomUUID(),
+          eventId: eventId || safeUUIDFallback(),
+          facialMatched: facialMatched,
           // [NEW] 만약 오프라인에서 회원권이 활성화되었다면 해당 정보 포함 (서버 동기화 시 필요)
           activatedUpcomingMembership: member && member.startDate === today ? {
               membershipType: member.membershipType,

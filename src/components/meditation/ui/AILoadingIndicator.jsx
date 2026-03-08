@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Icons as PhosphorIcons } from '../../../components/CommonIcons';
-
-const { Brain } = PhosphorIcons;
+import { useStudioConfig } from '../../../contexts/StudioContext';
+import { Brain } from '../../../components/CommonIcons';
 
 const AI_LOADING_MESSAGES = [
     "마음을 연결하고 있어요...",
@@ -12,6 +11,7 @@ const AI_LOADING_MESSAGES = [
 ];
 
 export const AILoadingIndicator = ({ compact = false, message = null }) => {
+    const { config } = useStudioConfig();
     const [msgIndex, setMsgIndex] = useState(0);
     
     useEffect(() => {
@@ -35,7 +35,7 @@ export const AILoadingIndicator = ({ compact = false, message = null }) => {
                 <div className="ai-thinking-icon" style={{ 
                     width: '28px', height: '28px', 
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'var(--primary-gold, #d4af37)'
+                    color: config.THEME?.PRIMARY_COLOR || '#d4af37'
                 }}>
                     <Brain size={24} weight="duotone" />
                 </div>
@@ -55,7 +55,7 @@ export const AILoadingIndicator = ({ compact = false, message = null }) => {
                 background: 'rgba(212, 175, 55, 0.1)',
                 border: '2px solid rgba(212, 175, 55, 0.3)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--primary-gold, #d4af37)',
+                color: config.THEME?.PRIMARY_COLOR || '#d4af37',
                 boxShadow: '0 0 30px rgba(212, 175, 55, 0.2)'
             }}>
                 <Brain size={40} weight="duotone" />
@@ -70,7 +70,7 @@ export const AILoadingIndicator = ({ compact = false, message = null }) => {
                     {displayMessage}
                 </div>
                 <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>
-                    복순이가 생각하고 있어요
+                    AI가 생각하고 있어요
                 </div>
             </div>
         </div>

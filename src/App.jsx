@@ -3,10 +3,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ErrorBoundary from './components/ErrorBoundary';
 import { storageService } from './services/storage';
 import NotificationListener from './components/common/NotificationListener';
-import ReloadPrompt from './components/ReloadPrompt';
 import { PWAProvider } from './context/PWAContext';
 import { NetworkProvider } from './context/NetworkContext';
+import { StudioProvider } from './contexts/StudioContext';
 import NetworkStatus from './components/common/NetworkStatus';
+import { useStudioConfig } from './contexts/StudioContext';
 
 
 // Lazy load pages
@@ -18,14 +19,20 @@ const InstructorPage = lazy(() => import('./pages/InstructorPage'));
 const MeditationPage = lazy(() => import('./pages/MeditationPage'));
 
 // Loading fallback
-const LoadingScreen = () => (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0a0a0a', color: '#D4AF37' }}>
-    <div style={{ textAlign: 'center' }}>
-      <div className="loading-spinner" style={{ border: '4px solid rgba(212, 175, 55, 0.1)', borderTop: '4px solid var(--primary-gold)', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }}></div>
-      <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>복샘요가 로딩 중...</h2>
-    </div>
-  </div>
-);
+const LoadingScreen = () => {
+    const { config } = useStudioConfig();
+    const primary = config.THEME?.PRIMARY_COLOR || '#D4AF37';
+    const skeleton = config.THEME?.SKELETON_COLOR || '#1a1a1a';
+    
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0a0a0a', color: primary }}>
+        <div style={{ textAlign: 'center' }}>
+          <div className="loading-spinner" style={{ border: `4px solid ${skeleton}`, borderTop: `4px solid ${primary}`, borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }}></div>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{config.IDENTITY?.NAME || 'Studio'} {config.IDENTITY?.APP_VERSION || ''}</h2>
+        </div>
+      </div>
+    );
+};
 
 // Error fallback
 const ErrorFallback = ({ error }) => (
@@ -43,6 +50,9 @@ const ErrorFallback = ({ error }) => (
                     for(let registration of registrations) {
                         registration.unregister();
                     }
+                    window.location.reload(true);
+                }).catch(err => {
+                    console.error('ServiceWorker unregistration failed:', err);
                     window.location.reload(true);
                 });
             } else {
@@ -92,80 +102,25 @@ function App() {
 
   return (
     <BrowserRouter>
-      <NetworkProvider>
-        <PWAProvider>
-        <div className="app">
-          <NotificationListener />
-          <ReloadPrompt />
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <ErrorBoundary fallback={<ErrorFallback />}>
-                  <Suspense fallback={<LoadingScreen />}>
-                    <CheckInPage />
-                  </Suspense>
-                </ErrorBoundary>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <ErrorBoundary fallback={<ErrorFallback />}>
-                  <Suspense fallback={<LoadingScreen />}>
-                    <RequireAuth>
-                      <AdminDashboard />
-                    </RequireAuth>
-                  </Suspense>
-                </ErrorBoundary>
-              }
-            />
-            <Route
-              path="/member"
-              element={
-                <ErrorBoundary fallback={<ErrorFallback />}>
-                  <Suspense fallback={<LoadingScreen />}>
-                    <MemberProfile />
-                  </Suspense>
-                </ErrorBoundary>
-              }
-            />
-            <Route
-              path="/login"
-              element={
-                <ErrorBoundary fallback={<ErrorFallback />}>
-                  <Suspense fallback={<LoadingScreen />}>
-                    <LoginPage />
-                  </Suspense>
-                </ErrorBoundary>
-              }
-            />
-            <Route
-              path="/instructor"
-              element={
-                <ErrorBoundary fallback={<ErrorFallback />}>
-                  <Suspense fallback={<LoadingScreen />}>
-                    <InstructorPage />
-                  </Suspense>
-                </ErrorBoundary>
-              }
-            />
-            <Route
-              path="/meditation"
-              element={
-                <ErrorBoundary fallback={<ErrorFallback />}>
-                  <Suspense fallback={<LoadingScreen />}>
-                    <MeditationPage />
-                  </Suspense>
-                </ErrorBoundary>
-              }
-            />
-          </Routes>
-          <NetworkStatus />
-        </div>
-      </PWAProvider>
-    </NetworkProvider>
-  </BrowserRouter>
+      <StudioProvider>
+        <NetworkProvider>
+          <PWAProvider>
+            <div className="app">
+              <NotificationListener />
+              <Routes>
+                <Route path="/" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><CheckInPage /></Suspense></ErrorBoundary>} />
+                <Route path="/admin" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><RequireAuth><AdminDashboard /></RequireAuth></Suspense></ErrorBoundary>} />
+                <Route path="/member" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><MemberProfile /></Suspense></ErrorBoundary>} />
+                <Route path="/login" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><LoginPage /></Suspense></ErrorBoundary>} />
+                <Route path="/instructor" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><InstructorPage /></Suspense></ErrorBoundary>} />
+                <Route path="/meditation" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><MeditationPage /></Suspense></ErrorBoundary>} />
+              </Routes>
+              <NetworkStatus />
+            </div>
+          </PWAProvider>
+        </NetworkProvider>
+      </StudioProvider>
+    </BrowserRouter>
   );
 }
 

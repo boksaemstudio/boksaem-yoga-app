@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { storageService } from '../../services/storage';
 import { getMonthlyClasses } from '../../services/scheduleService';
 import { isHoliday, getHolidayName } from '../../utils/holidays';
+import { useStudioConfig } from '../../contexts/StudioContext';
 
 const navBtnStyle = {
     background: 'var(--bg-input)', border: 'none', color: 'var(--text-primary)', width: '36px', height: '36px',
@@ -9,6 +10,7 @@ const navBtnStyle = {
 };
 
 const InstructorSchedule = ({ instructorName }) => {
+    const { config } = useStudioConfig();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [monthlyData, setMonthlyData] = useState({});
     const [selectedDate, setSelectedDate] = useState(null);
@@ -19,11 +21,8 @@ const InstructorSchedule = ({ instructorName }) => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth() + 1;
 
-    // Defined branches to fetch
-    const branches = useMemo(() => [
-        { id: 'gwangheungchang', name: '광흥창점', color: 'var(--primary-gold)' },
-        { id: 'mapo', name: '마포점', color: '#3B82F6' } // [FIX] Updated to Blue to match studioConfig
-    ], []);
+    // [STUDIO-AGNOSTIC] Pull from Config
+    const branches = config.BRANCHES || [];
 
     useEffect(() => {
         const loadData = async () => {
@@ -83,11 +82,14 @@ const InstructorSchedule = ({ instructorName }) => {
         const classes = monthlyData[dateStr] || [];
         const myClasses = classes.filter(cls => 
             cls.instructor === instructorName && 
-            cls.status !== 'cancelled' // Exclude cancelled classes from visual indicators
+            cls.status !== 'cancelled'
         );
+        const status = {};
+        branches.forEach(b => {
+            status[`has_${b.id}`] = myClasses.some(cls => cls.branchId === b.id || cls.branchName === b.name);
+        });
         return {
-            hasGhc: myClasses.some(cls => cls.branchName === '광흥창점' || cls.branchId === 'gwangheungchang'),
-            hasMapo: myClasses.some(cls => cls.branchName === '마포점' || cls.branchId === 'mapo'),
+            ...status,
             hasAny: myClasses.length > 0
         };
     };
@@ -99,32 +101,28 @@ const InstructorSchedule = ({ instructorName }) => {
         }
         for (let d = 1; d <= daysInMonth; d++) {
             const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-            const { hasGhc, hasMapo } = getBranchStatus(dateStr);
             const isSelected = selectedDate === dateStr;
+            const branchStatus = getBranchStatus(dateStr);
             const isToday = dateStr === new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-            
-            // Calculate day of week (0: Sun, 6: Sat)
             const dayOfWeek = new Date(year, month - 1, d).getDay();
             const isRedDay = dayOfWeek === 0 || isHoliday(dateStr);
-            const isBlueDay = dayOfWeek === 6 && !isRedDay; // Holiday takes precedence over Saturday
-            
+            const isBlueDay = dayOfWeek === 6 && !isRedDay;
             const holidayName = getHolidayName(dateStr);
-
             let borderStyle = 'none';
             let borderColor = undefined;
 
-            if (hasGhc && hasMapo) {
+            // [STUDIO-AGNOSTIC] Improved border logic for multiple branches
+            const activeBranches = branches.filter(b => branchStatus[`has_${b.id}`]);
+            if (activeBranches.length > 1) {
                 borderStyle = '2px solid';
-                borderColor = 'var(--primary-gold) #3B82F6 #3B82F6 var(--primary-gold)'; // Top-Left Gold, Bottom-Right Blue
-            } else if (hasGhc) {
-                borderStyle = '2px solid var(--primary-gold)';
-            } else if (hasMapo) {
-                borderStyle = '2px solid #3B82F6';
+                borderColor = `${activeBranches[0].color} ${activeBranches[1].color} ${activeBranches[1].color} ${activeBranches[0].color}`;
+            } else if (activeBranches.length === 1) {
+                borderStyle = `2px solid ${activeBranches[0].color}`;
             }
             
             // [DEBUG] Log if border is applied unexpectedly
-            if ((hasGhc || hasMapo) && !monthlyData[dateStr]?.length) {
-                 console.warn(`[Calendar] Border applied but no classes found for ${dateStr}? GHC:${hasGhc}, MAPO:${hasMapo}`);
+            if (branchStatus.hasAny && !monthlyData[dateStr]?.length) {
+                 console.warn(`[Calendar] Border applied but no classes found for ${dateStr}?`);
             }
 
             // Text Color Logic
@@ -164,7 +162,7 @@ const InstructorSchedule = ({ instructorName }) => {
                         color: textColor,
                         border: borderStyle,
                         borderColor: borderColor !== 'transparent' ? borderColor : undefined,
-                        fontWeight: (hasGhc || hasMapo) ? 'bold' : 'normal',
+                        fontWeight: branchStatus.hasAny ? 'bold' : 'normal',
                         transition: 'all 0.2s',
                         position: 'relative',
                         display: 'flex',
@@ -221,30 +219,20 @@ const InstructorSchedule = ({ instructorName }) => {
                 <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '10px', textAlign: 'center' }}>
                     📅 지점별 일정 확인
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ 
-                            width: '24px', 
-                            height: '24px', 
-                            borderRadius: '6px', 
-                            background: 'transparent',
-                            border: '3px solid var(--primary-gold)',
-                            boxShadow: '0 0 10px rgba(212, 175, 55, 0.2)'
-                        }} />
-                        <span style={{ color: 'white', fontSize: '1rem', fontWeight: 'bold' }}>광흥창점</span>
-                    </div>
-                    <div style={{ width: '1px', background: 'rgba(255, 255, 255, 0.2)' }} />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ 
-                            width: '24px', 
-                            height: '24px', 
-                            borderRadius: '6px', 
-                            background: 'transparent',
-                            border: '3px solid #3B82F6',
-                            boxShadow: '0 0 10px rgba(59, 130, 246, 0.2)'
-                        }} />
-                        <span style={{ color: 'white', fontSize: '1rem', fontWeight: 'bold' }}>마포점</span>
-                    </div>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', flexWrap: 'wrap' }}>
+                    {branches.map(b => (
+                        <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div style={{ 
+                                width: '24px', 
+                                height: '24px', 
+                                borderRadius: '6px', 
+                                background: 'transparent',
+                                border: `3px solid ${b.color}`,
+                                boxShadow: `0 0 10px ${b.color}33`
+                            }} />
+                            <span style={{ color: 'white', fontSize: '1rem', fontWeight: 'bold' }}>{b.name}</span>
+                        </div>
+                    ))}
                 </div>
             </div>
 

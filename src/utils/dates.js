@@ -67,8 +67,21 @@ export const timestampToKSTDate = (timestamp) => {
  * @returns {string} 'HH:MM' 또는 'HH:MM:SS' 형식의 시간 문자열
  */
 export const timestampToKSTTime = (timestamp, includeSeconds = false) => {
-    if (!timestamp) return '';
-    return new Date(timestamp).toLocaleTimeString('ko-KR', {
+    return toKSTTimeString(timestamp, includeSeconds);
+};
+
+/**
+ * Date 객체를 KST 기준 'HH:MM' 또는 'HH:MM:SS' 형식으로 변환
+ * @param {Date|string} date - Date 객체 또는 날짜 문자열
+ * @param {boolean} includeSeconds - 초 포함 여부
+ * @returns {string} 'HH:MM' 또는 'HH:MM:SS' 형식의 시간 문자열
+ */
+export const toKSTTimeString = (date, includeSeconds = false) => {
+    if (!date) return '';
+    const d = safeParseDate(date);
+    if (isNaN(d.getTime())) return '';
+    
+    return d.toLocaleTimeString('ko-KR', {
         timeZone: 'Asia/Seoul',
         hour: '2-digit',
         minute: '2-digit',

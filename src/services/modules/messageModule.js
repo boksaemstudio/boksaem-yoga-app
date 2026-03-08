@@ -61,7 +61,7 @@ export const sendBulkPushCampaign = async (targetMemberIds, title, body) => {
         const docRef = await addDoc(collection(db, 'push_campaigns'), {
             target: 'selected',
             memberIds: targetMemberIds,
-            title: title || '복샘요가',
+            title: title || config?.IDENTITY?.NAME || "Studio",
             body,
             status: 'pending',
             createdAt: new Date().toISOString()

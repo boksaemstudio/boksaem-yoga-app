@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { storageService } from '../../../services/storage';
-import { Image, ToggleLeft, ToggleRight, Info } from '@phosphor-icons/react';
+import { Gear, AppWindow, ShieldCheck, MapPin, Monitor, Trash, Plus, FileText, DeviceMobile, Fingerprint, Browsers, Clock, CheckCircle, Image, ToggleLeft, ToggleRight, Info } from '@phosphor-icons/react';
+import { useStudioConfig } from '../../../contexts/StudioContext';
 
 const KioskSettingsTab = () => {
+    const { config } = useStudioConfig();
+    const branches = config.BRANCHES || [];
     const [settings, setSettings] = useState({ active: false, imageUrl: null });
     const [isUploading, setIsUploading] = useState(false);
     const [previewUrl, setPreviewUrl] = useState(null);
@@ -15,7 +18,16 @@ const KioskSettingsTab = () => {
             setSettings(data);
             setPreviewUrl(data.imageUrl);
         };
+        
         loadSettings();
+
+        // [ROOT SOLUTION] 키오스크 설정 실시간 동기화 구독
+        const unsubscribe = storageService.subscribe(() => {
+            console.log(`[KioskSettingsTab] Settings updated for branch: ${selectedBranch}, syncing...`);
+            loadSettings();
+        }, ['settings']);
+
+        return () => unsubscribe();
     }, [selectedBranch]);
 
     const handleImageUpload = (e) => {
@@ -115,8 +127,7 @@ const KioskSettingsTab = () => {
             <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
                 {[
                     { id: 'all', label: '전체' },
-                    { id: 'gwangheungchang', label: '광흥창' },
-                    { id: 'mapo', label: '마포' }
+                    ...branches.map(b => ({ id: b.id, label: b.name.replace('점', '') }))
                 ].map(branch => (
                     <button
                         key={branch.id}

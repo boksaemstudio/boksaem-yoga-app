@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { BellRinging, Check, Info, Plus, NotePencil, PaperPlaneTilt } from '@phosphor-icons/react';
-import { getBranchName, getBranchColor, getBranchThemeColor } from '../../../studioConfig';
+import { BellRinging, Check, Info, Plus, NotePencil, PaperPlaneTilt, UserFocus } from '@phosphor-icons/react';
+import { useStudioConfig } from '../../../contexts/StudioContext';
 
 
 
 const MembersTab = ({
+    members,
     filteredMembers,
     summary,
     searchTerm,
@@ -20,13 +21,20 @@ const MembersTab = ({
     itemsPerPage,
     handleOpenEdit,
     setShowAddModal,
-    pushTokens,
-    setActiveTab,
     setShowBulkMessageModal,
+    pushTokens,
     getDormantSegments,
     setBulkMessageInitialText,
-    onNoteClick
+    setActiveTab,
+    onNoteClick,
+    todayReRegMemberIds
 }) => {
+    const { config } = useStudioConfig();
+    const branches = config.BRANCHES || [];
+    const getBranchName = (id) => branches.find(b => b.id === id)?.name || id;
+    const getBranchColor = (id) => branches.find(b => b.id === id)?.color || 'var(--primary-gold)';
+    const getBranchThemeColor = (id) => branches.find(b => b.id === id)?.color || 'var(--primary-gold)';
+
     const [localSort, setLocalSort] = useState('default'); // 'default', 'credits_asc', 'credits_desc', 'enddate_asc', 'enddate_desc'
 
     // [FIX] 자정 넘김 시 날짜 자동 갱신 — dateKey가 변경되면 todayKstStr/todayStartMs도 재계산
@@ -203,6 +211,27 @@ const MembersTab = ({
                         </div>
                     </div>
                 </div>
+                {/* [NEW] Facial Data Status Card -> Interactive Filter */}
+                <div className={`dashboard-card interactive ${filterType === 'bio_missing' ? 'highlight' : ''}`}
+                    onClick={() => handleToggleFilter('bio_missing')}
+                    style={{ border: '1px solid rgba(59, 130, 246, 0.3)', background: 'rgba(59, 130, 246, 0.05)' }}>
+                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <UserFocus size={16} weight="fill" color="#60A5FA" /> 안면 미등록 회원
+                        <div className="tooltip-container" onClick={e => e.stopPropagation()}>
+                            <Info size={14} style={{ opacity: 0.7 }} />
+                            <span className="tooltip-text" style={{ width: '220px', left: '-100px' }}>
+                                활성 회원 중<br />안면 데이터가 등록되지 않은 회원
+                            </span>
+                        </div>
+                    </div>
+                    <div className="card-value info" style={{ color: '#60A5FA' }}>
+                        {summary.bioMissingCount || 0}명
+                        <span style={{ fontSize: '1rem', marginLeft: '6px', opacity: 0.6 }}>/ {summary.activeMembers}</span>
+                    </div>
+                    <div style={{ marginTop: '8px', height: '6px', width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{ width: `${100 - (summary.facialDataRatio || 0)}%`, height: '100%', background: '#60A5FA', transition: 'width 0.5s ease' }}></div>
+                    </div>
+                </div>
             </div>
 
             {/* Revenue Card (Visual Bar Chart Simulated) */}
@@ -252,6 +281,7 @@ const MembersTab = ({
                         {filterType === 'expiring' && '만료/횟수 임박 회원'}
                         {filterType === 'dormant' && '잠든 회원'}
                         {filterType === 'installed' && '앱 설치 회원'}
+                        {filterType === 'bio_missing' && '안면 미등록 회원'}
                     </strong> 목록을{' '}
                     <strong style={{ color: 'var(--text-secondary)' }}>
                         {localSort === 'default' ? (filterType === 'attendance' ? '최신 출석 순' : (filterType === 'installed' ? '최신 설치 순' : (filterType === 'registration' ? '최신 등록순' : '이름을 가나다순'))) : 

@@ -2,12 +2,13 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { signInAnonymously } from 'firebase/auth';
 import { auth } from '../firebase';
 import { storageService } from '../services/storage';
-import { getAllBranches } from '../studioConfig';
 import { getKSTHour, getDaysRemaining, safeParseDate } from '../utils/dates';
 import { logError } from '../services/modules/errorModule';
 import { getStaticStandbyMessage } from '../utils/aiStandbyHelper';
 import { AIMessages } from '../constants/aiMessages';
 import { CHECKIN_CONFIG } from '../constants/CheckInConfig';
+import { extractFaceDescriptor, findBestMatch, loadFacialModels } from '../services/facialService';
+import { memberService } from '../services/memberService';
 
 // Hooks
 import { useAlwaysOnGuardian } from '../hooks/useAlwaysOnGuardian';
@@ -16,6 +17,7 @@ import { useNetworkMonitor } from '../hooks/useNetworkMonitor';
 import { useTTS } from '../hooks/useTTS';
 import { useNetwork } from '../context/NetworkContext';
 import { usePWA } from '../hooks/usePWA';
+import { useStudioConfig } from '../contexts/StudioContext';
 
 // Components (Ultra-Modular)
 import TopBar from '../components/checkin/TopBar';
@@ -27,21 +29,17 @@ import DuplicateConfirmModal from '../components/checkin/DuplicateConfirmModal';
 import InstructorQRModal from '../components/InstructorQRModal';
 import KioskInstallGuideModal from '../components/checkin/KioskInstallGuideModal';
 
-// Assets
-import logoWide from '../assets/logo_wide.png';
-import rys200Logo from '../assets/RYS200.png';
-
-const getBgForPeriod = (p) => {
-    switch (p) {
-        case 'morning': return import('../assets/bg_morning.webp');
-        case 'afternoon': return import('../assets/bg_afternoon.webp');
-        case 'evening': return import('../assets/bg_evening.webp');
-        default: return import('../assets/bg_night.webp');
-    }
-};
-
 const CheckInPage = () => {
-    const BUILD_VERSION = '2026.03.07.v1';
+    const { config } = useStudioConfig();
+    const BUILD_VERSION = config.IDENTITY?.APP_VERSION;
+    const logoWide = config.ASSETS?.LOGO?.WIDE || '/assets/logo_wide.webp';
+    const rys200Logo = config.ASSETS?.LOGO?.RYS200 || '/assets/RYS200.webp';
+    const branches = config.BRANCHES || [];
+
+    const getBgForPeriod = (p) => {
+        const bgKey = p.toUpperCase();
+        return config.ASSETS?.BACKGROUNDS?.[bgKey] || config.ASSETS?.BACKGROUNDS?.NIGHT;
+    };
     
     // States
     const [pin, setPin] = useState('');
@@ -63,7 +61,7 @@ const CheckInPage = () => {
     const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
     const [showKioskInstallGuide, setShowKioskInstallGuide] = useState(false);
     const [pendingPin, setPendingPin] = useState(null);
-    const [duplicateTimer, setDuplicateTimer] = useState(25);
+    const [duplicateTimer, setDuplicateTimer] = useState(config.POLICIES?.SESSION_AUTO_CLOSE_SEC || 25);
     const [isDuplicateFlow, setIsDuplicateFlow] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState('출석 확인 중...');
     const [period, setPeriod] = useState(() => {
@@ -74,25 +72,32 @@ const CheckInPage = () => {
         return 'night';
     });
     const [bgImage, setBgImage] = useState(null);
+    const [isOnline, setIsOnline] = useState(true);
+    const [faceModelsLoaded, setFaceModelsLoaded] = useState(false);
 
     // Refs
     const timerRef = useRef(null);
     const duplicateAutoCloseRef = useRef(null);
     const recentCheckInsRef = useRef([]);
     const autoUpdateRef = useRef({ pin, message, loading, showSelectionModal, showDuplicateConfirm });
+    const lastDescriptorRef = useRef(null);
+    const activeTaskIdRef = useRef(0); // [FACIAL] Track latest task ID to abort stale extractions
+    const pinRef = useRef(pin); // [PERF] Keep track of latest pin for stable callbacks
 
     // Hooks Init
     const { needRefresh, updateServiceWorker } = usePWA();
     const { checkConnection } = useNetworkMonitor();
-    const { setIsOnline } = useNetwork();
+    const { setIsOnline: setNetworkStatus } = useNetwork(); // Renamed to avoid conflict with local state
     const { speak } = useTTS();
     const { videoRef, canvasRef, capturePhoto, uploadPhoto } = useAttendanceCamera(true);
     const language = CHECKIN_CONFIG.LOCALE;
-    const branches = getAllBranches();
     const qrCodeUrl = `${CHECKIN_CONFIG.ASSETS.QR_CODE_BASE_URL}?${CHECKIN_CONFIG.ASSETS.QR_CODE_PARAMS}&data=${encodeURIComponent(window.location.origin + '/member')}`;
 
     // Effects
-    useEffect(() => { autoUpdateRef.current = { pin, message, loading, showSelectionModal, showDuplicateConfirm }; }, [pin, message, loading, showSelectionModal, showDuplicateConfirm]);
+    useEffect(() => { 
+        autoUpdateRef.current = { pin, message, loading, showSelectionModal, showDuplicateConfirm }; 
+        pinRef.current = pin;
+    }, [pin, message, loading, showSelectionModal, showDuplicateConfirm]);
     
     useEffect(() => {
         const init = async () => {
@@ -107,8 +112,24 @@ const CheckInPage = () => {
         return () => window.removeEventListener('resize', vh);
     }, []);
 
+    // [FACIAL] Background load models to avoid lag later
     useEffect(() => {
-        getBgForPeriod(period).then(m => setBgImage(m.default));
+        loadFacialModels().then(() => setFaceModelsLoaded(true));
+    }, []);
+
+    // [AUTO-UPDATE] Automatically reload when a new PWA version is detected
+    // [SAFETY] Don't reload if user is interacting (typing PIN, modal open, or message shown)
+    useEffect(() => {
+        const isInteracting = pin.length > 0 || !!message || showSelectionModal || showDuplicateConfirm || showInstructorQR || showKioskInstallGuide;
+        
+        if (needRefresh && !isInteracting) {
+            console.log('[PWA] New version detected, updating safely...');
+            updateServiceWorker(true);
+        }
+    }, [needRefresh, updateServiceWorker, pin, message, showSelectionModal, showDuplicateConfirm, showInstructorQR, showKioskInstallGuide]);
+
+    useEffect(() => {
+        setBgImage(getBgForPeriod(period));
     }, [period]);
 
     // [FIX] Kiosk Notice Image Subscriber
@@ -221,10 +242,22 @@ const CheckInPage = () => {
         }
 
         let msg = "오늘의 수련이 시작됩니다.";
-        if (isDup) { msg = "연속 출석입니다."; speak("duplicate"); }
-        else if (daysLeft < 0) { msg = "기간이 만료되었습니다."; speak("denied"); }
-        else if (credits < 0) { msg = "잔여 횟수가 없습니다."; speak("denied"); }
-        else if (credits === 0 || daysLeft === 0) { msg = "오늘 마지막 수련 후 재등록이 필요합니다."; speak("last_session"); }
+        if (isDup) { 
+            msg = "반가워요! 이미 출석 확인이 완료되었습니다."; 
+            speak("duplicate"); 
+        }
+        else if (daysLeft < 0) { 
+            msg = "수련권 기간이 완료되었습니다. 선생님께서 안내를 도와드릴게요."; 
+            speak("denied"); 
+        }
+        else if (credits < 0) { 
+            msg = "수련 횟수가 모두 소진되었습니다. 선생님께서 안내를 도와드릴게요."; 
+            speak("denied"); 
+        }
+        else if (credits === 0 || daysLeft === 0) { 
+            msg = "오늘이 이번 수련권의 마지막 날이네요. 정성 가득한 수련 되세요!"; 
+            speak("last_session"); 
+        }
         else { speak("success"); }
 
         // [UX] Delay visual rendering slightly so the TTS audio can load and play in sync.
@@ -239,13 +272,31 @@ const CheckInPage = () => {
             .finally(() => setAiLoading(false));
     };
 
-    const proceedWithCheckIn = async (p, isDup = false, memberIdToForce = null) => {
+    const proceedWithCheckIn = async (p, isDup = false, memberIdToForce = null, facialTask = null) => {
         setLoading(true);
         try {
+            // [FACIAL] Await descriptor if still in flight (max 1.5s timeout)
+            if (facialTask && !lastDescriptorRef.current) {
+                try {
+                    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500));
+                    await Promise.race([facialTask, timeout]);
+                } catch (e) {
+                    console.warn('[FACIAL] Extraction timed out or failed');
+                }
+            }
+
             let targetMemberId = memberIdToForce;
+            let isFacialMatch = false;
 
             if (!targetMemberId) {
-                const members = await storageService.findMembersByPhone(p);
+                let members = [];
+                try {
+                    members = await storageService.findMembersByPhone(p);
+                } catch (lookupErr) {
+                    console.error('[CheckInPage] findMembersByPhone failed:', lookupErr);
+                    members = [];
+                }
+                
                 if (members.length === 0) {
                     speak("error");
                     await new Promise(r => setTimeout(r, 300));
@@ -253,16 +304,30 @@ const CheckInPage = () => {
                     return;
                 }
                 if (members.length > 1) {
-                    setDuplicateMembers(members);
-                    setIsDuplicateFlow(isDup);
-                    setShowSelectionModal(true);
-                    return;
+                    // [FACIAL] Try auto-resolution if models and current descriptor are ready
+                    if (faceModelsLoaded && lastDescriptorRef.current) {
+                        const bestMatch = findBestMatch(lastDescriptorRef.current, members);
+                        if (bestMatch) {
+                            console.log(`[FACIAL] Auto-resolved duplicate PIN to: ${bestMatch.name}`);
+                            targetMemberId = bestMatch.id;
+                            isFacialMatch = true;
+                        }
+                    }
+
+                    if (!targetMemberId) {
+                        setDuplicateMembers(members);
+                        setIsDuplicateFlow(isDup);
+                        setShowSelectionModal(true);
+                        return;
+                    }
+                } else {
+                    targetMemberId = members[0].id;
                 }
-                targetMemberId = members[0].id;
             }
 
-            const currentEventId = crypto.randomUUID();
-            const res = await storageService.checkInById(targetMemberId, currentBranch, isDup, currentEventId);
+            const safeUUID = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'id_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+            const currentEventId = safeUUID();
+            const res = await storageService.checkInById(targetMemberId, currentBranch, isDup, currentEventId, isFacialMatch);
             if (res.success) {
                 setIsOnline(!res.isOffline);
                 if (res.attendanceStatus === 'denied') {
@@ -274,40 +339,87 @@ const CheckInPage = () => {
                     recentCheckInsRef.current.push({ pin: p, timestamp: Date.now() });
                     uploadPhoto(res.attendanceId, res.member?.name, 'valid');
                     await showCheckInSuccess(res, isDup);
+
+                    // [FACIAL] Background Data Collection
+                    // If unique match and member lacks face data, save it silently
+                    if (faceModelsLoaded && lastDescriptorRef.current && !res.member?.faceDescriptor) {
+                        memberService.updateFaceDescriptor(targetMemberId, lastDescriptorRef.current);
+                    }
                 }
             } else {
                 speak("error");
                 await new Promise(r => setTimeout(r, 300));
                 setMessage({ type: 'error', text: res.message });
             }
-        } catch (e) { logError(e, { context: 'Kiosk', branch: currentBranch }); }
+        } catch (e) {
+            logError(e, { context: 'Kiosk', branch: currentBranch });
+            console.error('[CheckInPage] proceedWithCheckIn error:', e);
+            speak("error");
+            setMessage({ type: 'error', text: '시스템 오류가 발생했습니다. 다시 시도해주세요.' });
+        }
         finally { setLoading(false); }
     };
 
     const handleSubmit = useCallback((p) => {
-        const pinCode = p || pin;
+        const pinCode = typeof p === 'string' ? p : pinRef.current; // [PERF] Use ref instead of state to prevent re-creation
         if (pinCode.length !== 4 || loading) return;
-        capturePhoto();
+        
+        // [FACIAL] Abort previous extraction and start new one with a unique ID
+        const taskId = ++activeTaskIdRef.current;
+        let facialTask = null;
+        if (faceModelsLoaded && videoRef.current) {
+            facialTask = extractFaceDescriptor(videoRef.current).then(desc => {
+                if (taskId === activeTaskIdRef.current) {
+                    lastDescriptorRef.current = desc;
+                    return desc;
+                }
+                console.log(`[FACIAL] Aborting stale task ${taskId}`);
+                return null;
+            });
+        }
+
+        // [PERF] Delay heavy synchronous photo DOM access to not block keypad frame update
+        setTimeout(() => capturePhoto(), 0);
+        
         const isDup = recentCheckInsRef.current.some(e => e.pin === pinCode && (Date.now() - e.timestamp) < CHECKIN_CONFIG.TIMEOUTS.DUPLICATE_CHECK);
         if (isDup) {
             setPendingPin(pinCode);
             setShowDuplicateConfirm(true);
-            setDuplicateTimer(25);
+            setDuplicateTimer(config.POLICIES?.SESSION_AUTO_CLOSE_SEC || 25);
             if (duplicateAutoCloseRef.current) clearInterval(duplicateAutoCloseRef.current);
             duplicateAutoCloseRef.current = setInterval(() => setDuplicateTimer(v => v - 1), 1000);
         } else {
-            proceedWithCheckIn(pinCode);
+            proceedWithCheckIn(pinCode, false, null, facialTask);
         }
-    }, [pin, loading, currentBranch]);
+    }, [loading, currentBranch, config.POLICIES, faceModelsLoaded, capturePhoto]);
 
     const handleKeyPress = useCallback((n) => {
-        if (pin.length === 0) { checkConnection(); capturePhoto(); }
+        if (pinRef.current.length === 0) { 
+            checkConnection(); 
+            // [PERF] Move Heavy Canvas Logic to the next tick to prevent keypad lag
+            setTimeout(() => {
+                capturePhoto();
+                // [FACIAL] Proactive extraction: Start AI logic as soon as user starts typing, but defer to avoid freezing the first keystroke
+                if (faceModelsLoaded && videoRef.current) {
+                    const taskId = ++activeTaskIdRef.current;
+                    extractFaceDescriptor(videoRef.current).then(desc => {
+                        if (taskId === activeTaskIdRef.current) {
+                            lastDescriptorRef.current = desc;
+                        }
+                    }).catch(() => {});
+                }
+            }, 50);
+        }
         setPin(prev => {
             const next = prev + n;
             if (next.length === 4) handleSubmit(next);
             return next.length <= 4 ? next : prev;
         });
-    }, [handleSubmit, checkConnection]);
+    }, [handleSubmit, checkConnection, faceModelsLoaded, capturePhoto]);
+
+    const handleClear = useCallback(() => {
+        setPin(p => p.slice(0, -1));
+    }, []);
 
     const closeMessage = useCallback(() => {
         if (timerRef.current) {
@@ -319,6 +431,7 @@ const CheckInPage = () => {
 
     // Guard & PWA
     useAlwaysOnGuardian(isReady);
+
 
     // [CRITICAL FIX] Memory/CPU Leak - Clear interval when modal closes or timer hits 0
     useEffect(() => { 
@@ -348,7 +461,7 @@ const CheckInPage = () => {
 
             <div className="checkin-content" style={{ zIndex: 5, flex: 1, display: 'flex', gap: '2vh', padding: '3vh 3vw 5vh', width: '100%', alignItems: 'stretch', overflow: 'hidden' }}>
                 <CheckInInfoSection pin={pin} loading={loading} aiExperience={aiExperience} aiEnhancedMsg={aiEnhancedMsg} aiLoading={aiLoading} rys200Logo={rys200Logo} logoWide={logoWide} qrCodeUrl={qrCodeUrl} handleQRInteraction={() => setShowKioskInstallGuide(true)} />
-                <CheckInKeypadSection pin={pin} loading={loading} isReady={isReady} loadingMessage={loadingMessage} keypadLocked={keypadLocked} showSelectionModal={showSelectionModal} message={message} handleKeyPress={handleKeyPress} handleClear={() => setPin(p => p.slice(0, -1))} handleSubmit={handleSubmit} />
+                <CheckInKeypadSection pin={pin} loading={loading} isReady={isReady} loadingMessage={loadingMessage} keypadLocked={keypadLocked} showSelectionModal={showSelectionModal} message={message} handleKeyPress={handleKeyPress} handleClear={handleClear} handleSubmit={handleSubmit} />
             </div >
 
             <SelectionModal show={showSelectionModal} duplicateMembers={duplicateMembers} loading={loading} onClose={() => setShowSelectionModal(false)} onSelect={id => { setShowSelectionModal(false); proceedWithCheckIn(pin, isDuplicateFlow, id); }} />
@@ -366,9 +479,9 @@ const CheckInPage = () => {
 
             <KioskInstallGuideModal isOpen={showKioskInstallGuide} onClose={() => setShowKioskInstallGuide(false)} />
             <InstructorQRModal isOpen={showInstructorQR} onClose={() => setShowInstructorQR(false)} />
-            <video ref={videoRef} autoPlay playsInline muted style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: '1px', height: '1px' }} />
-            <canvas ref={canvasRef} style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: '1px', height: '1px' }} />
-            <div style={{ display: 'none' }} data-version={BUILD_VERSION}>{BUILD_VERSION}</div>
+            <video ref={videoRef} autoPlay playsInline muted style={{ position: 'fixed', left: '-1000px', top: '-1000px', width: '320px', height: '240px', opacity: 0.01, pointerEvents: 'none' }} />
+            <canvas ref={canvasRef} style={{ position: 'fixed', left: '-1000px', top: '-1000px', width: '320px', height: '240px', opacity: 0.01, pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: '2px', right: '8px', fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', pointerEvents: 'none', zIndex: 3001 }}>v{BUILD_VERSION}</div>
         </div>
     );
 };
@@ -379,4 +492,4 @@ export default CheckInPage;
  * [BUILD-FIX] Attach unminifiable property to component object to defeat tree-shaking
  * This guarantees Rollup will generate a new chunk hash, forcing Workbox to update!
  */
-CheckInPage.__buildVersion = '2026.03.07.v1';
+CheckInPage.__buildVersion = '2026.03.07.v10';

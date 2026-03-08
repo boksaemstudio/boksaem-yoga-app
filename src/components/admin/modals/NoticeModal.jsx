@@ -121,7 +121,7 @@ const NoticeModal = ({ isOpen, onClose, onSuccess }) => {
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '10px', overflowX: 'auto', paddingBottom: '5px' }}>
                         {newNotice.images.map((imgSrc, idx) => (
                             <div key={idx} style={{ position: 'relative', flexShrink: 0, width: '100px', height: '100px' }}>
-                                <img src={imgSrc} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }} />
+                                <img src={imgSrc} alt={`공지사항 첨부 이미지 ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }} />
                                 <button 
                                     onClick={() => removeImage(idx)}
                                     style={{ 

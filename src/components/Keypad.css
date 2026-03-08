@@ -32,9 +32,11 @@
 }
 
 /* Simplified active state without scale/shadow */
-.keypad-btn:active {
+.keypad-btn:active,
+.keypad-btn.touch-active {
     background-color: rgba(255, 255, 255, 0.25);
     border-color: var(--primary-gold);
+    transform: scale(0.98);
 }
 
 .keypad-btn.clear-btn {

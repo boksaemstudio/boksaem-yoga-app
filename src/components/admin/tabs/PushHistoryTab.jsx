@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { BellRinging, User, Users, Clock, CheckCircle, WarningCircle } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
+import { useStudioConfig } from '../../../contexts/StudioContext';
 
 const PushHistoryTab = ({ onSelectMember, setActiveTab, pendingApprovals = [], onApprove, onReject }) => {
+    const { config } = useStudioConfig();
+    const primaryColor = config.THEME?.PRIMARY_COLOR || '#D4AF37';
     const [history, setHistory] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -26,7 +29,7 @@ const PushHistoryTab = ({ onSelectMember, setActiveTab, pendingApprovals = [], o
                     <p style={{ margin: '5px 0 0 0', opacity: 0.5, fontSize: '0.85rem' }}>단체 및 개별 푸시 알림 발송 이력입니다.</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--primary-gold)' }}>{history.length}</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: primaryColor }}>{history.length}</div>
                     <div style={{ fontSize: '0.7rem', opacity: 0.5 }}>최근 발송 건수</div>
                 </div>
             </div>
@@ -113,102 +116,102 @@ const PushHistoryTab = ({ onSelectMember, setActiveTab, pendingApprovals = [], o
                         else if (item.type === 'individual') label = `개별 발송 (${item.memberName || item.targetMemberName || '알 수 없음'})`;
                         
                         return (
-                        <div 
-                            key={item.id} 
-                            className="glass-panel" 
-                            onClick={() => {
-                                if (item.type === 'individual' && item.targetMemberId && onSelectMember) {
-                                    onSelectMember(item.targetMemberId);
-                                } else if (isNotice && setActiveTab) {
-                                    setActiveTab('notices');
-                                }
-                            }}
-                            style={{
-                            marginBottom: '15px',
-                            padding: '20px',
-                            border: '1px solid rgba(255,255,255,0.05)',
-                            background: 'rgba(255,255,255,0.02)',
-                            borderRadius: '12px',
-                            position: 'relative',
-                            transition: 'all 0.2s ease',
-                            cursor: isClickable ? 'pointer' : 'default'
-                        }}
-                        onMouseEnter={(e) => {
-                            if (isClickable) {
-                                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-                            }
-                        }}
-                        onMouseLeave={(e) => {
-                            if (isClickable) {
-                                e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
-                            }
-                        }}
-                        >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <div style={{
-                                        width: '36px',
-                                        height: '36px',
-                                        borderRadius: '10px',
-                                        background: isNotice ? 'rgba(212, 175, 55, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                                        color: isNotice ? 'var(--primary-gold)' : '#3B82F6',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}>
-                                        {isNotice ? <Users size={20} weight="fill" /> : <User size={20} weight="fill" />}
-                                    </div>
-                                    <div>
-                                        <div style={{ fontWeight: 700, fontSize: '1rem', color: isNotice ? 'var(--primary-gold)' : '#3B82F6' }}>
-                                            {label}
+                            <div 
+                                key={item.id} 
+                                className="glass-panel" 
+                                onClick={() => {
+                                    if (item.type === 'individual' && item.targetMemberId && onSelectMember) {
+                                        onSelectMember(item.targetMemberId);
+                                    } else if (isNotice && setActiveTab) {
+                                        setActiveTab('notices');
+                                    }
+                                }}
+                                style={{
+                                    marginBottom: '15px',
+                                    padding: '20px',
+                                    border: '1px solid rgba(255,255,255,0.05)',
+                                    background: 'rgba(255,255,255,0.02)',
+                                    borderRadius: '12px',
+                                    position: 'relative',
+                                    transition: 'all 0.2s ease',
+                                    cursor: isClickable ? 'pointer' : 'default'
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (isClickable) {
+                                        e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (isClickable) {
+                                        e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                                    }
+                                }}
+                            >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <div style={{
+                                            width: '36px',
+                                            height: '36px',
+                                            borderRadius: '10px',
+                                            background: isNotice ? `${primaryColor}20` : 'rgba(59, 130, 246, 0.15)',
+                                            color: isNotice ? primaryColor : '#3B82F6',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}>
+                                            {isNotice ? <Users size={20} weight="fill" /> : <User size={20} weight="fill" />}
                                         </div>
-                                        <div style={{ fontSize: '0.75rem', opacity: 0.5, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                            <Clock size={12} /> {new Date(item.displayDate).toLocaleString()}
+                                        <div>
+                                            <div style={{ fontWeight: 700, fontSize: '1rem', color: isNotice ? primaryColor : '#3B82F6' }}>
+                                                {label}
+                                            </div>
+                                            <div style={{ fontSize: '0.75rem', opacity: 0.5, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                <Clock size={12} /> {new Date(item.displayDate).toLocaleString()}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    {isNotice && (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        {isNotice && (
+                                            <span style={{
+                                                fontSize: '0.65rem',
+                                                padding: '2px 8px',
+                                                borderRadius: '20px',
+                                                background: 'rgba(255,255,255,0.05)',
+                                                border: '1px solid rgba(255,255,255,0.1)'
+                                            }}>
+                                                {item.totalTargets > 0 ? `${item.totalTargets}명` : (item.target === 'all' ? '전체' : '단체')}
+                                            </span>
+                                        )}
                                         <span style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '4px',
                                             fontSize: '0.65rem',
                                             padding: '2px 8px',
                                             borderRadius: '20px',
-                                            background: 'rgba(255,255,255,0.05)',
-                                            border: '1px solid rgba(255,255,255,0.1)'
+                                            background: item.status === 'pending' ? 'rgba(255, 193, 7, 0.1)' : 'rgba(40, 167, 69, 0.1)',
+                                            color: item.status === 'pending' ? '#FFC107' : '#28A745',
+                                            border: `1px solid ${item.status === 'pending' ? 'rgba(255, 193, 7, 0.2)' : 'rgba(40, 167, 69, 0.2)'}`
                                         }}>
-                                            {item.totalTargets > 0 ? `${item.totalTargets}명` : (item.target === 'all' ? '전체' : '단체')}
+                                            {item.status === 'pending' ? <WarningCircle size={10} /> : <CheckCircle size={10} />}
+                                            {item.status === 'pending' ? '전송 중' : '발송 완료'}
                                         </span>
-                                    )}
-                                    <span style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '4px',
-                                        fontSize: '0.65rem',
-                                        padding: '2px 8px',
-                                        borderRadius: '20px',
-                                        background: item.status === 'pending' ? 'rgba(255, 193, 7, 0.1)' : 'rgba(40, 167, 69, 0.1)',
-                                        color: item.status === 'pending' ? '#FFC107' : '#28A745',
-                                        border: `1px solid ${item.status === 'pending' ? 'rgba(255, 193, 7, 0.2)' : 'rgba(40, 167, 69, 0.2)'}`
-                                    }}>
-                                        {item.status === 'pending' ? <WarningCircle size={10} /> : <CheckCircle size={10} />}
-                                        {item.status === 'pending' ? '전송 중' : '발송 완료'}
-                                    </span>
+                                    </div>
+                                </div>
+                                <div style={{
+                                    fontSize: '0.9rem',
+                                    opacity: 0.9,
+                                    lineHeight: 1.6,
+                                    background: 'rgba(0,0,0,0.2)',
+                                    padding: '12px 15px',
+                                    borderRadius: '8px',
+                                    color: 'rgba(255,255,255,0.85)',
+                                    whiteSpace: 'pre-wrap'
+                                }}>
+                                    {item.body || item.content}
                                 </div>
                             </div>
-                            <div style={{
-                                fontSize: '0.9rem',
-                                opacity: 0.9,
-                                lineHeight: 1.6,
-                                background: 'rgba(0,0,0,0.2)',
-                                padding: '12px 15px',
-                                borderRadius: '8px',
-                                color: 'rgba(255,255,255,0.85)',
-                                whiteSpace: 'pre-wrap'
-                            }}>
-                                {item.body || item.content}
-                            </div>
-                        </div>
-                    );
+                        );
                     })
                 )}
             </div>

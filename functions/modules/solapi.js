@@ -6,7 +6,7 @@
  */
 
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
-const { admin, logAIError } = require("../helpers/common");
+const { admin, logAIError, getStudioName } = require("../helpers/common");
 const { SolapiMessageService } = require("solapi");
 
 // Initialize Solapi Service
@@ -56,7 +56,8 @@ exports.sendMessageOnApproval = onDocumentUpdated({
 
         const targetMemberIds = newData.targetMemberIds || [];
         const content = newData.body || "";
-        const title = newData.title || "복샘요가 알림";
+        const studioName = await getStudioName();
+        const title = newData.title || `${studioName} 알림`;
         const senderNumber = process.env.SOLAPI_SENDER_NUMBER || "01022232789";
 
         if (!content) {
@@ -234,16 +235,18 @@ exports.sendSolapiOnMessageV2 = onDocumentCreated({
         // Else -> LMS/SMS
         // Currently UI sends plain text, so default to LMS/SMS. 
         // Later we can parse content to find template match if needed, but manual is safer.
-        
+        const studioName = await getStudioName();
         const payload = {
-            to: cleanPhone,
-            from: senderNumber,
-            text: content,
-            subject: "복샘요가 알림", // LMS Subject
+            messages: [{
+                to: cleanPhone,
+                from: senderNumber,
+                text: content,
+                subject: `${studioName} 알림`, // LMS Subject
+            }]
         };
 
         if (messageData.templateId) {
-             payload.kakaoOptions = {
+             payload.messages[0].kakaoOptions = {
                 pfId: process.env.KAKAO_PFID,
                 templateId: messageData.templateId
              };

@@ -6,10 +6,16 @@ import RegistrationTab from './admin/member-detail/RegistrationTab';
 import AttendanceTab from './admin/member-detail/AttendanceTab';
 import MessagesTab from './admin/member-detail/MessagesTab';
 import { storageService } from '../services/storage';
-import { getBranchName, getBranchColor } from '../studioConfig';
+import { useStudioConfig } from '../contexts/StudioContext';
 import CustomDatePicker from './common/CustomDatePicker';
 
 const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberLogs, onClose, pricingConfig, onUpdateMember, onAddSalesRecord, pushTokens = [] }) => {
+    const { config } = useStudioConfig();
+
+    // Helper functions replacing studioConfig.js
+    const getBranchName = (id) => (config.BRANCHES || []).find(b => b.id === id)?.name || id;
+    const getBranchColor = (id) => (config.BRANCHES || []).find(b => b.id === id)?.color || '#D4AF37';
+    const getMembershipTypeLabel = (key) => config.MEMBERSHIP_TYPE_MAP?.[key] || key;
     // [FIX] Use local state for immediate UI updates
     const [localMember, setLocalMember] = useState(initialMember);
     const member = localMember || initialMember;
@@ -451,11 +457,10 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                             {member.name}
                             <span style={{ fontSize: '0.9rem', color: '#a1a1aa', fontWeight: 'normal' }}>{member.phone}</span>
                             
-                            {/* [NEW] Branch Badge */}
                             <div style={{
                                 fontSize: '0.7rem',
                                 background: getBranchColor(member.homeBranch || member.branchId),
-                                color: (member.homeBranch || member.branchId) === 'mapo' ? 'white' : 'black',
+                                color: 'white',
                                 padding: '2px 8px',
                                 borderRadius: '4px',
                                 fontWeight: 'bold',
@@ -473,6 +478,24 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                                 }}>
                                     <BellRinging size={12} weight="fill" /> 푸시 ON
                                 </div>
+                            )}
+
+                            {member.hasFaceDescriptor && (
+                                <>
+                                    <div style={{
+                                        display: 'flex', alignItems: 'center', gap: '4px',
+                                        background: 'rgba(59, 130, 246, 0.15)', color: '#60A5FA',
+                                        padding: '2px 8px', borderRadius: '6px', fontSize: '0.7rem',
+                                        fontWeight: 'bold', border: '1px solid rgba(59, 130, 246, 0.3)'
+                                    }}>
+                                        📸 AI 인식 가능
+                                    </div>
+                                    {member.faceUpdatedAt && (
+                                        <span style={{ fontSize: '0.65rem', opacity: 0.5, fontWeight: 'normal', transform: 'translateY(2px)' }}>
+                                            (학습일: {new Date(member.faceUpdatedAt).toLocaleDateString()})
+                                        </span>
+                                    )}
+                                </>
                             )}
                         </h2>
                         {member.role === 'instructor' ? (
@@ -733,11 +756,8 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
     }, [originalData?.id, isSavingSale]);
 
     const getTypeLabel = (key) => {
-        const map = {
-            'general': '일반', 'intensive': '심화', 'kids': '키즈',
-            'pregnancy': '임신부', 'sat_hatha': '토요하타', 'ttc': 'TTC'
-        };
-        return map[key] || key;
+        // [STUDIO-AGNOSTIC] Pull from Config or return key as-is
+        return getMembershipTypeLabel(key);
     };
 
     const handleSaleSave = async () => {

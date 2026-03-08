@@ -7,7 +7,7 @@
  */
 
 const { onCall } = require("firebase-functions/v2/https");
-const { admin, getAI, checkAIQuota, logAIError } = require("../helpers/common");
+const { admin, getAI, checkAIQuota, logAIError, getStudioName } = require("../helpers/common");
 const { SchemaType } = require("@google/generative-ai"); // ✅ Import SchemaType
 
 // [PERF] TTS 클라이언트 싱글톤 — 매 호출마다 객체 생성 비용(200-500ms) 제거
@@ -168,8 +168,9 @@ exports.generateMeditationGuidance = onCall({
                 ? expertPerspectives[intentionFocus]
                 : null;
 
+            const studioName = await getStudioName();
             prompt = `
-Role: 복샘 요가의 명상 인사이트 가이드 (Korean, 해요체). 
+Role: ${studioName}의 명상 인사이트 가이드 (Korean, 해요체). 
 Goal: Help user notice "Here & Now" sensations (Body, Breath, Feeling) with Radical Acceptance.
 USER: ${memberName}
 
@@ -528,8 +529,9 @@ JSON Output:
             else if (timeHour >= 22 || timeHour < 5) timeOfDay = 'late_night';
             else if (timeHour >= 18) timeOfDay = 'evening';
 
+            const studioName = await getStudioName();
             prompt = `
-Role: Boksaem Yoga AI Curator (Korean).
+Role: ${studioName} AI Curator (Korean).
 Goal: Generate varied, poetic, and context-aware labels for meditation options.
 Context:
 - User: ${memberName || '회원'}

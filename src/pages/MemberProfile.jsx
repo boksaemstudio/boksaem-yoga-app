@@ -3,18 +3,11 @@ import { useContext, useState, useEffect, lazy, Suspense, useRef } from 'react';
 import { onSnapshot, doc, collection, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { storageService } from '../services/storage';
-import { Icons } from '../components/CommonIcons';
-import logo from '../assets/logo.png';
-import memberBg from '../assets/zen_yoga_bg.webp';
-// Lazy load MeditationPage to prevent initialization errors and reduce bundle size
-const MeditationPage = lazy(() => import('./MeditationPage'));
-import timeTable1 from '../assets/timetable_gwangheungchang.png';
-import timeTable2 from '../assets/timetable_mapo.png';
-import priceTable1 from '../assets/price_table_1.png';
-import priceTable2 from '../assets/price_table_2.png';
-import LanguageSelector from '../components/LanguageSelector';
+import { BellRinging, BellSlash, Share, DownloadSimple, PlusSquare } from '../components/CommonIcons';
+// Assets loaded via dynamic config
+import LanguageSelector from '../components/LanguageSelector'; // [Refactor] Ensuring clean import
 import { useLanguageContext as useLanguage } from '../context/LanguageContext';
-import { STUDIO_CONFIG } from '../studioConfig';
+import { useStudioConfig } from '../contexts/StudioContext';
 import InteractiveParticles from '../components/InteractiveParticles';
 
 // Specialized Sub-Components
@@ -26,6 +19,7 @@ import HomeYogaSection from '../components/profile/HomeYogaSection';
 import ScheduleTab from '../components/profile/tabs/ScheduleTab';
 import NoticeTab from '../components/profile/tabs/NoticeTab';
 import PriceTab from '../components/profile/tabs/PriceTab';
+const MeditationPage = lazy(() => import('./MeditationPage'));
 import CustomGlassModal from '../components/common/CustomGlassModal';
 import InstallGuideModal from '../components/InstallGuideModal';
 import InstallBanner from '../components/common/InstallBanner';
@@ -67,6 +61,17 @@ const safeSessionStorage = {
 };
 
 const MemberProfile = () => {
+    const { config } = useStudioConfig();
+    const [images, setImages] = useState({});
+
+    // Derive dynamic assets with SaaS Core Fallback
+    const logo = images.logo || config.ASSETS?.LOGO?.WIDE;
+    const memberBg = images.memberBg || config.ASSETS?.MEMBER_BG;
+    const timeTable1 = images.timeTable1 || config.ASSETS?.TIMETABLE?.BRANCH1;
+    const timeTable2 = images.timeTable2 || config.ASSETS?.TIMETABLE?.BRANCH2;
+    const priceTable1 = images.priceTable1 || config.ASSETS?.PRICETABLE?.BRANCH1;
+    const priceTable2 = images.priceTable2 || config.ASSETS?.PRICETABLE?.BRANCH2;
+
     const [member, setMember] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('home');
@@ -237,7 +242,6 @@ const MemberProfile = () => {
     const [logs, setLogs] = useState([]);
     const [logLimit, setLogLimit] = useState(10);
     const [notices, setNotices] = useState([]);
-    const [images, setImages] = useState({});
     const [weatherData, setWeatherData] = useState(null); // Changed to object { key, temp }
     const [aiExperience, setAiExperience] = useState(null);
     const [aiAnalysis, setAiAnalysis] = useState(null);
@@ -718,7 +722,7 @@ const MemberProfile = () => {
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url(${memberBg})`,
+                        backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url(${config.ASSETS?.MEMBER_BG || ''})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         zIndex: 1
@@ -735,7 +739,7 @@ const MemberProfile = () => {
                     maxWidth: '360px'
                 }}>
                     <div style={{ marginBottom: '40px' }}>
-                        <img src={logo} alt={STUDIO_CONFIG.NAME} style={{ width: '85px', height: 'auto', opacity: 0.9, filter: 'brightness(0) invert(1) drop-shadow(0 0 15px rgba(255, 255, 255, 0.4))', marginBottom: '25px' }} />
+                        <img src={config.ASSETS?.LOGO?.WIDE} alt={config.IDENTITY?.NAME || 'Studio'} style={{ width: '85px', height: 'auto', opacity: 0.9, filter: 'brightness(0) invert(1) drop-shadow(0 0 15px rgba(255, 255, 255, 0.4))', marginBottom: '25px' }} />
                         <h2 style={{ fontSize: '1.4rem', fontWeight: '800', marginBottom: '10px', color: 'var(--primary-gold)' }}>{t('loginTitle')}</h2>
                         <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.7)', lineHeight: '1.6', wordBreak: 'keep-all' }}>
                             {t('loginWelcome')}<br />
@@ -858,6 +862,7 @@ const MemberProfile = () => {
                 {/* Header */}
                 <ProfileHeader
                     logo={logo}
+                    studioName={config.IDENTITY?.NAME}
                     langLabelIndex={langLabelIndex}
                     langLabels={langLabels}
                     t={t}
@@ -919,9 +924,9 @@ const MemberProfile = () => {
                                             transition: 'all 0.3s ease'
                                         }}>
                                             {pushStatus === 'granted' ? (
-                                                <Icons.BellRinging size={22} weight="fill" color="var(--primary-gold)" />
+                                                <BellRinging size={22} weight="fill" color="var(--primary-gold)" />
                                             ) : (
-                                                <Icons.BellSlash size={22} color="rgba(255,255,255,0.4)" />
+                                                <BellSlash size={22} color="rgba(255,255,255,0.4)" />
                                             )}
                                         </div>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -990,7 +995,7 @@ const MemberProfile = () => {
                                                 color: deviceOS === 'ios' ? 'white' : 'black',
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center'
                                             }}>
-                                                {deviceOS === 'ios' ? <Icons.Share size={24} weight="bold" /> : <Icons.DownloadSimple size={24} weight="bold" />}
+                                                {deviceOS === 'ios' ? <Share size={24} weight="bold" /> : <DownloadSimple size={24} weight="bold" />}
                                             </div>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                                 <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>
@@ -1006,11 +1011,11 @@ const MemberProfile = () => {
                                             <div style={{ background: 'rgba(59, 130, 246, 0.15)', padding: '15px', borderRadius: '16px' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)' }}>
                                                     <span style={{ background: '#3B82F6', color: 'white', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>1</span>
-                                                    <span>하단 <Icons.Share size={18} weight="bold" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> <strong>공유 버튼</strong> 클릭</span>
+                                                    <span>하단 <Share size={18} weight="bold" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> <strong>공유 버튼</strong> 클릭</span>
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)' }}>
                                                     <span style={{ background: '#3B82F6', color: 'white', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>2</span>
-                                                    <span><Icons.PlusSquare size={18} weight="bold" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> <strong>홈 화면에 추가</strong> 선택</span>
+                                                    <span><PlusSquare size={18} weight="bold" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> <strong>홈 화면에 추가</strong> 선택</span>
                                                 </div>
                                             </div>
                                         ) : (
@@ -1024,7 +1029,7 @@ const MemberProfile = () => {
                                                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
                                                 }}
                                             >
-                                                <Icons.DownloadSimple size={20} weight="bold" /> 설치하기
+                                                <DownloadSimple size={20} weight="bold" /> 설치하기
                                             </button>
                                         )}
                                     </div>
@@ -1061,7 +1066,6 @@ const MemberProfile = () => {
                             setScheduleView={setScheduleView}
                             scheduleBranch={scheduleBranch}
                             setScheduleBranch={setScheduleBranch}
-                            STUDIO_CONFIG={STUDIO_CONFIG}
                             validLogs={validLogs}
                             scheduleMonth={scheduleMonth}
                             setScheduleMonth={setScheduleMonth}
@@ -1150,7 +1154,7 @@ const MemberProfile = () => {
             <InstallGuideModal isOpen={showInstallGuide} onClose={() => setShowInstallGuide(false)} />
             
             <div style={{ padding: '40px 20px', textAlign: 'center', opacity: 0.1, fontSize: '0.6rem', color: 'white' }}>
-                v1.0.5 | boksaem-yoga
+                v1.0.5 | {config.IDENTITY?.NAME?.toLowerCase().replace(/\s/g, '-') || 'studio'}
             </div>
         </div>
     );

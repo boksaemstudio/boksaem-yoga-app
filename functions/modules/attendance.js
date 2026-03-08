@@ -8,7 +8,7 @@
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
-const { admin, logAIError, getKSTDateString } = require("../helpers/common");
+const { admin, logAIError, getKSTDateString, getStudioName } = require("../helpers/common");
 
 // Helper functions
 const calculateGap = (lastDate, currentDate) => {
@@ -110,12 +110,14 @@ exports.checkInMemberV2Call = onCall({
                 
                 if (!duplicateSnap.empty) {
                     // If duplicate found, return the EXISTING success response (Idempotent)
-                    const existing = duplicateSnap.docs[0].data();
+                    const existingDoc = duplicateSnap.docs[0];
+                    const existing = existingDoc.data();
                     console.log(`[Attendance] Duplicate check-in blocked for ${memberId} (EventId: ${eventId})`);
                     return {
                         success: true,
                         message: '이미 출석 처리되었습니다.',
                         attendanceStatus: existing.status,
+                        attendanceId: existingDoc.id,
                         newCredits: memberData.credits,
                         attendanceCount: memberData.attendanceCount,
                         memberName: memberData.name,
@@ -307,7 +309,8 @@ exports.checkInMemberV2Call = onCall({
                 eventId: eventId || null,
                 sessionNumber: sessionCount,
                 status: attendanceStatus,
-                classTime: classTime || matched?.time || null // [FIX] Use client provided time or server matched time
+                classTime: classTime || matched?.time || null, // [FIX] Use client provided time or server matched time
+                regDate: memberData.regDate || memberData.startDate || today
             };
 
             if (denialReason) attendanceData.denialReason = denialReason;
@@ -336,7 +339,9 @@ exports.checkInMemberV2Call = onCall({
 
                 if (startDate === 'TBD' || !startDate || !memberData.endDate) {
                     startDate = today;
-                    const end = new Date();
+                    // [FIX] Use today's KST date as base for offsetting to avoid UTC date boundary drift
+                    const parts = today.split('-').map(Number);
+                    const end = new Date(parts[0], parts[1] - 1, parts[2]);
                     end.setDate(end.getDate() + 30);
                     endDate = getKSTDateString(end);
                 }
@@ -351,7 +356,10 @@ exports.checkInMemberV2Call = onCall({
                 };
                 
                 if (appliedUpcoming && swappedData) {
-                    // Include membership swap if applied
+                    // [FINANCIAL INTEGRITY FIX] Ensure the newly deducted (or set) credits are preserved
+                    // even if we are swapping in the starting values of the new membership.
+                    swappedData.credits = newCredits; 
+                    console.log(`[Attendance] Applying membership swap for ${memberId}. Final Credits: ${newCredits}`);
                     Object.assign(updates, swappedData);
                 }
 
@@ -404,7 +412,9 @@ exports.onAttendanceCreated = onDocumentCreated({
 
     try {
         // Get recent attendance for analysis
-        const thirtyDaysAgo = new Date();
+        // [FIX] Use attendance date as base for cutoff to avoid Midnight Shift drift
+        const parts = currentDate.split('-').map(Number);
+        const thirtyDaysAgo = new Date(parts[0], parts[1] - 1, parts[2]);
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const cutoffDate = getKSTDateString(thirtyDaysAgo);
 
@@ -415,7 +425,7 @@ exports.onAttendanceCreated = onDocumentCreated({
             .limit(30)
             .get();
 
-        const records = recentSnap.docs.map(d => d.data());
+        const records = recentSnap.docs.map(d => d.data()).filter(r => r.status === 'valid');
         const timeBands = records.map(r => getTimeBand(r.timestamp)).filter(Boolean);
         const mostCommonBand = getMostCommon(timeBands);
         const timeBand = getTimeBand(attendance.timestamp);
@@ -438,9 +448,12 @@ exports.onAttendanceCreated = onDocumentCreated({
 
         const messages = generateEventMessage(eventType, context);
 
-        await db.collection('practice_events').add({
-            memberId, eventType, date: currentDate, context, displayMessage: messages
-        });
+        const attendanceId = event.params.attendanceId;
+        // [FIX] Idempotency: Use attendanceId as doc ID to prevent duplicate practice_events on trigger retry
+        await db.collection('practice_events').doc(attendanceId).set({
+            memberId, eventType, date: currentDate, context, displayMessage: messages,
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
 
         // Send push to instructor
         const instructorName = attendance.instructor;
@@ -470,7 +483,8 @@ exports.onAttendanceCreated = onDocumentCreated({
                     if (attendance.credits !== undefined || attendance.endDate) {
                         const credits = attendance.credits !== undefined ? `${attendance.credits}회 남음` : '';
                         const expiry = attendance.endDate ? `(~${attendance.endDate.slice(2)})` : '';
-                        body = `${className} | ${credits} ${expiry}`;
+                    const studioName = await getStudioName();
+                    body = `${className} | ${credits} ${expiry}`;
                     }
 
                     const attendanceId = event.params.attendanceId;
@@ -480,7 +494,7 @@ exports.onAttendanceCreated = onDocumentCreated({
                                 token,
                                 notification: {
                                     title: `🧘‍♀️ ${memberName}${rankLabel}님 출석`,
-                                    body: body
+                                    body: `${studioName} | ${body}`
                                 },
                                 webpush: { 
                                     notification: { 
@@ -602,7 +616,8 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
                 eventId: eventId || null, // [NEW] Track eventId for safety
                 status: finalStatus,
                 syncMode: 'offline-restored',
-                sessionNumber: sessionCount
+                sessionNumber: sessionCount,
+                regDate: memberData.regDate || memberData.startDate || date
             };
 
             if (finalStatus === 'valid') {
@@ -628,23 +643,44 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
 
                 let startDate = memberData.startDate;
                 let endDate = memberData.endDate;
+                let membershipType = memberData.membershipType;
+                let finalCreditsUpdate = admin.firestore.FieldValue.increment(-1);
 
-                if (startDate === 'TBD' || !startDate || !memberData.endDate) {
-                    startDate = date;
-                    const end = new Date(date);
-                    end.setDate(end.getDate() + 30);
-                    endDate = getKSTDateString(end);
+                // [FIX] Parity with client: If the client already activated an upcoming membership,
+                // we should honor it and clear the upcomingMembership field.
+                if (data.activatedUpcomingMembership) {
+                    console.log(`[OfflineSync] Processing pre-activated upcoming membership for ${memberId}`);
+                    startDate = data.activatedUpcomingMembership.startDate;
+                    endDate = data.activatedUpcomingMembership.endDate;
+                    membershipType = data.activatedUpcomingMembership.membershipType;
+                    
+                    transaction.update(memberRef, {
+                        membershipType: membershipType,
+                        credits: data.activatedUpcomingMembership.credits - 1,
+                        startDate: startDate,
+                        endDate: endDate,
+                        upcomingMembership: admin.firestore.FieldValue.delete(),
+                        attendanceCount: admin.firestore.FieldValue.increment(1),
+                        lastAttendance: timestamp
+                    });
+                } else {
+                    // Standard activation if TBD or past due (Backend-only fallback)
+                    if (startDate === 'TBD' || !startDate || !memberData.endDate) {
+                        startDate = date;
+                        const end = new Date(date);
+                        end.setDate(end.getDate() + 30);
+                        endDate = getKSTDateString(end);
+                    }
+
+                    transaction.update(memberRef, {
+                        credits: finalCreditsUpdate,
+                        attendanceCount: admin.firestore.FieldValue.increment(1),
+                        streak: streak,
+                        startDate: startDate,
+                        endDate: endDate,
+                        lastAttendance: timestamp
+                    });
                 }
-
-                transaction.update(memberRef, {
-                    credits: admin.firestore.FieldValue.increment(-1),
-                    attendanceCount: admin.firestore.FieldValue.increment(1),
-                    streak: streak,
-                    startDate: startDate,
-                    endDate: endDate,
-                    lastAttendance: timestamp
-                });
-                console.log(`[OfflineSync] Sync SUCCESS for ${memberId} (Valid)`);
             } else {
                 console.log(`[OfflineSync] Sync DENIED for ${memberId} (${denialReason})`);
             }

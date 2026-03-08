@@ -1,15 +1,17 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { X } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
-import { STUDIO_CONFIG } from '../../../studioConfig';
+import { useStudioConfig } from '../../../contexts/StudioContext';
 
 const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
-    const [pricingConfig, setPricingConfig] = useState(STUDIO_CONFIG.PRICING);
+    const { config } = useStudioConfig();
+    const branches = config.BRANCHES || [];
+    const [pricingConfig, setPricingConfig] = useState(config.PRICING || {});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const isSubmittingRef = useRef(false);
 
     const [newMember, setNewMember] = useState({
-        name: '', phone: '010', branch: STUDIO_CONFIG.BRANCHES[0].id,
+        name: '', phone: '010', branch: branches.length > 0 ? branches[0].id : '',
         membershipType: 'general',
         selectedOption: '',
         duration: 1,
@@ -178,7 +180,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
             onClose();
             // Reset form
             setNewMember({
-                name: '', phone: '010', branch: STUDIO_CONFIG.BRANCHES[0].id,
+                name: '', phone: '010', branch: branches.length > 0 ? branches[0].id : '',
                 membershipType: 'general',
                 selectedOption: pricingConfig['general']?.options[0]?.id || '',
                 duration: 1,
@@ -250,7 +252,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                             setNewMember({ ...newMember, branch: nextBranch });
                         }}
                     >
-                        {STUDIO_CONFIG.BRANCHES.map(b => (
+                        {branches.map(b => (
                             <option key={b.id} value={b.id}>{b.name}</option>
                         ))}
                     </select>

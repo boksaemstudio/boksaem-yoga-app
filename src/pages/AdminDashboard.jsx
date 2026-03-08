@@ -1,15 +1,21 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { storageService } from '../services/storage';
-import { useAdminData } from '../hooks/useAdminData'; // [Refactor]
-import { STUDIO_CONFIG, getBranchName, getBranchThemeColor, getBranchColor } from '../studioConfig';
+// [Refactor] Ensuring initialization order for SaaS engine
+import { useStudioConfig } from '../contexts/StudioContext';
+import { useAdminData } from '../hooks/useAdminData'; 
 import { useNavigate } from 'react-router-dom';
-import { safeParseDate } from '../utils/dates';
+import { safeParseDate, toKSTDateString, toKSTTimeString, getTodayKST } from '../utils/dates';
 import {
     Users, ClockCounterClockwise, PlusCircle,
     Calendar, Megaphone, BellRinging,
     Tag, SignOut, ChartBar,
-    Warning, Database, Desktop
+    Warning, Database, Desktop,
+    ChartPieSlice,
+    ShieldCheck,
+    Clock,
+    Gear
 } from '@phosphor-icons/react';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import AdminScheduleManager from '../components/AdminScheduleManager';
 import AdminRevenue from '../components/AdminRevenue';
 import AdminPriceManager from '../components/AdminPriceManager';
@@ -23,12 +29,7 @@ import MemberNoteModal from '../components/admin/modals/MemberNoteModal';
 import ExtensionModal from '../components/admin/modals/ExtensionModal';
 import MemberAddModal from '../components/admin/modals/MemberAddModal';
 import { TimeTableModal, PriceTableModal } from '../components/admin/modals/ImageModals';
-import timeTable1 from '../assets/timetable_gwangheungchang.png';
-import timeTable2 from '../assets/timetable_mapo.png';
-import priceTable1 from '../assets/price_table_1.png';
-import priceTable2 from '../assets/price_table_2.png';
-
-import logo from '../assets/logo.png';
+// Assets loaded via dynamic config
 import MembersTab from '../components/admin/tabs/MembersTab';
 import StatsTab from '../components/admin/tabs/StatsTab';
 import NoticesTab from '../components/admin/tabs/NoticesTab';
@@ -37,9 +38,11 @@ import LogsTab from '../components/admin/tabs/LogsTab';
 import PushHistoryTab from '../components/admin/tabs/PushHistoryTab';
 import DataMigrationTab from '../components/admin/tabs/DataMigrationTab';
 import KioskSettingsTab from '../components/admin/tabs/KioskSettingsTab';
+import StudioSettingsTab from '../components/admin/tabs/StudioSettingsTab';
 import AdminInsights from '../components/AdminInsights';
 import { usePWA } from '../hooks/usePWA';
 import ScheduleTab from '../components/admin/tabs/ScheduleTab';
+import { getContrastText } from '../utils/colors';
 
 
 
@@ -94,9 +97,18 @@ const isMemberDormant = (m, logs, isMemberActiveFn) => {
 };
 
 const AdminDashboard = () => {
-
+    const { config, loading } = useStudioConfig();
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('logs');
+
     // [Refactor] Use Custom Hook for Data & Logic
+    const adminData = useAdminData(activeTab, 'all');
+
+    // [CRITICAL] Guard against early access before config/data is ready
+    if (!config || loading) {
+        return <div style={{ background: '#08080A', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D4AF37' }}>Loading Admin Console...</div>;
+    }
+
     const {
         currentBranch, setCurrentBranch,
         members, sales, logs, notices, stats,
@@ -106,10 +118,9 @@ const AdminDashboard = () => {
         pendingApprovals, summary,
         handleApprovePush, handleRejectPush,
         refreshData, isMemberActive, isMemberExpiring,
-        // New exports
         revenueTrend, memberStatusDist, getDormantSegments,
-        todayReRegMemberIds // [New]
-    } = useAdminData(activeTab, 'all');
+        todayReRegMemberIds
+    } = adminData;
 
     // Modals
     const [showAddModal, setShowAddModal] = useState(false);
@@ -127,23 +138,30 @@ const AdminDashboard = () => {
 
     // [PWA] Removed auto-show install guide for Admin Dashboard to prevent repeated nagging in in-app browsers
 
-    // Dynamic Pricing State
-    const [pricingConfig, setPricingConfig] = useState(STUDIO_CONFIG.PRICING); // Default fallback
+    // Dynamic Pricing State & Real-time Sync
+    const [pricingConfig, setPricingConfig] = useState(config.PRICING || {});
+    const themeColor = config.THEME?.PRIMARY_COLOR || '#D4AF37';
+    const themeContrastText = getContrastText(themeColor);
 
     useEffect(() => {
         const loadPricing = async () => {
-            if (activeTab === 'pricing') {
-                const data = await storageService.getPricing();
-                if (data) setPricingConfig(data);
-            }
+            const data = await storageService.getPricing();
+            if (data) setPricingConfig(data);
         };
+        
         loadPricing();
-    }, [activeTab]);
+
+        // [ROOT SOLUTION] 가격 정보 실시간 동기화 구독
+        const unsubscribe = storageService.subscribe(() => {
+            console.log('[AdminDashboard] Pricing updated via settings stream, syncing...');
+            loadPricing();
+        }, ['settings']);
+
+        return () => unsubscribe();
+    }, []);
 
     // Editing State
     const [selectedMember, setSelectedMember] = useState(null);
-    // const [subTab, setSubTab] = useState('notices'); // notices | history
-    // const [isSubmitting, setIsSubmitting] = useState(false);  // Unused
 
     // const [showScheduleSettings, setShowScheduleSettings] = useState(false);
 
@@ -161,7 +179,6 @@ const AdminDashboard = () => {
     const [currentLogPage, setCurrentLogPage] = useState(1);
 
     // Auth Logout
-    const navigate = useNavigate();
     const handleLogout = async () => {
         const isAgentMode = window.__AGENT_ADMIN_MODE__ === true;
         if (isAgentMode || confirm('관리자 모드를 종료하시겠습니까?')) {
@@ -170,8 +187,6 @@ const AdminDashboard = () => {
         }
     };
 
-    // [OPTIMIZATION] Pre-calculate today's attendees O(M)
-    // const todayAttendedMemberIds = useMemo(...) // Unused now
 
     // 필터링된 멤버 목록을 메모이제이션하여 성능 최적화
     const filteredMembers = useMemo(() => {
@@ -189,18 +204,7 @@ const AdminDashboard = () => {
             // Show ALL logs for today (allow multiple attendances per member)
             logs.forEach(l => {
                 if (!l.timestamp) return;
-                
-                // [FIX] Robust Timestamp to Date String
-                let logDate;
-                if (typeof l.timestamp === 'string') {
-                    logDate = new Date(l.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-                } else if (l.timestamp && typeof l.timestamp.toDate === 'function') {
-                    logDate = toKSTDateString(l.timestamp.toDate());
-                } else if (l.timestamp && l.timestamp.seconds) {
-                    logDate = toKSTDateString(new Date(l.timestamp.seconds * 1000));
-                } else {
-                    logDate = new Date(l.timestamp).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-                }
+                const logDate = toKSTDateString(l.timestamp);
 
                 if (logDate === todayStr && (currentBranch === 'all' || l.branchId === currentBranch)) {
                     const member = members.find(m => m.id === l.memberId);
@@ -215,15 +219,14 @@ const AdminDashboard = () => {
 
                         attendanceList.push({
                             ...member,
-                            logId: l.id, // Use log ID for unique key if possible
-                            // Override member data with specific log data
-                            attendanceTime: timeObj.toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false }),
+                            logId: l.id,
+                            attendanceTime: toKSTTimeString(l.timestamp),
                             attendanceClass: l.className,
-                            instructorName: l.instructor, // Add instructor info
-                            attendanceStatus: l.status, // Pass status
-                            denialReason: l.denialReason, // Pass reason
+                            instructorName: l.instructor,
+                            attendanceStatus: l.status,
+                            denialReason: l.denialReason,
                             originalLog: l,
-                            credits: l.credits !== undefined ? l.credits : member.credits // [FIX] Use historical credits snapshot
+                            credits: l.credits !== undefined ? l.credits : member.credits
                         });
                     }
                 }
@@ -249,7 +252,7 @@ const AdminDashboard = () => {
                         role: 'instructor',
                         installedAt: t.updatedAt || t.createdAt || new Date().toISOString(),
                         pushEnabled: true,
-                        homeBranch: t.branchId || 'Mapo'
+                        homeBranch: t.branchId || (config.BRANCHES?.[0]?.id)
                     });
                 }
             });
@@ -271,6 +274,8 @@ const AdminDashboard = () => {
             if (filterType === 'dormant') return isMemberDormant(m, logs, isMemberActive);
             // [New] Installed Filter
             if (filterType === 'installed') return !!m.installedAt;
+            // [NEW] Bio Missing Filter (Active members without face descriptor)
+            if (filterType === 'bio_missing') return !m.hasFaceDescriptor && isMemberActive(m);
 
             return true; // 'all'
         }).sort((a, b) => {
@@ -535,7 +540,7 @@ const AdminDashboard = () => {
             {/* Header - Extremely compact for S25 mobile use */}
             <header className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'nowrap', gap: '8px' }}>
                 <div className="admin-title" style={{ gap: '6px', fontSize: '0.9rem' }}>
-                    <img src={logo} alt="로고" style={{ height: '20px', filter: 'invert(1) brightness(1.5) drop-shadow(0 0 8px rgba(212,175,55,0.4))' }} />
+                    <img src={config.ASSETS?.LOGO?.SQUARE} alt="로고" style={{ height: '20px', filter: 'invert(1) brightness(1.5) drop-shadow(0 0 8px rgba(212,175,55,0.4))' }} />
                     <span style={{ whiteSpace: 'nowrap', fontWeight: '800' }}>관리</span>
                     
                     {/* [NEW] Manual Update Button for PWA Cache Busting */}
@@ -581,7 +586,7 @@ const AdminDashboard = () => {
                             borderRadius: '6px',
                             background: 'rgba(212, 175, 55, 0.1)',
                             border: '1px solid rgba(212, 175, 55, 0.3)',
-                            color: 'var(--primary-gold)',
+                            color: 'var(--primary-theme-color)',
                             fontSize: '0.7rem',
                             fontWeight: 'bold',
                             display: 'flex',
@@ -611,8 +616,8 @@ const AdminDashboard = () => {
                         style={{
                             padding: '6px 8px',
                             minWidth: '60px',
-                            background: pushEnabled ? 'var(--primary-gold)' : 'rgba(255,255,255,0.05)',
-                            color: pushEnabled ? 'black' : 'var(--text-secondary)',
+                            background: pushEnabled ? 'var(--primary-theme-color)' : 'rgba(255,255,255,0.05)',
+                            color: pushEnabled ? themeContrastText : 'var(--text-secondary)',
                             fontWeight: 'bold',
                             fontSize: '0.7rem',
                             border: 'none',
@@ -630,7 +635,7 @@ const AdminDashboard = () => {
                             style={{ padding: '6px 8px', fontSize: '0.75rem', borderRadius: '6px', width: 'auto', minWidth: '70px', height: '32px' }}
                         >
                             <option value="all">전체</option>
-                            {STUDIO_CONFIG.BRANCHES.map(b => (
+                            {(config.BRANCHES || []).map(b => (
                                 <option key={b.id} value={b.id}>{b.name.replace('점', '')}</option>
                             ))}
                         </select>
@@ -690,7 +695,7 @@ const AdminDashboard = () => {
                     )}
                 </button>
 
-                {STUDIO_CONFIG.FEATURES?.ENABLE_DATA_MIGRATION && (
+                {config.FEATURES?.ENABLE_DATA_MIGRATION && (
                     <button onClick={() => setActiveTab('data_migration')} className={`nav-tab-item ${activeTab === 'data_migration' ? 'active' : ''}`}>
                         <Database size={22} weight={activeTab === 'data_migration' ? "fill" : "regular"} color="var(--primary-gold)" />
                         <span>데이터</span>
@@ -699,6 +704,10 @@ const AdminDashboard = () => {
                 <button onClick={() => setActiveTab('kiosk')} className={`nav-tab-item ${activeTab === 'kiosk' ? 'active' : ''}`}>
                     <Desktop size={22} weight={activeTab === 'kiosk' ? "fill" : "regular"} />
                     <span>키오스크</span>
+                </button>
+                <button onClick={() => setActiveTab('settings')} className={`nav-tab-item ${activeTab === 'settings' ? 'active' : ''}`}>
+                    <Gear size={22} weight={activeTab === 'settings' ? "fill" : "regular"} />
+                    <span>설정</span>
                 </button>
             </nav>
 
@@ -781,7 +790,7 @@ const AdminDashboard = () => {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                                 <div style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
                                     <h3 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '15px' }}>심화</h3>
-                                    <img src={images.price_table_1 || priceTable1} alt="가격표 1" style={{ width: '100%', borderRadius: '12px', marginBottom: '15px' }} />
+                                    <img src={images.price_table_1 || ''} alt="가격표 1" style={{ width: '100%', borderRadius: '12px', marginBottom: '15px' }} />
                                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                         <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'price_table_1')} style={{ display: 'none' }} id="up-price-1" />
                                         <label htmlFor="up-price-1" className="action-btn sm" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', fontSize: '0.7rem', border: 'none', cursor: 'pointer' }}>가격표 변경</label>
@@ -789,7 +798,7 @@ const AdminDashboard = () => {
                                 </div>
                                 <div style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
                                     <h3 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '15px' }}>일반</h3>
-                                    <img src={images.price_table_2 || priceTable2} alt="가격표 2" style={{ width: '100%', borderRadius: '12px', marginBottom: '15px' }} />
+                                    <img src={images.price_table_2 || ''} alt="가격표 2" style={{ width: '100%', borderRadius: '12px', marginBottom: '15px' }} />
                                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                         <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'price_table_2')} style={{ display: 'none' }} id="up-price-2" />
                                         <label htmlFor="up-price-2" className="action-btn sm" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', fontSize: '0.7rem', border: 'none', cursor: 'pointer' }}>가격표 변경</label>
@@ -809,28 +818,29 @@ const AdminDashboard = () => {
                         )}
                         <MembersTab
                             members={members}
-                        filteredMembers={filteredMembers}
-                        summary={extendedSummary}
-                        searchTerm={searchTerm}
-                        setSearchTerm={setSearchTerm}
-                        filterType={filterType}
-                        handleToggleFilter={handleToggleFilter}
-                        selectExpiringMembers={selectExpiringMembers}
-                        selectedMemberIds={selectedMemberIds}
-                        toggleMemberSelection={toggleMemberSelection}
-                        selectFilteredMembers={selectFilteredMembers}
-                        currentPage={currentPage}
-                        setCurrentPage={setCurrentPage}
-                        itemsPerPage={itemsPerPage}
-                        handleOpenEdit={handleOpenEdit}
-                        setShowAddModal={setShowAddModal}
-                        setShowBulkMessageModal={setShowBulkMessageModal}
-                        pushTokens={pushTokens}
-                        getDormantSegments={getDormantSegments}
-                        setBulkMessageInitialText={setBulkMessageInitialText}
-                        setActiveTab={setActiveTab}
-                        onNoteClick={(m) => { setSelectedMember(m); setShowNoteModal(true); }}
-                    />
+                            filteredMembers={filteredMembers}
+                            summary={summary}
+                            searchTerm={searchTerm}
+                            setSearchTerm={setSearchTerm}
+                            filterType={filterType}
+                            handleToggleFilter={handleToggleFilter}
+                            selectExpiringMembers={selectExpiringMembers}
+                            selectedMemberIds={selectedMemberIds}
+                            toggleMemberSelection={toggleMemberSelection}
+                            selectFilteredMembers={selectFilteredMembers}
+                            currentPage={currentPage}
+                            setCurrentPage={setCurrentPage}
+                            itemsPerPage={itemsPerPage}
+                            handleOpenEdit={handleOpenEdit}
+                            setShowAddModal={setShowAddModal}
+                            setShowBulkMessageModal={setShowBulkMessageModal}
+                            pushTokens={pushTokens}
+                            getDormantSegments={getDormantSegments}
+                            setBulkMessageInitialText={setBulkMessageInitialText}
+                            setActiveTab={setActiveTab}
+                            onNoteClick={(m) => { setSelectedMember(m); setShowNoteModal(true); }}
+                            todayReRegMemberIds={todayReRegMemberIds}
+                        />
                 </div>
             )}
 
@@ -843,7 +853,7 @@ const AdminDashboard = () => {
                 )}
 
                 {activeTab === 'stats' && (
-                    <StatsTab stats={stats} revenueTrend={revenueTrend} memberStatusDist={memberStatusDist} />
+                    <StatsTab summary={extendedSummary} stats={stats} revenueTrend={revenueTrend} memberStatusDist={memberStatusDist} />
                 )}
 
                 {activeTab === 'notices' && (
@@ -862,12 +872,16 @@ const AdminDashboard = () => {
                     />
                 )}
 
-                {activeTab === 'data_migration' && STUDIO_CONFIG.FEATURES?.ENABLE_DATA_MIGRATION && (
+                {activeTab === 'data_migration' && config.FEATURES?.ENABLE_DATA_MIGRATION && (
                     <DataMigrationTab />
                 )}
 
                 {activeTab === 'kiosk' && (
                     <KioskSettingsTab />
+                )}
+
+                {activeTab === 'settings' && (
+                    <StudioSettingsTab />
                 )}
             </div>
 
@@ -910,6 +924,54 @@ const AdminDashboard = () => {
                 )
             }
         </div >
+    );
+};
+
+const ErrorLogsView = () => {
+    const [logs, setLogs] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const q = query(
+            collection(db, 'error_logs'),
+            orderBy('timestamp', 'desc'),
+            limit(50)
+        );
+
+        return onSnapshot(q, (snapshot) => {
+            setLogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+            setLoading(false);
+        });
+    }, []);
+
+    if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>로딩 중...</div>;
+
+    return (
+        <div style={{ padding: '20px', background: '#1a1a1a', borderRadius: '12px', border: '1px solid #333' }}>
+            <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Clock size={20} color="#ff4757" /> 시스템 에러/디버그 로그
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {logs.length === 0 && <div style={{ color: '#888' }}>로그가 없습니다.</div>}
+                {logs.map(log => (
+                    <div key={log.id} style={{ padding: '12px', background: '#222', borderRadius: '8px', borderLeft: '4px solid #ff4757' }}>
+                        <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '4px' }}>{log.timestamp}</div>
+                        <div style={{ fontWeight: 'bold', color: '#eee' }}>{log.message}</div>
+                        {log.context && (
+                            <pre style={{ margin: '8px 0 0', padding: '8px', background: '#000', borderRadius: '4px', fontSize: '0.75rem', color: '#4cd137', overflowX: 'auto' }}>
+                                {JSON.stringify(log.context, null, 2)}
+                            </pre>
+                        )}
+                        {log.stack && (
+                            <details style={{ marginTop: '8px' }}>
+                                <summary style={{ fontSize: '0.7rem', color: '#888', cursor: 'pointer' }}>Stack Trace</summary>
+                                <pre style={{ marginTop: '4px', fontSize: '0.65rem', color: '#ff6b6b', whiteSpace: 'pre-wrap' }}>{log.stack}</pre>
+                            </details>
+                        )}
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 };
 

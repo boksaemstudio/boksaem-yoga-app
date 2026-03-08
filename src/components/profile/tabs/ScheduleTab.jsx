@@ -1,6 +1,7 @@
 import React from 'react';
 import * as Icons from '@phosphor-icons/react';
 import MemberScheduleCalendar from '../../MemberScheduleCalendar';
+import { useStudioConfig } from '../../../contexts/StudioContext';
 
 const ScheduleTab = ({
     t,
@@ -8,7 +9,6 @@ const ScheduleTab = ({
     setScheduleView,
     scheduleBranch,
     setScheduleBranch,
-    STUDIO_CONFIG,
     validLogs,
     scheduleMonth,
     setScheduleMonth,
@@ -17,6 +17,7 @@ const ScheduleTab = ({
     timeTable2,
     setLightboxImage
 }) => {
+    const { config } = useStudioConfig();
     const viewToggleStyle = {
         border: 'none',
         padding: '6px 16px',
@@ -32,7 +33,7 @@ const ScheduleTab = ({
             <div className="glass-panel" style={{ padding: '24px', background: 'rgba(15, 15, 15, 0.9)', minHeight: '400px', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
                 <div style={{ marginBottom: '25px', textAlign: 'left' }}>
                     <h2 style={{ fontSize: '1.5rem', color: 'white', fontWeight: '800', margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>{t('scheduleTitle')}</h2>
-                    <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--primary-gold)', opacity: 0.9, lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
+                    <p style={{ margin: 0, fontSize: '0.95rem', color: config.THEME?.PRIMARY_COLOR || '#D4AF37', opacity: 0.9, lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
                         {t('scheduleSub')}
                     </p>
                 </div>
@@ -45,7 +46,7 @@ const ScheduleTab = ({
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '25px' }}>
-                    {STUDIO_CONFIG.BRANCHES.map(b => (
+                    {(config.BRANCHES || []).map(b => (
                         <button
                             key={b.id}
                             onClick={() => setScheduleBranch(b.id)}
@@ -62,12 +63,12 @@ const ScheduleTab = ({
                                 boxShadow: scheduleBranch === b.id ? '0 4px 15px rgba(212, 175, 55, 0.3)' : 'none'
                             }}
                         >
-                            {t('branch' + (b.id === 'gwangheungchang' ? 'Gwangheungchang' : 'Mapo'))}
+                            {t('branch' + b.name)}
                         </button>
                     ))}
                 </div>
                 {scheduleView === 'calendar' ? (
-                    <MemberScheduleCalendar branchId={scheduleBranch || 'gwangheungchang'} attendanceLogs={validLogs} />
+                    <MemberScheduleCalendar branchId={scheduleBranch || config.BRANCHES?.[0]?.id} attendanceLogs={validLogs} />
                 ) : (
                     (() => {
                         const now = new Date();
@@ -80,7 +81,7 @@ const ScheduleTab = ({
                         const nextMonthStr = String(nextDate.getMonth() + 1).padStart(2, '0');
                         const nextKeyDate = `${nextYear}-${nextMonthStr}`;
 
-                        const currentBranchId = scheduleBranch || 'gwangheungchang';
+                        const currentBranchId = scheduleBranch || config.BRANCHES?.[0]?.id;
 
                         const currentKey = `timetable_${currentBranchId}_${currentKeyDate}`;
                         const nextKey = `timetable_${currentBranchId}_${nextKeyDate}`;
@@ -88,7 +89,7 @@ const ScheduleTab = ({
 
                         const hasNext = !!images[nextKey];
                         const activeMonth = scheduleMonth === 'next' && hasNext ? 'next' : 'current';
-                        const displayImage = activeMonth === 'next' ? images[nextKey] : (images[currentKey] || images[oldKey] || (currentBranchId === 'gwangheungchang' ? timeTable1 : timeTable2));
+                        const displayImage = activeMonth === 'next' ? images[nextKey] : (images[currentKey] || images[oldKey] || timeTable1);
 
                         return (
                             <div style={{ position: 'relative', width: '100%', borderRadius: '10px', overflow: 'hidden' }}>

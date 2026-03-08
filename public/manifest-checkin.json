@@ -1,7 +1,7 @@
 {
-    "name": "복샘요가 출석체크",
-    "short_name": "복샘요가 출석체크",
-    "description": "복샘요가 출석체크 대시보드",
+    "name": "스튜디오 출석체크",
+    "short_name": "출석체크",
+    "description": "요가 스튜디오 출석체크 대시보드",
     "start_url": "/",
     "gcm_sender_id": "103953800507",
     "scope": "/",

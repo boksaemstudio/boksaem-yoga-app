@@ -52,8 +52,8 @@ exports.generatePageExperienceV2 = onCall({
             const branchInfo = statsData.branch === 'all' ? '전체 지점(마포/광흥창)' : `${statsData.branch}점`;
             
             prompt = `
-                You are a highly experienced Yoga Studio Director and Business Consultant.
-                Analyze the following data for ${branchInfo} and provide 1-2 sentences of strategic management advice in ${targetLang}.
+                You are a world-class Business Consultant and Yoga Studio Strategy Expert (Digital Yard Management).
+                Analyze the following data for ${branchInfo} and provide a high-level strategic briefing in ${targetLang}.
                 
                 Data Summary:
                 - Active Members: ${statsData.activeCount} / Total: ${statsData.totalMembers}
@@ -62,12 +62,18 @@ exports.generatePageExperienceV2 = onCall({
                 - Today's Attendance: ${statsData.attendanceToday}
                 - Dormant Members (Risk): ${statsData.dormantCount}
                 - Expiring Soon: ${statsData.expiringCount}
-                - App Adoption: ${statsData.installedCount} members
+                - App Adoption: ${statsData.installedCount} members (Push Enabled: ${statsData.pushEnabledCount})
+                - Branch Context: ${statsData.branch === 'all' ? 'Comparing Mapo vs Gwangheungchang performance' : 'Single Branch Deep-dive'}
                 - Top Classes: ${JSON.stringify(statsData.topClasses)}
                 
-                Goal: Provide a concise, professional, and actionable insight. 
-                Focus on: Member retention (dormant/expiring), revenue growth (re-registration), or operational efficiency based on attendance patterns.
-                Format: { "message": "...", "bgTheme": "dawn" }
+                Your Mission:
+                1. Provide a professional, encouraging, yet critically analytical briefing (2-3 sentences).
+                2. Compare performance if 'all' branches are selected (e.g., balance between branches).
+                3. Focus on "Revenue Intelligence": Mention the New vs Re-registration ratio if significant.
+                4. Suggest a specific action for "Dormant/Expiring" members (e.g., targeted push campaign).
+                
+                Format: { "message": "...", "bgTheme": "sophisticated" }
+                Tone: Expert, Insightful, Visionary.
             `;
         } else {
             prompt = `

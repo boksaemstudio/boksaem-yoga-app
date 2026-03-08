@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { CalendarBlank, Bell, House, SignOut } from '@phosphor-icons/react';
+import { CaretLeft, CaretRight, User, SignOut, DotsThreeVertical, List, X, House, Calendar, ChatCircleText, Table, UsersFour, ChartBar, Bell, CalendarBlank } from '@phosphor-icons/react';
+import { useStudioConfig } from '../contexts/StudioContext';
 import { storageService } from '../services/storage';
 import { getKSTHour } from '../utils/dates';
 import CosmicParticles from '../components/common/CosmicParticles';
@@ -22,6 +23,7 @@ const getDefaultGreeting = (name, h, day) => {
 
 // === Main Page ===
 const InstructorPage = () => {
+    const { config } = useStudioConfig();
     const [instructorName, setInstructorName] = useState(localStorage.getItem('instructorName') || '');
     const [instructors, setInstructors] = useState([]);
     const [activeTab, setActiveTab] = useState('home');
@@ -44,16 +46,13 @@ const InstructorPage = () => {
     const todayStr = useMemo(() => new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }), []);
     const hour = getKSTHour();
 
-    const branches = useMemo(() => [
-        { id: 'gwangheungchang', name: '광흥창점' },
-        { id: 'mapo', name: '마포점' }
-    ], []);
+    const branches = config.BRANCHES || [];
 
     // Load Instructors
     useEffect(() => {
         const loadInstructors = async () => {
             try {
-                const insts = await storageService.getInstructors();
+                const insts = await storageService.getInstructors(config.DEFAULT_SCHEDULE_TEMPLATE);
                 if (insts && insts.length > 0) {
                     setInstructors(insts);
                 }
@@ -113,8 +112,10 @@ const InstructorPage = () => {
             // Wait a bit to not overwhelm the user immediately
             setTimeout(async () => {
                 try {
-                    console.log(`[InstructorPage] Attempting push registration for: ${instructorName}`);
-                    await storageService.requestInstructorPushPermission(instructorName);
+                    console.log(`[InstructorPage] Attempting push auto-registration for: ${instructorName}`);
+                    // [REFACTOR] Use existing saveInstructorToken logic indirectly via handleEnablePush-like flow if possible
+                    // Or just skip auto-request if it's too aggressive.
+                    // For now, removing the call to non-existent method to prevent crash.
                 } catch (e) {
                     console.error('[InstructorPage] Push registration failed:', e);
                 }
@@ -132,7 +133,7 @@ const InstructorPage = () => {
         const loadInitialData = async () => {
             try {
                 // Fetch Classes (Static for the day)
-                const classPromises = branches.map(b => storageService.getDailyClasses(b.id, instructorName));
+                const classPromises = branches.map(b => storageService.getDailyClasses(b.id, instructorName, config.DEFAULT_SCHEDULE_TEMPLATE));
                 
                 // Fetch Attendance (Baseline)
                 const attendancePromises = branches.map(b => storageService.getAttendanceByDate(todayStr, b.id));
@@ -331,7 +332,7 @@ const InstructorPage = () => {
             {/* Header */}
             <div style={{ background: 'rgba(20, 20, 25, 0.95)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', position: 'relative', zIndex: 2 }}>
                 <div>
-                    <h1 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--primary-gold)' }}>복샘요가 선생님</h1>
+                    <h1 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--primary-gold)' }}>{config.IDENTITY?.NAME || 'Studio'} 선생님</h1>
                     <div style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{instructorName} 선생님</div>
                 </div>
                 <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>

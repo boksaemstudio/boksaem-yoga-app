@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { getDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase';
+import { useStudioConfig } from '../contexts/StudioContext';
 import { PWAContext } from './PWAContextDef';
 
 export const PWAProvider = ({ children }) => {
-    const [deferredPrompt, setDeferredPrompt] = useState(null);
-    const [isStandalone, setIsStandalone] = useState(false);
-    const [deviceOS, setDeviceOS] = useState('unknown');
+    const { config } = useStudioConfig();
     const location = useLocation();
+
+    const [deferredPrompt, setDeferredPrompt] = useState(null);
+    const [deviceOS, setDeviceOS] = useState('unknown');
+    const [isStandalone, setIsStandalone] = useState(false);
 
     useEffect(() => {
         // OS 감지
@@ -44,21 +49,22 @@ export const PWAProvider = ({ children }) => {
     useEffect(() => {
         const path = location.pathname.toLowerCase(); // [FIX] 대소문자 무시
         let manifestFile = '/manifest-checkin.json';
-        let appTitle = '복샘요가 출석체크';
+        const studioName = config.IDENTITY?.NAME || "Studio";
+        let appTitle = `${studioName} 출석체크`;
 
         if (path.startsWith('/admin')) {
             manifestFile = '/manifest-admin.json';
-            appTitle = '복샘요가 관리자';
+            appTitle = `${studioName} 관리자`;
         } else if (path.startsWith('/member')) {
             manifestFile = '/manifest-member.json';
-            appTitle = '내요가';
+            appTitle = '내요가'; // This title is specific and not using studioName
         } else if (path.startsWith('/instructor')) {
             manifestFile = '/manifest-instructor.json';
-            appTitle = '복샘요가 선생님';
-        } else if (path.startsWith('/login')) {
-            appTitle = '복샘요가 로그인';
-        } else if (path.startsWith('/meditation')) {
-            appTitle = '복샘요가 명상';
+            appTitle = `${studioName} 선생님`;
+        } else if (path === '/login') {
+            appTitle = `${studioName} 로그인`;
+        } else if (path === '/meditation') {
+            appTitle = `${studioName} 명상`;
         }
 
         // Update manifest link

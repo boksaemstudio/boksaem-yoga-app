@@ -1,4 +1,5 @@
 import React from 'react';
+import { useStudioConfig } from '../../contexts/StudioContext';
 
 const DuplicateConfirmModal = ({
     show,
@@ -6,6 +7,7 @@ const DuplicateConfirmModal = ({
     onCancel,
     onConfirm
 }) => {
+    const { config } = useStudioConfig();
     if (!show) return null;
 
     return (
@@ -81,7 +83,7 @@ const DuplicateConfirmModal = ({
                             padding: '20px 15px',
                             borderRadius: '20px',
                             border: 'none',
-                            background: 'linear-gradient(135deg, #d4af37, #f5d76e)',
+                            background: `linear-gradient(135deg, ${config.THEME?.PRIMARY_COLOR || '#d4af37'}, #f5d76e)`,
                             color: '#1a1a1a',
                             fontSize: '1.5rem',
                             fontWeight: 800,

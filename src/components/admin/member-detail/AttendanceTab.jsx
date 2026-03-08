@@ -1,9 +1,14 @@
 import { useState } from 'react';
+import { User, Phone, CalendarBlank, MapPin, Trash, CheckCircle, Warning, ClockCounterClockwise, Plus, X } from '@phosphor-icons/react';
+import { useStudioConfig } from '../../../contexts/StudioContext';
 import CustomDatePicker from '../../common/CustomDatePicker';
 import AttendanceHistory from '../../profile/AttendanceHistory';
 import { translations } from '../../../utils/translations';
 
 const AttendanceTab = ({ logs, member, aiAnalysis, onAdd, onDelete, isSubmitting, logLimit, setLogLimit }) => {
+    const { config } = useStudioConfig();
+    const branches = config.BRANCHES || [];
+
     // [FIX] Use safe YYYY-MM-DD format manually to avoid locale fallback issues (e.g. YYYY. MM. DD.)
     const getSafeToday = () => {
         const d = new Date();
@@ -15,7 +20,7 @@ const AttendanceTab = ({ logs, member, aiAnalysis, onAdd, onDelete, isSubmitting
 
     const [manualDate, setManualDate] = useState(getSafeToday());
     const [manualTime, setManualTime] = useState('10:00');
-    const [manualBranch, setManualBranch] = useState(member.homeBranch || 'mapo');
+    const [manualBranch, setManualBranch] = useState(member.homeBranch || (branches.length > 0 ? branches[0].id : ''));
 
     return (
         <div>
@@ -34,8 +39,9 @@ const AttendanceTab = ({ logs, member, aiAnalysis, onAdd, onDelete, isSubmitting
                         opacity: isSubmitting ? 0.5 : 1
                     }}
                 >
-                    <option value="mapo">마포점</option>
-                    <option value="gwangheungchang">광흥창점</option>
+                    {branches.map(b => (
+                        <option key={b.id} value={b.id}>{b.name}</option>
+                    ))}
                 </select>
                 <div style={{ flex: 1.5, minWidth: '130px', opacity: isSubmitting ? 0.5 : 1 }}>
                     <CustomDatePicker value={manualDate} onChange={setManualDate} />

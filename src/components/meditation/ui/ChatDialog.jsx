@@ -1,8 +1,7 @@
 import React from 'react';
 import { AILoadingIndicator } from './AILoadingIndicator';
-import { Icons as PhosphorIcons } from '../../../components/CommonIcons';
-
-const { Microphone, LockKey } = PhosphorIcons;
+import { Microphone, LockKey, User } from '../../../components/CommonIcons';
+import { useStudioConfig } from '../../../contexts/StudioContext';
 
 export const ChatDialog = ({
     chatHistory,
@@ -39,9 +38,10 @@ export const ChatDialog = ({
                             <div style={{
                                 width: '36px', height: '36px', borderRadius: '50%',
                                 background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)', flexShrink: 0
+                                overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)', flexShrink: 0,
+                                color: 'var(--primary-gold)'
                             }}>
-                                <img src="/pwa-192x192.png" alt="AI" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display='none'; e.target.parentNode.innerText='🧘‍♀️'; }} />
+                                <User size={20} weight="fill" />
                             </div>
                         )}
                         <div style={{
@@ -60,10 +60,11 @@ export const ChatDialog = ({
                     <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', gap: '8px' }}>
                         <div style={{
                             width: '40px', height: '40px', borderRadius: '50%',
-                            background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0
+                            background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0,
+                            color: 'var(--primary-gold)'
                         }}>
-                            <img src="/pwa-192x192.png" alt="AI" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display='none'; e.target.parentNode.innerText='🧘‍♀️'; }} />
+                            <User size={24} weight="fill" />
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', gap: '6px' }}>
                             <div style={{
@@ -80,7 +81,7 @@ export const ChatDialog = ({
 
                 {isAILoading && (
                     <div style={{ alignSelf: 'center', marginTop: '10px' }}>
-                        <AILoadingIndicator compact={true} message={chatHistory.length === 0 ? "AI 복순이가 당신의 마음을 듣고 있어요..." : null} />
+                        <AILoadingIndicator compact={true} message={chatHistory.length === 0 ? `AI ${config.AI_CONFIG?.NAME || 'AI'}가 당신의 마음을 듣고 있어요...` : null} />
                     </div>
                 )}
                 <div ref={chatEndRef} style={{ height: '2px', width: '100%' }} />

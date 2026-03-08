@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { User, Phone } from '@phosphor-icons/react';
+import { Lock, User, Warning, Spinner, Phone } from '@phosphor-icons/react';
+import { useStudioConfig } from '../../contexts/StudioContext';
 import { storageService } from '../../services/storage';
 
 const InstructorLogin = ({ onLogin, instructors }) => {
+    const { config } = useStudioConfig();
     const [name, setName] = useState('');
     const [phoneLast4, setPhoneLast4] = useState('');
     const [error, setError] = useState('');
@@ -39,14 +41,6 @@ const InstructorLogin = ({ onLogin, instructors }) => {
     return (
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', position: 'relative', zIndex: 1 }}>
             <div style={{ background: 'rgba(20, 20, 25, 0.95)', padding: '40px', borderRadius: '20px', maxWidth: '400px', width: '100%', textAlign: 'center', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
-                {/* Logo */}
-                <img 
-                    src="/logo_circle.png" 
-                    alt="복샘요가" 
-                    style={{ width: '70px', height: '70px', marginBottom: '16px', filter: 'drop-shadow(0 0 10px rgba(212, 175, 55, 0.5))' }} 
-                />
-                <h1 style={{ color: 'var(--primary-gold)', marginBottom: '8px', fontSize: '1.8rem' }}>복샘요가 선생님</h1>
-                <div style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>선생님 전용 앱입니다</div>
 
                 <div style={{ marginBottom: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--bg-input)', padding: '12px 16px', borderRadius: '10px', marginBottom: '12px' }}>

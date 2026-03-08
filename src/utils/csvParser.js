@@ -1,3 +1,5 @@
+// [Refactor] Purged legacy STUDIO_CONFIG import to favor dynamic parameters
+
 export const parseCSV = (csvText) => {
     const result = [];
     let row = [];
@@ -129,10 +131,17 @@ export function extractEndDateFromPeriod(periodStr) {
 /**
  * 회원번호를 branchId로 변환
  */
-export function convertToBranchId(memberNum) {
-    if (!memberNum) return 'gwangheungchang';
+export function convertToBranchId(memberNum, branches = []) {
+    // [STUDIO-AGNOSTIC] Find branch by matching its name in the member number string (fallback: first branch)
+    if (!memberNum) return branches[0]?.id || '';
     const normalized = memberNum.trim().toLowerCase();
-    return normalized.includes('마포') ? 'mapo' : 'gwangheungchang';
+    
+    const matchedBranch = branches.find(b => 
+        normalized.includes(b.name.replace('점', '').toLowerCase()) || 
+        normalized.includes(b.id.toLowerCase())
+    );
+    
+    return matchedBranch ? matchedBranch.id : (branches[0]?.id || '');
 }
 
 /**

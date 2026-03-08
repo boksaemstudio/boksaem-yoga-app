@@ -158,6 +158,21 @@ const createPendingApproval = async (type, targetMemberIds, title, body, data = 
     });
 };
 
+/**
+ * 스튜디오 이름 가져오기 (SaaS 동적 브랜딩)
+ */
+const getStudioName = async () => {
+    try {
+        const doc = await admin.firestore().collection('settings').doc('identity').get();
+        if (doc.exists) {
+            return doc.data().studioName || "요가 스튜디오";
+        }
+    } catch (e) {
+        console.warn("Failed to fetch studio name:", e);
+    }
+    return "요가 스튜디오";
+};
+
 module.exports = {
     admin,
     logAIError,
@@ -165,6 +180,7 @@ module.exports = {
     getAI,
     checkAIQuota,
     createPendingApproval,
+    getStudioName, // [NEW] 동적 브랜딩 지원
     FCM_COLLECTIONS,
     getAllFCMTokens,
     getKSTDateString // [NEW] 안전한 날짜 생성기

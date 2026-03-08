@@ -3,10 +3,11 @@ import { useState, useEffect, useRef } from 'react';
 import { storageService } from '../../../services/storage';
 import { onSnapshot, collection, query, where, orderBy, limit as firestoreLimit, getDocs } from 'firebase/firestore';
 import { db } from '../../../firebase';
-import { STUDIO_CONFIG } from '../../../studioConfig';
+import { useStudioConfig } from '../../../contexts/StudioContext';
 import { Info, Copy } from '@phosphor-icons/react';
 
 const MessagesTab = ({ memberId }) => {
+    const { config } = useStudioConfig();
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
     const [history, setHistory] = useState([]);
@@ -20,7 +21,7 @@ const MessagesTab = ({ memberId }) => {
     const scheduleInputRef = useRef(null);
 
     // [Solapi] AlimTalk Templates
-    const alimTalkTemplates = STUDIO_CONFIG.ALIMTALK_TEMPLATES || [];
+    const alimTalkTemplates = config.ALIMTALK_TEMPLATES || [];
     const selectedTemplate = alimTalkTemplates.find(t => t.id === selectedTemplateId);
 
     // [UX] Auto-open picker when scheduled is checked

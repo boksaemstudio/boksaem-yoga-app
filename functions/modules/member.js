@@ -8,7 +8,7 @@
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { admin, getAI, createPendingApproval, getKSTDateString } = require("../helpers/common");
+const { admin, getAI, createPendingApproval, logAIError, getKSTDateString, getStudioName } = require("../helpers/common");
 
 /**
  * 보안 회원 조회 (PIN 기반)
@@ -54,11 +54,13 @@ exports.getSecureMemberV2Call = onCall({
         let docs = snapshot.docs;
         
         // [FALLBACK] 만약 phoneLast4로 검색이 안 된다면 (구데이터), 전체 데이터에서 필터링 시도
-        // 하지만 성능상 권장되지 않으므로, 추후 마이그레이션 스크립트 실행 필요
         if (docs.length === 0) {
-            console.warn(`[getSecureMember] phoneLast4 ${phoneLast4} not found. Checking phone field as fallback...`);
-            // 주의: 이 방식은 실시간 서비스에서 매우 느릴 수 있음. 임시 방편.
-            // 현실적으로는 .where('phone', '>=', '...') 처리가 불가능하므로 마이그레이션이 정답.
+            console.warn(`[getSecureMember] phoneLast4 ${phoneLast4} not found. Checking full phone fields manually...`);
+            const allSnap = await db.collection('members').get();
+            docs = allSnap.docs.filter(d => {
+                const p = d.data().phone;
+                return p && typeof p === 'string' && p.endsWith(phoneLast4);
+            });
         }
 
         const members = docs.map(doc => {
@@ -140,6 +142,26 @@ exports.memberLoginV2Call = onCall({
                 break;
             }
         }
+        
+        // [FALLBACK] Login V2 fallback search
+        if (!targetDoc) {
+            const allSnap = await db.collection('members').get();
+            for (const doc of allSnap.docs) {
+                const data = doc.data();
+                if (!data.name || !data.phone) continue;
+                
+                const p = data.phone;
+                if (p && typeof p === 'string' && p.endsWith(phoneLast4)) {
+                   const memberNameLower = data.name.trim().toLowerCase();
+                   if (memberNameLower === inputNameLower || 
+                       memberNameLower.startsWith(inputNameLower) || 
+                       memberNameLower.includes(inputNameLower)) {
+                       targetDoc = doc;
+                       break;
+                   }
+                }
+            }
+        }
 
         if (!targetDoc) {
             return { success: false, message: '일치하는 회원 정보가 없습니다.' };
@@ -194,6 +216,30 @@ exports.verifyInstructorV2Call = onCall({
     }
 
     try {
+        // [FIX] Rate limiting to prevent brute-force on 4-digit PIN
+        const clientIdentifier = request.auth?.uid || 
+                               request.rawRequest?.headers?.['x-forwarded-for'] || 
+                               request.rawRequest?.ip || 
+                               'unknown';
+        const rateLimitRef = db.collection('rate_limits').doc(`inst_verify_${clientIdentifier.replace(/[^a-zA-Z0-9]/g, '_')}`);
+        
+        const rateLimitDoc = await rateLimitRef.get();
+        const now = Date.now();
+        const windowMs = 60000; // 1 minute
+        const maxAttempts = 5; // Stricter for instructors
+        
+        if (rateLimitDoc.exists) {
+            const rlData = rateLimitDoc.data();
+            if (rlData.lastAttempt && (now - rlData.lastAttempt) < windowMs && rlData.attempts >= maxAttempts) {
+                throw new HttpsError('resource-exhausted', '너무 많은 시도. 1분 후 다시 시도해주세요.');
+            }
+        }
+
+        await rateLimitRef.set({
+            attempts: admin.firestore.FieldValue.increment(1),
+            lastAttempt: now
+        }, { merge: true });
+
         const docSnap = await db.collection('settings').doc('instructors').get();
         if (!docSnap.exists) {
             throw new HttpsError('not-found', '강사 목록 설정을 찾을 수 없습니다.');
@@ -293,7 +339,8 @@ exports.checkExpiringMembersV2 = onSchedule({
         for (const [lang, memberIds] of Object.entries(membersByLang)) {
             const body = messagesByLang[lang];
             if (memberIds && memberIds.length > 0) {
-                await createPendingApproval('expiration', memberIds, "복샘요가 알림", body, { lang, date: targetDateStr });
+                const studioName = await getStudioName();
+                await createPendingApproval('expiration', memberIds, `${studioName} 알림`, body, { lang, date: targetDateStr });
             }
         }
     } catch (error) {

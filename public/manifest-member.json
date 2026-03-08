@@ -1,7 +1,7 @@
 {
-    "name": "내요가",
-    "short_name": "내요가",
-    "description": "복샘요가 회원 전용 서비스",
+    "name": "스튜디오 요가",
+    "short_name": "스튜디오",
+    "description": "요가 스튜디오 회원 전용 서비스",
     "start_url": "/member",
     "gcm_sender_id": "103953800507",
     "scope": "/member",

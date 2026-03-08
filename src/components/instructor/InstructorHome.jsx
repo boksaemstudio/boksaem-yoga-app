@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Bell, BellRinging, Share, SignOut, PlusSquare } from '@phosphor-icons/react';
+import { Bell, BellRinging, Share, SignOut, PlusSquare, UserFocus } from '@phosphor-icons/react';
 import { getToken } from 'firebase/messaging';
 import { messaging } from '../../firebase';
 import { storageService } from '../../services/storage';
+import { useStudioConfig } from '../../contexts/StudioContext';
 import { getKSTTotalMinutes } from '../../utils/dates';
 import ImageLightbox from '../common/ImageLightbox';
 
 const InstructorHome = ({ instructorName, attendance, attendanceLoading, instructorClasses = [] }) => {
+    const { config } = useStudioConfig();
     const [pushEnabled, setPushEnabled] = useState(false);
     const [pushLoading, setPushLoading] = useState(false);
     const [pushMessage, setPushMessage] = useState('');
@@ -140,9 +142,11 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
         localStorage.setItem('hide_pwa_guide_instructor', 'true');
     };
 
-    // Split attendance by branch
-    const ghcAttendance = attendance.filter(r => r.branchName === '광흥창점' || r.branchId === 'gwangheungchang');
-    const mapoAttendance = attendance.filter(r => r.branchName === '마포점' || r.branchId === 'mapo');
+    // [STUDIO-AGNOSTIC] Split attendance by branch dynamically
+    const attendanceByBranch = (config.BRANCHES || []).reduce((acc, branch) => {
+        acc[branch.id] = attendance.filter(r => r.branchId === branch.id || r.branchName === branch.name);
+        return acc;
+    }, {});
 
     const renderAttendanceList = (list, title, color, branchId) => {
         const branchClasses = instructorClasses.filter(c => c.branchId === branchId);
@@ -219,18 +223,24 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                                     <div style={{ fontWeight: 'bold', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         {record.memberName}
                                         {(() => {
-                                            // 신규 배지: startDate가 최근 14일 이내인 경우
-                                            const isNew = record.startDate && (() => {
-                                                const start = new Date(record.startDate);
+                                            const isNew = (record.regDate || record.startDate) && (() => {
+                                                const start = new Date(record.regDate || record.startDate);
                                                 const now = new Date();
                                                 const diff = (now - start) / (1000 * 60 * 60 * 24);
-                                                return diff <= 14;
+                                                // [REVISION] Joined within 30 days AND total sessions <= 3 (requested)
+                                                return diff <= 30 && (record.cumulativeCount || 1) <= 3;
                                             })();
                                             if (isNew) return (
                                                 <span style={{ fontSize: '0.65rem', background: '#ff4757', color: 'white', padding: '1px 6px', borderRadius: '4px', fontWeight: 'bold' }}>신규</span>
                                             );
                                             return null;
                                         })()}
+                                        {record.facialMatched && (
+                                            <span style={{ fontSize: '0.65rem', background: 'rgba(59, 130, 246, 0.15)', color: '#60A5FA', padding: '1px 6px', borderRadius: '4px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '3px', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+                                                <UserFocus size={10} weight="fill" />
+                                                안면일치
+                                            </span>
+                                        )}
                                     </div>
                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', gap: '8px', marginTop: '2px' }}>
                                         <span>{record.className}</span>
@@ -271,7 +281,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                     <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '20px' }}>로딩 중...</div>
                 ) : (
                     <>
-                        {ghcAttendance.length === 0 && mapoAttendance.length === 0 && instructorClasses.length === 0 ? (
+                        {attendance.length === 0 && instructorClasses.length === 0 ? (
                             <div style={{ 
                                 textAlign: 'center', 
                                 padding: '40px 20px', 
@@ -286,10 +296,14 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                                 <div style={{ fontSize: '0.85rem', opacity: 0.7 }}>편안한 휴식과 충전의 시간 되시길 바랍니다!</div>
                             </div>
                         ) : (
-                            <>
-                                {renderAttendanceList(ghcAttendance, '광흥창점', 'var(--primary-gold)', 'gwangheungchang')}
-                                {renderAttendanceList(mapoAttendance, '마포점', '#3B82F6', 'mapo')}
-                            </>
+                            (config.BRANCHES || []).map(branch => (
+                                renderAttendanceList(
+                                    attendanceByBranch[branch.id] || [], 
+                                    branch.name, 
+                                    branch.color, 
+                                    branch.id
+                                )
+                            ))
                         )}
                     </>
                 )}
@@ -405,7 +419,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                             onClick={handleInstallPWA} 
                             style={{ 
                                 width: '100%', padding: '14px', borderRadius: '10px', border: 'none', 
-                                background: 'var(--primary-gold)', color: 'black', fontWeight: 'bold', 
+                                background: 'var(--primary-gold)', color: '#000000', fontWeight: 'bold', 
                                 fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', 
                                 justifyContent: 'center', gap: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
                             }}

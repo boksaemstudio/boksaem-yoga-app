@@ -1,6 +1,6 @@
 import { db } from '../firebase';
 import { collection, doc, query, where, orderBy, getDocs, addDoc, updateDoc, deleteDoc, onSnapshot, writeBatch, limit as firestoreLimit } from 'firebase/firestore';
-import { STUDIO_CONFIG } from '../studioConfig';
+// [Refactor] Purged static config. Logic moved to useStudioConfig context.
 export const messageService = {
   setNotifyCallback() {
     // Unused, but kept for interface consistency
@@ -188,13 +188,13 @@ export const messageService = {
     }
   },
 
-  async sendBulkPushCampaign(targetMemberIds, title, body) {
+  async sendBulkPushCampaign(targetMemberIds, title, body, studioName = '') {
     try {
       if (!body) throw new Error("Message body is required");
 
       const docRef = await addDoc(collection(db, 'push_campaigns'), {
         targetMemberIds: targetMemberIds || [],
-        title: title || STUDIO_CONFIG.NAME + " 알림",
+        title: title || (studioName ? studioName + " 알림" : "알림"),
         body,
         status: 'pending',
         createdAt: new Date().toISOString(),

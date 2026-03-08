@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { ClockCounterClockwise, Trash, Sparkle, CaretLeft, CaretRight, CalendarBlank, TrendUp } from '@phosphor-icons/react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts';
-import { STUDIO_CONFIG, getBranchName, getBranchColor, getBranchThemeColor } from '../../../studioConfig';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { ClockCounterClockwise, Trash, Sparkle, CaretLeft, CaretRight, CalendarBlank, TrendUp, UserFocus } from '@phosphor-icons/react';
 import { guessClassTime, guessClassInfo } from '../../../utils/classUtils';
 import { storageService } from '../../../services/storage';
+import { useStudioConfig } from '../../../contexts/StudioContext';
 import ImageLightbox from '../../common/ImageLightbox';
 
 // ─── Mini Calendar Popup ───
-const MiniCalendar = ({ selectedDate, onSelect, onClose }) => {
+const MiniCalendar = ({ selectedDate, onSelect, onClose, config }) => {
+    const themeColor = config?.THEME?.PRIMARY_COLOR || '#D4AF37';
     const sel = new Date(selectedDate + 'T00:00:00+09:00');
     const [viewYear, setViewYear] = useState(sel.getFullYear());
     const [viewMonth, setViewMonth] = useState(sel.getMonth());
@@ -103,8 +103,8 @@ const MiniCalendar = ({ selectedDate, onSelect, onClose }) => {
                     onClick={() => { onSelect(todayStr); onClose(); }}
                     style={{
                         marginTop: '10px', width: '100%', padding: '6px',
-                        background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.25)',
-                        borderRadius: '6px', color: 'var(--primary-gold)', fontWeight: 'bold',
+                        background: `${themeColor}20`, border: `1px solid ${themeColor}40`,
+                        borderRadius: '6px', color: themeColor, fontWeight: 'bold',
                         fontSize: '0.8rem', cursor: 'pointer'
                     }}
                 >오늘로 이동</button>
@@ -121,6 +121,12 @@ const calNavBtn = {
 
 // ─── Main Component ───
 const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, members = [], onMemberClick, summary }) => {
+    const { config } = useStudioConfig();
+    const branches = config.BRANCHES || [];
+    const getBranchName = (id) => branches.find(b => b.id === id)?.name || id;
+    const getBranchColor = (id) => branches.find(b => b.id === id)?.color || 'var(--primary-gold)';
+    const getBranchThemeColor = (id) => branches.find(b => b.id === id)?.color || 'var(--primary-gold)';
+
     const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
     const [selectedDate, setSelectedDate] = useState(todayStr);
     const [selectedClassKey, setSelectedClassKey] = useState(null);
@@ -209,7 +215,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                     let count = 0;
                     
                     dayLogs.forEach(log => {
-                        const info = guessClassInfo(log);
+                        const info = guessClassInfo(log, config.DEFAULT_SCHEDULE_TEMPLATE);
                         const cName = info?.className || log.className || '일반';
                         const cInst = info?.instructor || log.instructor || '선생님';
                         const cTime = info?.startTime || '00:00';
@@ -273,7 +279,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
         const groups = {};
 
         activeLogs.forEach(log => {
-            const info = guessClassInfo(log);
+            const info = guessClassInfo(log, config.DEFAULT_SCHEDULE_TEMPLATE);
             const classTime = info?.startTime || '00:00';
             const canonicalClassName = info?.className || log.className || '일반';
             const canonicalInstructor = info?.instructor || log.instructor || '선생님';
@@ -421,8 +427,38 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                         selectedDate={selectedDate}
                         onSelect={handleDateChange}
                         onClose={() => setShowCalendar(false)}
+                        config={config}
                     />
                 )}
+            </div>
+
+            {/* ─── Summary Section (Facial Data) ─── */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+                <div className="dashboard-card" style={{ border: '1px solid rgba(59, 130, 246, 0.3)', background: 'rgba(59, 130, 246, 0.05)', padding: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                        <UserFocus size={20} weight="fill" color="#60A5FA" />
+                        <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>안면 데이터 수집 현황</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                        <span style={{ fontSize: '1.5rem', fontWeight: '800', color: 'var(--primary-gold)' }}>{summary?.facialDataCount || 0}</span>
+                        <span style={{ fontSize: '0.9rem', opacity: 0.6 }}>명 수집됨</span>
+                        <span style={{ marginLeft: 'auto', fontSize: '1rem', fontWeight: 'bold', color: '#60A5FA' }}>{summary?.facialDataRatio || 0}%</span>
+                    </div>
+                    <div style={{ marginTop: '8px', height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
+                        <div style={{ width: `${summary?.facialDataRatio || 0}%`, height: '100%', background: '#60A5FA', transition: 'width 0.5s ease-out' }} />
+                    </div>
+                    <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '8px', margin: '8px 0 0 0' }}>
+                        * 활성 회원 대비 안면 데이터가 등록된 비중입니다.
+                    </p>
+                </div>
+                {/* Additional summary cards can be added here if needed */}
+                <div className="dashboard-card" style={{ padding: '16px', background: 'rgba(255,255,255,0.02)' }}>
+                    <div className="card-label" style={{ fontSize: '0.85rem', marginBottom: '8px' }}>오늘 총 출석</div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                        <span style={{ fontSize: '1.5rem', fontWeight: '800' }}>{activeLogs.length}</span>
+                        <span style={{ fontSize: '0.9rem', opacity: 0.6 }}>건</span>
+                    </div>
+                </div>
             </div>
 
             {/* ─── Loading State ─── */}
@@ -640,7 +676,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                 }}
                             >
                                 <option value="all">전체 지점</option>
-                                {STUDIO_CONFIG.BRANCHES.map(b => (
+                                {(config.BRANCHES || []).map(b => (
                                     <option key={b.id} value={b.id}>{b.name}</option>
                                 ))}
                             </select>
@@ -678,7 +714,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                         {(() => {
                             const filteredLogs = (selectedClassKey
                                 ? activeLogs.filter(l => {
-                                    const info = guessClassInfo(l);
+                                    const info = guessClassInfo(l, config.DEFAULT_SCHEDULE_TEMPLATE);
                                     const classTime = info?.startTime || '00:00';
                                     const canonicalClassName = info?.className || l.className || '일반';
                                     const canonicalInstructor = info?.instructor || l.instructor || '선생님';
@@ -781,6 +817,17 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                                         }}>
                                                             <Sparkle size={10} weight="fill" />
                                                             {log.sessionCount || '2'}회차 Passion
+                                                        </span>
+                                                    )}
+                                                    {log.facialMatched && (
+                                                        <span style={{
+                                                            fontSize: '0.65rem', padding: '1px 6px', borderRadius: '10px',
+                                                            background: 'rgba(59, 130, 246, 0.15)', color: '#60A5FA',
+                                                            border: '1px solid rgba(59, 130, 246, 0.3)', fontWeight: 'bold',
+                                                            display: 'flex', alignItems: 'center', gap: '3px'
+                                                        }}>
+                                                            <UserFocus size={10} weight="fill" />
+                                                            안면 일치
                                                         </span>
                                                     )}
                                                     {isToday && summary?.multiAttendedMemberIds?.includes(log.memberId) && (

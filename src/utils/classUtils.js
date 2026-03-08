@@ -1,4 +1,4 @@
-import { STUDIO_CONFIG } from '../studioConfig';
+// [Refactor] Purged legacy STUDIO_CONFIG import. Passes scheduleTemplate explicitly.
 
 /**
  *  출석 로그의 시간 정보(timestamp)와 스튜디오 스케줄을 비교하여
@@ -8,9 +8,10 @@ import { STUDIO_CONFIG } from '../studioConfig';
  * 무조건 스케줄 상의 시간 중 하나로 매핑합니다. (Strict Mode)
  * 
  * @param {Object} log - 출석 로그 객체 (timestamp, className, branchId 포함)
+ * @param {Object} scheduleTemplate - 스튜디오 스케줄 템플릿 (config.DEFAULT_SCHEDULE_TEMPLATE)
  * @returns {string|null} HH:mm 형식의 시간 문자열 또는 null
  */
-export const guessClassTime = (log) => {
+export const guessClassTime = (log, scheduleTemplate = {}) => {
     if (log.classTime && log.classTime !== '00:00') return log.classTime; // 이미 유효한 classTime이 있으면 사용
     if (!log.timestamp) return null;
     
@@ -29,7 +30,7 @@ export const guessClassTime = (log) => {
     const dayOfWeek = dayOfWeeks[date.getDay()];
     
     // 해당 지점의 스케줄 가져오기
-    const branchSchedule = STUDIO_CONFIG.DEFAULT_SCHEDULE_TEMPLATE[log.branchId] || [];
+    const branchSchedule = scheduleTemplate[log.branchId] || [];
     const daySchedule = branchSchedule.filter(s => s.days.includes(dayOfWeek));
 
     if (daySchedule.length === 0) {
@@ -89,10 +90,10 @@ export const guessClassTime = (log) => {
 /**
  * [New] 스케줄 객체 자체를 반환 (Canonical Name 사용을 위해)
  */
-export const guessClassInfo = (log) => {
+export const guessClassInfo = (log, scheduleTemplate = {}) => {
     if (!log.timestamp) return null;
     
-    const time = guessClassTime(log);
+    const time = guessClassTime(log, scheduleTemplate);
     
     // [FIX] 자율수련인 경우 DB에 저장된 그대로 반환 (스태틱 템플릿 참조 X)
     if (log.className === '자율수련' || log.className === '자율수업') {
@@ -103,7 +104,7 @@ export const guessClassInfo = (log) => {
         };
     }
     
-    const branchSchedule = STUDIO_CONFIG.DEFAULT_SCHEDULE_TEMPLATE[log.branchId] || [];
+    const branchSchedule = scheduleTemplate[log.branchId] || [];
     // time과 요일로 역추적
     const date = new Date(log.timestamp);
     const dayOfWeeks = ['일', '월', '화', '수', '목', '금', '토'];

@@ -1,8 +1,9 @@
-
 import { Plus, Megaphone, Trash } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
+import { useStudioConfig } from '../../../contexts/StudioContext';
 
 const NoticesTab = ({ notices, setShowNoticeModal, refreshData }) => {
+    const { config } = useStudioConfig();
     const handleDeleteNotice = async (id) => {
         if (window.confirm('이 공지사항을 삭제하시겠습니까?')) {
             await storageService.deleteNotice(id);
@@ -24,9 +25,9 @@ const NoticesTab = ({ notices, setShowNoticeModal, refreshData }) => {
                         width: 'auto', 
                         padding: '10px 24px', // Slightly reduced padding
                         flexShrink: 0, // Prevent shrinking
-                        background: 'linear-gradient(135deg, #FFD700 0%, #D4AF37 100%)', // Premium Gold Gradient
-                        color: '#000', // Black text for contrast
-                        fontWeight: '800',
+                        background: `linear-gradient(135deg, #FFD700 0%, ${config.THEME?.PRIMARY_COLOR || '#D4AF37'} 100%)`,
+                        color: 'black', // Black text for contrast
+                        fontWeight: 'bold',
                         fontSize: '0.95rem',
                         border: 'none',
                         boxShadow: '0 4px 15px rgba(212, 175, 55, 0.4)', // Gold Glow
@@ -61,13 +62,13 @@ const NoticesTab = ({ notices, setShowNoticeModal, refreshData }) => {
                         <div key={notice.id} className="glass-panel" style={{
                             marginBottom: '20px',
                             padding: '24px',
-                            border: '1px solid rgba(212,175,55,0.2)',
+                            border: `1px solid ${config.THEME?.PRIMARY_COLOR || '#D4AF37'}40`,
                             background: 'linear-gradient(145deg, rgba(35,35,35,0.7), rgba(25,25,25,0.8))',
                             position: 'relative'
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
                                 <div>
-                                    <div style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--primary-gold)', marginBottom: '4px' }}>
+                                    <div style={{ fontWeight: 800, fontSize: '1.2rem', color: config.THEME?.PRIMARY_COLOR || '#D4AF37', marginBottom: '4px' }}>
                                         {notice.title}
                                     </div>
                                     <div style={{ fontSize: '0.8rem', opacity: 0.5 }}>

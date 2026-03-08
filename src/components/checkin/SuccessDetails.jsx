@@ -57,9 +57,9 @@ const SuccessDetails = memo(({ member, onClose }) => {
                     onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onClose(); }}
                     className="interactive"
                     style={{
-                        background: 'var(--primary-gold)',
-                        color: 'black',
-                        border: 'none',
+                        background: 'rgba(255,255,255,0.15)',
+                        border: '2px solid rgba(255,255,255,0.25)',
+                        color: 'white',
                         padding: '15px 35px',
                         borderRadius: '15px',
                         fontSize: '1.3rem',

@@ -35,6 +35,19 @@ class AIService {
         return this.langMap[langCode] || 'Korean';
     }
 
+    /**
+     * ✅ Generic text generation (Simple wrapper for generateContent)
+     */
+    async generate(prompt) {
+        try {
+            const result = await this.model.generateContent(prompt);
+            return result.response.text();
+        } catch (e) {
+            console.error("AI Generation failed:", e.message);
+            return "";
+        }
+    }
+
     async translate(text, targetLangCode) {
         if (!text || targetLangCode === 'ko') return text;
         const targetLang = this.getLangName(targetLangCode);

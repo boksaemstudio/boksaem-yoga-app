@@ -46,7 +46,7 @@ class ErrorBoundary extends Component {
                     setTimeout(() => {
                         window.location.reload();
                     }, 10000);
-                    // 30초 후 카운터 리셋 (정상 부팅 시)
+                    // 30초 후 재시도 횟수 리셋 (정상 부팅 시)
                     setTimeout(() => {
                         sessionStorage.removeItem('eb_reload_count');
                     }, 30000);

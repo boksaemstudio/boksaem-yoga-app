@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useStudioConfig } from '../contexts/StudioContext';
 import { storageService } from '../services/storage';
-
-import memberBg from '../assets/zen_yoga_bg.webp';
-import logo from '../assets/logo.png';
-
+import { logger } from '../utils/logger';
 const LoginPage = () => {
+    const { config } = useStudioConfig();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+
+    const logoUrl = config.ASSETS?.LOGO?.WIDE;
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -24,8 +25,12 @@ const LoginPage = () => {
         } else {
             setError(result.message);
             setLoading(false);
+            logger.error('Login Failed', result.message, { email: email.trim() });
         }
     };
+
+    const primaryColor = config.THEME?.PRIMARY_COLOR || '#D4AF37';
+    const studioName = config.IDENTITY?.NAME || 'Studio';
 
     return (
         <div style={{
@@ -47,7 +52,7 @@ const LoginPage = () => {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    backgroundImage: `linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.85)), url(${memberBg})`,
+                    backgroundImage: `linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.85)), url(${config.ASSETS?.MEMBER_BG || ''})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     zIndex: 1
@@ -62,13 +67,19 @@ const LoginPage = () => {
                 padding: '40px',
                 backgroundColor: 'rgba(20, 20, 20, 0.9)',
                 borderRadius: '24px',
-                border: '1px solid rgba(212, 175, 55, 0.3)',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+                border: `1px solid ${primaryColor}33`,
+                boxShadow: `0 20px 50px ${primaryColor}33`,
                 textAlign: 'center',
-                animation: 'slideUp 0.6s ease-out'
             }}>
-                <img src={logo} alt="Logo" style={{ width: '70px', height: 'auto', marginBottom: '20px', filter: 'brightness(0) invert(1) drop-shadow(0 0 10px rgba(212, 175, 55, 0.5))' }} />
-                <h1 style={{ marginBottom: '30px', fontSize: '1.6rem', color: 'var(--primary-gold)', fontWeight: 'bold' }}>관리자 로그인</h1>
+                <div className="login-header" style={{ textAlign: 'center', marginBottom: '4vh' }}>
+                {logoUrl ? (
+                    <img src={logoUrl} alt={studioName} style={{ width: '220px', marginBottom: '2vh', filter: `drop-shadow(0 0 10px ${primaryColor}4D)` }} />
+                ) : (
+                    <h2 style={{ color: 'white', marginBottom: '2vh' }}>{studioName}</h2>
+                )}
+                <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', color: primaryColor, marginBottom: '1vh', letterSpacing: '-0.02em' }}>{config.IDENTITY?.SLOGAN || ''}</h1>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', opacity: 0.8 }}>{studioName} 관리자 시스템</p>
+            </div>
 
                 {error && (
                     <div style={{
@@ -148,7 +159,7 @@ const LoginPage = () => {
                 </form>
             </div>
             <p style={{ position: 'relative', zIndex: 10, marginTop: '30px', color: 'rgba(255,255,255,0.3)', fontSize: '0.8rem' }}>
-                © {new Date().getFullYear()} Boksaem Yoga. All rights reserved.
+                © {new Date().getFullYear()} {studioName}. All rights reserved.
             </p>
         </div>
     );

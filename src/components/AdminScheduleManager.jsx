@@ -1,23 +1,24 @@
 import { useState, useEffect } from 'react';
 import { storageService } from '../services/storage';
 import { CaretLeft, CaretRight, Plus, Trash, X, Image as ImageIcon, UploadSimple, Gear, ClockCounterClockwise, Warning } from '@phosphor-icons/react';
+// [Refactor] Purged static config. Logic moved to useStudioConfig context.
 import { getHolidayName } from '../utils/holidays';
 import { ScheduleClassEditor, SettingsModal } from './ScheduleHelpers';
 import { getTagColor } from '../utils/colors';
 import { useLanguageContext } from '../context/LanguageContext';
+import { useStudioConfig } from '../contexts/StudioContext';
 
 const ColorLegend = ({ branchId }) => {
-    const items = [
-        { label: '일반', color: '#FFFFFF', border: '#DDDDDD', branches: ['gwangheungchang', 'mapo'] },
-        {
-            label: branchId === 'gwangheungchang' ? '심화/마이솔' : '심화/마이솔/플라잉',
-            color: 'rgba(255, 190, 118, 0.9)', // Orange
-            border: 'rgba(255, 190, 118, 1)',
-            branches: ['gwangheungchang', 'mapo']
+    const { config } = useStudioConfig();
+    // [STUDIO-AGNOSTIC] Pull from config or use a generic fallback
+    const items = config.SCHEDULE_LEGEND || [
+        { label: '일반', color: '#FFFFFF', border: '#DDDDDD', branches: (config.BRANCHES || []).map(b => b.id) },
+        { 
+            label: '특별/심화', 
+            color: 'rgba(255, 190, 118, 0.9)', 
+            border: 'rgba(255, 190, 118, 1)', 
+            branches: (config.BRANCHES || []).map(b => b.id) 
         },
-        { label: '키즈', color: 'rgba(255, 234, 167, 0.4)', border: 'rgba(255, 234, 167, 0.6)', branches: ['mapo'] },
-        { label: '임산부', color: 'rgba(196, 252, 239, 0.9)', border: 'rgba(129, 236, 236, 1)', branches: ['mapo'] }, // Mint Green
-        { label: '토요하타/별도등록', color: 'rgba(224, 86, 253, 0.7)', border: 'rgba(224, 86, 253, 0.9)', branches: ['mapo'] },
     ];
 
     const filteredItems = branchId
@@ -37,6 +38,7 @@ const ColorLegend = ({ branchId }) => {
 };
 
 const AdminScheduleManager = ({ branchId }) => {
+    const { config } = useStudioConfig();
     const { t } = useLanguageContext();
     const today = new Date();
     const [year, setYear] = useState(today.getFullYear());
@@ -68,11 +70,20 @@ const AdminScheduleManager = ({ branchId }) => {
         loadMonthlyData();
         loadMasterData();
 
-        // [FIX] Subscribe to storage updates to keep images in sync
-        const unsub = storageService.subscribe(async () => {
-            const latestImages = await storageService.getImages();
-            setImages(latestImages);
-        });
+        // [ROOT SOLUTION] 전방위 실시간 동기화 구독
+        const unsub = storageService.subscribe(async (eventType) => {
+            console.log(`[AdminScheduleManager] ${eventType} updated, syncing...`);
+            if (eventType === 'images' || eventType === 'all') {
+                const latestImages = await storageService.getImages();
+                setImages(latestImages);
+            }
+            if (eventType === 'dailyClasses' || eventType === 'all') {
+                loadMonthlyData();
+            }
+            if (eventType === 'settings' || eventType === 'all') {
+                loadMasterData();
+            }
+        }, ['images', 'dailyClasses', 'settings']);
 
         return () => unsub();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -106,8 +117,8 @@ const AdminScheduleManager = ({ branchId }) => {
 
     const loadMasterData = async () => {
         const [instructorList, classTypeList, classLevelList] = await Promise.all([
-            storageService.getInstructors(),
-            storageService.getClassTypes(),
+            storageService.getInstructors(config.DEFAULT_SCHEDULE_TEMPLATE),
+            storageService.getClassTypes(config.DEFAULT_SCHEDULE_TEMPLATE),
             storageService.getClassLevels()
         ]);
         setInstructors(instructorList);
@@ -170,14 +181,14 @@ const AdminScheduleManager = ({ branchId }) => {
     // [New] Standard Schedule Creation
     const handleCreateStandard = async () => {
         const confirmMsg = `📅 ${year}년 ${month}월에 '표준 시간표(기본)'를 적용하시겠습니까?\n\n` +
-            `기본 설정된(1월 기준) 시간표 패턴으로 생성됩니다.`;
+            `기본 설정된 시간표 패턴으로 생성됩니다.`;
 
         if (!window.confirm(confirmMsg)) return;
 
         setLoading(true);
         try {
             // Uses createMonthlySchedule which falls back to DEFAULT_SCHEDULE_TEMPLATE
-            const res = await storageService.createMonthlySchedule(branchId, year, month);
+            const res = await storageService.createMonthlySchedule(branchId, year, month, config.DEFAULT_SCHEDULE_TEMPLATE);
             alert(res.message || "표준 시간표가 생성되었습니다.");
             await loadMonthlyData();
         } catch (error) {

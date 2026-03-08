@@ -93,61 +93,60 @@ export const memberService = {
     }
   },
 
+
   _buildPhoneLast4Index() {
-    phoneLast4Index = {};
+    const newIndex = {};
     cachedMembers.forEach(m => {
       const last4 = m.phoneLast4 || (m.phone && m.phone.slice(-4));
       if (last4) {
-        if (!phoneLast4Index[last4]) phoneLast4Index[last4] = [];
-        phoneLast4Index[last4].push(m);
+        if (!newIndex[last4]) newIndex[last4] = [];
+        newIndex[last4].push(m);
       }
     });
-    console.log(`[memberService] PhoneLast4 index built: ${Object.keys(phoneLast4Index).length} unique PINs`);
+    phoneLast4Index = newIndex;
   },
 
   async findMembersByPhone(last4Digits) {
+    let members = [];
     if (phoneLast4Index[last4Digits]?.length > 0) {
-      console.log(`[memberService] Index hit for ${last4Digits}: ${phoneLast4Index[last4Digits].length} member(s)`);
-      return phoneLast4Index[last4Digits];
-    }
-    
-    const cachedResults = cachedMembers.filter(m => (m.phoneLast4 || (m.phone && m.phone.slice(-4))) === last4Digits);
-    if (cachedResults.length > 0) {
-      console.log(`[memberService] Cache filter hit for ${last4Digits}: ${cachedResults.length} member(s)`);
-      return cachedResults;
+      members = phoneLast4Index[last4Digits];
+    } else {
+      const cachedResults = cachedMembers.filter(m => (m.phoneLast4 || (m.phone && m.phone.slice(-4))) === last4Digits);
+      if (cachedResults.length > 0) {
+        members = cachedResults;
+      } else {
+        try {
+          const getSecureMember = httpsCallable(functions, 'getSecureMemberV2Call');
+          const result = await withTimeout(
+            getSecureMember({ phoneLast4: last4Digits }),
+            15000,
+            '회원 조회 시간 초과'
+          );
+          members = result.data.members || [];
+        } catch (e) {
+          console.error('[memberService] Cloud Function member lookup failed:', e);
+          // [FIX] Don't fall back to direct Firestore query — anonymous kiosk auth doesn't have permission.
+          // Instead, let the empty result propagate so the UI shows "회원 정보를 찾을 수 없습니다"
+          members = [];
+        }
+      }
     }
 
-    console.warn(`[memberService] Cache miss for ${last4Digits}, calling Cloud Function...`);
-    try {
-      const getSecureMember = httpsCallable(functions, 'getSecureMemberV2Call');
-      const result = await withTimeout(
-        getSecureMember({ phoneLast4: last4Digits }),
-        10000,
-        '회원 조회 시간 초과 - 네트워크를 확인해주세요'
-      );
-      const members = result.data.members || [];
-      
-      members.forEach(m => {
-        const idx = cachedMembers.findIndex(cm => cm.id === m.id);
-        if (idx !== -1) {
-          cachedMembers[idx] = { ...cachedMembers[idx], ...m };
-        } else {
-          if (!cachedMembers.some(cm => cm.id === m.id)) {
-            cachedMembers.push(m);
+    // [SECURITY & PERF] Fetch biometrics for members who have the flag but not the descriptor
+    const bioTasks = members
+      .filter(m => m.hasFaceDescriptor && !m.faceDescriptor)
+      .map(async m => {
+        try {
+          const bioSnap = await getDoc(doc(db, 'face_biometrics', m.id));
+          if (bioSnap.exists()) {
+             const bioData = bioSnap.data();
+             m.faceDescriptor = bioData.descriptor;
           }
-        }
-        if (!phoneLast4Index[last4Digits]) phoneLast4Index[last4Digits] = [];
-        if (!phoneLast4Index[last4Digits].some(im => im.id === m.id)) {
-          phoneLast4Index[last4Digits].push(m);
-        }
+        } catch (e) { console.warn(`[memberService] Bio load failed for ${m.id}`); }
       });
-      return members;
-    } catch (e) {
-      console.warn("Using Firestore fallback for findMembersByPhone:", e);
-      const q = query(collection(db, 'members'), where("phoneLast4", "==", last4Digits), firestoreLimit(10));
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    }
+
+    if (bioTasks.length > 0) await Promise.all(bioTasks);
+    return members;
   },
 
   getMemberById(id) {
@@ -187,6 +186,35 @@ export const memberService = {
       return { success: true };
     } catch (e) {
       console.error('Update member failed:', e);
+      return { success: false, error: e.message };
+    }
+  },
+
+  async updateFaceDescriptor(memberId, descriptor) {
+    try {
+      if (!descriptor) return { success: false };
+      // [SECURITY] Save to isolated biometrics collection
+      const bioRef = doc(db, 'face_biometrics', memberId);
+      const descriptorArray = Array.from(descriptor);
+      
+      await setDoc(bioRef, { 
+        memberId,
+        descriptor: descriptorArray,
+        updatedAt: new Date().toISOString()
+      });
+
+      // Synchronize with membership record metadata to trigger UI badges
+      const memberRef = doc(db, 'members', memberId);
+      await updateDoc(memberRef, { 
+        hasFaceDescriptor: true,
+        faceUpdatedAt: new Date().toISOString()
+      });
+
+      console.log(`[memberService] Face biometrics secured for ${memberId}`);
+      this._updateLocalMemberCache(memberId, { faceDescriptor: descriptorArray, hasFaceDescriptor: true });
+      return { success: true };
+    } catch (e) {
+      console.error('[memberService] Bio hardening failed:', e);
       return { success: false, error: e.message };
     }
   },

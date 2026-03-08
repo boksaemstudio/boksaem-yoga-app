@@ -31,10 +31,11 @@ export const findMembersByPhone = async (last4Digits, phoneLast4Index, cachedMem
         return phoneLast4Index[last4Digits];
     }
     
-    // 2. O(n) filter on cache
-    const cachedResults = cachedMembers.filter(m => 
-        (m.phoneLast4 || (m.phone && m.phone.slice(-4))) === last4Digits
-    );
+    // 2. O(n) filter on cache with robust parsing to ignore spaces/hyphens
+    const cachedResults = cachedMembers.filter(m => {
+        const cleanPhone = m.phone ? m.phone.replace(/\D/g, '') : '';
+        return (m.phoneLast4 || cleanPhone.slice(-4)) === last4Digits;
+    });
     if (cachedResults.length > 0) {
         console.log(`[Member] Cache filter hit for ${last4Digits}: ${cachedResults.length} member(s)`);
         return cachedResults;

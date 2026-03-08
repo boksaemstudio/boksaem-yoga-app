@@ -1,8 +1,9 @@
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-
-const COLORS = ['#D4AF37', '#FF6B6B', '#48dbfb', '#1dd1a1', '#feca57', '#5f27cd'];
+import { useStudioConfig } from '../../contexts/StudioContext';
 
 const MyStatsChart = ({ logs }) => {
+    const { config } = useStudioConfig();
+    const COLORS = [config.THEME?.PRIMARY_COLOR || '#D4AF37', '#FF6B6B', '#48dbfb', '#1dd1a1', '#feca57', '#5f27cd'];
+    
     if (!logs || !Array.isArray(logs) || logs.length === 0) return null;
 
     // Aggregate by className

@@ -1,7 +1,5 @@
 import React from 'react';
-import { Icons as PhosphorIcons } from '../../../components/CommonIcons';
-
-const { X } = PhosphorIcons;
+import { X } from '../../../components/CommonIcons';
 
 export const VolumeControlPanel = ({
     showVolumePanel,

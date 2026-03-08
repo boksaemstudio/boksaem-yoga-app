@@ -3,6 +3,39 @@
 
 <head>
   <meta charset="UTF-8" />
+  <script>
+    // [NUCLEAR PWA KILLER] Unconditionally unregister all service workers and clear caches
+    // This guarantees that the persistent v11 cache on users' devices is wiped out.
+    (function() {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          if (registrations.length > 0) {
+            console.warn('[PWA] Found active Service Workers. Unregistering to force update to v12...');
+            
+            // Clear all CacheStorage
+            if ('caches' in window) {
+              caches.keys().then(function(names) {
+                names.forEach(function(name) { caches.delete(name); });
+              });
+            }
+
+            // Unregister all SWs
+            var unregisterPromises = registrations.map(function(reg) {
+              return reg.unregister();
+            });
+
+            // Reload page once all SWs are dead
+            Promise.all(unregisterPromises).then(function() {
+              console.warn('[PWA] Service Workers purged. Reloading page...');
+              window.location.reload(true);
+            });
+          } else {
+            console.log('[PWA] No Service Workers found. Safe to proceed.');
+          }
+        });
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
@@ -12,15 +45,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
   <meta name="theme-color" content="#08080A" />
-  <link rel="apple-touch-icon" href="/logo_circle.png">
+  <link rel="apple-touch-icon" href="/logo_circle_white.webp">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   
-  <!-- SEO & Open Graph (카카오톡/문자 공유 미리보기) -->
-  <meta name="description" content="나를 만나는 시간, 복샘요가 회원 전용 앱입니다. 출석체크와 수련 기록을 관리하세요.">
+  <!-- SEO & Open Graph -->
+  <meta name="description" content="복샘요가: 일상의 고요함을 찾는 수련 서비스입니다.">
   <meta property="og:type" content="website">
   <meta property="og:title" content="복샘요가 (Boksaem Yoga)">
-  <meta property="og:description" content="나를 만나는 시간, 복샘요가입니다. 간편하게 출석하고 수련을 기록해보세요.">
+  <meta property="og:description" content="간편하게 출석하고 수련을 기록해보세요.">
   <meta property="og:image" content="/pwa-icon-512.png">
   <meta property="og:site_name" content="복샘요가">
   <meta property="og:locale" content="ko_KR">
@@ -37,10 +70,10 @@
         appTitle = '복샘요가 관리자';
       } else if (path.indexOf('/member') === 0) {
         manifestFile = '/manifest-member.json';
-        appTitle = '내요가';
+        appTitle = '내요가 (복샘요가)';
       } else if (path.indexOf('/instructor') === 0) {
         manifestFile = '/manifest-instructor.json';
-        appTitle = '복샘요가강사';
+        appTitle = '복샘요가 선생님';
       }
 
       // Manifest 주입
@@ -56,38 +89,13 @@
       document.head.appendChild(metaTitle);
 
       document.title = appTitle;
-
-      
-      // [PWA] Service Worker registration is now handled by vite-plugin-pwa
-      // Manual registration removed to avoid conflicts.
     })();
   </script>
-
-  <!-- [FIX] One-time cache bust for critical updates (2026-02-22) -->
-  <script>
-    (function() {
-      var APP_VERSION = '20260222.v8';
-      var storedVersion = localStorage.getItem('app_version');
-      if (storedVersion !== APP_VERSION) {
-        localStorage.setItem('app_version', APP_VERSION);
-        if (storedVersion) { // Only bust cache if upgrading
-          console.log('[CacheBust] Version changed:', storedVersion, '->', APP_VERSION);
-          if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(regs) {
-              regs.forEach(function(r) { r.unregister(); });
-            });
-          }
-          if ('caches' in window) {
-            caches.keys().then(function(names) {
-              names.forEach(function(name) { caches.delete(name); });
-            });
-          }
-          setTimeout(function() { window.location.reload(true); }, 500);
-        }
-      }
-    })();
-  </script>
-  <title>복샘요가</title>
+<style>
+  /* Reset some defaults for clean start */
+  body { background-color: #08080A; }
+</style>
+  <title>Studio</title>
 </head>
 
 <body>

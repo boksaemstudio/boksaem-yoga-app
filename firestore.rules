@@ -3,9 +3,18 @@ service cloud.firestore {
   match /databases/{database}/documents {
     
     // ========================================
-    // 🔐 복샘요가 Firestore 보안 규칙
-    // 2026-02-07 세분화된 컬렉션별 규칙 적용
+    // 🔐 Studio SaaS Firestore Security Rules
+    // 2026-03-08 Core Engine Hardened
     // ========================================
+
+    // ========================================
+    // 🏢 Studios - SaaS 스튜디오 설정
+    // Auth read (키오스크 anonymous 포함), Admin write
+    // ========================================
+    match /studios/{studioId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
     
     // Helper: Check if user has admin claim
     function isAdmin() {
@@ -29,18 +38,30 @@ service cloud.firestore {
     // 📋 Members - 회원 정보
     // ========================================
     match /members/{memberId} {
-      allow read: if isAuth();
+      // Staff can read all, members can read their own profile
+      allow read: if isStaff() || (isAuth() && request.auth.uid == memberId);
       allow write: if isAdmin();
+      // [NEW] Allow Kiosk (Anonymous Auth) to update biometric metadata during registration
+      allow update: if isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hasFaceDescriptor', 'faceUpdatedAt', 'updatedAt']);
+    }
+
+    // ========================================
+    // 🧬 Biometrics - 안면 인식 생체 정보 (격리 보관)
+    // Only Staff/Admin can read/write.
+    // ========================================
+    match /face_biometrics/{memberId} {
+      allow read, write: if isStaff();
+      allow delete: if isAdmin();
     }
     
     // ========================================
     // ✅ Attendance - 출석 기록
-    // Any authenticated user can read, Kiosk can create, Admin can modify/delete
+    // Staff can read, Admin can manage. Kiosk writes via Cloud Functions.
     // ========================================
     match /attendance/{attendanceId} {
-      allow read: if isAuth();
-      allow create: if isAuth();
-      allow update, delete: if isAdmin();
+      allow read: if isStaff();
+      allow write: if isAdmin(); 
+      allow delete: if isAdmin();
     }
     
     // ========================================
@@ -73,32 +94,34 @@ service cloud.firestore {
     
     // ========================================
     // 🔔 FCM Tokens - 푸시 토큰
-    // Anyone can register, Admin can read/delete
+    // Staff can read all, anyone can register, Admin can delete
     // ========================================
     match /fcm_tokens/{tokenId} {
-      allow read: if isAuth();
-      allow create, update: if isAuth();
+      allow read: if isStaff();
+      // [FIX] Tighten write access: Only allow if memberId matches Auth UID or if Staff
+      allow create, update: if isStaff() || (isAuth() && (request.resource.data.memberId == request.auth.uid || !request.resource.data.memberId));
       allow delete: if isAdmin();
     }
     
     match /fcmTokens/{tokenId} {
-      allow read: if isAuth();
-      allow create, update: if isAuth();
+      allow read: if isStaff();
+      allow create, update: if isStaff() || (isAuth() && (request.resource.data.memberId == request.auth.uid || !request.resource.data.memberId));
       allow delete: if isAdmin();
     }
     
     match /push_tokens/{tokenId} {
-      allow read: if isAuth();
+      allow read: if isStaff();
       allow create, update: if isAuth();
       allow delete: if isAdmin();
     }
     
     // ========================================
     // 💰 Sales - 매출 기록
-    // Authenticated users can read, Admin can write
+    // Staff/Admin can read, Admin can write
+    // [SECURITY HARDENING] isAuth -> isStaff
     // ========================================
     match /sales/{saleId} {
-      allow read: if isAuth();
+      allow read: if isStaff();
       allow write: if isAdmin();
     }
     
@@ -168,7 +191,7 @@ service cloud.firestore {
     // Public/Auth read, Admin write
     // ========================================
     match /settings/{settingId} {
-      allow read: if isAuth();
+      allow read: if isAuth(); // Kiosk needs to read settings/kiosk and instructors
       allow write: if isAdmin();
     }
 
@@ -214,10 +237,10 @@ service cloud.firestore {
     match /pending_approvals/{docId} { allow read, write: if isAdmin(); }
 
     // [FIX] system_state - 키오스크 동기화 트리거 등
-    // 인증된 사용자(키오스크 포함)가 read, Admin만 write
+    // 인증된 사용자가 read, Admin/Staff만 write (kiosk_sync 트리거용)
     match /system_state/{docId} {
       allow read: if isAuth();
-      allow write: if isAuth(); // Kiosk sync trigger needs write access
+      allow write: if isStaff(); // Kiosk sync trigger is written by Admin dashboard (isStaff)
     }
     
     // [FIX] ai_request_logs - AI 요청 디버깅 로그 (Cloud Functions에서만 write)

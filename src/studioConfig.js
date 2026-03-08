@@ -3,71 +3,115 @@
 // 다른 요가원에 적용할 때는 이 파일의 내용만 수정하면 됩니다.
 
 export const STUDIO_CONFIG = {
-    // 1. 기본 정보
-    NAME: "복샘요가",
-    NAME_ENGLISH: "복샘요가",
-    LOGO_TEXT: "BOKSAEM",
-    APP_VERSION: "1.3.0",
-
-    // 2. 지점 설정 (ID는 영어, NAME은 한글 표시용)
-    // ID는 데이터베이스 저장용 키로 사용되므로 변경 시 주의가 필요합니다.
-    BRANCHES: [
-        { id: 'gwangheungchang', name: '광흥창점', color: 'var(--primary-gold)' },
-        // [FIX] Mapo color updated to Vibrant Blue (DodgerBlue equivalent) to match Gold intensity
-        { id: 'mapo', name: '마포점', color: '#3B82F6' },
-        // 새로운 지점 추가 예시:
-        // { id: 'gangnam', name: '강남점' }
-    ],
-
-    // [New] Branch Constants for Code Usage
-    BRANCH_IDS: {
-        GWANGHEUNGCHANG: 'gwangheungchang',
-        MAPO: 'mapo'
+    // 1. Identity Module (브랜드 정체성)
+    IDENTITY: {
+        NAME: "복샘요가",
+        NAME_ENGLISH: "Boksaem Yoga",
+        LOGO_TEXT: "BOKSAEM",
+        SLOGAN: "나를 만나는 고요한 시간",
+        DESCRIPTION: "전통 요가의 깊이를 현대적 감각으로 전달하는 프리미엄 요가 스튜디오",
+        APP_VERSION: "1.3.0.v12",
+        FAVICON: "/favicon.ico",
     },
 
-    // 3. 브랜딩 및 테마 (기본값)
+    // 2. Operational Policy Engine (운영 정책)
+    POLICIES: {
+        DORMANT_THRESHOLD_DAYS: 14,      // 잠든 회원 기준 (14일 미출석)
+        EXPIRING_THRESHOLD_DAYS: 7,      // 만료 임박 알림 기준
+        CHECKIN_TIMEOUT_MS: 10000,       // 동일인 중복 출석 방지 쿨다운 (10초)
+        SESSION_AUTO_CLOSE_SEC: 25,      // 중복 확인 모달 자동 닫기
+    },
+
+    // 3. Asset Nexus (이미지 및 자원 매핑)
+    ASSETS: {
+        LOGO: {
+            WIDE: '/assets/logo_wide.webp',
+            SQUARE: '/assets/logo_square.webp',
+            RYS200: '/assets/RYS200.webp',
+        },
+        MEMBER_BG: '/assets/default_member_bg.webp',
+        BACKGROUNDS: {
+            MORNING: '/assets/bg_morning.webp',
+            AFTERNOON: '/assets/bg_afternoon.webp',
+            EVENING: '/assets/bg_evening.webp',
+            NIGHT: '/assets/bg_night.webp'
+        }
+    },
+
+    // 4. UI 및 표시 정책
+    SCHEDULE_LEGEND: [
+        { label: '일반', color: '#FFFFFF', border: '#DDDDDD', branches: ['gwangheungchang', 'mapo'] },
+        { label: '심화', color: 'rgba(255, 190, 118, 0.9)', border: 'rgba(255, 190, 118, 1)', branches: ['gwangheungchang'] },
+        { label: '심화/플라잉', color: 'rgba(255, 190, 118, 0.9)', border: 'rgba(255, 190, 118, 1)', branches: ['mapo'] },
+        { label: '키즈', color: 'rgba(255, 234, 167, 0.4)', border: 'rgba(255, 234, 167, 0.6)', branches: ['mapo'] },
+        { label: '임산부', color: 'rgba(196, 252, 239, 0.9)', border: 'rgba(129, 236, 236, 1)', branches: ['mapo'] },
+        { label: '토요하타/별도등록', color: 'rgba(224, 86, 253, 0.7)', border: 'rgba(224, 86, 253, 0.9)', branches: ['mapo'] },
+    ],
+
+    MEMBERSHIP_TYPE_MAP: {
+        'general': '일반', 
+        'intensive': '심화', 
+        'kids': '키즈',
+        'pregnancy': '임신부', 
+        'sat_hatha': '토요하타', 
+        'ttc': 'TTC'
+    },
+
+    // 5. AI Persona Layer (AI 성격 설정)
+    AI_CONFIG: {
+        NAME: "AI",
+        PERSONALITY: "Guide",
+        TONE: "Traditional & Warm",
+        KEYWORDS: ["나마스테", "프라나", "타파스", "사티", "사다나"],
+        ENABLE_ENHANCED_MESSAGES: true,
+        FALLBACK_QUOTES: [
+            "매트 위에서 나를 만나는 소중한 시간입니다.",
+            "오늘도 회원들에게 따뜻한 에너지를 전해주세요.",
+            "호흡을 통해 마음의 평온을 찾으세요.",
+            "오늘 하루도 즐거운 수련 되세요!"
+        ]
+    },
+
+    // 5. 지점 설정 (ID는 영어, NAME은 한글 표시용)
+    BRANCHES: [
+        { id: 'gwangheungchang', name: '광흥창점', color: 'var(--primary-theme-color)' },
+        { id: 'mapo', name: '마포점', color: '#3B82F6' },
+    ],
+
+    // Branch Constants mapping
+    BRANCH_IDS: {
+        BRANCH_1: 'gwangheungchang',
+        BRANCH_2: 'mapo'
+    },
+
+    // 6. 브랜딩 및 테마
     THEME: {
-        PRIMARY_COLOR: "#D4AF37", // Gold
-        ACCENT_COLOR: "#FF6B6B",  // Coral
+        PRIMARY_COLOR: "#D4AF37", // Gold (Generic theme color)
+        ACCENT_COLOR: "#3B82F6",  // Blue
+        SKELETON_COLOR: "rgba(212, 175, 55, 0.1)",
     },
 
     // [New] 기능 활성화 제어
     FEATURES: {
-        ENABLE_DATA_MIGRATION: false // 출시 전 마지막 마이그레이션 완료 후 false로 변경하면 관리자 탭에서 사라집니다.
+        ENABLE_DATA_MIGRATION: false
     },
 
-    // [New] 강사 목록 - 푸시 알림 매핑용
+    // [New] 강사 목록
     INSTRUCTORS: [
-        { id: 'wonjang', name: '원장', branches: ['gwangheungchang', 'mapo'] },
-        { id: 'seyeon', name: '세연', branches: ['mapo'] },
-        { id: 'hana', name: '한아', branches: ['gwangheungchang', 'mapo'] },
-        { id: 'songmi', name: '송미', branches: ['mapo'] },
-        { id: 'jeongyeon', name: '정연', branches: ['gwangheungchang', 'mapo'] },
-        { id: 'rian', name: '리안', branches: ['mapo'] },
-        { id: 'miseon', name: '미선', branches: ['gwangheungchang'] },
-        { id: 'boyoon', name: '보윤', branches: ['gwangheungchang'] },
-        { id: 'soyeong', name: '소영', branches: ['gwangheungchang', 'mapo'] },
-        { id: 'hyesil', name: '혜실', branches: ['gwangheungchang'] },
-        { id: 'heejung', name: '희정', branches: ['gwangheungchang'] },
-        { id: 'eunhye', name: '은혜', branches: ['gwangheungchang'] },
-        { id: 'sunghee', name: '성희', branches: ['mapo'] },
-        { id: 'hyowon', name: '효원', branches: ['mapo'] },
-        { id: 'anu', name: 'anu', branches: ['mapo'] },
-        { id: 'dana', name: '다나', branches: ['mapo'] },
-        { id: 'heeyeon', name: '희연', branches: ['mapo'] },
+        { id: 'lead', name: '강사1', branches: ['branch_1', 'branch_2'] },
     ],
 
     // 4. 소셜 미디어 링크
     SOCIAL: {
-        Instagram_Gwangheungchang: "https://www.instagram.com/boksaemyoga_ghc",
-        Instagram_Mapo: "https://www.instagram.com/reel/DTT2iORE7th/?utm_source=ig_web_copy_link",
+        Instagram_광흥창점: "https://www.instagram.com/boksaemyoga_ghc",
+        Instagram_마포점: "https://www.instagram.com/reel/DTT2iORE7th/?utm_source=ig_web_copy_link",
         Youtube: "https://www.youtube.com/@boksaemyoga_ghc",
         Blog: "https://blog.naver.com/boksaemyoga"
     },
 
     // 5. 기본 스케줄 템플릿 (초기 세팅용)
     DEFAULT_SCHEDULE_TEMPLATE: {
-        'gwangheungchang': [
+        'branch_1': [
             { days: ['월'], startTime: '10:00', className: '하타', instructor: '원장' },
             { days: ['월'], startTime: '14:00', className: '마이솔', instructor: '원장' },
             { days: ['월'], startTime: '19:00', className: '하타', instructor: '원장' },
@@ -94,7 +138,7 @@ export const STUDIO_CONFIG = {
             { days: ['일'], startTime: '14:00', className: '하타인텐시브', instructor: '원장' },
             { days: ['일'], startTime: '19:00', className: '하타', instructor: '혜실' },
         ],
-        'mapo': [
+        'branch_2': [
             { days: ['월'], startTime: '10:00', className: '하타', instructor: '세연' },
             { days: ['월'], startTime: '11:50', className: '임신부요가', instructor: 'anu' },
             { days: ['월'], startTime: '18:40', className: '인요가', instructor: '한아' },
@@ -131,7 +175,7 @@ export const STUDIO_CONFIG = {
     PRICING: {
         'intensive': {
             label: '심화',
-            branches: ['gwangheungchang', 'mapo'],
+            branches: ['branch_1', 'branch_2'],
             options: [
                 { id: '10_session', label: '10회권 (3개월)', basePrice: 300000, credits: 10, months: 3, type: 'ticket' },
                 { id: 'month_4', label: '월 4회', basePrice: 120000, credits: 4, months: 1, type: 'subscription' },
@@ -144,7 +188,7 @@ export const STUDIO_CONFIG = {
         },
         'general': {
             label: '일반',
-            branches: ['gwangheungchang', 'mapo'],
+            branches: ['branch_1', 'branch_2'],
             options: [
                 { id: '10_session', label: '10회권 (3개월)', basePrice: 200000, credits: 10, months: 3, type: 'ticket' },
                 { id: 'month_8', label: '월 8회', basePrice: 143000, credits: 8, months: 1, type: 'subscription', discount3: 408000, discount6: 773000 },
@@ -176,7 +220,7 @@ export const STUDIO_CONFIG = {
         },
         'ttc': {
             label: 'TTC (지도자과정)',
-            branches: ['gwangheungchang', 'mapo'],
+            branches: ['branch_1', 'branch_2'],
             options: [
                 {
                     id: 'ttc_standard',
@@ -202,17 +246,17 @@ export const STUDIO_CONFIG = {
         { 
             id: 'KA01TP260219025216404VfhzWLRH3F5', 
             name: '휴무일 오늘 수업변경안내 (수업과목단축)', 
-            content: '[복샘요가] 수업 안내드립니다.\n금일 오전 10시 하타 / 오후 2시 아쉬탕가 수업만 진행됩니다.\n이용에 참고 부탁드립니다.' 
+            content: '[#{studio}] 수업 안내드립니다.\n금일 오전 10시 하타 / 오후 2시 아쉬탕가 수업만 진행됩니다.\n이용에 참고 부탁드립니다.' 
         },
         { 
             id: 'KA01TP260219025023679E4NxugsIDNd', 
             name: '휴무일 내일 수업변경안내 (수업과목단축)', 
-            content: '[복샘요가] 내일 수업 안내드립니다.\n내일 오전 10시 하타 / 오후 2시 아쉬탕가 수업만 진행됩니다.\n이용에 참고 부탁드립니다.' 
+            content: '[#{studio}] 내일 수업 안내드립니다.\n내일 오전 10시 하타 / 오후 2시 아쉬탕가 수업만 진행됩니다.\n이용에 참고 부탁드립니다.' 
         },
         { 
             id: 'KA01TP260219024739217NOCrSlZrNo0', 
             name: '휴무일 수업안내 (전수업휴강)', 
-            content: '[복샘요가] 공휴일 휴강 안내\n#{date} 공휴일로 인해 전 수업 휴강합니다.' 
+            content: '[#{studio}] 공휴일 휴강 안내\n#{date} 공휴일로 인해 전 수업 휴강합니다.' 
         }
     ]
 };

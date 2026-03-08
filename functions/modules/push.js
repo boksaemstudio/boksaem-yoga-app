@@ -8,7 +8,7 @@
 
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { admin, getAI, logAIError, getAllFCMTokens } = require("../helpers/common");
+const { admin, getAI, logAIError, getAllFCMTokens, getStudioName } = require("../helpers/common");
 
 /**
  * 개인 메시지 푸시 알림
@@ -46,8 +46,9 @@ exports.sendPushOnMessageV2 = onDocumentCreated({
             return;
         }
 
+        const studioName = await getStudioName();
         const payload = {
-            notification: { title: "내요가 메시지", body: content },
+            notification: { title: `${studioName} 메시지`, body: content },
             data: { url: "https://boksaem-yoga.web.app/member?tab=messages" }
         };
 
@@ -128,7 +129,8 @@ exports.sendBulkPushV2 = onDocumentCreated({
     const snap = event.data;
     const data = snap.data();
     const targetMemberIds = data.targetMemberIds || [];
-    const titleOriginal = data.title || "내요가";
+    const studioName = await getStudioName();
+    const titleOriginal = data.title || studioName;
     const bodyOriginal = data.body || "";
 
     if (!bodyOriginal) return;

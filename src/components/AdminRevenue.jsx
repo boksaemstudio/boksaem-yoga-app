@@ -1,9 +1,14 @@
 import { useState } from 'react';
-import { CaretLeft, CaretRight, Calendar as CalendarIcon } from '@phosphor-icons/react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LineChart, Line } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line, Cell } from 'recharts';
+import { CaretLeft, CaretRight, CalendarBlank as CalendarIcon } from '@phosphor-icons/react';
 import { useRevenueStats } from '../hooks/useRevenueStats';
+import { useStudioConfig } from '../contexts/StudioContext';
 
 const AdminRevenue = ({ members, sales, currentBranch }) => {
+    const { config } = useStudioConfig();
+    const branches = config.BRANCHES || [];
+    const getBranchName = (id) => branches.find(b => b.id === id)?.name || id;
+
     const [currentDate, setCurrentDate] = useState(new Date());
 
     const { dailyStats, monthlyStats, comparativeStats, recentTrend, monthlyTrend } = useRevenueStats(sales, members, currentDate, currentBranch);
@@ -27,7 +32,7 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
                     </button>
                 </div>
                 <div className="branch-badge">
-                    {currentBranch === 'all' ? '전체 지점' : (currentBranch === 'gwangheungchang' ? '광흥창점' : '마포점')}
+                    {currentBranch === 'all' ? '전체 지점' : getBranchName(currentBranch)}
                 </div>
             </div>
 
@@ -49,7 +54,7 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
                     <div style={{ textAlign: 'right' }}>
                         <div style={{ marginBottom: '12px' }}>
                             <div className="revenue-count-title">오늘 매출</div>
-                            <div className="revenue-summary-amount" style={{ fontSize: '1.4rem', color: 'var(--primary-gold)' }}>
+                            <div className="revenue-summary-amount" style={{ fontSize: '1.4rem', color: 'var(--primary-theme-color)' }}>
                                 {formatCurrency(comparativeStats.today)}원
                             </div>
                         </div>
@@ -99,12 +104,12 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
                                     padding: '12px'
                                 }}
                                 formatter={(value) => [`${new Intl.NumberFormat('ko-KR').format(value)}원`, '매출']}
-                                itemStyle={{ color: 'var(--primary-gold)' }}
+                                itemStyle={{ color: 'var(--primary-theme-color)' }}
                                 labelStyle={{ color: '#a1a1aa', marginBottom: '8px' }}
                             />
                             <Bar dataKey="amount" radius={[4, 4, 0, 0]} maxBarSize={60}>
                                 {monthlyTrend.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.monthParams === `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}` ? 'var(--primary-gold)' : '#333'} />
+                                    <Cell key={`cell-${index}`} fill={entry.monthParams === `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}` ? 'var(--primary-theme-color)' : '#333'} />
                                 ))}
                             </Bar>
                         </BarChart>
@@ -115,7 +120,7 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
             {/* Calendar View */}
             <div className="dashboard-card" style={{ padding: '0', overflowX: 'auto' }}>
                 <div className="revenue-calendar-header">
-                    <CalendarIcon size={20} weight="fill" color="var(--primary-gold)" />
+                    <CalendarIcon size={20} weight="fill" color="var(--primary-theme-color)" />
                     <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월 정산 달력</h3>
                 </div>
                 <div className="calendar-grid custom-scroll" style={{ minWidth: '600px' }}>
@@ -219,17 +224,17 @@ const StraightLineChart = ({ data }) => {
                             color: '#fff',
                             fontSize: '0.85rem'
                         }}
-                        itemStyle={{ color: 'var(--primary-gold)' }}
+                        itemStyle={{ color: 'var(--primary-theme-color)' }}
                         formatter={(value) => [`${new Intl.NumberFormat('ko-KR').format(value)}원`, '매출']}
                         labelStyle={{ color: '#a1a1aa', marginBottom: '4px' }}
                     />
                     <Line 
                         type="linear" 
                         dataKey="amount" 
-                        stroke="var(--primary-gold)" 
+                        stroke="var(--primary-theme-color)" 
                         strokeWidth={2} 
-                        dot={{ r: 3, fill: '#000', stroke: 'var(--primary-gold)', strokeWidth: 2 }}
-                        activeDot={{ r: 5, fill: 'var(--primary-gold)', stroke: '#000', strokeWidth: 2 }}
+                        dot={{ r: 3, fill: '#000', stroke: 'var(--primary-theme-color)', strokeWidth: 2 }}
+                        activeDot={{ r: 5, fill: 'var(--primary-theme-color)', stroke: '#000', strokeWidth: 2 }}
                     />
                 </LineChart>
             </ResponsiveContainer>

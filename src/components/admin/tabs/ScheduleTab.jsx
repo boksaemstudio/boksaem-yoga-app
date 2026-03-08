@@ -1,10 +1,16 @@
 import { useState } from 'react';
-import { STUDIO_CONFIG, getBranchThemeColor, getBranchColor } from '../../../studioConfig';
+import { useStudioConfig } from '../../../contexts/StudioContext';
 import AdminScheduleManager from '../../AdminScheduleManager';
-import timeTable1 from '../../../assets/timetable_gwangheungchang.png';
-import timeTable2 from '../../../assets/timetable_mapo.png';
 
 const ScheduleTab = ({ images, optimisticImages, handleImageUpload }) => {
+    const { config } = useStudioConfig();
+    const branches = config.BRANCHES || [];
+    
+    // Helper functions replacing studioConfig.js
+    const getBranchName = (id) => branches.find(b => b.id === id)?.name || id;
+    const getBranchColor = (id) => branches.find(b => b.id === id)?.color || '#D4AF37';
+    const getBranchThemeColor = (id) => branches.find(b => b.id === id)?.themeColor || getBranchColor(id);
+
     const [scheduleSubTab, setScheduleSubTab] = useState('monthly');
 
     return (
@@ -22,8 +28,8 @@ const ScheduleTab = ({ images, optimisticImages, handleImageUpload }) => {
 
             {scheduleSubTab === 'monthly' ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                    {STUDIO_CONFIG.BRANCHES.map((branch) => {
-                        const isGwang = branch.id === 'gwangheungchang';
+                    {branches.map((branch) => {
+                        const isPrimary = branches.findIndex(b => b.id === branch.id) === 0;
                         const themeColor = getBranchThemeColor(branch.id);
                         const bgTint = `${getBranchColor(branch.id)}0D`;
 
@@ -58,7 +64,7 @@ const ScheduleTab = ({ images, optimisticImages, handleImageUpload }) => {
                                         fontSize: '0.8rem',
                                         fontWeight: 'bold'
                                     }}>
-                                        {isGwang ? '본점' : '지점'}
+                                        {isPrimary ? '본점' : '지점'}
                                     </div>
                                 </div>
                                 <AdminScheduleManager branchId={branch.id} />
@@ -70,7 +76,7 @@ const ScheduleTab = ({ images, optimisticImages, handleImageUpload }) => {
                 <div className="dashboard-card">
                     <h3 className="card-label" style={{ marginBottom: '20px' }}>주간 시간표 (이미지)</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
-                        {STUDIO_CONFIG.BRANCHES.map(branch => {
+                        {branches.map(branch => {
                             const now = new Date();
                             const curYear = now.getFullYear();
                             const curMonth = (now.getMonth() + 1).toString().padStart(2, '0');
@@ -79,7 +85,7 @@ const ScheduleTab = ({ images, optimisticImages, handleImageUpload }) => {
                             const nextMonth = (nextDate.getMonth() + 1).toString().padStart(2, '0');
                             const curKey = `timetable_${branch.id}_${curYear}-${curMonth}`;
                             const nextKey = `timetable_${branch.id}_${nextYear}-${nextMonth}`;
-                            const curImage = images[curKey] || images[`timetable_${branch.id}`] || (branch.id === 'gwangheungchang' ? timeTable1 : timeTable2);
+                            const curImage = images[curKey] || images[`timetable_${branch.id}`] || config.ASSETS?.LOGO?.WIDE;
                             const nextImage = images[nextKey];
 
                             return (

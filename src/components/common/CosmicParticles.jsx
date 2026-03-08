@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
+import { useStudioConfig } from '../../contexts/StudioContext';
 
 const CosmicParticles = () => {
+    const { config } = useStudioConfig();
     const canvasRef = useRef(null);
 
     useEffect(() => {
@@ -67,7 +69,7 @@ const CosmicParticles = () => {
                 if (p.isGold) {
                     // Gold particles
                     ctx.fillStyle = `rgba(212, 175, 55, ${p.opacity})`;
-                    ctx.shadowColor = '#D4AF37';
+                    ctx.shadowColor = config.THEME?.PRIMARY_COLOR || '#D4AF37';
                     ctx.shadowBlur = 8;
                 } else {
                     // White/blue stars

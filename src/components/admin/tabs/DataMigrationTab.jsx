@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Upload, CheckCircle, XCircle, WarningCircle, FileText } from '@phosphor-icons/react';
 import { parseCSV } from '../../../utils/csvParser';
 import { storageService } from '../../../services/storage';
+import { useStudioConfig } from '../../../contexts/StudioContext';
 
 export default function DataMigrationTab() {
+    const { config } = useStudioConfig();
     const [migrationStatus, setMigrationStatus] = useState('idle'); // idle, uploading, processing, complete, error, cleaning
     const [progress, setProgress] = useState({ current: 0, total: 0, currentName: '' });
     const [results, setResults] = useState(null);
@@ -56,7 +58,8 @@ export default function DataMigrationTab() {
                 isDryRun,
                 (current, total, name) => {
                     setProgress({ current, total, currentName: name });
-                }
+                },
+                config.BRANCHES || []
             );
 
             setResults(migrationResults);

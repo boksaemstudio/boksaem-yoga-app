@@ -8,9 +8,11 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
     const canvasRef = useRef(null);
     const cameraStreamRef = useRef(null);
     const capturedPhotoRef = useRef(null);
+    const isCapturingRef = useRef(false);
+    const lastCaptureTimeRef = useRef(0);
+    const capturePromisesRef = useRef([]);
 
-    // [PHOTO] 카메라 초기화 — 마운트 시 한 번만 실행
-    // 태블릿에서 최초 1회 카메라 권한 허용 후 자동 작동 (회원별 아님)
+    // [PHOTO] 카메라 초기화
     useEffect(() => {
         if (!PHOTO_ENABLED) return;
         
@@ -18,24 +20,29 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
         
         const initCamera = async () => {
             try {
+                // [O] 800x600 ideal resolution for better quality
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+                    video: { facingMode: 'user', width: { ideal: 800 }, height: { ideal: 600 } }
                 });
                 
                 if (isMounted) {
                     cameraStreamRef.current = stream;
                     if (videoRef.current) {
                         videoRef.current.srcObject = stream;
-                        // [FIX] Ensure the hidden video actively plays stream data 
-                        videoRef.current.play().catch(e => console.warn('[PHOTO] Autoplay blocked:', e));
+                        videoRef.current.setAttribute('autoplay', '');
+                        videoRef.current.setAttribute('muted', '');
+                        videoRef.current.setAttribute('playsinline', '');
+                        
+                        videoRef.current.play().catch(e => {
+                            console.warn('[PHOTO] Autoplay blocked, will retry on interaction:', e);
+                        });
                     }
-                    console.log('[PHOTO] Camera initialized successfully');
+                    console.log('[PHOTO] Camera initialized successfully (800x600)');
                 } else {
-                    // Stop tracks immediately if unmounted before promise resolved
                     stream.getTracks().forEach(t => t.stop());
                 }
             } catch (err) {
-                console.warn('[PHOTO] Camera init failed (permission denied or no camera):', err.message);
+                console.warn('[PHOTO] Camera init failed:', err.message);
             }
         };
 
@@ -43,47 +50,87 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
 
         return () => {
             isMounted = false;
-            // Clean up the camera stream when the component unmounts
             if (cameraStreamRef.current) {
                 cameraStreamRef.current.getTracks().forEach(t => t.stop());
                 cameraStreamRef.current = null;
             }
-            if (videoRef.current) {
-                videoRef.current.srcObject = null;
-            }
+            if (videoRef.current) videoRef.current.srcObject = null;
         };
     }, [PHOTO_ENABLED]);
 
-    // [PHOTO] 현재 프레임을 캡처하여 blob으로 저장
+    // [PHOTO] 프레임 캡처
     const capturePhoto = () => {
         if (!PHOTO_ENABLED) return;
-        if (!videoRef.current || !canvasRef.current || !cameraStreamRef.current) return;
         
-        const video = videoRef.current;
-        const canvas = canvasRef.current;
-        canvas.width = 320;
-        canvas.height = 240;
-        
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0, 320, 240);
-        
-        canvas.toBlob((blob) => {
-            if (blob) {
-                capturedPhotoRef.current = blob;
-                console.log(`[PHOTO] Captured: ${(blob.size / 1024).toFixed(1)}KB`);
-            }
-        }, 'image/webp', 0.6);
-    };
-
-    // [PHOTO] 비동기 업로드 (체크인 결과와 무관하게 백그라운드망에서 실행)
-    const uploadPhoto = async (attendanceId, memberName, status) => {
-        if (!PHOTO_ENABLED) return;
-        
-        const blob = capturedPhotoRef.current;
-        if (!blob || !navigator.onLine) {
-            capturedPhotoRef.current = null;
+        // [O] Cooldown: Don't capture more than once every 10 seconds to save CPU
+        const now = Date.now();
+        if (now - lastCaptureTimeRef.current < 10000 && capturedPhotoRef.current) {
+            console.log('[PHOTO] Skipping capture: cooling down');
             return;
         }
+
+        if (!videoRef.current || !canvasRef.current || !cameraStreamRef.current) return;
+
+        const video = videoRef.current;
+        if (video.readyState < 2 || video.paused) {
+            video.play().catch(() => {});
+            return;
+        }
+        
+        const canvas = canvasRef.current;
+        // [O] Set higher resolution (800x600)
+        canvas.width = 800;
+        canvas.height = 600;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, 800, 600);
+        
+        isCapturingRef.current = true;
+        const capturePromise = new Promise((resolve) => {
+            const timeout = setTimeout(() => {
+                isCapturingRef.current = false;
+                resolve(null);
+            }, 5000);
+
+            try {
+                // [O] Switch to WebP for better compression (v10)
+                canvas.toBlob((blob) => {
+                    clearTimeout(timeout);
+                    if (blob) {
+                        capturedPhotoRef.current = blob;
+                        lastCaptureTimeRef.current = Date.now();
+                        console.log(`[PHOTO] Captured WebP: ${(blob.size / 1024).toFixed(1)}KB`);
+                    }
+                    isCapturingRef.current = false;
+                    resolve(blob);
+                }, 'image/webp', 0.8);
+            } catch (err) {
+                clearTimeout(timeout);
+                isCapturingRef.current = false;
+                resolve(null);
+            }
+        });
+        
+        capturePromisesRef.current.push(capturePromise);
+        if (capturePromisesRef.current.length > 3) capturePromisesRef.current.shift();
+    };
+
+    // [PHOTO] 비동기 업로드
+    const uploadPhoto = async (attendanceId, memberName, status) => {
+        if (!PHOTO_ENABLED || !navigator.onLine) return;
+
+        // [O] Intelligent Wait: Only wait for capture if we don't have a blob yet
+        if (!capturedPhotoRef.current && isCapturingRef.current && capturePromisesRef.current.length > 0) {
+            console.log('[PHOTO] Waiting for active capture...');
+            const lastPromise = capturePromisesRef.current[capturePromisesRef.current.length - 1];
+            await Promise.race([
+                lastPromise,
+                new Promise(r => setTimeout(r, 6000))
+            ]);
+        }
+
+        const blob = capturedPhotoRef.current;
+        if (!blob) return;
 
         try {
             const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
@@ -91,13 +138,10 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
             const path = `attendance-photos/${today}/${fileName}`;
             const fileRef = storageRef(storage, path);
             
-            // Upload to Firebase Storage
             await uploadBytes(fileRef, blob, { contentType: 'image/webp' });
             const url = await getDownloadURL(fileRef);
 
-            // Firestore에 photoUrl 추가 저장 (출석 기록이 있는 경우에만)
             if (attendanceId) {
-                // To avoid circular dependency or heavy initial load, we dynamically import firestore
                 const { doc, updateDoc } = await import('firebase/firestore');
                 const { db } = await import('../firebase');
                 await updateDoc(doc(db, 'attendance', attendanceId), {
@@ -105,11 +149,15 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
                     photoStatus: status || 'unknown'
                 });
             }
-            console.log(`[PHOTO] Uploaded: ${path} for ${memberName || 'unknown'}`);
+            console.log(`[PHOTO] Upload Success: ${path}`);
         } catch (err) {
-            console.warn('[PHOTO] Upload failed (non-blocking):', err.message);
+            const { logError } = await import('../services/modules/errorModule');
+            await logError(`[PHOTO] Upload failed for ${memberName || 'unknown'}`, { 
+                error: err.message, 
+                attendanceId 
+            });
         } finally {
-            // Free memory after upload attempt
+            // [O] Immediate memory release
             capturedPhotoRef.current = null;
         }
     };

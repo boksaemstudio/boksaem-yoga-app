@@ -1,5 +1,6 @@
 import React, { useState, useEffect, memo } from 'react';
-import { getBranchName } from '../../studioConfig';
+import { useStudioConfig } from '../../contexts/StudioContext';
+import { toKSTDateString, toKSTTimeString, getTodayKST, safeParseDate } from '../../utils/dates';
 import { CHECKIN_CONFIG } from '../../constants/CheckInConfig';
 
 const SelectionModal = memo(({ 
@@ -10,6 +11,7 @@ const SelectionModal = memo(({
     onSelect 
 }) => {
     const [selectedMemberId, setSelectedMemberId] = useState(null);
+    const { config } = useStudioConfig();
     const [timeLeft, setTimeLeft] = useState(CHECKIN_CONFIG.TIMEOUTS.AUTO_CLOSE_MODAL / 1000);
 
     useEffect(() => {
@@ -43,7 +45,6 @@ const SelectionModal = memo(({
     const inactiveMembers = [];
 
     duplicateMembers.forEach(m => {
-        let isActive = false;
         const credits = m.credits || 0;
         const endDateStr = m.endDate;
 
@@ -53,11 +54,9 @@ const SelectionModal = memo(({
         // 2. Check Date
         let hasValidDate = true;
         if (endDateStr && endDateStr !== 'unlimited' && endDateStr !== 'TBD') {
-            // [FIX] Browser compatibility: replace '-' with '/' for reliable 'Local' parsing
-            // This prevents the browser from interpreting YYYY-MM-DD as UTC midnight.
             const parsedStr = typeof endDateStr === 'string' ? endDateStr.replace(/-/g, '/') : endDateStr;
             const endDate = new Date(parsedStr);
-            endDate.setHours(23, 59, 59, 999); // Set to end of day to be generous
+            endDate.setHours(23, 59, 59, 999); 
             if (endDate < today) {
                 hasValidDate = false;
             }
@@ -105,7 +104,6 @@ const SelectionModal = memo(({
                 </p>
 
                 <div style={{ display: 'flex', gap: '20px', flex: 1, minHeight: '280px' }}>
-                    {/* LEFT: Active Members */}
                     <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <h3 style={{ fontSize: '1.2rem', color: 'var(--primary-gold)', borderBottom: '1px solid rgba(212,175,55,0.3)', paddingBottom: '8px' }}>
                             ✨ 이용 가능 회원
@@ -117,7 +115,7 @@ const SelectionModal = memo(({
                             flex: 1,
                             overflowY: 'auto',
                             alignContent: 'start',
-                            padding: '15px' // Increased padding to prevent border/scale clipping
+                            padding: '15px'
                         }}>
                             {activeMembers.length > 0 ? activeMembers.map(m => {
                                 const isSelected = selectedMemberId === m.id;
@@ -153,7 +151,7 @@ const SelectionModal = memo(({
                                         <span style={{ fontSize: '1.9rem', fontWeight: '800', color: isSelected ? 'var(--primary-gold)' : 'white' }}>{m.name}</span>
                                         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
                                             <span style={{ fontSize: '0.9rem', background: 'rgba(0,0,0,0.5)', padding: '5px 12px', borderRadius: '50px' }}>
-                                                {getBranchName(m.homeBranch)}
+                                                {config.BRANCHES?.find(b => b.id === m.homeBranch)?.name || m.homeBranch}
                                             </span>
                                             <span style={{ fontSize: '0.9rem', background: isSelected ? 'rgba(76, 175, 80, 0.3)' : 'rgba(255,255,255,0.1)', padding: '5px 12px', borderRadius: '50px', color: isSelected ? '#a5d6a7' : 'rgba(255,255,255,0.8)' }}>
                                                 {m.credits > 900 ? '무제한' : `${m.credits}회`}
@@ -169,7 +167,6 @@ const SelectionModal = memo(({
                         </div>
                     </div>
 
-                    {/* RIGHT: Inactive Members */}
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '20px', maxWidth: '300px' }}>
                         <h3 style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.4)', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '6px' }}>
                             💤 만료/비활성
@@ -204,7 +201,7 @@ const SelectionModal = memo(({
                                     >
                                         <div>
                                             <div style={{ fontSize: '1.05rem', fontWeight: isSelected ? '800' : '600' }}>{m.name}</div>
-                                            <div style={{ fontSize: '0.75rem', opacity: isSelected ? 0.9 : 0.6 }}>{getBranchName(m.homeBranch)}</div>
+                                            <div style={{ fontSize: '0.75rem', opacity: isSelected ? 0.9 : 0.6 }}>{config.BRANCHES?.find(b => b.id === m.homeBranch)?.name || m.homeBranch}</div>
                                         </div>
                                         <div style={{ fontSize: '0.8rem', color: '#ff6b6b' }}>만료/비활성</div>
                                     </div>
@@ -221,7 +218,6 @@ const SelectionModal = memo(({
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '20px' }}>
                     <button
                         onClick={(e) => { e.stopPropagation(); onClose(); }}
-                        onTouchEnd={(e) => { e.stopPropagation(); onClose(); }}
                         style={{
                             background: 'transparent',
                             border: '1px solid rgba(255,255,255,0.2)',
@@ -231,7 +227,6 @@ const SelectionModal = memo(({
                             fontSize: '1.1rem',
                             fontWeight: '500',
                             cursor: 'pointer',
-                            transition: 'all 0.2s',
                         }}
                     >
                         취소 (닫기)
@@ -239,11 +234,6 @@ const SelectionModal = memo(({
                     
                     <button
                         onClick={handleConfirm}
-                        onTouchEnd={(e) => { 
-                            if (loading || !selectedMemberId) return;
-                            e.preventDefault(); // Prevent ghost clicks
-                            handleConfirm(e); 
-                        }}
                         disabled={!selectedMemberId || loading}
                         style={{
                             background: selectedMemberId ? 'var(--primary-gold)' : 'rgba(255,255,255,0.1)',
@@ -254,7 +244,6 @@ const SelectionModal = memo(({
                             fontSize: '1.2rem',
                             fontWeight: '700',
                             cursor: selectedMemberId ? 'pointer' : 'not-allowed',
-                            transition: 'all 0.2s',
                             boxShadow: selectedMemberId ? '0 4px 15px rgba(212,175,55,0.3)' : 'none'
                         }}
                     >

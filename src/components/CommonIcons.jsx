@@ -1,4 +1,3 @@
-
 import {
     User, Calendar, Ticket, CaretRight,
     InstagramLogo, YoutubeLogo,
@@ -7,6 +6,15 @@ import {
     Fire, Plant, Leaf, Sparkle, Waves, Boat, Barbell, Globe, Flower,
     Trash, Play, Pause, X, Wind, SpeakerHigh, SpeakerSlash, Brain, Microphone, VideoCamera, LockKey, Heartbeat, SmileySad, Lightning, CloudRain, CloudSnow, Sun, Cloud, Share, PlusSquare
 } from '@phosphor-icons/react';
+
+export {
+    User, Calendar, Ticket, CaretRight,
+    InstagramLogo, YoutubeLogo,
+    SealCheck, BellRinging, Bell, BellSlash, House, Megaphone, Article, SignOut,
+    DownloadSimple, Export, ChatCircleDots, Chat, Ghost, ArrowRight,
+    Fire, Plant, Leaf, Sparkle, Waves, Boat, Barbell, Globe, Flower,
+    Trash, Play, Pause, X, Wind, SpeakerHigh, SpeakerSlash, Brain, Microphone, VideoCamera, LockKey, Heartbeat, SmileySad, Lightning, CloudRain, CloudSnow, Sun, Cloud, Share, PlusSquare
+};
 
 // [STABILITY FIX] Standardized Icon Set
 // Problematic icons are handled with inline SVGs to bypass Rollup binding issues.

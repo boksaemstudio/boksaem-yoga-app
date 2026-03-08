@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { X, PaperPlaneTilt, Calendar, CurrencyKrw, Info, Copy } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
-import { STUDIO_CONFIG } from '../../../studioConfig';
+import { useStudioConfig } from '../../../contexts/StudioContext';
 
 const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) => {
+    const { config } = useStudioConfig();
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
     const [isScheduled, setIsScheduled] = useState(false);
@@ -22,7 +23,7 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
     ];
 
     // [Solapi] AlimTalk Templates
-    const alimTalkTemplates = STUDIO_CONFIG.ALIMTALK_TEMPLATES || [];
+    const alimTalkTemplates = config.ALIMTALK_TEMPLATES || [];
     const selectedTemplate = alimTalkTemplates.find(t => t.id === selectedTemplateId);
 
     const calculateCost = (msg) => {

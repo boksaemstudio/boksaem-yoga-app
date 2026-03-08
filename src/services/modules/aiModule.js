@@ -26,11 +26,13 @@ export const getAIExperience = async (memberName, attendanceCount, day, hour, up
     }
 
     try {
-        const genAI = httpsCallable(functions, 'generatePageExperienceV2');
         const isGeneric = !memberName || ["방문 회원", "방문회원", "visitor", "Guest"].includes(memberName);
+        const genAI = httpsCallable(functions, 'generatePageExperienceV2');
         const res = await genAI({
             memberName, attendanceCount, dayOfWeek: day, timeOfDay: hour, upcomingClass, weather, credits, remainingDays, language, diligence,
-            role: isGeneric ? 'visitor' : 'member', type: 'experience', context
+            role: isGeneric ? 'visitor' : 'member', type: 'experience', context,
+            studioName: config?.IDENTITY?.NAME || "Studio",
+            personality: config?.AI_CONFIG?.PERSONALITY || "friendly"
         });
         
         // [PERF] 캐시 저장 (fallback 아닌 경우만)
@@ -43,17 +45,7 @@ export const getAIExperience = async (memberName, attendanceCount, day, hour, up
         
         // [FIX] Randomized Fallback for Instructors
         if (context === 'instructor' || memberName?.includes('선생님')) {
-            const instructorQuotes = [
-                "매트 위에서 나를 만나는 소중한 시간입니다.",
-                "오늘도 회원들에게 따뜻한 에너지를 전해주세요.",
-                "선생님의 미소가 스튜디오를 밝힙니다.",
-                "호흡을 통해 마음의 평온을 찾으세요.",
-                "오늘 하루도 건강하고 행복하게!",
-                "수련의 깊이가 더해지는 하루가 되길 바랍니다.",
-                "나눔의 기쁨을 실천하는 멋진 선생님.",
-                "잠시 멈추어 내면의 소리에 귀 기울여보세요.",
-                "오늘도 즐거운 수련 되세요!"
-            ];
+            const instructorQuotes = config?.AI_CONFIG?.FALLBACK_QUOTES || ["오늘도 수고하셨습니다."];
             const randomQuote = instructorQuotes[Math.floor(Math.random() * instructorQuotes.length)];
             return { message: randomQuote, bgTheme: "sunny", colorTone: "#FFFFFF", isFallback: true };
         }

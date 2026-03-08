@@ -1,9 +1,8 @@
-
 export const translations = {
     ko: {
         // Login
         loginTitle: "나를 만나는 고요한 시간",
-        loginWelcome: "내요가 디지털 마당에 오신 것을 환영합니다.",
+        loginWelcome: "디지털 마당에 오신 것을 환영합니다.",
         loginSub: "매트 위에서의 소중한 정성을 확인해보세요.",
         nameLabel: "이름",
         namePlaceholder: "이름을 입력해주세요",
@@ -78,7 +77,7 @@ export const translations = {
         weatherPrefix: "서울",
         weatherDefault: "오늘 하루도 요가와 함께",
 
-        // Branches
+        // Branches (Dynamic mapping from studioConfig should be used, but keep legacy keys as placeholders)
         branchGwangheungchang: "광흥창점",
         branchMapo: "마포점",
 
@@ -185,7 +184,7 @@ export const translations = {
     },
     en: {
         loginTitle: "A Quiet Time to Meet Myself",
-        loginWelcome: "Welcome to My Yoga Digital Yard.",
+        loginWelcome: "Welcome to our Digital Yard.",
         loginSub: "Check your precious sincerity on the mat.",
         nameLabel: "Name",
         namePlaceholder: "Please enter your name",
@@ -338,7 +337,7 @@ export const translations = {
     },
     ru: {
         loginTitle: "Тихое время для встречи с собой",
-        loginWelcome: "Добро пожаловать в цифровое пространство My Yoga.",
+        loginWelcome: "Добро пожаловать в цифровое пространство Studio.",
         loginSub: "Проверьте свою искренность на коврике.",
         nameLabel: "Имя",
         namePlaceholder: "Введите ваше имя",
@@ -490,7 +489,7 @@ export const translations = {
     },
     zh: {
         loginTitle: "与自己相处的宁静时刻",
-        loginWelcome: "欢迎来到 My Yoga 数字庭院。",
+        loginWelcome: "欢迎来到 Studio 数字庭院。",
         loginSub: "在垫子上确认您珍贵的诚意。",
         nameLabel: "姓名",
         namePlaceholder: "请输入您的姓名",
@@ -642,7 +641,7 @@ export const translations = {
     },
     ja: {
         loginTitle: "自分と向き合う静かな時間",
-        loginWelcome: "My Yoga デジタル広場へようこそ。",
+        loginWelcome: "Studio デジタル広場へようこそ。",
         loginSub: "マットの上で大切な真心を確かめてください。",
         nameLabel: "名前",
         namePlaceholder: "お名前を入力してください",

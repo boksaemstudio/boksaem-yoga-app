@@ -74,6 +74,13 @@ export const storageService = {
   },
 
   async initialize({ mode = 'full' } = {}) {
+    // [GUARD] Prevent duplicate initialization
+    if (this._initialized && this._initializedMode === mode) {
+      return;
+    }
+    this._initialized = true;
+    this._initializedMode = mode;
+
     // Wire up notifyListeners for internal services with specific events
     memberService.setNotifyCallback(() => notifyListeners('members'));
     attendanceService.setNotifyCallback(() => notifyListeners('logs'));
@@ -1614,6 +1621,64 @@ export const storageService = {
     notifyListeners();
 
     return { totalDeleted, stats };
+  },
+
+  // [NEW] Get pricing configuration from Firestore settings
+  async getPricing() {
+    try {
+      const docRef = doc(db, 'settings', 'pricing');
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        return snap.data();
+      }
+      // Fallback to studio config
+      return STUDIO_CONFIG.PRICING || {};
+    } catch (e) {
+      console.error('[Storage] Failed to get pricing:', e);
+      return STUDIO_CONFIG.PRICING || {};
+    }
+  },
+
+  // [NEW] Save pricing configuration to Firestore settings
+  async savePricing(pricingData) {
+    try {
+      const docRef = doc(db, 'settings', 'pricing');
+      await setDoc(docRef, pricingData);
+      notifyListeners('settings');
+      return true;
+    } catch (e) {
+      console.error('[Storage] Failed to save pricing:', e);
+      return false;
+    }
+  },
+
+  // [NEW] Subscribe to Push History for PushHistoryTab
+  subscribeToPushHistory(callback, limitCount = 50) {
+    try {
+      const q = query(
+        collection(db, 'push_history'),
+        orderBy('createdAt', 'desc'),
+        firestoreLimit(limitCount)
+      );
+      return onSnapshot(q, (snapshot) => {
+        const data = snapshot.docs.map(doc => {
+          const item = doc.data();
+          return {
+            id: doc.id,
+            ...item,
+            displayDate: item.createdAt?.toDate?.() || item.createdAt || new Date()
+          };
+        });
+        callback(data);
+      }, (error) => {
+        console.warn('[Storage] Push history listener error:', error);
+        callback([]);
+      });
+    } catch (e) {
+      console.error('[Storage] Failed to subscribe to push history:', e);
+      callback([]);
+      return () => {};
+    }
   }
 };
 

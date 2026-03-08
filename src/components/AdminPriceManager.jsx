@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
+import { PencilLine, Trash, X, Plus } from '@phosphor-icons/react';
 import { storageService } from '../services/storage';
-import { STUDIO_CONFIG, getBranchName } from '../studioConfig';
-import { Plus, PencilLine, Trash, X } from '@phosphor-icons/react';
+import { useStudioConfig } from '../contexts/StudioContext';
 const AdminPriceManager = () => {
+    const { config } = useStudioConfig();
+    const branches = config.BRANCHES || [];
+    const getBranchName = (id) => branches.find(b => b.id === id)?.name || id;
     const [pricing, setPricing] = useState({});
     const [loading, setLoading] = useState(true);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -26,6 +29,14 @@ const AdminPriceManager = () => {
 
     useEffect(() => {
         loadPricing();
+        
+        // [NEW] 실시간 설정 동기화 구독
+        const unsubscribe = storageService.subscribe(() => {
+            console.log('[AdminPriceManager] Settings updated, refreshing pricing...');
+            loadPricing();
+        }, ['settings']);
+
+        return () => unsubscribe();
     }, []);
 
     const loadPricing = async () => {
@@ -62,7 +73,7 @@ const AdminPriceManager = () => {
         setEditingCategoryKey(newKey);
         setEditingCategory({
             label: '새 회원권',
-            branches: ['gwangheungchang', 'mapo'],
+            branches: (config.BRANCHES || []).map(b => b.id),
             options: [] // Empty options initially
         });
         setShowEditModal(true);
@@ -152,12 +163,12 @@ const AdminPriceManager = () => {
                         width: 'auto', 
                         padding: '10px 24px', 
                         flexShrink: 0,
-                        background: 'linear-gradient(135deg, #FFD700 0%, #D4AF37 100%)', // Premium Gold Gradient
+                        background: `linear-gradient(135deg, #FFD700 0%, ${config.THEME?.PRIMARY_COLOR || '#D4AF37'} 100%)`, 
                         color: '#000', 
                         fontWeight: '800',
                         fontSize: '0.95rem',
                         border: 'none',
-                        boxShadow: '0 4px 15px rgba(212, 175, 55, 0.4)', // Gold Glow
+                        boxShadow: `0 4px 15px ${config.THEME?.SKELETON_COLOR || 'rgba(212, 175, 55, 0.4)'}`, // Dynamic Glow
                         borderRadius: '30px', 
                         transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                         cursor: 'pointer',
@@ -167,11 +178,11 @@ const AdminPriceManager = () => {
                     }}
                     onMouseOver={(e) => {
                         e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(212, 175, 55, 0.6)';
+                        e.currentTarget.style.boxShadow = `0 6px 20px ${config.THEME?.SKELETON_COLOR || 'rgba(212, 175, 55, 0.6)'}`;
                     }}
                     onMouseOut={(e) => {
                         e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(212, 175, 55, 0.4)';
+                        e.currentTarget.style.boxShadow = `0 4px 15px ${config.THEME?.SKELETON_COLOR || 'rgba(212, 175, 55, 0.4)'}`;
                     }}
                 >
                     <Plus size={20} weight="black" /> 새 가격표 추가
@@ -235,7 +246,7 @@ const AdminPriceManager = () => {
 
                                 <label>적용 지점</label>
                                 <div style={{ display: 'flex', gap: '10px' }}>
-                                    {STUDIO_CONFIG.BRANCHES.map(b => (
+                                    {(config.BRANCHES || []).map(b => (
                                         <div
                                             key={b.id}
                                             onClick={() => toggleBranch(b.id)}
@@ -243,7 +254,7 @@ const AdminPriceManager = () => {
                                                 padding: '6px 12px',
                                                 borderRadius: '20px',
                                                 border: `1px solid ${editingCategory.branches.includes(b.id) ? 'var(--primary-gold)' : 'rgba(255,255,255,0.2)'}`,
-                                                background: editingCategory.branches.includes(b.id) ? 'rgba(212,175,55,0.2)' : 'transparent',
+                                                background: editingCategory.branches.includes(b.id) ? (config.THEME?.PRIMARY_COLOR || '#D4AF37') : 'transparent',
                                                 cursor: 'pointer',
                                                 fontSize: '0.9rem'
                                             }}
