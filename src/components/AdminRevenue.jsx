@@ -4,7 +4,7 @@ import { CaretLeft, CaretRight, CalendarBlank as CalendarIcon } from '@phosphor-
 import { useRevenueStats } from '../hooks/useRevenueStats';
 import { useStudioConfig } from '../contexts/StudioContext';
 
-const AdminRevenue = ({ members, sales, currentBranch }) => {
+const AdminRevenue = ({ members, sales, currentBranch, revenueStats }) => {
     const { config } = useStudioConfig();
     const branches = config.BRANCHES || [];
     const getBranchName = (id) => branches.find(b => b.id === id)?.name || id;
