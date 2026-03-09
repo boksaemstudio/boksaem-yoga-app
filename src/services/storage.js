@@ -270,6 +270,7 @@ export const storageService = {
   getNotices() { return [...cachedNotices].sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0)); },
 
   getSales() { return paymentService.getSales(); },
+  getRevenueStats() { return paymentService.getRevenueStats(); },
   getAllSales() { return paymentService.getAllSales(); },
   getSalesHistory(memberId) { return paymentService.getSalesHistory(memberId); },
   updateSalesRecord(salesId, updates) { return paymentService.updateSalesRecord(salesId, updates); },
@@ -1174,6 +1175,7 @@ export const storageService = {
   getSalesHistory(memberId) { return paymentService.getSalesHistory(memberId); },
   getAllSales() { return paymentService.getAllSales(); },
   getSales() { return paymentService.getSales(); },
+  getRevenueStats() { return paymentService.getRevenueStats(); },
 
   deleteAttendance(logId, restoreCredit) { return attendanceService.deleteAttendance(logId, restoreCredit); },
 

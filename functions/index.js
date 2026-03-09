@@ -23,6 +23,7 @@ const attendanceFunctions = require('./modules/attendance');
 const scheduledFunctions = require('./modules/scheduled');
 const meditationFunctions = require('./modules/meditation');
 const solapiFunctions = require('./modules/solapi');
+const statsFunctions = require('./modules/stats');
 
 // Re-export all functions
 module.exports = {
@@ -45,7 +46,10 @@ module.exports = {
     ...meditationFunctions,
 
     // Solapi Message Functions
-    ...solapiFunctions
+    ...solapiFunctions,
+
+    // Statistics and Revenue Aggregation
+    ...statsFunctions
 };
 
 /**

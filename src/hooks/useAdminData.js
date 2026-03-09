@@ -12,6 +12,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
     const [logs, setLogs] = useState([]);
     const [notices, setNotices] = useState([]);
     const [stats, setStats] = useState({ byTime: [], bySubject: [] });
+    const [revenueStats, setRevenueStats] = useState(null);
     const [aiInsight, setAiInsight] = useState(null);
     const [loadingInsight, setLoadingInsight] = useState(false);
     const loadingRef = useRef(false); // [FIX] Use Ref to prevent dependency loop
@@ -141,12 +142,13 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         console.time('[Admin] loadInitialData');
         
         try {
-            const [currentMembers, currentImages, tokensResult, usageResult, currentSales] = await Promise.all([
+            const [currentMembers, currentImages, tokensResult, usageResult, currentSales, currentStats] = await Promise.all([
                 storageService.loadAllMembers().catch(err => { console.warn("[Admin] Member load error", err); return []; }),
                 (storageService.getImages ? storageService.getImages() : Promise.resolve({})).catch(err => ({})),
                 storageService.getAllPushTokens().catch(err => { console.error('Failed to fetch push tokens:', err); return []; }),
                 storageService.getAiUsage().catch(e => { console.warn("Failed to fetch AI usage", e); return { count: 0, limit: 2000 }; }),
-                storageService.getSales().catch(err => { console.warn("[Admin] Sales load error", err); return []; })
+                storageService.getSales().catch(err => { console.warn("[Admin] Sales load error", err); return []; }),
+                storageService.getRevenueStats().catch(err => { console.warn("[Admin] Server stats load error", err); return null; })
             ]);
 
             const currentLogs = storageService.getAttendance();
@@ -159,6 +161,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             setNotices([...currentNotices]);
             setImages({ ...currentImages });
             setSales([...currentSales]);
+            if (currentStats) setRevenueStats(currentStats);
             setIsInitialLoadDone(true);
         } catch (err) {
             console.error("[Admin] Initial data load failed", err);
@@ -180,6 +183,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         }
         if (eventType === 'sales' || eventType === 'general' || eventType === 'all') {
             storageService.getSales().then(s => setSales([...s]));
+            storageService.getRevenueStats().then(s => { if (s) setRevenueStats(s) });
         }
         if (eventType === 'images' || eventType === 'general' || eventType === 'all') {
             if (storageService.getImages) setImages({ ...storageService.getImages() });
@@ -328,75 +332,45 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
         const expiringMembersCount = uniqueMembers.filter(m => isMemberInBranch(m) && isMemberExpiring(m)).length;
 
-        // [Unified Revenue Logic]
-        const allRevenueItems = [];
-        uniqueMembers.forEach(m => {
-            const amt = Number(m.amount) || 0;
-            if (m.regDate && amt > 0) {
-                if (currentBranch !== 'all' && m.homeBranch !== currentBranch) return;
-                allRevenueItems.push({
-                    id: m.id,
-                    memberId: m.id,
-                    date: m.regDate,
-                    amount: amt,
-                    name: m.name,
-                    type: 'legacy'
-                });
-            }
-        });
-
-        enrichedSales.forEach(s => {
-            if (currentBranch !== 'all') {
-                const member = memberMapCache.get(s.memberId);
-                const memberBranch = member?.homeBranch;
-                const saleBranch = s.branchId;
-                if ((saleBranch && saleBranch !== currentBranch) && (memberBranch && memberBranch !== currentBranch)) return;
-                if (!saleBranch && !memberBranch) return;
-            }
-            if (!s.parsedDate) return;
-
-            allRevenueItems.push({
-                id: s.id,
-                memberId: s.memberId,
-                date: s.parsedDate,
-                amount: Number(s.amount) || 0,
-                name: s.memberName,
-                type: s.type,
-                item: s.item
-            });
-        });
-
-        const memberNameMap = new Map();
-        members.forEach(m => memberNameMap.set(m.name, m.id));
-
-        const uniqueRevenueItems = [];
-        const salesKeys = new Set(
-            allRevenueItems
-                .filter(i => i.type !== 'legacy')
-                .map(i => `${i.memberId || memberNameMap.get(i.name)}-${i.date}`)
-        );
-
-        allRevenueItems.forEach(item => {
-            const resolvedMemberId = item.memberId || memberNameMap.get(item.name);
-            if (item.type === 'legacy') {
-                const key = `${item.memberId}-${item.date}`;
-                if (salesKeys.has(key)) return;
-            }
-            if (!item.memberId && resolvedMemberId) {
-                uniqueRevenueItems.push({ ...item, memberId: resolvedMemberId });
-            } else {
-                uniqueRevenueItems.push(item);
-            }
-        });
-
-        const todayRevenue = uniqueRevenueItems
-            .filter(i => i.date === todayStr)
-            .reduce((sum, item) => sum + item.amount, 0);
-
+        // [Server-Side Revenue Aggregation]
+        // Instead of processing thousands of raw sales, we read from the aggregated stats document
+        let todayRevenue = 0;
+        let monthlyRevenue = 0;
+        
         const currentMonthStr = todayStr.substring(0, 7);
-        const monthlyRevenue = uniqueRevenueItems
-            .filter(i => i.date.startsWith(currentMonthStr))
-            .reduce((sum, item) => sum + item.amount, 0);
+
+        // Calculate totals dynamically using the unified dataset limits, BUT fallback to server stats
+        if (revenueStats) {
+            // Adjust based on current branch if branching logic applies
+            // Wait, server stats currently aggregate all branches together.
+            // If branch filtering is active, we fallback to local sales calculation?
+            // "Admin Dashboard" overview doesn't branch filter the grand total except if branch selected.
+            // But since sales are restricted, fetching branch revenue requires full local array or server branch subsets.
+            // For now, let's use the local subset for branch if selected, otherwise server stat.
+        }
+
+        if (currentBranch === 'all' && revenueStats) {
+            todayRevenue = revenueStats.daily?.[todayStr]?.total || 0;
+            monthlyRevenue = revenueStats.monthly?.[currentMonthStr]?.total || 0;
+        } else {
+            // Local fallback for branch-specific totals (using the ~500 recent sales)
+            const branchSalesKeys = new Set();
+            let branchToday = 0;
+            let branchMonthly = 0;
+            enrichedSales.forEach(s => {
+                if (currentBranch !== 'all' && s.branchId !== currentBranch && memberMapCache.get(s.memberId)?.homeBranch !== currentBranch) return;
+                if (!s.parsedDate) return;
+                
+                const uniqueKey = `${s.memberId}_${s.parsedDate}_${s.amount}`;
+                if (branchSalesKeys.has(uniqueKey)) return;
+                branchSalesKeys.add(uniqueKey);
+
+                if (s.parsedDate === todayStr) branchToday += (Number(s.amount) || 0);
+                if (s.parsedDate.startsWith(currentMonthStr)) branchMonthly += (Number(s.amount) || 0);
+            });
+            todayRevenue = branchToday;
+            monthlyRevenue = branchMonthly;
+        }
 
         // [Fix] Restore Missing Variables for Push Count
         const instructorNamesWithPush = new Set();
@@ -685,6 +659,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         filteredMembers,
         getDormantSegments, // [New]
         isMemberExpiring,
-        todayReRegMemberIds // [New]
+        todayReRegMemberIds, // [New]
+        revenueStats // [New] Server aggregated stats
     };
 };

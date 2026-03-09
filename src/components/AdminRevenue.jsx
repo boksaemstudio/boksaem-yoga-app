@@ -11,7 +11,7 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
 
     const [currentDate, setCurrentDate] = useState(new Date());
 
-    const { dailyStats, monthlyStats, comparativeStats, recentTrend, monthlyTrend } = useRevenueStats(sales, members, currentDate, currentBranch);
+    const { dailyStats, monthlyStats, comparativeStats, recentTrend, monthlyTrend } = useRevenueStats(sales, members, currentDate, currentBranch, revenueStats);
 
     const formatCurrency = (val) => new Intl.NumberFormat('ko-KR').format(val);
 

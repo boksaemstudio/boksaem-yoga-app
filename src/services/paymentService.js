@@ -1,5 +1,5 @@
 import { db } from '../firebase';
-import { collection, doc, query, where, orderBy, getDocs, addDoc, deleteDoc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { collection, doc, query, where, orderBy, getDocs, addDoc, deleteDoc, onSnapshot, updateDoc, limit, getDoc } from 'firebase/firestore';
 
 /**
  * [ARCHITECTURAL CORE REFACTORING]
@@ -9,7 +9,9 @@ import { collection, doc, query, where, orderBy, getDocs, addDoc, deleteDoc, onS
 
 let notifyCallback = () => {};
 let cachedSales = [];
+let cachedStats = null;
 let salesListenerUnsubscribe = null;
+let statsListenerUnsubscribe = null;
 
 export const paymentService = {
   /**
@@ -32,15 +34,19 @@ export const paymentService = {
       salesListenerUnsubscribe();
       salesListenerUnsubscribe = null;
     }
+    if (statsListenerUnsubscribe) {
+      statsListenerUnsubscribe();
+      statsListenerUnsubscribe = null;
+    }
 
     try {
       console.log('[paymentService] Core: Establishing real-time sales stream...');
       
-      // 최신순 정렬 및 리소스 최적화를 위해 컬렉션 쿼리 정의
-      // (운영 부하를 고려하여 필요 시 limit을 걸 수 있으나, 현재는 전수 동기화 지향)
+      // 최신순 정렬 및 최근 500건으로 제한 (성능 최적화 및 서버 사이드 집계 전환)
       const q = query(
         collection(db, 'sales'),
-        orderBy("timestamp", "desc")
+        orderBy("timestamp", "desc"),
+        limit(500)
       );
 
       // 2. 실시간 엔진 가동
@@ -62,6 +68,16 @@ export const paymentService = {
         setTimeout(() => paymentService.setupSalesListener(), 5000);
       });
 
+      // 3. 통계 엔진 가동 (서버 사이드 집계)
+      const statsRef = doc(db, 'stats', 'revenue_summary');
+      statsListenerUnsubscribe = onSnapshot(statsRef, (docSnap) => {
+        if (docSnap.exists()) {
+          cachedStats = docSnap.data();
+          console.log('[paymentService] Stats stream synchronized');
+          notifyCallback();
+        }
+      });
+
       return salesListenerUnsubscribe;
     } catch (e) {
       console.error('[paymentService] Failed to establish sales pipeline:', e);
@@ -79,6 +95,22 @@ export const paymentService = {
     }
     // 캐시가 비어있을 경우 (부팅 직후 등) Fallback으로 직접 조회
     return this.getAllSales();
+  },
+
+  async getRevenueStats() {
+    if (cachedStats !== null) return cachedStats;
+    try {
+      const docRef = doc(db, 'stats', 'revenue_summary');
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        cachedStats = docSnap.data();
+        return cachedStats;
+      }
+      return null;
+    } catch (error) {
+      console.warn('Failed to fetch revenue stats:', error);
+      return null;
+    }
   },
 
   /**

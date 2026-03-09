@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { getHolidayName } from '../utils/holidays';
 
-export const useRevenueStats = (sales, members, currentDate, currentBranch) => {
+export const useRevenueStats = (sales, members, currentDate, currentBranch, revenueStats) => {
     return useMemo(() => {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth() + 1;
@@ -211,6 +211,15 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch) => {
             monthlyCount += dayData.count;
         }
 
+        // Overwrite totals securely with Server Stats if looking at all branches
+        if (revenueStats && currentBranch === 'all') {
+            monthlyTotal = revenueStats.monthly?.[monthStr]?.total || 0;
+            monthlyNew = revenueStats.monthly?.[monthStr]?.new || 0;
+            monthlyReReg = revenueStats.monthly?.[monthStr]?.reReg || 0;
+            // monthlyCount relies on the 500 recent items which cover current month completely
+        }
+
+
         // 3. Comparative Stats (Yesterday, Day Before, Last Week)
         const today = new Date();
         const getOffsetDateString = (offsetDays) => {
@@ -254,21 +263,26 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch) => {
             const mStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
             const label = `${d.getMonth() + 1}월`;
             
-            // Sum revenue for this month using the dailyMap
             let amount = 0;
             let partialAmount = 0;
-            
-            // Iterate over all keys in the map and sum if they start with mStr
-            dailyAmountsMap.forEach((val, key) => {
-                if (key.startsWith(mStr)) {
-                    amount += val.amount;
-                    // Also calculate partial amount up to the current day (e.g., to the 9th)
-                    const dayPart = parseInt(key.substring(8, 10), 10);
-                    if (dayPart <= currentDayOfM) {
-                        partialAmount += val.amount;
-                    }
+
+            if (revenueStats && currentBranch === 'all') {
+                amount = revenueStats.monthly?.[mStr]?.total || 0;
+                for (let day = 1; day <= currentDayOfM; day++) {
+                    const dayStr = `${mStr}-${String(day).padStart(2, '0')}`;
+                    partialAmount += revenueStats.daily?.[dayStr]?.total || 0;
                 }
-            });
+            } else {
+                dailyAmountsMap.forEach((val, key) => {
+                    if (key.startsWith(mStr)) {
+                        amount += val.amount;
+                        const dayPart = parseInt(key.substring(8, 10), 10);
+                        if (dayPart <= currentDayOfM) {
+                            partialAmount += val.amount;
+                        }
+                    }
+                });
+            }
 
             monthlyTrendData.push({
                 name: label,
@@ -295,5 +309,5 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch) => {
             monthlyTrend: monthlyTrendData
         };
 
-    }, [members, sales, currentDate, currentBranch]);
+    }, [members, sales, currentDate, currentBranch, revenueStats]);
 };

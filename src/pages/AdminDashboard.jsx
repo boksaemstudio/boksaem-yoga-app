@@ -29,7 +29,6 @@ import MemberNoteModal from '../components/admin/modals/MemberNoteModal';
 import ExtensionModal from '../components/admin/modals/ExtensionModal';
 import MemberAddModal from '../components/admin/modals/MemberAddModal';
 import { TimeTableModal, PriceTableModal } from '../components/admin/modals/ImageModals';
-// Assets loaded via dynamic config
 import MembersTab from '../components/admin/tabs/MembersTab';
 import StatsTab from '../components/admin/tabs/StatsTab';
 import NoticesTab from '../components/admin/tabs/NoticesTab';
@@ -38,6 +37,8 @@ import LogsTab from '../components/admin/tabs/LogsTab';
 import PushHistoryTab from '../components/admin/tabs/PushHistoryTab';
 import DataMigrationTab from '../components/admin/tabs/DataMigrationTab';
 import KioskSettingsTab from '../components/admin/tabs/KioskSettingsTab';
+import AdminHeader from '../components/admin/AdminHeader';
+import AdminNav from '../components/admin/AdminNav';
 import StudioSettingsTab from '../components/admin/tabs/StudioSettingsTab';
 import AdminInsights from '../components/AdminInsights';
 import { usePWA } from '../hooks/usePWA';
@@ -119,7 +120,7 @@ const AdminDashboard = () => {
         handleApprovePush, handleRejectPush,
         refreshData, isMemberActive, isMemberExpiring,
         revenueTrend, memberStatusDist, getDormantSegments,
-        todayReRegMemberIds
+        todayReRegMemberIds, revenueStats
     } = adminData;
 
     // Modals
@@ -537,179 +538,28 @@ const AdminDashboard = () => {
     // --- RENDER ---
     return (
         <div className="admin-container">
-            {/* Header - Extremely compact for S25 mobile use */}
-            <header className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'nowrap', gap: '8px' }}>
-                <div className="admin-title" style={{ gap: '6px', fontSize: '0.9rem' }}>
-                    <img src={config.ASSETS?.LOGO?.SQUARE} alt="로고" style={{ height: '20px', filter: 'invert(1) brightness(1.5) drop-shadow(0 0 8px rgba(212,175,55,0.4))' }} />
-                    <span style={{ whiteSpace: 'nowrap', fontWeight: '800' }}>관리</span>
-                    
-                    {/* [NEW] Manual Update Button for PWA Cache Busting */}
-                    <button 
-                        onClick={handleForceUpdate} 
-                        style={{ 
-                            marginLeft: '8px', 
-                            background: 'rgba(255, 255, 255, 0.1)', 
-                            border: '1px solid rgba(255, 255, 255, 0.2)', 
-                            color: '#aaa', 
-                            cursor: 'pointer', 
-                            padding: '2px 6px', 
-                            borderRadius: '4px', 
-                            fontSize: '0.65rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '3px'
-                        }} 
-                        title="업데이트 및 캐시 초기화"
-                    >
-                        <ClockCounterClockwise size={12} />
-                        최신동기화
-                    </button>
+            <AdminHeader 
+                config={config}
+                handleForceUpdate={handleForceUpdate}
+                handleInstallClick={handleInstallClick}
+                handleLogout={handleLogout}
+                refreshData={refreshData}
+                loadingInsight={loadingInsight}
+                aiUsage={aiUsage}
+                pushEnabled={pushEnabled}
+                handleSubscribePush={handleSubscribePush}
+                themeContrastText={themeContrastText}
+                activeTab={activeTab}
+                currentBranch={currentBranch}
+                handleBranchChange={handleBranchChange}
+            />
 
-                    <button onClick={handleInstallClick} style={{ marginLeft: '6px', background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.3)', color: 'var(--primary-gold)', cursor: 'pointer', padding: '4px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem' }} title="홈 화면에 추가">
-                        <PlusCircle size={18} weight="bold" />
-                        <span className="hide-mobile">홈추가</span>
-                    </button>
-                    <button onClick={handleLogout} style={{ marginLeft: '4px', background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', padding: '4px' }} title="로그아웃">
-                        <SignOut size={18} />
-                    </button>
-                </div>
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
-                    {/* [RESTORED] AI Status && Refresh Button */}
-                    <button 
-                        onClick={() => {
-                            if (confirm('AI 분석을 최신 데이터로 다시 실행하시겠습니까? (약 5~10초 소요)')) {
-                                refreshData();
-                            }
-                        }}
-                        style={{
-                            padding: '6px 10px',
-                            borderRadius: '6px',
-                            background: 'rgba(212, 175, 55, 0.1)',
-                            border: '1px solid rgba(212, 175, 55, 0.3)',
-                            color: 'var(--primary-theme-color)',
-                            fontSize: '0.7rem',
-                            fontWeight: 'bold',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease'
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(212, 175, 55, 0.1)'}
-                        title="AI 분석 결과 새로고침 (수동)"
-                    >
-                        <span>✨ AI 분석</span>
-                        {loadingInsight ? (
-                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', border: '1px solid var(--primary-gold)', borderTopColor: 'transparent', animation: 'spin 0.6s linear infinite' }} />
-                        ) : (
-                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4CD964', boxShadow: '0 0 5px #4CD964' }}></span>
-                        )}
-                        <span style={{ fontSize: '0.65rem', opacity: 0.8, marginLeft: '4px', paddingLeft: '4px', borderLeft: '1px solid rgba(212,175,55,0.3)' }}>
-                            {aiUsage.count}/{aiUsage.limit}
-                        </span>
-                    </button>
-
-                    <button
-                        onClick={handleSubscribePush}
-                        className={`action-btn sm ${pushEnabled ? 'primary' : ''}`}
-                        style={{
-                            padding: '6px 8px',
-                            minWidth: '60px',
-                            background: pushEnabled ? 'var(--primary-theme-color)' : 'rgba(255,255,255,0.05)',
-                            color: pushEnabled ? themeContrastText : 'var(--text-secondary)',
-                            fontWeight: 'bold',
-                            fontSize: '0.7rem',
-                            border: 'none',
-                            borderRadius: '6px'
-                        }}
-                    >
-                        {pushEnabled ? '알림ON' : '알림OFF'}
-                    </button>
-                    {/* 지점 선택: 회원, 매출 탭에서만 표시 */}
-                    {(activeTab === 'members' || activeTab === 'revenue') && (
-                        <select
-                            className="styled-select"
-                            value={currentBranch}
-                            onChange={handleBranchChange}
-                            style={{ padding: '6px 8px', fontSize: '0.75rem', borderRadius: '6px', width: 'auto', minWidth: '70px', height: '32px' }}
-                        >
-                            <option value="all">전체</option>
-                            {(config.BRANCHES || []).map(b => (
-                                <option key={b.id} value={b.id}>{b.name.replace('점', '')}</option>
-                            ))}
-                        </select>
-                    )}
-                </div>
-            </header>
-
-
-
-
-            {/* Tab Navigation - Becomes Bottom Nav on Mobile */}
-            <nav className="admin-nav-tabs">
-                <button onClick={() => setActiveTab('members')} className={`nav-tab-item ${activeTab === 'members' ? 'active' : ''}`}>
-                    <Users size={22} weight={activeTab === 'members' ? "fill" : "regular"} />
-                    <span>회원</span>
-                </button>
-                <button onClick={() => setActiveTab('logs')} className={`nav-tab-item ${activeTab === 'logs' ? 'active' : ''}`}>
-                    <ClockCounterClockwise size={22} weight={activeTab === 'logs' ? "fill" : "regular"} />
-                    <span>출석</span>
-                </button>
-                <button onClick={() => setActiveTab('schedule')} className={`nav-tab-item ${activeTab === 'schedule' ? 'active' : ''}`}>
-                    <Calendar size={22} weight={activeTab === 'schedule' ? "fill" : "regular"} />
-                    <span>시간표</span>
-                </button>
-                <button onClick={() => setActiveTab('pricing')} className={`nav-tab-item ${activeTab === 'pricing' ? 'active' : ''}`}>
-                    <Tag size={22} weight={activeTab === 'pricing' ? "fill" : "regular"} />
-                    <span>가격표</span>
-                </button>
-                <button onClick={() => setActiveTab('revenue')} className={`nav-tab-item ${activeTab === 'revenue' ? 'active' : ''}`}>
-                    <ChartBar size={22} weight={activeTab === 'revenue' ? "fill" : "regular"} />
-                    <span>매출</span>
-                </button>
-                <button onClick={() => setActiveTab('notices')} className={`nav-tab-item ${activeTab === 'notices' ? 'active' : ''}`}>
-                    <Megaphone size={22} weight={activeTab === 'notices' ? "fill" : "regular"} />
-                    <span>공지</span>
-                </button>
-                <button onClick={() => setActiveTab('push_history')} className={`nav-tab-item ${activeTab === 'push_history' ? 'active' : ''}`} style={{ position: 'relative' }}>
-                    <BellRinging size={22} weight={activeTab === 'push_history' ? "fill" : "regular"} />
-                    <span>알림기록</span>
-                    {pendingApprovals.length > 0 && (
-                        <span style={{
-                            position: 'absolute',
-                            top: '5px',
-                            right: '5px',
-                            background: '#F43F5E',
-                            color: 'white',
-                            fontSize: '0.6rem',
-                            padding: '2px 5px',
-                            borderRadius: '10px',
-                            fontWeight: 'bold',
-                            border: '1.5px solid #121214',
-                            minWidth: '18px',
-                            textAlign: 'center'
-                        }}>
-                            {pendingApprovals.length}
-                        </span>
-                    )}
-                </button>
-
-                {config.FEATURES?.ENABLE_DATA_MIGRATION && (
-                    <button onClick={() => setActiveTab('data_migration')} className={`nav-tab-item ${activeTab === 'data_migration' ? 'active' : ''}`}>
-                        <Database size={22} weight={activeTab === 'data_migration' ? "fill" : "regular"} color="var(--primary-gold)" />
-                        <span>데이터</span>
-                    </button>
-                )}
-                <button onClick={() => setActiveTab('kiosk')} className={`nav-tab-item ${activeTab === 'kiosk' ? 'active' : ''}`}>
-                    <Desktop size={22} weight={activeTab === 'kiosk' ? "fill" : "regular"} />
-                    <span>키오스크</span>
-                </button>
-                <button onClick={() => setActiveTab('settings')} className={`nav-tab-item ${activeTab === 'settings' ? 'active' : ''}`}>
-                    <Gear size={22} weight={activeTab === 'settings' ? "fill" : "regular"} />
-                    <span>설정</span>
-                </button>
-            </nav>
+            <AdminNav 
+                activeTab={activeTab} 
+                setActiveTab={setActiveTab} 
+                pendingApprovals={pendingApprovals} 
+                config={config}
+            />
 
             {/* Main Content Area */}
             <div style={{ flex: 1, padding: '20px', maxWidth: '1200px', margin: '0 auto', width: '100%', paddingBottom: '100px' }}>
@@ -778,7 +628,7 @@ const AdminDashboard = () => {
                 )}
 
                 {activeTab === 'revenue' && (
-                    <AdminRevenue members={members} sales={sales} currentBranch={currentBranch} />
+                    <AdminRevenue members={members} sales={sales} currentBranch={currentBranch} revenueStats={revenueStats} />
                 )}
 
                 {activeTab === 'pricing' && (
