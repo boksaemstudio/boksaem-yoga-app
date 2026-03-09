@@ -1,3 +1,4 @@
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 import { useStudioConfig } from '../../contexts/StudioContext';
 
 const MyStatsChart = ({ logs }) => {
