@@ -20,7 +20,7 @@ const SocialLinks = ({ t }) => {
                 return (
                     <a key={key} href={url} target="_blank" rel="noreferrer" style={profileStyles.socialBtn}>
                         <Icon size={24} color={color} />
-                        <span>{t('branch' + label) !== 'branch' + label ? t('branch' + label) : label}</span>
+                        <span>{label}</span>
                     </a>
                 );
             })}

@@ -63,7 +63,7 @@ const ScheduleTab = ({
                                 boxShadow: scheduleBranch === b.id ? '0 4px 15px rgba(212, 175, 55, 0.3)' : 'none'
                             }}
                         >
-                            {t('branch' + b.name)}
+                            {b.name}
                         </button>
                     ))}
                 </div>
