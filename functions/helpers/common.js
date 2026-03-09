@@ -163,9 +163,15 @@ const createPendingApproval = async (type, targetMemberIds, title, body, data = 
  */
 const getStudioName = async () => {
     try {
-        const doc = await admin.firestore().collection('settings').doc('identity').get();
+        const studioId = process.env.STUDIO_ID || 'default';
+        const doc = await admin.firestore().collection('studios').doc(studioId).get();
         if (doc.exists) {
-            return doc.data().studioName || "요가 스튜디오";
+            return doc.data().IDENTITY?.NAME || "요가 스튜디오";
+        }
+        // Legacy fallback
+        const oldDoc = await admin.firestore().collection('settings').doc('identity').get();
+        if (oldDoc.exists) {
+            return oldDoc.data().studioName || "요가 스튜디오";
         }
     } catch (e) {
         console.warn("Failed to fetch studio name:", e);

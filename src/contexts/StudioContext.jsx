@@ -19,9 +19,20 @@ export const StudioProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // [SaaS] Resolve Studio ID dynamically (default for now, but ready for hostname mapping)
+        // [SaaS Core] Resolve Studio ID dynamically based on hostname mapping
         const host = window.location.hostname;
-        const studioId = (host === 'boksaem-yoga.web.app' || host === 'localhost') ? 'default' : 'default'; 
+        
+        let studioId = 'default';
+        if (host === 'localhost' || host === '127.0.0.1') {
+            studioId = import.meta.env.VITE_LOCAL_STUDIO_ID || 'default';
+        } else if (host.includes('boksaem-yoga.web.app')) {
+            studioId = 'boksaem_gwangheungchang'; 
+        } else {
+            // Future-proofing: Parse subdomains or custom domains
+            const parts = host.split('.');
+            studioId = parts.length > 2 ? parts[0] : 'default'; 
+        }
+        
         const studioDocRef = doc(db, 'studios', studioId);
 
         let unsubscribeSnapshot = null;
@@ -128,7 +139,17 @@ export const StudioProvider = ({ children }) => {
 
     const updateConfig = async (newConfig) => {
         try {
-            const studioId = (window.location.hostname === 'boksaem-yoga.web.app' || window.location.hostname === 'localhost') ? 'default' : 'default'; 
+            const host = window.location.hostname;
+            let studioId = 'default';
+            if (host === 'localhost' || host === '127.0.0.1') {
+                studioId = import.meta.env.VITE_LOCAL_STUDIO_ID || 'default';
+            } else if (host.includes('boksaem-yoga.web.app')) {
+                studioId = 'boksaem_gwangheungchang'; 
+            } else {
+                const parts = host.split('.');
+                studioId = parts.length > 2 ? parts[0] : 'default'; 
+            }
+
             const studioDocRef = doc(db, 'studios', studioId);
             await setDoc(studioDocRef, newConfig, { merge: true });
             return true;

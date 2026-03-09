@@ -25,7 +25,6 @@
     "korean-holidays": "^1.0.0",
     "lucide-react": "^0.563.0",
     "phosphor-react": "^1.4.1",
-    "playwright": "^1.58.2",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -46,6 +45,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "playwright": "^1.58.2",
     "sharp": "^0.34.5",
     "vite": "^7.2.4"
   }

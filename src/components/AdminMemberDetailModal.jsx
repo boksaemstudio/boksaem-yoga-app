@@ -169,8 +169,9 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
 
                         if (Object.keys(updates).length > 0) {
                             console.log("[Autofill] Found matching sales record, applying missing fields:", updates);
-                            // [FIX] Do NOT update localMember here, otherwise getChangedFields() thinks there are no changes
-                            // and the Save button won't appear. Only update editData so the user can review and save.
+                            // [FIX] "수정안된건 묻지마 확인받지마" 반영:
+                            // Autofill 된 항목은 사용자가 직접 수정한 것이 아니므로 변경 사항으로 감지되지 않도록 base 참조(localMember)에도 동일하게 적용합니다.
+                            setLocalMember(prev => ({ ...prev, ...updates }));
                             setEditData(prev => ({ ...prev, ...updates }));
                         }
                     }
@@ -240,6 +241,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
             const current = editData[key] ?? '';
             
             if (key === 'price') {
+                if (!original && !current) return; // Ignore if both are empty/falsy
                 if (Number(original) !== Number(current)) {
                      changes.push({
                         key,

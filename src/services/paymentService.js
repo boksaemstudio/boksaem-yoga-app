@@ -59,7 +59,7 @@ export const paymentService = {
       }, (error) => {
         console.error('[paymentService] Critical: Sales stream broken.', error);
         // [Safety Rail] 리스너 장애 시 5초 후 재연결 시도 (지속성 보장)
-        setTimeout(() => this.setupSalesListener(), 5000);
+        setTimeout(() => paymentService.setupSalesListener(), 5000);
       });
 
       return salesListenerUnsubscribe;

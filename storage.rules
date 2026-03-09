@@ -28,7 +28,7 @@ service firebase.storage {
     // Authenticators can upload, anyone can read
     // ========================================
     match /attendance-photos/{allPaths=**} {
-      allow read: if isAuth() && request.auth.token.admin == true || request.auth.token.instructor == true;
+      allow read: if isAuth() && (request.auth.token.admin == true || request.auth.token.instructor == true);
       allow write: if isAuth() && request.resource.size < 5 * 1024 * 1024;
     }
 

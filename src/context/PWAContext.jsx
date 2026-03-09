@@ -49,7 +49,7 @@ export const PWAProvider = ({ children }) => {
     useEffect(() => {
         const path = location.pathname.toLowerCase(); // [FIX] 대소문자 무시
         let manifestFile = '/manifest-checkin.json';
-        const studioName = config.IDENTITY?.NAME || "Studio";
+        const studioName = config?.IDENTITY?.NAME || "Studio";
         let appTitle = `${studioName} 출석체크`;
 
         if (path.startsWith('/admin')) {

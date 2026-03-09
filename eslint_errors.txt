@@ -1,0 +1,157 @@
+﻿
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\Keypad.jsx
+  49:75  error  Empty block statement  no-empty
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\checkin\SelectionModal.jsx
+  19:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  17 |     useEffect(() => {
+  18 |         if (!show) {
+> 19 |             setSelectedMemberId(null);
+     |             ^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  20 |             setTimeLeft(CHECKIN_CONFIG.TIMEOUTS.AUTO_CLOSE_MODAL / 1000);
+  21 |             return;
+  22 |         }  react-hooks/set-state-in-effect
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\common\InstallBanner.jsx
+  13:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  11 |         // ?대? PWA濡??ㅼ튂?섏뼱 ?덇굅?? ?ъ슜?먭? ?レ? ?곸씠 ?덉쑝硫??뚮뜑留곹븯吏 ?딆쓬
+  12 |         const hasDismissed = localStorage.getItem('hide_install_banner') === 'true';
+> 13 |         setDismissed(hasDismissed);
+     |         ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  14 |
+  15 |         if (!isStandalone && !hasDismissed) {
+  16 |             // 珥덇린 ?뚮뜑留???源쒕묀??諛⑹????쎄컙???쒕젅?? react-hooks/set-state-in-effect
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\meditation\ui\ChatDialog.jsx
+  84:102  error  'config' is not defined  no-undef
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\components\member\PushNotificationSettings.jsx
+  289:21  error  'config' is not defined  no-undef
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\context\PWAContext.jsx
+  19:42  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  17 |         // OS 媛먯?
+  18 |         const ua = navigator.userAgent.toLowerCase();
+> 19 |         if (/iphone|ipad|ipod/.test(ua)) setDeviceOS('ios');
+     |                                          ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  20 |         else if (/android/.test(ua)) setDeviceOS('android');
+  21 |         
+  22 |         // PWA ?ㅼ튂 ?곹깭 媛먯?  react-hooks/set-state-in-effect
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\hooks\useMeditationAudio.js
+  145:35  error  Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `soundEnabled`, but the source dependencies were [ttcEnabled, stopVoiceOnly, setTtsState, logDebug, isPlayingRef, step]. Inferred different dependency than source.
+
+  143 |     }, []);
+  144 |
+> 145 |     const playAudio = useCallback((base64String, customVolume, onEndedCallback) => {
+      |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 146 |         if (!ttcEnabled || !base64String) return null;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 147 |         
+      ??      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 187 |         }
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 188 |     }, [ttcEnabled, stopVoiceOnly, setTtsState, logDebug, isPlayingRef, step]);
+      | ^^^^^^ Could not preserve existing manual memoization
+  189 |
+  190 |     const speak = useCallback((text) => {
+  191 |         logDebug && logDebug("Speak:Start", text);  react-hooks/preserve-manual-memoization
+  145:35  error  Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `audioVolumes`, but the source dependencies were [ttcEnabled, stopVoiceOnly, setTtsState, logDebug, isPlayingRef, step]. Inferred different dependency than source.
+
+  143 |     }, []);
+  144 |
+> 145 |     const playAudio = useCallback((base64String, customVolume, onEndedCallback) => {
+      |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 146 |         if (!ttcEnabled || !base64String) return null;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 147 |         
+      ??      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 187 |         }
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 188 |     }, [ttcEnabled, stopVoiceOnly, setTtsState, logDebug, isPlayingRef, step]);
+      | ^^^^^^ Could not preserve existing manual memoization
+  189 |
+  190 |     const speak = useCallback((text) => {
+  191 |         logDebug && logDebug("Speak:Start", text);  react-hooks/preserve-manual-memoization
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\hooks\useTypewriter.js
+  15:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  13 |     useEffect(() => {
+  14 |         // Reset state when text explicitly changes
+> 15 |         setDisplayedText("");
+     |         ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  16 |         indexRef.current = 0;
+  17 |
+  18 |         if (!text) return;  react-hooks/set-state-in-effect
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\pages\AdminDashboard.jsx
+  130:45  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  131:49  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  132:47  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  133:53  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  134:51  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  135:61  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  136:51  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  137:47  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  138:47  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  139:65  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  140:53  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  141:28  error  React Hook "usePWA" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?       react-hooks/rules-of-hooks
+  146:47  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  150:5   error  React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?    react-hooks/rules-of-hooks
+  168:49  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  172:41  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  173:43  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  177:41  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  178:55  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  179:43  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  183:49  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  196:29  error  React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?      react-hooks/rules-of-hooks
+  301:26  error  React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?      react-hooks/rules-of-hooks
+  441:32  error  React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\pages\CheckInPage.jsx
+  104:62  error  Empty block statement  no-empty
+  220:21  error  Empty block statement  no-empty
+
+C:\Users\boksoon\.gemini\antigravity\scratch\yoga-app\src\services\storage.js
+  1118:9  error  Duplicate key 'getImages'                no-dupe-keys
+  1180:3  error  Duplicate key 'updateSalesRecord'        no-dupe-keys
+  1181:3  error  Duplicate key 'deleteSalesRecord'        no-dupe-keys
+  1256:3  error  Duplicate key 'getAttendanceByMemberId'  no-dupe-keys
+  1283:3  error  Duplicate key 'clearAllAttendance'       no-dupe-keys
+
+??40 problems (40 errors, 0 warnings)
+

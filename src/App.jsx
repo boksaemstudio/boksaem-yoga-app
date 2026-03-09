@@ -73,10 +73,21 @@ const RequireAuth = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = storageService.onAuthStateChanged((currentUser) => {
-      // For Admin, only allow non-anonymous users
+    const unsubscribe = storageService.onAuthStateChanged(async (currentUser) => {
+      // For Admin, only allow non-anonymous users with admin claim
       if (currentUser && !currentUser.isAnonymous) {
-        setUser(currentUser);
+        try {
+          const idTokenResult = await currentUser.getIdTokenResult();
+          if (idTokenResult.claims.admin === true) {
+            setUser(currentUser);
+          } else {
+            console.warn('[Auth] User lacks admin claim:', currentUser.email);
+            setUser(null);
+          }
+        } catch (e) {
+          console.error('[Auth] Failed to verify admin claim:', e);
+          setUser(null);
+        }
       } else {
         setUser(null);
       }
