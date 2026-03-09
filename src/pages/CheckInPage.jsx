@@ -479,8 +479,8 @@ const CheckInPage = () => {
 
             <KioskInstallGuideModal isOpen={showKioskInstallGuide} onClose={() => setShowKioskInstallGuide(false)} />
             <InstructorQRModal isOpen={showInstructorQR} onClose={() => setShowInstructorQR(false)} />
-            <video ref={videoRef} autoPlay playsInline muted style={{ position: 'fixed', left: '-1000px', top: '-1000px', width: '320px', height: '240px', opacity: 0.01, pointerEvents: 'none' }} />
-            <canvas ref={canvasRef} style={{ position: 'fixed', left: '-1000px', top: '-1000px', width: '320px', height: '240px', opacity: 0.01, pointerEvents: 'none' }} />
+            <video ref={videoRef} autoPlay playsInline muted style={{ position: 'fixed', left: '0', top: '0', width: '1px', height: '1px', opacity: 0.01, zIndex: -100, pointerEvents: 'none' }} />
+            <canvas ref={canvasRef} style={{ position: 'fixed', left: '0', top: '0', width: '1px', height: '1px', opacity: 0.01, zIndex: -100, pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', top: '2px', right: '8px', fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', pointerEvents: 'none', zIndex: 3001 }}>v{BUILD_VERSION}</div>
         </div>
     );
@@ -492,4 +492,4 @@ export default CheckInPage;
  * [BUILD-FIX] Attach unminifiable property to component object to defeat tree-shaking
  * This guarantees Rollup will generate a new chunk hash, forcing Workbox to update!
  */
-CheckInPage.__buildVersion = '2026.03.07.v10';
+CheckInPage.__buildVersion = '2026.03.09.v1';

@@ -247,6 +247,8 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch) => {
 
         // 5. Monthly Trend (Last 6 Months)
         const monthlyTrendData = [];
+        const currentDayOfM = currentDate.getDate(); // 1~31
+
         for (let i = 5; i >= 0; i--) {
             const d = new Date(year, month - 1 - i, 1);
             const mStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -254,15 +256,25 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch) => {
             
             // Sum revenue for this month using the dailyMap
             let amount = 0;
+            let partialAmount = 0;
+            
             // Iterate over all keys in the map and sum if they start with mStr
             dailyAmountsMap.forEach((val, key) => {
-                if (key.startsWith(mStr)) amount += val.amount;
+                if (key.startsWith(mStr)) {
+                    amount += val.amount;
+                    // Also calculate partial amount up to the current day (e.g., to the 9th)
+                    const dayPart = parseInt(key.substring(8, 10), 10);
+                    if (dayPart <= currentDayOfM) {
+                        partialAmount += val.amount;
+                    }
+                }
             });
 
             monthlyTrendData.push({
                 name: label,
                 monthParams: mStr, 
-                amount: amount
+                amount: amount,
+                partialAmount: partialAmount
             });
         }
 

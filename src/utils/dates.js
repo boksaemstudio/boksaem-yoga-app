@@ -218,9 +218,12 @@ export const isWeekend = (dateStr) => {
  * @returns {number}
  */
 export const getKSTHour = () => {
-    const options = { timeZone: 'Asia/Seoul', hour: 'numeric', hour12: false };
-    const hourStr = new Intl.DateTimeFormat('en-US', options).format(new Date());
-    return parseInt(hourStr);
+    // [FIX] Intl.DateTimeFormat + parseInt 방식은 안드로이드/구형 브라우저에서 
+    // hour12: false가 무시되어 '7 PM' -> 7로 파싱되는 버그를 유발합니다.
+    // 문자열 파싱 없이 UTC + 9시간을 더한 뒤 getUTCHours()를 가져와 무조건 0-23을 보장합니다.
+    const now = new Date();
+    const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+    return kstDate.getUTCHours();
 };
 
 /**
@@ -228,9 +231,9 @@ export const getKSTHour = () => {
  * @returns {number}
  */
 export const getKSTMinutes = () => {
-    const options = { timeZone: 'Asia/Seoul', minute: 'numeric' };
-    const minuteStr = new Intl.DateTimeFormat('en-US', options).format(new Date());
-    return parseInt(minuteStr);
+    const now = new Date();
+    const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+    return kstDate.getUTCMinutes();
 };
 
 /**

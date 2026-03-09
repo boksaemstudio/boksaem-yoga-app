@@ -79,13 +79,23 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={monthlyTrend} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+                            
+                            {/* Primary X-Axis for rendering ticks */}
                             <XAxis 
+                                xAxisId={0}
                                 dataKey="name" 
                                 stroke="#71717a" 
                                 tick={{ fill: '#71717a', fontSize: 12 }} 
                                 axisLine={{ stroke: '#3f3f46' }}
                                 tickLine={false}
                             />
+                            {/* Secondary X-Axis (hidden) to force overlap of the second bar */}
+                            <XAxis 
+                                xAxisId={1} 
+                                dataKey="name" 
+                                hide 
+                            />
+
                             <YAxis 
                                 stroke="#71717a" 
                                 tick={{ fill: '#71717a', fontSize: 12 }} 
@@ -103,13 +113,25 @@ const AdminRevenue = ({ members, sales, currentBranch }) => {
                                     color: '#fff',
                                     padding: '12px'
                                 }}
-                                formatter={(value) => [`${new Intl.NumberFormat('ko-KR').format(value)}원`, '매출']}
+                                formatter={(value, name) => [
+                                    `${new Intl.NumberFormat('ko-KR').format(value)}원`, 
+                                    name === 'amount' ? '총 매출' : `${currentDate.getDate()}일까지 매출`
+                                ]}
                                 itemStyle={{ color: 'var(--primary-theme-color)' }}
                                 labelStyle={{ color: '#a1a1aa', marginBottom: '8px' }}
                             />
-                            <Bar dataKey="amount" radius={[4, 4, 0, 0]} maxBarSize={60}>
+                            
+                            {/* Background bar: Total Amount (Faint) */}
+                            <Bar xAxisId={0} dataKey="amount" radius={[4, 4, 0, 0]} maxBarSize={60}>
                                 {monthlyTrend.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.monthParams === `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}` ? 'var(--primary-theme-color)' : '#333'} />
+                                    <Cell key={`cell-bg-${index}`} fill={entry.monthParams === `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}` ? 'rgba(212, 175, 55, 0.2)' : '#27272a'} />
+                                ))}
+                            </Bar>
+                            
+                            {/* Foreground bar: Partial Amount up to current day (Solid Overlay) */}
+                            <Bar xAxisId={1} dataKey="partialAmount" radius={[4, 4, 0, 0]} maxBarSize={60}>
+                                {monthlyTrend.map((entry, index) => (
+                                    <Cell key={`cell-fg-${index}`} fill={entry.monthParams === `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}` ? 'var(--primary-theme-color)' : '#52525b'} />
                                 ))}
                             </Bar>
                         </BarChart>

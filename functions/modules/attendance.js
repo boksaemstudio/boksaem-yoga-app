@@ -140,8 +140,10 @@ exports.checkInMemberV2Call = onCall({
             let matched = null;
             
             const nowTime = new Date();
-            const kstString = nowTime.toLocaleString('en-US', { timeZone: 'Asia/Seoul', hour12: false, hour: '2-digit', minute: '2-digit' });
-            const [kstH, kstM] = kstString.split(':').map(Number);
+            const kstTime = new Date(nowTime.getTime() + (9 * 60 * 60 * 1000));
+            const kstH = kstTime.getUTCHours();
+            const kstM = kstTime.getUTCMinutes();
+            const kstString = `${String(kstH).padStart(2, '0')}:${String(kstM).padStart(2, '0')}`;
             const currentMin = kstH * 60 + kstM;
 
             if (!classTitle || classTitle === '자율수련') {
