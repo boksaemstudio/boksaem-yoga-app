@@ -3,6 +3,7 @@ import { db, auth } from '../firebase';
 import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { STUDIO_CONFIG as STATIC_CONFIG } from '../studioConfig';
+import { resolveStudioId } from '../utils/resolveStudioId';
 
 const StudioContext = createContext();
 
@@ -20,19 +21,7 @@ export const StudioProvider = ({ children }) => {
 
     useEffect(() => {
         // [SaaS Core] Resolve Studio ID dynamically based on hostname mapping
-        const host = window.location.hostname;
-        
-        let studioId = 'default';
-        if (host === 'localhost' || host === '127.0.0.1') {
-            studioId = import.meta.env.VITE_LOCAL_STUDIO_ID || 'default';
-        } else if (host.includes('boksaem-yoga.web.app')) {
-            studioId = 'boksaem_gwangheungchang'; 
-        } else {
-            // Future-proofing: Parse subdomains or custom domains
-            const parts = host.split('.');
-            studioId = parts.length > 2 ? parts[0] : 'default'; 
-        }
-        
+        const studioId = resolveStudioId();
         const studioDocRef = doc(db, 'studios', studioId);
 
         let unsubscribeSnapshot = null;
@@ -139,17 +128,7 @@ export const StudioProvider = ({ children }) => {
 
     const updateConfig = async (newConfig) => {
         try {
-            const host = window.location.hostname;
-            let studioId = 'default';
-            if (host === 'localhost' || host === '127.0.0.1') {
-                studioId = import.meta.env.VITE_LOCAL_STUDIO_ID || 'default';
-            } else if (host.includes('boksaem-yoga.web.app')) {
-                studioId = 'boksaem_gwangheungchang'; 
-            } else {
-                const parts = host.split('.');
-                studioId = parts.length > 2 ? parts[0] : 'default'; 
-            }
-
+            const studioId = resolveStudioId();
             const studioDocRef = doc(db, 'studios', studioId);
             await setDoc(studioDocRef, newConfig, { merge: true });
             return true;

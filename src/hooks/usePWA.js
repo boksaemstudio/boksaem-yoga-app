@@ -1,4 +1,4 @@
 import { useContext } from 'react';
-import { PWAContext } from '../context/PWAContextDef';
+import { PWAContext } from '../contexts/PWAContextDef';
 
 export const usePWA = () => useContext(PWAContext);

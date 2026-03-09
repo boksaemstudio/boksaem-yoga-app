@@ -1,4 +1,4 @@
-import { PWAContext } from '../context/PWAContextDef';
+import { PWAContext } from '../contexts/PWAContextDef';
 import { useContext, useState, useEffect, lazy, Suspense, useRef } from 'react';
 import { onSnapshot, doc, collection, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
 import { db, auth } from '../firebase';
@@ -6,7 +6,7 @@ import { storageService } from '../services/storage';
 import { BellRinging, BellSlash, Share, DownloadSimple, PlusSquare } from '../components/CommonIcons';
 // Assets loaded via dynamic config
 import LanguageSelector from '../components/LanguageSelector'; // [Refactor] Ensuring clean import
-import { useLanguageContext as useLanguage } from '../context/LanguageContext';
+import { useLanguageContext as useLanguage } from '../contexts/LanguageContext';
 import { useStudioConfig } from '../contexts/StudioContext';
 import InteractiveParticles from '../components/InteractiveParticles';
 

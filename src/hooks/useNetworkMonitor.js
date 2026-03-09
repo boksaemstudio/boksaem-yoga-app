@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { useNetwork } from '../context/NetworkContext';
+import { useNetwork } from '../contexts/NetworkContext';
 import { getKSTHour } from '../utils/dates';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../firebase';

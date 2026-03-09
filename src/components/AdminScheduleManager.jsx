@@ -5,7 +5,7 @@ import { CaretLeft, CaretRight, Plus, Trash, X, Image as ImageIcon, UploadSimple
 import { getHolidayName } from '../utils/holidays';
 import { ScheduleClassEditor, SettingsModal } from './ScheduleHelpers';
 import { getTagColor } from '../utils/colors';
-import { useLanguageContext } from '../context/LanguageContext';
+import { useLanguageContext } from '../contexts/LanguageContext';
 import { useStudioConfig } from '../contexts/StudioContext';
 
 const ColorLegend = ({ branchId }) => {

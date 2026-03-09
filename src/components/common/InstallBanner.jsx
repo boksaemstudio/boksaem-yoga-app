@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { PWAContext } from '../../context/PWAContextDef';
+import { PWAContext } from '../../contexts/PWAContextDef';
 import { DownloadSimple } from '@phosphor-icons/react';
 
 const InstallBanner = ({ onManualInstallClick }) => {

@@ -1,5 +1,5 @@
 import { memo, useState, useEffect } from 'react';
-import { useNetwork } from '../../context/NetworkContext';
+import { useNetwork } from '../../contexts/NetworkContext';
 import { WifiHigh, WifiSlash, CloudArrowUp } from '@phosphor-icons/react'; // [ICON] CloudArrowUp for sync
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';

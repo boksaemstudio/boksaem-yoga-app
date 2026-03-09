@@ -15,7 +15,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './styles/index.css'
 import ErrorBoundary from './components/ErrorBoundary'
-import { LanguageProvider } from './context/LanguageContext'
+import { LanguageProvider } from './contexts/LanguageContext'
 import { httpsCallable } from 'firebase/functions'
 import { functions } from './firebase'
 

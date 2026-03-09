@@ -15,7 +15,7 @@ import { useAlwaysOnGuardian } from '../hooks/useAlwaysOnGuardian';
 import { useAttendanceCamera } from '../hooks/useAttendanceCamera';
 import { useNetworkMonitor } from '../hooks/useNetworkMonitor';
 import { useTTS } from '../hooks/useTTS';
-import { useNetwork } from '../context/NetworkContext';
+import { useNetwork } from '../contexts/NetworkContext';
 import { usePWA } from '../hooks/usePWA';
 import { useStudioConfig } from '../contexts/StudioContext';
 
