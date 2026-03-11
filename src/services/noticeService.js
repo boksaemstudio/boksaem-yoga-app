@@ -80,6 +80,21 @@ export const addNotice = async (title, content, images = [], sendPush = true) =>
     }
 };
 
+export const loadNotices = async () => {
+    try {
+        const { getDocs, query, orderBy } = await import("firebase/firestore");
+        const q = query(
+            collection(db, 'notices'),
+            orderBy("timestamp", "desc")
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (e) {
+        console.warn("Load notices failed:", e);
+        return [];
+    }
+};
+
 export const deleteNotice = async (noticeId) => {
     try {
         await deleteDoc(doc(db, 'notices', noticeId));

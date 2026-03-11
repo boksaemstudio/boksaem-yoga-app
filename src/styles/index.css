@@ -302,25 +302,13 @@ button {
     height: 48px;
   }
 
+  /* Reverted to horizontal tight layout for member lists and logs */
   .member-list-item {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-    padding: 18px;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-    background-color: var(--bg-surface-opaque);
+    padding: 12px;
   }
 
   .log-item {
-    flex-direction: column;
-    align-items: stretch !important;
-    gap: 12px;
-    padding: 16px !important;
-    border-radius: 12px !important;
-    background-color: var(--bg-surface-opaque) !important;
-    border-left: none !important;
-    border-top: 3px solid var(--primary-gold);
+    padding: 12px;
   }
 
   .member-actions {
@@ -666,14 +654,15 @@ select option {
 
 @media (max-width: 600px) {
   .modal-overlay {
-    padding: 10px;
+    padding: 0;
     align-items: flex-end;
   }
 
   .modal-content {
     border-radius: 24px 24px 0 0;
     max-height: 95vh;
-    padding-bottom: calc(40px + env(safe-area-inset-bottom));
+    padding: 20px 20px calc(40px + env(safe-area-inset-bottom)) 20px;
+    --modal-padding: 20px;
   }
 }
 

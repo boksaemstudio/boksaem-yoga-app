@@ -20,7 +20,7 @@ export const StudioProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // [SaaS Core] Resolve Studio ID dynamically based on hostname mapping
+        // 호스트네임 기반으로 스튜디오 ID를 동적으로 해석
         const studioId = resolveStudioId();
         const studioDocRef = doc(db, 'studios', studioId);
 
@@ -34,7 +34,7 @@ export const StudioProvider = ({ children }) => {
                 try {
                     await signInAnonymously(auth);
                 } catch (e) {
-                    console.warn('[SaaS Core] Anonymous auth failed, proceeding with static config:', e);
+                    console.warn('[스튜디오] 익명 인증 실패, 기본 설정으로 진행:', e);
                     setLoading(false);
                     return;
                 }
@@ -47,11 +47,11 @@ export const StudioProvider = ({ children }) => {
             try {
                 const snap = await getDoc(studioDocRef);
                 if (!snap.exists()) {
-                    console.log(`[SaaS Core] First run detected for ${studioId}. Seeding Firestore with static config...`);
+                    console.log(`[스튜디오] ${studioId} 최초 실행 감지. 초기 설정 저장 중...`);
                     await setDoc(studioDocRef, STATIC_CONFIG);
                 }
             } catch (e) {
-                console.error('[SaaS Core] Seeding failed:', e);
+                console.error('[스튜디오] 초기 설정 저장 실패:', e);
             }
 
         // [REAL-TIME SYNC]
@@ -104,7 +104,7 @@ export const StudioProvider = ({ children }) => {
                     if (!merged.ASSETS.LOGO?.SQUARE || merged.ASSETS.LOGO.SQUARE === '/') merged.ASSETS.LOGO.SQUARE = '/assets/logo_square.webp';
                 }
 
-                console.log('[SaaS Core] real-time config synced & healed:', merged.IDENTITY?.NAME);
+                console.log('[스튜디오] 설정 동기화 완료:', merged.IDENTITY?.NAME);
                 setConfig(merged);
 
                 // Update CSS Variables dynamically
@@ -115,7 +115,7 @@ export const StudioProvider = ({ children }) => {
             }
             setLoading(false);
         }, (error) => {
-            console.error('[SaaS Core] config sync error:', error);
+            console.error('[스튜디오] 설정 동기화 오류:', error);
             setLoading(false);
         });
         }); // end onAuthStateChanged
@@ -133,7 +133,7 @@ export const StudioProvider = ({ children }) => {
             await setDoc(studioDocRef, newConfig, { merge: true });
             return true;
         } catch (e) {
-            console.error('[SaaS Core] Failed to update config:', e);
+            console.error('[스튜디오] 설정 업데이트 실패:', e);
             throw e;
         }
     };
@@ -160,7 +160,7 @@ export const StudioProvider = ({ children }) => {
                     background: '#08080A',
                     color: '#D4AF37'
                 }}>
-                    <div className="pulse">Initializing SaaS Core Engine...</div>
+                    <div className="pulse">스튜디오 준비 중...</div>
                 </div>
             )}
         </StudioContext.Provider>

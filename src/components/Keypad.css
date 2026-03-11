@@ -31,12 +31,11 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-/* Simplified active state without scale/shadow */
+/* Simplified active state without scale to save CPU */
 .keypad-btn:active,
 .keypad-btn.touch-active {
     background-color: rgba(255, 255, 255, 0.25);
     border-color: var(--primary-gold);
-    transform: scale(0.98);
 }
 
 .keypad-btn.clear-btn {

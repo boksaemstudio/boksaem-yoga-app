@@ -245,6 +245,7 @@ const MemberProfile = () => {
     const [weatherData, setWeatherData] = useState(null); // Changed to object { key, temp }
     const [aiExperience, setAiExperience] = useState(null);
     const [aiAnalysis, setAiAnalysis] = useState(null);
+    const [individualMessages, setIndividualMessages] = useState([]);
     const [messages, setMessages] = useState([]);
     const [lightboxImage, setLightboxImage] = useState(null);
 
@@ -299,7 +300,7 @@ const MemberProfile = () => {
                     return timeB - timeA;
                 });
                 setLogs(sortedHistory);
-                setMessages(messagesData || []);
+                setIndividualMessages(messagesData || []);
 
                 // [FIX] Sort notices explicitly by timestamp/date descending (newest first)
                 const sortedNotices = (noticeData || []).sort((a, b) => {
@@ -502,33 +503,15 @@ const MemberProfile = () => {
                 firestoreLimit(30)
             );
             msgUnsub = onSnapshot(q, async (snap) => {
-                const individualMessages = snap.docs.map(doc => ({
+                const individualMsgs = snap.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data(),
                     type: 'admin_individual'
                 }));
-
-                // For messages tab, we still want to show both notices and individual messages
-                // So we combine them here as well
-                const currentNotices = storageService.getNotices() || [];
-                const noticeMessages = (Array.isArray(currentNotices) ? currentNotices : []).slice(0, 10).map(n => ({
-                    ...n,
-                    type: 'notice',
-                    content: n.content,
-                    timestamp: n.timestamp || n.date
-                }));
-
-                const allMessages = [...individualMessages, ...noticeMessages].sort((a, b) => {
-                    const timeA = new Date(a.timestamp || 0).getTime();
-                    const timeB = new Date(b.timestamp || 0).getTime();
-                    return timeB - timeA;
-                });
-
-                setMessages(allMessages);
+                setIndividualMessages(individualMsgs);
             }, (err) => {
                 console.warn("[MemberProfile] Message listener failed (likely pending index):", err);
-                // Fallback to getMessagesByMemberId if listener fails
-                storageService.getMessagesByMemberId(member.id).then(setMessages);
+                storageService.getMessagesByMemberId(member.id).then(setIndividualMessages);
             });
         }
 
@@ -539,6 +522,24 @@ const MemberProfile = () => {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [member?.id]);
+
+    // [FIX] Update messages tab dynamically when either personal messages or global notices change
+    useEffect(() => {
+        const noticeMessages = notices.slice(0, 10).map(n => ({
+            ...n,
+            type: 'notice',
+            content: n.content,
+            timestamp: n.timestamp || n.date
+        }));
+
+        const allMessages = [...individualMessages, ...noticeMessages].sort((a, b) => {
+            const timeA = new Date(a.timestamp || 0).getTime();
+            const timeB = new Date(b.timestamp || 0).getTime();
+            return timeB - timeA;
+        });
+
+        setMessages(allMessages);
+    }, [individualMessages, notices]);
 
     // async function loadPracticeEvents(memberId) {
     //     try {

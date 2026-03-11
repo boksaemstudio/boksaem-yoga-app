@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { User, Phone, CalendarBlank, MapPin, Trash, CheckCircle, Warning, ClockCounterClockwise, Plus, X } from '@phosphor-icons/react';
 import { useStudioConfig } from '../../../contexts/StudioContext';
+import { storageService } from '../../../services/storage';
 import CustomDatePicker from '../../common/CustomDatePicker';
 import AttendanceHistory from '../../profile/AttendanceHistory';
 import { translations } from '../../../utils/translations';
@@ -9,7 +10,6 @@ const AttendanceTab = ({ logs, member, aiAnalysis, onAdd, onDelete, isSubmitting
     const { config } = useStudioConfig();
     const branches = config.BRANCHES || [];
 
-    // [FIX] Use safe YYYY-MM-DD format manually to avoid locale fallback issues (e.g. YYYY. MM. DD.)
     const getSafeToday = () => {
         const d = new Date();
         const year = d.getFullYear();
@@ -19,8 +19,48 @@ const AttendanceTab = ({ logs, member, aiAnalysis, onAdd, onDelete, isSubmitting
     };
 
     const [manualDate, setManualDate] = useState(getSafeToday());
-    const [manualTime, setManualTime] = useState('10:00');
+    const [manualClassName, setManualClassName] = useState('자율수련');
     const [manualBranch, setManualBranch] = useState(member.homeBranch || (branches.length > 0 ? branches[0].id : ''));
+    const [dailyClasses, setDailyClasses] = useState([]);
+
+    // 선택된 날짜와 지점에 해당하는 수업 목록 가져오기
+    useEffect(() => {
+        const fetchClasses = async () => {
+            if (!manualBranch || !manualDate) return;
+            try {
+                const classes = await storageService.getDailyClasses(manualBranch, null, manualDate);
+                setDailyClasses(classes || []);
+            } catch (err) {
+                console.warn('[AttendanceTab] Failed to fetch daily classes:', err);
+                setDailyClasses([]);
+            }
+        };
+        fetchClasses();
+    }, [manualBranch, manualDate]);
+
+    // 수업 목록: 선택 지점의 해당 날짜 수업 + 자율수련(시간만)
+    const classOptions = useMemo(() => {
+        // 자율수련 포함 - 선택된 지점의 이름 찾기
+        const selectedBranchName = branches.find(b => b.id === manualBranch)?.name || '';
+        const options = [{ value: '자율수련', label: '자율수련' }];
+
+        if (dailyClasses.length > 0) {
+            dailyClasses.forEach(cls => {
+                const time = cls.time || '';
+                const title = cls.title || cls.className || '';
+                const instructor = cls.instructor || '';
+                const parts = [time, title, instructor].filter(Boolean);
+                const label = parts.join(' ');
+                options.push({ value: title, label, time, instructor });
+            });
+        }
+        return options;
+    }, [dailyClasses, manualBranch, branches]);
+
+    // 지점이나 날짜 변경 시 수업 선택 초기화
+    useEffect(() => {
+        setManualClassName('자율수련');
+    }, [manualBranch, manualDate]);
 
     return (
         <div>
@@ -33,9 +73,9 @@ const AttendanceTab = ({ logs, member, aiAnalysis, onAdd, onDelete, isSubmitting
                     value={manualBranch}
                     onChange={(e) => setManualBranch(e.target.value)}
                     disabled={isSubmitting}
+                    className="form-select"
                     style={{
-                        background: 'rgba(0,0,0,0.3)', color: 'white', border: '1px solid rgba(255,255,255,0.1)',
-                        padding: '10px', borderRadius: '8px', flex: 1, minWidth: '100px',
+                        flex: 1, minWidth: '100px',
                         opacity: isSubmitting ? 0.5 : 1
                     }}
                 >
@@ -47,22 +87,21 @@ const AttendanceTab = ({ logs, member, aiAnalysis, onAdd, onDelete, isSubmitting
                     <CustomDatePicker value={manualDate} onChange={setManualDate} />
                 </div>
                 <select
-                    value={manualTime}
-                    onChange={(e) => setManualTime(e.target.value)}
+                    value={manualClassName}
+                    onChange={(e) => setManualClassName(e.target.value)}
                     disabled={isSubmitting}
+                    className="form-select"
                     style={{
-                        background: 'rgba(0,0,0,0.3)', color: 'white', border: '1px solid rgba(255,255,255,0.1)',
-                        padding: '10px', borderRadius: '8px', flex: 1, minWidth: '100px',
+                        flex: 1.2, minWidth: '120px',
                         opacity: isSubmitting ? 0.5 : 1
                     }}
                 >
-                    {Array.from({ length: 18 }, (_, i) => i + 6).map(h => {
-                        const timeStr = `${String(h).padStart(2, '0')}:00`;
-                        return <option key={timeStr} value={timeStr}>{timeStr}</option>;
-                    })}
+                    {classOptions.map(opt => (
+                        <option key={opt.label} value={opt.value}>{opt.label}</option>
+                    ))}
                 </select>
                 <button
-                    onClick={() => onAdd(manualDate, manualTime, manualBranch)}
+                    onClick={() => onAdd(manualDate, '10:00', manualBranch, manualClassName)}
                     disabled={isSubmitting}
                     style={{
                         background: isSubmitting ? 'rgba(212,175,55,0.3)' : 'var(--primary-gold)',
@@ -72,7 +111,7 @@ const AttendanceTab = ({ logs, member, aiAnalysis, onAdd, onDelete, isSubmitting
                         opacity: isSubmitting ? 0.6 : 1
                     }}
                 >
-                    {isSubmitting ? '처리 중...' : '수동 출석'}
+                    {isSubmitting ? '처리 중...' : '출석'}
                 </button>
             </div>
 

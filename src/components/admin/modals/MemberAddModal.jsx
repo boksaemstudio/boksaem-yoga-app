@@ -9,6 +9,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
     const [pricingConfig, setPricingConfig] = useState(config.PRICING || {});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const isSubmittingRef = useRef(false);
+    const [dailyClasses, setDailyClasses] = useState([]);
 
     const [newMember, setNewMember] = useState({
         name: '', phone: '010', branch: branches.length > 0 ? branches[0].id : '',
@@ -22,7 +23,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
         startDate: new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }),
         endDate: '',
         subject: '',
-        autoStart: true,
+        autoStart: false,
         includeToday: false, // [NEW] Option for "Attended today"
         todayClass: null, // [NEW] To store matched class info
         notes: '' // [NEW] Member notes
@@ -36,17 +37,33 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
         if (isOpen) loadPricing();
     }, [isOpen]);
 
+    // [NEW] 선택 지점의 오늘 수업 목록 가져오기
+    useEffect(() => {
+        const fetchClasses = async () => {
+            if (!isOpen || !newMember.branch) return;
+            try {
+                const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                const classes = await storageService.getDailyClasses(newMember.branch, null, today);
+                setDailyClasses(classes || []);
+            } catch (err) {
+                console.warn('[MemberAddModal] Failed to fetch daily classes:', err);
+                setDailyClasses([]);
+            }
+        };
+        fetchClasses();
+    }, [isOpen, newMember.branch]);
+
     // [Smart Calculation Logic for New Member]
-    const { calculatedPrice, calculatedCredits, calculatedEndDate, calculatedProductName } = useMemo(() => {
-        if (!isOpen) return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedProductName: '' };
+    const { calculatedPrice, calculatedCredits, calculatedEndDate, calculatedRealEndDate, calculatedProductName } = useMemo(() => {
+        if (!isOpen) return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedRealEndDate: '', calculatedProductName: '' };
 
         const { membershipType, selectedOption, duration, paymentMethod, startDate, includeToday } = newMember;
         const category = pricingConfig[membershipType];
 
-        if (!category) return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedProductName: '' };
+        if (!category) return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedRealEndDate: '', calculatedProductName: '' };
 
         const option = category.options.find(opt => opt.id === selectedOption);
-        if (!option) return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedProductName: '' };
+        if (!option) return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedRealEndDate: '', calculatedProductName: '' };
 
         let p = 0;
         let c = 0;
@@ -85,11 +102,14 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
         const end = new Date(start);
         end.setMonth(end.getMonth() + months);
         end.setDate(end.getDate() - 1);
+        
+        const realEnd = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 
         return {
             calculatedPrice: p,
             calculatedCredits: c,
-            calculatedEndDate: newMember.autoStart ? '첫 출석 시 확정' : (membershipType === 'ttc' && newMember.manualEndDate ? newMember.manualEndDate : end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })),
+            calculatedEndDate: newMember.autoStart ? '첫 출석 시 확정' : (newMember.manualEndDate ? newMember.manualEndDate : realEnd),
+            calculatedRealEndDate: newMember.manualEndDate ? newMember.manualEndDate : realEnd,
             calculatedProductName: `${label} ${duration > 1 && option.type !== 'ticket' ? `(${duration}개월)` : ''}`
         };
     }, [newMember, pricingConfig, isOpen]);
@@ -102,9 +122,11 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
             amount: calculatedPrice,
             credits: calculatedCredits,
             endDate: calculatedEndDate,
-            subject: calculatedProductName
+            realEndDate: calculatedRealEndDate,
+            subject: calculatedProductName,
+            manualEndDate: '' // [FIX] 시작일이나 결제기간 변경 시 수동 마감일 초기화하여 자동계산값 노출 보장
         }));
-    }, [calculatedPrice, calculatedCredits, calculatedEndDate, calculatedProductName, isOpen]);
+    }, [calculatedPrice, calculatedCredits, calculatedEndDate, calculatedRealEndDate, calculatedProductName, isOpen]);
 
     // Reset membership type when branch changes
     useEffect(() => {
@@ -130,7 +152,13 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
             alert('이름과 전화번호는 필수입니다.');
             return;
         }
-        if (isSubmitting || isSubmittingRef.current) return;
+        // [FIX] 안전밸브: isSubmittingRef 잠김 상태 자동 해제
+        if (isSubmittingRef.current) {
+            console.warn('[handleAddMember] isSubmittingRef stuck, force-resetting');
+            isSubmittingRef.current = false;
+            setIsSubmitting(false);
+        }
+        if (isSubmitting) return;
 
         isSubmittingRef.current = true;
         setIsSubmitting(true);
@@ -172,7 +200,8 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                     new Date().toISOString(),
                     newMember.branch,
                     newMember.todayClass?.title || "등록 당일 수련",
-                    newMember.todayClass?.instructor || "시스템 자동"
+                    newMember.todayClass?.instructor || "시스템 자동",
+                    { skipCreditDeduction: true } // [FIX] 이미 credits 계산 시 1회 차감됨, 이중 차감 방지
                 );
             }
 
@@ -186,7 +215,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                 duration: 1,
                 paymentMethod: 'card',
                 credits: 0, amount: 0, regDate: new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }),
-                startDate: new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }), endDate: '', subject: '', autoStart: true,
+                startDate: new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }), endDate: '', subject: '', autoStart: false,
                 includeToday: false,
                 todayClass: null,
                 manualEndDate: '',
@@ -204,14 +233,16 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="modal-overlay" onClick={onClose} style={{ alignItems: 'center' }}>
+        <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()} style={{
-                margin: 'auto',
-                padding: '28px',
-                borderRadius: '28px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '12px'
+                gap: '12px',
+                padding: 'var(--modal-padding, 24px)',
+                width: '100%',
+                maxWidth: '600px',
+                margin: '0 auto',
+                borderRadius: 'min(24px, 5vw)'
             }}>
                 <div className="modal-header">
                     <h2 className="modal-title">회원 등록</h2>
@@ -408,45 +439,83 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                                 </label>
                             </div>
 
-                            {/* [IMPORTANT] Conditionally hide the date input for cleaner UI */}
-                            {!newMember.autoStart && !newMember.includeToday ? (
-                                <input
-                                    type="date"
-                                    className="form-input fade-in"
-                                    style={{ width: '100%', cursor: 'pointer' }}
-                                    value={newMember.startDate}
-                                    onClick={(e) => e.target.showPicker && e.target.showPicker()}
-                                    onChange={e => setNewMember({ ...newMember, startDate: e.target.value })}
-                                />
-                            ) : (
-                                <div style={{ height: '0', overflow: 'hidden' }}>
-                                    {/* Invisible but present to avoid layout jumps if needed, 
-                                        though conditional rendering is usually cleaner. 
-                                        User asked to 'remove' show, so we render null or hidden. */}
-                                </div>
-                            )}
-
-                            {newMember.includeToday && (
-                                <div className="fade-in" style={{ fontSize: '0.75rem', padding: '10px', background: 'rgba(76,175,80,0.1)', borderRadius: '8px', color: '#81C784', border: '1px solid rgba(76,175,80,0.2)' }}>
-                                    ✨ {newMember.todayClass ? `매칭: ${newMember.todayClass.title}` : '매칭: 자율수련'} (-1회)
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                    {/* [NEW] TTC End Date Selection for New Member */}
-                    {newMember.membershipType === 'ttc' && (
-                        <div className="form-group">
-                            <label className="form-label" style={{ color: '#f59e0b' }}>✓ 종료일 수동 지정 (TTC)</label>
+                            {/* [CRITICAL FIX] 항상 날짜 입력 필드를 노출하도록 수정 (사용자 피드백 반영) */}
                             <input
                                 type="date"
                                 className="form-input fade-in"
-                                style={{ width: '100%', cursor: 'pointer', borderColor: '#f59e0b', color: '#f59e0b' }}
-                                value={newMember.manualEndDate || ''}
-                                onClick={(e) => e.target.showPicker && e.target.showPicker()}
-                                onChange={e => setNewMember({ ...newMember, manualEndDate: e.target.value })}
+                                style={{ 
+                                    width: '100%', 
+                                    cursor: newMember.autoStart ? 'not-allowed' : 'pointer',
+                                    opacity: newMember.autoStart ? 0.6 : 1
+                                }}
+                                value={newMember.startDate}
+                                disabled={newMember.autoStart}
+                                onClick={(e) => !newMember.autoStart && e.target.showPicker && e.target.showPicker()}
+                                onChange={e => setNewMember({ ...newMember, startDate: e.target.value })}
                             />
+
+                            {newMember.includeToday && (
+                                <div className="fade-in" style={{ marginTop: '6px' }}>
+                                    <select
+                                        className="form-select"
+                                        style={{ 
+                                            width: '100%', 
+                                            padding: '12px 14px', 
+                                            fontSize: '0.9rem', 
+                                            background: 'rgba(76,175,80,0.1)', 
+                                            border: '1px solid rgba(76,175,80,0.3)', 
+                                            borderRadius: '10px', 
+                                            color: '#81C784', 
+                                            fontWeight: 'bold',
+                                            cursor: 'pointer'
+                                        }}
+                                        value={(() => {
+                                            const cls = newMember.todayClass;
+                                            if (!cls) return '자율수련';
+                                            return cls.title || '자율수련';
+                                        })()}
+                                        onChange={(e) => {
+                                            const selectedTitle = e.target.value;
+                                            if (selectedTitle === '자율수련') {
+                                                setNewMember({ ...newMember, todayClass: null });
+                                            } else {
+                                                const matched = dailyClasses.find(c => (c.title || c.className) === selectedTitle);
+                                                setNewMember({ ...newMember, todayClass: matched ? { title: matched.title || matched.className, instructor: matched.instructor, time: matched.time } : { title: selectedTitle } });
+                                            }
+                                        }}
+                                    >
+                                        <option value="자율수련">자율수련 (-1회)</option>
+                                        {dailyClasses.map((cls, idx) => {
+                                            const title = cls.title || cls.className || '';
+                                            const time = cls.time || '';
+                                            const instructor = cls.instructor || '';
+                                            const label = [time, title, instructor].filter(Boolean).join(' ') + ' (-1회)';
+                                            return <option key={idx} value={title}>{label}</option>;
+                                        })}
+                                    </select>
+                                </div>
+                            )}
+                            
+                            {/* 마감일(종료일) */}
+                            <div className="fade-in" style={{ marginTop: '10px' }}>
+                                <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span>마감일(종료일)</span>
+                                    {newMember.autoStart && <span style={{ fontSize: '0.75rem', color: 'var(--primary-gold)' }}>*첫 출석 시 조정됨</span>}
+                                </label>
+                                <input
+                                    type="date"
+                                    className="form-input"
+                                    style={{ width: '100%', cursor: 'pointer' }}
+                                    value={newMember.manualEndDate || newMember.realEndDate || ''}
+                                    onClick={(e) => e.target.showPicker && e.target.showPicker()}
+                                    onChange={e => setNewMember({ ...newMember, manualEndDate: e.target.value })}
+                                />
+                                <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
+                                    * 날짜 선택 시 수동 적용. 비우면 자동 계산.
+                                </div>
+                            </div>
                         </div>
-                    )}
+                    </div>
                 </div>
 
                 <div className="form-group">
@@ -454,7 +523,8 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                     <div style={{ display: 'flex', gap: '10px' }}>
                         {[
                             { id: 'card', label: '카드' },
-                            { id: 'cash', label: '현금' }
+                            { id: 'cash', label: '현금' },
+                            { id: 'transfer', label: '이체' }
                         ].map(p => {
                             const pricingInfo = pricingConfig[newMember.membershipType];
                             const selectedOpt = pricingInfo?.options?.find(o => o.id === newMember.selectedOption);
@@ -504,9 +574,26 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                             <span style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--primary-gold)' }}>원</span>
                         </div>
                     </div>
-                    <div style={{ fontSize: '0.95rem', color: 'var(--text-primary)', marginTop: '12px', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px' }}>
-                        <span style={{ fontWeight: 600 }}>{newMember.credits > 200 ? '무제한 수련' : `총 ${newMember.credits}회`}</span>
-                        <span style={{ color: 'var(--primary-gold)', fontWeight: '800' }}>마감: {newMember.endDate}</span>
+                    <div style={{ fontSize: '0.95rem', color: 'var(--text-primary)', marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px' }}>
+                        <span style={{ fontWeight: 600 }}>횟수</span>
+                        {newMember.credits > 200 ? (
+                            <span style={{ fontWeight: 600 }}>무제한</span>
+                        ) : (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <input
+                                    className="form-input"
+                                    type="number"
+                                    style={{
+                                        width: '60px', textAlign: 'right', padding: '6px 8px',
+                                        background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
+                                        borderRadius: '8px', color: 'white', fontSize: '1rem', fontWeight: '700'
+                                    }}
+                                    value={newMember.credits}
+                                    onChange={(e) => setNewMember({ ...newMember, credits: Number(e.target.value) })}
+                                />
+                                <span style={{ fontWeight: 600 }}>회</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 

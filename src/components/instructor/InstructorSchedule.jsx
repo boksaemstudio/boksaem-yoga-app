@@ -38,6 +38,7 @@ const InstructorSchedule = ({ instructorName }) => {
                     // Add branch info to each class
                     const classesWithBranch = classes.map(cls => ({
                         ...cls,
+                        branchId: branch.id,
                         branchName: branch.name,
                         branchColor: branch.color
                     }));
@@ -57,13 +58,11 @@ const InstructorSchedule = ({ instructorName }) => {
         const loadDateAttendance = async () => {
             setLoadingAttendance(true);
             try {
-                const promises = branches.map(b => storageService.getAttendanceByDate(selectedDate, b.id));
-                const results = await Promise.all(promises);
-                let all = [];
-                results.forEach(data => {
-                    all = [...all, ...(data || [])];
-                });
-                setDateAttendance(all);
+                // [FIX] Load ALL attendance for the date without branchId filter
+                // The UI filter (classTime + branchId matching) handles proper assignment
+                const all = await storageService.getAttendanceByDate(selectedDate);
+                console.log(`[DEBUG] Loaded attendance for ${selectedDate}:`, all.length, 'records');
+                setDateAttendance(all || []);
             } catch (e) {
                 console.error('Failed to load date attendance:', e);
             } finally {
@@ -72,7 +71,7 @@ const InstructorSchedule = ({ instructorName }) => {
         };
         loadDateAttendance();
         setExpandedClassKey(null); // Reset expansion on date change
-    }, [selectedDate, branches]);
+    }, [selectedDate]);
 
     const daysInMonth = new Date(year, month, 0).getDate();
     const firstDay = new Date(year, month - 1, 1).getDay();
@@ -316,14 +315,37 @@ const InstructorSchedule = ({ instructorName }) => {
                                                     <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>조회 중...</div>
                                                 ) : (
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                        {dateAttendance
-                                                            .filter(a => a.className === cls.title && (a.instructor === cls.instructor || a.instructor === '미지정'))
-                                                            .length === 0 ? (
-                                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>출석 회원이 없습니다</div>
-                                                        ) : (
-                                                            dateAttendance
-                                                                .filter(a => a.className === cls.title && (a.instructor === cls.instructor || a.instructor === '미지정'))
-                                                                .map((att, aidx) => (
+                                                        {(() => {
+                                                            const filtered = dateAttendance.filter(a => {
+                                                                // [FIX] Primary: Match by classTime + branchId (most reliable)
+                                                                // Secondary: Match by className (fallback)
+                                                                const attClass = (a.className || '자율수련').trim();
+                                                                const clsClass = (cls.title || '자율수련').trim();
+                                                                const attInst = (a.instructor || '').trim();
+                                                                const clsInst = (cls.instructor || '').trim();
+                                                                
+                                                                // Branch matching
+                                                                const matchBranch = !a.branchId || !cls.branchId || a.branchId === cls.branchId;
+                                                                if (!matchBranch) return false;
+                                                                
+                                                                // Strategy 1: classTime exact match (most reliable)
+                                                                if (a.classTime && cls.time) {
+                                                                    const matchTime = a.classTime === cls.time;
+                                                                    if (matchTime) return true;
+                                                                }
+                                                                
+                                                                // Strategy 2: className match (flexible - includes or equals)
+                                                                const matchClassExact = attClass === clsClass;
+                                                                const matchClassFuzzy = attClass.includes(clsClass) || clsClass.includes(attClass);
+                                                                const matchInst = attInst === clsInst || !attInst || attInst === '미지정';
+                                                                
+                                                                return (matchClassExact || matchClassFuzzy) && matchInst;
+                                                            });
+                                                            
+                                                            return filtered.length === 0 ? (
+                                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>출석 회원이 없습니다</div>
+                                                            ) : (
+                                                                filtered.map((att, aidx) => (
                                                                     <div key={att.id || aidx} style={{ display: 'flex', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '6px 10px', borderRadius: '4px' }}>
                                                                         <span style={{ fontSize: '0.85rem' }}>{att.memberName}</span>
                                                                         <span style={{ fontSize: '0.8rem', color: 'var(--primary-gold)' }}>
@@ -331,7 +353,8 @@ const InstructorSchedule = ({ instructorName }) => {
                                                                         </span>
                                                                     </div>
                                                                 ))
-                                                        )}
+                                                            );
+                                                        })()}
                                                     </div>
                                                 )}
                                             </div>

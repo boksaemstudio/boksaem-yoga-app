@@ -430,7 +430,7 @@ export const attendanceService = {
           localStorage.setItem('pending_checkins_queue', JSON.stringify(localQueue));
       }
 
-      const newCredits = (member?.credits || 0) > 0 ? (member.credits - 1) : 0;
+      const newCredits = (member?.credits || 0) > 0 ? ((member?.credits || 0) - 1) : 0;
       const newCount = (member?.attendanceCount || 0) + 1;
       
       const updatePayload = {
@@ -441,25 +441,28 @@ export const attendanceService = {
 
       // [NEW] If upcomingMembership was activated, include those changes in the local cache update
       if (pendingData.activatedUpcomingMembership) {
-          updatePayload.membershipType = member.membershipType;
-          updatePayload.startDate = member.startDate;
-          updatePayload.endDate = member.endDate;
+          updatePayload.membershipType = member?.membershipType;
+          updatePayload.startDate = member?.startDate;
+          updatePayload.endDate = member?.endDate;
           updatePayload.upcomingMembership = null; 
       }
 
-      memberService._updateLocalMemberCache(memberId, updatePayload);
+      if (member) {
+          memberService._updateLocalMemberCache(memberId, updatePayload);
+      }
 
       return {
         success: true,
         isOffline: true,
         message: `[${classTitle}] 출석되었습니다!`,
         member: {
-          ...member,
+          ...(member || {}),
+          name: member?.name || '회원',
           credits: newCredits,
           attendanceCount: newCount,
-          membershipType: updatePayload.membershipType || member.membershipType,
-          startDate: updatePayload.startDate || member.startDate,
-          endDate: updatePayload.endDate || member.endDate
+          membershipType: updatePayload.membershipType || member?.membershipType,
+          startDate: updatePayload.startDate || member?.startDate,
+          endDate: updatePayload.endDate || member?.endDate
         }
       };
     } catch (error) {
@@ -467,7 +470,7 @@ export const attendanceService = {
   }
   },
 
-  async addManualAttendance(memberId, date, branchId, className = "수동 확인", instructor = "관리자") {
+  async addManualAttendance(memberId, date, branchId, className = "수동 확인", instructor = "관리자", { skipCreditDeduction = false } = {}) {
     try {
       const memberDoc = await getDoc(doc(db, 'members', memberId));
       const memberData = memberDoc.exists() ? memberDoc.data() : null;
@@ -608,6 +611,12 @@ export const attendanceService = {
           startDate: membershipUpdate.startDate,
           endDate: membershipUpdate.endDate,
           upcomingMembership: deleteField(),
+          attendanceCount: increment(1),
+          lastAttendance: timestamp
+        });
+      } else if (skipCreditDeduction) {
+        // [FIX] 등록 시 includeToday로 이미 크레딧 차감된 경우, 크레딧은 건드리지 않고 출석 기록만 추가
+        batch.update(memberRef, {
           attendanceCount: increment(1),
           lastAttendance: timestamp
         });

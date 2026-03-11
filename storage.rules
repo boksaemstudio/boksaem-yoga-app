@@ -25,11 +25,11 @@ service firebase.storage {
 
     // ========================================
     // 📸 Attendance Photos - 출석 확인 사진
-    // Authenticators can upload, anyone can read
+    // Kiosk clients without auth can upload, authenticated admins/instructors can read
     // ========================================
     match /attendance-photos/{allPaths=**} {
       allow read: if isAuth() && (request.auth.token.admin == true || request.auth.token.instructor == true);
-      allow write: if isAuth() && request.resource.size < 5 * 1024 * 1024;
+      allow write: if request.resource.size < 5 * 1024 * 1024; // Removed isAuth() requirement for Kiosks
     }
 
     // ========================================

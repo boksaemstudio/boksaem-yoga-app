@@ -849,13 +849,23 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                                     }
                                                 </div>
                                             </div>
-                                            {log.type === 'checkin' && isToday && (
+                                            {(log.type === 'checkin' || log.type === 'register') && isToday && (
                                                 <button
                                                     onClick={async (e) => {
                                                         e.stopPropagation();
                                                         if (confirm('이 출석 기록을 삭제하시겠습니까?')) {
                                                             const restoreCredit = confirm('해당 회원의 수강권을 복구하시겠습니까? (취소 시 기록만 삭제)');
-                                                            await storageService.deleteAttendance(log.id, restoreCredit);
+                                                            const result = await storageService.deleteAttendance(log.id, restoreCredit);
+                                                            if (result.success) {
+                                                                // [FIX] 삭제 후 UI 강제 갱신
+                                                                setTimeout(() => {
+                                                                    storageService.notifyListeners('logs');
+                                                                    storageService.notifyListeners('members');
+                                                                }, 500);
+                                                                alert('출석 기록이 삭제되었습니다.');
+                                                            } else {
+                                                                alert(`삭제 실패: ${result.message}`);
+                                                            }
                                                         }
                                                     }}
                                                     style={{

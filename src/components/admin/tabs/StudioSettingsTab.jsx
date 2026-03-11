@@ -49,7 +49,7 @@ const StudioSettingsTab = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Gear size={32} weight="fill" color="var(--primary-theme-color)" />
-                    스튜디오 핵심 설정 (SaaS Core)
+                    스튜디오 핵심 설정
                 </h2>
                 <div style={{ display: 'flex', gap: '10px' }}>
                     <button 

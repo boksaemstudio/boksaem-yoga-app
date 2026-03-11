@@ -46,35 +46,77 @@ exports.generatePageExperienceV2 = onCall({
         const targetLang = ai.getLangName(language);
         let prompt = "";
 
-        if (type === 'analysis' || role === 'admin') {
+        if (type === 'analysis') {
             const logs = request.data.logs || [];
             const statsData = request.data.statsData || {};
-            const branchInfo = statsData.branch === 'all' ? '전체 지점(마포/광흥창)' : `${statsData.branch}점`;
+            const attendanceCount = request.data.attendanceCount || 0;
+            const context = request.data.context || 'profile';
             
-            prompt = `
-                You are a world-class Business Consultant and Yoga Studio Strategy Expert (Digital Yard Management).
-                Analyze the following data for ${branchInfo} and provide a high-level strategic briefing in ${targetLang}.
+            // [FIX] Branch: Dashboard-level studio analysis vs Individual member practice analysis
+            const hasDashboardStats = statsData && (statsData.totalMembers || statsData.monthlyRevenue || statsData.activeCount);
+            
+            if (hasDashboardStats) {
+                // === STUDIO DASHBOARD ANALYSIS (Admin Dashboard Overview) ===
+                const branchInfo = statsData.branch === 'all' ? '전체 지점(마포/광흥창)' : `${statsData.branch}점`;
                 
-                Data Summary:
-                - Active Members: ${statsData.activeCount} / Total: ${statsData.totalMembers}
-                - Monthly Revenue: ${statsData.monthlyRevenue?.toLocaleString()} KRW
-                - Today's Registration: ${statsData.todayRegistration} (New: ${statsData.newRegCount}, Re-reg: ${statsData.reRegCount})
-                - Today's Attendance: ${statsData.attendanceToday}
-                - Dormant Members (Risk): ${statsData.dormantCount}
-                - Expiring Soon: ${statsData.expiringCount}
-                - App Adoption: ${statsData.installedCount} members (Push Enabled: ${statsData.pushEnabledCount})
-                - Branch Context: ${statsData.branch === 'all' ? 'Comparing Mapo vs Gwangheungchang performance' : 'Single Branch Deep-dive'}
-                - Top Classes: ${JSON.stringify(statsData.topClasses)}
+                prompt = `
+                    You are a world-class Business Consultant and Yoga Studio Strategy Expert (Digital Yard Management).
+                    Analyze the following data for ${branchInfo} and provide a high-level strategic briefing in ${targetLang}.
+                    
+                    Data Summary:
+                    - Active Members: ${statsData.activeCount} / Total: ${statsData.totalMembers}
+                    - Monthly Revenue: ${statsData.monthlyRevenue?.toLocaleString()} KRW
+                    - Today's Registration: ${statsData.todayRegistration} (New: ${statsData.newRegCount}, Re-reg: ${statsData.reRegCount})
+                    - Today's Attendance: ${statsData.attendanceToday}
+                    - Dormant Members (Risk): ${statsData.dormantCount}
+                    - Expiring Soon: ${statsData.expiringCount}
+                    - App Adoption: ${statsData.installedCount} members (Push Enabled: ${statsData.pushEnabledCount})
+                    - Branch Context: ${statsData.branch === 'all' ? 'Comparing Mapo vs Gwangheungchang performance' : 'Single Branch Deep-dive'}
+                    - Top Classes: ${JSON.stringify(statsData.topClasses)}
+                    
+                    Your Mission:
+                    1. Provide a professional, encouraging, yet critically analytical briefing (2-3 sentences).
+                    2. Compare performance if 'all' branches are selected (e.g., balance between branches).
+                    3. Focus on "Revenue Intelligence": Mention the New vs Re-registration ratio if significant.
+                    4. Suggest a specific action for "Dormant/Expiring" members (e.g., targeted push campaign).
+                    
+                    Format: { "message": "...", "bgTheme": "sophisticated" }
+                    Tone: Expert, Insightful, Visionary.
+                `;
+            } else {
+                // === INDIVIDUAL MEMBER PRACTICE ANALYSIS ===
+                // Build a summary of the member's recent attendance logs
+                const logSummary = logs.slice(0, 10).map(l => {
+                    const date = l.date || '';
+                    const cls = l.className || '자율수련';
+                    const time = l.classTime || '';
+                    return `${date} ${time} ${cls}`;
+                }).join(', ') || '출석 기록 없음';
+
+                const isAdmin = role === 'admin';
                 
-                Your Mission:
-                1. Provide a professional, encouraging, yet critically analytical briefing (2-3 sentences).
-                2. Compare performance if 'all' branches are selected (e.g., balance between branches).
-                3. Focus on "Revenue Intelligence": Mention the New vs Re-registration ratio if significant.
-                4. Suggest a specific action for "Dormant/Expiring" members (e.g., targeted push campaign).
-                
-                Format: { "message": "...", "bgTheme": "sophisticated" }
-                Tone: Expert, Insightful, Visionary.
-            `;
+                prompt = `
+                    You are a caring yoga studio instructor and wellness advisor.
+                    Analyze the following INDIVIDUAL MEMBER's practice data and provide a personalized analysis in ${targetLang}.
+
+                    Member Name: ${memberName || '회원'}
+                    Total Attendance Count: ${attendanceCount}
+                    Recent Attendance (last 10): ${logSummary}
+                    
+                    ${isAdmin ? 'Context: This analysis is shown to the studio administrator viewing this member\'s detail page.' : 'Context: This analysis is shown to the member on their personal profile page.'}
+
+                    Your Mission:
+                    1. Analyze this SPECIFIC MEMBER's practice patterns (frequency, preferred class times, class types).
+                    2. If they have few or no records, encourage them warmly to build a routine.
+                    3. If they have consistent records, praise their dedication and note their patterns.
+                    4. ${isAdmin ? 'Suggest a specific coaching tip for the instructor about this member (e.g., "consider suggesting evening classes" or "this member seems to prefer morning sessions").' : 'Suggest a specific personal wellness tip based on their practice patterns.'}
+                    5. Keep it to 2-3 sentences. Be warm, personal, and specific to THIS member.
+                    6. NEVER talk about studio revenue, business strategy, or general operations. Focus ONLY on this individual.
+
+                    Format: { "message": "...", "bgTheme": "warm" }
+                    Tone: Warm, Personal, Encouraging.
+                `;
+            }
         } else {
             prompt = `
                 Generate a warm, personalized greeting for ${memberName || 'visitor'}.

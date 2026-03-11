@@ -77,6 +77,9 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
             return;
         }
         
+        // [CRITICAL FIX] Clear old photo so uploadPhoto is forced to wait for THIS new capture
+        capturedPhotoRef.current = null;
+        
         const canvas = canvasRef.current;
         // [O] Set higher resolution (800x600)
         canvas.width = 800;
@@ -117,10 +120,12 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
 
     // [PHOTO] 비동기 업로드
     const uploadPhoto = async (attendanceId, memberName, status) => {
-        if (!PHOTO_ENABLED || !navigator.onLine) return;
+        if (!PHOTO_ENABLED) return;
+        // [FIX] navigator.onLine 체크 제거 — 태블릿에서 잘못 감지될 수 있음
+        // 업로드 시도 후 실패하면 catch에서 처리
 
-        // [O] Intelligent Wait: Only wait for capture if we don't have a blob yet
-        if (!capturedPhotoRef.current && isCapturingRef.current && capturePromisesRef.current.length > 0) {
+        // [CRITICAL FIX] Always wait if capture is active, regardless of having an old blob
+        if (isCapturingRef.current && capturePromisesRef.current.length > 0) {
             console.log('[PHOTO] Waiting for active capture...');
             const lastPromise = capturePromisesRef.current[capturePromisesRef.current.length - 1];
             await Promise.race([
@@ -129,8 +134,21 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
             ]);
         }
 
+        // [FIX] blob이 아직 없으면 짧은 대기 후 재확인 (toBlob 콜백 지연 대비)
+        if (!capturedPhotoRef.current) {
+            console.log('[PHOTO] No blob yet, waiting 500ms...');
+            await new Promise(r => setTimeout(r, 500));
+        }
+
         const blob = capturedPhotoRef.current;
-        if (!blob) return;
+        if (!blob) {
+            console.warn('[PHOTO] No captured photo available for upload. Camera may not be active.');
+            return;
+        }
+
+        if (!attendanceId) {
+            console.warn('[PHOTO] No attendanceId provided (offline mode?). Skipping doc update.');
+        }
 
         try {
             const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
@@ -149,13 +167,16 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
                     photoStatus: status || 'unknown'
                 });
             }
-            console.log(`[PHOTO] Upload Success: ${path}`);
+            console.log(`[PHOTO] Upload Success: ${path} (${(blob.size / 1024).toFixed(1)}KB)`);
         } catch (err) {
-            const { logError } = await import('../services/modules/errorModule');
-            await logError(`[PHOTO] Upload failed for ${memberName || 'unknown'}`, { 
-                error: err.message, 
-                attendanceId 
-            });
+            console.error(`[PHOTO] Upload failed:`, err.message);
+            try {
+                const { logError } = await import('../services/modules/errorModule');
+                await logError(`[PHOTO] Upload failed for ${memberName || 'unknown'}`, { 
+                    error: err.message, 
+                    attendanceId 
+                });
+            } catch (e) {}
         } finally {
             // [O] Immediate memory release
             capturedPhotoRef.current = null;

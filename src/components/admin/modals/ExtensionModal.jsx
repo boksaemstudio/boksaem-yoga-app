@@ -27,10 +27,21 @@ const ExtensionModal = ({ isOpen, onClose, member, onSuccess }) => {
 
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px' }}>
+            <div className="modal-content" onClick={e => e.stopPropagation()} style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                padding: 'var(--modal-padding, 24px)',
+                width: '100%',
+                maxWidth: '600px',
+                margin: '0 auto',
+                borderRadius: 'min(24px, 5vw)'
+            }}>
                 <div className="modal-header">
-                    <h2 className="modal-title">수강권 연장</h2>
-                    <button onClick={onClose}><X size={24} /></button>
+                    <h2 className="modal-title">수강권 연장(재등록)</h2>
+                    <button onClick={onClose} style={{ color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <X size={24} weight="bold" />
+                    </button>
                 </div>
                 <div style={{ marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
                     <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '5px' }}>{member.name} 회원님</div>

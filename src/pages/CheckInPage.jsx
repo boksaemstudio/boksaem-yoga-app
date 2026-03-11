@@ -58,6 +58,22 @@ const CheckInPage = () => {
     const [kioskNoticeHidden, setKioskNoticeHidden] = useState(false);
     const [showInstructorQR, setShowInstructorQR] = useState(false);
     const [keypadLocked, setKeypadLocked] = useState(false);
+
+    // [FIX] Cloud Function Cold Start Warmup
+    const warmupTriggered = useRef(false);
+    const warmupFunctions = useCallback(() => {
+        if (warmupTriggered.current) return;
+        warmupTriggered.current = true;
+        // Fire-and-forget dummy call to wake up the serverless function
+        console.log('[CheckIn] Warming up server functions...');
+        import('firebase/functions').then(({ httpsCallable }) => {
+             const { functions } = require('../firebase');
+             const checkInCall = httpsCallable(functions, 'checkInMemberV2Call');
+             checkInCall({ ping: true }).catch(() => {});
+             const loginCall = httpsCallable(functions, 'memberLoginV2Call');
+             loginCall({ ping: true }).catch(() => {});
+        }).catch(() => {});
+    }, []);
     const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
     const [showKioskInstallGuide, setShowKioskInstallGuide] = useState(false);
     const [pendingPin, setPendingPin] = useState(null);
@@ -242,9 +258,27 @@ const CheckInPage = () => {
         }
 
         let msg = "오늘의 수련이 시작됩니다.";
-        if (isDup) { 
-            msg = "반가워요! 이미 출석 확인이 완료되었습니다."; 
-            speak("duplicate"); 
+
+        let isConsecutive = false;
+        let isExtra = false;
+
+        // [FIX] 서버의 실제 출석 데이터(sessionCount)를 기준으로 중복/연강 판정
+        // 관리자가 삭제했다면 sessionCount는 1이 되므로 첫 출석 취급.
+        if (res.sessionCount && res.sessionCount > 1) {
+            if (isDup) {
+                isExtra = true; // 정말로 단기간 내 동일 핀 재입력 + 서버에도 기록 있음
+            } else {
+                isConsecutive = true; // 서버에 기록이 있는데 로컬 타이머는 지남 (연강)
+            }
+        }
+
+        if (isExtra) { 
+            msg = "반가워요! 이미 출석 확인이 완료되었습니다. (추가 출석)"; 
+            speak("success_extra"); 
+        }
+        else if (isConsecutive) {
+            msg = "오늘의 두 번째 수련이 시작됩니다. (연강 출석)"; 
+            speak("success_consecutive"); 
         }
         else if (daysLeft < 0) { 
             msg = "수련권 기간이 완료되었습니다. 선생님께서 안내를 도와드릴게요."; 
@@ -258,22 +292,29 @@ const CheckInPage = () => {
             msg = "오늘이 이번 수련권의 마지막 날이네요. 정성 가득한 수련 되세요!"; 
             speak("last_session"); 
         }
-        else { speak("success"); }
+        else { 
+            speak("success"); // 처음 출석이면 "출석되었습니다"
+        }
 
         // [UX] Delay visual rendering slightly so the TTS audio can load and play in sync.
-        await new Promise(r => setTimeout(r, 300));
+        await new Promise(r => setTimeout(r, 100)); // Reduced delay to make it faster
 
         setMessage({ type: 'success', member: m, text: `${m.name}님`, subText: msg });
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => handleModalClose(() => setMessage(null)), CHECKIN_CONFIG.TIMEOUTS.SUCCESS_MODAL);
 
-        storageService.getAIExperience(m.name, m.attendanceCount, '오늘', getKSTHour(), null, weather, credits, daysLeft, language, null, 'member', 'checkin')
-            .then(ai => { if (ai?.message && !ai.isFallback) setAiEnhancedMsg(ai.message.replace(/나마스테[.]?\s*🙏?/gi, '').trim()); })
-            .finally(() => setAiLoading(false));
+        // [FIX] Removed AI Experience fetch to eliminate the "AI thinking..." delay.
+        setAiEnhancedMsg("오늘도 평온한 요가 안내해 드릴게요. 나마스테 🙏");
+        setAiLoading(false);
     };
 
     const proceedWithCheckIn = async (p, isDup = false, memberIdToForce = null, facialTask = null) => {
         setLoading(true);
+        // capturePhoto는 handleKeyPress(첫 키입력) + handleSubmit(4자리 완성)에서 이미 호출됨
+        // 여기서 다시 호출하면 기존 캡처를 null로 덮어쓰므로 제거
+        // [CRITICAL FIX] 레이스 컨디션 방지: 서버 응답을 기다리지 않고 즉시 기록 추가
+        // 이렇게 해야 연속 빠른 입력 시 두 번째도 중복으로 감지됨
+        recentCheckInsRef.current.push({ pin: p, timestamp: Date.now() });
         try {
             // [FACIAL] Await descriptor if still in flight (max 1.5s timeout)
             if (facialTask && !lastDescriptorRef.current) {
@@ -336,7 +377,6 @@ const CheckInPage = () => {
                     await new Promise(r => setTimeout(r, 300));
                     setMessage({ type: 'error', text: '기간 혹은 횟수가 만료되었습니다.' });
                 } else {
-                    recentCheckInsRef.current.push({ pin: p, timestamp: Date.now() });
                     uploadPhoto(res.attendanceId, res.member?.name, 'valid');
                     await showCheckInSuccess(res, isDup);
 
@@ -381,7 +421,11 @@ const CheckInPage = () => {
         // [PERF] Delay heavy synchronous photo DOM access to not block keypad frame update
         setTimeout(() => capturePhoto(), 0);
         
-        const isDup = recentCheckInsRef.current.some(e => e.pin === pinCode && (Date.now() - e.timestamp) < CHECKIN_CONFIG.TIMEOUTS.DUPLICATE_CHECK);
+        // [FIX] 중복 터치 판단: 최근 출석 기록 중 방금(20초 이내) 찍은 같은 PIN이 있는지 확인
+        // - 연강 출석은 서버에서 체크하므로, 클라이언트의 duplicate_check는 단순 더블터치 방지용 (20초)
+        const duplicateThresholdMs = 20000; // 20 sec for pure duplicate touch deterrence
+        const isDup = recentCheckInsRef.current.some(e => e.pin === pinCode && (Date.now() - e.timestamp) < duplicateThresholdMs);
+        
         if (isDup) {
             setPendingPin(pinCode);
             setShowDuplicateConfirm(true);
@@ -396,19 +440,29 @@ const CheckInPage = () => {
     const handleKeyPress = useCallback((n) => {
         if (pinRef.current.length === 0) { 
             checkConnection(); 
+            // [UX/PERF] Wake up audio and server on first keystroke
+            warmupFunctions();
+            
             // [PERF] Move Heavy Canvas Logic to the next tick to prevent keypad lag
-            setTimeout(() => {
-                capturePhoto();
-                // [FACIAL] Proactive extraction: Start AI logic as soon as user starts typing, but defer to avoid freezing the first keystroke
-                if (faceModelsLoaded && videoRef.current) {
-                    const taskId = ++activeTaskIdRef.current;
-                    extractFaceDescriptor(videoRef.current).then(desc => {
-                        if (taskId === activeTaskIdRef.current) {
-                            lastDescriptorRef.current = desc;
-                        }
-                    }).catch(() => {});
-                }
-            }, 50);
+            // 사용자 피드백 반영: 터치 렌더링을 최우선 보장하고 작업을 순차적으로 배분
+            requestAnimationFrame(() => {
+                // 1차 지연: 화면의 숫자 첫 번째 자리가 렌더링될 충분한 시간 확보 후 가시적인 사진 캡처만 먼저
+                setTimeout(() => {
+                    capturePhoto();
+                }, 150);
+
+                // 2차 지연: CPU를 가장 많이 쓰는 AI 모델 추론은 넉넉하게 400ms 뒤로 미루어 입력 중 멈춤 방지
+                setTimeout(() => {
+                    if (faceModelsLoaded && videoRef.current) {
+                        const taskId = ++activeTaskIdRef.current;
+                        extractFaceDescriptor(videoRef.current).then(desc => {
+                            if (taskId === activeTaskIdRef.current) {
+                                lastDescriptorRef.current = desc;
+                            }
+                        }).catch(() => {});
+                    }
+                }, 400);
+            });
         }
         setPin(prev => {
             const next = prev + n;
@@ -452,6 +506,9 @@ const CheckInPage = () => {
     // Final Poetic Render
     return (
         <div className="checkin-wrapper" style={{ position: 'relative', width: '100%', height: 'calc(var(--vh, 1vh) * 100)', minHeight: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', background: '#000' }}>
+            {/* [PHOTO] 숨겨진 카메라 피드 — capturePhoto/uploadPhoto가 작동하려면 필수 */}
+            <video ref={videoRef} autoPlay muted playsInline style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none', zIndex: -1 }} />
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
             <div className="bg-container" style={{ position: 'fixed', inset: 0, zIndex: 0 }}>
                 <img src={bgImage} alt="bg" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' }} />
@@ -464,7 +521,13 @@ const CheckInPage = () => {
                 <CheckInKeypadSection pin={pin} loading={loading} isReady={isReady} loadingMessage={loadingMessage} keypadLocked={keypadLocked} showSelectionModal={showSelectionModal} message={message} handleKeyPress={handleKeyPress} handleClear={handleClear} handleSubmit={handleSubmit} />
             </div >
 
-            <SelectionModal show={showSelectionModal} duplicateMembers={duplicateMembers} loading={loading} onClose={() => setShowSelectionModal(false)} onSelect={id => { setShowSelectionModal(false); proceedWithCheckIn(pin, isDuplicateFlow, id); }} />
+            <SelectionModal 
+                show={showSelectionModal} 
+                duplicateMembers={duplicateMembers} 
+                loading={loading} 
+                onClose={() => { setShowSelectionModal(false); setPin(''); }} 
+                onSelect={id => { setShowSelectionModal(false); proceedWithCheckIn(pin, isDuplicateFlow, id); }} 
+            />
             <MessageOverlay message={message} onClose={closeMessage} aiExperience={aiExperience} />
             <DuplicateConfirmModal show={showDuplicateConfirm} duplicateTimer={duplicateTimer} onCancel={() => { setShowDuplicateConfirm(false); setPin(''); }} onConfirm={() => { setShowDuplicateConfirm(false); proceedWithCheckIn(pendingPin, true); }} />
             
@@ -481,7 +544,7 @@ const CheckInPage = () => {
             <InstructorQRModal isOpen={showInstructorQR} onClose={() => setShowInstructorQR(false)} />
             <video ref={videoRef} autoPlay playsInline muted style={{ position: 'fixed', left: '0', top: '0', width: '1px', height: '1px', opacity: 0.01, zIndex: -100, pointerEvents: 'none' }} />
             <canvas ref={canvasRef} style={{ position: 'fixed', left: '0', top: '0', width: '1px', height: '1px', opacity: 0.01, zIndex: -100, pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', top: '2px', right: '8px', fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', pointerEvents: 'none', zIndex: 3001 }}>v{BUILD_VERSION}</div>
+            <div style={{ position: 'absolute', top: '4px', right: '12px', fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)', pointerEvents: 'none', zIndex: 3001, fontFamily: 'monospace', letterSpacing: '0.5px' }}>{BUILD_VERSION}</div>
         </div>
     );
 };
@@ -492,4 +555,4 @@ export default CheckInPage;
  * [BUILD-FIX] Attach unminifiable property to component object to defeat tree-shaking
  * This guarantees Rollup will generate a new chunk hash, forcing Workbox to update!
  */
-CheckInPage.__buildVersion = '2026.03.09.v1';
+CheckInPage.__buildVersion = '2026.03.12.0620';

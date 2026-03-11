@@ -10,7 +10,7 @@ export const STUDIO_CONFIG = {
         LOGO_TEXT: "BOKSAEM",
         SLOGAN: "나를 만나는 고요한 시간",
         DESCRIPTION: "전통 요가의 깊이를 현대적 감각으로 전달하는 프리미엄 요가 스튜디오",
-        APP_VERSION: "1.3.0.v12",
+        APP_VERSION: "2026.03.12 06:20",
         FAVICON: "/favicon.ico",
     },
 
@@ -175,7 +175,7 @@ export const STUDIO_CONFIG = {
     PRICING: {
         'intensive': {
             label: '심화',
-            branches: ['branch_1', 'branch_2'],
+            branches: ['gwangheungchang', 'mapo'],
             options: [
                 { id: '10_session', label: '10회권 (3개월)', basePrice: 300000, credits: 10, months: 3, type: 'ticket' },
                 { id: 'month_4', label: '월 4회', basePrice: 120000, credits: 4, months: 1, type: 'subscription' },
@@ -188,7 +188,7 @@ export const STUDIO_CONFIG = {
         },
         'general': {
             label: '일반',
-            branches: ['branch_1', 'branch_2'],
+            branches: ['gwangheungchang', 'mapo'],
             options: [
                 { id: '10_session', label: '10회권 (3개월)', basePrice: 200000, credits: 10, months: 3, type: 'ticket' },
                 { id: 'month_8', label: '월 8회', basePrice: 143000, credits: 8, months: 1, type: 'subscription', discount3: 408000, discount6: 773000 },
@@ -220,7 +220,7 @@ export const STUDIO_CONFIG = {
         },
         'ttc': {
             label: 'TTC (지도자과정)',
-            branches: ['branch_1', 'branch_2'],
+            branches: ['gwangheungchang', 'mapo'],
             options: [
                 {
                     id: 'ttc_standard',

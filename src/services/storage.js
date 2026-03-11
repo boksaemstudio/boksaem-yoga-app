@@ -1,4 +1,4 @@
-﻿import { db, auth, functions } from "../firebase"; // ✅ Import storage
+import { db, auth, functions } from "../firebase"; // ✅ Import storage
 import { signInAnonymously, signInWithCustomToken } from "firebase/auth";
 import { httpsCallable } from "firebase/functions";
 import { onSnapshot, doc, collection, getDocs, getDoc, addDoc, updateDoc, setDoc, deleteDoc, query, where, orderBy, limit as firestoreLimit, writeBatch } from 'firebase/firestore';
@@ -266,6 +266,7 @@ export const storageService = {
   // [PERF] Build O(1) lookup index for phoneLast4
   _buildPhoneLast4Index() { return memberService._buildPhoneLast4Index(); },
 
+  async loadNotices() { return noticeService.loadNotices(); },
   getImages() { return cachedImages; },
   getNotices() { return [...cachedNotices].sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0)); },
 
@@ -491,9 +492,9 @@ export const storageService = {
     return null;
   },
 
-  async getDailyClasses(branchId, instructorName = null) {
-    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-    const cacheKey = `${branchId}_${today}`;
+  async getDailyClasses(branchId, instructorName = null, date = null) {
+    const targetDate = date || new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+    const cacheKey = `${branchId}_${targetDate}`;
     
     const cached = cachedDailyClasses[cacheKey];
     if (!cached || !cached.classes) {
@@ -1179,8 +1180,8 @@ export const storageService = {
 
   deleteAttendance(logId, restoreCredit) { return attendanceService.deleteAttendance(logId, restoreCredit); },
 
-  addManualAttendance(memberId, date, branchId, className = "수동 확인", instructor = "관리자") {
-    return attendanceService.addManualAttendance(memberId, date, branchId, className, instructor);
+  addManualAttendance(memberId, date, branchId, className = "수동 확인", instructor = "관리자", options = {}) {
+    return attendanceService.addManualAttendance(memberId, date, branchId, className, instructor, options);
   },
 
   // [Monitoring] Get Error Logs

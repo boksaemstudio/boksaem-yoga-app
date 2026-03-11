@@ -5,7 +5,7 @@
 // 1. Deletes ALL CacheStorage entries
 // 2. Unregisters itself
 // 3. Forces all open tabs to reload with fresh content from the network
-
+// VERSION: 20260310-0600 (Force update to clear stray audio caches)
 self.addEventListener('install', function() {
   // Skip waiting to activate immediately
   self.skipWaiting();

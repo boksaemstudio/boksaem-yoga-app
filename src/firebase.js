@@ -25,7 +25,7 @@ export const storage = getStorage(app); // ✅ Initialize Storage
 console.log('[Firebase] Initialized without IndexedDbPersistence clear v2026.02.22.v7');
 
 // [BUILD-FIX] Exported unminifiable version marker to force chunk hash change and bypass Workbox precache
-export const FIREBASE_INIT_VERSION = '2026.02.22.v7';
+export const FIREBASE_INIT_VERSION = '2026.03.10.v1';
 // Defeat dead code elimination by modifying global state:
 if (typeof window !== 'undefined') window.__FIREBASE_VERSION = FIREBASE_INIT_VERSION;
 

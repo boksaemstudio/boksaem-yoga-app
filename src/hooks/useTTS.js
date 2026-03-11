@@ -4,6 +4,8 @@ import { useCallback } from 'react';
 import audioWelcome from '../assets/audio/welcome.mp3';
 import audioSuccess from '../assets/audio/success.mp3';
 import audioDuplicateSuccess from '../assets/audio/duplicate_success.mp3';
+import audioSuccessConsecutive from '../assets/audio/success_consecutive.mp3';
+import audioSuccessExtra from '../assets/audio/success_extra.mp3';
 import audioDenied from '../assets/audio/denied.mp3';
 import audioError from '../assets/audio/error.mp3';
 import audioLastSession from '../assets/audio/last_session.mp3';
@@ -17,13 +19,16 @@ export const useTTS = () => {
         const audioMap = {
             'welcome': audioWelcome,
             'success': audioSuccess,
-            'duplicate': audioDuplicateSuccess,
+            'success_consecutive': audioSuccessConsecutive, // [NEW] 연강 출석입니다
+            'success_extra': audioSuccessExtra,             // [NEW] 추가 출석입니다
+            'duplicate': audioSuccess,                      // 기본 "출석되었습니다"
             'denied': audioDenied,
             'error': audioError,
-            'last_session': audioLastSession
+            'last_session': audioSuccess
         };
 
         const source = audioMap[type];
+
         if (!source) {
             console.warn(`[TTS] No audio mapping for type: ${type}`);
             return;

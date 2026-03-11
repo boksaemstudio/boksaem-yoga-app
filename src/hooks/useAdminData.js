@@ -100,9 +100,15 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         try {
             const statsData = {
                 activeCount: currentSummary.activeMembers,
+                totalMembers: currentSummary.totalMembers,
                 attendanceToday: currentSummary.todayAttendance,
                 expiringCount: currentSummary.expiringMembersCount,
-                topClasses: currentTodayClasses.slice(0, 3)
+                topClasses: currentTodayClasses.slice(0, 3),
+                branch: currentBranch, // [FIX] undefined점 방지: 지점 정보 전달
+                todayRegistration: currentSummary.todayRegistration,
+                newRegCount: currentSummary.todayNewCount,
+                reRegCount: currentSummary.todayReRegCount,
+                monthlyRevenue: currentSummary.monthlyRevenue
             };
 
             const aiPromise = storageService.getAIAnalysis(
@@ -296,7 +302,16 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         }
 
         const checkIsAttended = (m) => attendedMemberIds.has(m.id);
-        const checkIsRegistered = (m) => m.regDate === todayStr;
+        // [FIX] 신규 판별: regDate 외에 createdAt(문서 생성일)도 체크하여 regDate 누락 시에도 정확히 판별
+        const checkIsRegistered = (m) => {
+            if (m.regDate === todayStr) return true;
+            // createdAt이 오늘이면 신규 (regDate가 누락되거나 다른 형식일 수 있음)
+            if (m.createdAt) {
+                const created = typeof m.createdAt === 'string' ? m.createdAt : '';
+                if (created.startsWith(todayStr)) return true;
+            }
+            return false;
+        };
 
         const totalMembers = uniqueMembers.filter(m => isMemberInBranch(m)).length;
         const activeMembers = uniqueMembers.filter(m => isMemberInBranch(m) && isMemberActive(m)).length;

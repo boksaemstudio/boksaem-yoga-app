@@ -268,8 +268,12 @@ const AdminDashboard = () => {
             if (!matchesSearch) return false;
 
             if (filterType === 'active') return checkIsActive(m);
-            // [FIX] Registration Filter: New OR Re-Reg
-            if (filterType === 'registration') return m.regDate === todayStr || todayReRegMemberIds.includes(m.id);
+            // [FIX] Registration Filter: New OR Re-Reg (createdAt fallback 포함)
+            if (filterType === 'registration') {
+                const isNewByRegDate = m.regDate === todayStr;
+                const isNewByCreatedAt = m.createdAt && typeof m.createdAt === 'string' && m.createdAt.startsWith(todayStr);
+                return isNewByRegDate || isNewByCreatedAt || todayReRegMemberIds.includes(m.id);
+            }
             // if (filterType === 'attendance') handled above
             if (filterType === 'expiring') return checkIsExpiring(m);
             if (filterType === 'dormant') return isMemberDormant(m, logs, isMemberActive);

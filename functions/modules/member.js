@@ -14,7 +14,7 @@ const { admin, getAI, createPendingApproval, logAIError, getKSTDateString, getSt
  * 보안 회원 조회 (PIN 기반)
  */
 exports.getSecureMemberV2Call = onCall({ 
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com']
+    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
 }, async (request) => {
     const db = admin.firestore();
     const { phoneLast4 } = request.data;
@@ -35,7 +35,7 @@ exports.getSecureMemberV2Call = onCall({
         const rateLimitDoc = await rateLimitRef.get();
         const now = Date.now();
         const windowMs = 60000; // 1 minute
-        const maxAttempts = 10;
+        const maxAttempts = 300; // [CRITICAL FIX] Kiosk shares the same Anonymous UID. Increased to 300/min
         
         if (rateLimitDoc.exists) {
             const data = rateLimitDoc.data();
@@ -92,6 +92,12 @@ exports.memberLoginV2Call = onCall({
     cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
 }, async (request) => {
     const db = admin.firestore();
+    
+    // [FIX] Warmup Ping Handler
+    if (request.data && request.data.ping) {
+        return { success: true, message: 'pong' };
+    }
+    
     const { name, phoneLast4 } = request.data;
 
     // Input validation

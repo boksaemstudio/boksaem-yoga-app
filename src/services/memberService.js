@@ -55,6 +55,14 @@ export const memberService = {
       memberListenerUnsubscribe = onSnapshot(collection(db, 'members'), (snapshot) => {
         const members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         cachedMembers = members;
+        
+        // [CRITICAL FIX] Persist full sync to LocalStorage
+        try {
+            localStorage.setItem('kiosk_member_cache', JSON.stringify(cachedMembers));
+        } catch (e) {
+            console.warn('[memberService] Cache persistence failed (Storage full?)');
+        }
+
         console.log(`[memberService] Members updated via listener: ${members.length}`);
         this._buildPhoneLast4Index();
         notifyCallback();
@@ -82,6 +90,13 @@ export const memberService = {
       const members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
       cachedMembers = members;
+      
+      // [CRITICAL FIX] Save to localStorage so next kiosk boot is instantaneous
+      try {
+          localStorage.setItem('kiosk_member_cache', JSON.stringify(cachedMembers));
+      } catch (e) {
+          console.warn('[memberService] Local cache save failed (Storage full?)');
+      }
       
       this._buildPhoneLast4Index();
       console.timeEnd('[memberService] Force Fetch Members');

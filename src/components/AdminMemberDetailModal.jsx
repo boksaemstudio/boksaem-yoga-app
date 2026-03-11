@@ -330,14 +330,20 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
         onClose();
     };
 
-    const handleManualAttendance = async (dateStr, timeStr, branchId) => {
-        if (isSubmitting || isSubmittingRef.current) return; // Prevent double submission
+    const handleManualAttendance = async (dateStr, timeStr, branchId, className) => {
+        // [FIX] 안전밸브: isSubmittingRef 잠김 상태 자동 해제
+        if (isSubmittingRef.current) {
+            console.warn('[handleManualAttendance] isSubmittingRef stuck, force-resetting');
+            isSubmittingRef.current = false;
+            setIsSubmitting(false);
+        }
+        if (isSubmitting) return;
         isSubmittingRef.current = true;
         setIsSubmitting(true);
         try {
             // Combine date and time to ISO string
             const timestamp = new Date(`${dateStr}T${timeStr || '12:00'}`).toISOString();
-            const result = await storageService.addManualAttendance(member.id, timestamp, branchId);
+            const result = await storageService.addManualAttendance(member.id, timestamp, branchId, className || '수동 확인');
 
             if (result.success) {
                 // If this is the first attendance for a TBD member, calculate dates
@@ -405,9 +411,16 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
 
 
     const handleDeleteAttendance = async (logId) => {
-        console.log('[AdminMemberDetailModal] handleDeleteAttendance v2026.02.22.v8');
-        // [FIX] Prevent double-click / rapid consecutive calls
-        if (isSubmitting || isSubmittingRef.current) return;
+        console.log('[AdminMemberDetailModal] handleDeleteAttendance called, logId:', logId);
+        
+        // [FIX] 안전밸브: isSubmittingRef가 true로 영구 잠긴 경우 강제 해제
+        if (isSubmittingRef.current) {
+            console.warn('[AdminMemberDetailModal] isSubmittingRef was stuck at true, force-resetting');
+            isSubmittingRef.current = false;
+            setIsSubmitting(false);
+        }
+        
+        if (isSubmitting) return;
         
         if (!confirm('정말 삭제하시겠습니까?')) return;
         const restoreCredit = confirm('해당 회원의 수강권을 복구하시겠습니까? (취소 시 기록만 삭제)');
@@ -418,7 +431,13 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
             const result = await storageService.deleteAttendance(logId, restoreCredit);
             
             if (result.success) {
-                console.log('[AdminMemberDetailModal] Attendance deleted successfully, waiting for onSnapshot sync...');
+                console.log('[AdminMemberDetailModal] Attendance deleted successfully');
+                // [FIX] 삭제 후 onSnapshot이 서버 변경을 반영할 시간을 확보한 뒤 강제 UI 갱신
+                setTimeout(() => {
+                    storageService.notifyListeners('logs');
+                    storageService.notifyListeners('members');
+                }, 500);
+                alert('출석 기록이 삭제되었습니다.');
             } else {
                 throw new Error(result.message || '삭제 실패');
             }
@@ -426,10 +445,8 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
             console.error(e);
             alert(`삭제에 실패했습니다: ${e.message}`);
         } finally {
-            setTimeout(() => {
-                isSubmittingRef.current = false;
-                setIsSubmitting(false);
-            }, 1500);
+            isSubmittingRef.current = false;
+            setIsSubmitting(false);
         }
     };
 
@@ -1090,7 +1107,7 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                             const isCurrent = isCurrentRecord(record, originalData);
                             const isSelected = editingSale?.id === record.id || (!editingSale && isCurrent);
                             const dDate = record.timestamp ? new Date(record.timestamp) : new Date(record.date || Date.now());
-                            const isAdvance = record.startDate && record.startDate > new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                            const isAdvance = record.startDate && record.startDate !== 'TBD' && record.endDate !== 'TBD' && record.startDate > new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 
                             return (
                                 <div 

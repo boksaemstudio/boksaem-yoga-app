@@ -218,6 +218,10 @@ const StraightLineChart = ({ data }) => {
     // Keep data order as is (earliest to latest) so the latest date is on the right
     const chartData = data;
 
+    // [FIX] Y축을 실제 데이터 최대값에 맞게 자동 조정 (20% 여유)
+    const maxAmount = Math.max(...(chartData || []).map(d => d.amount || 0), 0);
+    const yMax = maxAmount > 0 ? Math.ceil(maxAmount * 1.2 / 50000) * 50000 : 100000;
+
     return (
         <div style={{ width: '100%', height: '180px' }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -237,6 +241,7 @@ const StraightLineChart = ({ data }) => {
                         tickFormatter={(val) => val === 0 ? '0' : `${(val / 10000).toLocaleString()}만`}
                         axisLine={false} 
                         tickLine={false}
+                        domain={[0, yMax]}
                     />
                     <Tooltip 
                         contentStyle={{ 

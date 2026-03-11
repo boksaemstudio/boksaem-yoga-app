@@ -203,9 +203,12 @@ exports.checkInMemberV2Call = onCall({
                 let newEndDate = memberData.upcomingMembership.endDate;
 
                 if (isTBD) {
-                    // TBD인 경우 현재 회원권이 소진/만료되었을 때만 첫 출석으로 간주해 활성화
+                    // [CRITICAL FIX] 1회 남은 회원이 출석하여 0이 되는 '이 순간'에 활성화되면 안 됨.
+                    // 이미 출석 전부터 완전히 0회였거나 만료된 상태에서 '새롭게 출석'할 때만 활성화해야 함.
                     const currentCredits = memberData.credits || 0;
                     const isCurrentExpired = memberData.endDate ? (new Date(today) > new Date(memberData.endDate)) : false;
+                    
+                    // 핵심: 출석 전 크레딧이 0 이하여야 비로소 소진된 상태에서의 새 시작임.
                     const isCurrentExhausted = currentCredits <= 0 || isCurrentExpired;
 
                     if (isCurrentExhausted) {
@@ -339,13 +342,42 @@ exports.checkInMemberV2Call = onCall({
                 streak = calculateStreak(records, today);
                 if (!Number.isFinite(streak)) streak = 1;
 
-                if (startDate === 'TBD' || !startDate || !memberData.endDate) {
+                if (startDate === 'TBD' || !startDate || !memberData.endDate || memberData.endDate === 'TBD') {
                     startDate = today;
-                    // [FIX] Use today's KST date as base for offsetting to avoid UTC date boundary drift
                     const parts = today.split('-').map(Number);
                     const end = new Date(parts[0], parts[1] - 1, parts[2]);
-                    end.setDate(end.getDate() + 30);
+                    // [FIX] memberData.duration(개월 수)이 있으면 그 기간 적용, 없으면 30일 fallback
+                    const durationMonths = memberData.duration || 0;
+                    if (durationMonths > 0) {
+                        end.setMonth(end.getMonth() + durationMonths);
+                        end.setDate(end.getDate() - 1);
+                    } else {
+                        end.setDate(end.getDate() + 30);
+                    }
                     endDate = getKSTDateString(end);
+                    console.log(`[Attendance] TBD resolved: ${memberId} → start=${startDate}, end=${endDate} (duration=${durationMonths}mo)`);
+
+                    // [FIX] TBD 해소 시 해당 회원의 sales 레코드도 실제 날짜로 업데이트
+                    const resolvedStart = startDate;
+                    const resolvedEnd = endDate;
+                    setImmediate(async () => {
+                        try {
+                            const salesSnap = await db.collection('sales')
+                                .where('memberId', '==', memberId)
+                                .where('startDate', '==', 'TBD')
+                                .get();
+                            if (!salesSnap.empty) {
+                                const batch = db.batch();
+                                salesSnap.forEach(doc => {
+                                    batch.update(doc.ref, { startDate: resolvedStart, endDate: resolvedEnd });
+                                });
+                                await batch.commit();
+                                console.log(`[Attendance] Updated ${salesSnap.size} TBD sales records for ${memberId} → ${resolvedStart}~${resolvedEnd}`);
+                            }
+                        } catch (e) {
+                            console.warn(`[Attendance] Failed to update sales TBD for ${memberId}:`, e.message);
+                        }
+                    });
                 }
 
                 const updates = {
@@ -363,16 +395,40 @@ exports.checkInMemberV2Call = onCall({
                     swappedData.credits = newCredits; 
                     console.log(`[Attendance] Applying membership swap for ${memberId}. Final Credits: ${newCredits}`);
                     Object.assign(updates, swappedData);
+
+                    // [FIX] 선등록 활성화 시 해당 sales 레코드의 TBD도 실제 날짜로 업데이트
+                    // transaction 외부에서 fire-and-forget으로 처리 (출석 응답 지연 없음)
+                    const finalStart = updates.startDate;
+                    const finalEnd = updates.endDate;
+                    setImmediate(async () => {
+                        try {
+                            const salesSnap = await db.collection('sales')
+                                .where('memberId', '==', memberId)
+                                .where('startDate', '==', 'TBD')
+                                .get();
+                            if (!salesSnap.empty) {
+                                const batch = db.batch();
+                                salesSnap.forEach(doc => {
+                                    batch.update(doc.ref, { startDate: finalStart, endDate: finalEnd });
+                                });
+                                await batch.commit();
+                                console.log(`[Attendance] Updated ${salesSnap.size} TBD sales records for ${memberId} → ${finalStart}~${finalEnd}`);
+                            }
+                        } catch (e) {
+                            console.warn(`[Attendance] Failed to update sales TBD for ${memberId}:`, e.message);
+                        }
+                    });
                 }
 
                 transaction.update(memberRef, updates);
             } else {
                  console.log(`[Attendance] Denied check-in for ${memberId}: ${denialReason}`);
                  
-                 // Even if denied, if we applied an upcoming membership (e.g., started but 0 credits or something weird),
-                 // we should still save the swap.
+                 // [CRITICAL FIX] denied 상태에서는 upcomingMembership swap을 절대 저장하지 않음.
+                 // 이전에는 여기서 swappedData를 저장하여 크레딧이 뻥튀기되는 버그 발생.
+                 // (예: credits=0 → denied → swappedData.credits=930 그대로 저장됨)
                  if (appliedUpcoming && swappedData) {
-                     transaction.update(memberRef, swappedData);
+                     console.warn(`[Attendance] Suppressing membership swap on denied check-in for ${memberId}. Credits would have been: ${swappedData.credits}`);
                  }
             }
 
