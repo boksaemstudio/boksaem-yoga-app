@@ -8,6 +8,7 @@ import { NetworkProvider } from './contexts/NetworkContext';
 import { StudioProvider } from './contexts/StudioContext';
 import NetworkStatus from './components/common/NetworkStatus';
 import { useStudioConfig } from './contexts/StudioContext';
+import { STUDIO_CONFIG } from './studioConfig';
 
 
 // Lazy load pages
@@ -28,7 +29,7 @@ const LoadingScreen = () => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0a0a0a', color: primary }}>
         <div style={{ textAlign: 'center' }}>
           <div className="loading-spinner" style={{ border: `4px solid ${skeleton}`, borderTop: `4px solid ${primary}`, borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }}></div>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{config.IDENTITY?.NAME || 'Studio'} {config.IDENTITY?.APP_VERSION || ''}</h2>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{config.IDENTITY?.NAME || 'Studio'} {STUDIO_CONFIG.IDENTITY?.APP_VERSION || ''}</h2>
         </div>
       </div>
     );

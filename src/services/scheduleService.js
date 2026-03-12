@@ -7,7 +7,8 @@ import {
     doc,
     query,
     where,
-    writeBatch
+    writeBatch,
+    onSnapshot
 } from "firebase/firestore";
 // [Refactoring] Extracted from storage.js for better modularity
 
@@ -36,6 +37,32 @@ export const getMonthlyClasses = async (branchId, year, month) => {
         console.warn("Failed to fetch monthly classes:", e);
         return {};
     }
+};
+
+// [FIX] 실시간 스케줄 구독 (새로고침 없이 변경사항 즉시 반영)
+export const subscribeMonthlyClasses = (branchId, year, month, callback) => {
+    if (!branchId) return () => {};
+
+    const startStr = `${year}-${String(month).padStart(2, '0')}-01`;
+    const endStr = `${year}-${String(month).padStart(2, '0')}-31`;
+
+    const q = query(
+        collection(db, 'daily_classes'),
+        where('branchId', '==', branchId),
+        where('date', '>=', startStr),
+        where('date', '<=', endStr)
+    );
+
+    return onSnapshot(q, (snapshot) => {
+        const monthlyData = {};
+        snapshot.docs.forEach(doc => {
+            monthlyData[doc.data().date] = doc.data().classes;
+        });
+        callback(monthlyData);
+    }, (error) => {
+        console.warn("Failed to subscribe to monthly classes:", error);
+        callback({}); // Return empty on error to prevent crashes
+    });
 };
 
 export const getMonthlyScheduleStatus = async (branchId, year, month) => {

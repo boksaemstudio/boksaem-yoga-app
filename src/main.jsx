@@ -147,6 +147,28 @@ try {
     sessionStorage.removeItem('auto_reload_count');
   }, 30000);
 
+  // [PWA/UX FIX] Auto-refresh for Admin/Instructor Apps when returning from background
+  // 키오스크(/)는 화면이 항상 켜져 있으므로 제외하고, 모바일 기기(강사/관리자)에서
+  // 다른 앱을 다녀왔을 때 최신 버전 갱신과 메모리 정리를 위해 조용히 리로드합니다.
+  if (typeof document !== 'undefined') {
+      let hiddenTime = 0;
+      document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'hidden') {
+              hiddenTime = Date.now();
+          } else if (document.visibilityState === 'visible') {
+              const isKiosk = window.location.pathname === '/';
+              if (!isKiosk && hiddenTime > 0) {
+                  const idleMs = Date.now() - hiddenTime;
+                  // 백그라운드에서 10분 이상 있다가 돌아오면 안전하게 새로고침 (최신 PWA 로드)
+                  if (idleMs > 10 * 60 * 1000) {
+                      console.log('[Background-Sync] App was idle for >10m. Reloading to ensure latest version...');
+                      window.location.reload();
+                  }
+              }
+          }
+      });
+  }
+
   /* 
    * [PWA CONFLICT REMOVED] 
    * Manual SW registration removed because it conflicts with vite-plugin-pwa (ReloadPrompt.jsx).

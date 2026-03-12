@@ -21,6 +21,9 @@ import { useStudioConfig } from '../contexts/StudioContext';
 
 // Components (Ultra-Modular)
 import TopBar from '../components/checkin/TopBar';
+import { getHolidayName } from '../utils/holidays';
+import { subscribeMonthlyClasses } from '../services/scheduleService';
+import { STUDIO_CONFIG } from '../studioConfig';
 import CheckInInfoSection from '../components/checkin/CheckInInfoSection';
 import CheckInKeypadSection from '../components/checkin/CheckInKeypadSection';
 import MessageOverlay from '../components/checkin/MessageOverlay';
@@ -31,7 +34,7 @@ import KioskInstallGuideModal from '../components/checkin/KioskInstallGuideModal
 
 const CheckInPage = () => {
     const { config } = useStudioConfig();
-    const BUILD_VERSION = config.IDENTITY?.APP_VERSION;
+    const BUILD_VERSION = STUDIO_CONFIG.IDENTITY?.APP_VERSION;
     const logoWide = config.ASSETS?.LOGO?.WIDE || '/assets/logo_wide.webp';
     const rys200Logo = config.ASSETS?.LOGO?.RYS200 || '/assets/RYS200.webp';
     const branches = config.BRANCHES || [];
@@ -88,6 +91,11 @@ const CheckInPage = () => {
         return 'night';
     });
     const [bgImage, setBgImage] = useState(null);
+    const [isSoundEnabled, setIsSoundEnabled] = useState(true);
+    const audioContextRef = useRef(null);
+
+    // [FIX] 실시간 시간표 연동 상태 추가
+    const [monthlyClasses, setMonthlyClasses] = useState({});
     const [isOnline, setIsOnline] = useState(true);
     const [faceModelsLoaded, setFaceModelsLoaded] = useState(false);
 
@@ -101,7 +109,7 @@ const CheckInPage = () => {
     const pinRef = useRef(pin); // [PERF] Keep track of latest pin for stable callbacks
 
     // Hooks Init
-    const { needRefresh, updateServiceWorker } = usePWA();
+    const pwaContext = usePWA(); // currently mostly used for other apps, keeping import just in case
     const { checkConnection } = useNetworkMonitor();
     const { setIsOnline: setNetworkStatus } = useNetwork(); // Renamed to avoid conflict with local state
     const { speak } = useTTS();
@@ -125,7 +133,26 @@ const CheckInPage = () => {
         init();
         const vh = () => document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
         vh(); window.addEventListener('resize', vh);
-        return () => window.removeEventListener('resize', vh);
+
+        let unsubClasses = () => {};
+
+        // [FIX] 실시간 시간표 구독 시작 (오늘 포함 이번 달 데이터 전체 구독)
+        if (currentBranch) {
+            unsubClasses = subscribeMonthlyClasses(
+                currentBranch,
+                today.getFullYear(),
+                today.getMonth() + 1,
+                (data) => {
+                    console.log("[CheckInPage] Real-time schedule updated for today/month");
+                    setMonthlyClasses(data || {});
+                }
+            );
+        }
+
+        return () => {
+            unsubClasses();
+            window.removeEventListener('resize', vh);
+        };
     }, []);
 
     // [FACIAL] Background load models to avoid lag later
@@ -133,16 +160,7 @@ const CheckInPage = () => {
         loadFacialModels().then(() => setFaceModelsLoaded(true));
     }, []);
 
-    // [AUTO-UPDATE] Automatically reload when a new PWA version is detected
-    // [SAFETY] Don't reload if user is interacting (typing PIN, modal open, or message shown)
-    useEffect(() => {
-        const isInteracting = pin.length > 0 || !!message || showSelectionModal || showDuplicateConfirm || showInstructorQR || showKioskInstallGuide;
-        
-        if (needRefresh && !isInteracting) {
-            console.log('[PWA] New version detected, updating safely...');
-            updateServiceWorker(true);
-        }
-    }, [needRefresh, updateServiceWorker, pin, message, showSelectionModal, showDuplicateConfirm, showInstructorQR, showKioskInstallGuide]);
+
 
     useEffect(() => {
         setBgImage(getBgForPeriod(period));
@@ -262,11 +280,12 @@ const CheckInPage = () => {
         let isConsecutive = false;
         let isExtra = false;
 
-        // [FIX] 서버의 실제 출석 데이터(sessionCount)를 기준으로 중복/연강 판정
-        // 관리자가 삭제했다면 sessionCount는 1이 되므로 첫 출석 취급.
-        if (res.sessionCount && res.sessionCount > 1) {
+        // [FIX] 서버에서 멱등성(Idempotency)에 의해 중복으로 막아낸 경우 직접 Extra 처리 추가
+        if (res.isDuplicate) {
+            isExtra = true;
+        } else if (res.sessionCount && res.sessionCount > 1) {
             if (isDup) {
-                isExtra = true; // 정말로 단기간 내 동일 핀 재입력 + 서버에도 기록 있음
+                isExtra = true; // 정말로 단기간 내 동일 핀 재입력 + 강제 출석
             } else {
                 isConsecutive = true; // 서버에 기록이 있는데 로컬 타이머는 지남 (연강)
             }
@@ -438,38 +457,52 @@ const CheckInPage = () => {
     }, [loading, currentBranch, config.POLICIES, faceModelsLoaded, capturePhoto]);
 
     const handleKeyPress = useCallback((n) => {
-        if (pinRef.current.length === 0) { 
-            checkConnection(); 
-            // [UX/PERF] Wake up audio and server on first keystroke
-            warmupFunctions();
-            
-            // [PERF] Move Heavy Canvas Logic to the next tick to prevent keypad lag
-            // 사용자 피드백 반영: 터치 렌더링을 최우선 보장하고 작업을 순차적으로 배분
-            requestAnimationFrame(() => {
-                // 1차 지연: 화면의 숫자 첫 번째 자리가 렌더링될 충분한 시간 확보 후 가시적인 사진 캡처만 먼저
-                setTimeout(() => {
-                    capturePhoto();
-                }, 150);
-
-                // 2차 지연: CPU를 가장 많이 쓰는 AI 모델 추론은 넉넉하게 400ms 뒤로 미루어 입력 중 멈춤 방지
-                setTimeout(() => {
-                    if (faceModelsLoaded && videoRef.current) {
-                        const taskId = ++activeTaskIdRef.current;
-                        extractFaceDescriptor(videoRef.current).then(desc => {
-                            if (taskId === activeTaskIdRef.current) {
-                                lastDescriptorRef.current = desc;
-                            }
-                        }).catch(() => {});
-                    }
-                }, 400);
-            });
-        }
+        // [PERF 1] 가장 높은 우선순위: React 상태(UI) 부터 즉시 변경 
+        // 주의: 함수형 업데이트 내부에 사이드이펙트(handleSubmit 등)를 두면 렌더링이 블로킹 됨
         setPin(prev => {
             const next = prev + n;
-            if (next.length === 4) handleSubmit(next);
             return next.length <= 4 ? next : prev;
         });
-    }, [handleSubmit, checkConnection, faceModelsLoaded, capturePhoto]);
+
+        // [PERF 2] 첫 번째 숫자 입력 시 발생하는 무거운 연산을 철저하게 뒤로 지연시킴
+        if (pinRef.current.length === 0) { 
+            // (1) 가벼운 네트워크 체크와 웜업(동적 import 포함)은 첫 프레임 렌더링 후(약 50ms) 실행
+            setTimeout(() => {
+                checkConnection(); 
+                warmupFunctions();
+            }, 50);
+            
+            // (2) DOM/Canvas를 조작하는 사진 촬영은 숫자가 화면에 완전히 뜬 후(300ms) 실행
+            setTimeout(() => {
+                capturePhoto();
+            }, 300);
+
+            // (3) 메인 스레드를 가장 심하게 뻗게 만드는 AI 모델링은 제일 마지막(600ms) 여유 시간에 실행
+            setTimeout(() => {
+                if (faceModelsLoaded && videoRef.current) {
+                    const taskId = ++activeTaskIdRef.current;
+                    extractFaceDescriptor(videoRef.current).then(desc => {
+                        if (taskId === activeTaskIdRef.current) {
+                            lastDescriptorRef.current = desc;
+                        }
+                    }).catch(() => {});
+                }
+            }, 600);
+        }
+
+        // [PERF 3] 4번째 마지막 숫자 입력 시 딜레이 해결
+        // 이전에는 4번째 숫자가 입력되자마자 동기적으로 handleSubmit이 돌아가면서 
+        // 4번째 숫자가 화면에 표시될 기회를 영영 박탈당했습니다 (검은색 닷이 안 나옴).
+        const nextLength = pinRef.current.length + 1;
+        if (nextLength === 4) {
+            const finalPin = pinRef.current + n;
+            // 80ms라는 아주 짧은 시간을 주어, 브라우저가 마지막 4번째 점(Dot)을 화면에 
+            // "그릴 수 있는 1프레임의 시간"을 보장한 뒤 서버 통신 시작
+            setTimeout(() => {
+                handleSubmit(finalPin);
+            }, 80);
+        }
+    }, [handleSubmit, checkConnection, faceModelsLoaded, capturePhoto, warmupFunctions]);
 
     const handleClear = useCallback(() => {
         setPin(p => p.slice(0, -1));

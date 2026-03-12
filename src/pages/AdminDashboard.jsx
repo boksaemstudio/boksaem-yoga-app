@@ -45,6 +45,10 @@ import { usePWA } from '../hooks/usePWA';
 import ScheduleTab from '../components/admin/tabs/ScheduleTab';
 import { getContrastText } from '../utils/colors';
 
+// [REFACTOR] State Management Custom Hooks
+import { useAdminModals } from '../hooks/useAdminModals';
+import { useAdminFilters } from '../hooks/useAdminFilters';
+
 
 
 
@@ -123,18 +127,13 @@ const AdminDashboard = () => {
         todayReRegMemberIds, revenueStats
     } = adminData;
 
-    // Modals
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [showPriceModal, setShowPriceModal] = useState(false);
-    const [showTimeModal, setShowTimeModal] = useState(false);
-    const [showMessageModal, setShowMessageModal] = useState(false);
-    const [showNoticeModal, setShowNoticeModal] = useState(false);
-    const [showBulkMessageModal, setShowBulkMessageModal] = useState(false);
-    const [showExtendModal, setShowExtendModal] = useState(false);
-    const [showNoteModal, setShowNoteModal] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [bulkMessageInitialText, setBulkMessageInitialText] = useState('');
-    const [showInstallGuide, setShowInstallGuide] = useState(false); // [PWA] Install Guide State
+    // [REFACTOR] Admin UI & Modals Hook
+    const {
+        modals, openModal, closeModal,
+        selectedMember, setSelectedMember,
+        bulkMessageInitialText, setBulkMessageInitialText
+    } = useAdminModals();
+
     const { installApp } = usePWA();
 
     // [PWA] Removed auto-show install guide for Admin Dashboard to prevent repeated nagging in in-app browsers
@@ -161,23 +160,20 @@ const AdminDashboard = () => {
         return () => unsubscribe();
     }, []);
 
-    // Editing State
-    const [selectedMember, setSelectedMember] = useState(null);
-
-    // const [showScheduleSettings, setShowScheduleSettings] = useState(false);
-
-    const [searchTerm, setSearchTerm] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
-
-    // Filter Type
-    const [filterType, setFilterType] = useState('all');
-    const [selectedMemberIds, setSelectedMemberIds] = useState([]);
-    const [pushEnabled, setPushEnabled] = useState(() => {
-        const saved = localStorage.getItem('admin_push_enabled');
-        return saved === 'true' && Notification.permission === 'granted';
-    });
-    const [currentLogPage, setCurrentLogPage] = useState(1);
+    // [REFACTOR] Filters & Pagination Hook
+    const {
+        searchTerm, setSearchTerm,
+        currentPage, setCurrentPage,
+        filterType, setFilterType,
+        selectedMemberIds, setSelectedMemberIds,
+        pushEnabled, setPushEnabled,
+        currentLogPage, setCurrentLogPage,
+        itemsPerPage,
+        handleToggleFilter,
+        toggleMemberSelection,
+        selectFilteredMembers,
+        selectExpiringMembers
+    } = useAdminFilters();
 
     // Auth Logout
     const handleLogout = async () => {
@@ -311,7 +307,7 @@ const AdminDashboard = () => {
     const handleInstallClick = async () => {
         const result = await installApp();
         if (!result) {
-            setShowInstallGuide(true);
+            openModal('installGuide');
         }
     };
 
@@ -435,8 +431,7 @@ const AdminDashboard = () => {
 
 
     const handleOpenEdit = (member) => {
-        setSelectedMember(member);
-        setShowEditModal(true);
+        openModal('edit', { member });
     };
 
     const handleOpenEditById = useCallback((memberId) => {
@@ -509,34 +504,6 @@ const AdminDashboard = () => {
         } else {
             alert('알림 설정 중 문제가 발생했습니다.');
         }
-    };
-
-    const selectFilteredMembers = (filteredList) => {
-        const allFilteredIds = filteredList.map(m => m.id);
-        const allSelected = allFilteredIds.every(id => selectedMemberIds.includes(id));
-
-        if (allSelected) {
-            setSelectedMemberIds(prev => prev.filter(id => !allFilteredIds.includes(id)));
-        } else {
-            setSelectedMemberIds(prev => [...new Set([...prev, ...allFilteredIds])]);
-        }
-    };
-
-    const toggleMemberSelection = (id) => {
-        setSelectedMemberIds(prev =>
-            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-        );
-    };
-
-
-
-    const handleToggleFilter = (type) => {
-        setFilterType(prev => prev === type ? 'all' : type);
-        setCurrentPage(1);
-    };
-
-    const selectExpiringMembers = () => {
-        handleToggleFilter('expiring');
     };
 
     // --- RENDER ---
@@ -686,13 +653,13 @@ const AdminDashboard = () => {
                             setCurrentPage={setCurrentPage}
                             itemsPerPage={itemsPerPage}
                             handleOpenEdit={handleOpenEdit}
-                            setShowAddModal={setShowAddModal}
-                            setShowBulkMessageModal={setShowBulkMessageModal}
+                            setShowAddModal={(b) => b ? openModal('add') : closeModal('add')}
+                            setShowBulkMessageModal={(b) => b ? openModal('bulkMessage') : closeModal('bulkMessage')}
                             pushTokens={pushTokens}
                             getDormantSegments={getDormantSegments}
                             setBulkMessageInitialText={setBulkMessageInitialText}
                             setActiveTab={setActiveTab}
-                            onNoteClick={(m) => { setSelectedMember(m); setShowNoteModal(true); }}
+                            onNoteClick={(m) => openModal('note', { member: m })}
                             todayReRegMemberIds={todayReRegMemberIds}
                         />
                 </div>
@@ -711,7 +678,7 @@ const AdminDashboard = () => {
                 )}
 
                 {activeTab === 'notices' && (
-                    <NoticesTab notices={notices} setShowNoticeModal={setShowNoticeModal} refreshData={refreshData} />
+                    <NoticesTab notices={notices} setShowNoticeModal={(b) => b ? openModal('notice') : closeModal('notice')} refreshData={refreshData} />
                 )}
 
                 {activeTab === 'logs' && (
@@ -741,35 +708,35 @@ const AdminDashboard = () => {
 
 
             {/* --- MODALS --- */}
-            < MemberAddModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} onSuccess={refreshData} />
+            <MemberAddModal isOpen={modals.add} onClose={() => closeModal('add')} onSuccess={refreshData} />
             <MemberNoteModal
-                isOpen={showNoteModal}
-                onClose={() => setShowNoteModal(false)}
+                isOpen={modals.note}
+                onClose={() => closeModal('note')}
                 key={selectedMember?.id || 'note-modal-empty'}
                 member={selectedMember && members.find(m => m.id === selectedMember.id) || selectedMember}
                 onSuccess={refreshData}
             />
-            <NoticeModal isOpen={showNoticeModal} onClose={() => setShowNoticeModal(false)} onSuccess={refreshData} />
+            <NoticeModal isOpen={modals.notice} onClose={() => closeModal('notice')} onSuccess={refreshData} />
             <BulkMessageModal
-                isOpen={showBulkMessageModal}
-                onClose={() => { setShowBulkMessageModal(false); setBulkMessageInitialText(''); }}
+                isOpen={modals.bulkMessage}
+                onClose={() => closeModal('bulkMessage')}
                 selectedMemberIds={selectedMemberIds}
-                memberCount={selectedMemberIds.length} // [FIX] Pass memberCount
+                memberCount={selectedMemberIds.length}
                 initialMessage={bulkMessageInitialText}
             />
-            <MessageModal isOpen={showMessageModal} onClose={() => setShowMessageModal(false)} member={selectedMember && members.find(m => m.id === selectedMember.id) || selectedMember} />
-            <ExtensionModal isOpen={showExtendModal} onClose={() => setShowExtendModal(false)} member={selectedMember && members.find(m => m.id === selectedMember.id) || selectedMember} onSuccess={refreshData} />
+            <MessageModal isOpen={modals.message} onClose={() => closeModal('message')} member={selectedMember && members.find(m => m.id === selectedMember.id) || selectedMember} />
+            <ExtensionModal isOpen={modals.extend} onClose={() => closeModal('extend')} member={selectedMember && members.find(m => m.id === selectedMember.id) || selectedMember} onSuccess={refreshData} />
 
-            <TimeTableModal isOpen={showTimeModal} onClose={() => setShowTimeModal(false)} images={images} setOptimisticImages={setOptimisticImages} optimisticImages={optimisticImages} />
-            <PriceTableModal isOpen={showPriceModal} onClose={() => setShowPriceModal(false)} images={images} setOptimisticImages={setOptimisticImages} optimisticImages={optimisticImages} />
-            <InstallGuideModal isOpen={showInstallGuide} onClose={() => setShowInstallGuide(false)} />
+            <TimeTableModal isOpen={modals.time} onClose={() => closeModal('time')} images={images} setOptimisticImages={setOptimisticImages} optimisticImages={optimisticImages} />
+            <PriceTableModal isOpen={modals.price} onClose={() => closeModal('price')} images={images} setOptimisticImages={setOptimisticImages} optimisticImages={optimisticImages} />
+            <InstallGuideModal isOpen={modals.installGuide} onClose={() => closeModal('installGuide')} />
 
             {
-                showEditModal && selectedMember && (
+                modals.edit && selectedMember && (
                     <AdminMemberDetailModal
                         member={members.find(m => m.id === selectedMember.id) || selectedMember}
                         memberLogs={logs.filter(log => log.memberId === selectedMember.id)}
-                        onClose={() => setShowEditModal(false)}
+                        onClose={() => closeModal('edit')}
                         pricingConfig={pricingConfig}
                         onUpdateMember={handleMemberModalUpdate}
                         onAddSalesRecord={handleAddSalesRecord}

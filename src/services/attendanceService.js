@@ -31,7 +31,7 @@ export const attendanceService = {
   },
 
   setupAttendanceListener() {
-    console.log("[attendanceService] Starting Attendance Listener...");
+    console.log("[attendanceService] setupAttendanceListener called - optimized to avoid global onSnapshot read spikes.");
     try {
       if (attendanceListenerUnsubscribe) {
         console.log("[attendanceService] Cleaning up existing attendance listener...");

@@ -132,6 +132,9 @@ export const storageService = {
       const members = await memberService.loadAllMembers();
       console.log(`[Storage] Kiosk member cache ready: ${members.length} members`);
       
+      // [CRITICAL FIX] Enable real-time sync for Kiosk mode so duplicate check-ins instantly reflect credit deduction
+      memberService.setupMemberListener();
+      
       // [PERF] Aggressive Pre-fetch: Load today, yesterday, and tomorrow's classes
       try {
         const today = new Date();
@@ -157,10 +160,11 @@ export const storageService = {
         // [ALWAYS-ON] Periodic background refresh (every 10m)
         if (!this._refreshInterval) {
           this._refreshInterval = setInterval(() => {
-            console.log("[Storage] Scheduled background refresh for today's classes and member cache...");
+            console.log("[Storage] Scheduled background refresh for today's classes...");
             branches.forEach(bid => this._refreshDailyClassCache(bid));
-            // [UX] Refresh members periodically in Kiosk mode to prevent stale "Expired" states
-            memberService.loadAllMembers(true);
+            // [FIX 2.3 Firebase Fee Spike]
+            // memberService.loadAllMembers(true);를 여기서 호출하지 않습니다.
+            // Kiosk는 findMembersByPhone 호출 시 필요한 경우 Cloud Function 백업을 사용합니다.
           }, 10 * 60 * 1000); // 10m
         }
 
@@ -175,9 +179,11 @@ export const storageService = {
               if (snapshot.exists()) {
                 const data = snapshot.data();
                 if (data.lastMemberUpdate && data.lastMemberUpdate > (this._lastKioskSync || '')) {
-                  console.log('[Storage] Kiosk sync triggered by Admin. Refreshing members...');
+                  console.log('[Storage] Kiosk sync triggered. Ignoring full member fetch to save Firebase Reads.');
                   this._lastKioskSync = data.lastMemberUpdate;
-                  memberService.loadAllMembers(true);
+                  // [FIX 2.3 Firebase Fee Spike] 
+                  // memberService.loadAllMembers(true) 호출 삭제.
+                  // 전체 회원 목록을 무조건 다운로드하는 것은 요금 폭탄을 유발합니다.
                 }
               }
             }, (err) => {
@@ -189,9 +195,10 @@ export const storageService = {
 
           // [FIX] Network Resilience - Reconnect on Wake/Online
           window.addEventListener('online', () => {
-              console.log('[Storage] Network reconnected. Restoring Kiosk sync listener and forcing refresh...');
+              console.log('[Storage] Network reconnected. Restoring Kiosk sync listener...');
               setupSyncListener();
-              memberService.loadAllMembers(true); // 강제 1회 동기화 (오프라인 동안 놓친 업데이트 보완)
+              // [FIX 2.3 Firebase Fee Spike] 강제 1회 동기화에서 멤버 목록 전체 다운로드 금지
+              // memberService.loadAllMembers(true); 
           });
         } catch (syncErr) {
           console.error('[Storage] Setup kiosk sync failed:', syncErr);
@@ -205,8 +212,10 @@ export const storageService = {
       return;
     }
 
-    // [NEW] Real-time Member Sync
-    memberService.setupMemberListener(); // Ensure this is called!
+    // [NEW] Real-time Member Sync (unless already set by kiosk mode)
+    if (mode !== 'kiosk') {
+        memberService.setupMemberListener();
+    }
     
     // [NEW] Real-time Attendance Sync
     attendanceService.setupAttendanceListener();

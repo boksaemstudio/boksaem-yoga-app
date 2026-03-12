@@ -51,26 +51,28 @@ const InstructorSchedule = ({ instructorName }) => {
         loadData();
     }, [year, month, branches]);
 
-    // Load Attendance for selected date
     useEffect(() => {
         if (!selectedDate) return;
         
-        const loadDateAttendance = async () => {
-            setLoadingAttendance(true);
-            try {
-                // [FIX] Load ALL attendance for the date without branchId filter
-                // The UI filter (classTime + branchId matching) handles proper assignment
-                const all = await storageService.getAttendanceByDate(selectedDate);
-                console.log(`[DEBUG] Loaded attendance for ${selectedDate}:`, all.length, 'records');
-                setDateAttendance(all || []);
-            } catch (e) {
-                console.error('Failed to load date attendance:', e);
-            } finally {
+        setLoadingAttendance(true);
+        let isInitialLoad = true;
+
+        // [FIX] 수동 조회가 아닌 실시간 소켓으로 전환하여 관리자 삭제 등 즉시 반영
+        const unsubscribe = storageService.subscribeAttendance(selectedDate, null, (records) => {
+            console.log(`[DEBUG] Real-time attendance updated for ${selectedDate}:`, records?.length || 0, 'records');
+            setDateAttendance(records || []);
+            
+            if (isInitialLoad) {
                 setLoadingAttendance(false);
+                isInitialLoad = false;
             }
-        };
-        loadDateAttendance();
+        });
+
         setExpandedClassKey(null); // Reset expansion on date change
+        
+        return () => {
+            if (unsubscribe) unsubscribe();
+        };
     }, [selectedDate]);
 
     const daysInMonth = new Date(year, month, 0).getDate();

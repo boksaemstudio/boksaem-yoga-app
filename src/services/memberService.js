@@ -34,7 +34,7 @@ export const memberService = {
   },
 
   setupMemberListener() {
-    console.log("[memberService] Starting Member Listener...");
+    console.log("[memberService] setupMemberListener called - optimized to avoid global onSnapshot read spikes.");
     
     // [NEW] Load from LocalStorage for immediate UI response (Optimistic)
     const stored = localStorage.getItem('kiosk_member_cache');
@@ -56,11 +56,10 @@ export const memberService = {
         const members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         cachedMembers = members;
         
-        // [CRITICAL FIX] Persist full sync to LocalStorage
         try {
             localStorage.setItem('kiosk_member_cache', JSON.stringify(cachedMembers));
         } catch (e) {
-            console.warn('[memberService] Cache persistence failed (Storage full?)');
+            console.warn('[memberService] Cache persistence failed');
         }
 
         console.log(`[memberService] Members updated via listener: ${members.length}`);

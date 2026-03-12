@@ -24,6 +24,9 @@ import CustomGlassModal from '../components/common/CustomGlassModal';
 import InstallGuideModal from '../components/InstallGuideModal';
 import InstallBanner from '../components/common/InstallBanner';
 
+// [REFACTOR] UI State hook
+import { useMemberUI } from '../hooks/useMemberUI';
+
 import SocialLinks from '../components/profile/SocialLinks';
 import AttendanceHistory from '../components/profile/AttendanceHistory';
 import RecentAttendance from '../components/profile/RecentAttendance';
@@ -74,9 +77,6 @@ const MemberProfile = () => {
 
     const [member, setMember] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('home');
-    const [confirmModal, setConfirmModal] = useState({ isOpen: false, message: '', onConfirm: null });
-    const [selectedNoticeId, setSelectedNoticeId] = useState(null);
     const { language, t } = useLanguage();
 
     const [langLabelIndex, setLangLabelIndex] = useState(0);
@@ -86,12 +86,19 @@ const MemberProfile = () => {
     const lastAiExpArgs = useRef('');
     const lastAiAnalysisArgs = useRef('');
 
-    // Added for schedule view
-    const [scheduleView, setScheduleView] = useState('calendar');
-    const [scheduleMonth, setScheduleMonth] = useState('current'); // 'current' or 'next'
-    
-    // PWA Install State
-    const [showInstallGuide, setShowInstallGuide] = useState(false); // [PWA] Install Guide
+    // [REFACTOR] Member UI Hook
+    const {
+        activeTab, setActiveTab,
+        selectedNoticeId, setSelectedNoticeId,
+        scheduleView, setScheduleView,
+        scheduleMonth, setScheduleMonth,
+        scheduleBranch, setScheduleBranch,
+        lightboxImage, setLightboxImage,
+        greetingVisible, setGreetingVisible,
+        modals, openConfirmModal, closeConfirmModal,
+        openInstallGuide, closeInstallGuide,
+        loginForm, setLoginFormValue, setLoginForm
+    } = useMemberUI();
 
     // [Push] Auto Push Permission Request
     useEffect(() => {
@@ -247,7 +254,6 @@ const MemberProfile = () => {
     const [aiAnalysis, setAiAnalysis] = useState(null);
     const [individualMessages, setIndividualMessages] = useState([]);
     const [messages, setMessages] = useState([]);
-    const [lightboxImage, setLightboxImage] = useState(null);
 
     const [pushStatus, setPushStatus] = useState(() => {
         if (typeof Notification === 'undefined') return 'default';
@@ -260,15 +266,6 @@ const MemberProfile = () => {
     const pwaCtx = useContext(PWAContext) || {};
     const { deferredPrompt, installApp, deviceOS } = pwaCtx;
     const isPwaStandalone = pwaCtx.isStandalone;
-
-    // Login States
-    const [name, setName] = useState('');
-    const [phone, setPhone] = useState('');
-    const [error, setError] = useState('');
-
-    const [scheduleBranch, setScheduleBranch] = useState('gwangheungchang'); // Default, will update on auth
-
-    const [greetingVisible, setGreetingVisible] = useState(true);
 
     // Destructure styles
     const { authInput: authInputStyle, authButton: authButtonStyle } = profileStyles;
@@ -338,12 +335,12 @@ const MemberProfile = () => {
                     setPushStatus('granted');
                 }
             } else {
-                setError(t('errorMemberNotFound') || "회원 정보를 찾을 수 없습니다.");
+                setLoginFormValue('error', t('errorMemberNotFound') || "회원 정보를 찾을 수 없습니다.");
                 safeSessionStorage.removeItem('member');
             }
         } catch (e) {
             console.error("Load member failed:", e);
-            setError(t('unknownError') || "알 수 없는 오류가 발생했습니다.");
+            setLoginFormValue('error', t('unknownError') || "알 수 없는 오류가 발생했습니다.");
         } finally {
             setLoading(false);
         }
@@ -583,11 +580,11 @@ const MemberProfile = () => {
 
     async function handleLogin(e) {
         e.preventDefault();
-        const trimmedName = name.trim();
-        const trimmedPhone = phone.trim();
+        const trimmedName = loginForm.name.trim();
+        const trimmedPhone = loginForm.phone.trim();
 
         if (!trimmedName || trimmedPhone.length < 4) {
-            setError(t('inputError'));
+            setLoginFormValue('error', t('inputError'));
             return;
         }
 
@@ -611,12 +608,12 @@ const MemberProfile = () => {
                 // [Fix] Reset token on every login to ensure delivery
                 storageService.requestPushPermission(result.member.id).catch(err => console.warn(err));
             } else {
-                setError(result.message);
+                setLoginFormValue('error', result.message);
                 setLoading(false);
             }
         } catch (err) {
             console.error(err);
-            setError(t('loginFailed') || "로그인 실패");
+            setLoginFormValue('error', t('loginFailed') || "로그인 실패");
             setLoading(false);
         }
     }
@@ -625,9 +622,7 @@ const MemberProfile = () => {
         if (window.confirm(t('logoutConfirm'))) {
             safeSessionStorage.removeItem('member');
             setMember(null);
-            setName('');
-            setPhone('');
-            setError('');
+            setLoginForm({ name: '', phone: '', error: '' });
         }
     };
 
@@ -775,13 +770,13 @@ const MemberProfile = () => {
 
                         <div style={{ textAlign: 'left', marginBottom: '4px' }}>
                             <label style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginLeft: '12px' }}>{t('nameLabel')}</label>
-                            <input style={{ ...authInputStyle, marginTop: '4px' }} placeholder={t('namePlaceholder')} value={name} onChange={e => setName(e.target.value)} lang="ko" type="text" inputMode="text" autoComplete="name" spellCheck="false" enterKeyHint="next" />
+                            <input style={{ ...authInputStyle, marginTop: '4px' }} placeholder={t('namePlaceholder')} value={loginForm.name} onChange={e => setLoginFormValue('name', e.target.value)} lang="ko" type="text" inputMode="text" autoComplete="name" spellCheck="false" enterKeyHint="next" />
                         </div>
                         <div style={{ textAlign: 'left', marginBottom: '8px' }}>
                             <label style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginLeft: '12px' }}>{t('phoneLabel')}</label>
-                            <input style={{ ...authInputStyle, marginTop: '4px' }} placeholder={t('phonePlaceholder')} value={phone} onChange={e => setPhone(e.target.value)} maxLength={4} type="tel" inputMode="numeric" pattern="[0-9]*" autoComplete="tel-local-suffix" enterKeyHint="go" />
+                            <input style={{ ...authInputStyle, marginTop: '4px' }} placeholder={t('phonePlaceholder')} value={loginForm.phone} onChange={e => setLoginFormValue('phone', e.target.value)} maxLength={4} type="tel" inputMode="numeric" pattern="[0-9]*" autoComplete="tel-local-suffix" enterKeyHint="go" />
                         </div>
-                        {error && <p style={{ color: 'var(--accent-error)', fontSize: '0.9rem', marginBottom: '10px' }}>{error}</p>}
+                        {loginForm.error && <p style={{ color: 'var(--accent-error)', fontSize: '0.9rem', marginBottom: '10px' }}>{loginForm.error}</p>}
                         <button type="submit" disabled={loading} style={{ ...authButtonStyle, marginTop: '10px' }}>{t('checkRecordBtn')}</button>
                     </form>
                     <p style={{ marginTop: '30px', fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
@@ -1137,12 +1132,12 @@ const MemberProfile = () => {
             )}
 
             {/* Confirm/Alert Modal */}
-            {confirmModal.isOpen && (
+            {modals.confirm.isOpen && (
                 <CustomGlassModal
-                    message={confirmModal.message}
-                    isConfirm={confirmModal.isConfirm}
-                    onConfirm={confirmModal.onConfirm}
-                    onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                    message={modals.confirm.message}
+                    isConfirm={modals.confirm.isConfirm}
+                    onConfirm={modals.confirm.onConfirm}
+                    onCancel={closeConfirmModal}
                 />
             )}
 
@@ -1151,8 +1146,8 @@ const MemberProfile = () => {
                 <ImageLightbox src={lightboxImage} onClose={() => setLightboxImage(null)} />
             )}
 
-            <InstallBanner onManualInstallClick={() => setShowInstallGuide(true)} />
-            <InstallGuideModal isOpen={showInstallGuide} onClose={() => setShowInstallGuide(false)} />
+            <InstallBanner onManualInstallClick={openInstallGuide} />
+            <InstallGuideModal isOpen={modals.installGuide} onClose={closeInstallGuide} />
             
             <div style={{ padding: '40px 20px', textAlign: 'center', opacity: 0.1, fontSize: '0.6rem', color: 'white' }}>
                 v1.0.5 | {config.IDENTITY?.NAME?.toLowerCase().replace(/\s/g, '-') || 'studio'}

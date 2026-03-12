@@ -29,6 +29,13 @@
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    
+    /* [PERF 5] GPU Hardware Acceleration for Zero-Lag touch response */
+    will-change: background-color, border-color, transform;
+    transform: translateZ(0); 
+    backface-visibility: hidden;
+    perspective: 1000px;
+    transition: background-color 0.05s ease-out, border-color 0.05s ease-out, transform 0.05s ease-out;
 }
 
 /* Simplified active state without scale to save CPU */
@@ -36,6 +43,7 @@
 .keypad-btn.touch-active {
     background-color: rgba(255, 255, 255, 0.25);
     border-color: var(--primary-gold);
+    transform: scale(0.96) translateZ(0); /* Add subtle, hardware-accelerated click feel */
 }
 
 .keypad-btn.clear-btn {

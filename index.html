@@ -3,39 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <script>
-    // [NUCLEAR PWA KILLER] Unconditionally unregister all service workers and clear caches
-    // This guarantees that the persistent v11 cache on users' devices is wiped out.
-    (function() {
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          if (registrations.length > 0) {
-            console.warn('[PWA] Found active Service Workers. Unregistering to force update to v12...');
-            
-            // Clear all CacheStorage
-            if ('caches' in window) {
-              caches.keys().then(function(names) {
-                names.forEach(function(name) { caches.delete(name); });
-              });
-            }
 
-            // Unregister all SWs
-            var unregisterPromises = registrations.map(function(reg) {
-              return reg.unregister();
-            });
-
-            // Reload page once all SWs are dead
-            Promise.all(unregisterPromises).then(function() {
-              console.warn('[PWA] Service Workers purged. Reloading page...');
-              window.location.reload(true);
-            });
-          } else {
-            console.log('[PWA] No Service Workers found. Safe to proceed.');
-          }
-        });
-      }
-    })();
-  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />

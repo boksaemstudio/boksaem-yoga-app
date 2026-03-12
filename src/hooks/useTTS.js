@@ -21,7 +21,7 @@ export const useTTS = () => {
             'success': audioSuccess,
             'success_consecutive': audioSuccessConsecutive, // [NEW] 연강 출석입니다
             'success_extra': audioSuccessExtra,             // [NEW] 추가 출석입니다
-            'duplicate': audioSuccess,                      // 기본 "출석되었습니다"
+            'duplicate': audioSuccessExtra,                 // [FIX] 중복 출석 안내 오디오 매핑 교체
             'denied': audioDenied,
             'error': audioError,
             'last_session': audioSuccess

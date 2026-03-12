@@ -39,10 +39,9 @@ const Keypad = memo(({ onKeyPress, onClear, disabled }) => {
 Keypad.displayName = 'Keypad';
 
 // Extracted Button Component with memo for performance
-// [FIX] 롱프레스 시에도 입력되도록 touchstart에서 즉시 처리 + contextmenu 차단
+// [FIX] 롱프레스 시에도 입력되도록 touchstart에서 즉시 처리 + contextmenu 차단 + Zero-Lag 렌더링
 const KeyButton = memo(({ value, onPress, disabled, children, special, className, style }) => {
     const touchHandledRef = useRef(false);
-    const [isActive, setIsActive] = useState(false);
 
     const handleAction = useCallback((e) => {
         if (disabled) return;
@@ -51,34 +50,47 @@ const KeyButton = memo(({ value, onPress, disabled, children, special, className
         else onPress();
     }, [disabled, onPress, value]);
 
+    // [PERF 4] React State 리렌더링 완벽 제거
+    // 터치 시마다 useState(isActive)가 발동하여 9개 전체 버튼을 리렌더링하는 것을 방지
+    // DOM 클래스를 직접 조작하여 CSS :active 애니메이션만 즉시 구동시킴 (Zero-Lag)
+    const addActiveStyle = (e) => {
+        if (disabled || !e.currentTarget) return;
+        e.currentTarget.classList.add('touch-active');
+    };
+    
+    const removeActiveStyle = (e) => {
+        if (!e.currentTarget) return;
+        e.currentTarget.classList.remove('touch-active');
+    };
+
     return (
         <button
-            className={`keypad-btn ${className || ''} ${special || ''} ${isActive ? 'touch-active' : ''}`}
+            className={`keypad-btn ${className || ''} ${special || ''}`}
             // [FIX] 롱프레스 시 브라우저 기본 컨텍스트 메뉴(다운로드/공유/인쇄) 완전 차단
             onContextMenu={(e) => e.preventDefault()}
-            // [FIX] 터치 시작 시점에 즉시 입력 처리 → 롱프레스와 무관하게 동작
+            // [FIX] 터치 시작 시점에 즉시 입력 처리 → DOM 조작으로 0ms 렌더링
             onTouchStart={(e) => {
-                e.preventDefault(); // 브라우저 기본 동작(스크롤, 롱프레스 메뉴 등) 차단
-                if (disabled) return; // [FIX] touchStart 무시
+                e.preventDefault(); // 기본 스크롤 및 롱프레스 방지
+                if (disabled) return;
                 
-                setIsActive(true);
                 touchHandledRef.current = true;
+                addActiveStyle(e);
                 handleAction(e);
             }}
-            onTouchEnd={() => setIsActive(false)}
-            onTouchCancel={() => setIsActive(false)}
-            // [FIX] PC 마우스 클릭은 정상 유지, 터치 후 중복 click은 무시
+            onTouchEnd={removeActiveStyle}
+            onTouchCancel={removeActiveStyle}
+            // [FIX] PC 마우스 클릭 시
             onClick={(e) => {
-                if (disabled) return; // [FIX] 혹시 모를 안전장치
+                if (disabled) return;
                 if (touchHandledRef.current) {
                     touchHandledRef.current = false;
-                    return; // 터치에서 이미 처리됨, 중복 방지
+                    return; // 터치에서 이미 처리됨
                 }
                 handleAction(e);
             }}
-            onMouseDown={() => !disabled && setIsActive(true)}
-            onMouseUp={() => setIsActive(false)}
-            onMouseLeave={() => setIsActive(false)}
+            onMouseDown={addActiveStyle}
+            onMouseUp={removeActiveStyle}
+            onMouseLeave={removeActiveStyle}
             disabled={disabled}
             style={{
                 touchAction: 'manipulation',

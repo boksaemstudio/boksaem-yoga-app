@@ -10,7 +10,7 @@ export const STUDIO_CONFIG = {
         LOGO_TEXT: "BOKSAEM",
         SLOGAN: "나를 만나는 고요한 시간",
         DESCRIPTION: "전통 요가의 깊이를 현대적 감각으로 전달하는 프리미엄 요가 스튜디오",
-        APP_VERSION: "2026.03.12 06:20",
+        APP_VERSION: "2026.03.12 07:16",
         FAVICON: "/favicon.ico",
     },
 
