@@ -264,7 +264,7 @@ const StudioSettingsTab = () => {
                 )}
             </div>
 
-            <div style={{ height: '40px' }} />
+            <div style={{ height: '200px' }} />
         </div>
     );
 };
