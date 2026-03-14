@@ -362,6 +362,140 @@ class AIService {
 
     // Helper to get Gemini Client if needed directly
     getClient() { return this.client; }
+
+    /**
+     * ✅ 비정형 문서(이미지, 엑셀 텍스트) 파싱 (Timetable, Pricing, Members)
+     */
+    async parseDocument(docType, base64Image, textData) {
+        let prompt = "";
+        let schema = null;
+
+        if (docType === 'timetable') {
+            prompt = `
+                Extract the yoga/pilates class schedule from the provided image.
+                Return ONLY a valid JSON object matching the exact schema. Ensure time is in HH:mm format. 
+                If the instructor name is not visible, leave it empty.
+                For 'day', use standard Korean days: '월', '화', '수', '목', '금', '토', '일'.
+            `;
+            schema = {
+                type: SchemaType.OBJECT,
+                properties: {
+                    schedule: {
+                        type: SchemaType.ARRAY,
+                        items: {
+                            type: SchemaType.OBJECT,
+                            properties: {
+                                day: { type: SchemaType.STRING, description: "Day of the week (e.g., '월')" },
+                                time: { type: SchemaType.STRING, description: "Class time in HH:mm format (e.g., '19:30')" },
+                                className: { type: SchemaType.STRING, description: "Name of the class (e.g., '아쉬탕가')" },
+                                instructor: { type: SchemaType.STRING, description: "Instructor name if available" }
+                            },
+                            required: ["day", "time", "className"]
+                        }
+                    }
+                },
+                required: ["schedule"]
+            };
+        } else if (docType === 'pricing') {
+            prompt = `
+                Extract the membership pricing list from the provided image.
+                Return ONLY a valid JSON object matching the exact schema.
+                For 'price', use integers only (e.g., 150000). Remove currency symbols.
+                For 'credits', use 9999 to represent unlimited credits (무제한).
+            `;
+            schema = {
+                type: SchemaType.OBJECT,
+                properties: {
+                    pricing: {
+                        type: SchemaType.ARRAY,
+                        items: {
+                            type: SchemaType.OBJECT,
+                            properties: {
+                                name: { type: SchemaType.STRING, description: "Membership name (e.g., '주 2회 1개월')" },
+                                months: { type: SchemaType.INTEGER, description: "Duration in months" },
+                                credits: { type: SchemaType.INTEGER, description: "Number of credits allowed. Use 9999 for unlimited." },
+                                price: { type: SchemaType.INTEGER, description: "Price in KRW as an integer" },
+                                note: { type: SchemaType.STRING, description: "Any additional notes or conditions (e.g., '1회 정지 가능')" }
+                            },
+                            required: ["name", "price"]
+                        }
+                    }
+                },
+                required: ["pricing"]
+            };
+        } else if (docType === 'members') {
+            prompt = `
+                Parse the following unstructured member list data (likely copied from Excel or CSV) and map it to our structured schema.
+                Return ONLY a valid JSON object matching the exact schema.
+                - 'phone' should be formatted as XXX-XXXX-XXXX if possible.
+                - 'credits' should be an integer. If unlimited (무제한), use 9999.
+                - 'endDate' should be a string in YYYY-MM-DD format. If not explicitly found, try to infer it from registration dates and months, or leave null.
+                
+                Data to parse:
+                ${textData || 'No text data provided.'}
+            `;
+            schema = {
+                type: SchemaType.OBJECT,
+                properties: {
+                    members: {
+                        type: SchemaType.ARRAY,
+                        items: {
+                            type: SchemaType.OBJECT,
+                            properties: {
+                                name: { type: SchemaType.STRING, description: "Member name" },
+                                phone: { type: SchemaType.STRING, description: "Phone number (XXX-XXXX-XXXX)" },
+                                credits: { type: SchemaType.INTEGER, description: "Remaining credits. 9999 for unlimited." },
+                                endDate: { type: SchemaType.STRING, description: "Expiration date (YYYY-MM-DD)" },
+                                note: { type: SchemaType.STRING, description: "Any extra notes" }
+                            },
+                            required: ["name"]
+                        }
+                    }
+                },
+                required: ["members"]
+            };
+        } else {
+            throw new Error(`Invalid docType: ${docType}`);
+        }
+
+        const contents = [];
+        if (base64Image) {
+            // Strip the data:image/...;base64, part if present
+            const cleanBase64 = base64Image.replace(/^data:image\/(png|jpeg|webp);base64,/, '');
+            const mimeType = base64Image.match(/^data:(image\/[a-zA-Z]*);base64,/)?.[1] || "image/jpeg";
+            contents.push({
+                role: "user",
+                parts: [
+                    { inlineData: { data: cleanBase64, mimeType } },
+                    { text: prompt }
+                ]
+            });
+        } else {
+            contents.push({ role: "user", parts: [{ text: prompt }] });
+        }
+
+        try {
+            console.log(`Parsing document [${docType}] with Gemini Vision/Text API...`);
+            const result = await this.jsonModel.generateContent({
+                contents,
+                generationConfig: {
+                    ...this.jsonConfig,
+                    responseSchema: schema
+                }
+            });
+
+            const text = result.response.text();
+            let cleanText = text.replace(/```json\s?|```/g, '').trim();
+            const firstBrace = cleanText.indexOf('{');
+            const lastBrace = cleanText.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1) cleanText = cleanText.substring(firstBrace, lastBrace + 1);
+
+            return JSON.parse(cleanText);
+        } catch (e) {
+            console.error(`parseDocument [${docType}] failed:`, e.message);
+            throw new Error(`AI Parsing failed: ${e.message}`);
+        }
+    }
 }
 
 module.exports = AIService;

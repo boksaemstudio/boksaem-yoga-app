@@ -8,6 +8,7 @@
 
 import { functions } from "../../firebase";
 import { httpsCallable } from "firebase/functions";
+import { STUDIO_CONFIG as config } from "../../studioConfig";
 
 // localStorage 안전 접근 헬퍼
 const safeGetItem = (key) => { try { return localStorage.getItem(key); } catch { return null; } };

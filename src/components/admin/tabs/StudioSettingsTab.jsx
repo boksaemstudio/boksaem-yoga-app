@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useStudioConfig } from '../../../contexts/StudioContext';
-import { Gear, Palette, ShieldCheck, MapPin, Info, FloppyDisk, ArrowsClockwise } from '@phosphor-icons/react';
+import { Gear, Palette, ShieldCheck, MapPin, Info, FloppyDisk, ArrowsClockwise, Robot } from '@phosphor-icons/react';
 import { getContrastText } from '../../../utils/colors';
+import SmartDataImporter from '../data-import/SmartDataImporter';
 
 const StudioSettingsTab = () => {
     const { config, updateConfig, refreshConfig, loading } = useStudioConfig();
     const [localConfig, setLocalConfig] = useState(config);
     const [isSaving, setIsSaving] = useState(false);
+    const [showImporter, setShowImporter] = useState(false);
 
     useEffect(() => {
         if (config && Object.keys(config).length > 0) {
@@ -239,6 +241,29 @@ const StudioSettingsTab = () => {
                 </div>
             </div>
             
+            {/* 5. Hidden Data Migration (AI) */}
+            <div style={{ marginTop: '20px', padding: '10px 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--text-tertiary)', fontSize: '0.8rem', userSelect: 'none' }}>
+                    <input 
+                        type="checkbox" 
+                        checked={showImporter} 
+                        onChange={(e) => setShowImporter(e.target.checked)} 
+                        style={{ opacity: 0.5 }}
+                    />
+                    요가원 초기 데이터 마이그레이션 (AI 기반) 
+                    <Robot size={14} weight="fill" style={{ opacity: showImporter ? 1 : 0.3 }} color={showImporter ? 'var(--primary-gold)' : 'currentColor'} />
+                </label>
+
+                {showImporter && (
+                    <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
+                        <SmartDataImporter onImportComplete={(type, data) => {
+                            console.log('Imported:', type, data);
+                            // TODO: Add logic to save the imported data to DB
+                        }} />
+                    </div>
+                )}
+            </div>
+
             <div style={{ height: '40px' }} />
         </div>
     );

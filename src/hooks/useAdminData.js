@@ -98,13 +98,25 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         setLoadingInsight(true);
         
         try {
+            let safeBranch = currentBranch;
+            if (!safeBranch || safeBranch === 'undefined') safeBranch = 'all';
+            
+            let branchNameForPrompt = safeBranch;
+            if (safeBranch !== 'all') {
+                const branchObj = STUDIO_CONFIG?.BRANCHES?.find(b => b.id === safeBranch);
+                if (branchObj && branchObj.name) {
+                    // Remove '점' from the end if it exists, since the cloud function appends '점'
+                    branchNameForPrompt = branchObj.name.replace(/점$/, '');
+                }
+            }
+
             const statsData = {
                 activeCount: currentSummary.activeMembers,
                 totalMembers: currentSummary.totalMembers,
                 attendanceToday: currentSummary.todayAttendance,
                 expiringCount: currentSummary.expiringMembersCount,
                 topClasses: currentTodayClasses.slice(0, 3),
-                branch: currentBranch, // [FIX] undefined점 방지: 지점 정보 전달
+                branch: branchNameForPrompt, // [FIX] undefined점 방지 및 실제 지점명 전달
                 todayRegistration: currentSummary.todayRegistration,
                 newRegCount: currentSummary.todayNewCount,
                 reRegCount: currentSummary.todayReRegCount,

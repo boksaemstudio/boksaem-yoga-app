@@ -131,7 +131,7 @@ export const useMeditationAudio = (ttcEnabled, isPlayingRef, step, logDebug, set
             currentAudioRef.current = audio;
 
             setTtsState && setTtsState({ isSpeaking: true, engine: 'Cloud TTS', volume: audio.volume });
-            logDebug && logDebug("PlayAudio:Start", { vol: volume });
+            logDebug && logDebug("PlayAudio:Start", { vol: audio.volume });
 
             audio.onended = () => { 
                 logDebug && logDebug("PlayAudio:Ended");

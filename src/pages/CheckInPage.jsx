@@ -70,11 +70,12 @@ const CheckInPage = () => {
         // Fire-and-forget dummy call to wake up the serverless function
         console.log('[CheckIn] Warming up server functions...');
         import('firebase/functions').then(({ httpsCallable }) => {
-             const { functions } = require('../firebase');
-             const checkInCall = httpsCallable(functions, 'checkInMemberV2Call');
-             checkInCall({ ping: true }).catch(() => {});
-             const loginCall = httpsCallable(functions, 'memberLoginV2Call');
-             loginCall({ ping: true }).catch(() => {});
+             import('../firebase').then(({ functions }) => {
+                 const checkInCall = httpsCallable(functions, 'checkInMemberV2Call');
+                 checkInCall({ ping: true }).catch(() => {});
+                 const loginCall = httpsCallable(functions, 'memberLoginV2Call');
+                 loginCall({ ping: true }).catch(() => {});
+             }).catch(() => {});
         }).catch(() => {});
     }, []);
     const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
@@ -138,10 +139,11 @@ const CheckInPage = () => {
 
         // [FIX] 실시간 시간표 구독 시작 (오늘 포함 이번 달 데이터 전체 구독)
         if (currentBranch) {
+            const todayCurrent = new Date();
             unsubClasses = subscribeMonthlyClasses(
                 currentBranch,
-                today.getFullYear(),
-                today.getMonth() + 1,
+                todayCurrent.getFullYear(),
+                todayCurrent.getMonth() + 1,
                 (data) => {
                     console.log("[CheckInPage] Real-time schedule updated for today/month");
                     setMonthlyClasses(data || {});

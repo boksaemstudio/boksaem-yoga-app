@@ -100,7 +100,7 @@ const MembersTab = ({
                         전체 회원
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
-                            <span className="tooltip-text">현재 지점에 등록된<br />모든 회원 (삭제/탈퇴 제외)</span>
+                            <span className="tooltip-text">현재 지점에 등록된<br />모든 회원의 수입니다.<br />(삭제/탈퇴 회원 제외)</span>
                         </div>
                     </div>
                     <div className="card-value">{summary.totalMembers}명</div>
@@ -111,7 +111,9 @@ const MembersTab = ({
                         활성 회원
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
-                            <span className="tooltip-text">잔여 횟수 1회 이상이며(0회 제외)<br />만료일이 오늘 또는 이후인 회원</span>
+                            <span className="tooltip-text" style={{ width: '220px', left: '-100px' }}>
+                                잔여 횟수가 1회 이상이며,<br />만료일이 지나지 않아 수강<br />자격이 유효한 회원입니다.
+                            </span>
                         </div>
                     </div>
                     <div className="card-value gold">{summary.activeMembers}명</div>
@@ -136,7 +138,9 @@ const MembersTab = ({
                         오늘 전체 등록
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
-                            <span className="tooltip-text">오늘 등록된 모든 수강권 합계<br />(신규 가입 + 기존 회원 재등록)</span>
+                            <span className="tooltip-text" style={{ width: '220px', left: '-100px' }}>
+                                오늘 결제/등록된 수강권의<br />총합계입니다. (신규 가입 및<br />기존 회원 재등록 포함)
+                            </span>
                         </div>
                     </div>
                     <div className="card-value success" style={{ fontSize: '1.8rem' }}>
@@ -155,8 +159,8 @@ const MembersTab = ({
                         만료/횟수 임박
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
-                            <span className="tooltip-text" style={{ width: '220px', left: '-100px' }}>
-                                잔여 2회 이하 또는<br />만료 7일 전 ~ 만료 후 30일 이내
+                            <span className="tooltip-text" style={{ width: '240px', left: '-110px' }}>
+                                잔여 횟수가 2회 이하,<br />만료일이 7일 이내이거나 만료 후<br />30일 이내인 재등록 권장 회원입니다.
                             </span>
                         </div>
                     </div>
@@ -171,7 +175,7 @@ const MembersTab = ({
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
                             <span className="tooltip-text" style={{ width: '220px', left: '-100px' }}>
-                                활성 회원 중<br />최근 출석일 14일 이상 경과
+                                현재 활성 회원 상태지만,<br />최근 14일 이상 스튜디오에<br />출석하지 않은 회원입니다.
                             </span>
                         </div>
                     </div>
@@ -185,7 +189,7 @@ const MembersTab = ({
                         <div className="tooltip-container">
                             <Info size={14} style={{ opacity: 0.7 }} />
                             <span className="tooltip-text" style={{ width: '240px', left: '-120px' }}>
-                                푸시 알림을 받을 수 있는 회원 및 선생님 수<br/>(앱 설치 + 알림 권한 허용)
+                                푸시 알림을 문제없이 수신<br/>할 수 있는(설치+알림 켜짐)<br/>인원수 현황입니다.
                             </span>
                         </div>
                     </div>
@@ -220,7 +224,7 @@ const MembersTab = ({
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
                             <span className="tooltip-text" style={{ width: '220px', left: '-100px' }}>
-                                활성 회원 중<br />안면 데이터가 등록되지 않은 회원
+                                얼굴 인식 시스템을 위한<br />안면 데이터가 아직 등록되지<br />않은 활성 회원입니다.
                             </span>
                         </div>
                     </div>

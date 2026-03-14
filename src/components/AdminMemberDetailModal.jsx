@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { onSnapshot, doc, collection, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
 import { db } from '../firebase';
-import { X, CalendarCheck, ClockClockwise, Trash, PencilSimple, Phone, CalendarPlus, Receipt, ArrowRight, UserPlus, FileText, CheckCircle, ChatCircleText, Student, WarningCircle } from '@phosphor-icons/react';
+import { X, CalendarCheck, ClockClockwise, Trash, PencilSimple, Phone, CalendarPlus, Receipt, ArrowRight, UserPlus, FileText, CheckCircle, ChatCircleText, Student, WarningCircle, User, Calendar, CreditCard, Chats, BellRinging, CheckSquare, Square } from '@phosphor-icons/react';
 import RegistrationTab from './admin/member-detail/RegistrationTab';
 import AttendanceTab from './admin/member-detail/AttendanceTab';
 import MessagesTab from './admin/member-detail/MessagesTab';

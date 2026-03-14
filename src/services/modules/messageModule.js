@@ -8,6 +8,7 @@
 
 import { db } from "../../firebase";
 import { collection, addDoc, getDocs, query, where, orderBy, limit as firestoreLimit } from "firebase/firestore";
+import { STUDIO_CONFIG as config } from "../../studioConfig";
 
 /**
  * 개인 메시지 추가 (푸시 알림 트리거)

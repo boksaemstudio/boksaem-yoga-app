@@ -57,7 +57,11 @@ exports.generatePageExperienceV2 = onCall({
             
             if (hasDashboardStats) {
                 // === STUDIO DASHBOARD ANALYSIS (Admin Dashboard Overview) ===
-                const branchInfo = statsData.branch === 'all' ? '전체 지점(마포/광흥창)' : `${statsData.branch}점`;
+                const actualBranch = statsData.branch || 'all';
+                let branchInfo = '전체 지점(마포/광흥창)';
+                if (actualBranch !== 'all' && actualBranch !== 'undefined') {
+                    branchInfo = `${actualBranch}점`;
+                }
                 
                 prompt = `
                     You are a world-class Business Consultant and Yoga Studio Strategy Expert (Digital Yard Management).
@@ -180,5 +184,38 @@ exports.generateDailyYogaV2 = onCall({
             { name: "Child's Pose", benefit: "휴식", instruction: "이마를 매트에 대세요", emoji: "👶" },
             { name: "Cat-Cow", benefit: "유연성", instruction: "숨에 맞춰 움직이세요", emoji: "🐈" }
         ];
+    }
+});
+
+/**
+ * 신규 스튜디오 세팅 시 비정형 문서 파싱 (이미지/텍스트)
+ */
+exports.parseStudioDocument = onCall({
+    region: "asia-northeast3",
+    memory: "1GiB", // Vision API might require more memory for base64 processing
+    timeoutSeconds: 120, // Vision parsing can be slow
+    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
+}, async (request) => {
+    try {
+        await checkAIQuota(); // Use same quota system to prevent abuse
+        
+        // Ensure only authenticated users (preferably admins, but we check existence here) can use this
+        // In real prod, you'd likely strictly verify admin role, but let's allow basic auth for now
+        if (!request.auth) {
+            throw new Error("Authentication required to use AI document parsing.");
+        }
+
+        const { docType, base64Image, textData } = request.data;
+        if (!docType || (!base64Image && !textData)) {
+            throw new Error("Invalid payload: must provide docType and either base64Image or textData.");
+        }
+
+        const ai = getAI();
+        const parsedData = await ai.parseDocument(docType, base64Image, textData);
+        
+        return { success: true, data: parsedData };
+    } catch (error) {
+        console.error("parseStudioDocument failed:", error);
+        return { success: false, error: error.message };
     }
 });

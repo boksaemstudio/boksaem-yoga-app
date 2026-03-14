@@ -15,6 +15,12 @@ const StatsTab = ({ summary, stats, revenueTrend, memberStatusDist }) => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                     <UserFocus size={20} weight="fill" color="#60A5FA" />
                     <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>안면 전산화 완료 현황</span>
+                    <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
+                        <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.2)', color: '#60A5FA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 'bold' }}>i</div>
+                        <div className="tooltip-text" style={{ width: '220px', left: 0, transform: 'translateX(0)', color: '#fff', fontSize: '0.8rem' }}>
+                            전체 활성 회원 중에서 원활한 무인 출석을 위해 안면(얼굴) 데이터 등록을 완료한 회원의 비율입니다.
+                        </div>
+                    </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
                     <span style={{ fontSize: '1.8rem', fontWeight: '800', color: primaryColor }}>{summary?.facialDataCount || 0}</span>
@@ -38,7 +44,15 @@ const StatsTab = ({ summary, stats, revenueTrend, memberStatusDist }) => {
             {/* Top Row: Legacy bars (Optional, maybe replace completely? Keeping for now as requested) */}
             <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                 <div className="dashboard-card" style={{ flex: 1, minWidth: '300px' }}>
-                    <h3 className="card-label">시간대별 이용 현황</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                        <h3 className="card-label" style={{ margin: 0 }}>시간대별 이용 현황</h3>
+                        <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
+                            <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 'bold' }}>i</div>
+                            <div className="tooltip-text" style={{ width: '220px', left: 0, transform: 'translateX(0)', color: '#fff', fontSize: '0.8rem' }}>
+                                출석 로그 데이터를 기반으로 시간대별 총 이용 건수를 집계합니다.
+                            </div>
+                        </div>
+                    </div>
                     <div style={{ marginTop: '10px' }}>
                         {stats.byTime.map(([time, count]) => (
                             <div key={time} style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
@@ -52,7 +66,15 @@ const StatsTab = ({ summary, stats, revenueTrend, memberStatusDist }) => {
                     </div>
                 </div>
                 <div className="dashboard-card" style={{ flex: 1, minWidth: '300px' }}>
-                    <h3 className="card-label">수업별 인기 현황</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                        <h3 className="card-label" style={{ margin: 0 }}>수업별 인기 현황</h3>
+                        <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
+                            <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 'bold' }}>i</div>
+                            <div className="tooltip-text" style={{ width: '220px', left: 'auto', right: 0, transform: 'translateX(0)', color: '#fff', fontSize: '0.8rem' }}>
+                                출석 로그를 바탕으로 각 수업(종목)별 누적 참석 횟수를 보여줍니다.
+                            </div>
+                        </div>
+                    </div>
                     <div style={{ marginTop: '10px' }}>
                         {stats.bySubject.map(([subject, count]) => (
                             <div key={subject} style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>

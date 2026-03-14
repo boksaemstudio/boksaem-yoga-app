@@ -12,7 +12,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
     const [paymentMethod, setPaymentMethod] = useState('card');
     
     // [Smart Date Logic] — "첫 출석일 시작" 체크박스 (MemberAddModal 통일)
-    const [autoStart, setAutoStart] = useState(false);
+    const [autoStart, setAutoStart] = useState(true);
     const [startDate, setStartDate] = useState(() => {
         const today = new Date();
         const end = member.endDate ? new Date(member.endDate) : null;
@@ -259,29 +259,44 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {/* 첫 출석일 시작 체크박스 — 선등록 시에만 표시 */}
                     {isAdvance && (
-                        <label style={{
-                            padding: '12px 8px',
-                            borderRadius: '10px',
-                            background: autoStart ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.05)',
-                            border: `1px solid ${autoStart ? 'var(--primary-gold)' : 'transparent'}`,
-                            fontSize: '0.85rem',
-                            color: autoStart ? 'var(--primary-gold)' : 'var(--text-secondary)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '6px',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            fontWeight: autoStart ? 'bold' : 'normal'
-                        }}>
-                            <input
-                                type="checkbox"
-                                style={{ width: '16px', height: '16px' }}
-                                checked={autoStart}
-                                onChange={e => setAutoStart(e.target.checked)}
-                            />
-                            🧘‍♀️ 기존 마감 후 첫 출석 시 시작
-                        </label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <label style={{
+                                padding: '12px 16px',
+                                borderRadius: '10px',
+                                background: autoStart ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.05)',
+                                border: `1px solid ${autoStart ? 'var(--primary-gold)' : 'transparent'}`,
+                                fontSize: '0.85rem',
+                                color: autoStart ? 'var(--primary-gold)' : 'var(--text-secondary)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                fontWeight: autoStart ? 'bold' : 'normal',
+                                flex: 1
+                            }}>
+                                <input
+                                    type="checkbox"
+                                    style={{ width: '16px', height: '16px' }}
+                                    checked={autoStart}
+                                    onChange={e => setAutoStart(e.target.checked)}
+                                />
+                                🧘‍♀️ 기존 마감 후 첫 출석 시 시작
+                            </label>
+                            <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <div style={{
+                                    width: '18px', height: '18px', borderRadius: '50%',
+                                    background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '11px', fontWeight: 'bold'
+                                }}>i</div>
+                                <div className="tooltip-text" style={{ width: '220px', left: 'auto', right: 0, transform: 'translateX(0)' }}>
+                                    <strong>자동 시작 로직</strong><br />
+                                    현재 이용 중인 회원권이 모두 소진되거나 만료된 후, <strong>가장 처음 출석하는 날짜</strong>를 기준으로 새 회원권의 시작일과 만료일이 자동으로 세팅됩니다.
+                                </div>
+                            </div>
+                        </div>
                     )}
 
                     {/* 날짜 입력 */}
@@ -324,7 +339,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                             background: 'rgba(56, 189, 248, 0.08)', borderRadius: '8px',
                             color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.15)'
                         }}>
-                            ℹ️ 잔여 기간이 남아있어 선등록으로 처리됩니다. {autoStart ? '기존 마감 후 첫 출석 시 활성화됩니다.' : '지정한 시작일에 활성화됩니다.'}
+                            ℹ️ 잔여 기간이 남아있어 선등록으로 처리됩니다. {autoStart ? '기존 회원권이 모두 소진된 후, 다음 첫 출석 시에 새 회원권이 활성화됩니다.' : '지정하신 수련 시작일이 되면 새 회원권이 자동으로 활성화됩니다.'}
                         </div>
                     )}
                 </div>

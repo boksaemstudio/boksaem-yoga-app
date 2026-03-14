@@ -53,13 +53,29 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats }) => {
                     </div>
                     <div style={{ textAlign: 'right' }}>
                         <div style={{ marginBottom: '12px' }}>
-                            <div className="revenue-count-title">오늘 매출</div>
+                            <div className="revenue-count-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
+                                오늘 매출
+                                <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                    <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 'bold' }}>i</div>
+                                    <div className="tooltip-text" style={{ width: '200px', left: 'auto', right: 0, transform: 'translateX(0)', textAlign: 'left' }}>
+                                        <strong>오늘 매출 기준</strong><br/>현재 날짜(자정 0시 기준)에 발생한 결제 금액의 총합입니다.
+                                    </div>
+                                </div>
+                            </div>
                             <div className="revenue-summary-amount" style={{ fontSize: '1.4rem', color: 'var(--primary-theme-color)' }}>
                                 {formatCurrency(comparativeStats.today)}원
                             </div>
                         </div>
                         <div>
-                            <div className="revenue-count-title">총 결제 건수</div>
+                            <div className="revenue-count-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
+                                총 결제 건수
+                                <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                    <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 'bold' }}>i</div>
+                                    <div className="tooltip-text" style={{ width: '200px', left: 'auto', right: 0, transform: 'translateX(0)', textAlign: 'left' }}>
+                                        <strong>총 결제 건수</strong><br/>이번 달 발생한 승인 완료된 결제의 총 횟수입니다.
+                                    </div>
+                                </div>
+                            </div>
                             <div className="revenue-count">{monthlyStats.totalCount}건</div>
                         </div>
                     </div>
@@ -74,7 +90,15 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats }) => {
 
             {/* Monthly Bar Chart */}
             <div className="dashboard-card" style={{ height: '400px', display: 'flex', flexDirection: 'column' }}>
-                <h3 style={{ fontSize: '1.1rem', marginBottom: '20px', color: 'var(--text-secondary)' }}>월별 매출 추이 (최근 6개월)</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+                    <h3 style={{ fontSize: '1.1rem', margin: 0, color: 'var(--text-secondary)' }}>월별 매출 추이 (최근 6개월)</h3>
+                    <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
+                        <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>i</div>
+                        <div className="tooltip-text" style={{ width: '220px', left: 0, transform: 'translateX(0)' }}>
+                            <strong>매출 진도율 비교</strong><br/>선택한 조회 기준일(예: 15일)까지의 매출액 누적분(노란색)과 해당 월의 최종 전체 매출(회색 배경)을 겹쳐서 비교합니다.
+                        </div>
+                    </div>
+                </div>
                 <div style={{ flex: 1, minHeight: 0 }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={monthlyTrend} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
