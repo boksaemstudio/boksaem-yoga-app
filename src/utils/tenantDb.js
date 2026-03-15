@@ -14,8 +14,10 @@ import { resolveStudioId } from './resolveStudioId';
  * 3. 아래 플래그를 true로 변경 후 배포
  */
 
-// ✅ 데이터 마이그레이션 완료 — 테넌트 격리 경로 활성화
-const TENANT_MIGRATION_COMPLETE = true;
+// ⚠️ CF(Cloud Functions)가 아직 루트 경로(members, attendance)를 사용하므로
+// 프론트엔드도 루트 경로를 사용해야 데이터가 일치합니다.
+// CF를 테넌트 격리 경로로 수정한 후 true로 변경하세요.
+const TENANT_MIGRATION_COMPLETE = false;
 
 export const tenantDb = {
     /**
