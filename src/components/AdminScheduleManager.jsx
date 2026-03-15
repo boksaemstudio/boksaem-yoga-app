@@ -345,9 +345,9 @@ const AdminScheduleManager = ({ branchId }) => {
                                 style={{
                                     minHeight: '100px',
                                     // [Refining] Holiday background removed to prevent confusion with cancelled status
-                                    backgroundColor: date ? (isToday ? 'rgba(212,175,55,0.08)' : 'var(--bg-card)') : 'transparent',
+                                    backgroundColor: date ? (isToday ? 'rgba(var(--primary-rgb), 0.08)' : 'var(--bg-card)') : 'transparent',
                                     border: date ? (isToday ? '2px solid var(--primary-gold)' : '1px solid var(--border-color)') : 'none',
-                                    boxShadow: isToday ? '0 0 15px rgba(212, 175, 55, 0.2)' : 'none',
+                                    boxShadow: isToday ? '0 0 15px rgba(var(--primary-rgb), 0.2)' : 'none',
                                     borderRadius: '8px',
                                     padding: '6px',
                                     cursor: date ? 'pointer' : 'default',

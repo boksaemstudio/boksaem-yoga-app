@@ -29,11 +29,11 @@ const PWAInstallPrompts = ({ isInStandaloneMode, isInAppBrowser, isIOS, installP
             boxShadow: 'none'
         }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                <div style={{ background: 'rgba(212, 175, 55, 0.08)', padding: '8px', borderRadius: '8px' }}>
-                    <Icons.DownloadSimple size={20} color="rgba(212, 175, 55, 0.7)" weight="regular" />
+                <div style={{ background: 'rgba(var(--primary-rgb), 0.08)', padding: '8px', borderRadius: '8px' }}>
+                    <Icons.DownloadSimple size={20} color="rgba(var(--primary-rgb), 0.7)" weight="regular" />
                 </div>
                 <div style={{ flex: 1 }}>
-                    <h4 style={{ margin: '0 0 4px 0', color: 'rgba(212, 175, 55, 0.8)', fontSize: '0.9rem', fontWeight: '600' }}>
+                    <h4 style={{ margin: '0 0 4px 0', color: 'rgba(var(--primary-rgb), 0.8)', fontSize: '0.9rem', fontWeight: '600' }}>
                         {t('installApp')}
                     </h4>
                     <p style={{ margin: '0 0 12px 0', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', lineHeight: '1.5' }}>
@@ -43,11 +43,11 @@ const PWAInstallPrompts = ({ isInStandaloneMode, isInAppBrowser, isIOS, installP
                     {isIOS ? (
                         <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.1)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem', fontWeight: '500' }}>
-                                <span style={{ background: 'rgba(212, 175, 55, 0.3)', color: 'white', width: '16px', height: '16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem' }}>1</span>
+                                <span style={{ background: 'rgba(var(--primary-rgb), 0.3)', color: 'white', width: '16px', height: '16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem' }}>1</span>
                                 하단 <Icons.Export size={16} weight="bold" style={{ color: '#007AFF' }} /> 공유 버튼 클릭
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem', fontWeight: '500' }}>
-                                <span style={{ background: 'rgba(212, 175, 55, 0.3)', color: 'white', width: '16px', height: '16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem' }}>2</span>
+                                <span style={{ background: 'rgba(var(--primary-rgb), 0.3)', color: 'white', width: '16px', height: '16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem' }}>2</span>
                                 &apos;홈 화면에 추가&apos; 선택
                             </div>
                         </div>
@@ -56,9 +56,9 @@ const PWAInstallPrompts = ({ isInStandaloneMode, isInAppBrowser, isIOS, installP
                             <button
                                 onClick={handleInstallClick}
                                 style={{
-                                    background: 'rgba(212, 175, 55, 0.2)',
+                                    background: 'rgba(var(--primary-rgb), 0.2)',
                                     color: 'var(--primary-gold)',
-                                    border: '1px solid rgba(212, 175, 55, 0.3)',
+                                    border: '1px solid rgba(var(--primary-rgb), 0.3)',
                                     padding: '8px 16px',
                                     borderRadius: '8px',
                                     fontWeight: '600',
@@ -70,7 +70,7 @@ const PWAInstallPrompts = ({ isInStandaloneMode, isInAppBrowser, isIOS, installP
                                 {t('installBtn')}
                             </button>
                         ) : (
-                            <p style={{ fontSize: '0.7rem', color: 'rgba(212, 175, 55, 0.6)', background: 'rgba(212, 175, 55, 0.03)', padding: '6px', borderRadius: '6px', textAlign: 'center', margin: 0 }}>
+                            <p style={{ fontSize: '0.7rem', color: 'rgba(var(--primary-rgb), 0.6)', background: 'rgba(var(--primary-rgb), 0.03)', padding: '6px', borderRadius: '6px', textAlign: 'center', margin: 0 }}>
                                 {t('appInstallGuide')}
                             </p>
                         )

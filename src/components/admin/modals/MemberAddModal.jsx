@@ -369,7 +369,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                                     flex: 1,
                                     padding: '12px 8px',
                                     borderRadius: '10px',
-                                    background: newMember.autoStart ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.05)',
+                                    background: newMember.autoStart ? 'rgba(var(--primary-rgb), 0.15)' : 'rgba(255,255,255,0.05)',
                                     border: `1px solid ${newMember.autoStart ? 'var(--primary-gold)' : 'transparent'}`,
                                     fontSize: '0.8rem',
                                     color: newMember.autoStart ? 'var(--primary-gold)' : 'var(--text-secondary)',
@@ -547,7 +547,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                     </div>
                 </div>
 
-                <div className="form-group" style={{ background: 'rgba(212,175,55,0.08)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(212,175,55,0.2)', boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.2)' }}>
+                <div className="form-group" style={{ background: 'rgba(var(--primary-rgb), 0.08)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(var(--primary-rgb), 0.2)', boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.2)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                         <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', fontWeight: 'bold' }}>결제 금액</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -610,7 +610,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
 
                 <div className="modal-actions" style={{ gap: '12px', marginTop: '10px' }}>
                     <button onClick={onClose} style={{ flex: 1, padding: '18px 0', color: 'var(--text-secondary)', fontWeight: '600', fontSize: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '16px' }}>취소</button>
-                    <button onClick={handleAddMember} className="action-btn primary" style={{ flex: 2, padding: '18px 0', fontSize: '1.1rem', fontWeight: '800', borderRadius: '16px', boxShadow: '0 10px 20px rgba(212, 175, 55, 0.2)' }} disabled={isSubmitting}>
+                    <button onClick={handleAddMember} className="action-btn primary" style={{ flex: 2, padding: '18px 0', fontSize: '1.1rem', fontWeight: '800', borderRadius: '16px', boxShadow: '0 10px 20px rgba(var(--primary-rgb), 0.2)' }} disabled={isSubmitting}>
                         {isSubmitting ? '처리 중...' : '회원 등록 완료'}
                     </button>
                 </div>

@@ -17,7 +17,7 @@ const NavItem = ({ active, onClick, icon, label }) => (
     }}>
         {cloneElement(icon, {
             weight: active ? 'fill' : 'regular',
-            style: { filter: active ? 'drop-shadow(0 0 8px rgba(212, 175, 55, 0.5))' : 'none' }
+            style: { filter: active ? 'drop-shadow(0 0 8px rgba(var(--primary-rgb), 0.5))' : 'none' }
         })}
         <span style={{ fontSize: '0.65rem', fontWeight: active ? '800' : '600' }}>{label}</span>
     </button>

@@ -236,7 +236,7 @@ const SmartDataImporter = ({ onImportComplete }) => {
                             borderRadius: '8px',
                             border: '1px solid',
                             borderColor: activeTab === tab.id ? 'var(--primary-gold)' : 'rgba(255,255,255,0.1)',
-                            background: activeTab === tab.id ? 'rgba(212, 175, 55, 0.1)' : 'transparent',
+                            background: activeTab === tab.id ? 'rgba(var(--primary-rgb), 0.1)' : 'transparent',
                             color: activeTab === tab.id ? 'var(--primary-gold)' : 'var(--text-secondary)',
                             cursor: 'pointer',
                             fontWeight: activeTab === tab.id ? 'bold' : 'normal',
@@ -253,7 +253,7 @@ const SmartDataImporter = ({ onImportComplete }) => {
                     style={{
                         border: `2px dashed ${isDragging ? 'var(--primary-gold)' : 'rgba(255,255,255,0.2)'}`,
                         borderRadius: '12px', padding: '40px', textAlign: 'center',
-                        background: isDragging ? 'rgba(212, 175, 55, 0.05)' : 'rgba(255,255,255,0.02)',
+                        background: isDragging ? 'rgba(var(--primary-rgb), 0.05)' : 'rgba(255,255,255,0.02)',
                         transition: 'all 0.3s', cursor: 'pointer', position: 'relative'
                     }}
                     onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}

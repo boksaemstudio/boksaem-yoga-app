@@ -9,6 +9,7 @@
 import { db, functions } from "../../firebase";
 import { collection, addDoc, getDocs, getDoc, doc, query, where, updateDoc, limit as firestoreLimit } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
+import { tenantDb } from '../../utils/tenantDb';
 
 // Timeout wrapper
 const withTimeout = (promise, timeoutMs = 10000, errorMsg = '서버 응답 시간 초과') => {
@@ -54,7 +55,7 @@ export const findMembersByPhone = async (last4Digits, phoneLast4Index, cachedMem
     } catch (e) {
         console.warn("Using Firestore fallback:", e);
         const q = query(
-            collection(db, 'members'),
+            tenantDb.collection('members'),
             where("phoneLast4", "==", last4Digits),
             firestoreLimit(10)
         );
@@ -70,7 +71,7 @@ export const loginMember = async (name, last4Digits) => {
     try {
         const membersSnap = await getDocs(
             query(
-                collection(db, 'members'),
+                tenantDb.collection('members'),
                 where('name', '==', name)
             )
         );
@@ -98,7 +99,7 @@ export const loginMember = async (name, last4Digits) => {
  */
 export const updateMember = async (memberId, data) => {
     try {
-        const memberRef = doc(db, 'members', memberId);
+        const memberRef = tenantDb.doc('members', memberId);
         await updateDoc(memberRef, { ...data, updatedAt: new Date().toISOString() });
         return { success: true };
     } catch (e) {
@@ -113,13 +114,13 @@ export const updateMember = async (memberId, data) => {
 export const addMember = async (data) => {
     try {
         // Check for duplicates
-        const phoneQuery = query(collection(db, 'members'), where('phone', '==', data.phone));
+        const phoneQuery = query(tenantDb.collection('members'), where('phone', '==', data.phone));
         const phoneSnap = await getDocs(phoneQuery);
         if (!phoneSnap.empty) {
             throw new Error('이미 등록된 전화번호입니다.');
         }
 
-        const docRef = await addDoc(collection(db, 'members'), {
+        const docRef = await addDoc(tenantDb.collection('members'), {
             ...data,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -144,7 +145,7 @@ export const getMemberById = async (id, cachedMembers) => {
 
     // Firestore fallback
     try {
-        const docSnap = await getDoc(doc(db, 'members', id));
+        const docSnap = await getDoc(tenantDb.doc('members', id));
         if (docSnap.exists()) {
             return { id: docSnap.id, ...docSnap.data() };
         }

@@ -403,12 +403,12 @@ const MeditationPage = ({ onClose }) => {
         ctx.clearRect(0, 0, width, height);
         
         // 🎨 Draw Golden Skeleton
-        ctx.strokeStyle = config.THEME?.PRIMARY_COLOR || '#d4af37'; // Gold
+        ctx.strokeStyle = config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'; // Gold
         ctx.lineWidth = 4;
         ctx.lineJoin = 'round';
         ctx.lineCap = 'round';
         ctx.shadowBlur = 10;
-        ctx.shadowColor = 'rgba(212, 175, 55, 0.5)';
+        ctx.shadowColor = 'rgba(var(--primary-rgb), 0.5)';
 
         const drawLine = (p1, p2) => {
             if (!p1 || !p2 || p1.visibility < 0.5 || p2.visibility < 0.5) return;
@@ -1346,7 +1346,7 @@ const MeditationPage = ({ onClose }) => {
                                     )}
                                     <div style={{ display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: '6px' }}>
                                          <div style={{
-                                             background: isMe ? `linear-gradient(135deg, ${config.THEME?.PRIMARY_COLOR || '#d4af37'}, #f1c40f)` : 'rgba(255,255,255,0.08)',
+                                             background: isMe ? `linear-gradient(135deg, ${config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'}, #f1c40f)` : 'rgba(255,255,255,0.08)',
                                              color: isMe ? '#000' : '#fff', padding: '12px 16px',
                                              borderRadius: isMe ? '18px 4px 18px 18px' : '4px 18px 18px 18px',
                                              maxWidth: '75vw', fontSize: '0.95rem', lineHeight: '1.6',
@@ -1415,7 +1415,7 @@ const MeditationPage = ({ onClose }) => {
                                     width: '100%', background: 'var(--primary-gold)', color: 'black',
                                     padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
                                     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                                    boxShadow: '0 10px 20px rgba(212,175,55,0.3)'
+                                    boxShadow: '0 10px 20px rgba(var(--primary-rgb), 0.3)'
                                 }}>🧘 명상 시작하기</button>
                                 <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
                                     당신에게 맞는 명상을 준비했어요
@@ -1598,7 +1598,7 @@ const MeditationPage = ({ onClose }) => {
                         style={{
                             width: '100%', maxWidth: '300px', background: 'var(--primary-gold)', color: 'black',
                             padding: '20px', borderRadius: '20px', fontSize: '1.2rem', fontWeight: 800, border: 'none',
-                            cursor: 'pointer', boxShadow: '0 10px 20px rgba(212,175,55,0.3)'
+                            cursor: 'pointer', boxShadow: '0 10px 20px rgba(var(--primary-rgb), 0.3)'
                         }}>명상 모드 선택하기</button>
                     
                     <button onClick={() => {
@@ -1654,7 +1654,7 @@ const MeditationPage = ({ onClose }) => {
                                     background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
                                     borderRadius: '24px', color: 'white', textAlign: 'left', cursor: 'pointer', transition: 'all 0.3s'
                                 }}>
-                                <div style={{ width: '50px', height: '50px', borderRadius: '15px', background: 'rgba(212,175,55,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-gold)' }}>
+                                <div style={{ width: '50px', height: '50px', borderRadius: '15px', background: 'rgba(var(--primary-rgb), 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-gold)' }}>
                                     {t.id === 'v1' ? <Wind size={28} /> : t.id === 'v2' ? <Microphone size={28} /> : <VideoCamera size={28} />}
                                 </div>
                                 <div style={{ flex: 1 }}>
@@ -1811,7 +1811,7 @@ const MeditationPage = ({ onClose }) => {
                                 width: '100%', background: 'var(--primary-gold)', color: 'black',
                                 padding: '16px', borderRadius: '18px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', 
-                                cursor: 'pointer', boxShadow: '0 10px 20px rgba(212,175,55,0.3)'
+                                cursor: 'pointer', boxShadow: '0 10px 20px rgba(var(--primary-rgb), 0.3)'
                             }}><Play size={24} weight="fill" /> 시작하기</button>
                             
                             <button onClick={handleReturnToChat} style={{ 
@@ -2148,7 +2148,7 @@ const MeditationPage = ({ onClose }) => {
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                     <button onClick={() => setShowVolumePanel(!showVolumePanel)} style={{
                         width: '60px', height: '60px', borderRadius: '50%',
-                        background: showVolumePanel ? 'rgba(212,175,55,0.3)' : 'rgba(255,255,255,0.1)', border: 'none', 
+                        background: showVolumePanel ? 'rgba(var(--primary-rgb), 0.3)' : 'rgba(255,255,255,0.1)', border: 'none', 
                         color: soundEnabled ? 'white' : 'rgba(255,255,255,0.3)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                         transition: 'all 0.3s ease'
@@ -2178,8 +2178,8 @@ const MeditationPage = ({ onClose }) => {
             {showVolumeHint && !showVolumePanel && (
                 <div style={{
                     position: 'absolute', bottom: '190px', left: '50%', transform: 'translateX(-50%)',
-                    background: 'rgba(212,175,55,0.2)', backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(212,175,55,0.3)', borderRadius: '20px',
+                    background: 'rgba(var(--primary-rgb), 0.2)', backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(var(--primary-rgb), 0.3)', borderRadius: '20px',
                     padding: '8px 16px', color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem',
                     whiteSpace: 'nowrap', animation: 'fadeIn 0.5s ease-out',
                     pointerEvents: 'none'

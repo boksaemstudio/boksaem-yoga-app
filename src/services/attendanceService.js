@@ -3,6 +3,7 @@ import { collection, doc, query, where, orderBy, getDocs, getDoc, addDoc, update
 import { getStorage, ref, deleteObject } from 'firebase/storage';
 import { httpsCallable } from 'firebase/functions';
 import { memberService } from './memberService';
+import { tenantDb } from '../utils/tenantDb';
 
 // [NETWORK] Timeout wrapper for Cloud Function calls
 const withTimeout = (promise, timeoutMs = 10000, errorMsg = '서버 응답 시간 초과') => {
@@ -38,7 +39,7 @@ export const attendanceService = {
         attendanceListenerUnsubscribe();
       }
       attendanceListenerUnsubscribe = onSnapshot(
-        query(collection(db, 'attendance'), orderBy("timestamp", "desc"), firestoreLimit(500)),
+        query(tenantDb.collection('attendance'), orderBy("timestamp", "desc"), firestoreLimit(500)),
         (snapshot) => {
           cachedAttendance = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           notifyCallback();
@@ -59,7 +60,7 @@ export const attendanceService = {
   async clearAllAttendance() {
     try {
       const { writeBatch } = await import('firebase/firestore');
-      const snapshot = await getDocs(collection(db, 'attendance'));
+      const snapshot = await getDocs(tenantDb.collection('attendance'));
       if (snapshot.empty) return { success: true, count: 0 };
 
       // [PHASE 3 AUDIT FIX] Bulk delete using batches (limit 500 per batch)
@@ -94,7 +95,7 @@ export const attendanceService = {
   async getAttendanceByDate(dateStr, branchId = null) {
     try {
       let q = query(
-        collection(db, 'attendance'),
+        tenantDb.collection('attendance'),
         where("date", "==", dateStr)
       );
 
@@ -121,7 +122,7 @@ export const attendanceService = {
   subscribeAttendance(dateStr, branchId = null, callback) {
     try {
       let q = query(
-        collection(db, 'attendance'),
+        tenantDb.collection('attendance'),
         where("date", "==", dateStr)
       );
 
@@ -149,7 +150,7 @@ export const attendanceService = {
 
   async deleteAttendance(logId, restoreCredit = true) {
     try {
-      const logRef = doc(db, 'attendance', logId);
+      const logRef = tenantDb.doc('attendance', logId);
       const logSnap = await getDoc(logRef);
 
       // [FIX] writeBatch로 원자적 처리 — 크레딧 복원과 출석 삭제를 한 번에
@@ -164,7 +165,7 @@ export const attendanceService = {
         
         if (restoreCredit && logData.memberId && wasValid && (logData.type === 'checkin' || logData.type === 'manual' || !logData.type || logData.type === 'attendance')) {
           const creditsToRestore = logData.sessionCount || 1;
-          const memberRef = doc(db, 'members', logData.memberId);
+          const memberRef = tenantDb.doc('members', logData.memberId);
           // [FIX] batch에 크레딧 복원을 포함 (기존: 별도 await로 원자성 깨짐)
           batch.update(memberRef, {
             credits: increment(creditsToRestore),
@@ -220,7 +221,7 @@ export const attendanceService = {
     if (queue.length === 0) return { successCount: 0, remainingCount: 0 };
 
     console.log(`[attendanceService] Syncing ${queue.length} pending check-ins...`);
-    const pendingRef = collection(db, 'pending_attendance');
+    const pendingRef = tenantDb.collection('pending_attendance');
     
     const remainingQueue = [];
     let successCount = 0;
@@ -399,7 +400,7 @@ export const attendanceService = {
       }
 
       const safeUUIDFallback = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'id_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-      const pendingRef = collection(db, 'pending_attendance');
+      const pendingRef = tenantDb.collection('pending_attendance');
       const pendingData = {
           memberId,
           branchId,
@@ -472,7 +473,7 @@ export const attendanceService = {
 
   async addManualAttendance(memberId, date, branchId, className = "수동 확인", instructor = "관리자", { skipCreditDeduction = false } = {}) {
     try {
-      const memberDoc = await getDoc(doc(db, 'members', memberId));
+      const memberDoc = await getDoc(tenantDb.doc('members', memberId));
       const memberData = memberDoc.exists() ? memberDoc.data() : null;
       const memberName = memberData ? memberData.name : '알 수 없음';
 
@@ -493,7 +494,7 @@ export const attendanceService = {
       if (className === "수동 확인") {
         try {
           const scheduleDocId = `${branchId}_${dateStr}`;
-          const scheduleDoc = await getDoc(doc(db, 'daily_classes', scheduleDocId));
+          const scheduleDoc = await getDoc(tenantDb.doc('daily_classes', scheduleDocId));
 
           if (scheduleDoc.exists()) {
             const scheduleData = scheduleDoc.data();
@@ -586,7 +587,7 @@ export const attendanceService = {
       const { writeBatch, deleteField } = await import('firebase/firestore');
       const batch = writeBatch(db);
 
-      const newAttRef = doc(collection(db, 'attendance'));
+      const newAttRef = doc(tenantDb.collection('attendance'));
       const attendanceData = {
         memberId,
         memberName,
@@ -601,7 +602,7 @@ export const attendanceService = {
 
       batch.set(newAttRef, attendanceData);
 
-      const memberRef = doc(db, 'members', memberId);
+      const memberRef = tenantDb.doc('members', memberId);
 
       if (membershipUpdate) {
         // 선등록 회원권 활성화 + 크레딧 차감 (새 크레딧에서 -1)
@@ -688,7 +689,7 @@ export const attendanceService = {
 
       // Fetch attendance for that date
       const q = query(
-          collection(db, 'attendance'),
+          tenantDb.collection('attendance'),
           where("date", "==", dateStr),
           where("branchId", "==", branchId)
       );
@@ -718,7 +719,7 @@ export const attendanceService = {
                   
                   // Double check: if it still holds the OLD text, update it.
                   if (log.className === changedCls.oldTitle || log.instructor === changedCls.oldInst) {
-                      const docRef = doc(db, 'attendance', docSnap.id);
+                      const docRef = tenantDb.doc('attendance', docSnap.id);
                       batch.update(docRef, {
                           className: changedCls.newTitle,
                           instructor: changedCls.newInst

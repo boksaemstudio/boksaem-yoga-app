@@ -152,8 +152,8 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
                     {selectedTemplateId && selectedTemplate && (
                         <div style={{ 
                             marginTop: '12px', padding: '12px', 
-                            background: 'rgba(212, 175, 55, 0.05)', 
-                            borderRadius: '8px', border: '1px dashed rgba(212, 175, 55, 0.3)' 
+                            background: 'rgba(var(--primary-rgb), 0.05)', 
+                            borderRadius: '8px', border: '1px dashed rgba(var(--primary-rgb), 0.3)' 
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--primary-gold)' }}>
@@ -162,7 +162,7 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
                                 <button 
                                     onClick={handleCopyTemplate}
                                     style={{ 
-                                        background: 'rgba(212, 175, 55, 0.2)', color: 'white', 
+                                        background: 'rgba(var(--primary-rgb), 0.2)', color: 'white', 
                                         border: 'none', borderRadius: '4px', padding: '4px 8px', 
                                         fontSize: '0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' 
                                     }}
@@ -271,7 +271,7 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
                         color: sending ? '#d4d4d8' : 'black',
                         border: 'none', borderRadius: '12px', padding: '14px',
                         fontSize: '1rem', fontWeight: 'bold', cursor: sending ? 'wait' : 'pointer',
-                        boxShadow: sending ? 'none' : '0 4px 12px rgba(212, 175, 55, 0.3)'
+                        boxShadow: sending ? 'none' : '0 4px 12px rgba(var(--primary-rgb), 0.3)'
                     }}
                 >
                     {sending ? '전송 중...' : (isScheduled ? '예약 발송하기' : '전송하기')}

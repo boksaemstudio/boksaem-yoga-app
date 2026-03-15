@@ -359,44 +359,26 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
         const expiringMembersCount = uniqueMembers.filter(m => isMemberInBranch(m) && isMemberExpiring(m)).length;
 
-        // [Server-Side Revenue Aggregation]
-        // Instead of processing thousands of raw sales, we read from the aggregated stats document
+        // [FIX] 매출 합산: 항상 실제 sales 레코드에서 직접 계산
+        // revenue_summary 서버 통계가 신규(new) 매출만 집계하여 재등록 매출이 누락되는 버그 수정
         let todayRevenue = 0;
         let monthlyRevenue = 0;
         
         const currentMonthStr = todayStr.substring(0, 7);
 
-        // Calculate totals dynamically using the unified dataset limits, BUT fallback to server stats
-        if (revenueStats) {
-            // Adjust based on current branch if branching logic applies
-            // Wait, server stats currently aggregate all branches together.
-            // If branch filtering is active, we fallback to local sales calculation?
-            // "Admin Dashboard" overview doesn't branch filter the grand total except if branch selected.
-            // But since sales are restricted, fetching branch revenue requires full local array or server branch subsets.
-            // For now, let's use the local subset for branch if selected, otherwise server stat.
-        }
-
-        if (currentBranch === 'all' && revenueStats) {
-            todayRevenue = revenueStats.daily?.[todayStr]?.total || 0;
-            monthlyRevenue = revenueStats.monthly?.[currentMonthStr]?.total || 0;
-        } else {
-            // Local fallback for branch-specific totals (using the ~500 recent sales)
-            const branchSalesKeys = new Set();
-            let branchToday = 0;
-            let branchMonthly = 0;
+        {
+            const salesKeys = new Set();
             enrichedSales.forEach(s => {
                 if (currentBranch !== 'all' && s.branchId !== currentBranch && memberMapCache.get(s.memberId)?.homeBranch !== currentBranch) return;
                 if (!s.parsedDate) return;
                 
                 const uniqueKey = `${s.memberId}_${s.parsedDate}_${s.amount}`;
-                if (branchSalesKeys.has(uniqueKey)) return;
-                branchSalesKeys.add(uniqueKey);
+                if (salesKeys.has(uniqueKey)) return;
+                salesKeys.add(uniqueKey);
 
-                if (s.parsedDate === todayStr) branchToday += (Number(s.amount) || 0);
-                if (s.parsedDate.startsWith(currentMonthStr)) branchMonthly += (Number(s.amount) || 0);
+                if (s.parsedDate === todayStr) todayRevenue += (Number(s.amount) || 0);
+                if (s.parsedDate.startsWith(currentMonthStr)) monthlyRevenue += (Number(s.amount) || 0);
             });
-            todayRevenue = branchToday;
-            monthlyRevenue = branchMonthly;
         }
 
         // [Fix] Restore Missing Variables for Push Count

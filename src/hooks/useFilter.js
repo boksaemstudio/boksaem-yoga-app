@@ -38,10 +38,12 @@ export const useFilteredMembers = (members, currentBranch, searchTerm = '', filt
 
         if (filterType === 'active') {
             result = result.filter(m => {
-                if (!m.endDate) return false;
+                const credits = Number(m.credits || 0);
+                // [FIX] useAdminData.isMemberActive와 동일 기준: endDate + credits
+                if (!m.endDate) return credits > 0;
                 const endDate = new Date(m.endDate);
                 endDate.setHours(0, 0, 0, 0);
-                return endDate >= today;
+                return endDate >= today && credits > 0;
             });
         } else if (filterType === 'expiring') {
             // Expiring within 7 days

@@ -79,7 +79,7 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, is
                     borderRadius: '8px',
                     padding: '6px',
                     position: 'relative',
-                    background: isToday ? 'rgba(212, 175, 55, 0.1)' : 'rgba(255,255,255,0.02)',
+                    background: isToday ? 'rgba(var(--primary-rgb), 0.1)' : 'rgba(255,255,255,0.02)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center'
@@ -153,14 +153,14 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, is
     return (
         <div className="fade-in">
             {/* Statistics / AI Analysis Panel */}
-            <div className="glass-panel" style={{ padding: '20px', marginBottom: '20px', background: 'rgba(20, 20, 20, 0.9)', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
+            <div className="glass-panel" style={{ padding: '20px', marginBottom: '20px', background: 'rgba(20, 20, 20, 0.9)', border: '1px solid rgba(var(--primary-rgb), 0.2)' }}>
                 <h3 style={{ fontSize: '1.1rem', marginBottom: '15px', color: 'var(--primary-gold)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     ✨ AI 수련 분석
                 </h3>
                 <div style={{
                     marginBottom: '15px',
                     padding: '12px 16px',
-                    background: 'rgba(212, 175, 55, 0.1)',
+                    background: 'rgba(var(--primary-rgb), 0.1)',
                     borderRadius: '10px',
                     borderLeft: '3px solid var(--primary-gold)',
                 }}>
@@ -301,7 +301,7 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, is
                                     padding: '12px',
                                     background: 'rgba(255,255,255,0.05)',
                                     color: 'var(--primary-gold)',
-                                    border: '1px dashed rgba(212, 175, 55, 0.5)',
+                                    border: '1px dashed rgba(var(--primary-rgb), 0.5)',
                                     borderRadius: '12px',
                                     marginTop: '10px',
                                     cursor: 'pointer',

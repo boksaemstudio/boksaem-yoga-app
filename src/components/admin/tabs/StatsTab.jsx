@@ -4,7 +4,7 @@ import { useStudioConfig } from '../../../contexts/StudioContext';
 
 const StatsTab = ({ summary, stats, revenueTrend, memberStatusDist }) => {
     const { config } = useStudioConfig();
-    const primaryColor = config.THEME?.PRIMARY_COLOR || '#D4AF37';
+    const primaryColor = config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)';
     // Format data for charts
     const heatmapData = stats.byTime.map(([time, count]) => ({ time, count }));
 

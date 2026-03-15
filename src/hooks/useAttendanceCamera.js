@@ -160,9 +160,9 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
             const url = await getDownloadURL(fileRef);
 
             if (attendanceId) {
-                const { doc, updateDoc } = await import('firebase/firestore');
-                const { db } = await import('../firebase');
-                await updateDoc(doc(db, 'attendance', attendanceId), {
+                const { updateDoc } = await import('firebase/firestore');
+                const { tenantDb } = await import('../utils/tenantDb');
+                await updateDoc(tenantDb.doc('attendance', attendanceId), {
                     photoUrl: url,
                     photoStatus: status || 'unknown'
                 });

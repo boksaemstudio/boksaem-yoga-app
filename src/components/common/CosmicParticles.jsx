@@ -69,7 +69,7 @@ const CosmicParticles = () => {
                 if (p.isGold) {
                     // Gold particles
                     ctx.fillStyle = `rgba(212, 175, 55, ${p.opacity})`;
-                    ctx.shadowColor = config.THEME?.PRIMARY_COLOR || '#D4AF37';
+                    ctx.shadowColor = config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)';
                     ctx.shadowBlur = 8;
                 } else {
                     // White/blue stars
@@ -88,8 +88,8 @@ const CosmicParticles = () => {
                 const startX = Math.random() * canvas.width;
                 const startY = Math.random() * canvas.height * 0.5;
                 const gradient = ctx.createLinearGradient(startX, startY, startX + 100, startY + 60);
-                gradient.addColorStop(0, 'rgba(212, 175, 55, 0.8)');
-                gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
+                gradient.addColorStop(0, 'rgba(var(--primary-rgb), 0.8)');
+                gradient.addColorStop(1, 'rgba(var(--primary-rgb), 0)');
                 
                 ctx.beginPath();
                 ctx.moveTo(startX, startY);

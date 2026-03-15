@@ -91,7 +91,7 @@ export default function DataMigrationTab() {
             <div style={{
                 padding: '16px',
                 borderRadius: '12px',
-                background: isDryRun ? 'rgba(212, 175, 55, 0.1)' : 'rgba(244, 63, 94, 0.1)',
+                background: isDryRun ? 'rgba(var(--primary-rgb), 0.1)' : 'rgba(244, 63, 94, 0.1)',
                 border: `1px solid ${isDryRun ? 'var(--primary-gold)' : '#F43F5E'}`,
                 marginBottom: '20px'
             }}>
@@ -123,7 +123,7 @@ export default function DataMigrationTab() {
                     borderRadius: '12px',
                     padding: '40px',
                     textAlign: 'center',
-                    background: 'rgba(212, 175, 55, 0.05)'
+                    background: 'rgba(var(--primary-rgb), 0.05)'
                 }}>
                     <Upload size={48} color="var(--primary-gold)" style={{ marginBottom: '16px' }} />
                     <p style={{ fontSize: '1rem', marginBottom: '8px', color: 'var(--text-primary)' }}>
@@ -157,7 +157,7 @@ export default function DataMigrationTab() {
                 <div style={{
                     padding: '30px',
                     borderRadius: '12px',
-                    background: migrationStatus === 'cleaning' ? 'rgba(244, 63, 94, 0.1)' : 'rgba(212, 175, 55, 0.1)',
+                    background: migrationStatus === 'cleaning' ? 'rgba(244, 63, 94, 0.1)' : 'rgba(var(--primary-rgb), 0.1)',
                     border: `1px solid ${migrationStatus === 'cleaning' ? '#F43F5E' : 'var(--primary-gold)'}`,
                     textAlign: 'center'
                 }}>

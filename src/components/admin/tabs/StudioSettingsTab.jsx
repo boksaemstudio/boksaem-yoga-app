@@ -569,7 +569,7 @@ const StudioSettingsTab = () => {
                                 const id = name.replace(/[^a-zA-Z0-9가-힣]/g, '').toLowerCase() || `branch_${Date.now()}`;
                                 const autoId = id.replace(/[가-힣]+/g, () => `branch_${Date.now()}`);
                                 const finalId = /^[a-z]/.test(autoId) ? autoId : `branch_${Date.now()}`;
-                                const newBranches = [...(localConfig.BRANCHES || []), { id: finalId, name, color: '#D4AF37' }];
+                                const newBranches = [...(localConfig.BRANCHES || []), { id: finalId, name, color: 'var(--primary-gold)' }];
                                 handleChange('BRANCHES', newBranches);
                             }
                         }}

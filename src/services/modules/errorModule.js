@@ -8,13 +8,14 @@
 
 import { db } from "../../firebase";
 import { collection, addDoc, deleteDoc, getDocs, doc, query, orderBy, limit as firestoreLimit, writeBatch } from "firebase/firestore";
+import { tenantDb } from '../../utils/tenantDb';
 
 /**
  * 정보성 로그 기록
  */
 export const logInfo = async (message, context = {}) => {
     try {
-        await addDoc(collection(db, 'error_logs'), {
+        await addDoc(tenantDb.globalCollection('error_logs'), {
             message: `[INFO] ${message}`,
             context,
             timestamp: new Date().toISOString()
@@ -29,7 +30,7 @@ export const logInfo = async (message, context = {}) => {
  */
 export const logError = async (error, context = {}) => {
     try {
-        await addDoc(collection(db, 'error_logs'), {
+        await addDoc(tenantDb.globalCollection('error_logs'), {
             message: `[ERROR] ${error?.message || String(error)}`,
             stack: error?.stack || null,
             context,
@@ -46,7 +47,7 @@ export const logError = async (error, context = {}) => {
 export const getErrorLogs = async (limitCount = 50) => {
     try {
         const q = query(
-            collection(db, 'error_logs'),
+            tenantDb.globalCollection('error_logs'),
             orderBy('timestamp', 'desc'),
             firestoreLimit(limitCount)
         );
@@ -63,7 +64,7 @@ export const getErrorLogs = async (limitCount = 50) => {
  */
 export const deleteErrorLog = async (logId) => {
     try {
-        await deleteDoc(doc(db, 'error_logs', logId));
+        await deleteDoc(tenantDb.globalDoc('error_logs', logId));
         return { success: true };
     } catch (e) {
         console.error("Delete error log failed:", e);
@@ -76,7 +77,7 @@ export const deleteErrorLog = async (logId) => {
  */
 export const clearErrorLogs = async () => {
     try {
-        const snapshot = await getDocs(collection(db, 'error_logs'));
+        const snapshot = await getDocs(tenantDb.globalCollection('error_logs'));
         const batch = writeBatch(db);
         snapshot.docs.forEach(doc => batch.delete(doc.ref));
         await batch.commit();
@@ -93,7 +94,7 @@ export const clearErrorLogs = async () => {
 export const getPushHistory = async (limitCount = 50) => {
     try {
         const q = query(
-            collection(db, 'push_history'),
+            tenantDb.collection('push_history'),
             orderBy('createdAt', 'desc'),
             firestoreLimit(limitCount)
         );

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { onSnapshot, doc, collection, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
-import { db } from '../firebase';
+import { tenantDb } from '../utils/tenantDb';
 import { X, CalendarCheck, ClockClockwise, Trash, PencilSimple, Phone, CalendarPlus, Receipt, ArrowRight, UserPlus, FileText, CheckCircle, ChatCircleText, Student, WarningCircle, User, Calendar, CreditCard, Chats, BellRinging, CheckSquare, Square } from '@phosphor-icons/react';
 import RegistrationTab from './admin/member-detail/RegistrationTab';
 import AttendanceTab from './admin/member-detail/AttendanceTab';
@@ -14,7 +14,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
 
     // Helper functions replacing studioConfig.js
     const getBranchName = (id) => (config.BRANCHES || []).find(b => b.id === id)?.name || id;
-    const getBranchColor = (id) => (config.BRANCHES || []).find(b => b.id === id)?.color || '#D4AF37';
+    const getBranchColor = (id) => (config.BRANCHES || []).find(b => b.id === id)?.color || 'var(--primary-gold)';
     const getMembershipTypeLabel = (key) => config.MEMBERSHIP_TYPE_MAP?.[key] || key;
     // [FIX] Use local state for immediate UI updates
     const [localMember, setLocalMember] = useState(initialMember);
@@ -56,7 +56,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
         if (!member?.id || member?.role === 'instructor') return;
 
         console.log(`[AdminMemberDetailModal] Setting up real-time listener for member: ${member.id}`);
-        const unsub = onSnapshot(doc(db, 'members', member.id), (snap) => {
+        const unsub = onSnapshot(tenantDb.doc('members', member.id), (snap) => {
             if (snap.exists()) {
                 const updatedData = { id: snap.id, ...snap.data() };
                 console.log(`[AdminMemberDetailModal] Real-time data received for ${updatedData.name}`);
@@ -78,7 +78,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
 
         console.log(`[AdminMemberDetailModal] Setting up logs listener for: ${member.id}`);
         const q = query(
-            collection(db, 'attendance'),
+            tenantDb.collection('attendance'),
             where('memberId', '==', member.id),
             orderBy('timestamp', 'desc'),
             firestoreLimit(logLimit)
@@ -671,7 +671,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                                     style={{
                                         display: 'flex', alignItems: 'center', gap: '10px',
                                         padding: '10px', borderRadius: '8px',
-                                        background: selectedChangeKeys.has(change.key) ? 'rgba(212,175,55,0.1)' : 'rgba(255,255,255,0.05)',
+                                        background: selectedChangeKeys.has(change.key) ? 'rgba(var(--primary-rgb), 0.1)' : 'rgba(255,255,255,0.05)',
                                         border: selectedChangeKeys.has(change.key) ? '1px solid var(--primary-gold)' : '1px solid transparent',
                                         cursor: 'pointer'
                                     }}
@@ -890,7 +890,7 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {/* --- TOP: EDIT FORM --- */}
             {editingSale ? (
-                <div style={{ background: 'rgba(212, 175, 55, 0.05)', border: '1px solid var(--primary-gold)', borderRadius: '12px', padding: '15px' }}>
+                <div style={{ background: 'rgba(var(--primary-rgb), 0.05)', border: '1px solid var(--primary-gold)', borderRadius: '12px', padding: '15px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                         <h3 style={{ color: 'var(--primary-gold)', margin: 0, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <PencilSimple size={20} /> 과거/선결제 내역 수정 모드
@@ -1161,7 +1161,7 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                                         document.querySelector('.fade-in').scrollTo({ top: 0, behavior: 'smooth' });
                                     }}
                                     style={{
-                                        background: isSelected ? 'rgba(212, 175, 55, 0.15)' : 'rgba(255,255,255,0.05)',
+                                        background: isSelected ? 'rgba(var(--primary-rgb), 0.15)' : 'rgba(255,255,255,0.05)',
                                         border: isSelected ? '1px solid var(--primary-gold)' : '1px solid rgba(255,255,255,0.1)',
                                         borderRadius: '8px', padding: '15px', cursor: 'pointer',
                                         transition: 'all 0.2s ease', position: 'relative'

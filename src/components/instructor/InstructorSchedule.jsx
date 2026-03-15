@@ -30,27 +30,30 @@ const InstructorSchedule = ({ instructorName }) => {
 
     useEffect(() => {
         const loadData = async () => {
-            const promises = branches.map(b => getMonthlyClasses(b.id, year, month));
-            const results = await Promise.all(promises);
-            
-            const merged = {};
-            
-            results.forEach((data, idx) => {
-                const branch = branches[idx];
-                Object.entries(data).forEach(([date, classes]) => {
-                    if (!merged[date]) merged[date] = [];
-                    // Add branch info to each class
-                    const classesWithBranch = classes.map(cls => ({
-                        ...cls,
-                        branchId: branch.id,
-                        branchName: branch.name,
-                        branchColor: branch.color
-                    }));
-                    merged[date] = [...merged[date], ...classesWithBranch];
+            try {
+                const promises = branches.map(b => getMonthlyClasses(b.id, year, month));
+                const results = await Promise.all(promises);
+                
+                const merged = {};
+                
+                results.forEach((data, idx) => {
+                    const branch = branches[idx];
+                    Object.entries(data).forEach(([date, classes]) => {
+                        if (!merged[date]) merged[date] = [];
+                        const classesWithBranch = classes.map(cls => ({
+                            ...cls,
+                            branchId: branch.id,
+                            branchName: branch.name,
+                            branchColor: branch.color
+                        }));
+                        merged[date] = [...merged[date], ...classesWithBranch];
+                    });
                 });
-            });
-            
-            setMonthlyData(merged);
+                
+                setMonthlyData(merged);
+            } catch (error) {
+                console.error('[InstructorSchedule] Failed to load data:', error);
+            }
         };
         loadData();
     }, [year, month, branches]);
@@ -211,7 +214,7 @@ const InstructorSchedule = ({ instructorName }) => {
                     onClick={() => setSelectedDate(dateStr)}
                     style={{
                         padding: '4px', textAlign: 'center', cursor: 'pointer', borderRadius: '8px',
-                        background: isSelected ? 'var(--primary-gold)' : isToday ? 'rgba(212, 175, 55, 0.15)' : 'transparent',
+                        background: isSelected ? 'var(--primary-gold)' : isToday ? 'rgba(var(--primary-rgb), 0.15)' : 'transparent',
                         color: textColor,
                         border: borderStyle,
                         borderColor: borderColor !== 'transparent' ? borderColor : undefined,
@@ -329,7 +332,7 @@ const InstructorSchedule = ({ instructorName }) => {
                                         }}
                                         style={{
                                             padding: '12px', borderRadius: '8px',
-                                            background: isCancelled ? 'rgba(255, 71, 87, 0.1)' : cls.instructor === instructorName ? 'rgba(212, 175, 55, 0.1)' : 'var(--bg-input)',
+                                            background: isCancelled ? 'rgba(255, 71, 87, 0.1)' : cls.instructor === instructorName ? 'rgba(var(--primary-rgb), 0.1)' : 'var(--bg-input)',
                                             borderLeft: `4px solid ${isCancelled ? '#ff4757' : (cls.branchColor || 'var(--primary-gold)')}`,
                                             position: 'relative',
                                             opacity: isCancelled ? 0.7 : 1,
@@ -379,9 +382,9 @@ const InstructorSchedule = ({ instructorName }) => {
                                                         <span style={{
                                                             fontSize: '0.7rem', fontWeight: 'bold',
                                                             padding: '2px 8px', borderRadius: '10px',
-                                                            background: bookedCount >= capacity ? 'rgba(255,71,87,0.15)' : 'rgba(212,175,55,0.15)',
+                                                            background: bookedCount >= capacity ? 'rgba(255,71,87,0.15)' : 'rgba(var(--primary-rgb), 0.15)',
                                                             color: bookedCount >= capacity ? '#ff4757' : 'var(--primary-gold)',
-                                                            border: `1px solid ${bookedCount >= capacity ? 'rgba(255,71,87,0.3)' : 'rgba(212,175,55,0.3)'}`
+                                                            border: `1px solid ${bookedCount >= capacity ? 'rgba(255,71,87,0.3)' : 'rgba(var(--primary-rgb), 0.3)'}`
                                                         }}>예약 {bookedCount}/{capacity}</span>
                                                     );
                                                 })()}
@@ -403,9 +406,9 @@ const InstructorSchedule = ({ instructorName }) => {
                                                                 {clsBookings.map(b => (
                                                                     <span key={b.id} style={{
                                                                         padding: '3px 8px', borderRadius: '6px', fontSize: '0.78rem',
-                                                                        background: b.status === 'attended' ? 'rgba(46,213,115,0.1)' : b.status === 'noshow' ? 'rgba(255,71,87,0.1)' : b.status === 'waitlisted' ? 'rgba(243,156,18,0.1)' : 'rgba(212,175,55,0.08)',
+                                                                        background: b.status === 'attended' ? 'rgba(46,213,115,0.1)' : b.status === 'noshow' ? 'rgba(255,71,87,0.1)' : b.status === 'waitlisted' ? 'rgba(243,156,18,0.1)' : 'rgba(var(--primary-rgb), 0.08)',
                                                                         color: b.status === 'attended' ? '#2ed573' : b.status === 'noshow' ? '#ff4757' : b.status === 'waitlisted' ? '#f39c12' : 'var(--text-secondary)',
-                                                                        border: `1px solid ${b.status === 'attended' ? 'rgba(46,213,115,0.2)' : b.status === 'noshow' ? 'rgba(255,71,87,0.2)' : b.status === 'waitlisted' ? 'rgba(243,156,18,0.2)' : 'rgba(212,175,55,0.15)'}`
+                                                                        border: `1px solid ${b.status === 'attended' ? 'rgba(46,213,115,0.2)' : b.status === 'noshow' ? 'rgba(255,71,87,0.2)' : b.status === 'waitlisted' ? 'rgba(243,156,18,0.2)' : 'rgba(var(--primary-rgb), 0.15)'}`
                                                                     }}>
                                                                         {b.status === 'attended' ? '✅' : b.status === 'noshow' ? '❌' : b.status === 'waitlisted' ? '⏳' : '📋'} {b.memberName}
                                                                     </span>

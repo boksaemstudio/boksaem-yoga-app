@@ -161,9 +161,9 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
         const themes = {
             instructor: {
                 background: hasPhone 
-                    ? 'linear-gradient(135deg, rgba(212,175,55,0.25) 0%, rgba(212,175,55,0.15) 100%)'
-                    : 'linear-gradient(135deg, rgba(212,175,55,0.15) 0%, rgba(212,175,55,0.08) 100%)',
-                border: '1px solid rgba(212,175,55,0.4)',
+                    ? 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.25) 0%, rgba(var(--primary-rgb), 0.15) 100%)'
+                    : 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.15) 0%, rgba(var(--primary-rgb), 0.08) 100%)',
+                border: '1px solid rgba(var(--primary-rgb), 0.4)',
             },
             classType: {
                 background: 'linear-gradient(135deg, rgba(0,206,201,0.15) 0%, rgba(0,206,201,0.08) 100%)',
@@ -204,10 +204,10 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                         <div style={sectionHeaderStyle}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <span style={{ fontSize: '1.2rem' }}>👩‍🏫</span>
-                        <h4 style={{ margin: 0, color: config.THEME?.PRIMARY_COLOR || '#d4af37', fontWeight: '600' }}>선생님 목록</h4>
+                        <h4 style={{ margin: 0, color: config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)', fontWeight: '600' }}>선생님 목록</h4>
                                 <span style={{
-                                    background: 'rgba(212,175,55,0.2)',
-                                    color: config.THEME?.PRIMARY_COLOR || '#d4af37',
+                                    background: 'rgba(var(--primary-rgb), 0.2)',
+                                    color: config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)',
                                     padding: '4px 10px',
                                     borderRadius: '12px',
                                     fontSize: '0.75rem',
@@ -238,11 +238,16 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                                 id="add-instructor-btn"
                                 onClick={async () => {
                                     if (newInstructor.trim()) {
-                                        const updated = [...normalizedInstructors, { name: newInstructor.trim(), phone: newPhone.trim() }];
-                                        await storageService.updateInstructors(updated);
-                                        setInstructors(updated);
-                                        setNewInstructor('');
-                                        setNewPhone('');
+                                        try {
+                                            const updated = [...normalizedInstructors, { name: newInstructor.trim(), phone: newPhone.trim() }];
+                                            await storageService.updateInstructors(updated);
+                                            setInstructors(updated);
+                                            setNewInstructor('');
+                                            setNewPhone('');
+                                        } catch (e) {
+                                            console.error('Failed to add instructor:', e);
+                                            alert('선생님 추가 실패');
+                                        }
                                     }
                                 }}
                                 style={improvedActionBtnStyle}
@@ -260,7 +265,7 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                                 >
                                     {editingIdx === idx ? (
                                         <>
-                                            <span style={{ fontWeight: '600', color: config.THEME?.PRIMARY_COLOR || '#d4af37' }}>{inst.name}</span>
+                                            <span style={{ fontWeight: '600', color: config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)' }}>{inst.name}</span>
                                             <input
                                                 type="tel"
                                                 value={editPhone}
@@ -273,14 +278,19 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                                             <button
                                                 id={`save-phone-${idx}`}
                                                 onClick={async () => {
-                                                    const updated = [...normalizedInstructors];
-                                                    updated[idx] = { ...updated[idx], phone: editPhone.trim() };
-                                                    await storageService.updateInstructors(updated);
-                                                    setInstructors(updated);
-                                                    setEditingIdx(null);
+                                                    try {
+                                                        const updated = [...normalizedInstructors];
+                                                        updated[idx] = { ...updated[idx], phone: editPhone.trim() };
+                                                        await storageService.updateInstructors(updated);
+                                                        setInstructors(updated);
+                                                        setEditingIdx(null);
+                                                    } catch (e) {
+                                                        console.error('Failed to save phone:', e);
+                                                        alert('전화번호 저장 실패');
+                                                    }
                                                 }}
                                                 style={{
-                                                    background: `linear-gradient(135deg, ${config.THEME?.PRIMARY_COLOR || '#d4af37'} 0%, #c9a227 100%)`, 
+                                                    background: `linear-gradient(135deg, ${config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'} 0%, #c9a227 100%)`, 
                                                     border: 'none', 
                                                     color: 'white', 
                                                     cursor: 'pointer', 
@@ -307,9 +317,14 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                                                 onClick={async (e) => {
                                                     e.stopPropagation();
                                                     if (window.confirm(`'${inst.name}' 선생님을 삭제하시겠습니까?`)) {
-                                                        const updated = normalizedInstructors.filter((_, i) => i !== idx);
-                                                        await storageService.updateInstructors(updated);
-                                                        setInstructors(updated);
+                                                        try {
+                                                            const updated = normalizedInstructors.filter((_, i) => i !== idx);
+                                                            await storageService.updateInstructors(updated);
+                                                            setInstructors(updated);
+                                                        } catch (e) {
+                                                            console.error('Failed to delete instructor:', e);
+                                                            alert('선생님 삭제 실패');
+                                                        }
                                                     }
                                                 }}
                                                 style={deleteIconBtnStyle}
@@ -352,10 +367,15 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                                 id="add-classtype-btn"
                                 onClick={async () => {
                                     if (newClassType.trim()) {
-                                        const updated = [...classTypes, newClassType.trim()];
-                                        await storageService.updateClassTypes(updated);
-                                        setClassTypes(updated);
-                                        setNewClassType('');
+                                        try {
+                                            const updated = [...classTypes, newClassType.trim()];
+                                            await storageService.updateClassTypes(updated);
+                                            setClassTypes(updated);
+                                            setNewClassType('');
+                                        } catch (e) {
+                                            console.error('Failed to add class type:', e);
+                                            alert('수업 종류 추가 실패');
+                                        }
                                     }
                                 }}
                                 style={{ ...improvedActionBtnStyle, background: '#00cec9' }}
@@ -375,9 +395,14 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                                     <button
                                         onClick={async () => {
                                             if (window.confirm(`'${ct}' 수업 종류를 삭제하시겠습니까?`)) {
-                                                const updated = classTypes.filter(c => c !== ct);
-                                                await storageService.updateClassTypes(updated);
-                                                setClassTypes(updated);
+                                                try {
+                                                    const updated = classTypes.filter(c => c !== ct);
+                                                    await storageService.updateClassTypes(updated);
+                                                    setClassTypes(updated);
+                                                } catch (e) {
+                                                    console.error('Failed to delete class type:', e);
+                                                    alert('수업 종류 삭제 실패');
+                                                }
                                             }
                                         }}
                                         style={deleteIconBtnStyle}
@@ -424,10 +449,15 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                                                 alert('이미 존재하는 레벨입니다.');
                                                 return;
                                             }
-                                            const updated = [...(classLevels || []), val].sort(); // Sort for better UX
-                                            await storageService.updateClassLevels(updated);
-                                            setClassLevels(updated);
-                                            setNewClassLevel('');
+                                            try {
+                                                const updated = [...(classLevels || []), val].sort(); // Sort for better UX
+                                                await storageService.updateClassLevels(updated);
+                                                setClassLevels(updated);
+                                                setNewClassLevel('');
+                                            } catch (e) {
+                                                console.error('Failed to add class level:', e);
+                                                alert('수업 레벨 추가 실패');
+                                            }
                                         }
                                     }}
                                     style={{ ...improvedActionBtnStyle, background: '#9b59b6', color: 'white' }}
@@ -447,9 +477,14 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                                     <button
                                         onClick={async () => {
                                             if (window.confirm(`Lv.${level}을(를) 삭제하시겠습니까?`)) {
-                                                const updated = classLevels.filter(l => l !== level);
-                                                await storageService.updateClassLevels(updated);
-                                                setClassLevels(updated);
+                                                try {
+                                                    const updated = classLevels.filter(l => l !== level);
+                                                    await storageService.updateClassLevels(updated);
+                                                    setClassLevels(updated);
+                                                } catch (e) {
+                                                    console.error('Failed to delete class level:', e);
+                                                    alert('수업 레벨 삭제 실패');
+                                                }
                                             }
                                         }}
                                         style={deleteIconBtnStyle}

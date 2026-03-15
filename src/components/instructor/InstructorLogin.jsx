@@ -40,7 +40,7 @@ const InstructorLogin = ({ onLogin, instructors }) => {
 
     return (
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', position: 'relative', zIndex: 1 }}>
-            <div style={{ background: 'rgba(20, 20, 25, 0.95)', padding: '40px', borderRadius: '20px', maxWidth: '400px', width: '100%', textAlign: 'center', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
+            <div style={{ background: 'rgba(20, 20, 25, 0.95)', padding: '40px', borderRadius: '20px', maxWidth: '400px', width: '100%', textAlign: 'center', border: '1px solid rgba(var(--primary-rgb), 0.2)' }}>
 
                 <div style={{ marginBottom: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--bg-input)', padding: '12px 16px', borderRadius: '10px', marginBottom: '12px' }}>

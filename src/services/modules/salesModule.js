@@ -8,6 +8,7 @@
 
 import { db } from "../../firebase";
 import { collection, addDoc, getDocs, query, where, orderBy } from "firebase/firestore";
+import { tenantDb } from '../../utils/tenantDb';
 
 // 중복 결제 방지: 최근 30초 내 동일 memberId+amount 체크
 const recentSales = {};
@@ -26,7 +27,7 @@ export const addSalesRecord = async (data) => {
         }
         recentSales[dedupeKey] = now;
 
-        await addDoc(collection(db, 'sales'), {
+        await addDoc(tenantDb.collection('sales'), {
             ...data,
             timestamp: new Date().toISOString()
         });
@@ -43,7 +44,7 @@ export const addSalesRecord = async (data) => {
 export const getSalesHistory = async (memberId) => {
     try {
         const q = query(
-            collection(db, 'sales'),
+            tenantDb.collection('sales'),
             where("memberId", "==", memberId)
         );
         const snapshot = await getDocs(q);
@@ -60,7 +61,7 @@ export const getSalesHistory = async (memberId) => {
 export const getAllSales = async () => {
     try {
         const q = query(
-            collection(db, 'sales'),
+            tenantDb.collection('sales'),
             orderBy("timestamp", "desc")
         );
         const snapshot = await getDocs(q);

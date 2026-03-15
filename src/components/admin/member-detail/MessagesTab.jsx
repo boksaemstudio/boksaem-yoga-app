@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 
 import { storageService } from '../../../services/storage';
-import { onSnapshot, collection, query, where, orderBy, limit as firestoreLimit, getDocs } from 'firebase/firestore';
-import { db } from '../../../firebase';
+import { onSnapshot, query, where, orderBy, limit as firestoreLimit, getDocs } from 'firebase/firestore';
+import { tenantDb } from '../../../utils/tenantDb';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 import { Info, Copy } from '@phosphor-icons/react';
 
@@ -64,7 +64,7 @@ const MessagesTab = ({ memberId }) => {
 
         console.log(`[MessagesTab] Subscribing to messages for member: ${memberId}`);
         const q = query(
-            collection(db, 'messages'),
+            tenantDb.collection('messages'),
             where("memberId", "==", memberId),
             orderBy("timestamp", "desc"),
             firestoreLimit(msgLimit)
@@ -87,7 +87,7 @@ const MessagesTab = ({ memberId }) => {
         const loadNotices = async () => {
             try {
                 const q = query(
-                    collection(db, 'push_history'),
+                    tenantDb.collection('push_history'),
                     where('type', 'in', ['campaign', 'notice']),
                     orderBy('createdAt', 'desc'),
                     firestoreLimit(20)
@@ -183,8 +183,8 @@ const MessagesTab = ({ memberId }) => {
                     {selectedTemplateId && selectedTemplate && (
                         <div style={{ 
                             marginTop: '12px', padding: '12px', 
-                            background: 'rgba(212, 175, 55, 0.05)', 
-                            borderRadius: '8px', border: '1px dashed rgba(212, 175, 55, 0.3)' 
+                            background: 'rgba(var(--primary-rgb), 0.05)', 
+                            borderRadius: '8px', border: '1px dashed rgba(var(--primary-rgb), 0.3)' 
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--primary-gold)' }}>
@@ -193,7 +193,7 @@ const MessagesTab = ({ memberId }) => {
                                 <button 
                                     onClick={handleCopyTemplate}
                                     style={{ 
-                                        background: 'rgba(212, 175, 55, 0.2)', color: 'white', 
+                                        background: 'rgba(var(--primary-rgb), 0.2)', color: 'white', 
                                         border: 'none', borderRadius: '4px', padding: '4px 8px', 
                                         fontSize: '0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' 
                                     }}
@@ -330,10 +330,10 @@ const MessagesTab = ({ memberId }) => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             {combined.map(log => (
                                 <div key={log.id} style={{ 
-                                    background: log.type === 'notice' ? 'rgba(212, 175, 55, 0.1)' : 'rgba(0,0,0,0.3)', 
+                                    background: log.type === 'notice' ? 'rgba(var(--primary-rgb), 0.1)' : 'rgba(0,0,0,0.3)', 
                                     padding: '12px', 
                                     borderRadius: '8px',
-                                    border: log.type === 'notice' ? '1px solid rgba(212, 175, 55, 0.2)' : 'none'
+                                    border: log.type === 'notice' ? '1px solid rgba(var(--primary-rgb), 0.2)' : 'none'
                                 }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', alignItems: 'center' }}>
                                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -342,7 +342,7 @@ const MessagesTab = ({ memberId }) => {
                                                 color: log.type === 'notice' ? 'var(--primary-gold)' : '#3B82F6',
                                                 fontWeight: '700',
                                                 padding: '2px 6px',
-                                                background: log.type === 'notice' ? 'rgba(212, 175, 55, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                                                background: log.type === 'notice' ? 'rgba(var(--primary-rgb), 0.15)' : 'rgba(59, 130, 246, 0.15)',
                                                 borderRadius: '4px'
                                             }}>
                                                 {log.type === 'notice' ? '공지' : '개별'}

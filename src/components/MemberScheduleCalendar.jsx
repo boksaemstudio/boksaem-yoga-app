@@ -251,7 +251,7 @@ const BookingModal = ({ info, config, branchId, bookingLoading, onBook, onCancel
             <div style={{
                 background: 'rgba(30,30,30,0.98)', borderRadius: '20px',
                 padding: '28px', maxWidth: '340px', width: '90%',
-                border: '1px solid rgba(212,175,55,0.3)',
+                border: '1px solid rgba(var(--primary-rgb), 0.3)',
                 boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
             }} onClick={e => e.stopPropagation()}>
                 {/* 수업 정보 */}
@@ -403,7 +403,7 @@ const CalendarCell = memo(({ date, monthlyClasses, attendanceLogs, branchId, tod
         <div
             style={{
                 minHeight: '85px',
-                backgroundColor: isToday ? 'rgba(212,175,55,0.15)' : (holidayName ? 'rgba(255,71,87,0.08)' : 'rgba(255,255,255,0.02)'),
+                backgroundColor: isToday ? 'rgba(var(--primary-rgb), 0.15)' : (holidayName ? 'rgba(255,71,87,0.08)' : 'rgba(255,255,255,0.02)'),
                 border: isAttended ? '2px solid var(--primary-gold)' : '1px solid rgba(255,255,255,0.08)',
                 borderRadius: '10px',
                 padding: '8px',
@@ -445,7 +445,7 @@ const CalendarCell = memo(({ date, monthlyClasses, attendanceLogs, branchId, tod
                                 border: myBooking ? '2px solid var(--primary-gold)' : (isMatched ? '2px solid #3498db' : (cls.status === 'cancelled' ? 'none' : `1px solid ${colors.border}`)),
                                 textDecoration: cls.status === 'cancelled' ? 'line-through' : 'none',
                                 fontWeight: isMatched ? 'bold' : 'normal',
-                                boxShadow: myBooking ? '0 0 8px rgba(212,175,55,0.4)' : (isMatched ? '0 0 8px rgba(52, 152, 219, 0.5)' : 'none'),
+                                boxShadow: myBooking ? '0 0 8px rgba(var(--primary-rgb), 0.4)' : (isMatched ? '0 0 8px rgba(52, 152, 219, 0.5)' : 'none'),
                                 position: 'relative',
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -543,7 +543,7 @@ const ColorLegend = memo(({ t, allowBooking }) => (
         </div>
         {allowBooking && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)' }}>
-                <div style={{ width: '12px', height: '12px', borderRadius: '3px', border: '2px solid var(--primary-gold)', background: 'rgba(212,175,55,0.15)' }}></div> 내 예약
+                <div style={{ width: '12px', height: '12px', borderRadius: '3px', border: '2px solid var(--primary-gold)', background: 'rgba(var(--primary-rgb), 0.15)' }}></div> 내 예약
             </div>
         )}
     </div>

@@ -33,11 +33,11 @@ const NoticeTab = ({
                                     className="glass-panel"
                                     style={{
                                         padding: 0,
-                                        background: isSelected ? 'rgba(212, 175, 55, 0.2)' : 'rgba(24, 24, 27, 0.7)',
+                                        background: isSelected ? 'rgba(var(--primary-rgb), 0.2)' : 'rgba(24, 24, 27, 0.7)',
                                         border: isSelected ? '2px solid var(--primary-gold)' : '1px solid rgba(255,255,255,0.1)',
                                         borderRadius: '24px',
                                         overflow: 'hidden',
-                                        boxShadow: isSelected ? '0 0 30px rgba(212, 175, 55, 0.3)' : '0 15px 35px rgba(0,0,0,0.3)',
+                                        boxShadow: isSelected ? '0 0 30px rgba(var(--primary-rgb), 0.3)' : '0 15px 35px rgba(0,0,0,0.3)',
                                         transition: 'all 0.3s ease'
                                     }}>
                                     {((notice.images && notice.images.length > 0) || notice.image || notice.imageUrl) ? (
@@ -140,7 +140,7 @@ const NoticeTab = ({
                                                     fontSize: '0.75rem',
                                                     color: 'rgba(255,255,255,0.5)',
                                                     whiteSpace: 'nowrap',
-                                                    background: 'rgba(212, 175, 55, 0.15)',
+                                                    background: 'rgba(var(--primary-rgb), 0.15)',
                                                     padding: '4px 12px',
                                                     borderRadius: '20px',
                                                     fontWeight: '600'

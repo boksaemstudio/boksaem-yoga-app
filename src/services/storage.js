@@ -8,6 +8,7 @@ import { messaging, getToken, VAPID_KEY } from "../firebase";
 import * as scheduleService from './scheduleService'; // [Refactor]
 import * as noticeService from './noticeService'; // [Refactor]
 import * as aiService from './aiService'; // [Refactor]
+import { tenantDb } from '../utils/tenantDb';
 import { memberService } from './memberService'; // [Refactor] Extreme Safety Facade
 import { attendanceService } from './attendanceService'; // [Refactor] Attendance Facade
 import { paymentService } from './paymentService'; // [Refactor] Payment Facade
@@ -170,7 +171,7 @@ export const storageService = {
 
         // [NEW] Real-time Kiosk Trigger: 단일 문서 리스너 (가벼운 실시간 동기화)
         try {
-          const syncRef = doc(db, 'system_state', 'kiosk_sync');
+          const syncRef = tenantDb.globalDoc('system_state', 'kiosk_sync');
           let unsubSync = null;
 
           const setupSyncListener = () => {
@@ -221,7 +222,7 @@ export const storageService = {
     attendanceService.setupAttendanceListener();
 
     safelySubscribe(
-      query(collection(db, 'notices'), orderBy("timestamp", "desc")),
+      query(tenantDb.collection('notices'), orderBy("timestamp", "desc")),
       (snapshot) => cachedNotices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
       "Notices",
       "notices"
@@ -232,7 +233,7 @@ export const storageService = {
     // [PERF] FCM 토큰: 기본 컬렉션(fcm_tokens)만 구독 (3중 → 단일)
     // 레거시 컬렉션(fcmTokens, push_tokens)은 마이그레이션 후 제거 예정
     safelySubscribe(
-      collection(db, 'fcm_tokens'),
+      tenantDb.globalCollection('fcm_tokens'),
       (snapshot) => {
         cachedPushTokens = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         console.log(`[Storage] FCM Tokens: ${cachedPushTokens.length}`);
@@ -242,7 +243,7 @@ export const storageService = {
 
     // [FIX] images: 실시간 리스너로 변경하여 관리자가 업로드한 이미지가 즉시 모든 기기에 반영되도록 함
     safelySubscribe(
-      collection(db, 'images'),
+      tenantDb.collection('images'),
       (snapshot) => {
         const imgs = {};
         snapshot.docs.forEach(d => {
@@ -309,7 +310,7 @@ export const storageService = {
     const targetDate = date || new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
     const cacheKey = `${branchId}_${targetDate}`;
     try {
-      const docRef = doc(db, 'daily_classes', cacheKey);
+      const docRef = tenantDb.doc('daily_classes', cacheKey);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         cachedDailyClasses[cacheKey] = { 
@@ -339,7 +340,7 @@ export const storageService = {
     if (isStale) {
       try {
         console.log(`[Storage] Cache stale/empty for ${cacheKey}, refreshing...`);
-        const docRef = doc(db, 'daily_classes', cacheKey);
+        const docRef = tenantDb.doc('daily_classes', cacheKey);
         const docSnap = await getDoc(docRef);
         const classes = docSnap.exists() ? (docSnap.data().classes || []) : [];
         cachedDailyClasses[cacheKey] = { classes, fetchedAt: Date.now() };
@@ -508,7 +509,7 @@ export const storageService = {
     const cached = cachedDailyClasses[cacheKey];
     if (!cached || !cached.classes) {
       try {
-        const docRef = doc(db, 'daily_classes', cacheKey);
+        const docRef = tenantDb.doc('daily_classes', cacheKey);
         const docSnap = await getDoc(docRef);
         const classes = docSnap.exists() ? (docSnap.data().classes || []) : [];
         cachedDailyClasses[cacheKey] = { classes, fetchedAt: Date.now() };
@@ -529,7 +530,7 @@ export const storageService = {
   async saveToken(token, role = 'member', language = 'ko') {
     if (!token) return;
     try {
-      const tokenRef = doc(db, 'fcm_tokens', token);
+      const tokenRef = tenantDb.globalDoc('fcm_tokens', token);
       await setDoc(tokenRef, { token, role, language, updatedAt: new Date().toISOString(), platform: 'web' }, { merge: true });
     } catch (e) { console.error("Save token failed:", e); }
   },
@@ -538,7 +539,7 @@ export const storageService = {
   async saveInstructorToken(token, instructorName, language = 'ko') {
     if (!token || !instructorName) return;
     try {
-      const tokenRef = doc(db, 'fcm_tokens', token);
+      const tokenRef = tenantDb.globalDoc('fcm_tokens', token);
       await setDoc(tokenRef, {
         token,
         role: 'instructor',
@@ -621,7 +622,7 @@ export const storageService = {
 
   async logError(error, context = {}) {
     try {
-      await addDoc(collection(db, 'error_logs'), {
+      await addDoc(tenantDb.globalCollection('error_logs'), {
         message: error?.message || String(error),
         context,
         url: window.location.href,
@@ -634,7 +635,7 @@ export const storageService = {
   // Kiosk branch management (localStorage-based for tablet persistence)
   getKioskBranch() {
     const stored = this._safeGetItem('kiosk_branch');
-    return stored || STUDIO_CONFIG.BRANCH_IDS.MAPO; // Default to mapo
+    return stored || (STUDIO_CONFIG.BRANCHES?.[0]?.id || 'main'); // Default to first branch
   },
 
   setKioskBranch(branchId) {
@@ -659,7 +660,7 @@ export const storageService = {
    */
   async logLoginFailure(type, name, phoneLast4, errorMessage) {
     try {
-      await addDoc(collection(db, 'login_failures'), {
+      await addDoc(tenantDb.collection('login_failures'), {
         timestamp: new Date().toISOString(),
         type: type,
         attemptedName: name,
@@ -765,7 +766,7 @@ export const storageService = {
   // [ADMIN] 데이터 마이그레이션 - phoneLast4 필드 자동 생성
   async migratePhoneLast4() {
     try {
-      const snapshot = await getDocs(collection(db, 'members'));
+      const snapshot = await getDocs(tenantDb.collection('members'));
       let count = 0;
       const batchSize = 100;
       let batch = writeBatch(db);
@@ -773,7 +774,7 @@ export const storageService = {
       for (const d of snapshot.docs) {
         const data = d.data();
         if (data.phone && !data.phoneLast4) {
-          batch.update(doc(db, 'members', d.id), {
+          batch.update(tenantDb.doc('members', d.id), {
             phoneLast4: data.phone.slice(-4)
           });
           count++;
@@ -786,7 +787,7 @@ export const storageService = {
       await batch.commit();
       
       // 강사 목록도 업데이트 (지원하는 경우)
-      const instDoc = await getDoc(doc(db, 'settings', 'instructors'));
+      const instDoc = await getDoc(tenantDb.globalDoc('settings', 'instructors'));
       if (instDoc.exists()) {
         const list = instDoc.data().list || [];
         const updatedList = list.map(inst => {
@@ -795,7 +796,7 @@ export const storageService = {
           }
           return inst;
         });
-        await setDoc(doc(db, 'settings', 'instructors'), { list: updatedList }, { merge: true });
+        await setDoc(tenantDb.globalDoc('settings', 'instructors'), { list: updatedList }, { merge: true });
       }
 
       return { success: true, count };
@@ -822,11 +823,11 @@ export const storageService = {
       });
       if (token) {
         // [SYNC] Find memberId for this token and mark as pushEnabled: false
-        const tokenSnap = await getDoc(doc(db, 'fcm_tokens', token));
+        const tokenSnap = await getDoc(tenantDb.globalDoc('fcm_tokens', token));
         if (tokenSnap.exists() && tokenSnap.data().memberId) {
-          await updateDoc(doc(db, 'members', tokenSnap.data().memberId), { pushEnabled: false });
+          await updateDoc(tenantDb.doc('members', tokenSnap.data().memberId), { pushEnabled: false });
         }
-        await deleteDoc(doc(db, 'fcm_tokens', token));
+        await deleteDoc(tenantDb.globalDoc('fcm_tokens', token));
       }
       return true;
     } catch (e) {
@@ -841,7 +842,7 @@ export const storageService = {
       if (permission === 'granted') {
         const token = await this.requestAndSaveToken('member');
         if (token && memberId) {
-          const tokenRef = doc(db, 'fcm_tokens', token);
+          const tokenRef = tenantDb.globalDoc('fcm_tokens', token);
           const tokenSnap = await getDoc(tokenRef);
           
           let dataToUpdate = { 
@@ -857,7 +858,7 @@ export const storageService = {
           }
 
           await setDoc(tokenRef, dataToUpdate, { merge: true });
-          await updateDoc(doc(db, 'members', memberId), { pushEnabled: true });
+          await updateDoc(tenantDb.doc('members', memberId), { pushEnabled: true });
         }
       }
       return permission;
@@ -889,7 +890,7 @@ export const storageService = {
         return false;
       }
 
-      const tokenRef = doc(db, 'fcm_tokens', token);
+      const tokenRef = tenantDb.globalDoc('fcm_tokens', token);
       const tokenSnap = await getDoc(tokenRef);
       
       let dataToUpdate = {
@@ -1043,7 +1044,7 @@ export const storageService = {
 
       // 5. memberId와 연결하여 저장
       if (memberId) {
-        const tokenRef = doc(db, 'fcm_tokens', token);
+        const tokenRef = tenantDb.globalDoc('fcm_tokens', token);
         const tokenSnap = await getDoc(tokenRef);
         
         let tokenData = {
@@ -1061,7 +1062,7 @@ export const storageService = {
 
         await setDoc(tokenRef, tokenData, { merge: true });
 
-        await updateDoc(doc(db, 'members', memberId), {
+        await updateDoc(tenantDb.doc('members', memberId), {
           pushEnabled: true,
           fcmToken: token, // [FIX] Save token to member doc for legacy compatibility
           lastTokenUpdate: new Date()
@@ -1138,7 +1139,7 @@ export const storageService = {
     if (Object.keys(cachedImages).length === 0) {
       try {
         console.log("[Storage] cachedImages empty, fetching from Firestore...");
-        const snapshot = await getDocs(collection(db, 'images'));
+        const snapshot = await getDocs(tenantDb.collection('images'));
         const imgs = {};
         snapshot.docs.forEach(doc => {
           imgs[doc.id] = doc.data().url || doc.data().base64;
@@ -1165,7 +1166,7 @@ export const storageService = {
       // Notify listeners immediately to reflect local change
       notifyListeners();
 
-      await setDoc(doc(db, 'images', id), { base64, updatedAt: new Date().toISOString() }, { merge: true });
+      await setDoc(tenantDb.doc('images', id), { base64, updatedAt: new Date().toISOString() }, { merge: true });
       console.log(`[Storage] SetDoc complete for ${id}`);
       return true;
     } catch (e) {
@@ -1213,7 +1214,7 @@ export const storageService = {
       // Ensure 'error_logs' collection exists or is queryable.
       // Note: Composite index might be needed for 'timestamp desc'.
       const q = query(
-        collection(db, 'error_logs'),
+        tenantDb.globalCollection('error_logs'),
         orderBy('timestamp', 'desc'),
         firestoreLimit(limitCount)
       );
@@ -1229,7 +1230,7 @@ export const storageService = {
   async getPushHistory(limitCount = 50) {
     try {
       const q = query(
-        collection(db, 'push_history'),
+        tenantDb.collection('push_history'),
         orderBy('createdAt', 'desc'),
         firestoreLimit(limitCount)
       );
@@ -1253,7 +1254,7 @@ export const storageService = {
   subscribeToPushHistory(callback, limitCount = 50) {
     try {
       const q = query(
-        collection(db, 'push_history'),
+        tenantDb.collection('push_history'),
         orderBy('createdAt', 'desc'),
         firestoreLimit(limitCount)
       );
@@ -1283,7 +1284,7 @@ export const storageService = {
   // [Added] Delete single error log
   async deleteErrorLog(logId) {
     try {
-      await deleteDoc(doc(db, 'error_logs', logId));
+      await deleteDoc(tenantDb.globalDoc('error_logs', logId));
       return { success: true };
     } catch (e) {
       console.error("Delete error log failed:", e);
@@ -1294,7 +1295,7 @@ export const storageService = {
   // [Added] Clear all error logs
   async clearErrorLogs() {
     try {
-      const snapshot = await getDocs(collection(db, 'error_logs'));
+      const snapshot = await getDocs(tenantDb.globalCollection('error_logs'));
       const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
       await Promise.all(deletePromises);
       return { success: true, count: snapshot.docs.length };
@@ -1319,7 +1320,7 @@ export const storageService = {
     // Fallback: fetch directly if cache is empty
     try {
       console.log('[Storage] Cache empty, fetching notices from Firestore...');
-      const q = query(collection(db, 'notices'), orderBy('timestamp', 'desc'));
+      const q = query(tenantDb.collection('notices'), orderBy('timestamp', 'desc'));
       const snapshot = await getDocs(q);
       const notices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
@@ -1339,9 +1340,9 @@ export const storageService = {
     try {
       console.log("[Storage] getAllPushTokens: Force fetching from Firestore collections...");
       const results = await Promise.all([
-        getDocs(collection(db, 'fcm_tokens')).catch(() => ({ docs: [] })),
-        getDocs(collection(db, 'fcmTokens')).catch(() => ({ docs: [] })),
-        getDocs(collection(db, 'push_tokens')).catch(() => ({ docs: [] }))
+        getDocs(tenantDb.globalCollection('fcm_tokens')).catch(() => ({ docs: [] })),
+        getDocs(tenantDb.globalCollection('fcmTokens')).catch(() => ({ docs: [] })),
+        getDocs(tenantDb.globalCollection('push_tokens')).catch(() => ({ docs: [] }))
       ]);
 
       const allMerged = {};
@@ -1366,7 +1367,7 @@ export const storageService = {
     const results = {};
     for (const name of collections) {
       try {
-        const snap = await getDocs(collection(db, name));
+        const snap = await getDocs(tenantDb.collection(name));
         results[name] = snap.size;
       } catch (e) {
         results[name] = "Error: " + e.message;
@@ -1491,7 +1492,7 @@ export const storageService = {
         if (!dryRun) {
           // 중복 전화번호 체크
           const existingQuery = query(
-            collection(db, 'members'),
+            tenantDb.collection('members'),
             where('phone', '==', phone)
           );
           const existingSnap = await getDocs(existingQuery);
@@ -1499,7 +1500,7 @@ export const storageService = {
           let memberId;
           if (existingSnap.empty) {
             // 새 회원 추가
-            const docRef = await addDoc(collection(db, 'members'), memberData);
+            const docRef = await addDoc(tenantDb.collection('members'), memberData);
             memberId = docRef.id;
             console.log(`[Migration] Added new member: ${memberData.name} (${memberId})`);
           } else {
@@ -1510,7 +1511,7 @@ export const storageService = {
             // [Fix] Ensure createdAt is never undefined
             const existingCreatedAt = existingData.createdAt || existingData.updatedAt || new Date().toISOString();
 
-            await updateDoc(doc(db, 'members', memberId), {
+            await updateDoc(tenantDb.doc('members', memberId), {
               ...memberData,
               createdAt: existingCreatedAt // 기존 가입일 유지
             });
@@ -1528,7 +1529,7 @@ export const storageService = {
               branchId,
               timestamp: new Date(row['판매일자']).toISOString()
             };
-            await addDoc(collection(db, 'sales'), salesData);
+            await addDoc(tenantDb.collection('sales'), salesData);
             results.sales.push(salesData);
             console.log(`[Migration] Added sales record: ${memberData.name} - ${amount}원`);
           }
@@ -1563,7 +1564,7 @@ export const storageService = {
   async getKioskSettings(branchId = 'all') {
     try {
       const docId = branchId === 'all' ? 'kiosk' : `kiosk_${branchId}`;
-      const docSnap = await getDoc(doc(db, 'settings', docId));
+      const docSnap = await getDoc(tenantDb.globalDoc('settings', docId));
       if (docSnap.exists()) {
         return docSnap.data();
       }
@@ -1577,7 +1578,7 @@ export const storageService = {
   async updateKioskSettings(branchId = 'all', data) {
     try {
       const docId = branchId === 'all' ? 'kiosk' : `kiosk_${branchId}`;
-      await setDoc(doc(db, 'settings', docId), {
+      await setDoc(tenantDb.globalDoc('settings', docId), {
         ...data,
         updatedAt: new Date().toISOString()
       }, { merge: true });
@@ -1591,7 +1592,7 @@ export const storageService = {
   subscribeToKioskSettings(branchId = 'all', callback) {
     try {
       const docId = branchId === 'all' ? 'kiosk' : `kiosk_${branchId}`;
-      return onSnapshot(doc(db, 'settings', docId), (docSnap) => {
+      return onSnapshot(tenantDb.globalDoc('settings', docId), (docSnap) => {
         if (docSnap.exists()) {
           callback(docSnap.data());
         } else {
@@ -1634,7 +1635,7 @@ export const storageService = {
     for (const colName of collectionsToClear) {
       console.log(`[Storage] Clearing collection: ${colName}...`);
       try {
-        const snapshot = await getDocs(collection(db, colName));
+        const snapshot = await getDocs(tenantDb.collection(colName));
         const docs = snapshot.docs;
         stats[colName] = docs.length;
 
@@ -1667,7 +1668,7 @@ export const storageService = {
   // [NEW] Get pricing configuration from Firestore settings
   async getPricing() {
     try {
-      const docRef = doc(db, 'settings', 'pricing');
+      const docRef = tenantDb.globalDoc('settings', 'pricing');
       const snap = await getDoc(docRef);
       if (snap.exists()) {
         return snap.data();
@@ -1683,7 +1684,7 @@ export const storageService = {
   // [NEW] Save pricing configuration to Firestore settings
   async savePricing(pricingData) {
     try {
-      const docRef = doc(db, 'settings', 'pricing');
+      const docRef = tenantDb.globalDoc('settings', 'pricing');
       await setDoc(docRef, pricingData);
       notifyListeners('settings');
       return true;
@@ -1697,7 +1698,7 @@ export const storageService = {
   subscribeToPushHistory(callback, limitCount = 50) {
     try {
       const q = query(
-        collection(db, 'push_history'),
+        tenantDb.collection('push_history'),
         orderBy('createdAt', 'desc'),
         firestoreLimit(limitCount)
       );

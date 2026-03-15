@@ -8,6 +8,7 @@
 
 import { db } from "../../firebase";
 import { collection, getDocs, setDoc, doc } from "firebase/firestore";
+import { tenantDb } from '../../utils/tenantDb';
 
 /**
  * 이미지 목록 조회
@@ -23,7 +24,7 @@ export const getImages = async (cachedImages = {}, updateCache = null) => {
     // 캐시 없으면 Firestore에서 직접 조회
     try {
         console.log("[ImageModule] Fetching images from Firestore...");
-        const snapshot = await getDocs(collection(db, 'images'));
+        const snapshot = await getDocs(tenantDb.collection('images'));
         const imgs = {};
         snapshot.docs.forEach(doc => {
             imgs[doc.id] = doc.data().url || doc.data().base64;
@@ -60,7 +61,7 @@ export const updateImage = async (id, base64, updateCache = null, notifyListener
         if (notifyListeners) notifyListeners();
 
         // Firestore 업데이트
-        await setDoc(doc(db, 'images', id), { 
+        await setDoc(tenantDb.doc('images', id), { 
             base64, 
             updatedAt: new Date().toISOString() 
         }, { merge: true });

@@ -23,11 +23,15 @@
   --text-muted: #71717A;
 
   /* Accents - Champagne Gold & Ethereal Glows */
-  --primary-theme-color: #FFD700;
-  --primary-gold: #FFD700;
-  --primary-theme-dim: #D4AF37;
-  --primary-gold-glow: rgba(255, 215, 0, 0.4);
-  --primary-theme-glow: rgba(255, 215, 0, 0.5);
+  --primary-theme-color: #D4AF37;
+  --primary-gold: #D4AF37;
+  --primary-rgb: 212, 175, 55;
+  --primary-theme-dim: #C5A065;
+  --primary-gold-glow: rgba(var(--primary-rgb), 0.4);
+  --primary-theme-glow: rgba(var(--primary-rgb), 0.5);
+  
+  /* Global Layout Tokens */
+  --bg-modal: linear-gradient(145deg, rgba(30,30,35,0.98), rgba(20,20,25,0.98));
 
   --skeleton-anim: skeleton-loading 2s infinite ease-in-out;
   --dreamy-blur: blur(8px);

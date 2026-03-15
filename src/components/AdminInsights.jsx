@@ -7,7 +7,7 @@ const AdminInsights = ({ briefing }) => {
         <div className="fade-in" style={{ marginBottom: '20px' }}>
             {/* AI Briefing Card */}
             <div style={{
-                background: 'linear-gradient(135deg, rgba(212,175,55,0.15) 0%, rgba(0,0,0,0) 100%)',
+                background: 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.15) 0%, rgba(0,0,0,0) 100%)',
                 border: '1px solid var(--primary-gold)',
                 borderRadius: '16px',
                 padding: '20px',
@@ -22,7 +22,7 @@ const AdminInsights = ({ briefing }) => {
                         <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
                             <div style={{
                                 width: '16px', height: '16px', borderRadius: '50%',
-                                background: 'rgba(212,175,55,0.2)', color: 'var(--primary-gold)',
+                                background: 'rgba(var(--primary-rgb), 0.2)', color: 'var(--primary-gold)',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 fontSize: '10px', fontWeight: 'bold'
                             }}>i</div>

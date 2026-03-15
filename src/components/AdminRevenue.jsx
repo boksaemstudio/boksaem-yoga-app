@@ -162,7 +162,7 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats }) => {
                             {/* Background bar: Total Amount (Faint) */}
                             <Bar xAxisId={0} dataKey="amount" name="amount" radius={[4, 4, 0, 0]} maxBarSize={60}>
                                 {monthlyTrend.map((entry, index) => (
-                                    <Cell key={`cell-bg-${index}`} fill={entry.monthParams === `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}` ? 'rgba(212, 175, 55, 0.2)' : '#27272a'} />
+                                    <Cell key={`cell-bg-${index}`} fill={entry.monthParams === `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}` ? 'rgba(var(--primary-rgb), 0.2)' : '#27272a'} />
                                 ))}
                             </Bar>
                             

@@ -1,7 +1,8 @@
 import { PWAContext } from '../contexts/PWAContextDef';
 import { useContext, useState, useEffect, lazy, Suspense, useRef } from 'react';
-import { onSnapshot, doc, collection, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
-import { db, auth } from '../firebase';
+import { onSnapshot, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
+import { auth } from '../firebase';
+import { tenantDb } from '../utils/tenantDb';
 import { storageService } from '../services/storage';
 import { BellRinging, BellSlash, Share, DownloadSimple, PlusSquare } from '../components/CommonIcons';
 // Assets loaded via dynamic config
@@ -38,7 +39,7 @@ import { getDaysRemaining, getKSTHour } from '../utils/dates';
 import ImageLightbox from '../components/common/ImageLightbox';
 
 // Safe localStorage wrapper with error handling
-const safeSessionStorage = {
+const safeLocalStorage = {
     getItem: (key) => {
         try {
             return localStorage.getItem(key);
@@ -233,16 +234,12 @@ const MemberProfile = () => {
         // Listen for history changes (replaceState doesn't trigger popstate, but our SW uses client.navigate)
         window.addEventListener('popstate', handleLocationChange);
 
-        // [ENHANCEMENT] Special listener for deep links if app is already open
-        const interval = setInterval(() => {
-            if (window.location.search.includes('tab=')) {
-                handleLocationChange();
-            }
-        }, 1000);
+        // [FIX] 이벤트 기반 deep link 감지 (setInterval 폴링 제거 → 성능 개선)
+        window.addEventListener('hashchange', handleLocationChange);
 
         return () => {
             window.removeEventListener('popstate', handleLocationChange);
-            clearInterval(interval);
+            window.removeEventListener('hashchange', handleLocationChange);
         };
     }, []);
 
@@ -288,7 +285,7 @@ const MemberProfile = () => {
                 // [FIX] Preserve displayName from existing state or storage if available
                 setMember(prev => ({
                     ...memberData,
-                    displayName: prev?.displayName || JSON.parse(safeSessionStorage.getItem('member') || '{}').displayName || memberData.name
+                    displayName: prev?.displayName || JSON.parse(safeLocalStorage.getItem('member') || '{}').displayName || memberData.name
                 }));
                 // [FIX] Sort history by timestamp descending (newest first)
                 const sortedHistory = (history || []).sort((a, b) => {
@@ -336,7 +333,7 @@ const MemberProfile = () => {
                 }
             } else {
                 setLoginFormValue('error', t('errorMemberNotFound') || "회원 정보를 찾을 수 없습니다.");
-                safeSessionStorage.removeItem('member');
+                safeLocalStorage.removeItem('member');
             }
         } catch (e) {
             console.error("Load member failed:", e);
@@ -348,23 +345,23 @@ const MemberProfile = () => {
 
     // [REAL-TIME] Real-time Listener for Member and Attendance
     useEffect(() => {
-        const savedMember = safeSessionStorage.getItem('member');
+        const savedMember = safeLocalStorage.getItem('member');
         if (!savedMember) return;
         const memberId = JSON.parse(savedMember).id;
         // v1.0.5 - Clean and verified
 
 
-        const unsubMember = onSnapshot(doc(db, 'members', memberId), (snap) => {
+        const unsubMember = onSnapshot(tenantDb.doc('members', memberId), (snap) => {
             if (snap.exists()) {
                 const data = { id: snap.id, ...snap.data() };
                 console.log("[MemberProfile] Real-time member update received");
                 setMember(data);
-                safeSessionStorage.setItem('member', JSON.stringify(data));
+                safeLocalStorage.setItem('member', JSON.stringify(data));
             }
         });
 
         const q = query(
-            collection(db, 'attendance'),
+            tenantDb.collection('attendance'),
             where('memberId', '==', memberId),
             orderBy('timestamp', 'desc'),
             firestoreLimit(logLimit)
@@ -445,7 +442,7 @@ const MemberProfile = () => {
     }, [aiExperience?.message]);
 
     useEffect(() => {
-        const storedMember = safeSessionStorage.getItem('member');
+        const storedMember = safeLocalStorage.getItem('member');
         if (storedMember) {
             try {
                 const m = JSON.parse(storedMember);
@@ -498,7 +495,7 @@ const MemberProfile = () => {
         if (member?.id) {
             console.log(`[MemberProfile] Setting up real-time message listener for: ${member.id}`);
             const q = query(
-                collection(db, 'messages'),
+                tenantDb.collection('messages'),
                 where('memberId', '==', member.id),
                 orderBy('timestamp', 'desc'),
                 firestoreLimit(30)
@@ -601,7 +598,7 @@ const MemberProfile = () => {
                     ...result.member,
                     displayName: result.member.displayName || result.member.name 
                 };
-                safeSessionStorage.setItem('member', JSON.stringify(memberWithDisplay));
+                safeLocalStorage.setItem('member', JSON.stringify(memberWithDisplay));
                 
                 // Update local state immediately with displayName
                 setMember(memberWithDisplay);
@@ -624,7 +621,7 @@ const MemberProfile = () => {
 
     const handleLogout = () => {
         if (window.confirm(t('logoutConfirm'))) {
-            safeSessionStorage.removeItem('member');
+            safeLocalStorage.removeItem('member');
             setMember(null);
             setLoginForm({ name: '', phone: '', error: '' });
         }
@@ -916,11 +913,11 @@ const MemberProfile = () => {
                                             width: '44px',
                                             height: '44px',
                                             borderRadius: '50%',
-                                            background: pushStatus === 'granted' ? 'rgba(212, 175, 55, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                                            background: pushStatus === 'granted' ? 'rgba(var(--primary-rgb), 0.15)' : 'rgba(255, 255, 255, 0.05)',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            border: `1px solid ${pushStatus === 'granted' ? 'rgba(212, 175, 55, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
+                                            border: `1px solid ${pushStatus === 'granted' ? 'rgba(var(--primary-rgb), 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
                                             transition: 'all 0.3s ease'
                                         }}>
                                             {pushStatus === 'granted' ? (
@@ -953,7 +950,7 @@ const MemberProfile = () => {
                                             left: 0,
                                             right: 0,
                                             bottom: 0,
-                                            backgroundColor: pushStatus === 'granted' ? 'rgba(212, 175, 55, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+                                            backgroundColor: pushStatus === 'granted' ? 'rgba(var(--primary-rgb), 0.2)' : 'rgba(255, 255, 255, 0.1)',
                                             transition: '0.4s',
                                             borderRadius: '34px',
                                             border: `1px solid ${pushStatus === 'granted' ? 'var(--primary-gold)' : 'rgba(255, 255, 255, 0.2)'}`
@@ -978,10 +975,10 @@ const MemberProfile = () => {
                                 {!isPwaStandalone && (deferredPrompt || deviceOS === 'ios') && (
                                     <div className="glass-panel" style={{
                                         padding: '20px 25px',
-                                        background: deviceOS === 'ios' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(212, 175, 55, 0.1)',
+                                        background: deviceOS === 'ios' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(var(--primary-rgb), 0.1)',
                                         marginBottom: '20px',
                                         borderRadius: '24px',
-                                        border: deviceOS === 'ios' ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(212, 175, 55, 0.3)',
+                                        border: deviceOS === 'ios' ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(var(--primary-rgb), 0.3)',
                                         display: 'flex',
                                         flexDirection: 'column',
                                         gap: '15px',

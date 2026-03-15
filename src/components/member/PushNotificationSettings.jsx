@@ -156,7 +156,7 @@ const PushNotificationSettings = ({ memberId }) => {
                         disabled={reregistering || status.permission === 'denied'}
                         style={{
                             ...styles.button,
-                            background: config.THEME?.PRIMARY_COLOR || '#D4AF37',
+                            background: config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)',
                             ...(reregistering || status.permission === 'denied' ? styles.buttonDisabled : {})
                         }}
                     >

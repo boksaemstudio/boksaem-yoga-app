@@ -104,7 +104,7 @@ const AttendanceTab = ({ logs, member, aiAnalysis, onAdd, onDelete, isSubmitting
                     onClick={() => onAdd(manualDate, '10:00', manualBranch, manualClassName)}
                     disabled={isSubmitting}
                     style={{
-                        background: isSubmitting ? 'rgba(212,175,55,0.3)' : 'var(--primary-gold)',
+                        background: isSubmitting ? 'rgba(var(--primary-rgb), 0.3)' : 'var(--primary-gold)',
                         color: 'black', fontWeight: 'bold', border: 'none',
                         padding: '10px 15px', borderRadius: '8px', whiteSpace: 'nowrap', flex: '0 0 auto',
                         cursor: isSubmitting ? 'not-allowed' : 'pointer',

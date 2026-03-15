@@ -2,6 +2,7 @@ import { db, functions, storage } from "../firebase";
 import { collection, addDoc, deleteDoc, doc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { httpsCallable } from "firebase/functions";
+import { tenantDb } from '../utils/tenantDb';
 
 export const addNotice = async (title, content, images = [], sendPush = true) => {
     try {
@@ -64,7 +65,7 @@ export const addNotice = async (title, content, images = [], sendPush = true) =>
         }
         const finalPrimaryImage = finalImages.length > 0 ? finalImages[0] : null;
 
-        await addDoc(collection(db, 'notices'), {
+        await addDoc(tenantDb.collection('notices'), {
             title,
             content,
             image: finalPrimaryImage, 
@@ -84,7 +85,7 @@ export const loadNotices = async () => {
     try {
         const { getDocs, query, orderBy } = await import("firebase/firestore");
         const q = query(
-            collection(db, 'notices'),
+            tenantDb.collection('notices'),
             orderBy("timestamp", "desc")
         );
         const snapshot = await getDocs(q);
@@ -97,7 +98,7 @@ export const loadNotices = async () => {
 
 export const deleteNotice = async (noticeId) => {
     try {
-        await deleteDoc(doc(db, 'notices', noticeId));
+        await deleteDoc(tenantDb.doc('notices', noticeId));
         return { success: true };
     } catch (e) {
         console.error("Delete notice failed:", e);

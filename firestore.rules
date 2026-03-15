@@ -16,10 +16,17 @@ service cloud.firestore {
     }
 
     // ========================================
-    // 🏢 Studios - SaaS 스튜디오 설정
+    // 🏢 Studios - SaaS 테넌트 및 하위 컬렉션
     // ========================================
     match /studios/{studioId} {
+      // 스튜디오 글로벌 문서 자체에에 대한 권한
       allow read, write: if isAuth();
+      
+      // 스튜디오 하위의 테넌트 격리 데이터 (members, sales, attendance 등)
+      match /{document=**} {
+        // [TODO] 향후 token.studioId == studioId 비교 로직으로 보안성 극대화 필요
+        allow read, write: if isAuth();
+      }
     }
     
     // ========================================
@@ -178,6 +185,10 @@ service cloud.firestore {
     match /practice_events/{docId} { allow read: if isAuth(); }
     match /ai_quota/{docId} { allow read: if isAuth(); }
     match /pending_approvals/{docId} { allow read, write: if isAuth(); }
+    match /stats/{docId} {
+      allow read: if isAuth();
+      allow write: if false; // Only Cloud Functions update aggregated stats
+    }
 
     match /system_state/{docId} {
       allow read, write: if isAuth();

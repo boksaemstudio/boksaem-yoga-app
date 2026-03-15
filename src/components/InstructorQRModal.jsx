@@ -31,7 +31,7 @@ const InstructorQRModal = ({ isOpen, onClose }) => {
                     maxWidth: '400px',
                     width: '90%',
                     textAlign: 'center',
-                    border: '1px solid rgba(212, 175, 55, 0.3)',
+                    border: '1px solid rgba(var(--primary-rgb), 0.3)',
                     boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
                 }}
                 onClick={e => e.stopPropagation()}

@@ -163,12 +163,12 @@ const AdminPriceManager = () => {
                         width: 'auto', 
                         padding: '10px 24px', 
                         flexShrink: 0,
-                        background: `linear-gradient(135deg, #FFD700 0%, ${config.THEME?.PRIMARY_COLOR || '#D4AF37'} 100%)`, 
+                        background: `linear-gradient(135deg, var(--primary-gold) 0%, ${config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'} 100%)`, 
                         color: '#000', 
                         fontWeight: '800',
                         fontSize: '0.95rem',
                         border: 'none',
-                        boxShadow: `0 4px 15px ${config.THEME?.SKELETON_COLOR || 'rgba(212, 175, 55, 0.4)'}`, // Dynamic Glow
+                        boxShadow: `0 4px 15px ${config.THEME?.SKELETON_COLOR || 'rgba(var(--primary-rgb), 0.4)'}`, // Dynamic Glow
                         borderRadius: '30px', 
                         transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                         cursor: 'pointer',
@@ -178,11 +178,11 @@ const AdminPriceManager = () => {
                     }}
                     onMouseOver={(e) => {
                         e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-                        e.currentTarget.style.boxShadow = `0 6px 20px ${config.THEME?.SKELETON_COLOR || 'rgba(212, 175, 55, 0.6)'}`;
+                        e.currentTarget.style.boxShadow = `0 6px 20px ${config.THEME?.SKELETON_COLOR || 'rgba(var(--primary-rgb), 0.6)'}`;
                     }}
                     onMouseOut={(e) => {
                         e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                        e.currentTarget.style.boxShadow = `0 4px 15px ${config.THEME?.SKELETON_COLOR || 'rgba(212, 175, 55, 0.4)'}`;
+                        e.currentTarget.style.boxShadow = `0 4px 15px ${config.THEME?.SKELETON_COLOR || 'rgba(var(--primary-rgb), 0.4)'}`;
                     }}
                 >
                     <Plus size={20} weight="black" /> 새 가격표 추가
@@ -254,7 +254,7 @@ const AdminPriceManager = () => {
                                                 padding: '6px 12px',
                                                 borderRadius: '20px',
                                                 border: `1px solid ${editingCategory.branches.includes(b.id) ? 'var(--primary-gold)' : 'rgba(255,255,255,0.2)'}`,
-                                                background: editingCategory.branches.includes(b.id) ? (config.THEME?.PRIMARY_COLOR || '#D4AF37') : 'transparent',
+                                                background: editingCategory.branches.includes(b.id) ? (config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)') : 'transparent',
                                                 cursor: 'pointer',
                                                 fontSize: '0.9rem'
                                             }}

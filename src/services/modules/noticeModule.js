@@ -9,6 +9,7 @@
 import { db, functions } from "../../firebase";
 import { collection, addDoc, deleteDoc, getDocs, doc, query, orderBy } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
+import { tenantDb } from '../../utils/tenantDb';
 
 /**
  * 공지사항 추가
@@ -30,7 +31,7 @@ export const addNotice = async (title, content, images = [], sendPush = true) =>
             primaryImage = images;
         }
 
-        await addDoc(collection(db, 'notices'), {
+        await addDoc(tenantDb.collection('notices'), {
             title,
             content,
             image: primaryImage,
@@ -51,7 +52,7 @@ export const addNotice = async (title, content, images = [], sendPush = true) =>
  */
 export const deleteNotice = async (noticeId) => {
     try {
-        await deleteDoc(doc(db, 'notices', noticeId));
+        await deleteDoc(doc(tenantDb.collection('notices'), noticeId));
         return { success: true };
     } catch (e) {
         console.error("Delete notice failed:", e);
@@ -65,7 +66,7 @@ export const deleteNotice = async (noticeId) => {
 export const loadNotices = async () => {
     try {
         const q = query(
-            collection(db, 'notices'),
+            tenantDb.collection('notices'),
             orderBy("timestamp", "desc")
         );
         const snapshot = await getDocs(q);

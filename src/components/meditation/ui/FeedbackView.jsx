@@ -62,7 +62,7 @@ export const FeedbackView = ({
                         border: '1px solid rgba(255,255,255,0.05)'
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
-                            <Heartbeat size={24} color={activeMode?.color || config.THEME?.PRIMARY_COLOR || '#d4af37'} />
+                            <Heartbeat size={24} color={activeMode?.color || config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'} />
                             <h3 style={{ color: 'white', fontSize: '1.2rem', fontWeight: 500, margin: 0 }}>
                                 AI의 마음 관찰 일지
                             </h3>
@@ -78,7 +78,7 @@ export const FeedbackView = ({
                                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                     {feedbackData.feedbackPoints.map((point, index) => (
                                         <li key={index} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                                            <Sparkle size={18} color={activeMode?.color || config.THEME?.PRIMARY_COLOR || '#d4af37'} style={{ marginTop: '4px', flexShrink: 0 }} />
+                                            <Sparkle size={18} color={activeMode?.color || config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'} style={{ marginTop: '4px', flexShrink: 0 }} />
                                             <span>{point}</span>
                                         </li>
                                     ))}
@@ -117,9 +117,9 @@ export const FeedbackView = ({
                 {/* ✅ [FIX 1] 버튼이 검은색 배경에 묻히지 않도록 기본 Fallback Color 적용 */}
                 <button onClick={onClose} style={{
                     width: '100%', padding: '20px', marginTop: '30px',
-                    background: activeMode?.color || config.THEME?.PRIMARY_COLOR || '#d4af37', border: 'none', borderRadius: '15px',
+                    background: activeMode?.color || config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)', border: 'none', borderRadius: '15px',
                     color: 'black', fontWeight: 800, fontSize: '1.2rem', cursor: 'pointer',
-                    boxShadow: `0 10px 30px ${activeMode?.color || config.THEME?.PRIMARY_COLOR || '#d4af37'}40`
+                    boxShadow: `0 10px 30px ${activeMode?.color || config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'}40`
                 }}>
                     마음 챙김 마치고 돌아가기
                 </button>

@@ -15,11 +15,11 @@ import {
     Clock,
     Gear
 } from '@phosphor-icons/react';
-import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import AdminScheduleManager from '../components/AdminScheduleManager';
 import AdminRevenue from '../components/AdminRevenue';
 import AdminPriceManager from '../components/AdminPriceManager';
-import { db } from '../firebase';
+import { tenantDb } from '../utils/tenantDb';
 import AdminMemberDetailModal from '../components/AdminMemberDetailModal';
 import InstallGuideModal from '../components/admin/modals/InstallGuideModal';
 import NoticeModal from '../components/admin/modals/NoticeModal';
@@ -112,7 +112,7 @@ const AdminDashboard = () => {
 
     // [CRITICAL] Guard against early access before config/data is ready
     if (!config || loading) {
-        return <div style={{ background: '#08080A', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D4AF37' }}>Loading Admin Console...</div>;
+        return <div style={{ background: '#08080A', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-gold)' }}>Loading Admin Console...</div>;
     }
 
     const {
@@ -141,7 +141,7 @@ const AdminDashboard = () => {
 
     // Dynamic Pricing State & Real-time Sync
     const [pricingConfig, setPricingConfig] = useState(config.PRICING || {});
-    const themeColor = config.THEME?.PRIMARY_COLOR || '#D4AF37';
+    const themeColor = config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)';
     const themeContrastText = getContrastText(themeColor);
 
     useEffect(() => {
@@ -238,14 +238,15 @@ const AdminDashboard = () => {
         if (filterType === 'installed' && pushTokens) {
             const instructorTokens = pushTokens.filter(t => t.role === 'instructor');
             const uniqueInstructors = [];
-            const seenIds = new Set();
+            const seenNames = new Set();
             instructorTokens.forEach(t => {
-                const id = t.memberId || t.token;
-                if (id && !seenIds.has(id)) {
-                    seenIds.add(id);
+                // [FIX] 강사는 이름으로 중복 체크 (같은 강사가 여러 기기에서 토큰 등록 시 중복 방지)
+                const instructorName = t.instructorName || '선생님';
+                if (!seenNames.has(instructorName)) {
+                    seenNames.add(instructorName);
                     uniqueInstructors.push({
-                        id: id,
-                        name: t.instructorName || '선생님',
+                        id: t.memberId || `instructor_${instructorName}`,
+                        name: instructorName,
                         phone: '',
                         role: 'instructor',
                         installedAt: t.updatedAt || t.createdAt || new Date().toISOString(),
@@ -303,7 +304,17 @@ const AdminDashboard = () => {
         }).length;
     }, [members, logs, currentBranch, isMemberActive]);
 
-    const extendedSummary = { ...summary, dormantMembersCount: dormantCount };
+    // [FIX] bioMissingCount & facialDataRatio 계산 추가
+    const { bioMissingCount, facialDataRatio } = useMemo(() => {
+        const branchMembers = members.filter(m => currentBranch === 'all' || m.homeBranch === currentBranch);
+        const activeCount = branchMembers.filter(m => isMemberActive(m)).length;
+        const withFaceCount = branchMembers.filter(m => isMemberActive(m) && m.hasFaceDescriptor).length;
+        const missingCount = activeCount - withFaceCount;
+        const ratio = activeCount > 0 ? Math.round((withFaceCount / activeCount) * 100) : 0;
+        return { bioMissingCount: missingCount, facialDataRatio: ratio };
+    }, [members, currentBranch, isMemberActive]);
+
+    const extendedSummary = { ...summary, dormantMembersCount: dormantCount, bioMissingCount, facialDataRatio };
 
     const handleInstallClick = async () => {
         const result = await installApp();
@@ -540,7 +551,7 @@ const AdminDashboard = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                         {/* AI Approval Pending Section */}
                         {pendingApprovals.length > 0 && (
-                            <div className="dashboard-card" style={{ border: '1px solid var(--primary-gold)', background: 'rgba(212, 175, 55, 0.05)' }}>
+                            <div className="dashboard-card" style={{ border: '1px solid var(--primary-gold)', background: 'rgba(var(--primary-rgb), 0.05)' }}>
                                 <h3 className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-gold)', marginBottom: '16px' }}>
                                     <BellRinging size={20} weight="fill" /> AI 발송 제안 (승인 대기)
                                 </h3>
@@ -550,7 +561,7 @@ const AdminDashboard = () => {
                                             padding: '16px',
                                             borderRadius: '12px',
                                             background: 'rgba(255,255,255,0.03)',
-                                            border: '1px solid rgba(212,175,55,0.2)',
+                                            border: '1px solid rgba(var(--primary-rgb), 0.2)',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             gap: '10px'
@@ -642,7 +653,7 @@ const AdminDashboard = () => {
                         <MembersTab
                             members={members}
                             filteredMembers={filteredMembers}
-                            summary={summary}
+                            summary={extendedSummary}
                             searchTerm={searchTerm}
                             setSearchTerm={setSearchTerm}
                             filterType={filterType}
@@ -761,7 +772,7 @@ const ErrorLogsView = () => {
 
     useEffect(() => {
         const q = query(
-            collection(db, 'error_logs'),
+            tenantDb.collection('error_logs'),
             orderBy('timestamp', 'desc'),
             limit(50)
         );

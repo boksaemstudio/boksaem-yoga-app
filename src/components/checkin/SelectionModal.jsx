@@ -105,7 +105,7 @@ const SelectionModal = memo(({
 
                 <div style={{ display: 'flex', gap: '20px', flex: 1, minHeight: '280px' }}>
                     <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <h3 style={{ fontSize: '1.2rem', color: 'var(--primary-gold)', borderBottom: '1px solid rgba(212,175,55,0.3)', paddingBottom: '8px' }}>
+                        <h3 style={{ fontSize: '1.2rem', color: 'var(--primary-gold)', borderBottom: '1px solid rgba(var(--primary-rgb), 0.3)', paddingBottom: '8px' }}>
                             ✨ 이용 가능 회원
                         </h3>
                         <div style={{
@@ -133,10 +133,10 @@ const SelectionModal = memo(({
                                             minWidth: '220px',
                                             padding: '20px',
                                             borderRadius: '16px',
-                                            background: isSelected ? 'linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.05))' : 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02))',
+                                            background: isSelected ? 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.15), rgba(var(--primary-rgb), 0.05))' : 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02))',
                                             color: 'white',
                                             border: isSelected ? '2px solid var(--primary-gold)' : '2px solid rgba(255,255,255,0.2)',
-                                            boxShadow: isSelected ? '0 0 20px rgba(212,175,55,0.3)' : '0 4px 15px rgba(0,0,0,0.1)',
+                                            boxShadow: isSelected ? '0 0 20px rgba(var(--primary-rgb), 0.3)' : '0 4px 15px rgba(0,0,0,0.1)',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             alignItems: 'center',
@@ -186,7 +186,7 @@ const SelectionModal = memo(({
                                         style={{
                                             padding: '10px 15px',
                                             borderRadius: '8px',
-                                            background: isSelected ? 'rgba(212,175,55,0.15)' : 'rgba(0,0,0,0.3)',
+                                            background: isSelected ? 'rgba(var(--primary-rgb), 0.15)' : 'rgba(0,0,0,0.3)',
                                             color: isSelected ? 'var(--primary-gold)' : 'rgba(255,255,255,0.4)',
                                             border: isSelected ? '1px solid var(--primary-gold)' : '1px dashed rgba(255,255,255,0.1)',
                                             display: 'flex',
@@ -244,7 +244,7 @@ const SelectionModal = memo(({
                             fontSize: '1.2rem',
                             fontWeight: '700',
                             cursor: selectedMemberId ? 'pointer' : 'not-allowed',
-                            boxShadow: selectedMemberId ? '0 4px 15px rgba(212,175,55,0.3)' : 'none'
+                            boxShadow: selectedMemberId ? '0 4px 15px rgba(var(--primary-rgb), 0.3)' : 'none'
                         }}
                     >
                         {selectedMemberId ? '선택한 회원으로 출석하기' : '회원을 먼저 선택해주세요'}

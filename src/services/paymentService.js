@@ -1,5 +1,6 @@
 import { db } from '../firebase';
 import { collection, doc, query, where, orderBy, getDocs, addDoc, deleteDoc, onSnapshot, updateDoc, limit, getDoc } from 'firebase/firestore';
+import { tenantDb } from '../utils/tenantDb';
 
 /**
  * [ARCHITECTURAL CORE REFACTORING]
@@ -9,9 +10,7 @@ import { collection, doc, query, where, orderBy, getDocs, addDoc, deleteDoc, onS
 
 let notifyCallback = () => {};
 let cachedSales = [];
-let cachedStats = null;
 let salesListenerUnsubscribe = null;
-let statsListenerUnsubscribe = null;
 
 export const paymentService = {
   /**
@@ -34,17 +33,13 @@ export const paymentService = {
       salesListenerUnsubscribe();
       salesListenerUnsubscribe = null;
     }
-    if (statsListenerUnsubscribe) {
-      statsListenerUnsubscribe();
-      statsListenerUnsubscribe = null;
-    }
 
     try {
       console.log('[paymentService] Core: Establishing real-time sales stream...');
       
       // 최신순 정렬 및 최근 500건으로 제한 (성능 최적화 및 서버 사이드 집계 전환)
       const q = query(
-        collection(db, 'sales'),
+        tenantDb.collection('sales'),
         orderBy("timestamp", "desc"),
         limit(500)
       );
@@ -68,15 +63,7 @@ export const paymentService = {
         setTimeout(() => paymentService.setupSalesListener(), 5000);
       });
 
-      // 3. 통계 엔진 가동 (서버 사이드 집계)
-      const statsRef = doc(db, 'stats', 'revenue_summary');
-      statsListenerUnsubscribe = onSnapshot(statsRef, (docSnap) => {
-        if (docSnap.exists()) {
-          cachedStats = docSnap.data();
-          console.log('[paymentService] Stats stream synchronized');
-          notifyCallback();
-        }
-      });
+      // [REMOVED] revenue_summary 실시간 리스너 제거 — 프론트엔드에서 미사용, Firebase 비용 절감
 
       return salesListenerUnsubscribe;
     } catch (e) {
@@ -98,13 +85,12 @@ export const paymentService = {
   },
 
   async getRevenueStats() {
-    if (cachedStats !== null) return cachedStats;
+    // [NOTE] revenue_summary는 프론트에서 직접 사용하지 않으나 하위 호환성을 위해 유지
     try {
-      const docRef = doc(db, 'stats', 'revenue_summary');
+      const docRef = tenantDb.globalDoc('stats', 'revenue_summary');
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        cachedStats = docSnap.data();
-        return cachedStats;
+        return docSnap.data();
       }
       return null;
     } catch (error) {
@@ -118,7 +104,7 @@ export const paymentService = {
    */
   async addSalesRecord(data) {
     try {
-      const docRef = await addDoc(collection(db, 'sales'), {
+      const docRef = await addDoc(tenantDb.collection('sales'), {
         ...data,
         timestamp: new Date().toISOString()
       });
@@ -135,7 +121,7 @@ export const paymentService = {
    */
   async updateSalesRecord(salesId, updates) {
     try {
-      const saleRef = doc(db, 'sales', salesId);
+      const saleRef = tenantDb.doc('sales', salesId);
       await updateDoc(saleRef, {
         ...updates,
         updatedAt: new Date().toISOString()
@@ -154,7 +140,7 @@ export const paymentService = {
    */
   async deleteSalesRecord(salesId) {
     try {
-      await deleteDoc(doc(db, 'sales', salesId));
+      await deleteDoc(tenantDb.doc('sales', salesId));
       console.log(`[paymentService] Sales record deleted: ${salesId}`);
       return true;
     } catch (e) {
@@ -173,7 +159,7 @@ export const paymentService = {
 
     // 만약 리스너가 아직 부팅 전이라면 Fallback으로 서버 1회 호출
     try {
-      const q = query(collection(db, 'sales'), where("memberId", "==", memberId));
+      const q = query(tenantDb.collection('sales'), where("memberId", "==", memberId));
       const snapshot = await getDocs(q);
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (e) {
@@ -190,7 +176,7 @@ export const paymentService = {
     if (cachedSales.length > 0) return cachedSales;
     
     try {
-      const q = query(collection(db, 'sales'), orderBy("timestamp", "desc"));
+      const q = query(tenantDb.collection('sales'), orderBy("timestamp", "desc"));
       const snapshot = await getDocs(q);
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (e) {

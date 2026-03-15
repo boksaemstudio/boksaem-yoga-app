@@ -9,6 +9,7 @@
 import { db, functions } from "../../firebase";
 import { collection, addDoc, deleteDoc, getDocs, getDoc, doc, query, where, orderBy, limit as firestoreLimit, increment, updateDoc } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
+import { tenantDb } from '../../utils/tenantDb';
 
 // Timeout wrapper for network calls
 const withTimeout = (promise, timeoutMs = 10000, errorMsg = '서버 응답 시간 초과') => {
@@ -83,7 +84,7 @@ export const getAttendanceByMemberId = async (memberId) => {
     try {
         console.log('[Attendance] getAttendanceByMemberId:', memberId);
         const q = query(
-            collection(db, 'attendance'),
+            tenantDb.collection('attendance'),
             where('memberId', '==', memberId),
             orderBy('timestamp', 'desc'),
             firestoreLimit(50)
@@ -106,14 +107,14 @@ export const getAttendanceByDate = async (dateStr, branchId = null) => {
         let q;
         if (branchId) {
             q = query(
-                collection(db, 'attendance'),
+                tenantDb.collection('attendance'),
                 where('date', '==', dateStr),
                 where('branchId', '==', branchId),
                 orderBy('timestamp', 'desc')
             );
         } else {
             q = query(
-                collection(db, 'attendance'),
+                tenantDb.collection('attendance'),
                 where('date', '==', dateStr),
                 orderBy('timestamp', 'desc')
             );
@@ -135,7 +136,7 @@ if (typeof window !== 'undefined') window.__ATTENDANCE_MODULE_VERSION = '2026.02
 export const deleteAttendance = async (logId, cachedMembers, notifyListeners) => {
     console.log('[AttendanceModule] deleteAttendance v2026.02.22.v7');
     try {
-        const logRef = doc(db, 'attendance', logId);
+        const logRef = tenantDb.doc('attendance', logId);
         const logSnap = await getDoc(logRef);
         
         if (!logSnap.exists()) {
@@ -152,7 +153,7 @@ export const deleteAttendance = async (logId, cachedMembers, notifyListeners) =>
         // [FIX] Only restore credits/count if the attendance was 'valid'
         // denied 상태의 출석은 크레딧이 차감되지 않았으므로 복원하면 안 됨
         if (memberId && wasValid) {
-            const memberRef = doc(db, 'members', memberId);
+            const memberRef = tenantDb.doc('members', memberId);
             await updateDoc(memberRef, {
                 attendanceCount: increment(-1),
                 credits: increment(1)
@@ -190,7 +191,7 @@ export const addManualAttendance = async (memberId, timestampInput, branchId, cl
         const classTimeStr = `${kstH}:${kstM}`;
 
         // Add attendance record
-        await addDoc(collection(db, 'attendance'), {
+        await addDoc(tenantDb.collection('attendance'), {
             memberId,
             branchId,
             date: kstDateStr,
@@ -203,7 +204,7 @@ export const addManualAttendance = async (memberId, timestampInput, branchId, cl
         });
         
         // Update member stats
-        const memberRef = doc(db, 'members', memberId);
+        const memberRef = tenantDb.doc('members', memberId);
         await updateDoc(memberRef, {
             attendanceCount: increment(1),
             credits: increment(-1),

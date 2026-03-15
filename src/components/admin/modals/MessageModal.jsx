@@ -9,10 +9,15 @@ const MessageModal = ({ isOpen, onClose, member }) => {
 
     const handleSendMessage = async () => {
         if (!messageText) return;
-        await storageService.addMessage(member.id, messageText);
-        alert(`${member.name}님에게 메시지를 전송했습니다.`);
-        setMessageText('');
-        onClose();
+        try {
+            await storageService.addMessage(member.id, messageText);
+            alert(`${member.name}님에게 메시지를 전송했습니다.`);
+            setMessageText('');
+            onClose();
+        } catch (error) {
+            console.error('[MessageModal] Failed to send message:', error);
+            alert('메시지 전송에 실패했습니다.');
+        }
     };
 
     return (

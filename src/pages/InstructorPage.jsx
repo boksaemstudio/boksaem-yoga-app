@@ -89,16 +89,12 @@ const InstructorPage = () => {
         // Listen for history changes
         window.addEventListener('popstate', handleLocationChange);
 
-        // Special listener for deep links if app is already open
-        const interval = setInterval(() => {
-            if (window.location.search.includes('tab=')) {
-                handleLocationChange();
-            }
-        }, 1000);
+        // [FIX] 이벤트 기반 deep link 감지 (setInterval 폴링 제거 → 성능 개선)
+        window.addEventListener('hashchange', handleLocationChange);
 
         return () => {
             window.removeEventListener('popstate', handleLocationChange);
-            clearInterval(interval);
+            window.removeEventListener('hashchange', handleLocationChange);
         };
     }, []);
 
@@ -343,9 +339,9 @@ const InstructorPage = () => {
             {/* AI Greeting (Top of Content) */}
             <div style={{ 
                 position: 'relative', zIndex: 1,
-                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.05) 100%)', 
+                background: 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.15) 0%, rgba(var(--primary-rgb), 0.05) 100%)', 
                 padding: '16px 20px', 
-                borderBottom: '1px solid rgba(212, 175, 55, 0.1)'
+                borderBottom: '1px solid rgba(var(--primary-rgb), 0.1)'
             }}>
                 <div style={{ margin: 0, fontSize: '1rem', lineHeight: 1.5, color: 'var(--text-primary)', textAlign: 'center', fontStyle: 'italic' }}>
                     &quot;{aiGreeting}&quot;
@@ -355,8 +351,8 @@ const InstructorPage = () => {
                     <div style={{
                         marginTop: '10px',
                         padding: '10px 14px',
-                        background: 'rgba(212,175,55,0.08)',
-                        border: '1px solid rgba(212,175,55,0.2)',
+                        background: 'rgba(var(--primary-rgb), 0.08)',
+                        border: '1px solid rgba(var(--primary-rgb), 0.2)',
                         borderRadius: '12px',
                         animation: 'slideUp 0.6s ease-out',
                         display: 'flex',
@@ -392,7 +388,7 @@ const InstructorPage = () => {
                             </svg>
                         </div>
                         <span style={{
-                            color: 'rgba(212,175,55,0.7)',
+                            color: 'rgba(var(--primary-rgb), 0.7)',
                             fontSize: '0.8rem',
                             fontWeight: 400,
                             animation: 'pulse 1.5s ease-in-out infinite'

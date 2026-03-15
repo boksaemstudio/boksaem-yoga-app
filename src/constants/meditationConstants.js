@@ -105,7 +105,7 @@ export const MEDITATION_INTENTIONS = [
 
 export const MEDITATION_MODES = [
     { id: 'breath', label: '3분 숨 고르기', time: 3 * 60, iconName: 'Wind', color: '#48dbfb', desc: '잠깐의 호흡으로 균형 찾기', freq: 10 },
-    { id: 'calm', label: '7분 마음 정돈', time: 7 * 60, iconName: 'Brain', color: '#FFD700', desc: '흐트러진 마음 돌보기', freq: 8 },
+    { id: 'calm', label: '7분 마음 정돈', time: 7 * 60, iconName: 'Brain', color: 'var(--primary-gold)', desc: '흐트러진 마음 돌보기', freq: 8 },
     { id: 'deep', label: '15분 깊은 이완', time: 15 * 60, iconName: 'Sparkle', color: '#a29bfe', desc: '깊은 명상의 세계로', freq: 6 },
 ];
 

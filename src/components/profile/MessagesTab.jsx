@@ -7,7 +7,7 @@ const MessagesTab = ({ messages, t, setActiveTab }) => {
                 <div style={{
                     padding: '12px',
                     borderRadius: '15px',
-                    background: 'rgba(212, 175, 55, 0.15)',
+                    background: 'rgba(var(--primary-rgb), 0.15)',
                     color: 'var(--primary-gold)'
                 }}>
                     <Icons.Chat size={24} weight="fill" />
@@ -79,7 +79,7 @@ const MessagesTab = ({ messages, t, setActiveTab }) => {
                                         color: 'var(--primary-gold)',
                                         textTransform: 'uppercase',
                                         padding: '4px 8px',
-                                        background: 'rgba(212, 175, 55, 0.1)',
+                                        background: 'rgba(var(--primary-rgb), 0.1)',
                                         borderRadius: '8px'
                                     }}>
                                         {msg.type === 'admin_individual' ? '개별' : '공지'}

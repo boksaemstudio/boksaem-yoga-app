@@ -21,7 +21,7 @@ const AdminHeader = ({
     return (
         <header className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'nowrap', gap: '8px' }}>
             <div className="admin-title" style={{ gap: '6px', fontSize: '0.9rem' }}>
-                <img src={config.ASSETS?.LOGO?.SQUARE} alt="로고" style={{ height: '20px', filter: 'invert(1) brightness(1.5) drop-shadow(0 0 8px rgba(212,175,55,0.4))' }} />
+                <img src={config.ASSETS?.LOGO?.SQUARE} alt="로고" style={{ height: '20px', filter: 'invert(1) brightness(1.5) drop-shadow(0 0 8px rgba(var(--primary-rgb), 0.4))' }} />
                 <span style={{ whiteSpace: 'nowrap', fontWeight: '800' }}>관리</span>
                 
                 <button 
@@ -45,7 +45,7 @@ const AdminHeader = ({
                     최신동기화
                 </button>
 
-                <button onClick={handleInstallClick} style={{ marginLeft: '6px', background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.3)', color: 'var(--primary-gold)', cursor: 'pointer', padding: '4px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem' }} title="홈 화면에 추가">
+                <button onClick={handleInstallClick} style={{ marginLeft: '6px', background: 'rgba(var(--primary-rgb), 0.1)', border: '1px solid rgba(var(--primary-rgb), 0.3)', color: 'var(--primary-gold)', cursor: 'pointer', padding: '4px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem' }} title="홈 화면에 추가">
                     <PlusCircle size={18} weight="bold" />
                     <span className="hide-mobile">홈추가</span>
                 </button>
@@ -59,8 +59,8 @@ const AdminHeader = ({
                     style={{
                         padding: '6px 10px',
                         borderRadius: '6px',
-                        background: 'rgba(212, 175, 55, 0.1)',
-                        border: '1px solid rgba(212, 175, 55, 0.3)',
+                        background: 'rgba(var(--primary-rgb), 0.1)',
+                        border: '1px solid rgba(var(--primary-rgb), 0.3)',
                         color: 'var(--primary-theme-color)',
                         fontSize: '0.7rem',
                         fontWeight: 'bold',
@@ -70,8 +70,8 @@ const AdminHeader = ({
                         cursor: 'pointer',
                         transition: 'all 0.2s ease'
                     }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(212, 175, 55, 0.1)'}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(var(--primary-rgb), 0.2)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(var(--primary-rgb), 0.1)'}
                     title="AI 분석 결과 새로고침 (수동)"
                 >
                     <span>✨ AI 분석</span>
@@ -80,7 +80,7 @@ const AdminHeader = ({
                     ) : (
                         <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4CD964', boxShadow: '0 0 5px #4CD964' }}></span>
                     )}
-                    <span style={{ fontSize: '0.65rem', opacity: 0.8, marginLeft: '4px', paddingLeft: '4px', borderLeft: '1px solid rgba(212,175,55,0.3)' }}>
+                    <span style={{ fontSize: '0.65rem', opacity: 0.8, marginLeft: '4px', paddingLeft: '4px', borderLeft: '1px solid rgba(var(--primary-rgb), 0.3)' }}>
                         {aiUsage.count}/{aiUsage.limit}
                     </span>
                 </button>

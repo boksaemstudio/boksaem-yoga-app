@@ -218,13 +218,8 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch, reve
             monthlyCount += dayData.count;
         }
 
-        // Overwrite totals securely with Server Stats if looking at all branches
-        if (revenueStats && currentBranch === 'all') {
-            monthlyTotal = revenueStats.monthly?.[monthStr]?.total || 0;
-            monthlyNew = revenueStats.monthly?.[monthStr]?.new || 0;
-            monthlyReReg = revenueStats.monthly?.[monthStr]?.reReg || 0;
-            // monthlyCount relies on the 500 recent items which cover current month completely
-        }
+        // [FIX] Server Stats Override 제거 — revenueStats는 신규 매출만 집계하여 부정확
+        // sales 데이터에서 직접 계산한 monthlyTotal/monthlyNew/monthlyReReg가 정확합니다.
 
 
         // 3. Comparative Stats (Yesterday, Day Before, Last Week)
@@ -277,23 +272,16 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch, reve
             let branches = {};
             let partialBranches = {};
 
-            if (revenueStats && currentBranch === 'all') {
-                amount = revenueStats.monthly?.[mStr]?.total || 0;
-                for (let day = 1; day <= currentDayOfM; day++) {
-                    const dayStr = `${mStr}-${String(day).padStart(2, '0')}`;
-                    partialAmount += revenueStats.daily?.[dayStr]?.total || 0;
-                }
-            } else {
-                dailyAmountsMap.forEach((val, key) => {
-                    if (key.startsWith(mStr)) {
-                        amount += val.amount;
-                        const dayPart = parseInt(key.substring(8, 10), 10);
-                        if (dayPart <= currentDayOfM) {
-                            partialAmount += val.amount;
-                        }
+            // [FIX] 항상 sales 데이터에서 직접 계산 (revenueStats 서버 통계 사용 안 함)
+            dailyAmountsMap.forEach((val, key) => {
+                if (key.startsWith(mStr)) {
+                    amount += val.amount;
+                    const dayPart = parseInt(key.substring(8, 10), 10);
+                    if (dayPart <= currentDayOfM) {
+                        partialAmount += val.amount;
                     }
-                });
-            }
+                }
+            });
 
             // Always calculate branch amounts from dailyAmountsMap for graphs
             dailyAmountsMap.forEach((val, key) => {

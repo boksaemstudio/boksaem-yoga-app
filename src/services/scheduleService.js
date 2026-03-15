@@ -11,6 +11,7 @@ import {
     onSnapshot
 } from "firebase/firestore";
 // [Refactoring] Extracted from storage.js for better modularity
+import { tenantDb } from '../utils/tenantDb';
 
 // Helper to get daily classes
 export const getMonthlyClasses = async (branchId, year, month) => {
@@ -20,7 +21,7 @@ export const getMonthlyClasses = async (branchId, year, month) => {
     const endStr = `${year}-${String(month).padStart(2, '0')}-31`;
 
     const q = query(
-        collection(db, 'daily_classes'),
+        tenantDb.collection('daily_classes'),
         where('branchId', '==', branchId),
         where('date', '>=', startStr),
         where('date', '<=', endStr)
@@ -47,7 +48,7 @@ export const subscribeMonthlyClasses = (branchId, year, month, callback) => {
     const endStr = `${year}-${String(month).padStart(2, '0')}-31`;
 
     const q = query(
-        collection(db, 'daily_classes'),
+        tenantDb.collection('daily_classes'),
         where('branchId', '==', branchId),
         where('date', '>=', startStr),
         where('date', '<=', endStr)
@@ -68,7 +69,7 @@ export const subscribeMonthlyClasses = (branchId, year, month, callback) => {
 export const getMonthlyScheduleStatus = async (branchId, year, month) => {
     try {
         const metaDocId = `${branchId}_${year}_${month}`;
-        const metaRef = doc(db, 'monthly_schedules', metaDocId);
+        const metaRef = tenantDb.doc('monthly_schedules', metaDocId);
         const metaSnap = await getDoc(metaRef);
 
         if (metaSnap.exists()) {
@@ -77,7 +78,7 @@ export const getMonthlyScheduleStatus = async (branchId, year, month) => {
 
         // [FALLBACK] Check if 'daily_classes' exist for a sample day (e.g. 1st day)
         const sampleDate = `${year}-${String(month).padStart(2, '0')}-01`;
-        const dailyRef = doc(db, 'daily_classes', `${branchId}_${sampleDate}`);
+        const dailyRef = tenantDb.doc('daily_classes', `${branchId}_${sampleDate}`);
         const dailySnap = await getDoc(dailyRef);
 
         if (dailySnap.exists()) {
@@ -87,7 +88,7 @@ export const getMonthlyScheduleStatus = async (branchId, year, month) => {
         // Try checking a few more days just in case 1st is empty/holiday
         for (let d = 2; d <= 5; d++) {
             const dStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-            const dRef = doc(db, 'daily_classes', `${branchId}_${dStr}`);
+            const dRef = tenantDb.doc('daily_classes', `${branchId}_${dStr}`);
             const dSnap = await getDoc(dRef);
             if (dSnap.exists()) return { exists: true, isSaved: true, isLegacy: true };
         }
@@ -101,7 +102,7 @@ export const getMonthlyScheduleStatus = async (branchId, year, month) => {
 
 export const updateDailyClasses = async (branchId, date, classes) => {
     try {
-        const docRef = doc(db, 'daily_classes', `${branchId}_${date}`);
+        const docRef = tenantDb.doc('daily_classes', `${branchId}_${date}`);
         await setDoc(docRef, {
             branchId,
             date,
@@ -119,7 +120,7 @@ export const batchUpdateDailyClasses = async (branchId, updates) => {
     try {
         const batch = writeBatch(db);
         updates.forEach(update => {
-            const docRef = doc(db, 'daily_classes', `${branchId}_${update.date}`);
+            const docRef = tenantDb.doc('daily_classes', `${branchId}_${update.date}`);
             batch.set(docRef, {
                 branchId,
                 date: update.date,
@@ -145,7 +146,7 @@ export const createMonthlySchedule = async (branchId, year, month, defaultSchedu
     console.log(`[Schedule] Creating for ${branchId} ${year}-${month}`);
     try {
         // 1. Fetch Weekly Template (Blueprint) from Firestore
-        const templateRef = doc(db, 'weekly_templates', branchId);
+        const templateRef = tenantDb.doc('weekly_templates', branchId);
         const templateSnap = await getDoc(templateRef);
 
         let template = [];
@@ -202,7 +203,7 @@ const generateScheduleFromTemplateImpl = async (branchId, year, month, template)
 
     // Save Metadata
     const metaDocId = `${branchId}_${year}_${month}`;
-    await setDoc(doc(db, 'monthly_schedules', metaDocId), {
+    await setDoc(tenantDb.doc('monthly_schedules', metaDocId), {
         branchId, year, month, isSaved: true, createdAt: new Date().toISOString(), createdBy: auth.currentUser?.email || 'admin'
     });
 
@@ -222,7 +223,7 @@ export const copyMonthlySchedule = async (branchId, fromYear, fromMonth, toYear,
         const fetchPromises = [];
         for (let d = 1; d <= daysInSourceMonth; d++) {
             const dStr = `${fromYear}-${String(fromMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-            fetchPromises.push(getDoc(doc(db, 'daily_classes', `${branchId}_${dStr}`)).then(snap => ({ day: d, date: new Date(fromYear, fromMonth - 1, d), exists: snap.exists(), data: snap.data() })));
+            fetchPromises.push(getDoc(tenantDb.doc('daily_classes', `${branchId}_${dStr}`)).then(snap => ({ day: d, date: new Date(fromYear, fromMonth - 1, d), exists: snap.exists(), data: snap.data() })));
         }
 
         const results = await Promise.all(fetchPromises);
@@ -334,7 +335,7 @@ export const copyMonthlySchedule = async (branchId, fromYear, fromMonth, toYear,
             await batchUpdateDailyClasses(branchId, updates);
 
             const metaDocId = `${branchId}_${toYear}_${toMonth}`;
-            await setDoc(doc(db, 'monthly_schedules', metaDocId), {
+            await setDoc(tenantDb.doc('monthly_schedules', metaDocId), {
                 branchId, year: toYear, month: toMonth, isSaved: true, createdAt: new Date().toISOString(), createdBy: auth.currentUser?.email || 'admin'
             });
 
@@ -356,7 +357,7 @@ export const backupMonthlySchedule = async (branchId, year, month, classesData) 
         const backupId = `${branchId}_${year}_${month}_${Date.now()}`;
         
         // Save to backup collection
-        await setDoc(doc(db, 'monthly_schedules_backup', backupId), {
+        await setDoc(tenantDb.doc('monthly_schedules_backup', backupId), {
             branchId,
             year,
             month,
@@ -367,7 +368,7 @@ export const backupMonthlySchedule = async (branchId, year, month, classesData) 
 
         // Cleanup old backups - keep only the last 2
         const q = query(
-            collection(db, 'monthly_schedules_backup'),
+            tenantDb.collection('monthly_schedules_backup'),
             where('branchId', '==', branchId),
             where('year', '==', year),
             where('month', '==', month)
@@ -382,7 +383,7 @@ export const backupMonthlySchedule = async (branchId, year, month, classesData) 
             // Delete anything beyond the 2 most recent
             const batch = writeBatch(db);
             for (let i = 2; i < backups.length; i++) {
-                batch.delete(doc(db, 'monthly_schedules_backup', backups[i].id));
+                batch.delete(tenantDb.doc('monthly_schedules_backup', backups[i].id));
             }
             await batch.commit();
         }
@@ -403,7 +404,7 @@ export const deleteMonthlySchedule = async (branchId, year, month) => {
         const endStr = `${year}-${String(month).padStart(2, '0')}-31`;
 
         const q = query(
-            collection(db, 'daily_classes'),
+            tenantDb.collection('daily_classes'),
             where('branchId', '==', branchId),
             where('date', '>=', startStr),
             where('date', '<=', endStr)
@@ -429,7 +430,7 @@ export const deleteMonthlySchedule = async (branchId, year, month) => {
         });
 
         const metaDocId = `${branchId}_${year}_${month}`;
-        batch.delete(doc(db, 'monthly_schedules', metaDocId));
+        batch.delete(tenantDb.doc('monthly_schedules', metaDocId));
 
         if (count > 0 || snapshot.empty) await batch.commit();
 
@@ -443,7 +444,7 @@ export const deleteMonthlySchedule = async (branchId, year, month) => {
 export const getMonthlyBackups = async (branchId, year, month) => {
     try {
         const q = query(
-            collection(db, 'monthly_schedules_backup'),
+            tenantDb.collection('monthly_schedules_backup'),
             where('branchId', '==', branchId),
             where('year', '==', year),
             where('month', '==', month)
@@ -463,7 +464,7 @@ export const restoreMonthlyBackup = async (branchId, year, month, backupId) => {
     try {
         console.log(`Restoring backup ${backupId} for ${branchId} ${year}-${month}`);
         
-        const backupRef = doc(db, 'monthly_schedules_backup', backupId);
+        const backupRef = tenantDb.doc('monthly_schedules_backup', backupId);
         const backupSnap = await getDoc(backupRef);
         
         if (!backupSnap.exists()) {
@@ -481,12 +482,12 @@ export const restoreMonthlyBackup = async (branchId, year, month, backupId) => {
         
         // 2. Restore daily_classes
         Object.entries(classesData).forEach(([docId, data]) => {
-            batch.set(doc(db, 'daily_classes', docId), data);
+            batch.set(tenantDb.doc('daily_classes', docId), data);
         });
         
         // 3. Restore metadata
         const metaDocId = `${branchId}_${year}_${month}`;
-        batch.set(doc(db, 'monthly_schedules', metaDocId), {
+        batch.set(tenantDb.doc('monthly_schedules', metaDocId), {
             branchId, year, month, isSaved: true, restoredAt: new Date().toISOString(), restoredFrom: backupId
         });
         
@@ -502,7 +503,7 @@ export const restoreMonthlyBackup = async (branchId, year, month, backupId) => {
 // Config Getters
 export const getInstructors = async (defaultScheduleTemplate = {}) => {
     try {
-        const docSnap = await getDoc(doc(db, 'settings', 'instructors'));
+        const docSnap = await getDoc(tenantDb.globalDoc('settings', 'instructors'));
         if (docSnap.exists() && docSnap.data().list) return docSnap.data().list;
 
         const instructors = new Set();
@@ -520,7 +521,7 @@ export const getInstructors = async (defaultScheduleTemplate = {}) => {
 
 export const getClassTypes = async (defaultScheduleTemplate = {}) => {
     try {
-        const docSnap = await getDoc(doc(db, 'settings', 'classTypes'));
+        const docSnap = await getDoc(tenantDb.globalDoc('settings', 'classTypes'));
         if (docSnap.exists() && docSnap.data().list) return docSnap.data().list;
 
         const types = new Set();
@@ -538,7 +539,7 @@ export const getClassTypes = async (defaultScheduleTemplate = {}) => {
 
 export const getClassLevels = async () => {
     try {
-        const docSnap = await getDoc(doc(db, 'settings', 'classLevels'));
+        const docSnap = await getDoc(tenantDb.globalDoc('settings', 'classLevels'));
         if (docSnap.exists() && docSnap.data().list) return docSnap.data().list;
         return ['0.5', '1', '1.5', '2'];
     } catch {
@@ -548,7 +549,7 @@ export const getClassLevels = async () => {
 
 export const updateInstructors = async (list) => {
     try {
-        await setDoc(doc(db, 'settings', 'instructors'), { list, updatedAt: new Date().toISOString() }, { merge: true });
+        await setDoc(tenantDb.globalDoc('settings', 'instructors'), { list, updatedAt: new Date().toISOString() }, { merge: true });
         return { success: true };
     } catch (e) {
         console.error("Failed to update instructors:", e);
@@ -558,7 +559,7 @@ export const updateInstructors = async (list) => {
 
 export const updateClassTypes = async (list) => {
     try {
-        await setDoc(doc(db, 'settings', 'classTypes'), { list, updatedAt: new Date().toISOString() }, { merge: true });
+        await setDoc(tenantDb.globalDoc('settings', 'classTypes'), { list, updatedAt: new Date().toISOString() }, { merge: true });
         return { success: true };
     } catch (e) {
         console.error("Failed to update class types:", e);
@@ -568,7 +569,7 @@ export const updateClassTypes = async (list) => {
 
 export const updateClassLevels = async (list) => {
     try {
-        await setDoc(doc(db, 'settings', 'classLevels'), { list, updatedAt: new Date().toISOString() }, { merge: true });
+        await setDoc(tenantDb.globalDoc('settings', 'classLevels'), { list, updatedAt: new Date().toISOString() }, { merge: true });
         return { success: true };
     } catch (e) {
         console.error("Failed to update class levels:", e);

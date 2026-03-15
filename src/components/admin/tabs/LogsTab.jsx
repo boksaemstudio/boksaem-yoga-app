@@ -8,7 +8,7 @@ import ImageLightbox from '../../common/ImageLightbox';
 
 // ─── Mini Calendar Popup ───
 const MiniCalendar = ({ selectedDate, onSelect, onClose, config }) => {
-    const themeColor = config?.THEME?.PRIMARY_COLOR || '#D4AF37';
+    const themeColor = config?.THEME?.PRIMARY_COLOR || 'var(--primary-gold)';
     const sel = new Date(selectedDate + 'T00:00:00+09:00');
     const [viewYear, setViewYear] = useState(sel.getFullYear());
     const [viewMonth, setViewMonth] = useState(sel.getMonth());
@@ -46,7 +46,7 @@ const MiniCalendar = ({ selectedDate, onSelect, onClose, config }) => {
             <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: -1 }} onClick={onClose} />
             <div style={{
                 background: 'var(--bg-surface, #1a1a2e)',
-                border: '1px solid rgba(212,175,55,0.3)',
+                border: '1px solid rgba(var(--primary-rgb), 0.3)',
                 borderRadius: '12px',
                 padding: '16px',
                 boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
@@ -91,7 +91,7 @@ const MiniCalendar = ({ selectedDate, onSelect, onClose, config }) => {
                                     transition: 'all 0.15s ease',
                                     margin: '0 auto'
                                 }}
-                                onMouseEnter={e => { if (!isFuture && !isSelected) e.currentTarget.style.background = 'rgba(212,175,55,0.15)'; }}
+                                onMouseEnter={e => { if (!isFuture && !isSelected) e.currentTarget.style.background = 'rgba(var(--primary-rgb), 0.15)'; }}
                                 onMouseLeave={e => { if (!isFuture && !isSelected) e.currentTarget.style.background = 'transparent'; }}
                             >
                                 {day}
@@ -359,7 +359,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
             return (
                 <div style={{
                     background: 'rgba(20,20,30,0.95)',
-                    border: '1px solid rgba(212,175,55,0.3)',
+                    border: '1px solid rgba(var(--primary-rgb), 0.3)',
                     padding: '8px 12px',
                     borderRadius: '8px',
                     color: 'white',
@@ -389,8 +389,8 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                 <button
                     onClick={() => setShowCalendar(v => !v)}
                     style={{
-                        background: isToday ? 'rgba(212,175,55,0.1)' : 'rgba(255,255,255,0.05)',
-                        border: isToday ? '1px solid rgba(212,175,55,0.3)' : '1px solid rgba(255,255,255,0.1)',
+                        background: isToday ? 'rgba(var(--primary-rgb), 0.1)' : 'rgba(255,255,255,0.05)',
+                        border: isToday ? '1px solid rgba(var(--primary-rgb), 0.3)' : '1px solid rgba(255,255,255,0.1)',
                         borderRadius: '10px',
                         padding: '8px 20px',
                         color: isToday ? 'var(--primary-gold)' : 'var(--text-primary)',
@@ -418,7 +418,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                             background: 'var(--primary-gold)', color: 'black', border: 'none',
                             padding: '6px 14px', borderRadius: '8px', fontWeight: 'bold',
                             fontSize: '0.8rem', cursor: 'pointer',
-                            boxShadow: '0 2px 8px rgba(212,175,55,0.3)'
+                            boxShadow: '0 2px 8px rgba(var(--primary-rgb), 0.3)'
                         }}
                     >오늘</button>
                 )}
@@ -466,7 +466,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
             {loadingHistorical && (
                 <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-secondary)' }}>
                     <div style={{
-                        width: '32px', height: '32px', border: '3px solid rgba(212,175,55,0.2)',
+                        width: '32px', height: '32px', border: '3px solid rgba(var(--primary-rgb), 0.2)',
                         borderTop: '3px solid var(--primary-gold)', borderRadius: '50%',
                         animation: 'spin 0.8s linear infinite', margin: '0 auto 12px'
                     }} />
@@ -477,7 +477,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
 
             {/* ─── Class Summary Cards ─── */}
             {!loadingHistorical && classCards.length > 0 && (
-                <div className="dashboard-card" style={{ border: '1px solid rgba(212,175,55,0.2)' }}>
+                <div className="dashboard-card" style={{ border: '1px solid rgba(var(--primary-rgb), 0.2)' }}>
                     <h3 className="card-label" style={{ marginBottom: '15px', color: 'var(--primary-gold)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <ClockCounterClockwise size={18} /> {isToday ? '오늘' : formatDisplayDate(selectedDate)} 수업별 출석 요약
                     </h3>
@@ -492,12 +492,12 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                     style={{
                                         padding: '12px',
                                         borderRadius: '10px',
-                                        background: isSelected ? 'rgba(212,175,55,0.1)' : 'rgba(255,255,255,0.03)',
+                                        background: isSelected ? 'rgba(var(--primary-rgb), 0.1)' : 'rgba(255,255,255,0.03)',
                                         border: isSelected ? '1px solid var(--primary-gold)' : '1px solid rgba(255,255,255,0.05)',
                                         position: 'relative',
                                         cursor: 'pointer',
                                         transition: 'all 0.2s ease',
-                                        boxShadow: isSelected ? '0 0 15px rgba(212,175,55,0.2)' : 'none'
+                                        boxShadow: isSelected ? '0 0 15px rgba(var(--primary-rgb), 0.2)' : 'none'
                                     }}
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
@@ -557,7 +557,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                         <div style={{ 
                             marginTop: '20px', 
                             paddingTop: '20px', 
-                            borderTop: '1px solid rgba(212, 175, 55, 0.2)',
+                            borderTop: '1px solid rgba(var(--primary-rgb), 0.2)',
                             animation: 'fadeInDown 0.3s ease-out'
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
@@ -596,7 +596,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                                 allowDecimals={false}
                                                 domain={[0, 'dataMax + 2']}
                                             />
-                                            <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(212,175,55,0.2)', strokeWidth: 2 }} />
+                                            <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(var(--primary-rgb), 0.2)', strokeWidth: 2 }} />
                                             <Line 
                                                 type="monotone" 
                                                 dataKey="count" 
@@ -779,7 +779,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                                     style={{
                                                         width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0,
                                                         overflow: 'hidden', cursor: 'pointer',
-                                                        border: '2px solid rgba(212,175,55,0.4)'
+                                                        border: '2px solid rgba(var(--primary-rgb), 0.4)'
                                                     }}
                                                 >
                                                     <img src={log.photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -788,7 +788,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                             <div style={{ flex: 1, paddingLeft: '12px' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                                     <span style={{ fontWeight: 'bold' }}>{log.memberName || log.name || '알 수 없음'}</span>
-                                                    <span style={{ fontSize: '0.7rem', color: 'var(--primary-gold)', background: 'rgba(212,175,55,0.1)', padding: '1px 6px', borderRadius: '4px' }}>
+                                                    <span style={{ fontSize: '0.7rem', color: 'var(--primary-gold)', background: 'rgba(var(--primary-rgb), 0.1)', padding: '1px 6px', borderRadius: '4px' }}>
                                                         {log.className || '일반'}
                                                     </span>
                                                     <span className="badge" style={{

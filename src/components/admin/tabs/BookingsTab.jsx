@@ -136,7 +136,7 @@ const BookingsTab = ({ currentBranch }) => {
             cells.push(
                 <div key={d} onClick={() => setSelectedDate(dateStr)} style={{
                     padding: '4px 2px', textAlign: 'center', cursor: 'pointer', borderRadius: '6px',
-                    background: isSelected ? 'var(--primary-gold)' : isTodayCell ? 'rgba(212,175,55,0.15)' : 'transparent',
+                    background: isSelected ? 'var(--primary-gold)' : isTodayCell ? 'rgba(var(--primary-rgb), 0.15)' : 'transparent',
                     color: isSelected ? 'black' : isSunday ? '#ff4757' : 'white',
                     fontWeight: isSelected || count > 0 ? 'bold' : 'normal',
                     fontSize: '0.8rem', transition: 'all 0.15s',

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import ErrorBoundary from './components/ErrorBoundary';
 import { storageService } from './services/storage';
 import NotificationListener from './components/common/NotificationListener';
@@ -8,7 +8,6 @@ import { NetworkProvider } from './contexts/NetworkContext';
 import { StudioProvider } from './contexts/StudioContext';
 import NetworkStatus from './components/common/NetworkStatus';
 import { useStudioConfig } from './contexts/StudioContext';
-import { STUDIO_CONFIG } from './studioConfig';
 import ReloadPrompt from './components/ReloadPrompt';
 
 
@@ -23,14 +22,14 @@ const MeditationPage = lazy(() => import('./pages/MeditationPage'));
 // Loading fallback
 const LoadingScreen = () => {
     const { config } = useStudioConfig();
-    const primary = config.THEME?.PRIMARY_COLOR || '#D4AF37';
+    const primary = config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)';
     const skeleton = config.THEME?.SKELETON_COLOR || '#1a1a1a';
     
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0a0a0a', color: primary }}>
         <div style={{ textAlign: 'center' }}>
           <div className="loading-spinner" style={{ border: `4px solid ${skeleton}`, borderTop: `4px solid ${primary}`, borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }}></div>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{config.IDENTITY?.NAME || 'Studio'} {STUDIO_CONFIG.IDENTITY?.APP_VERSION || ''}</h2>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{config.IDENTITY?.NAME || 'Studio'} {config.IDENTITY?.APP_VERSION || ''}</h2>
         </div>
       </div>
     );
@@ -71,7 +70,24 @@ const ErrorFallback = ({ error }) => (
 
 // --- AUTH GUARD ---
 const RequireAuth = ({ children }) => {
-  // BYPASS Auth for agent testing
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isAuthed, setIsAuthed] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    import('./firebase').then(({ auth }) => {
+      const { onAuthStateChanged } = require('firebase/auth');
+      const unsub = onAuthStateChanged(auth, (user) => {
+        setIsAuthed(!!user);
+        setAuthChecked(true);
+        if (!user) navigate('/login', { replace: true });
+      });
+      return () => unsub();
+    });
+  }, [navigate]);
+
+  if (!authChecked) return <div style={{ background: '#08080A', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-gold)' }}>인증 확인 중...</div>;
+  if (!isAuthed) return null;
   return children;
 };
 

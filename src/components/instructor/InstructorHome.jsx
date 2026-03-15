@@ -228,7 +228,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                                         overflow: 'hidden', background: 'rgba(255,255,255,0.08)',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         cursor: record.photoUrl ? 'pointer' : 'default',
-                                        border: record.photoUrl ? '2px solid rgba(212,175,55,0.4)' : '2px solid rgba(255,255,255,0.1)'
+                                        border: record.photoUrl ? '2px solid rgba(var(--primary-rgb), 0.4)' : '2px solid rgba(255,255,255,0.1)'
                                     }}
                                 >
                                     {record.photoUrl ? (
@@ -358,7 +358,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                             fontWeight: 'bold', fontSize: '1.05rem', cursor: pushLoading ? 'wait' : 'pointer',
                             transition: 'all 0.2s',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                            boxShadow: pushLoading ? 'none' : '0 4px 12px rgba(212, 175, 55, 0.2)'
+                            boxShadow: pushLoading ? 'none' : '0 4px 12px rgba(var(--primary-rgb), 0.2)'
                         }}
                     >
                         {pushLoading ? (
@@ -392,7 +392,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                     padding: '20px', 
                     borderRadius: '12px', 
                     marginBottom: '16px', 
-                    border: deviceOS === 'ios' ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(212, 175, 55, 0.3)'
+                    border: deviceOS === 'ios' ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(var(--primary-rgb), 0.3)'
                 }}>
                     <button 
                         onClick={handleHidePwaGuide}

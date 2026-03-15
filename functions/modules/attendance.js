@@ -783,8 +783,7 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
                 console.log(`[OfflineSync] Sync DENIED for ${memberId} (${denialReason})`);
             }
 
-            // 5. Mark Pending Record as Processed
-            transaction.delete(snapshot.ref);
+            // [NOTE] Pending record deletion is already handled at L734 above
         });
     } catch (e) {
         console.error(`[OfflineSync] Sync failed for ${memberId}:`, e);

@@ -5,7 +5,7 @@ import { useStudioConfig } from '../../../contexts/StudioContext';
 
 const PushHistoryTab = ({ onSelectMember, setActiveTab, pendingApprovals = [], onApprove, onReject }) => {
     const { config } = useStudioConfig();
-    const primaryColor = config.THEME?.PRIMARY_COLOR || '#D4AF37';
+    const primaryColor = config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)';
     const [history, setHistory] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 

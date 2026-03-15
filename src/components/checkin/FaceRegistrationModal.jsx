@@ -238,10 +238,10 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef: externalVideoRef }) 
     };
 
     const cardStyle = {
-        background: 'linear-gradient(145deg, rgba(30,30,35,0.98), rgba(20,20,25,0.98))',
+        background: 'var(--bg-modal)',
         borderRadius: '24px', padding: 'clamp(24px, 4vh, 40px)',
         maxWidth: '420px', width: '90%',
-        border: '1px solid rgba(212,175,55,0.2)',
+        border: '1px solid rgba(var(--primary-rgb), 0.2)',
         boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
         textAlign: 'center', color: 'white'
     };
@@ -258,9 +258,9 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef: externalVideoRef }) 
                             얼굴로 출석하기
                         </h2>
                         <div style={{
-                            background: 'rgba(212,175,55,0.08)', borderRadius: '16px',
+                            background: 'rgba(var(--primary-rgb), 0.08)', borderRadius: '16px',
                             padding: '20px', marginBottom: '24px', textAlign: 'left',
-                            border: '1px solid rgba(212,175,55,0.15)', lineHeight: 1.7
+                            border: '1px solid rgba(var(--primary-rgb), 0.15)', lineHeight: 1.7
                         }}>
                             <p style={{ fontSize: '1.05rem', marginBottom: '12px', fontWeight: 600 }}>
                                 🔐 사진은 저장하지 않아요!
@@ -373,7 +373,7 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef: externalVideoRef }) 
                             borderRadius: '50%', overflow: 'hidden',
                             border: saving ? '4px solid var(--primary-gold)' : cameraError ? '4px solid #ef4444' : '4px solid rgba(255,255,255,0.3)',
                             position: 'relative',
-                            boxShadow: saving ? '0 0 30px rgba(212,175,55,0.3)' : 'none',
+                            boxShadow: saving ? '0 0 30px rgba(var(--primary-rgb), 0.3)' : 'none',
                             animation: saving ? 'pulse 1s infinite' : 'none',
                             background: 'rgba(0,0,0,0.5)'
                         }}>

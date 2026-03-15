@@ -6,7 +6,7 @@
 /**
  * Calculates the relative luminance of a hex color.
  * (Based on W3C WCAG algorithm)
- * @param {string} hex - Hex color string (e.g., "#d4af37" or "d4af37")
+ * @param {string} hex - Hex color string (e.g., "var(--primary-gold)" or "d4af37")
  * @returns {number} Luminance value (0 to 1)
  */
 export const getLuminance = (hex) => {
@@ -79,7 +79,7 @@ export const getTagColor = (title = '', dateStr = '', instructor = '') => {
         return { bg: 'rgba(16, 185, 129, 0.15)', text: '#34D399', border: 'rgba(16, 185, 129, 0.3)' };
     }
     if (lowerTitle.includes('특별') || lowerTitle.includes('special')) {
-        return { bg: 'rgba(212, 175, 55, 0.15)', text: '#D4AF37', border: 'rgba(212, 175, 55, 0.3)' };
+        return { bg: 'rgba(var(--primary-rgb), 0.15)', text: 'var(--primary-gold)', border: 'rgba(var(--primary-rgb), 0.3)' };
     }
 
     // Default Fallback

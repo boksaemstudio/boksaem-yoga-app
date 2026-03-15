@@ -65,10 +65,10 @@ const MemberSalesHistory = ({ memberId, member }) => {
                 <div style={{ marginBottom: '20px' }}>
                     <h4 style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1rem', marginBottom: '12px', fontWeight: 'bold', marginLeft: '4px' }}>나의 이용권 상태</h4>
                     <div style={{
-                        background: 'linear-gradient(135deg, rgba(212,175,55,0.1) 0%, rgba(255,255,255,0.02) 100%)',
+                        background: 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.1) 0%, rgba(255,255,255,0.02) 100%)',
                         padding: '16px',
                         borderRadius: '20px',
-                        border: '1px solid rgba(212, 175, 55, 0.3)',
+                        border: '1px solid rgba(var(--primary-rgb), 0.3)',
                         boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
@@ -156,7 +156,7 @@ const MemberSalesHistory = ({ memberId, member }) => {
                                 background: 'rgba(255,255,255,0.04)',
                                 padding: '16px',
                                 borderRadius: '16px',
-                                border: isItemActive ? '1px solid rgba(212, 175, 55, 0.4)' : (isItemUpcoming ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid rgba(255,255,255,0.08)'),
+                                border: isItemActive ? '1px solid rgba(var(--primary-rgb), 0.4)' : (isItemUpcoming ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid rgba(255,255,255,0.08)'),
                                 transition: 'all 0.2s ease',
                                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                             }}>
@@ -165,7 +165,7 @@ const MemberSalesHistory = ({ memberId, member }) => {
                                         <span style={{ color: 'white', fontWeight: 'bold', fontSize: '1rem' }}>
                                             {item.item ? `${getMembershipLabel(item.item.split(' ')[0])} ${item.item.split(' ').slice(1).join(' ')}` : '결제 항목'}
                                         </span>
-                                        {isItemActive && <span style={{ fontSize: '0.7rem', background: 'rgba(212, 175, 55, 0.15)', color: 'var(--primary-gold)', border: '1px solid rgba(212, 175, 55, 0.3)', padding: '2px 6px', borderRadius: '6px', fontWeight: 'bold' }}>현재 이용 중</span>}
+                                        {isItemActive && <span style={{ fontSize: '0.7rem', background: 'rgba(var(--primary-rgb), 0.15)', color: 'var(--primary-gold)', border: '1px solid rgba(var(--primary-rgb), 0.3)', padding: '2px 6px', borderRadius: '6px', fontWeight: 'bold' }}>현재 이용 중</span>}
                                         {isItemUpcoming && <span style={{ fontSize: '0.7rem', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)', padding: '2px 6px', borderRadius: '6px', fontWeight: 'bold' }}>선등록 (대기)</span>}
                                     </div>
                                     <span style={{ color: '#10b981', fontWeight: 'bold', fontSize: '1.05rem' }}>{(item.amount || 0).toLocaleString()}원</span>

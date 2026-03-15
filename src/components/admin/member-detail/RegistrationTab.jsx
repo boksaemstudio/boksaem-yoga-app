@@ -263,7 +263,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                             <label style={{
                                 padding: '12px 16px',
                                 borderRadius: '10px',
-                                background: autoStart ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.05)',
+                                background: autoStart ? 'rgba(var(--primary-rgb), 0.15)' : 'rgba(255,255,255,0.05)',
                                 border: `1px solid ${autoStart ? 'var(--primary-gold)' : 'transparent'}`,
                                 fontSize: '0.85rem',
                                 color: autoStart ? 'var(--primary-gold)' : 'var(--text-secondary)',
@@ -358,7 +358,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
             </div>
 
             {/* 결제 요약 카드 — MemberAddModal과 동일 스타일 */}
-            <div className="form-group" style={{ background: 'rgba(212,175,55,0.08)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(212,175,55,0.2)', boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.2)' }}>
+            <div className="form-group" style={{ background: 'rgba(var(--primary-rgb), 0.08)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(var(--primary-rgb), 0.2)', boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.2)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', fontWeight: 'bold' }}>결제 금액</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -414,7 +414,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                 className="action-btn primary"
                 style={{
                     padding: '18px 0', fontSize: '1.1rem', fontWeight: '800',
-                    borderRadius: '16px', boxShadow: '0 10px 20px rgba(212, 175, 55, 0.2)',
+                    borderRadius: '16px', boxShadow: '0 10px 20px rgba(var(--primary-rgb), 0.2)',
                     opacity: isSubmitting ? 0.6 : 1, cursor: isSubmitting ? 'not-allowed' : 'pointer',
                     marginTop: '10px'
                 }}

@@ -31,10 +31,10 @@ const ScheduleTab = ({
 
     return (
         <div className="fade-in">
-            <div className="glass-panel" style={{ padding: '24px', background: 'rgba(15, 15, 15, 0.9)', minHeight: '400px', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
+            <div className="glass-panel" style={{ padding: '24px', background: 'rgba(15, 15, 15, 0.9)', minHeight: '400px', border: '1px solid rgba(var(--primary-rgb), 0.2)' }}>
                 <div style={{ marginBottom: '25px', textAlign: 'left' }}>
                     <h2 style={{ fontSize: '1.5rem', color: 'white', fontWeight: '800', margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>{t('scheduleTitle')}</h2>
-                    <p style={{ margin: 0, fontSize: '0.95rem', color: config.THEME?.PRIMARY_COLOR || '#D4AF37', opacity: 0.9, lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
+                    <p style={{ margin: 0, fontSize: '0.95rem', color: config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)', opacity: 0.9, lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
                         {t('scheduleSub')}
                     </p>
                 </div>
@@ -61,7 +61,7 @@ const ScheduleTab = ({
                                 color: scheduleBranch === b.id ? 'black' : 'rgba(255,255,255,0.6)',
                                 fontSize: '0.9rem',
                                 transition: 'all 0.3s ease',
-                                boxShadow: scheduleBranch === b.id ? '0 4px 15px rgba(212, 175, 55, 0.3)' : 'none'
+                                boxShadow: scheduleBranch === b.id ? '0 4px 15px rgba(var(--primary-rgb), 0.3)' : 'none'
                             }}
                         >
                             {b.name}

@@ -13,7 +13,7 @@ const KioskInstallGuideModal = ({ isOpen, onClose }) => {
 
     // CheckInPage Native Style (Low Spec, Solid Colors, No Blur)
     const bgColor = '#18181b'; // Dark gray, matches typical CheckIn app bg
-    const goldColor = config.THEME?.PRIMARY_COLOR || '#d4af37';
+    const goldColor = config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)';
 
     return (
         <div
@@ -126,7 +126,7 @@ const KioskInstallGuideModal = ({ isOpen, onClose }) => {
                         flex: 1,
                         padding: '0 40px 40px 40px',
                         overflowY: 'auto',
-                        color: config.THEME?.PRIMARY_COLOR || '#d4af37'
+                        color: config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'
                     }}>
                         {tab === 'android' ? <TabletAndroidGuide /> : <TabletIOSGuide />}
                     </div>

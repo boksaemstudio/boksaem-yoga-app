@@ -176,9 +176,9 @@ const CheckInPage = () => {
         
         const loadBiometrics = async () => {
             try {
-                const { collection, getDocs } = await import('firebase/firestore');
-                const { db } = await import('../firebase');
-                const snap = await getDocs(collection(db, 'face_biometrics'));
+                const { getDocs } = await import('firebase/firestore');
+                const { tenantDb } = await import('../utils/tenantDb');
+                const snap = await getDocs(tenantDb.collection('face_biometrics'));
                 biometricsCache.current = snap.docs.map(d => ({ memberId: d.id, ...d.data() }));
                 console.log(`[FACIAL] Biometrics cache loaded: ${biometricsCache.current.length} entries`);
             } catch (e) {
@@ -624,9 +624,7 @@ const CheckInPage = () => {
     // Final Poetic Render
     return (
         <div className="checkin-wrapper" style={{ position: 'relative', width: '100%', height: 'calc(var(--vh, 1vh) * 100)', minHeight: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', background: '#000' }}>
-            {/* [PHOTO] 숨겨진 카메라 피드 — capturePhoto/uploadPhoto가 작동하려면 필수 */}
-            <video ref={videoRef} autoPlay muted playsInline style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none', zIndex: -1 }} />
-            <canvas ref={canvasRef} style={{ display: 'none' }} />
+            {/* [PHOTO] 숨겨진 카메라 피드는 아래 단일 video/canvas 요소에서 처리 */}
             <div className="bg-container" style={{ position: 'fixed', inset: 0, zIndex: 0 }}>
                 <img src={bgImage} alt="bg" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' }} />
@@ -652,7 +650,7 @@ const CheckInPage = () => {
             {kioskSettings?.active && kioskSettings?.imageUrl && !kioskNoticeHidden && !message && (
                 <div onClick={() => setKioskNoticeHidden(true)} style={{ position: 'fixed', inset: 0, backgroundColor: '#000', zIndex: 2000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                     <img src={kioskSettings.imageUrl} alt="notice" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-                    <div style={{ position: 'absolute', bottom: '6vh', background: 'rgba(0, 0, 0, 0.85)', color: 'white', padding: '16px 36px', borderRadius: '50px', fontSize: '1.6rem', fontWeight: 'bold', border: '3px solid rgba(212,175,55,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', pointerEvents: 'none' }}>
+                    <div style={{ position: 'absolute', bottom: '6vh', background: 'rgba(0, 0, 0, 0.85)', color: 'white', padding: '16px 36px', borderRadius: '50px', fontSize: '1.6rem', fontWeight: 'bold', border: '3px solid rgba(var(--primary-rgb), 0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', pointerEvents: 'none' }}>
                         <span style={{ fontSize: '2rem' }}>👆</span> 화면을 터치하면 출석부로 이동합니다
                     </div>
                 </div>

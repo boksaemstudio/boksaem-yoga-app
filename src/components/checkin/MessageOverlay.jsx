@@ -69,7 +69,7 @@ const MessageOverlay = memo(({ message, onClose, aiExperience }) => {
                         <div className="ai-sub-message" style={{
                             marginTop: '10px',
                             padding: '24px',
-                            background: 'linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.05))',
+                            background: 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.15), rgba(var(--primary-rgb), 0.05))',
                             borderRadius: '24px',
                             borderLeft: '6px solid var(--primary-gold)',
                             fontSize: '1.5rem',

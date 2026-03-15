@@ -109,9 +109,9 @@ export const StudioProvider = ({ children }) => {
 
                 // Update CSS Variables dynamically
                 const theme = merged.THEME || {};
-                const primary = theme.PRIMARY_COLOR || '#D4AF37';
+                const primary = theme.PRIMARY_COLOR || 'var(--primary-gold)';
                 document.documentElement.style.setProperty('--primary-theme-color', primary);
-                document.documentElement.style.setProperty('--primary-theme-skeleton', theme.SKELETON_COLOR || 'rgba(212, 175, 55, 0.1)');
+                document.documentElement.style.setProperty('--primary-theme-skeleton', theme.SKELETON_COLOR || 'rgba(var(--primary-rgb), 0.1)');
             }
             setLoading(false);
         }, (error) => {
@@ -158,7 +158,7 @@ export const StudioProvider = ({ children }) => {
                     alignItems: 'center', 
                     justifyContent: 'center',
                     background: '#08080A',
-                    color: '#D4AF37'
+                    color: 'var(--primary-gold)'
                 }}>
                     <div className="pulse">스튜디오 준비 중...</div>
                 </div>

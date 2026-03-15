@@ -9,9 +9,15 @@ const MemberNoteModal = ({ isOpen, onClose, member, onSuccess }) => {
     if (!isOpen || !member) return null;
 
     const handleSaveNote = async () => {
-        await storageService.updateMember(member.id, { notes: noteText });
-        if (onSuccess) onSuccess();
-        onClose();
+        try {
+            await storageService.updateMember(member.id, { notes: noteText });
+            if (onSuccess) onSuccess();
+        } catch (error) {
+            console.error('[MemberNoteModal] Failed to save note:', error);
+            alert('메모 저장에 실패했습니다.');
+        } finally {
+            onClose();
+        }
     };
 
     return (

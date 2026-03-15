@@ -88,8 +88,8 @@ const TopBar = memo(({ weather, currentBranch, branches, handleBranchChange, tog
                     onClick={onInstructorClick}
                     aria-label="선생님 전용"
                     style={{
-                        background: 'rgba(212, 175, 55, 0.15)',
-                        border: '1px solid rgba(212, 175, 55, 0.4)',
+                        background: 'rgba(var(--primary-rgb), 0.15)',
+                        border: '1px solid rgba(var(--primary-rgb), 0.4)',
                         borderRadius: '22px',
                         padding: '8px 16px',
                         display: 'flex',

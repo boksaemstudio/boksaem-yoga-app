@@ -9,6 +9,7 @@
 import { db } from "../../firebase";
 import { collection, addDoc, getDocs, query, where, orderBy, limit as firestoreLimit } from "firebase/firestore";
 import { STUDIO_CONFIG as config } from "../../studioConfig";
+import { tenantDb } from '../../utils/tenantDb';
 
 /**
  * 개인 메시지 추가 (푸시 알림 트리거)
@@ -17,7 +18,7 @@ export const addMessage = async (memberId, content) => {
     try {
         if (!memberId || !content) throw new Error("Invalid message data");
 
-        const docRef = await addDoc(collection(db, 'messages'), {
+        const docRef = await addDoc(tenantDb.collection('messages'), {
             memberId,
             content,
             type: 'admin_individual',
@@ -39,7 +40,7 @@ export const addMessage = async (memberId, content) => {
 export const getMessages = async (memberId) => {
     try {
         const q = query(
-            collection(db, 'messages'),
+            tenantDb.collection('messages'),
             where("memberId", "==", memberId),
             orderBy("timestamp", "desc"),
             firestoreLimit(50)
@@ -59,7 +60,7 @@ export const sendBulkPushCampaign = async (targetMemberIds, title, body) => {
     try {
         if (!body) throw new Error("Message body is required");
 
-        const docRef = await addDoc(collection(db, 'push_campaigns'), {
+        const docRef = await addDoc(tenantDb.collection('push_campaigns'), {
             target: 'selected',
             memberIds: targetMemberIds,
             title: title || config?.IDENTITY?.NAME || "Studio",
@@ -83,7 +84,7 @@ export const getMessagesByMemberId = async (memberId, cachedNotices = []) => {
     try {
         // 1. Get individual messages
         const msgQuery = query(
-            collection(db, 'messages'),
+            tenantDb.collection('messages'),
             where("memberId", "==", memberId),
             orderBy("timestamp", "desc"),
             firestoreLimit(50)
@@ -99,7 +100,7 @@ export const getMessagesByMemberId = async (memberId, cachedNotices = []) => {
         let notices = cachedNotices;
         if (!notices || notices.length === 0) {
             const noticeQuery = query(
-                collection(db, 'notices'),
+                tenantDb.collection('notices'),
                 orderBy("date", "desc"),
                 firestoreLimit(30)
             );

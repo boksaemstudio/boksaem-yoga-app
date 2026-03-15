@@ -632,7 +632,7 @@ const MembersTab = ({
                                             {member.notes && (
                                                 <div 
                                                     onClick={(e) => { e.stopPropagation(); onNoteClick && onNoteClick(member); }}
-                                                    style={{ marginTop: '8px', padding: '8px', background: 'rgba(212,175,55,0.1)', borderRadius: '4px', fontSize: '0.8rem', color: 'var(--primary-gold)', cursor: 'pointer', border: '1px dashed rgba(212,175,55,0.3)' }}
+                                                    style={{ marginTop: '8px', padding: '8px', background: 'rgba(var(--primary-rgb), 0.1)', borderRadius: '4px', fontSize: '0.8rem', color: 'var(--primary-gold)', cursor: 'pointer', border: '1px dashed rgba(var(--primary-rgb), 0.3)' }}
                                                 >
                                                     <NotePencil size={12} style={{ marginRight: '4px' }} /> {member.notes}
                                                 </div>

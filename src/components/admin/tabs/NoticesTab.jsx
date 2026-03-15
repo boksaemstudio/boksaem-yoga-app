@@ -6,8 +6,13 @@ const NoticesTab = ({ notices, setShowNoticeModal, refreshData }) => {
     const { config } = useStudioConfig();
     const handleDeleteNotice = async (id) => {
         if (window.confirm('이 공지사항을 삭제하시겠습니까?')) {
-            await storageService.deleteNotice(id);
-            refreshData();
+            try {
+                await storageService.deleteNotice(id);
+                refreshData();
+            } catch (error) {
+                console.error('[NoticesTab] Failed to delete notice:', error);
+                alert('공지 삭제에 실패했습니다.');
+            }
         }
     };
 
@@ -25,12 +30,12 @@ const NoticesTab = ({ notices, setShowNoticeModal, refreshData }) => {
                         width: 'auto', 
                         padding: '10px 24px', // Slightly reduced padding
                         flexShrink: 0, // Prevent shrinking
-                        background: `linear-gradient(135deg, #FFD700 0%, ${config.THEME?.PRIMARY_COLOR || '#D4AF37'} 100%)`,
+                        background: `linear-gradient(135deg, var(--primary-gold) 0%, ${config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'} 100%)`,
                         color: 'black', // Black text for contrast
                         fontWeight: 'bold',
                         fontSize: '0.95rem',
                         border: 'none',
-                        boxShadow: '0 4px 15px rgba(212, 175, 55, 0.4)', // Gold Glow
+                        boxShadow: '0 4px 15px rgba(var(--primary-rgb), 0.4)', // Gold Glow
                         borderRadius: '30px', // More rounded
                         transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                         cursor: 'pointer',
@@ -40,11 +45,11 @@ const NoticesTab = ({ notices, setShowNoticeModal, refreshData }) => {
                     }}
                     onMouseOver={(e) => {
                         e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(212, 175, 55, 0.6)';
+                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(var(--primary-rgb), 0.6)';
                     }}
                     onMouseOut={(e) => {
                         e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(212, 175, 55, 0.4)';
+                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(var(--primary-rgb), 0.4)';
                     }}
                 >
                     <Plus size={20} weight="black"/> 
@@ -62,13 +67,13 @@ const NoticesTab = ({ notices, setShowNoticeModal, refreshData }) => {
                         <div key={notice.id} className="glass-panel" style={{
                             marginBottom: '20px',
                             padding: '24px',
-                            border: `1px solid ${config.THEME?.PRIMARY_COLOR || '#D4AF37'}40`,
+                            border: `1px solid ${config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'}40`,
                             background: 'linear-gradient(145deg, rgba(35,35,35,0.7), rgba(25,25,25,0.8))',
                             position: 'relative'
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
                                 <div>
-                                    <div style={{ fontWeight: 800, fontSize: '1.2rem', color: config.THEME?.PRIMARY_COLOR || '#D4AF37', marginBottom: '4px' }}>
+                                    <div style={{ fontWeight: 800, fontSize: '1.2rem', color: config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)', marginBottom: '4px' }}>
                                         {notice.title}
                                     </div>
                                     <div style={{ fontSize: '0.8rem', opacity: 0.5 }}>

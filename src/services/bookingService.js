@@ -3,6 +3,7 @@ import {
     collection, doc, getDoc, getDocs, setDoc, deleteDoc,
     query, where, orderBy, onSnapshot, serverTimestamp, runTransaction
 } from "firebase/firestore";
+import { tenantDb } from '../utils/tenantDb';
 
 /**
  * 🧘 수업 예약 서비스
@@ -128,7 +129,7 @@ export const createBooking = async (memberId, memberName, date, classIndex, clas
         updatedAt: serverTimestamp()
     };
     
-    await setDoc(doc(db, 'bookings', bookingId), bookingData);
+    await setDoc(tenantDb.doc('bookings', bookingId), bookingData);
     
     return { 
         ok: true, 
@@ -141,97 +142,109 @@ export const createBooking = async (memberId, memberName, date, classIndex, clas
 
 // ─── 예약 취소 ───
 export const cancelBooking = async (date, classIndex, memberId, branchId, config) => {
-    const rules = getBookingRules(config);
-    const bookingId = `${date}_${classIndex}_${memberId}`;
-    const bookingRef = doc(db, 'bookings', bookingId);
-    const bookingSnap = await getDoc(bookingRef);
-    
-    if (!bookingSnap.exists()) {
-        return { ok: false, reason: '예약을 찾을 수 없습니다' };
+    try {
+        const rules = getBookingRules(config);
+        const bookingId = `${date}_${classIndex}_${memberId}`;
+        const bookingRef = tenantDb.doc('bookings', bookingId);
+        const bookingSnap = await getDoc(bookingRef);
+        
+        if (!bookingSnap.exists()) {
+            return { ok: false, reason: '예약을 찾을 수 없습니다' };
+        }
+        
+        const booking = bookingSnap.data();
+        
+        if (booking.status === 'cancelled') {
+            return { ok: false, reason: '이미 취소된 예약입니다' };
+        }
+        
+        await setDoc(bookingRef, { 
+            status: 'cancelled', 
+            cancelledAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+        
+        if (booking.status === 'booked' && rules.enableWaitlist) {
+            await promoteWaitlist(date, classIndex, branchId);
+        }
+        
+        return { ok: true, message: '예약이 취소되었습니다' };
+    } catch (error) {
+        console.error('[bookingService] cancelBooking error:', error);
+        return { ok: false, reason: '예약 취소 중 서버 에러가 발생했습니다.' };
     }
-    
-    const booking = bookingSnap.data();
-    
-    if (booking.status === 'cancelled') {
-        return { ok: false, reason: '이미 취소된 예약입니다' };
-    }
-    
-    // 취소 마감 확인 (노쇼가 아닌 경우만)
-    if (booking.status === 'booked') {
-        // 여기에 시간 기반 취소 마감 검증 추가 가능
-    }
-    
-    await setDoc(bookingRef, { 
-        status: 'cancelled', 
-        cancelledAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-    }, { merge: true });
-    
-    // 대기열 승격 처리
-    if (booking.status === 'booked' && rules.enableWaitlist) {
-        await promoteWaitlist(date, classIndex, branchId);
-    }
-    
-    return { ok: true, message: '예약이 취소되었습니다' };
 };
 
 // ─── 대기열 자동 승격 ───
 const promoteWaitlist = async (date, classIndex, branchId) => {
-    const waitlisted = await getClassBookings(date, classIndex, branchId, 'waitlisted');
-    
-    if (waitlisted.length === 0) return null;
-    
-    // 가장 먼저 대기 등록한 사람 승격
-    const sorted = waitlisted.sort((a, b) => (a.waitlistPosition || 0) - (b.waitlistPosition || 0));
-    const promoted = sorted[0];
-    
-    const bookingRef = doc(db, 'bookings', promoted.id);
-    await setDoc(bookingRef, { 
-        status: 'booked', 
-        waitlistPosition: null, 
-        promotedAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-    }, { merge: true });
-    
-    // 나머지 대기자들 순서 재조정
-    for (let i = 1; i < sorted.length; i++) {
-        await setDoc(doc(db, 'bookings', sorted[i].id), { 
-            waitlistPosition: i,
+    try {
+        const waitlisted = await getClassBookings(date, classIndex, branchId, 'waitlisted');
+        
+        if (waitlisted.length === 0) return null;
+        
+        const sorted = waitlisted.sort((a, b) => (a.waitlistPosition || 0) - (b.waitlistPosition || 0));
+        const promoted = sorted[0];
+        
+        const bookingRef = tenantDb.doc('bookings', promoted.id);
+        await setDoc(bookingRef, { 
+            status: 'booked', 
+            waitlistPosition: null, 
+            promotedAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         }, { merge: true });
+        
+        for (let i = 1; i < sorted.length; i++) {
+            await setDoc(tenantDb.doc('bookings', sorted[i].id), { 
+                waitlistPosition: i,
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+        }
+        
+        return promoted;
+    } catch (error) {
+        console.error('[bookingService] promoteWaitlist error:', error);
+        return null;
     }
-    
-    return promoted;
 };
 
 // ─── 출석 처리 ───
 export const markAttendance = async (date, classIndex, memberId) => {
-    const bookingId = `${date}_${classIndex}_${memberId}`;
-    const bookingRef = doc(db, 'bookings', bookingId);
-    
-    await setDoc(bookingRef, { 
-        status: 'attended', 
-        attendedAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-    }, { merge: true });
-    
-    return { ok: true };
+    try {
+        const bookingId = `${date}_${classIndex}_${memberId}`;
+        const bookingRef = tenantDb.doc('bookings', bookingId);
+        
+        await setDoc(bookingRef, { 
+            status: 'attended', 
+            attendedAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+        
+        return { ok: true };
+    } catch (error) {
+        console.error('[bookingService] markAttendance error:', error);
+        return { ok: false, reason: '출석 처리 중 에러가 발생했습니다.' };
+    }
 };
 
 // ─── 노쇼 처리 ───
 export const markNoshow = async (date, classIndex, memberId, config) => {
-    const rules = getBookingRules(config);
-    const bookingId = `${date}_${classIndex}_${memberId}`;
-    const bookingRef = doc(db, 'bookings', bookingId);
-    
-    await setDoc(bookingRef, { 
-        status: 'noshow', 
-        noshowAt: serverTimestamp(),
-        creditDeducted: rules.noshowCreditDeduct,
-        updatedAt: serverTimestamp()
-    }, { merge: true });
-    
-    return { ok: true, creditDeducted: rules.noshowCreditDeduct };
+    try {
+        const rules = getBookingRules(config);
+        const bookingId = `${date}_${classIndex}_${memberId}`;
+        const bookingRef = tenantDb.doc('bookings', bookingId);
+        
+        await setDoc(bookingRef, { 
+            status: 'noshow', 
+            noshowAt: serverTimestamp(),
+            creditDeducted: rules.noshowCreditDeduct,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+        
+        return { ok: true, creditDeducted: rules.noshowCreditDeduct };
+    } catch (error) {
+        console.error('[bookingService] markNoshow error:', error);
+        return { ok: false, reason: '노쇼 처리 중 에러가 발생했습니다.' };
+    }
 };
 
 // ─── 조회 함수들 ───
@@ -239,7 +252,7 @@ export const markNoshow = async (date, classIndex, memberId, config) => {
 // 특정 예약 조회
 export const getBooking = async (date, classIndex, memberId) => {
     const bookingId = `${date}_${classIndex}_${memberId}`;
-    const snap = await getDoc(doc(db, 'bookings', bookingId));
+    const snap = await getDoc(tenantDb.doc('bookings', bookingId));
     return snap.exists() ? snap.data() : null;
 };
 
@@ -247,7 +260,7 @@ export const getBooking = async (date, classIndex, memberId) => {
 export const getActiveBookings = async (memberId) => {
     const today = new Date().toISOString().split('T')[0];
     const q = query(
-        collection(db, 'bookings'),
+        tenantDb.collection('bookings'),
         where('memberId', '==', memberId),
         where('date', '>=', today)
     );
@@ -261,7 +274,7 @@ export const getClassBookings = async (date, classIndex, branchId, statusFilter 
     let q;
     if (statusFilter) {
         q = query(
-            collection(db, 'bookings'),
+            tenantDb.collection('bookings'),
             where('date', '==', date),
             where('classIndex', '==', classIndex),
             where('branchId', '==', branchId || ''),
@@ -269,7 +282,7 @@ export const getClassBookings = async (date, classIndex, branchId, statusFilter 
         );
     } else {
         q = query(
-            collection(db, 'bookings'),
+            tenantDb.collection('bookings'),
             where('date', '==', date),
             where('classIndex', '==', classIndex),
             where('branchId', '==', branchId || '')
@@ -282,7 +295,7 @@ export const getClassBookings = async (date, classIndex, branchId, statusFilter 
 // 특정 날짜의 모든 예약 (관리자/강사용)
 export const getDayBookings = async (date, branchId) => {
     const q = query(
-        collection(db, 'bookings'),
+        tenantDb.collection('bookings'),
         where('date', '==', date),
         where('branchId', '==', branchId || '')
     );
@@ -293,7 +306,7 @@ export const getDayBookings = async (date, branchId) => {
 // 기간별 예약 통계 (관리자 대시보드)
 export const getBookingStats = async (branchId, startDate, endDate) => {
     const q = query(
-        collection(db, 'bookings'),
+        tenantDb.collection('bookings'),
         where('branchId', '==', branchId || ''),
         where('date', '>=', startDate),
         where('date', '<=', endDate)
@@ -315,7 +328,7 @@ export const getBookingStats = async (branchId, startDate, endDate) => {
 // ─── 실시간 구독: 특정 날짜의 예약 ───
 export const subscribeDayBookings = (date, branchId, callback) => {
     const q = query(
-        collection(db, 'bookings'),
+        tenantDb.collection('bookings'),
         where('date', '==', date),
         where('branchId', '==', branchId || '')
     );
@@ -333,7 +346,7 @@ export const subscribeMonthBookings = (branchId, year, month, callback) => {
     const daysInMonth = new Date(year, month, 0).getDate();
     const endDate = `${year}-${String(month).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`;
     const q = query(
-        collection(db, 'bookings'),
+        tenantDb.collection('bookings'),
         where('branchId', '==', branchId || ''),
         where('date', '>=', startDate),
         where('date', '<=', endDate)
@@ -350,7 +363,7 @@ export const subscribeMonthBookings = (branchId, year, month, callback) => {
 // 회원의 예약 이력 (전체)
 export const getMemberBookingHistory = async (memberId) => {
     const q = query(
-        collection(db, 'bookings'),
+        tenantDb.collection('bookings'),
         where('memberId', '==', memberId)
     );
     const snap = await getDocs(q);
@@ -362,7 +375,7 @@ export const getMemberBookingHistory = async (memberId) => {
 // 특정 수업의 예약 실시간 구독
 export const subscribeClassBookings = (date, classIndex, branchId, callback) => {
     const q = query(
-        collection(db, 'bookings'),
+        tenantDb.collection('bookings'),
         where('date', '==', date),
         where('classIndex', '==', classIndex),
         where('branchId', '==', branchId || '')
@@ -378,7 +391,7 @@ export const subscribeClassBookings = (date, classIndex, branchId, callback) => 
 export const subscribeMemberBookings = (memberId, callback) => {
     const today = new Date().toISOString().split('T')[0];
     const q = query(
-        collection(db, 'bookings'),
+        tenantDb.collection('bookings'),
         where('memberId', '==', memberId),
         where('date', '>=', today)
     );

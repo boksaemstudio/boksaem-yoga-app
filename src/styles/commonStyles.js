@@ -15,7 +15,7 @@ export const buttonStyles = {
         fontWeight: '600',
         cursor: 'pointer',
         transition: 'all 0.2s ease',
-        boxShadow: '0 2px 8px rgba(212, 175, 55, 0.3)'
+        boxShadow: '0 2px 8px rgba(var(--primary-rgb), 0.3)'
     },
 
     secondary: {

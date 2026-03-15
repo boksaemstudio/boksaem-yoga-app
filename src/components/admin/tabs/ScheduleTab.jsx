@@ -8,7 +8,7 @@ const ScheduleTab = ({ images, optimisticImages, handleImageUpload }) => {
     
     // Helper functions replacing studioConfig.js
     const getBranchName = (id) => branches.find(b => b.id === id)?.name || id;
-    const getBranchColor = (id) => branches.find(b => b.id === id)?.color || '#D4AF37';
+    const getBranchColor = (id) => branches.find(b => b.id === id)?.color || 'var(--primary-gold)';
     const getBranchThemeColor = (id) => branches.find(b => b.id === id)?.themeColor || getBranchColor(id);
 
     const [scheduleSubTab, setScheduleSubTab] = useState('monthly');

@@ -29,13 +29,13 @@ export const AILoadingIndicator = ({ compact = false, message = null }) => {
             <div style={{ 
                 display: 'flex', alignItems: 'center', gap: '12px', 
                 padding: '12px 20px', borderRadius: '20px',
-                background: 'rgba(212, 175, 55, 0.08)',
-                border: '1px solid rgba(212, 175, 55, 0.15)'
+                background: 'rgba(var(--primary-rgb), 0.08)',
+                border: '1px solid rgba(var(--primary-rgb), 0.15)'
             }}>
                 <div className="ai-thinking-icon" style={{ 
                     width: '28px', height: '28px', 
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: config.THEME?.PRIMARY_COLOR || '#d4af37'
+                    color: config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'
                 }}>
                     <Brain size={24} weight="duotone" />
                 </div>
@@ -52,11 +52,11 @@ export const AILoadingIndicator = ({ compact = false, message = null }) => {
             {/* Rotating/Pulsing Icon */}
             <div className="ai-thinking-icon" style={{ 
                 width: '80px', height: '80px', borderRadius: '50%',
-                background: 'rgba(212, 175, 55, 0.1)',
-                border: '2px solid rgba(212, 175, 55, 0.3)',
+                background: 'rgba(var(--primary-rgb), 0.1)',
+                border: '2px solid rgba(var(--primary-rgb), 0.3)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: config.THEME?.PRIMARY_COLOR || '#d4af37',
-                boxShadow: '0 0 30px rgba(212, 175, 55, 0.2)'
+                color: config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)',
+                boxShadow: '0 0 30px rgba(var(--primary-rgb), 0.2)'
             }}>
                 <Brain size={40} weight="duotone" />
             </div>

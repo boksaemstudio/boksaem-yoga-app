@@ -47,11 +47,11 @@ export const ChatDialog = ({
                             </div>
                         )}
                         <div style={{
-                            background: chat.role === 'user' ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.05)',
+                            background: chat.role === 'user' ? 'rgba(var(--primary-rgb), 0.15)' : 'rgba(255,255,255,0.05)',
                             color: chat.role === 'user' ? 'var(--primary-gold)' : 'white',
                             padding: '12px 18px',
                             borderRadius: chat.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                            border: chat.role === 'user' ? '1px solid rgba(212,175,55,0.3)' : '1px solid rgba(255,255,255,0.1)',
+                            border: chat.role === 'user' ? '1px solid rgba(var(--primary-rgb), 0.3)' : '1px solid rgba(255,255,255,0.1)',
                             fontSize: '0.95rem'
                         }}>{chat.content}</div>
                     </div>
@@ -102,7 +102,7 @@ export const ChatDialog = ({
                             width: '100%', background: 'var(--primary-gold)', color: 'black',
                             padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
                             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                            boxShadow: '0 10px 20px rgba(212,175,55,0.3)'
+                            boxShadow: '0 10px 20px rgba(var(--primary-rgb), 0.3)'
                         }}>🧘 명상 시작하기</button>
                         <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
                             당신에게 맞는 명상을 준비했어요

@@ -18,18 +18,25 @@ const LoginPage = () => {
         setError('');
         setLoading(true);
 
-        const result = await storageService.loginAdmin(email.trim(), password.trim());
+        try {
+            const result = await storageService.loginAdmin(email.trim(), password.trim());
 
-        if (result.success) {
-            navigate('/admin');
-        } else {
-            setError(result.message);
+            if (result.success) {
+                navigate('/admin');
+            } else {
+                setError(result.message);
+                setLoading(false);
+                logger.error('Login Failed', result.message, { email: email.trim() });
+            }
+        } catch (err) {
+            console.error('[LoginPage] Login error:', err);
+            setError('로그인 처리 중 오류가 발생했습니다.');
             setLoading(false);
-            logger.error('Login Failed', result.message, { email: email.trim() });
+            logger.error('Login Error', err.message, { email: email.trim() });
         }
     };
 
-    const primaryColor = config.THEME?.PRIMARY_COLOR || '#D4AF37';
+    const primaryColor = config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)';
     const studioName = config.IDENTITY?.NAME || 'Studio';
 
     return (
@@ -151,7 +158,7 @@ const LoginPage = () => {
                             cursor: loading ? 'not-allowed' : 'pointer',
                             marginTop: '10px',
                             transition: 'transform 0.2s',
-                            boxShadow: '0 4px 15px rgba(212, 175, 55, 0.4)'
+                            boxShadow: '0 4px 15px rgba(var(--primary-rgb), 0.4)'
                         }}
                     >
                         {loading ? '인증 중...' : '접속하기'}

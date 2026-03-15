@@ -95,8 +95,8 @@ const CheckInInfoSection = memo(({
                                     <div style={{
                                         marginTop: '8px',
                                         padding: '12px 16px',
-                                        background: 'linear-gradient(135deg, rgba(212,175,55,0.12), rgba(212,175,55,0.04))',
-                                        border: '1px solid rgba(212,175,55,0.25)',
+                                        background: 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.12), rgba(var(--primary-rgb), 0.04))',
+                                        border: '1px solid rgba(var(--primary-rgb), 0.25)',
                                         borderRadius: '16px',
                                         animation: 'slideUp 0.6s ease-out',
                                         display: 'flex',
@@ -125,8 +125,8 @@ const CheckInInfoSection = memo(({
                                         gap: '10px',
                                         padding: '10px 16px',
                                         borderRadius: '20px',
-                                        background: 'rgba(212,175,55,0.08)',
-                                        border: '1px solid rgba(212,175,55,0.15)',
+                                        background: 'rgba(var(--primary-rgb), 0.08)',
+                                        border: '1px solid rgba(var(--primary-rgb), 0.15)',
                                         animation: 'fadeIn 0.5s ease-out'
                                     }}>
                                         <div className="ai-thinking-icon">
@@ -134,7 +134,7 @@ const CheckInInfoSection = memo(({
                                                 <path d="M200,48H136V16a8,8,0,0,0-16,0V48H56A32,32,0,0,0,24,80v96a32,32,0,0,0,32,32h80v32a8,8,0,0,0,16,0V208h48a32,32,0,0,0,32-32V80A32,32,0,0,0,200,48ZM172,168H84a12,12,0,0,1,0-24h88a12,12,0,0,1,0,24Zm0-48H84a12,12,0,0,1,0-24h88a12,12,0,0,1,0,24Z"/>
                                             </svg>
                                         </div>
-                                        <span style={{ color: 'rgba(212,175,55,0.85)', fontSize: '0.95rem', fontWeight: 500, animation: 'pulse 1.5s ease-in-out infinite' }}>
+                                        <span style={{ color: 'rgba(var(--primary-rgb), 0.85)', fontSize: '0.95rem', fontWeight: 500, animation: 'pulse 1.5s ease-in-out infinite' }}>
                                             AI가 오늘의 메시지를 준비하고 있어요
                                         </span>
                                         <div style={{ display: 'flex', gap: '4px' }}>
@@ -185,7 +185,7 @@ const CheckInInfoSection = memo(({
                             cursor: faceRecognitionEnabled ? 'pointer' : 'default',
                             position: 'relative',
                             transition: 'border 0.3s',
-                            boxShadow: isScanning ? '0 0 15px rgba(212,175,55,0.2)' : 'none'
+                            boxShadow: isScanning ? '0 0 15px rgba(var(--primary-rgb), 0.2)' : 'none'
                         }}
                             onClick={faceRecognitionEnabled ? onCameraTouch : undefined}
                         >

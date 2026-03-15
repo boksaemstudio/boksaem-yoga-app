@@ -96,15 +96,20 @@ export const PWAProvider = ({ children }) => {
             return false;
         }
 
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`[PWA] User choice outcome: ${outcome}`);
+        try {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`[PWA] User choice outcome: ${outcome}`);
 
-        if (outcome === 'accepted') {
-            setDeferredPrompt(null);
-            return true;
+            if (outcome === 'accepted') {
+                setDeferredPrompt(null);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('[PWA] Prompt execution failed:', error);
+            return false;
         }
-        return false;
     };
 
     return (

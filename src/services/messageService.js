@@ -1,5 +1,6 @@
 import { db } from '../firebase';
 import { collection, doc, query, where, orderBy, getDocs, addDoc, updateDoc, deleteDoc, onSnapshot, writeBatch, limit as firestoreLimit } from 'firebase/firestore';
+import { tenantDb } from '../utils/tenantDb';
 // [Refactor] Purged static config. Logic moved to useStudioConfig context.
 export const messageService = {
   setNotifyCallback() {
@@ -11,8 +12,9 @@ export const messageService = {
       console.log(`[messageService] Fetching messages for member: ${memberId}`);
 
       const msgQuery = query(
-        collection(db, 'messages'),
+        tenantDb.collection('messages'),
         where('memberId', '==', memberId),
+        orderBy('timestamp', 'desc'),
         firestoreLimit(50)
       );
       const msgSnap = await getDocs(msgQuery);
@@ -23,7 +25,7 @@ export const messageService = {
       }));
 
       const noticeQuery = query(
-        collection(db, 'notices'),
+        tenantDb.collection('notices'),
         firestoreLimit(20)
       );
       const noticeSnap = await getDocs(noticeQuery);
@@ -51,7 +53,7 @@ export const messageService = {
   getPendingApprovals(callback) {
     try {
       const q = query(
-        collection(db, 'message_approvals'),
+        tenantDb.globalCollection('message_approvals'),
         orderBy('createdAt', 'desc')
       );
 
@@ -71,7 +73,7 @@ export const messageService = {
 
   async approvePush(id) {
     try {
-      const docRef = doc(db, 'message_approvals', id);
+      const docRef = tenantDb.globalDoc('message_approvals', id);
       await updateDoc(docRef, { status: 'approved', approvedAt: new Date().toISOString() });
       return { success: true };
     } catch (e) {
@@ -82,7 +84,7 @@ export const messageService = {
 
   async rejectPush(id) {
     try {
-      await deleteDoc(doc(db, 'message_approvals', id));
+      await deleteDoc(tenantDb.globalDoc('message_approvals', id));
       return { success: true };
     } catch (e) {
       console.error("Reject push failed:", e);
@@ -113,7 +115,7 @@ export const messageService = {
           messageData.templateId = templateId;
       }
 
-      const docRef = await addDoc(collection(db, 'messages'), messageData);
+      const docRef = await addDoc(tenantDb.collection('messages'), messageData);
       console.log(`[messageService] Message added for ${memberId}: ${docRef.id}. Template: ${templateId || 'None'}`);
       return { success: true, id: docRef.id };
     } catch (e) {
@@ -138,7 +140,7 @@ export const messageService = {
               const batch = writeBatch(db);
               
               chunk.forEach(memberId => {
-                  const docRef = doc(collection(db, 'messages'));
+                   const docRef = doc(tenantDb.collection('messages'));
                   const messageData = {
                       memberId,
                       content,
@@ -175,7 +177,7 @@ export const messageService = {
   async getMessages(memberId) {
     try {
       const q = query(
-        collection(db, 'messages'),
+        tenantDb.collection('messages'),
         where("memberId", "==", memberId),
         orderBy("timestamp", "desc"),
         firestoreLimit(50)
@@ -192,7 +194,7 @@ export const messageService = {
     try {
       if (!body) throw new Error("Message body is required");
 
-      const docRef = await addDoc(collection(db, 'push_campaigns'), {
+      const docRef = await addDoc(tenantDb.collection('push_campaigns'), {
         targetMemberIds: targetMemberIds || [],
         title: title || (studioName ? studioName + " 알림" : "알림"),
         body,

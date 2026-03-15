@@ -24,17 +24,19 @@ const InstallBanner = ({ onManualInstallClick }) => {
     if (!isVisible || isStandalone || dismissed) return null;
 
     const handleInstallClick = async () => {
-        if (deviceOS === 'android') {
-            const installed = await installApp();
-            // 기본 설치 프롬프트가 안 뜨는 경우 예비용 모달 오픈
-            if (!installed && onManualInstallClick) {
-                onManualInstallClick();
+        try {
+            if (deviceOS === 'android') {
+                const installed = await installApp();
+                if (!installed && onManualInstallClick) {
+                    onManualInstallClick();
+                }
+            } else {
+                if (onManualInstallClick) {
+                    onManualInstallClick();
+                }
             }
-        } else {
-            // iOS는 항상 수동 가이드 모달
-            if (onManualInstallClick) {
-                onManualInstallClick();
-            }
+        } catch (error) {
+            console.error('[InstallBanner] Install failed:', error);
         }
     };
 
@@ -59,7 +61,7 @@ const InstallBanner = ({ onManualInstallClick }) => {
                 style={{
                     background: 'rgba(20, 20, 25, 0.85)',
                     backdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(212, 175, 55, 0.3)',
+                    border: '1px solid rgba(var(--primary-rgb), 0.3)',
                     borderRadius: '24px',
                     padding: '12px 18px',
                     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',

@@ -1,6 +1,7 @@
 import { functions, db } from "../firebase";
 import { httpsCallable } from "firebase/functions";
 import { doc, getDoc } from "firebase/firestore";
+import { tenantDb } from '../utils/tenantDb';
 
 const _safeGetItem = (key) => { try { return localStorage.getItem(key); } catch { return null; } };
 const _safeSetItem = (key, value) => { try { localStorage.setItem(key, value); } catch { /* ignore */ } };
@@ -162,7 +163,7 @@ export const getDailyYoga = async (language = 'ko') => {
 export const getAiUsage = async () => {
     try {
         const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-        const docRef = doc(db, 'ai_quota', today);
+        const docRef = tenantDb.globalDoc('ai_quota', today);
         const snapshot = await getDoc(docRef);
         if (snapshot.exists()) {
             const data = snapshot.data();
@@ -171,6 +172,6 @@ export const getAiUsage = async () => {
         return { count: 0, limit: 5000 };
     } catch (e) {
         console.error("AI Usage fetch failed:", e);
-        return { count: 0, limit: 2000 };
+        return { count: 0, limit: 5000 };
     }
 };

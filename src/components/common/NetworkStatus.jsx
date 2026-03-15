@@ -1,8 +1,8 @@
 import { memo, useState, useEffect } from 'react';
 import { useNetwork } from '../../contexts/NetworkContext';
 import { WifiHigh, WifiSlash, CloudArrowUp } from '@phosphor-icons/react'; // [ICON] CloudArrowUp for sync
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { query, where, onSnapshot } from 'firebase/firestore';
+import { tenantDb } from '../../utils/tenantDb';
 
 const NetworkStatus = memo(() => {
     const { isOnline } = useNetwork();
@@ -11,7 +11,7 @@ const NetworkStatus = memo(() => {
     // [SYNC] Monitor pending offline data count
     useEffect(() => {
         const q = query(
-            collection(db, 'pending_attendance'),
+            tenantDb.collection('pending_attendance'),
             where('status', '==', 'pending-offline')
         );
 

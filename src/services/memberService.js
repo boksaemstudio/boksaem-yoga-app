@@ -1,6 +1,7 @@
 import { db, functions } from '../firebase';
 import { collection, doc, query, where, getDocs, getDoc, addDoc, updateDoc, setDoc, onSnapshot, limit as firestoreLimit } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
+import { tenantDb } from '../utils/tenantDb';
 
 // [NETWORK] Timeout wrapper for Cloud Function calls
 const withTimeout = (promise, timeoutMs = 10000, errorMsg = '서버 응답 시간 초과') => {
@@ -20,7 +21,7 @@ export const memberService = {
   // [NEW] Trigger Kiosk Sync
   async triggerKioskSync() {
     try {
-      const syncRef = doc(db, 'system_state', 'kiosk_sync');
+      const syncRef = tenantDb.globalDoc('system_state', 'kiosk_sync');
       await setDoc(syncRef, { lastMemberUpdate: new Date().toISOString() }, { merge: true });
       console.log('[memberService] Kiosk sync triggered');
     } catch (e) {
@@ -52,7 +53,7 @@ export const memberService = {
       if (memberListenerUnsubscribe) {
         memberListenerUnsubscribe();
       }
-      memberListenerUnsubscribe = onSnapshot(collection(db, 'members'), (snapshot) => {
+      memberListenerUnsubscribe = onSnapshot(tenantDb.collection('members'), (snapshot) => {
         const members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         cachedMembers = members;
         
@@ -85,7 +86,7 @@ export const memberService = {
     try {
       console.time('[memberService] Force Fetch Members');
       console.log("[memberService] Cache empty or forced, fetching members...");
-      const snapshot = await getDocs(collection(db, 'members'));
+      const snapshot = await getDocs(tenantDb.collection('members'));
       const members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
       cachedMembers = members;
@@ -151,7 +152,7 @@ export const memberService = {
       .filter(m => m.hasFaceDescriptor && !m.faceDescriptor)
       .map(async m => {
         try {
-          const bioSnap = await getDoc(doc(db, 'face_biometrics', m.id));
+          const bioSnap = await getDoc(tenantDb.doc('face_biometrics', m.id));
           if (bioSnap.exists()) {
              const bioData = bioSnap.data();
              m.faceDescriptor = bioData.descriptor;
@@ -174,7 +175,7 @@ export const memberService = {
     if (cached) return cached;
 
     try {
-      const docRef = doc(db, 'members', id);
+      const docRef = tenantDb.doc('members', id);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = { id: docSnap.id, ...docSnap.data() };
@@ -194,7 +195,7 @@ export const memberService = {
 
   async updateMember(memberId, data) {
     try {
-      const memberRef = doc(db, 'members', memberId);
+      const memberRef = tenantDb.doc('members', memberId);
       await updateDoc(memberRef, { ...data, updatedAt: new Date().toISOString() });
       this.triggerKioskSync();
       return { success: true };
@@ -208,7 +209,7 @@ export const memberService = {
     try {
       if (!descriptor) return { success: false };
       // [SECURITY] Save to isolated biometrics collection
-      const bioRef = doc(db, 'face_biometrics', memberId);
+      const bioRef = tenantDb.doc('face_biometrics', memberId);
       const descriptorArray = Array.from(descriptor);
       
       await setDoc(bioRef, { 
@@ -218,7 +219,7 @@ export const memberService = {
       });
 
       // Synchronize with membership record metadata to trigger UI badges
-      const memberRef = doc(db, 'members', memberId);
+      const memberRef = tenantDb.doc('members', memberId);
       await updateDoc(memberRef, { 
         hasFaceDescriptor: true,
         faceUpdatedAt: new Date().toISOString()
@@ -254,13 +255,13 @@ export const memberService = {
 
   async addMember(data) {
     try {
-      const phoneQuery = query(collection(db, 'members'), where('phone', '==', data.phone));
+      const phoneQuery = query(tenantDb.collection('members'), where('phone', '==', data.phone));
       const phoneSnap = await getDocs(phoneQuery);
       if (!phoneSnap.empty) {
         throw new Error('이미 등록된 전화번호입니다.');
       }
 
-      const docRef = await addDoc(collection(db, 'members'), {
+      const docRef = await addDoc(tenantDb.collection('members'), {
         ...data,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -311,7 +312,7 @@ export const memberService = {
 
   async getMemberDiligence(memberId) {
     try {
-      const docSnap = await getDoc(doc(db, 'member_diligence', memberId));
+      const docSnap = await getDoc(tenantDb.doc('member_diligence', memberId));
       return docSnap.exists() ? docSnap.data() : null;
     } catch (e) {
       console.warn("Diligence fetch failed:", e);
