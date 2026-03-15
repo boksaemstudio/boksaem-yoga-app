@@ -5,17 +5,38 @@ import { memberService } from '../../services/memberService';
 /**
  * 안면인식 등록 모달
  * 1. 수치화 안내 → 2. 핸드폰 뒷4자리 본인 확인 → 3. 얼굴 촬영 → 4. 임베딩 저장
+ * 
+ * [FIX] 모달이 자체 카메라 스트림을 독립적으로 관리합니다.
+ * videoRef props가 없거나 srcObject가 없어도 자체 getUserMedia로 카메라를 획득합니다.
  */
-const FaceRegistrationModal = ({ isOpen, onClose, videoRef }) => {
+const FaceRegistrationModal = ({ isOpen, onClose, videoRef: externalVideoRef }) => {
     const [step, setStep] = useState(1); // 1: intro, 2: pin, 3: capture, 4: done
     const [pin, setPin] = useState('');
     const [matchedMember, setMatchedMember] = useState(null);
     const [countdown, setCountdown] = useState(3);
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
+    const [cameraReady, setCameraReady] = useState(false);
+    const [cameraError, setCameraError] = useState(false);
+    const [statusMsg, setStatusMsg] = useState('');
     const countdownRef = useRef(null);
+    const localVideoRef = useRef(null);
+    const localStreamRef = useRef(null);
 
-    // Reset on open
+    // Determine which video element to use for face extraction
+    const getActiveVideo = useCallback(() => {
+        // 1) 모달 자체 비디오가 활성이면 사용
+        if (localVideoRef.current?.srcObject && localVideoRef.current.readyState >= 2) {
+            return localVideoRef.current;
+        }
+        // 2) 외부 비디오 ref가 있으면 사용
+        if (externalVideoRef?.current?.srcObject && externalVideoRef.current.readyState >= 2) {
+            return externalVideoRef.current;
+        }
+        return null;
+    }, [externalVideoRef]);
+
+    // Reset on open & acquire camera for step 3
     useEffect(() => {
         if (isOpen) {
             setStep(1);
@@ -24,9 +45,84 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef }) => {
             setCountdown(3);
             setError('');
             setSaving(false);
+            setCameraReady(false);
+            setCameraError(false);
+            setStatusMsg('');
+        } else {
+            // 모달 닫힐 때 자체 스트림 정리
+            stopLocalCamera();
         }
-        return () => { if (countdownRef.current) clearInterval(countdownRef.current); };
+        return () => {
+            if (countdownRef.current) clearInterval(countdownRef.current);
+            stopLocalCamera();
+        };
     }, [isOpen]);
+
+    const stopLocalCamera = useCallback(() => {
+        if (localStreamRef.current) {
+            localStreamRef.current.getTracks().forEach(t => t.stop());
+            localStreamRef.current = null;
+        }
+    }, []);
+
+    // step 3 진입 시 카메라 준비
+    useEffect(() => {
+        if (step === 3) {
+            initCamera();
+        }
+    }, [step]);
+
+    const initCamera = useCallback(async () => {
+        setCameraError(false);
+        setCameraReady(false);
+        setStatusMsg('카메라 준비 중...');
+
+        // 외부 비디오 ref에 이미 스트림이 있으면 사용
+        if (externalVideoRef?.current?.srcObject) {
+            console.log('[FaceReg] Using external camera stream');
+            setCameraReady(true);
+            setStatusMsg('');
+            return;
+        }
+
+        // 자체 카메라 획득 시도
+        try {
+            console.log('[FaceReg] Acquiring own camera stream');
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'user', width: 640, height: 480 }
+            });
+            localStreamRef.current = stream;
+
+            if (localVideoRef.current) {
+                localVideoRef.current.srcObject = stream;
+                await localVideoRef.current.play().catch(() => {});
+            }
+
+            // video가 실제 프레임을 가져올 때까지 대기
+            await new Promise((resolve) => {
+                const checkReady = () => {
+                    if (localVideoRef.current?.readyState >= 2) {
+                        resolve();
+                    } else {
+                        setTimeout(checkReady, 100);
+                    }
+                };
+                setTimeout(checkReady, 100);
+                // 5초 타임아웃
+                setTimeout(resolve, 5000);
+            });
+
+            setCameraReady(true);
+            setStatusMsg('');
+            console.log('[FaceReg] Camera ready');
+        } catch (err) {
+            console.error('[FaceReg] Camera init failed:', err);
+            setCameraError(true);
+            setCameraReady(false);
+            setStatusMsg('');
+            setError('카메라에 접근할 수 없어요. 카메라 권한을 확인해주세요.');
+        }
+    }, [externalVideoRef]);
 
     const handlePinSubmit = useCallback(async () => {
         if (pin.length !== 4) return;
@@ -39,20 +135,27 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef }) => {
                 return;
             }
             if (members.length > 1) {
-                // Multiple members with same last 4 — pick the first active one
                 const active = members.find(m => m.status === 'active') || members[0];
                 setMatchedMember(active);
             } else {
                 setMatchedMember(members[0]);
             }
-            setStep(3);
-            startCountdown();
+            setStep(3); // → useEffect가 initCamera 호출
         } catch (e) {
             setError('회원 조회 중 문제가 생겼어요. 다시 시도해주세요.');
         }
     }, [pin]);
 
     const startCountdown = useCallback(() => {
+        // [FIX] 카메라 준비 안 됐으면 카운트다운 시작하지 않음
+        const video = getActiveVideo();
+        if (!video && !cameraReady) {
+            setError('카메라가 준비되지 않았어요. 잠시 후 다시 시도해주세요.');
+            initCamera(); // 재시도
+            return;
+        }
+
+        setError('');
         setCountdown(3);
         if (countdownRef.current) clearInterval(countdownRef.current);
         
@@ -62,32 +165,38 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef }) => {
             setCountdown(count);
             if (count <= 0) {
                 clearInterval(countdownRef.current);
+                countdownRef.current = null;
                 captureAndSave();
             }
         }, 1000);
-    }, []);
+    }, [cameraReady, getActiveVideo]);
 
     const captureAndSave = useCallback(async () => {
         setSaving(true);
         setError('');
+        setStatusMsg('AI 모델 로딩 중...');
         
         try {
             await loadFacialModels();
-            
-            if (!videoRef?.current) {
-                throw new Error('카메라를 찾을 수 없어요.');
+            setStatusMsg('얼굴 분석 중...');
+
+            const video = getActiveVideo();
+            if (!video) {
+                throw new Error('카메라 영상을 가져올 수 없어요. 카메라 권한을 확인해주세요.');
             }
 
-            const descriptor = await extractFaceDescriptor(videoRef.current, true);
+            const descriptor = await extractFaceDescriptor(video, true);
             
             if (!descriptor) {
                 setError('얼굴을 인식하지 못했어요. 카메라를 정면으로 바라봐주세요.');
                 setSaving(false);
-                setStep(3);
+                setStatusMsg('');
+                // [FIX] countdown을 다시 3으로 세팅하되, 자동 재시작하지 않음
                 setCountdown(3);
                 return;
             }
 
+            setStatusMsg('저장 중...');
             const result = await memberService.updateFaceDescriptor(matchedMember.id, descriptor);
             
             if (result.success) {
@@ -98,12 +207,19 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef }) => {
         } catch (e) {
             console.error('[FaceReg] Save failed:', e);
             setError(e.message || '등록 중 문제가 생겼어요. 다시 시도해주세요.');
-            setStep(3);
             setCountdown(3);
         } finally {
             setSaving(false);
+            setStatusMsg('');
         }
-    }, [matchedMember, videoRef]);
+    }, [matchedMember, getActiveVideo]);
+
+    // [FIX] 카메라 준비되면 자동으로 카운트다운 시작
+    useEffect(() => {
+        if (step === 3 && cameraReady && countdown === 3 && !saving && !error) {
+            startCountdown();
+        }
+    }, [step, cameraReady, countdown, saving, error]);
 
     const handlePinKeyPress = useCallback((num) => {
         setPin(prev => {
@@ -255,19 +371,32 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef }) => {
                         <div style={{
                             width: '180px', height: '180px', margin: '0 auto 20px',
                             borderRadius: '50%', overflow: 'hidden',
-                            border: saving ? '4px solid var(--primary-gold)' : '4px solid rgba(255,255,255,0.3)',
+                            border: saving ? '4px solid var(--primary-gold)' : cameraError ? '4px solid #ef4444' : '4px solid rgba(255,255,255,0.3)',
                             position: 'relative',
                             boxShadow: saving ? '0 0 30px rgba(212,175,55,0.3)' : 'none',
-                            animation: saving ? 'pulse 1s infinite' : 'none'
+                            animation: saving ? 'pulse 1s infinite' : 'none',
+                            background: 'rgba(0,0,0,0.5)'
                         }}>
-                            {videoRef?.current && (
+                            {/* [FIX] 자체 비디오 엘리먼트 — 항상 렌더링 */}
+                            <video
+                                ref={localVideoRef}
+                                autoPlay playsInline muted
+                                style={{
+                                    width: '100%', height: '100%', objectFit: 'cover',
+                                    transform: 'scaleX(-1)',
+                                    display: cameraReady && !externalVideoRef?.current?.srcObject ? 'block' : 'none'
+                                }}
+                            />
+                            {/* 외부 비디오 스트림 미러 */}
+                            {externalVideoRef?.current?.srcObject && (
                                 <video
-                                    ref={el => { if (el && videoRef.current?.srcObject) el.srcObject = videoRef.current.srcObject; }}
+                                    ref={el => { if (el && externalVideoRef.current?.srcObject) el.srcObject = externalVideoRef.current.srcObject; }}
                                     autoPlay playsInline muted
                                     style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }}
                                 />
                             )}
-                            {countdown > 0 && !saving && (
+                            {/* 카운트다운 오버레이 */}
+                            {countdown > 0 && !saving && cameraReady && (
                                 <div style={{
                                     position: 'absolute', inset: 0, display: 'flex',
                                     alignItems: 'center', justifyContent: 'center',
@@ -275,18 +404,48 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef }) => {
                                     fontSize: '4rem', fontWeight: 'bold', color: 'var(--primary-gold)'
                                 }}>{countdown}</div>
                             )}
+                            {/* 카메라 로딩 중 */}
+                            {!cameraReady && !cameraError && (
+                                <div style={{
+                                    position: 'absolute', inset: 0, display: 'flex',
+                                    alignItems: 'center', justifyContent: 'center', flexDirection: 'column',
+                                    background: 'rgba(0,0,0,0.7)'
+                                }}>
+                                    <div style={{ fontSize: '2rem', marginBottom: '8px', animation: 'pulse 1.5s infinite' }}>📷</div>
+                                    <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)' }}>카메라 준비 중...</div>
+                                </div>
+                            )}
+                            {/* 카메라 에러 */}
+                            {cameraError && (
+                                <div style={{
+                                    position: 'absolute', inset: 0, display: 'flex',
+                                    alignItems: 'center', justifyContent: 'center', flexDirection: 'column',
+                                    background: 'rgba(0,0,0,0.7)'
+                                }}>
+                                    <div style={{ fontSize: '2rem', marginBottom: '8px' }}>❌</div>
+                                    <div style={{ fontSize: '0.75rem', color: '#ff8888' }}>카메라 접근 불가</div>
+                                </div>
+                            )}
+                            {/* 분석 상태 */}
                             {saving && (
                                 <div style={{
                                     position: 'absolute', inset: 0, display: 'flex',
-                                    alignItems: 'center', justifyContent: 'center',
+                                    alignItems: 'center', justifyContent: 'center', flexDirection: 'column',
                                     background: 'rgba(0,0,0,0.5)'
                                 }}>
                                     <div style={{ fontSize: '0.9rem', color: 'var(--primary-gold)', fontWeight: 'bold' }}>
-                                        분석 중...
+                                        {statusMsg || '분석 중...'}
                                     </div>
                                 </div>
                             )}
                         </div>
+
+                        {/* 상태 메시지 */}
+                        {statusMsg && !saving && (
+                            <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', marginBottom: '12px' }}>
+                                {statusMsg}
+                            </p>
+                        )}
 
                         {error && (
                             <div style={{
@@ -294,13 +453,25 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef }) => {
                                 borderRadius: '12px', padding: '12px', color: '#ff8888', fontSize: '0.9rem', marginBottom: '12px'
                             }}>
                                 {error}
-                                <button onClick={startCountdown} style={{
+                                <button onClick={() => {
+                                    setError('');
+                                    if (cameraError) {
+                                        initCamera();
+                                    } else {
+                                        startCountdown();
+                                    }
+                                }} style={{
                                     display: 'block', margin: '10px auto 0', padding: '8px 20px',
                                     borderRadius: '8px', background: 'var(--primary-gold)', color: '#000',
                                     fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.9rem'
                                 }}>다시 시도</button>
                             </div>
                         )}
+
+                        <button onClick={onClose} style={{
+                            marginTop: '8px', background: 'none', border: 'none',
+                            color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', cursor: 'pointer'
+                        }}>취소</button>
                     </div>
                 )}
 
