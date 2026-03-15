@@ -86,10 +86,27 @@ export const attendanceService = {
     }
   },
 
-  getAttendanceByMemberId(memberId) {
-    return cachedAttendance
+  async getAttendanceByMemberId(memberId) {
+    // 캐시에서 먼저 조회
+    let results = cachedAttendance
       .filter(log => log.memberId === memberId)
       .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    // 캐시가 비어있으면 Firestore에서 직접 쿼리
+    if (results.length === 0) {
+      try {
+        const q = query(
+          tenantDb.collection('attendance'),
+          where('memberId', '==', memberId)
+        );
+        const snapshot = await getDocs(q);
+        results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        results.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      } catch (e) {
+        console.warn('[Attendance] Firestore fallback failed:', e);
+      }
+    }
+    return results;
   },
 
   async getAttendanceByDate(dateStr, branchId = null) {
