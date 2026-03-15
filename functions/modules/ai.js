@@ -68,24 +68,22 @@ exports.generatePageExperienceV2 = onCall({
                     Analyze the following data for ${branchInfo} and provide a high-level strategic briefing in ${targetLang}.
                     
                     Data Summary:
-                    - Active Members: ${statsData.activeCount} / Total: ${statsData.totalMembers}
-                    - Monthly Revenue: ${statsData.monthlyRevenue?.toLocaleString()} KRW
-                    - Today's Registration: ${statsData.todayRegistration} (New: ${statsData.newRegCount}, Re-reg: ${statsData.reRegCount})
-                    - Today's Attendance: ${statsData.attendanceToday}
-                    - Dormant Members (Risk): ${statsData.dormantCount}
-                    - Expiring Soon: ${statsData.expiringCount}
-                    - App Adoption: ${statsData.installedCount} members (Push Enabled: ${statsData.pushEnabledCount})
-                    - Branch Context: ${statsData.branch === 'all' ? 'Comparing Mapo vs Gwangheungchang performance' : 'Single Branch Deep-dive'}
-                    - Top Classes: ${JSON.stringify(statsData.topClasses)}
+                    - Active Members: ${statsData.activeCount || 0} / Total: ${statsData.totalMembers || 0}
+                    - Monthly Revenue: ${(statsData.monthlyRevenue || 0).toLocaleString()} KRW
+                    - Today's Registration: ${statsData.todayRegistration || 0} (New: ${statsData.newRegCount || 0}, Re-reg: ${statsData.reRegCount || 0})
+                    - Today's Attendance: ${statsData.attendanceToday || 0}
+                    - Expiring Soon: ${statsData.expiringCount || 0}
+                    - Branch Context: ${actualBranch === 'all' ? '전체 지점 종합 분석' : branchInfo + ' 단독 분석'}
+                    - Top Classes: ${JSON.stringify(statsData.topClasses || [])}
                     
                     Your Mission:
                     1. Provide a professional, encouraging, yet critically analytical briefing (2-3 sentences).
-                    2. Compare performance if 'all' branches are selected (e.g., balance between branches).
+                    2. Focus on actionable insights based on today's numbers.
                     3. Focus on "Revenue Intelligence": Mention the New vs Re-registration ratio if significant.
-                    4. Suggest a specific action for "Dormant/Expiring" members (e.g., targeted push campaign).
+                    4. Suggest a specific action for expiring members if any (e.g., targeted push campaign).
                     
                     Format: { "message": "...", "bgTheme": "sophisticated" }
-                    Tone: Expert, Insightful, Visionary.
+                    Tone: Expert, Insightful, Visionary. NEVER use the word "undefined" in your response.
                 `;
             } else {
                 // === INDIVIDUAL MEMBER PRACTICE ANALYSIS ===
