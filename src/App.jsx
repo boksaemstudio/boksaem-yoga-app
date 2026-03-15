@@ -9,6 +9,8 @@ import { StudioProvider } from './contexts/StudioContext';
 import NetworkStatus from './components/common/NetworkStatus';
 import { useStudioConfig } from './contexts/StudioContext';
 import ReloadPrompt from './components/ReloadPrompt';
+import { auth } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 
 // Lazy load pages
@@ -75,17 +77,12 @@ const RequireAuth = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    let unsub;
-    import('./firebase').then(({ auth }) => {
-      import('firebase/auth').then(({ onAuthStateChanged }) => {
-        unsub = onAuthStateChanged(auth, (user) => {
-          setIsAuthed(!!user);
-          setAuthChecked(true);
-          if (!user) navigate('/login', { replace: true });
-        });
-      });
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setIsAuthed(!!user);
+      setAuthChecked(true);
+      if (!user) navigate('/login', { replace: true });
     });
-    return () => { if (unsub) unsub(); };
+    return () => unsub();
   }, [navigate]);
 
   if (!authChecked) return <div style={{ background: '#08080A', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-gold)' }}>인증 확인 중...</div>;
