@@ -75,15 +75,17 @@ const RequireAuth = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let unsub;
     import('./firebase').then(({ auth }) => {
-      const { onAuthStateChanged } = require('firebase/auth');
-      const unsub = onAuthStateChanged(auth, (user) => {
-        setIsAuthed(!!user);
-        setAuthChecked(true);
-        if (!user) navigate('/login', { replace: true });
+      import('firebase/auth').then(({ onAuthStateChanged }) => {
+        unsub = onAuthStateChanged(auth, (user) => {
+          setIsAuthed(!!user);
+          setAuthChecked(true);
+          if (!user) navigate('/login', { replace: true });
+        });
       });
-      return () => unsub();
     });
+    return () => { if (unsub) unsub(); };
   }, [navigate]);
 
   if (!authChecked) return <div style={{ background: '#08080A', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-gold)' }}>인증 확인 중...</div>;
