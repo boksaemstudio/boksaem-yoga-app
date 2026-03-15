@@ -423,7 +423,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
         if (isSubmitting) return;
         
         if (!confirm('정말 삭제하시겠습니까?')) return;
-        const restoreCredit = confirm('해당 회원의 수강권을 복구하시겠습니까? (취소 시 기록만 삭제)');
+        const restoreCredit = true; // 항상 수강권 복구
         
         isSubmittingRef.current = true;
         setIsSubmitting(true);
@@ -437,7 +437,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                     storageService.notifyListeners('logs');
                     storageService.notifyListeners('members');
                 }, 500);
-                alert('출석 기록이 삭제되었습니다.');
+                // 삭제 완료 — UI가 자동 갱신되므로 alert 불필요
             } else {
                 throw new Error(result.message || '삭제 실패');
             }

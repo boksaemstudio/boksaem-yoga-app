@@ -854,7 +854,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                                     onClick={async (e) => {
                                                         e.stopPropagation();
                                                         if (confirm('이 출석 기록을 삭제하시겠습니까?')) {
-                                                            const restoreCredit = confirm('해당 회원의 수강권을 복구하시겠습니까? (취소 시 기록만 삭제)');
+                                                            const restoreCredit = true; // 항상 수강권 복구
                                                             const result = await storageService.deleteAttendance(log.id, restoreCredit);
                                                             if (result.success) {
                                                                 // [FIX] 삭제 후 UI 강제 갱신
@@ -862,7 +862,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                                                     storageService.notifyListeners('logs');
                                                                     storageService.notifyListeners('members');
                                                                 }, 500);
-                                                                alert('출석 기록이 삭제되었습니다.');
+                                                                // 삭제 완료 — UI가 자동 갱신되므로 alert 불필요
                                                             } else {
                                                                 alert(`삭제 실패: ${result.message}`);
                                                             }
