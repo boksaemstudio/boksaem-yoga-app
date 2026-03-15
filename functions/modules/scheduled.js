@@ -8,34 +8,34 @@
 
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
-const { admin, getAI, createPendingApproval, logAIError, getKSTDateString, getStudioName } = require("../helpers/common");
+const { admin, tenantDb, STUDIO_ID, getAI, createPendingApproval, logAIError, getKSTDateString, getStudioName } = require("../helpers/common");
 const chunk = require('lodash/chunk');
 
 /**
  * 크레딧 소진 알림
  */
 exports.checkLowCreditsV2 = onDocumentUpdated({
-    document: "members/{memberId}",
+    document: `studios/{studioId}/members/{memberId}`,
     region: "asia-northeast3"
 }, async (event) => {
     const newData = event.data.after.data();
     const oldData = event.data.before.data();
     const memberId = event.params.memberId;
-    const db = admin.firestore();
+    const tdb = tenantDb();
 
     if (newData.credits === oldData.credits) return null;
     // [FIX] || → && : 크레딧이 정확히 0이 되었고(newData.credits !== 0이면 skip), 감소 방향일 때만 알림
     if (newData.credits !== 0 && newData.credits >= oldData.credits) return null;
 
     try {
-        const attendanceSnap = await db.collection('attendance').where('memberId', '==', memberId).limit(10).get();
+        const attendanceSnap = await tdb.collection('attendance').where('memberId', '==', memberId).limit(10).get();
         const stats = attendanceSnap.docs.map(d => d.data().className).join(", ");
         const lang = newData.language || 'ko';
         const ai = getAI();
         
         const body = await ai.generate(`크레딧 소진 알림 (${ai.getLangName(lang)}): ${newData.name}님의 수업권이 모두 소진되었습니다. 수련 패턴: ${stats}`);
 
-        const tokensSnap = await db.collection('fcm_tokens').where('memberId', '==', memberId).get();
+        const tokensSnap = await tdb.collection('fcm_tokens').where('memberId', '==', memberId).get();
         if (!tokensSnap.empty) {
             const studioName = await getStudioName();
             await createPendingApproval('low_credits', [memberId], `${studioName} 알림`, body, { credits: 0, prevCredits: oldData.credits });
@@ -53,16 +53,16 @@ exports.sendDailyAdminReportV2 = onSchedule({
     timeZone: "Asia/Seoul",
     region: "asia-northeast3"
 }, async (event) => {
-    const db = admin.firestore();
+    const tdb = tenantDb();
     const todayStr = getKSTDateString(new Date());
 
     try {
         // Gather stats
         const [attendanceSnap, registrationSnap, anomalySnap, ghostSnap] = await Promise.all([
-            db.collection('attendance').where('date', '==', todayStr).get(),
-            db.collection('members').where('createdAt', '>=', `${todayStr}T00:00:00`).get(),
-            db.collection('members').where('credits', '<', 0).get(),
-            db.collection('fcm_tokens').where('updatedAt', '<', new Date(Date.now() - 60*24*60*60*1000).toISOString()).get()
+            tdb.collection('attendance').where('date', '==', todayStr).get(),
+            tdb.collection('members').where('createdAt', '>=', `${todayStr}T00:00:00`).get(),
+            tdb.collection('members').where('credits', '<', 0).get(),
+            tdb.collection('fcm_tokens').where('updatedAt', '<', new Date(Date.now() - 60*24*60*60*1000).toISOString()).get()
         ]);
 
         const attendanceCount = attendanceSnap.size;
@@ -83,7 +83,7 @@ exports.sendDailyAdminReportV2 = onSchedule({
 
 오늘 하루도 수고 많으셨습니다. 🙏`;
 
-        const tokensSnap = await db.collection('fcm_tokens').where('type', '==', 'admin').get();
+        const tokensSnap = await tdb.collection('fcm_tokens').where('type', '==', 'admin').get();
         if (!tokensSnap.empty) {
             const tokens = tokensSnap.docs.map(d => d.id);
             await admin.messaging().sendEachForMulticast({
@@ -116,14 +116,14 @@ exports.sendScheduledMessages = onSchedule({
     timeZone: "Asia/Seoul",
     region: "asia-northeast3"
 }, async (event) => {
-    const db = admin.firestore();
+    const tdb = tenantDb();
     const now = new Date();
     
     console.log(`[Scheduled] Checking for messages to send at ${now.toISOString()}`);
 
     try {
         // Query for messages that are 'scheduled' and due
-        const snapshot = await db.collection('messages')
+        const snapshot = await tdb.collection('messages')
             .where('status', '==', 'scheduled')
             .where('scheduledAt', '<=', now.toISOString())
             .get();
@@ -172,7 +172,7 @@ exports.sendScheduledMessages = onSchedule({
             let pushSuccess = false;
             try {
                 // Get Tokens
-                const tokensSnap = await db.collection("fcm_tokens").where("memberId", "==", memberId).get();
+                const tokensSnap = await tdb.collection("fcm_tokens").where("memberId", "==", memberId).get();
                 const tokens = tokensSnap.docs.map(t => t.id);
                 
                 if (tokens.length > 0) {
@@ -196,7 +196,7 @@ exports.sendScheduledMessages = onSchedule({
             let solapiResult = null;
             if (myMessageService && !msg.skipSolapi) {
                 try {
-                    const memberDoc = await db.collection('members').doc(memberId).get();
+                    const memberDoc = await tdb.collection('members').doc(memberId).get();
                     if (memberDoc.exists) {
                         const phone = memberDoc.data().phone?.replace(/-/g, '');
                         if (phone) {
@@ -242,11 +242,11 @@ exports.sendScheduledMessages = onSchedule({
         const chunks = chunk(results, CHUNK_SIZE);
 
         for (const batchChunk of chunks) {
-            const batch = db.batch();
+            const batch = tdb.raw().batch();
             for (const item of batchChunk) {
                  batch.update(item.ref, item.updateData);
                  if (item.historyData) {
-                     const historyRef = db.collection('push_history').doc();
+                     const historyRef = tdb.collection('push_history').doc();
                      batch.set(historyRef, item.historyData);
                  }
             }

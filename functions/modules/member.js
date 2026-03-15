@@ -8,7 +8,7 @@
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { admin, getAI, createPendingApproval, logAIError, getKSTDateString, getStudioName } = require("../helpers/common");
+const { admin, tenantDb, getAI, createPendingApproval, logAIError, getKSTDateString, getStudioName } = require("../helpers/common");
 
 /**
  * 보안 회원 조회 (PIN 기반)
@@ -16,7 +16,8 @@ const { admin, getAI, createPendingApproval, logAIError, getKSTDateString, getSt
 exports.getSecureMemberV2Call = onCall({ 
     cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
 }, async (request) => {
-    const db = admin.firestore();
+    const tdb = tenantDb();
+    const db = tdb.raw(); // 글로벌 컬렉션(rate_limits)용
     const { phoneLast4 } = request.data;
     
     // Input validation
@@ -49,14 +50,14 @@ exports.getSecureMemberV2Call = onCall({
             lastAttempt: now
         }, { merge: true });
         
-        const snapshot = await db.collection('members').where('phoneLast4', '==', phoneLast4).limit(10).get();
+        const snapshot = await tdb.collection('members').where('phoneLast4', '==', phoneLast4).limit(10).get();
         
         let docs = snapshot.docs;
         
         // [FALLBACK] 만약 phoneLast4로 검색이 안 된다면 (구데이터), 전체 데이터에서 필터링 시도
         if (docs.length === 0) {
             console.warn(`[getSecureMember] phoneLast4 ${phoneLast4} not found. Checking full phone fields manually...`);
-            const allSnap = await db.collection('members').get();
+            const allSnap = await tdb.collection('members').get();
             docs = allSnap.docs.filter(d => {
                 const p = d.data().phone;
                 return p && typeof p === 'string' && p.endsWith(phoneLast4);
@@ -91,7 +92,8 @@ exports.getSecureMemberV2Call = onCall({
 exports.memberLoginV2Call = onCall({
     cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
 }, async (request) => {
-    const db = admin.firestore();
+    const tdb = tenantDb();
+    const db = tdb.raw(); // 글로벌 컬렉션(rate_limits)용
     
     // [FIX] Warmup Ping Handler
     if (request.data && request.data.ping) {
@@ -130,7 +132,7 @@ exports.memberLoginV2Call = onCall({
             lastAttempt: now
         }, { merge: true });
 
-        const snapshot = await db.collection('members').where('phoneLast4', '==', phoneLast4).limit(10).get();
+        const snapshot = await tdb.collection('members').where('phoneLast4', '==', phoneLast4).limit(10).get();
         let targetDoc = null;
 
         // [FIX] 이름 부분 매칭 처리 (공백, 대소문자 무시)
@@ -151,7 +153,7 @@ exports.memberLoginV2Call = onCall({
         
         // [FALLBACK] Login V2 fallback search
         if (!targetDoc) {
-            const allSnap = await db.collection('members').get();
+            const allSnap = await tdb.collection('members').get();
             for (const doc of allSnap.docs) {
                 const data = doc.data();
                 if (!data.name || !data.phone) continue;
@@ -214,7 +216,8 @@ exports.memberLoginV2Call = onCall({
 exports.verifyInstructorV2Call = onCall({
     cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
 }, async (request) => {
-    const db = admin.firestore();
+    const tdb = tenantDb();
+    const db = tdb.raw(); // 글로벌 컬렉션(rate_limits)용
     const { name, phoneLast4 } = request.data;
 
     if (!name || typeof name !== 'string' || !phoneLast4) {
@@ -246,7 +249,7 @@ exports.verifyInstructorV2Call = onCall({
             lastAttempt: now
         }, { merge: true });
 
-        const docSnap = await db.collection('settings').doc('instructors').get();
+        const docSnap = await tdb.collection('settings').doc('instructors').get();
         if (!docSnap.exists) {
             throw new HttpsError('not-found', '강사 목록 설정을 찾을 수 없습니다.');
         }
@@ -306,13 +309,13 @@ exports.checkExpiringMembersV2 = onSchedule({
     schedule: 'every day 13:00',
     timeZone: 'Asia/Seoul'
 }, async (event) => {
-    const db = admin.firestore();
+    const tdb = tenantDb();
     const ai = getAI();
     const today = new Date();
     const targetDateStr = getKSTDateString(today);
 
     try {
-        const snapshot = await db.collection('members').where('endDate', '==', targetDateStr).get();
+        const snapshot = await tdb.collection('members').where('endDate', '==', targetDateStr).get();
         if (snapshot.empty) return null;
 
         const supportedLangs = ['ko', 'en', 'ru', 'zh', 'ja'];
@@ -364,7 +367,8 @@ exports.checkExpiringMembersV2 = onSchedule({
 exports.applyMemberHoldCall = onCall({
     cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
 }, async (request) => {
-    const db = admin.firestore();
+    const tdb = tenantDb();
+    const db = tdb.raw(); // 글로벌 컬렉션(studios)용
     const { memberId, holdDays } = request.data;
 
     if (!memberId || !holdDays || holdDays <= 0) {
@@ -372,7 +376,7 @@ exports.applyMemberHoldCall = onCall({
     }
 
     try {
-        const memberRef = db.collection('members').doc(memberId);
+        const memberRef = tdb.collection('members').doc(memberId);
         const memberSnap = await memberRef.get();
 
         if (!memberSnap.exists) {

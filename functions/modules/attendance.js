@@ -8,7 +8,7 @@
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
-const { admin, logAIError, getKSTDateString, getStudioName, getStudioLogoUrl } = require("../helpers/common");
+const { admin, tenantDb, STUDIO_ID, logAIError, getKSTDateString, getStudioName, getStudioLogoUrl } = require("../helpers/common");
 
 // Helper functions
 const calculateGap = (lastDate, currentDate) => {
@@ -72,7 +72,7 @@ exports.checkInMemberV2Call = onCall({
     }
 
     const { memberId, branchId, classTitle, instructor, classTime, force, eventId } = request.data;
-    const db = admin.firestore();
+    const tdb = tenantDb();
 
     // [DEBUG] Check force flag and eventId
     console.log(`[Attendance] Check-in request for ${memberId} in ${branchId}. Force: ${force}, EventId: ${eventId}`);
@@ -82,8 +82,8 @@ exports.checkInMemberV2Call = onCall({
     }
 
     try {
-        return await db.runTransaction(async (transaction) => {
-            const memberRef = db.collection('members').doc(memberId);
+        return await tdb.raw().runTransaction(async (transaction) => {
+            const memberRef = tdb.collection('members').doc(memberId);
             const memberSnap = await transaction.get(memberRef);
             
             if (!memberSnap.exists) {
@@ -100,7 +100,7 @@ exports.checkInMemberV2Call = onCall({
             // If the client provided an eventId, we ensure it hasn't been processed yet.
             // [UX] If 'force' is provided (Member Confirmed Dual Check-in after 25s), SKIP this check.
             if (!force && eventId) {
-                const duplicateQuery = db.collection('attendance')
+                const duplicateQuery = tdb.collection('attendance')
                     .where('memberId', '==', memberId)
                     .where('date', '==', today)
                     .where('eventId', '==', eventId)
@@ -148,7 +148,7 @@ exports.checkInMemberV2Call = onCall({
 
             if (!classTitle || classTitle === '자율수련') {
                 try {
-                    const schedDocRef = db.collection('daily_classes').doc(`${branchId}_${today}`);
+                    const schedDocRef = tdb.collection('daily_classes').doc(`${branchId}_${today}`);
                     const schedSnap = await transaction.get(schedDocRef);
                     
                     if (schedSnap.exists) {
@@ -314,7 +314,7 @@ exports.checkInMemberV2Call = onCall({
             // Ideally we should do this query. For simplicity and limit, we do it here.
             // Transaction requires all reads before writes.
             const recentSnap = await transaction.get(
-                db.collection('attendance')
+                tdb.collection('attendance')
                     .where('memberId', '==', memberId)
                     .orderBy('timestamp', 'desc')
                     .limit(30)
@@ -325,7 +325,7 @@ exports.checkInMemberV2Call = onCall({
             // We can reuse the duplicate query if we widen it, but for simplicity let's stick to logic.
             // Actually, to get session count, we need all records for today.
             const todaySnap = await transaction.get(
-                db.collection('attendance')
+                tdb.collection('attendance')
                     .where('memberId', '==', memberId)
                     .where('date', '==', today)
             );
@@ -356,7 +356,7 @@ exports.checkInMemberV2Call = onCall({
             attendanceData.endDate = memberData.endDate;
             attendanceData.cumulativeCount = attendanceStatus === 'valid' ? currentCount + 1 : currentCount;
 
-            const newAttRef = db.collection('attendance').doc();
+            const newAttRef = tdb.collection('attendance').doc();
             transaction.set(newAttRef, attendanceData);
 
             let newCredits = safeCredits;
@@ -393,12 +393,12 @@ exports.checkInMemberV2Call = onCall({
                     const resolvedEnd = endDate;
                     setImmediate(async () => {
                         try {
-                            const salesSnap = await db.collection('sales')
+                            const salesSnap = await tdb.collection('sales')
                                 .where('memberId', '==', memberId)
                                 .where('startDate', '==', 'TBD')
                                 .get();
                             if (!salesSnap.empty) {
-                                const batch = db.batch();
+                                const batch = tdb.raw().batch();
                                 salesSnap.forEach(doc => {
                                     batch.update(doc.ref, { startDate: resolvedStart, endDate: resolvedEnd });
                                 });
@@ -441,12 +441,12 @@ exports.checkInMemberV2Call = onCall({
                     const finalEnd = updates.endDate;
                     setImmediate(async () => {
                         try {
-                            const salesSnap = await db.collection('sales')
+                            const salesSnap = await tdb.collection('sales')
                                 .where('memberId', '==', memberId)
                                 .where('startDate', '==', 'TBD')
                                 .get();
                             if (!salesSnap.empty) {
-                                const batch = db.batch();
+                                const batch = tdb.raw().batch();
                                 salesSnap.forEach(doc => {
                                     batch.update(doc.ref, { startDate: finalStart, endDate: finalEnd });
                                 });
@@ -497,7 +497,7 @@ exports.checkInMemberV2Call = onCall({
  * 출석 생성 시 분석 이벤트 트리거
  */
 exports.onAttendanceCreated = onDocumentCreated({
-    document: "attendance/{attendanceId}",
+    document: `studios/{studioId}/attendance/{attendanceId}`,
     region: "asia-northeast3"
 }, async (event) => {
     const attendance = event.data.data();
@@ -505,7 +505,7 @@ exports.onAttendanceCreated = onDocumentCreated({
     const currentDate = attendance.date;
     if (!memberId || !currentDate) return;
     
-    const db = admin.firestore();
+    const tdb = tenantDb();
 
     try {
         // Get recent attendance for analysis
@@ -515,7 +515,7 @@ exports.onAttendanceCreated = onDocumentCreated({
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const cutoffDate = getKSTDateString(thirtyDaysAgo);
 
-        const recentSnap = await db.collection('attendance')
+        const recentSnap = await tdb.collection('attendance')
             .where('memberId', '==', memberId)
             .where('date', '>=', cutoffDate)
             .orderBy('date', 'desc')
@@ -547,7 +547,7 @@ exports.onAttendanceCreated = onDocumentCreated({
 
         const attendanceId = event.params.attendanceId;
         // [FIX] Idempotency: Use attendanceId as doc ID to prevent duplicate practice_events on trigger retry
-        await db.collection('practice_events').doc(attendanceId).set({
+        await tdb.collection('practice_events').doc(attendanceId).set({
             memberId, eventType, date: currentDate, context, displayMessage: messages,
             createdAt: admin.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
@@ -556,7 +556,7 @@ exports.onAttendanceCreated = onDocumentCreated({
         const instructorName = attendance.instructor;
         if (instructorName) {
             try {
-                const instructorTokensSnap = await db.collection('fcm_tokens')
+                const instructorTokensSnap = await tdb.collection('fcm_tokens')
                     .where('role', '==', 'instructor')
                     .where('instructorName', '==', instructorName)
                     .get();
@@ -609,7 +609,7 @@ exports.onAttendanceCreated = onDocumentCreated({
                             if (sendError.code === 'messaging/invalid-registration-token' ||
                                 sendError.code === 'messaging/registration-token-not-registered') {
                                 console.log(`[Instructor Push] Deleting stale token: ${token.substring(0, 20)}...`);
-                                await db.collection('fcm_tokens').doc(token).delete().catch(() => {});
+                                await tdb.collection('fcm_tokens').doc(token).delete().catch(() => {});
                             }
                         }
                     }
@@ -629,7 +629,7 @@ exports.onAttendanceCreated = onDocumentCreated({
  * pending_attendance 컬렉션에 새 문서가 생성되면 실행되어 실제 출석으로 처리합니다.
  */
 exports.onPendingAttendanceCreated = onDocumentCreated({
-    document: "pending_attendance/{id}",
+    document: `studios/{studioId}/pending_attendance/{id}`,
     region: "asia-northeast3"
 }, async (event) => {
     const snapshot = event.data;
@@ -637,13 +637,13 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
 
     const data = snapshot.data();
     const { memberId, branchId, classTitle, instructor, timestamp, date, eventId } = data;
-    const db = admin.firestore();
+    const tdb = tenantDb();
 
     console.log(`[OfflineSync] Processing pending check-in for member: ${memberId}`);
 
     try {
-        await db.runTransaction(async (transaction) => {
-            const memberRef = db.collection('members').doc(memberId);
+        await tdb.raw().runTransaction(async (transaction) => {
+            const memberRef = tdb.collection('members').doc(memberId);
             const memberSnap = await transaction.get(memberRef);
 
             if (!memberSnap.exists) return;
@@ -655,7 +655,7 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
             // [CRITICAL] Check for UUID Idempotency to prevent Double-Charging on Offline Sync
             if (eventId) {
                 const duplicateQuery = await transaction.get(
-                    db.collection('attendance')
+                    tdb.collection('attendance')
                         .where('memberId', '==', memberId)
                         .where('date', '==', date)
                         .where('eventId', '==', eventId)
@@ -665,13 +665,13 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
                 if (!duplicateQuery.empty) {
                     console.warn(`[OfflineSync] Duplicate caught for ${memberId}. EventId ${eventId} was already processed safely. Deleting pending document.`);
                     // Delete the pending document without producing an attendance record to prevent loops
-                    transaction.delete(db.collection('pending_attendance').doc(event.params.id));
+                    transaction.delete(tdb.collection('pending_attendance').doc(event.params.id));
                     return;
                 }
             }
 
             const recentSnap = await transaction.get(
-                db.collection('attendance')
+                tdb.collection('attendance')
                     .where('memberId', '==', memberId)
                     .orderBy('timestamp', 'desc')
                     .limit(30)
@@ -727,11 +727,11 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
                 attendanceData.cumulativeCount = currentCount;
             }
 
-            const attRef = db.collection('attendance').doc();
+            const attRef = tdb.collection('attendance').doc();
             transaction.set(attRef, attendanceData);
 
             // [NEW] Delete the pending record since it was successfully migrated to official attendance
-            transaction.delete(db.collection('pending_attendance').doc(event.params.id));
+            transaction.delete(tdb.collection('pending_attendance').doc(event.params.id));
 
             // 4. Update Member (Only if Valid)
             if (finalStatus === 'valid') {
@@ -795,7 +795,7 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
  * photoUrl이 추가되면 기존 알림을 사진 포함 버전으로 교체 (같은 tag 사용)
  */
 exports.onAttendancePhotoAdded = onDocumentUpdated({
-    document: "attendance/{attendanceId}",
+    document: `studios/{studioId}/attendance/{attendanceId}`,
     region: "asia-northeast3"
 }, async (event) => {
     const before = event.data.before.data();
@@ -804,14 +804,14 @@ exports.onAttendancePhotoAdded = onDocumentUpdated({
     // photoUrl이 새로 추가된 경우에만 실행
     if (before.photoUrl || !after.photoUrl) return;
 
-    const db = admin.firestore();
+    const tdb = tenantDb();
     const attendanceId = event.params.attendanceId;
     const instructorName = after.instructor;
 
     if (!instructorName || instructorName === '미지정' || instructorName === '회원') return;
 
     try {
-        const tokensSnap = await db.collection('fcm_tokens')
+        const tokensSnap = await tdb.collection('fcm_tokens')
             .where('role', '==', 'instructor')
             .where('instructorName', '==', instructorName)
             .get();
@@ -859,7 +859,7 @@ exports.onAttendancePhotoAdded = onDocumentUpdated({
             } catch (sendErr) {
                 if (sendErr.code === 'messaging/invalid-registration-token' ||
                     sendErr.code === 'messaging/registration-token-not-registered') {
-                    await db.collection('fcm_tokens').doc(token).delete().catch(() => {});
+                    await tdb.collection('fcm_tokens').doc(token).delete().catch(() => {});
                 }
             }
         }

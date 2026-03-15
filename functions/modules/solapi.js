@@ -6,7 +6,7 @@
  */
 
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
-const { admin, logAIError, getStudioName } = require("../helpers/common");
+const { admin, tenantDb, STUDIO_ID, logAIError, getStudioName } = require("../helpers/common");
 const { SolapiMessageService } = require("solapi");
 
 // Initialize Solapi Service
@@ -28,7 +28,7 @@ try {
  * message_approvals 컬렉션의 문서가 'approved' 상태로 변경되면 발송
  */
 exports.sendMessageOnApproval = onDocumentUpdated({
-    document: "message_approvals/{approvalId}",
+    document: `studios/{studioId}/message_approvals/{approvalId}`,
     region: "asia-northeast3",
     timeoutSeconds: 300, // [PERF FIX] V2 타임아웃 5분으로 연장하여 타임아웃으로 인한 중도 끊김 방지
     memory: "512MiB"
@@ -47,7 +47,7 @@ exports.sendMessageOnApproval = onDocumentUpdated({
     }
 
     console.log(`[Solapi] Processing approved message: ${approvalId}`);
-    const db = admin.firestore();
+    const tdb = tenantDb();
 
     try {
         if (!messageService) {
@@ -74,7 +74,7 @@ exports.sendMessageOnApproval = onDocumentUpdated({
         }
 
         for (const chunk of memberChunks) {
-            const snap = await db.collection('members').where(admin.firestore.FieldPath.documentId(), 'in', chunk).get();
+            const snap = await tdb.collection('members').where(admin.firestore.FieldPath.documentId(), 'in', chunk).get();
             snap.docs.forEach(doc => {
                 const data = doc.data();
                 if (data.phone) {
@@ -153,7 +153,7 @@ exports.sendMessageOnApproval = onDocumentUpdated({
         });
 
         // 5. Log to Push History (for visibility)
-        await db.collection('push_history').add({
+        await tdb.collection('push_history').add({
             type: 'solapi_msg',
             title: title,
             body: content,
@@ -181,7 +181,7 @@ exports.sendMessageOnApproval = onDocumentUpdated({
  * messages 컬렉션에 문서 생성을 트리거로 함
  */
 exports.sendSolapiOnMessageV2 = onDocumentCreated({
-    document: "messages/{messageId}",
+    document: `studios/{studioId}/messages/{messageId}`,
     region: "asia-northeast3",
     timeoutSeconds: 120, // [PERF FIX] 최대 30초 대기(Jitter)를 버틸 수 있도록 연장
     maxInstances: 100 // [PERF FIX] 급격하게 쌓일 때 병렬 실행 개수 제한으로 쿼터 초과 방지
@@ -213,8 +213,8 @@ exports.sendSolapiOnMessageV2 = onDocumentCreated({
             return;
         }
 
-        const db = admin.firestore();
-        const memberDoc = await db.collection('members').doc(memberId).get();
+        const tdb = tenantDb();
+        const memberDoc = await tdb.collection('members').doc(memberId).get();
         
         if (!memberDoc.exists) {
             console.warn(`[Solapi] Member ${memberId} not found.`);

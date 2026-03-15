@@ -1,115 +1,131 @@
 /**
- * [SaaS 마이그레이션 스크립트] 루트 레벨 데이터를 특정 테넌트(하위 컬렉션)로 이동
+ * 테넌트 격리 데이터 마이그레이션 스크립트
  * 
- * 주의: 이 스크립트는 firebase-admin을 사용하며 로컬에서 실행되어야 합니다.
- * 서비스 계정 키(serviceAccountKey.json)가 현재 디렉토리에 필요합니다.
+ * 루트 레벨 컬렉션 → studios/boksaem-yoga/ 하위로 복사
  * 
- * 실행 방법:
- * node scripts/migrate_tenant_data.cjs
+ * 사용법: 프로젝트 루트에서 실행
+ *   node scripts/migrate_tenant_data.cjs
+ * 
+ * ⚠️ 주의: 이 스크립트는 데이터를 복사합니다 (삭제하지 않음).
+ *   원본 루트 데이터는 그대로 유지되므로 안전합니다.
  */
 
 const admin = require('firebase-admin');
-const fs = require('fs');
-const path = require('path');
 
-// 1. 서비스 계정 키 로드 (키 경로를 실제 환경에 맞게 수정하세요)
-const serviceAccountPath = path.join(__dirname, '..', 'functions', 'service-account-key.json');
-
-if (!fs.existsSync(serviceAccountPath)) {
-    console.error(`\n🚨 [오류] 서비스 계정 키를 찾을 수 없습니다: ${serviceAccountPath}`);
-    console.error(`Firebase 콘솔 -> 프로젝트 설정 -> 서비스 계정에서 '새 비공개 키 생성' 후`);
-    console.error(`프로젝트 루트에 'serviceAccountKey.json' 이름으로 저장해주세요.\n`);
-    process.exit(1);
-}
-
-const serviceAccount = require(serviceAccountPath);
-
+// Firebase Admin 초기화 (firebase login 상태에서 실행)
+// GOOGLE_APPLICATION_CREDENTIALS 또는 ADC(Application Default Credentials) 사용
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+    projectId: 'boksaem-yoga'
 });
 
 const db = admin.firestore();
+const STUDIO_ID = 'boksaem-yoga';
 
-// 2. 마이그레이션 설정
-const TARGET_TENANT_ID = 'boksaem-yoga'; // 이전할 테넌트 ID
-const collectionsToMigrate = [
+// 마이그레이션할 컬렉션 목록 (테넌트별 데이터)
+const TENANT_COLLECTIONS = [
     'members',
-    'sales',
-    'bookings',
     'attendance',
+    'sales',
     'daily_classes',
-    'monthly_schedules',
-    'monthly_schedules_backup',
-    'push_history',
-    'notices',
-    'face_biometrics',
-    'member_diligence',
-    // [FIX] 1차 마이그레이션에서 누락된 컬렉션 추가
-    'images',
+    'bookings',
+    'booking_stats',
+    'booking_logs',
+    'fcm_tokens',
+    'fcmTokens',
+    'push_tokens',
     'messages',
+    'notices',
     'push_campaigns',
-    'weekly_templates',
-    'login_failures'
+    'push_history',
+    'message_approvals',
+    'pending_attendance',
+    'pending_approvals',
+    'practice_events',
+    'settings',
+    'stats'
 ];
 
 async function migrateCollection(collectionName) {
-    console.log(`\n📦 컬렉션 복사 시작: [${collectionName}] -> [studios/${TARGET_TENANT_ID}/${collectionName}]`);
+    console.log(`\n📂 Migrating: ${collectionName}`);
     
     const sourceRef = db.collection(collectionName);
-    const targetRef = db.collection(`studios/${TARGET_TENANT_ID}/${collectionName}`);
+    const targetRef = db.collection(`studios/${STUDIO_ID}/${collectionName}`);
     
     const snapshot = await sourceRef.get();
+    
     if (snapshot.empty) {
-        console.log(`   └ 데이터가 없습니다. 건너뜁니다.`);
-        return;
-    }
-
-    let batch = db.batch();
-    let count = 0;
-    let totalCount = 0;
-
-    for (const doc of snapshot.docs) {
-        const data = doc.data();
-        const newDocRef = targetRef.doc(doc.id);
-        
-        batch.set(newDocRef, data);
-        count++;
-        totalCount++;
-
-        // Firestore batch는 최대 500개까지만 허용됨
-        if (count === 490) {
-            await batch.commit();
-            console.log(`   └ ${totalCount}개 문서 복사 완료...`);
-            batch = db.batch();
-            count = 0;
-        }
-    }
-
-    if (count > 0) {
-        await batch.commit();
-        console.log(`   └ ${totalCount}개 문서 복사 완료...`);
+        console.log(`  ⏭️  Empty collection, skipping.`);
+        return { name: collectionName, count: 0, status: 'empty' };
     }
     
-    console.log(`✅ [${collectionName}] 복사 완료 (총 ${totalCount}건)`);
-}
-
-async function runMigration() {
-    console.log('=============================================');
-    console.log(`🚀 테넌트 데이터 마이그레이션 시작 (Target: ${TARGET_TENANT_ID})`);
-    console.log('=============================================');
-
-    try {
-        // 기존 글로벌 설정(settings, system_state)은 테넌트 분리 대상이 아니므로 제외합니다.
-        for (const col of collectionsToMigrate) {
-            await migrateCollection(col);
+    console.log(`  📊 Found ${snapshot.size} documents`);
+    
+    // Batch write (최대 500개씩)
+    const BATCH_SIZE = 400;
+    let processed = 0;
+    let batch = db.batch();
+    let batchCount = 0;
+    
+    for (const doc of snapshot.docs) {
+        const targetDocRef = targetRef.doc(doc.id);
+        batch.set(targetDocRef, doc.data());
+        batchCount++;
+        
+        if (batchCount >= BATCH_SIZE) {
+            await batch.commit();
+            processed += batchCount;
+            console.log(`  ✅ Batch committed: ${processed}/${snapshot.size}`);
+            batch = db.batch();
+            batchCount = 0;
         }
-        
-        console.log('\n🎉 모든 대상 컬렉션 마이그레이션이 완료되었습니다.');
-        console.log('주의: 기존 루트 레벨 데이터는 삭제되지 않았습니다. 안전을 위해 검증 후 수동 삭제를 권장합니다.');
-        
-    } catch (error) {
-        console.error('❌ 마이그레이션 중 오류 발생:', error);
     }
+    
+    // 남은 문서 커밋
+    if (batchCount > 0) {
+        await batch.commit();
+        processed += batchCount;
+        console.log(`  ✅ Final batch: ${processed}/${snapshot.size}`);
+    }
+    
+    return { name: collectionName, count: processed, status: 'migrated' };
 }
 
-runMigration();
+async function main() {
+    console.log('═══════════════════════════════════════════');
+    console.log('  🔄 테넌트 격리 데이터 마이그레이션');
+    console.log(`  Target: studios/${STUDIO_ID}/`);
+    console.log('═══════════════════════════════════════════');
+    
+    const results = [];
+    
+    for (const col of TENANT_COLLECTIONS) {
+        try {
+            const result = await migrateCollection(col);
+            results.push(result);
+        } catch (error) {
+            console.error(`  ❌ Error migrating ${col}:`, error.message);
+            results.push({ name: col, count: 0, status: 'error', error: error.message });
+        }
+    }
+    
+    console.log('\n═══════════════════════════════════════════');
+    console.log('  📋 Migration Summary');
+    console.log('═══════════════════════════════════════════');
+    
+    let totalDocs = 0;
+    for (const r of results) {
+        const icon = r.status === 'migrated' ? '✅' : r.status === 'empty' ? '⏭️' : '❌';
+        console.log(`  ${icon} ${r.name}: ${r.count} docs (${r.status})`);
+        totalDocs += r.count;
+    }
+    
+    console.log(`\n  Total: ${totalDocs} documents migrated.`);
+    console.log('═══════════════════════════════════════════\n');
+    
+    process.exit(0);
+}
+
+main().catch(error => {
+    console.error('Migration failed:', error);
+    process.exit(1);
+});

@@ -8,13 +8,13 @@
 
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { admin, getAI, logAIError, getAllFCMTokens, getStudioName, getStudioLogoUrl } = require("../helpers/common");
+const { admin, tenantDb, STUDIO_ID, getAI, logAIError, getAllFCMTokens, getStudioName, getStudioLogoUrl } = require("../helpers/common");
 
 /**
  * 개인 메시지 푸시 알림
  */
 exports.sendPushOnMessageV2 = onDocumentCreated({
-    document: "messages/{messageId}",
+    document: `studios/{studioId}/messages/{messageId}`,
     region: "asia-northeast3"
 }, async (event) => {
     console.log(`[Push] Triggered for message ${event.params.messageId}`);
@@ -31,9 +31,9 @@ exports.sendPushOnMessageV2 = onDocumentCreated({
     }
 
     try {
-        const db = admin.firestore();
+        const tdb = tenantDb();
         // [FIX] 인라인 3중 컬렉션 순회 → getAllFCMTokens 헬퍼로 통합
-        const { tokens, tokenSources } = await getAllFCMTokens(db, { memberId });
+        const { tokens, tokenSources } = await getAllFCMTokens(null, { memberId });
 
         if (tokens.length === 0) {
             await event.data.ref.update({
@@ -77,19 +77,19 @@ exports.sendPushOnMessageV2 = onDocumentCreated({
         });
 
         if (tokensToDelete.length > 0) {
-            const batch = admin.firestore().batch();
+            const batch = tdb.raw().batch();
             tokensToDelete.forEach(item => {
-                batch.delete(admin.firestore().collection(item.col).doc(item.token));
+                batch.delete(tdb.collection(item.col).doc(item.token));
             });
             await batch.commit();
         }
 
         // Write to push_history
         if (response.successCount > 0) {
-            const memberDoc = await db.collection('members').doc(memberId).get();
+            const memberDoc = await tdb.collection('members').doc(memberId).get();
             const memberName = memberDoc.exists ? memberDoc.data().name : 'Unknown';
             
-            await admin.firestore().collection('push_history').add({
+            await tdb.collection('push_history').add({
                 type: 'individual',
                 title: payload.notification.title,
                 body: payload.notification.body,
@@ -124,7 +124,7 @@ exports.sendPushOnMessageV2 = onDocumentCreated({
  * 대량 푸시 캠페인
  */
 exports.sendBulkPushV2 = onDocumentCreated({
-    document: "push_campaigns/{campaignId}",
+    document: `studios/{studioId}/push_campaigns/{campaignId}`,
     region: "asia-northeast3"
 }, async (event) => {
     const snap = event.data;
@@ -141,7 +141,7 @@ exports.sendBulkPushV2 = onDocumentCreated({
     try {
         await snap.ref.update({ status: 'processing', startedAt: admin.firestore.FieldValue.serverTimestamp() });
 
-        const db = admin.firestore();
+        const tdb = tenantDb();
         const ai = getAI();
 
         let successTotal = 0;
@@ -170,7 +170,7 @@ exports.sendBulkPushV2 = onDocumentCreated({
         }
 
         // Stream tokens
-        const tokenQuery = db.collection("fcm_tokens");
+        const tokenQuery = tdb.collection("fcm_tokens");
         const isTargeted = targetMemberIds.length > 0;
         const validTokensByLang = { 'ko': [], 'en': [], 'ru': [], 'zh': [], 'ja': [] };
 
@@ -212,7 +212,7 @@ exports.sendBulkPushV2 = onDocumentCreated({
 
         // Write to push_history
         if (successTotal > 0) {
-            await admin.firestore().collection('push_history').add({
+            await tdb.collection('push_history').add({
                 type: 'campaign',
                 title: titleOriginal,
                 body: bodyOriginal,
@@ -234,7 +234,7 @@ exports.sendBulkPushV2 = onDocumentCreated({
  * 공지사항 전체 푸시
  */
 exports.sendPushOnNoticeV2 = onDocumentCreated({
-    document: "notices/{noticeId}",
+    document: `studios/{studioId}/notices/{noticeId}`,
     region: "asia-northeast3"
 }, async (event) => {
     const noticeData = event.data.data();
@@ -248,16 +248,16 @@ exports.sendPushOnNoticeV2 = onDocumentCreated({
     const bodyOriginal = noticeData.content || "새로운 소식이 등록되었습니다";
 
     try {
-        const db = admin.firestore();
+        const tdb = tenantDb();
         const ai = getAI();
         const logoUrl = await getStudioLogoUrl();
         // [FIX] 인라인 3중 컬렉션 순회 → getAllFCMTokens 헬퍼 + 그룹핑
-        const { tokens: allTokens } = await getAllFCMTokens(db);
+        const { tokens: allTokens } = await getAllFCMTokens(null);
         const tokensByGroup = {};
 
         // getAllFCMTokens은 토큰 ID만 반환하므로, 개별 문서 데이터로 그룹핑 필요
         // 기존 로직을 유지하되 fcm_tokens 단일 컬렉션 기준으로 조회
-        const snap = await db.collection('fcm_tokens').get();
+        const snap = await tdb.collection('fcm_tokens').get();
         snap.docs.forEach(doc => {
             const data = doc.data();
             const lang = data.language || 'ko';
@@ -304,7 +304,7 @@ exports.sendPushOnNoticeV2 = onDocumentCreated({
 
         // Write to push_history
         if (successTotal > 0) {
-            await admin.firestore().collection('push_history').add({
+            await tdb.collection('push_history').add({
                 type: 'notice',
                 title: titleOriginal,
                 body: bodyOriginal.substring(0, 100),
@@ -339,7 +339,7 @@ exports.cleanupGhostTokens = onSchedule({
     timeZone: 'Asia/Seoul',
     region: "asia-northeast3"
 }, async (event) => {
-    const db = admin.firestore();
+    const tdb = tenantDb();
     const batchSize = 400;
     let totalDeleted = 0;
 
@@ -347,13 +347,13 @@ exports.cleanupGhostTokens = onSchedule({
         const twoMonthsAgo = new Date();
         twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
         
-        const ghostSnap = await db.collection("fcm_tokens")
+        const ghostSnap = await tdb.collection("fcm_tokens")
             .where("updatedAt", "<", twoMonthsAgo.toISOString())
             .limit(batchSize)
             .get();
 
         if (!ghostSnap.empty) {
-            const batch = db.batch();
+            const batch = tdb.raw().batch();
             ghostSnap.docs.forEach(doc => {
                 batch.delete(doc.ref);
                 totalDeleted++;

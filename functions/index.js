@@ -25,6 +25,7 @@ const meditationFunctions = require('./modules/meditation');
 const solapiFunctions = require('./modules/solapi');
 const statsFunctions = require('./modules/stats');
 const bookingFunctions = require('./modules/booking');
+const migrationFunctions = require('./modules/migration');
 
 // Re-export all functions
 module.exports = {
@@ -53,7 +54,10 @@ module.exports = {
     ...statsFunctions,
 
     // Booking Management (No-show, Waitlist)
-    ...bookingFunctions
+    ...bookingFunctions,
+
+    // [TEMP] Tenant Migration (마이그레이션 완료 후 제거)
+    ...migrationFunctions
 };
 
 /**

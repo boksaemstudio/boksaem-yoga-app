@@ -14,6 +14,37 @@ if (admin.apps.length === 0) {
     admin.firestore().settings({ ignoreUndefinedProperties: true });
 }
 
+// ─── [TENANT ISOLATION] ───────────────────────────────────────────
+// SaaS 멀티테넌트 지원을 위한 스튜디오 ID 상수
+// 모든 테넌트별 데이터는 studios/{STUDIO_ID}/ 하위에 저장됩니다.
+const STUDIO_ID = process.env.STUDIO_ID || 'boksaem-yoga';
+
+/**
+ * 테넌트 격리된 Firestore 접근 헬퍼
+ * 모든 CF 모듈에서 이 헬퍼를 통해 테넌트별 데이터에 접근합니다.
+ * 
+ * @example
+ * const tdb = tenantDb();
+ * const memberRef = tdb.collection('members').doc(memberId);
+ * const snap = await memberRef.get();
+ * 
+ * @returns {{ collection: Function, doc: Function, raw: Function }}
+ */
+const tenantDb = () => {
+    const db = admin.firestore();
+    return {
+        /** 테넌트 격리된 컬렉션 참조 */
+        collection: (name) => db.collection(`studios/${STUDIO_ID}/${name}`),
+        /** 테넌트 격리된 문서 참조 (콜렉션/문서 경로) */
+        doc: (collectionName, docId) => docId
+            ? db.doc(`studios/${STUDIO_ID}/${collectionName}/${docId}`)
+            : db.collection(`studios/${STUDIO_ID}/${collectionName}`).doc(),
+        /** 글로벌(루트) Firestore 직접 접근 (rate_limits, ai_logs 등) */
+        raw: () => db
+    };
+};
+// ──────────────────────────────────────────────────────────────────
+
 // [UNIFIED] FCM 토큰 컬렉션 상수 (레거시 마이그레이션 완료 시까지 유지)
 const FCM_COLLECTIONS = ["fcm_tokens", "fcmTokens", "push_tokens"];
 
@@ -48,17 +79,19 @@ const getKSTDateString = (date = new Date()) => {
 
 /**
  * 모든 FCM 컬렉션에서 토큰을 조회하는 공통 헬퍼
- * @param {Object} db - Firestore instance
+ * [TENANT] 테넌트 격리 경로를 사용합니다.
+ * @param {Object} _db - (레거시 호환) 무시됨, tenantDb() 사용
  * @param {Object} filters - { memberId, role, instructorName } 등 필터 조건
  * @returns {Object} { tokens: string[], tokenSources: { token: collectionName } }
  */
-const getAllFCMTokens = async (db, filters = {}) => {
+const getAllFCMTokens = async (_db, filters = {}) => {
     const tokens = [];
     const tokenSources = {};
+    const tdb = tenantDb();
 
     for (const col of FCM_COLLECTIONS) {
         try {
-            let q = db.collection(col);
+            let q = tdb.collection(col);
             if (filters.memberId) q = q.where('memberId', '==', filters.memberId);
             if (filters.role) q = q.where('role', '==', filters.role);
             if (filters.instructorName) q = q.where('instructorName', '==', filters.instructorName);
@@ -197,6 +230,8 @@ const getStudioLogoUrl = async () => {
 
 module.exports = {
     admin,
+    tenantDb, // [TENANT] 테넌트 격리 헬퍼
+    STUDIO_ID, // [TENANT] 스튜디오 ID 상수
     logAIError,
     logAIRequest,
     getAI,

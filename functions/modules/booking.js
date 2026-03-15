@@ -9,7 +9,7 @@
 
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
-const { admin, getKSTDateString, getAllFCMTokens, getStudioName } = require("../helpers/common");
+const { admin, tenantDb, STUDIO_ID, getKSTDateString, getAllFCMTokens, getStudioName } = require("../helpers/common");
 
 /**
  * 🔴 노쇼 자동 처리 (매시간 실행 — 끝난 수업만 즉시 처리)
@@ -22,7 +22,7 @@ exports.processNoshowsV2 = onSchedule({
     timeZone: "Asia/Seoul",
     region: "asia-northeast3"
 }, async (event) => {
-    const db = admin.firestore();
+    const tdb = tenantDb();
     const todayStr = getKSTDateString(new Date());
     
     // 현재 KST 시간 (HH:MM)
@@ -34,7 +34,7 @@ exports.processNoshowsV2 = onSchedule({
     
     try {
         // 오늘 예약 중 아직 booked 상태인 것들
-        const snapshot = await db.collection('bookings')
+        const snapshot = await tdb.collection('bookings')
             .where('date', '==', todayStr)
             .where('status', '==', 'booked')
             .get();
@@ -61,7 +61,7 @@ exports.processNoshowsV2 = onSchedule({
         // 2. 설정에서 노쇼 차감값 가져오기
         let noshowDeduct = 1;
         try {
-            const studioSnap = await db.collection('studios').doc('default').get();
+            const studioSnap = await tdb.raw().collection('studios').doc('default').get();
             if (studioSnap.exists) {
                 noshowDeduct = studioSnap.data().POLICIES?.BOOKING_RULES?.noshowCreditDeduct || 1;
             }
@@ -70,7 +70,7 @@ exports.processNoshowsV2 = onSchedule({
         }
         
         // 3. 배치 처리
-        const batch = db.batch();
+        const batch = tdb.raw().batch();
         const noshowMembers = [];
         
         for (const doc of overdueBookings) {
@@ -86,7 +86,7 @@ exports.processNoshowsV2 = onSchedule({
             
             // 회원 크레딧 차감
             if (noshowDeduct > 0 && booking.memberId) {
-                const memberRef = db.collection('members').doc(booking.memberId);
+                const memberRef = tdb.collection('members').doc(booking.memberId);
                 batch.update(memberRef, {
                     credits: admin.firestore.FieldValue.increment(-noshowDeduct)
                 });
@@ -107,10 +107,10 @@ exports.processNoshowsV2 = onSchedule({
         // 4. 관리자에게 노쇼 요약 알림
         if (noshowMembers.length > 0) {
             const studioName = await getStudioName();
-            const { tokens } = await getAllFCMTokens(db, { role: 'admin' });
+            const { tokens } = await getAllFCMTokens(null, { role: 'admin' });
             
             // type: 'admin' 토큰도 포함
-            const adminTokenSnap = await db.collection('fcm_tokens').where('type', '==', 'admin').get();
+            const adminTokenSnap = await tdb.collection('fcm_tokens').where('type', '==', 'admin').get();
             const adminTokens = [...new Set([...tokens, ...adminTokenSnap.docs.map(d => d.id)])];
             
             if (adminTokens.length > 0) {
@@ -135,7 +135,7 @@ exports.processNoshowsV2 = onSchedule({
         }
         
         // 5. 노쇼 처리 로그 저장
-        await db.collection('booking_logs').add({
+        await tdb.collection('booking_logs').add({
             type: 'noshow_batch',
             date: todayStr,
             count: noshowMembers.length,
@@ -160,12 +160,12 @@ exports.processNoshowsV2 = onSchedule({
  * 3. 출석 확인 로그 (선택)
  */
 exports.onBookingStatusChanged = onDocumentUpdated({
-    document: "bookings/{bookingId}",
+    document: `studios/{studioId}/bookings/{bookingId}`,
     region: "asia-northeast3"
 }, async (event) => {
     const before = event.data.before.data();
     const after = event.data.after.data();
-    const db = admin.firestore();
+    const tdb = tenantDb();
     
     // 상태가 변하지 않았으면 무시
     if (before.status === after.status) return null;
@@ -176,7 +176,7 @@ exports.onBookingStatusChanged = onDocumentUpdated({
     if (after.status === 'cancelled' && before.status === 'booked') {
         try {
             // 같은 수업의 대기자 조회
-            const waitlistSnap = await db.collection('bookings')
+            const waitlistSnap = await tdb.collection('bookings')
                 .where('date', '==', after.date)
                 .where('classIndex', '==', after.classIndex)
                 .where('branchId', '==', after.branchId || '')
@@ -195,7 +195,7 @@ exports.onBookingStatusChanged = onDocumentUpdated({
             
             // 첫 번째 대기자 승격
             const promoted = waitlisted[0];
-            const batch = db.batch();
+            const batch = tdb.raw().batch();
             
             batch.update(promoted.ref, {
                 status: 'booked',
@@ -217,7 +217,7 @@ exports.onBookingStatusChanged = onDocumentUpdated({
             
             // 승격된 회원에게 푸시 알림
             if (promoted.memberId) {
-                const { tokens } = await getAllFCMTokens(db, { memberId: promoted.memberId });
+                const { tokens } = await getAllFCMTokens(null, { memberId: promoted.memberId });
                 
                 if (tokens.length > 0) {
                     const studioName = await getStudioName();
@@ -258,13 +258,13 @@ exports.generateBookingStatsV2 = onSchedule({
     timeZone: "Asia/Seoul",
     region: "asia-northeast3"
 }, async (event) => {
-    const db = admin.firestore();
+    const tdb = tenantDb();
     const todayStr = getKSTDateString(new Date());
     
     console.log(`[Booking] Generating daily stats for ${todayStr}`);
     
     try {
-        const snapshot = await db.collection('bookings')
+        const snapshot = await tdb.collection('bookings')
             .where('date', '==', todayStr)
             .get();
         
@@ -287,7 +287,7 @@ exports.generateBookingStatsV2 = onSchedule({
             stats.attendanceRate = Math.round((stats.attended / resolved) * 100);
         }
         
-        await db.collection('booking_stats').doc(todayStr).set(stats);
+        await tdb.collection('booking_stats').doc(todayStr).set(stats);
         console.log(`[Booking] Stats saved: ${JSON.stringify(stats)}`);
         
     } catch (error) {

@@ -1,6 +1,6 @@
 const { onDocumentCreated, onDocumentUpdated, onDocumentDeleted } = require("firebase-functions/v2/firestore");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
-const admin = require('firebase-admin');
+const { admin, tenantDb, STUDIO_ID } = require('../helpers/common');
 
 // 1. Helper to parse date to YYYY-MM and YYYY-MM-DD
 function parseSalesDate(saleData) {
@@ -19,7 +19,7 @@ function parseSalesDate(saleData) {
 }
 
 // 2. Realtime Trigger: On Sale Created
-exports.onSalesCreatedV2 = onDocumentCreated("sales/{saleId}", async (event) => {
+exports.onSalesCreatedV2 = onDocumentCreated(`studios/{studioId}/sales/{saleId}`, async (event) => {
     const data = event.data.data();
     if (!data) return;
 
@@ -33,9 +33,10 @@ exports.onSalesCreatedV2 = onDocumentCreated("sales/{saleId}", async (event) => 
     const yearMonth = dateStr.substring(0, 7);
     const day = dateStr.substring(0, 10);
 
-    const statsRef = admin.firestore().collection('stats').doc('revenue_summary');
+    const tdb = tenantDb();
+    const statsRef = tdb.collection('stats').doc('revenue_summary');
     
-    await admin.firestore().runTransaction(async (t) => {
+    await tdb.raw().runTransaction(async (t) => {
         const doc = await t.get(statsRef);
         const stats = doc.exists ? doc.data() : { total: 0, monthly: {}, daily: {} };
 
@@ -60,7 +61,7 @@ exports.onSalesCreatedV2 = onDocumentCreated("sales/{saleId}", async (event) => 
 });
 
 // 3. Realtime Trigger: On Sale Deleted
-exports.onSalesDeletedV2 = onDocumentDeleted("sales/{saleId}", async (event) => {
+exports.onSalesDeletedV2 = onDocumentDeleted(`studios/{studioId}/sales/{saleId}`, async (event) => {
     const data = event.data.data();
     if (!data) return;
 
@@ -74,9 +75,10 @@ exports.onSalesDeletedV2 = onDocumentDeleted("sales/{saleId}", async (event) => 
     const yearMonth = dateStr.substring(0, 7);
     const day = dateStr.substring(0, 10);
 
-    const statsRef = admin.firestore().collection('stats').doc('revenue_summary');
+    const tdb = tenantDb();
+    const statsRef = tdb.collection('stats').doc('revenue_summary');
     
-    await admin.firestore().runTransaction(async (t) => {
+    await tdb.raw().runTransaction(async (t) => {
         const doc = await t.get(statsRef);
         if (!doc.exists) return;
         const stats = doc.data();
@@ -106,11 +108,11 @@ exports.recalculateAllSalesV2 = onCall(async (request) => {
         throw new HttpsError('permission-denied', 'Only administrators can perform this action.');
     }
 
-    const db = admin.firestore();
-    const membersSnap = await db.collection('members').get();
+    const tdb = tenantDb();
+    const membersSnap = await tdb.collection('members').get();
     const members = membersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     
-    const salesSnap = await db.collection('sales').get();
+    const salesSnap = await tdb.collection('sales').get();
     const sales = salesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
     const memberNameMap = new Map();
@@ -174,6 +176,6 @@ exports.recalculateAllSalesV2 = onCall(async (request) => {
         else stats.daily[day].reReg += s.amount;
     });
 
-    await db.collection('stats').doc('revenue_summary').set(stats);
+    await tdb.collection('stats').doc('revenue_summary').set(stats);
     return { success: true, processedCount: validSales.length, totalRevenue: stats.total };
 });
