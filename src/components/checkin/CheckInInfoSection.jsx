@@ -1,4 +1,5 @@
-import React, { memo } from 'react';
+import React, { memo, useRef, useEffect } from 'react';
+import { useStudioConfig } from '../../contexts/StudioContext';
 
 const CheckInInfoSection = memo(({
     pin,
@@ -9,8 +10,50 @@ const CheckInInfoSection = memo(({
     rys200Logo,
     logoWide,
     qrCodeUrl,
-    handleQRInteraction
+    handleQRInteraction,
+    onCameraTouch,
+    faceRecognitionEnabled,
+    isScanning,
+    cameraVideoRef
 }) => {
+    const { config } = useStudioConfig();
+    const showCamera = config.POLICIES?.SHOW_CAMERA_PREVIEW || false;
+    const videoRef = useRef(null);
+    const streamRef = useRef(null);
+
+    useEffect(() => {
+        if (!showCamera) return;
+        let cancelled = false;
+
+        const startCamera = async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: 160, height: 120 }
+                });
+                if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
+                streamRef.current = stream;
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                }
+                // Also feed to external ref for face detection
+                if (cameraVideoRef?.current && !cameraVideoRef.current.srcObject) {
+                    cameraVideoRef.current.srcObject = stream;
+                }
+            } catch (e) {
+                console.log('[Camera Preview] 카메라 접근 불가:', e.message);
+            }
+        };
+
+        startCamera();
+        return () => {
+            cancelled = true;
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(t => t.stop());
+                streamRef.current = null;
+            }
+        };
+    }, [showCamera]);
+
     return (
         <div className="checkin-info-section" style={{
             display: 'flex',
@@ -124,28 +167,88 @@ const CheckInInfoSection = memo(({
                 </div>
             </div>
 
-            <div
-                className="qr-box"
-                style={{
-                    background: 'rgba(0,0,0,0.6)', borderRadius: '20px', padding: 'clamp(10px, 2vh, 20px) clamp(12px, 2vw, 30px)',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    gap: 'clamp(8px, 1.5vw, 25px)', alignSelf: 'center', border: '1px solid rgba(255, 215, 0, 0.4)', touchAction: 'none'
-                }}
-                onTouchStart={handleQRInteraction}
-                onMouseDown={(e) => { if (e.button === 0) handleQRInteraction(e); }}
-            >
-                <div className="qr-img-wrapper" style={{ background: 'white', padding: 'clamp(6px, 1.5vh, 12px)', borderRadius: '16px', flexShrink: 0 }}>
-                    <img src={qrCodeUrl} alt="QR" style={{ width: 'clamp(65px, 12vh, 130px)', height: 'clamp(65px, 12vh, 130px)', display: 'block' }} />
-                </div>
-                <div className="qr-text" style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'center', marginTop: '-5px' }}>
-                    <h3 style={{ fontSize: 'clamp(1.15rem, 2.5vh, 1.9rem)', color: 'var(--primary-gold)', marginBottom: 'clamp(4px, 1vh, 16px)', fontWeight: 900, lineHeight: 1 }}>
-                        내 요가
-                    </h3>
-                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 'clamp(2px, 0.5vh, 5px)' }}>
-                        <li style={{ fontSize: 'clamp(1.0rem, 2vh, 1.2rem)', color: 'rgba(255, 255, 255, 0.95)', display: 'flex', alignItems: 'center', gap: '8px', lineHeight: 1.1 }}>✓ 잔여 횟수 확인</li>
-                        <li style={{ fontSize: 'clamp(1.0rem, 2vh, 1.2rem)', color: 'rgba(255, 255, 255, 0.95)', display: 'flex', alignItems: 'center', gap: '8px', lineHeight: 1.1 }}>✓ 수업 일정 보기</li>
-                        <li style={{ fontSize: 'clamp(1.0rem, 2vh, 1.2rem)', color: 'rgba(255, 255, 255, 0.95)', display: 'flex', alignItems: 'center', gap: '8px', lineHeight: 1.1 }}>✓ 맞춤 알림 받기</li>
-                    </ul>
+            {/* QR코드 + 카메라 프리뷰 영역 (카메라는 왼쪽) */}
+            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 'clamp(10px, 2vw, 20px)' }}>
+                {/* 카메라 프리뷰 (설정 ON일 때만) */}
+                {showCamera && (
+                    <div style={{
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+                        animation: 'fadeIn 0.5s ease-out'
+                    }}>
+                    <div style={{
+                            width: 'clamp(80px, 14vh, 140px)',
+                            height: 'clamp(60px, 10vh, 105px)',
+                            borderRadius: '12px',
+                            overflow: 'hidden',
+                            border: isScanning ? '2px solid var(--primary-gold)' : '1px solid rgba(255, 215, 0, 0.2)',
+                            background: 'rgba(0,0,0,0.5)',
+                            cursor: faceRecognitionEnabled ? 'pointer' : 'default',
+                            position: 'relative',
+                            transition: 'border 0.3s',
+                            boxShadow: isScanning ? '0 0 15px rgba(212,175,55,0.2)' : 'none'
+                        }}
+                            onClick={faceRecognitionEnabled ? onCameraTouch : undefined}
+                        >
+                            <video
+                                ref={videoRef}
+                                autoPlay
+                                playsInline
+                                muted
+                                style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }}
+                            />
+                            {isScanning && (
+                                <div style={{
+                                    position: 'absolute', inset: 0,
+                                    border: '2px solid var(--primary-gold)',
+                                    borderRadius: '10px',
+                                    animation: 'pulse 1.5s ease-in-out infinite',
+                                    pointerEvents: 'none'
+                                }} />
+                            )}
+                            {faceRecognitionEnabled && !isScanning && (
+                                <div style={{
+                                    position: 'absolute', bottom: '2px', left: '50%', transform: 'translateX(-50%)',
+                                    fontSize: '0.5rem', color: 'var(--primary-gold)', background: 'rgba(0,0,0,0.7)',
+                                    padding: '1px 6px', borderRadius: '4px', whiteSpace: 'nowrap'
+                                }}>터치하여 등록</div>
+                            )}
+                        </div>
+                        <div style={{
+                            fontSize: 'clamp(0.5rem, 1vh, 0.65rem)',
+                            color: 'rgba(255,255,255,0.35)',
+                            textAlign: 'center',
+                            lineHeight: 1.3,
+                            maxWidth: 'clamp(80px, 14vh, 140px)'
+                        }}>
+                            🔐 사진 미저장 · 암호화 128숫자 변환<br/>불가역적 · 재구성 불가
+                        </div>
+                    </div>
+                )}
+
+                {/* QR코드 박스 */}
+                <div
+                    className="qr-box"
+                    style={{
+                        background: 'rgba(0,0,0,0.6)', borderRadius: '20px', padding: 'clamp(10px, 2vh, 20px) clamp(12px, 2vw, 30px)',
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        gap: 'clamp(8px, 1.5vw, 25px)', border: '1px solid rgba(255, 215, 0, 0.4)', touchAction: 'none'
+                    }}
+                    onTouchStart={handleQRInteraction}
+                    onMouseDown={(e) => { if (e.button === 0) handleQRInteraction(e); }}
+                >
+                    <div className="qr-img-wrapper" style={{ background: 'white', padding: 'clamp(6px, 1.5vh, 12px)', borderRadius: '16px', flexShrink: 0 }}>
+                        <img src={qrCodeUrl} alt="QR" style={{ width: 'clamp(65px, 12vh, 130px)', height: 'clamp(65px, 12vh, 130px)', display: 'block' }} />
+                    </div>
+                    <div className="qr-text" style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'center', marginTop: '-5px' }}>
+                        <h3 style={{ fontSize: 'clamp(1.15rem, 2.5vh, 1.9rem)', color: 'var(--primary-gold)', marginBottom: 'clamp(4px, 1vh, 16px)', fontWeight: 900, lineHeight: 1 }}>
+                            내 요가
+                        </h3>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 'clamp(2px, 0.5vh, 5px)' }}>
+                            <li style={{ fontSize: 'clamp(1.0rem, 2vh, 1.2rem)', color: 'rgba(255, 255, 255, 0.95)', display: 'flex', alignItems: 'center', gap: '8px', lineHeight: 1.1 }}>✓ 잔여 횟수 확인</li>
+                            <li style={{ fontSize: 'clamp(1.0rem, 2vh, 1.2rem)', color: 'rgba(255, 255, 255, 0.95)', display: 'flex', alignItems: 'center', gap: '8px', lineHeight: 1.1 }}>✓ 수업 일정 보기</li>
+                            <li style={{ fontSize: 'clamp(1.0rem, 2vh, 1.2rem)', color: 'rgba(255, 255, 255, 0.95)', display: 'flex', alignItems: 'center', gap: '8px', lineHeight: 1.1 }}>✓ 맞춤 알림 받기</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>

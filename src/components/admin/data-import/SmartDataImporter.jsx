@@ -48,23 +48,57 @@ const SmartDataImporter = ({ onImportComplete }) => {
         setError(null);
 
         try {
-            let payload = { docType: activeTab };
+            const parseStudioDocument = httpsCallable(functions, 'parseStudioDocument');
 
             if (currentTabInfo.type === 'image') {
                 const base64 = await convertToBase64(file);
-                payload.base64Image = base64;
+                const result = await parseStudioDocument({ docType: activeTab, base64Image: base64 });
+                if (result.data.success) {
+                    setParsedData(result.data.data);
+                } else {
+                    throw new Error(result.data.error || '알 수 없는 오류가 발생했습니다.');
+                }
             } else {
-                const text = await file.text(); // Read CSV or basic text. For actual xlsx, we might need a library, but text() works for CSV.
-                payload.textData = text;
-            }
-
-            const parseStudioDocument = httpsCallable(functions, 'parseStudioDocument');
-            const result = await parseStudioDocument(payload);
-
-            if (result.data.success) {
-                setParsedData(result.data.data);
-            } else {
-                throw new Error(result.data.error || '알 수 없는 오류가 발생했습니다.');
+                // TEXT (Members CSV/TXT) - CHUNKING LOGIC
+                const text = await file.text();
+                const lines = text.split('\n').filter(line => line.trim().length > 0);
+                
+                // If it's small enough, just send it
+                if (lines.length <= 40) {
+                    const result = await parseStudioDocument({ docType: activeTab, textData: text });
+                    if (result.data.success) {
+                        setParsedData(result.data.data);
+                    } else {
+                        throw new Error(result.data.error || '알 수 없는 오류가 발생했습니다.');
+                    }
+                } else {
+                    // Chunk processing (30 lines per chunk)
+                    const chunkSize = 30;
+                    let allMembers = [];
+                    
+                    // Optional: keep header if it exists (first line)
+                    const header = lines[0];
+                    const dataLines = lines.slice(1);
+                    
+                    for (let i = 0; i < dataLines.length; i += chunkSize) {
+                        const chunkLines = [header, ...dataLines.slice(i, i + chunkSize)].join('\n');
+                        console.log(`Processing chunk ${i/chunkSize + 1} / ${Math.ceil(dataLines.length/chunkSize)}`);
+                        
+                        const result = await parseStudioDocument({ docType: activeTab, textData: chunkLines });
+                        if (result.data.success && result.data.data && result.data.data.members) {
+                            allMembers = [...allMembers, ...result.data.data.members];
+                        } else {
+                            console.warn("Chunk failed:", result.data.error);
+                            // Continue anyway to try and salvage the rest
+                        }
+                    }
+                    
+                    if (allMembers.length === 0) {
+                        throw new Error('데이터를 추출하지 못했습니다. 형식을 확인해주세요.');
+                    }
+                    
+                    setParsedData({ members: allMembers });
+                }
             }
         } catch (err) {
             console.error(err);
@@ -76,10 +110,35 @@ const SmartDataImporter = ({ onImportComplete }) => {
 
     const convertToBase64 = (file) => {
         return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = (error) => reject(error);
+            if (file.type && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        // 1. Fill white background for transparent PNGs
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        // 2. Draw image on top
+                        ctx.drawImage(img, 0, 0);
+                        // 3. Export as high-quality JPEG (guarantees no transparency, smaller payload)
+                        resolve(canvas.toDataURL('image/jpeg', 0.9));
+                    };
+                    img.onerror = (error) => reject(error);
+                    img.src = e.target.result;
+                };
+                reader.onerror = (error) => reject(error);
+                reader.readAsDataURL(file);
+            } else {
+                // For non-images (unexpected in this flow, but fallback)
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = (error) => reject(error);
+            }
         });
     };
 
@@ -289,9 +348,9 @@ const SmartDataImporter = ({ onImportComplete }) => {
             )}
             
             {error && (
-                <div style={{ marginTop: '16px', padding: '12px', background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }}>
-                    <FileX size={20} weight="fill" />
-                    {error}
+                <div style={{ marginTop: '16px', padding: '16px', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid #EF4444', color: '#FFFFFF', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.95rem', fontWeight: 'bold' }}>
+                    <FileX size={24} color="#EF4444" weight="fill" />
+                    <span style={{ lineHeight: '1.4' }}>{error}</span>
                 </div>
             )}
         </div>

@@ -7,6 +7,7 @@ import { ScheduleClassEditor, SettingsModal } from './ScheduleHelpers';
 import { getTagColor } from '../utils/colors';
 import { useLanguageContext } from '../contexts/LanguageContext';
 import { useStudioConfig } from '../contexts/StudioContext';
+import * as bookingService from '../services/bookingService';
 
 const ColorLegend = ({ branchId }) => {
     const { config } = useStudioConfig();
@@ -54,6 +55,8 @@ const AdminScheduleManager = ({ branchId }) => {
     const [backupList, setBackupList] = useState([]);
     const [loading, setLoading] = useState(false);
     const [dayClasses, setDayClasses] = useState([]);
+    const [monthlyBookings, setMonthlyBookings] = useState({}); // { '2026-03-16': [booking, ...], ... }
+    const allowBooking = config?.POLICIES?.ALLOW_BOOKING;
     const [instructors, setInstructors] = useState([]);
     const [classTypes, setClassTypes] = useState([]);
     const [classLevels, setClassLevels] = useState([]);
@@ -114,6 +117,20 @@ const AdminScheduleManager = ({ branchId }) => {
             setLoading(false);
         }
     };
+
+    // [실시간] 월간 예약 데이터 구독
+    useEffect(() => {
+        if (!allowBooking) { setMonthlyBookings({}); return; }
+        const unsub = bookingService.subscribeMonthBookings(branchId, year, month, (bookings) => {
+            const byDate = {};
+            bookings.forEach(b => {
+                if (!byDate[b.date]) byDate[b.date] = [];
+                byDate[b.date].push(b);
+            });
+            setMonthlyBookings(byDate);
+        });
+        return () => unsub();
+    }, [year, month, branchId, allowBooking]);
 
     const loadMasterData = async () => {
         const [instructorList, classTypeList, classLevelList] = await Promise.all([
@@ -385,6 +402,20 @@ const AdminScheduleManager = ({ branchId }) => {
                                                                 {cls.level ? `Lv.${cls.level} ` : ''}{cls.instructor}
                                                             </span>
                                                         )}
+                                                        {allowBooking && (() => {
+                                                            const dateBookings = monthlyBookings[dateStr] || [];
+                                                            const clsBookings = dateBookings.filter(b => b.classIndex === idx && b.status !== 'cancelled');
+                                                            const bookedCount = clsBookings.filter(b => b.status === 'booked').length;
+                                                            const capacity = bookingService.getClassCapacity(cls, branchId, config);
+                                                            if (bookedCount === 0) return null;
+                                                            return (
+                                                                <span style={{
+                                                                    fontSize: '0.7em', fontWeight: 'bold',
+                                                                    color: bookedCount >= capacity ? '#ff4757' : '#3B82F6',
+                                                                    display: 'block'
+                                                                }}>📋 {bookedCount}/{capacity}명</span>
+                                                            );
+                                                        })()}
                                                     </div>
                                                 );
                                             })}

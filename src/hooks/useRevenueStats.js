@@ -77,6 +77,8 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch, reve
                 }
             }
 
+            const branchId = saleBranch || memberBranch || 'unknown';
+
             allItems.push({
                 id: s.id,
                 memberId: resolvedMemberId,
@@ -85,7 +87,8 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch, reve
                 name: s.memberName,
                 type: s.type || 'register', // Fallback type
                 item: s.item,
-                isNew: isNew
+                isNew: isNew,
+                branchId: branchId
             });
 
             // Add to dedup set
@@ -119,7 +122,8 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch, reve
                     name: m.name,
                     type: 'legacy',
                     item: m.subject || '수강권',
-                    isNew: true 
+                    isNew: true,
+                    branchId: m.homeBranch || 'unknown'
                 });
             }
         });
@@ -137,12 +141,15 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch, reve
         const dailyAmountsMap = new Map();
         finalItems.forEach(item => {
             const currentObj = dailyAmountsMap.get(item.date) || { 
-                amount: 0, count: 0, amountNew: 0, amountReReg: 0, amountNewCount: 0, amountReRegCount: 0, salesList: [] 
+                amount: 0, count: 0, amountNew: 0, amountReReg: 0, amountNewCount: 0, amountReRegCount: 0, salesList: [], branches: {} 
             };
             
             currentObj.amount += item.amount;
             currentObj.count += 1;
             currentObj.salesList.push(item);
+            
+            const bId = item.branchId || 'unknown';
+            currentObj.branches[bId] = (currentObj.branches[bId] || 0) + item.amount;
             
             if (item.isNew) {
                 currentObj.amountNew += item.amount;
@@ -247,10 +254,12 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch, reve
             const d = new Date(today);
             d.setDate(today.getDate() - i);
             const dStr = d.toLocaleDateString('sv-SE');
+            const dayData = dailyAmountsMap.get(dStr) || {};
             trendData.push({
                 date: dStr,
                 displayDate: `${d.getMonth() + 1}/${d.getDate()}`,
-                amount: getDailyTotalOptimized(dStr)
+                amount: dayData.amount || 0,
+                branches: dayData.branches || {}
             });
         }
 
@@ -265,6 +274,8 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch, reve
             
             let amount = 0;
             let partialAmount = 0;
+            let branches = {};
+            let partialBranches = {};
 
             if (revenueStats && currentBranch === 'all') {
                 amount = revenueStats.monthly?.[mStr]?.total || 0;
@@ -284,11 +295,26 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch, reve
                 });
             }
 
+            // Always calculate branch amounts from dailyAmountsMap for graphs
+            dailyAmountsMap.forEach((val, key) => {
+                if (key.startsWith(mStr)) {
+                    Object.entries(val.branches || {}).forEach(([bId, amt]) => {
+                        branches[bId] = (branches[bId] || 0) + amt;
+                        const dayPart = parseInt(key.substring(8, 10), 10);
+                        if (dayPart <= currentDayOfM) {
+                            partialBranches[bId] = (partialBranches[bId] || 0) + amt;
+                        }
+                    });
+                }
+            });
+
             monthlyTrendData.push({
                 name: label,
                 monthParams: mStr, 
                 amount: amount,
-                partialAmount: partialAmount
+                partialAmount: partialAmount,
+                branches,
+                partialBranches
             });
         }
 

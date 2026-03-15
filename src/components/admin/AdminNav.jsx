@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
     Users, ClockCounterClockwise, Calendar, Tag, ChartBar, 
-    Megaphone, BellRinging, Database, Desktop, Gear 
+    Megaphone, BellRinging, Database, Desktop, Gear, CalendarCheck 
 } from '@phosphor-icons/react';
 
 const AdminNav = ({ activeTab, setActiveTab, pendingApprovals, config }) => {
@@ -15,6 +15,12 @@ const AdminNav = ({ activeTab, setActiveTab, pendingApprovals, config }) => {
                 <ClockCounterClockwise size={22} weight={activeTab === 'logs' ? "fill" : "regular"} />
                 <span>출석</span>
             </button>
+            {config?.POLICIES?.ALLOW_BOOKING && (
+                <button onClick={() => setActiveTab('bookings')} className={`nav-tab-item ${activeTab === 'bookings' ? 'active' : ''}`}>
+                    <CalendarCheck size={22} weight={activeTab === 'bookings' ? "fill" : "regular"} />
+                    <span>예약</span>
+                </button>
+            )}
             <button onClick={() => setActiveTab('schedule')} className={`nav-tab-item ${activeTab === 'schedule' ? 'active' : ''}`}>
                 <Calendar size={22} weight={activeTab === 'schedule' ? "fill" : "regular"} />
                 <span>시간표</span>

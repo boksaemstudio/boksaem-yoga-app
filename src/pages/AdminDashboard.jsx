@@ -40,6 +40,7 @@ import KioskSettingsTab from '../components/admin/tabs/KioskSettingsTab';
 import AdminHeader from '../components/admin/AdminHeader';
 import AdminNav from '../components/admin/AdminNav';
 import StudioSettingsTab from '../components/admin/tabs/StudioSettingsTab';
+import BookingsTab from '../components/admin/tabs/BookingsTab';
 import AdminInsights from '../components/AdminInsights';
 import { usePWA } from '../hooks/usePWA';
 import ScheduleTab from '../components/admin/tabs/ScheduleTab';
@@ -488,6 +489,7 @@ const AdminDashboard = () => {
         if (pushEnabled) {
             setPushEnabled(false);
             localStorage.setItem('admin_push_enabled', 'false');
+            await storageService.deletePushToken(); // Delete token from server
             alert('이 기기에서의 알림 수신 표시를 껐습니다. (브라우저 권한은 유지됩니다)');
             return;
         }
@@ -693,6 +695,10 @@ const AdminDashboard = () => {
                     />
                 )}
 
+                {activeTab === 'bookings' && (
+                    <BookingsTab currentBranch={currentBranch} />
+                )}
+
                 {activeTab === 'data_migration' && config.FEATURES?.ENABLE_DATA_MIGRATION && (
                     <DataMigrationTab />
                 )}
@@ -744,6 +750,7 @@ const AdminDashboard = () => {
                     />
                 )
             }
+            <div style={{ height: '300px', width: '100%' }}></div>
         </div >
     );
 };

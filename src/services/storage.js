@@ -4,7 +4,7 @@ import { httpsCallable } from "firebase/functions";
 import { onSnapshot, doc, collection, getDocs, getDoc, addDoc, updateDoc, setDoc, deleteDoc, query, where, orderBy, limit as firestoreLimit, writeBatch } from 'firebase/firestore';
 // Removed firebase/storage imports
 import { STUDIO_CONFIG } from '../studioConfig';
-import { messaging, getToken } from "../firebase";
+import { messaging, getToken, VAPID_KEY } from "../firebase";
 import * as scheduleService from './scheduleService'; // [Refactor]
 import * as noticeService from './noticeService'; // [Refactor]
 import * as aiService from './aiService'; // [Refactor]
@@ -846,6 +846,9 @@ export const storageService = {
           
           let dataToUpdate = { 
             memberId, 
+            role: 'member',
+            platform: 'web',
+            language: localStorage.getItem('app_language') || 'ko',
             updatedAt: new Date().toISOString() 
           };
 
@@ -869,30 +872,41 @@ export const storageService = {
     if (!instructorName) return;
     try {
       const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        const token = await this.requestAndSaveToken('instructor');
-        if (token) {
-          const tokenRef = doc(db, 'fcm_tokens', token);
-          const tokenSnap = await getDoc(tokenRef);
-          
-          let dataToUpdate = {
-            token,
-            role: 'instructor',
-            instructorName,
-            updatedAt: new Date().toISOString(),
-            platform: 'web'
-          };
-
-          if (!tokenSnap.exists() || !tokenSnap.data().createdAt) {
-            dataToUpdate.createdAt = new Date().toISOString();
-          }
-
-          await setDoc(tokenRef, dataToUpdate, { merge: true });
-          console.log(`[Push] Instructor token registered for ${instructorName}`);
-          return true;
-        }
+      if (permission !== 'granted') {
+        console.warn('[Push] Notification permission denied');
+        return false;
       }
-      return false;
+
+      // [FIX] getToken 직접 호출 (requestAndSaveToken 함수 누락 수정)
+      const registration = await navigator.serviceWorker.ready;
+      const token = await getToken(messaging, {
+        vapidKey: VAPID_KEY,
+        serviceWorkerRegistration: registration
+      });
+
+      if (!token) {
+        console.warn('[Push] Failed to get FCM token');
+        return false;
+      }
+
+      const tokenRef = doc(db, 'fcm_tokens', token);
+      const tokenSnap = await getDoc(tokenRef);
+      
+      let dataToUpdate = {
+        token,
+        role: 'instructor',
+        instructorName,
+        updatedAt: new Date().toISOString(),
+        platform: 'web'
+      };
+
+      if (!tokenSnap.exists() || !tokenSnap.data().createdAt) {
+        dataToUpdate.createdAt = new Date().toISOString();
+      }
+
+      await setDoc(tokenRef, dataToUpdate, { merge: true });
+      console.log(`[Push] Instructor token registered for ${instructorName}: ${token.substring(0, 20)}...`);
+      return true;
     } catch (e) {
       console.error("Instructor push permission request failed:", e);
       return false;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line, Cell } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line, Cell, Legend } from 'recharts';
 import { CaretLeft, CaretRight, CalendarBlank as CalendarIcon } from '@phosphor-icons/react';
 import { useRevenueStats } from '../hooks/useRevenueStats';
 import { useStudioConfig } from '../contexts/StudioContext';
@@ -85,7 +85,7 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats }) => {
             {/* Revenue Graph (Straight Line) */}
             <div className="dashboard-card">
                 <h3 style={{ fontSize: '1.1rem', marginBottom: '20px', color: 'var(--text-secondary)' }}>최근 14일 일별 매출</h3>
-                <StraightLineChart data={recentTrend} />
+                <StraightLineChart data={recentTrend} branches={branches} showBranches={currentBranch === 'all' && branches.length > 1} />
             </div>
 
             {/* Monthly Bar Chart */}
@@ -95,16 +95,23 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats }) => {
                     <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
                         <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>i</div>
                         <div className="tooltip-text" style={{ width: '220px', left: 0, transform: 'translateX(0)' }}>
-                            <strong>매출 진도율 비교</strong><br/>선택한 조회 기준일(예: 15일)까지의 매출액 누적분(노란색)과 해당 월의 최종 전체 매출(회색 배경)을 겹쳐서 비교합니다.
+                            <strong>매출 진도율 비교</strong><br/>선택한 조회 기준일(예: 15일)까지의 매출액 누적분과 해당 월의 최종 전체 매출을 겹쳐서 비교합니다. 다중 지점일 경우 누적분이 지점별로 분할되어 표시됩니다.
                         </div>
                     </div>
                 </div>
                 <div style={{ flex: 1, minHeight: 0 }}>
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={monthlyTrend} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                        <BarChart data={monthlyTrend.map(d => {
+                            const row = { ...d };
+                            if (d.partialBranches) {
+                                Object.entries(d.partialBranches).forEach(([bId, amt]) => {
+                                    row[`partial_${bId}`] = amt;
+                                });
+                            }
+                            return row;
+                        })} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
                             
-                            {/* Primary X-Axis for rendering ticks */}
                             <XAxis 
                                 xAxisId={0}
                                 dataKey="name" 
@@ -113,7 +120,6 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats }) => {
                                 axisLine={{ stroke: '#3f3f46' }}
                                 tickLine={false}
                             />
-                            {/* Secondary X-Axis (hidden) to force overlap of the second bar */}
                             <XAxis 
                                 xAxisId={1} 
                                 dataKey="name" 
@@ -123,7 +129,7 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats }) => {
                             <YAxis 
                                 stroke="#71717a" 
                                 tick={{ fill: '#71717a', fontSize: 12 }} 
-                                tickFormatter={(value) => `${(value / 10000).toLocaleString()}만`}
+                                tickFormatter={(value) => value === 0 ? '0' : `${(value / 10000).toLocaleString()}만`}
                                 axisLine={false}
                                 tickLine={false}
                                 width={60}
@@ -139,25 +145,42 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats }) => {
                                 }}
                                 formatter={(value, name) => [
                                     `${new Intl.NumberFormat('ko-KR').format(value)}원`, 
-                                    name === 'amount' ? '총 매출' : `${currentDate.getDate()}일까지 매출`
+                                    name === 'amount' || name === 'partialAmount' ? (name === 'amount' ? '월 전체 매출' : `${currentDate.getDate()}일까지 매출`) : name
                                 ]}
                                 itemStyle={{ color: 'var(--primary-theme-color)' }}
                                 labelStyle={{ color: '#a1a1aa', marginBottom: '8px' }}
                             />
+                            <Legend 
+                                wrapperStyle={{ fontSize: '0.75rem', color: '#a1a1aa', paddingTop: '10px' }}
+                                formatter={(value) => {
+                                    if (value === 'amount') return '월 전체 매출';
+                                    if (value === 'partialAmount') return `${currentDate.getDate()}일까지 매출`;
+                                    return value;
+                                }}
+                            />
                             
                             {/* Background bar: Total Amount (Faint) */}
-                            <Bar xAxisId={0} dataKey="amount" radius={[4, 4, 0, 0]} maxBarSize={60}>
+                            <Bar xAxisId={0} dataKey="amount" name="amount" radius={[4, 4, 0, 0]} maxBarSize={60}>
                                 {monthlyTrend.map((entry, index) => (
                                     <Cell key={`cell-bg-${index}`} fill={entry.monthParams === `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}` ? 'rgba(212, 175, 55, 0.2)' : '#27272a'} />
                                 ))}
                             </Bar>
                             
-                            {/* Foreground bar: Partial Amount up to current day (Solid Overlay) */}
-                            <Bar xAxisId={1} dataKey="partialAmount" radius={[4, 4, 0, 0]} maxBarSize={60}>
-                                {monthlyTrend.map((entry, index) => (
-                                    <Cell key={`cell-fg-${index}`} fill={entry.monthParams === `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}` ? 'var(--primary-theme-color)' : '#52525b'} />
-                                ))}
-                            </Bar>
+                            {/* Foreground bar: Partial Amount up to current day */}
+                            {currentBranch === 'all' && branches.length > 1 ? (
+                                branches.map((b, i) => {
+                                    const branchColors = ['#00C49F', '#2196F3', '#FFBB28', '#FF8042', '#8884d8'];
+                                    return (
+                                        <Bar key={b.id} xAxisId={1} stackId="a" dataKey={`partial_${b.id}`} name={b.name} fill={branchColors[i % branchColors.length]} maxBarSize={60} />
+                                    );
+                                })
+                            ) : (
+                                <Bar xAxisId={1} dataKey="partialAmount" name="partialAmount" radius={[4, 4, 0, 0]} maxBarSize={60}>
+                                    {monthlyTrend.map((entry, index) => (
+                                        <Cell key={`cell-fg-${index}`} fill={entry.monthParams === `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}` ? 'var(--primary-theme-color)' : '#52525b'} />
+                                    ))}
+                                </Bar>
+                            )}
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -238,13 +261,24 @@ const CompCard = ({ title, amount }) => (
     </div>
 );
 
-const StraightLineChart = ({ data }) => {
+const StraightLineChart = ({ data, branches, showBranches }) => {
     // Keep data order as is (earliest to latest) so the latest date is on the right
-    const chartData = data;
+    // Transform data to flatten branch keys
+    const chartData = data.map(d => {
+        const row = { ...d };
+        if (d.branches) {
+            Object.entries(d.branches).forEach(([bId, amt]) => {
+                row[`branch_${bId}`] = amt;
+            });
+        }
+        return row;
+    });
 
     // [FIX] Y축을 실제 데이터 최대값에 맞게 자동 조정 (20% 여유)
     const maxAmount = Math.max(...(chartData || []).map(d => d.amount || 0), 0);
     const yMax = maxAmount > 0 ? Math.ceil(maxAmount * 1.2 / 50000) * 50000 : 100000;
+
+    const branchColors = ['#00C49F', '#2196F3', '#FFBB28', '#FF8042', '#8884d8'];
 
     return (
         <div style={{ width: '100%', height: '180px' }}>
@@ -276,17 +310,31 @@ const StraightLineChart = ({ data }) => {
                             fontSize: '0.85rem'
                         }}
                         itemStyle={{ color: 'var(--primary-theme-color)' }}
-                        formatter={(value) => [`${new Intl.NumberFormat('ko-KR').format(value)}원`, '매출']}
+                        formatter={(value, name) => [`${new Intl.NumberFormat('ko-KR').format(value)}원`, name === 'amount' ? '총합' : name]}
                         labelStyle={{ color: '#a1a1aa', marginBottom: '4px' }}
                     />
                     <Line 
                         type="linear" 
                         dataKey="amount" 
+                        name="총합"
                         stroke="var(--primary-theme-color)" 
                         strokeWidth={2} 
                         dot={{ r: 3, fill: '#000', stroke: 'var(--primary-theme-color)', strokeWidth: 2 }}
                         activeDot={{ r: 5, fill: 'var(--primary-theme-color)', stroke: '#000', strokeWidth: 2 }}
                     />
+                    <Legend wrapperStyle={{ fontSize: '0.7rem', color: '#a1a1aa', paddingTop: '4px' }} />
+                    {showBranches && branches.map((b, i) => (
+                        <Line
+                            key={b.id}
+                            type="linear"
+                            dataKey={`branch_${b.id}`}
+                            name={b.name}
+                            stroke={branchColors[i % branchColors.length]}
+                            strokeWidth={2}
+                            dot={{ r: 2, fill: '#000', stroke: branchColors[i % branchColors.length], strokeWidth: 1 }}
+                            activeDot={{ r: 4, fill: branchColors[i % branchColors.length], stroke: '#000', strokeWidth: 1 }}
+                        />
+                    ))}
                 </LineChart>
             </ResponsiveContainer>
         </div>

@@ -354,3 +354,119 @@ exports.checkExpiringMembersV2 = onSchedule({
     }
     return null;
 });
+
+/**
+ * 회원 자가 홀딩(일시정지) 신청
+ * - 회원앱에서 로그인한 회원이 자신의 수강권을 일시정지합니다.
+ * - 요가원별로 설정된 홀딩 규칙(HOLD_RULES)을 기반으로 자격을 검증합니다.
+ * - 홀딩 규칙은 studios/{studioId} 또는 settings 컬렉션에서 읽어옵니다.
+ */
+exports.applyMemberHoldCall = onCall({
+    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
+}, async (request) => {
+    const db = admin.firestore();
+    const { memberId, holdDays } = request.data;
+
+    if (!memberId || !holdDays || holdDays <= 0) {
+        throw new HttpsError('invalid-argument', '회원 ID와 홀딩 기간(일)이 필요합니다.');
+    }
+
+    try {
+        const memberRef = db.collection('members').doc(memberId);
+        const memberSnap = await memberRef.get();
+
+        if (!memberSnap.exists) {
+            throw new HttpsError('not-found', '회원을 찾을 수 없습니다.');
+        }
+
+        const memberData = memberSnap.data();
+
+        // 이미 홀딩 중인지 확인
+        if (memberData.holdStatus === 'holding') {
+            throw new HttpsError('failed-precondition', '이미 홀딩 중입니다.');
+        }
+
+        // 스튜디오 설정에서 홀딩 규칙 읽기 (원소스 멀티유즈)
+        let holdRules = [];
+        let allowSelfHold = false;
+        try {
+            // studios 컬렉션에서 먼저 시도 (SaaS 구조)
+            const studioSnap = await db.collection('studios').doc('config').get();
+            if (studioSnap.exists) {
+                const studioConfig = studioSnap.data();
+                allowSelfHold = studioConfig?.POLICIES?.ALLOW_SELF_HOLD || false;
+                holdRules = studioConfig?.POLICIES?.HOLD_RULES || [];
+            }
+        } catch (e) {
+            console.warn('[applyMemberHold] Studios config not found, skipping');
+        }
+
+        if (!allowSelfHold) {
+            throw new HttpsError('failed-precondition', '이 요가원에서는 자가 홀딩 기능이 비활성화되어 있습니다.');
+        }
+
+        // 회원의 수강 기간(개월 수) 판별 — duration 필드 없으면 startDate/endDate로 역산
+        let memberDuration = memberData.duration || 0;
+        if (!memberDuration && memberData.startDate && memberData.endDate && memberData.startDate !== 'TBD' && memberData.endDate !== 'TBD') {
+            const start = new Date(memberData.startDate);
+            const end = new Date(memberData.endDate);
+            const diffMonths = Math.round((end - start) / (1000 * 60 * 60 * 24 * 30));
+            memberDuration = diffMonths;
+        }
+        
+        // 매칭되는 홀딩 규칙 찾기: 정확한 매칭 → 가장 가까운 규칙 (작거나 같은 것 중 최대)
+        let matchedRule = holdRules.find(r => r.durationMonths === memberDuration);
+        if (!matchedRule && memberDuration > 0 && holdRules.length > 0) {
+            const eligible = holdRules.filter(r => r.durationMonths <= memberDuration).sort((a, b) => b.durationMonths - a.durationMonths);
+            matchedRule = eligible[0] || null;
+        }
+        if (!matchedRule) {
+            throw new HttpsError('failed-precondition', `${memberDuration}개월권에 대한 홀딩 규칙이 설정되어 있지 않습니다.`);
+        }
+
+        // 최대 일수 검증
+        const maxDays = (matchedRule.maxWeeks || 2) * 7;
+        if (holdDays > maxDays) {
+            throw new HttpsError('invalid-argument', `최대 ${maxDays}일(${matchedRule.maxWeeks}주)까지만 홀딩 가능합니다.`);
+        }
+
+        // 사용 횟수 검증
+        const holdHistory = memberData.holdHistory || [];
+        const usedCount = holdHistory.filter(h => !h.cancelledAt).length;
+        if (usedCount >= (matchedRule.maxCount || 1)) {
+            throw new HttpsError('failed-precondition', `홀딩 가능 횟수(${matchedRule.maxCount}회)를 모두 사용했습니다.`);
+        }
+
+        const today = getKSTDateString(new Date());
+
+        // 홀딩 적용
+        const holdEntry = {
+            startDate: today,
+            requestedDays: holdDays,
+            appliedAt: new Date().toISOString(),
+            releasedAt: null,
+            actualDays: null
+        };
+
+        await memberRef.update({
+            holdStatus: 'holding',
+            holdStartDate: today,
+            holdRequestedDays: holdDays,
+            holdHistory: admin.firestore.FieldValue.arrayUnion(holdEntry),
+            updatedAt: new Date().toISOString()
+        });
+
+        console.log(`[applyMemberHold] Hold applied for ${memberId}: ${holdDays} days from ${today}`);
+
+        return {
+            success: true,
+            message: `${holdDays}일 홀딩이 적용되었습니다.`,
+            holdStartDate: today,
+            holdDays
+        };
+    } catch (e) {
+        if (e.code) throw e;
+        console.error('[applyMemberHold] Error:', e);
+        throw new HttpsError('internal', '홀딩 처리 중 오류가 발생했습니다.');
+    }
+});

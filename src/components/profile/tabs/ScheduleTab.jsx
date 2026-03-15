@@ -15,7 +15,8 @@ const ScheduleTab = ({
     images,
     timeTable1,
     timeTable2,
-    setLightboxImage
+    setLightboxImage,
+    member
 }) => {
     const { config } = useStudioConfig();
     const viewToggleStyle = {
@@ -68,7 +69,7 @@ const ScheduleTab = ({
                     ))}
                 </div>
                 {scheduleView === 'calendar' ? (
-                    <MemberScheduleCalendar branchId={scheduleBranch || config.BRANCHES?.[0]?.id} attendanceLogs={validLogs} />
+                    <MemberScheduleCalendar branchId={scheduleBranch || config.BRANCHES?.[0]?.id} attendanceLogs={validLogs} memberId={member?.id} memberName={member?.name} />
                 ) : (
                     (() => {
                         const now = new Date();

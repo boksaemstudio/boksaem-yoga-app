@@ -424,7 +424,7 @@ const MemberProfile = () => {
             );
             if (exp) {
                 setAiExperience(exp);
-                storageService.setGreetingCache(m.id, exp);
+                storageService.setGreetingCache(m.id, { ...exp, _cachedForName: m.name });
             }
         } catch (e) {
             console.error("AI load failed:", e);
@@ -451,9 +451,13 @@ const MemberProfile = () => {
                 const m = JSON.parse(storedMember);
                 const cachedGreeting = storageService.getGreetingCache(m.id);
                 if (cachedGreeting) {
-                    // Check if cache is still valid (e.g. within same hour)
-                    // Simple check: if we have it, use it. Admin 'Data Insight' might need fresh, but Greeting is fine.
-                    setAiExperience(cachedGreeting);
+                    // [FIX] 캐시된 인사말이 현재 로그인한 사용자의 것인지 이름 검증
+                    const nameForCache = cachedGreeting._cachedForName || '';
+                    if (!nameForCache || nameForCache === m.name) {
+                        setAiExperience(cachedGreeting);
+                    } else {
+                        console.log('[MemberProfile] Greeting cache name mismatch, discarding');
+                    }
                 }
                 loadMemberData(m.id);
             } catch (e) {
@@ -1069,6 +1073,7 @@ const MemberProfile = () => {
                             timeTable1={timeTable1}
                             timeTable2={timeTable2}
                             setLightboxImage={setLightboxImage}
+                            member={member}
                         />
                     )}
 
@@ -1128,7 +1133,7 @@ const MemberProfile = () => {
 
             {/* Bottom Navigation (Hidden in Meditation Mode) */}
             {activeTab !== 'meditation' && (
-                <ProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} t={t} />
+                <ProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} t={t} config={config} />
             )}
 
             {/* Confirm/Alert Modal */}

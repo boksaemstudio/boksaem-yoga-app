@@ -101,15 +101,31 @@ export const getAIAnalysis = async (memberName, attendanceCount, logs, timeOfDay
  */
 export const getDailyYoga = async (language = 'ko') => {
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-    const cacheKey = `daily_yoga_${today}_${language}_v2`;
+    const cacheKey = `daily_yoga_${today}_${language}_v3`;
     const cached = safeGetItem(cacheKey);
 
-    if (cached) return JSON.parse(cached);
+    // [FIX] 이전 버전에서 null/잘못된 데이터가 캐시된 경우 무시
+    if (cached && cached !== 'null' && cached !== 'undefined') {
+        try {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch { /* ignore bad cache */ }
+    }
 
     try {
         const genYoga = httpsCallable(functions, 'generateDailyYogaV2');
         const response = await genYoga({ language, timeOfDay: new Date().getHours(), weather: 'Sunny' });
         const data = response.data;
+
+        // [FIX] CF가 JSON 파싱 실패로 null/빈 데이터를 반환한 경우 fallback
+        if (!data || (Array.isArray(data) && data.length === 0)) {
+            console.warn('[AI] getDailyYoga: CF returned empty data, using fallback');
+            const fallbackData = [
+                { name: "Child's Pose", benefit: language === 'ko' ? "휴식 및 이완" : "Rest", instruction: language === 'ko' ? "이마를 매트에 대고 편안하게 쉽니다." : "Rest forehead on mat.", emoji: "👶" },
+                { name: "Cat-Cow", benefit: language === 'ko' ? "척추 유연성" : "Spine Flex", instruction: language === 'ko' ? "숨을 마시며 등을 펴고, 내쉬며 둥글게 맙니다." : "Inhale arch, exhale round.", emoji: "🐈" }
+            ];
+            return fallbackData;
+        }
 
         safeSetItem(cacheKey, JSON.stringify(data));
         return data;

@@ -104,22 +104,22 @@ const InstructorPage = () => {
 
     // [PWA] Install Guide State is handled via InstallBanner component now.
 
-    // [PUSH] Request notification permission and register token for instructor
+    // [PUSH] Auto-register push token for instructor on login
     useEffect(() => {
         if (!instructorName) return;
         
         const registerPush = async () => {
-            // Wait a bit to not overwhelm the user immediately
             setTimeout(async () => {
                 try {
-                    console.log(`[InstructorPage] Attempting push auto-registration for: ${instructorName}`);
-                    // [REFACTOR] Use existing saveInstructorToken logic indirectly via handleEnablePush-like flow if possible
-                    // Or just skip auto-request if it's too aggressive.
-                    // For now, removing the call to non-existent method to prevent crash.
+                    // If permission is already granted, silently re-register token
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        console.log(`[InstructorPage] Auto-registering push token for: ${instructorName}`);
+                        await storageService.requestInstructorPushPermission(instructorName);
+                    }
                 } catch (e) {
-                    console.error('[InstructorPage] Push registration failed:', e);
+                    console.error('[InstructorPage] Push auto-registration failed:', e);
                 }
-            }, 5000);
+            }, 3000);
         };
         
         registerPush();
@@ -428,7 +428,7 @@ const InstructorPage = () => {
                 zIndex: 10
             }}>
                 <TabButton icon={<House size={24} />} label="홈" active={activeTab === 'home'} onClick={() => setActiveTab('home')} />
-                <TabButton icon={<CalendarBlank size={24} />} label="시간표" active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} />
+                <TabButton icon={<CalendarBlank size={24} />} label={config?.POLICIES?.ALLOW_BOOKING ? "시간표/예약현황" : "시간표"} active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} />
                 <TabButton icon={<Bell size={24} />} label="공지" active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} />
             </div>
 

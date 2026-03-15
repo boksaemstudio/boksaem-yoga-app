@@ -61,17 +61,37 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
 
         // 2. Auto Push Registration
         // 로그인 상태이고 알림 권한이 확실히 거절(denied)된 상태가 아니며 아직 부여되지 않았다면 자동 요청
+        let tokenRefreshInterval;
         if (instructorName && typeof window !== 'undefined' && 'Notification' in window) {
              if (window.Notification.permission === 'default') {
                  // 브라우저가 사용자에게 묻는 상태(default)일 경우 자동 트리거
                  setTimeout(() => {
                      handleEnablePush();
                  }, 3000); // 3초 뒤 자연스럽게 권한 요청 팝업 띄움
+             } else if (window.Notification.permission === 'granted') {
+                 // 이미 허용된 상태면 토큰만 조용히 재등록 (Firestore에 토큰이 없을 수도 있으므로)
+                 const refreshToken = async () => {
+                     try {
+                         const token = await getToken(messaging, {
+                             vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
+                         });
+                         if (token) {
+                             await storageService.saveInstructorToken(token, instructorName);
+                             console.log('[InstructorHome] Token refreshed for:', instructorName);
+                         }
+                     } catch (e) {
+                         console.warn('[InstructorHome] Silent token refresh failed:', e);
+                     }
+                 };
+                 setTimeout(refreshToken, 2000); // 초기 등록
+                 // [NEW] 1시간마다 토큰 자동 갱신 — 브라우저가 토큰을 교체해도 항상 최신 유지
+                 tokenRefreshInterval = setInterval(refreshToken, 60 * 60 * 1000);
              }
         }
 
         return () => {
             window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+            if (tokenRefreshInterval) clearInterval(tokenRefreshInterval);
         };
     }, [instructorName, hidePwaGuide]);
 

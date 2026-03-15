@@ -24,6 +24,7 @@ const scheduledFunctions = require('./modules/scheduled');
 const meditationFunctions = require('./modules/meditation');
 const solapiFunctions = require('./modules/solapi');
 const statsFunctions = require('./modules/stats');
+const bookingFunctions = require('./modules/booking');
 
 // Re-export all functions
 module.exports = {
@@ -49,7 +50,10 @@ module.exports = {
     ...solapiFunctions,
 
     // Statistics and Revenue Aggregation
-    ...statsFunctions
+    ...statsFunctions,
+
+    // Booking Management (No-show, Waitlist)
+    ...bookingFunctions
 };
 
 /**
@@ -66,11 +70,12 @@ module.exports = {
  *   - translateNoticesV2
  *   - generateDailyYogaV2
  * 
- * memberFunctions (4):
+ * memberFunctions (5):
  *   - getSecureMemberV2Call
  *   - memberLoginV2Call
  *   - verifyInstructorV2Call
  *   - checkExpiringMembersV2
+ *   - applyMemberHoldCall
  * 
  * attendanceFunctions (2):
  *   - checkInMemberV2Call

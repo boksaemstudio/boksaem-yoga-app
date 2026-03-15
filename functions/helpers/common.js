@@ -179,6 +179,22 @@ const getStudioName = async () => {
     return "요가 스튜디오";
 };
 
+/**
+ * 스튜디오 로고 URL 가져오기 (SaaS 동적 브랜딩)
+ */
+const getStudioLogoUrl = async () => {
+    try {
+        const studioId = process.env.STUDIO_ID || 'default';
+        const doc = await admin.firestore().collection('studios').doc(studioId).get();
+        if (doc.exists && doc.data().IDENTITY?.LOGO_URL) {
+            return doc.data().IDENTITY.LOGO_URL;
+        }
+    } catch (e) {
+        console.warn("Failed to fetch studio logo:", e);
+    }
+    return 'https://boksaem-yoga.web.app/logo_circle.png'; // 기본 폴백
+};
+
 module.exports = {
     admin,
     logAIError,
@@ -187,6 +203,7 @@ module.exports = {
     checkAIQuota,
     createPendingApproval,
     getStudioName, // [NEW] 동적 브랜딩 지원
+    getStudioLogoUrl, // [NEW] 동적 로고 URL
     FCM_COLLECTIONS,
     getAllFCMTokens,
     getKSTDateString // [NEW] 안전한 날짜 생성기

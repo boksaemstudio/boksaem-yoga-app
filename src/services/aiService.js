@@ -21,11 +21,42 @@ export const getAIExperience = async (memberName, attendanceCount, day, hour, up
             memberName, attendanceCount, dayOfWeek: day, timeOfDay: hour, upcomingClass, weather, credits, remainingDays, language, diligence,
             role: isGeneric ? 'visitor' : 'member', type: 'experience', context
         });
+        const data = res.data;
         
-        if (res.data && !res.data.isFallback) {
-            _safeSetItem(cacheKey, JSON.stringify(res.data));
+        // [FIX] CF가 JSON 파싱 실패로 null을 반환한 경우 fallback
+        if (!data || (Array.isArray(data) && data.length === 0)) {
+            console.warn('[AI] getAIExperience: CF returned empty data, using fallback');
+            // Re-use the existing fallback logic from the catch block
+            if (context === 'instructor' || memberName?.includes('선생님')) {
+                const instructorQuotes = [
+                    "매트 위에서 나를 만나는 소중한 시간입니다.",
+                    "오늘도 회원들에게 따뜻한 에너지를 전해주세요.",
+                    "선생님의 미소가 스튜디오를 밝힙니다.",
+                    "호흡을 통해 마음의 평온을 찾으세요.",
+                    "오늘 하루도 건강하고 행복하게!",
+                    "수련의 깊이가 더해지는 하루가 되길 바랍니다.",
+                    "나눔의 기쁨을 실천하는 멋진 선생님.",
+                    "잠시 멈추어 내면의 소리에 귀 기울여보세요.",
+                    "오늘도 즐거운 수련 되세요!"
+                ];
+                const randomQuote = instructorQuotes[Math.floor(Math.random() * instructorQuotes.length)];
+                return { message: randomQuote, bgTheme: "sunny", colorTone: "#FFFFFF", isFallback: true };
+            }
+    
+            const fallbacks = {
+                ko: "오늘도 매트 위에서 나를 만나는 소중한 시간 되시길 바랍니다.",
+                en: "May you find a precious moment to meet yourself on the mat today.",
+                ru: "Желаю вам найти драгоценный момент для встречи с собой на коврике сегодня.",
+                zh: "愿你今天在垫子上找到与自己相遇的珍贵时刻.",
+                ja: "今日もマットの上で自分自身と向き合う大切な時間となりますように。"
+            };
+            return { message: fallbacks[language] || fallbacks['ko'], bgTheme: "sunny", colorTone: "#FFFFFF", isFallback: true };
         }
-        return res.data;
+        
+        if (data && !data.isFallback) {
+            _safeSetItem(cacheKey, JSON.stringify(data));
+        }
+        return data;
     } catch (error) {
         console.warn("AI Experience failed, using fallback:", error);
         
@@ -87,15 +118,31 @@ export const getAIAnalysis = async (memberName, attendanceCount, logs, timeOfDay
 
 export const getDailyYoga = async (language = 'ko') => {
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-    const cacheKey = `daily_yoga_${today}_${language}_v2`;
+    const cacheKey = `daily_yoga_${today}_${language}_v3`;
     const cached = _safeGetItem(cacheKey);
 
-    if (cached) return JSON.parse(cached);
+    // [FIX] 이전 버전에서 null/잘못된 데이터가 캐시된 경우 무시
+    if (cached && cached !== 'null' && cached !== 'undefined') {
+        try {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch { /* ignore bad cache */ }
+    }
 
     try {
         const genYoga = httpsCallable(functions, 'generateDailyYogaV2');
         const response = await genYoga({ language, timeOfDay: new Date().getHours(), weather: 'Sunny' });
         const data = response.data;
+
+        // [FIX] CF가 JSON 파싱 실패로 null/빈 데이터를 반환한 경우 fallback
+        if (!data || (Array.isArray(data) && data.length === 0)) {
+            console.warn('[AI] getDailyYoga: CF returned empty data, using fallback');
+            const fallbackData = [
+                { name: "Child's Pose", benefit: language === 'ko' ? "휴식 및 이완" : "Rest", instruction: language === 'ko' ? "이마를 매트에 대고 편안하게 쉽니다." : "Rest forehead on mat.", emoji: "👶" },
+                { name: "Cat-Cow", benefit: language === 'ko' ? "척추 유연성" : "Spine Flex", instruction: language === 'ko' ? "숨을 마시며 등을 펴고, 내쉬며 둥글게 맙니다." : "Inhale arch, exhale round.", emoji: "🐈" }
+            ];
+            return fallbackData;
+        }
 
         _safeSetItem(cacheKey, JSON.stringify(data));
         return data;

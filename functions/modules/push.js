@@ -8,7 +8,7 @@
 
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { admin, getAI, logAIError, getAllFCMTokens, getStudioName } = require("../helpers/common");
+const { admin, getAI, logAIError, getAllFCMTokens, getStudioName, getStudioLogoUrl } = require("../helpers/common");
 
 /**
  * 개인 메시지 푸시 알림
@@ -47,6 +47,7 @@ exports.sendPushOnMessageV2 = onDocumentCreated({
         }
 
         const studioName = await getStudioName();
+        const logoUrl = await getStudioLogoUrl();
         const payload = {
             notification: { title: `${studioName} 메시지`, body: content },
             data: { url: "https://boksaem-yoga.web.app/member?tab=messages" }
@@ -57,7 +58,7 @@ exports.sendPushOnMessageV2 = onDocumentCreated({
             notification: payload.notification,
             data: payload.data,
             webpush: {
-                notification: { icon: "https://boksaem-yoga.web.app/logo_circle.png" },
+                notification: { icon: logoUrl },
                 fcm_options: { link: "https://boksaem-yoga.web.app/member?tab=messages" }
             },
             android: {
@@ -130,6 +131,7 @@ exports.sendBulkPushV2 = onDocumentCreated({
     const data = snap.data();
     const targetMemberIds = data.targetMemberIds || [];
     const studioName = await getStudioName();
+    const logoUrl = await getStudioLogoUrl();
     const titleOriginal = data.title || studioName;
     const bodyOriginal = data.body || "";
 
@@ -155,13 +157,13 @@ exports.sendBulkPushV2 = onDocumentCreated({
                 const body = await ai.translate(bodyOriginal, lang);
                 contentsByLang[lang] = {
                     notification: { title, body },
-                    webpush: { notification: { icon: "https://boksaem-yoga.web.app/logo_circle.png" } },
+                    webpush: { notification: { icon: logoUrl } },
                     android: { notification: { color: "#D4AF37" } }
                 };
             } catch (e) {
                 contentsByLang[lang] = {
                     notification: { title: titleOriginal, body: bodyOriginal },
-                    webpush: { notification: { icon: "https://boksaem-yoga.web.app/logo_circle.png" } },
+                    webpush: { notification: { icon: logoUrl } },
                     android: { notification: { color: "#D4AF37" } }
                 };
             }
@@ -248,6 +250,7 @@ exports.sendPushOnNoticeV2 = onDocumentCreated({
     try {
         const db = admin.firestore();
         const ai = getAI();
+        const logoUrl = await getStudioLogoUrl();
         // [FIX] 인라인 3중 컬렉션 순회 → getAllFCMTokens 헬퍼 + 그룹핑
         const { tokens: allTokens } = await getAllFCMTokens(db);
         const tokensByGroup = {};
@@ -289,7 +292,7 @@ exports.sendPushOnNoticeV2 = onDocumentCreated({
                     notification: { title, body },
                     data: { url: clickUrl },
                     webpush: { 
-                        notification: { icon: "https://boksaem-yoga.web.app/logo_circle.png" },
+                        notification: { icon: logoUrl },
                         fcm_options: { link: clickUrl }
                     },
                     android: { notification: { color: "#D4AF37" } }

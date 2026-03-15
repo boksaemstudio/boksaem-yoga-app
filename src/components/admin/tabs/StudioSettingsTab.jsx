@@ -1,32 +1,44 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStudioConfig } from '../../../contexts/StudioContext';
-import { Gear, Palette, ShieldCheck, MapPin, Info, FloppyDisk, ArrowsClockwise, Robot } from '@phosphor-icons/react';
-import { getContrastText } from '../../../utils/colors';
+import { Gear, MapPin, FloppyDisk, ArrowsClockwise, Robot, Image as ImageIcon, Phone, MapPinLine, Globe } from '@phosphor-icons/react';
 import SmartDataImporter from '../data-import/SmartDataImporter';
+import { storage } from '../../../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const StudioSettingsTab = () => {
     const { config, updateConfig, refreshConfig, loading } = useStudioConfig();
     const [localConfig, setLocalConfig] = useState(config);
     const [isSaving, setIsSaving] = useState(false);
     const [showImporter, setShowImporter] = useState(false);
+    const [logoUploading, setLogoUploading] = useState(false);
+    const logoInputRef = useRef(null);
 
     useEffect(() => {
         if (config && Object.keys(config).length > 0) {
-            setLocalConfig(config);
+            const currentConfig = JSON.parse(JSON.stringify(config));
+            
+            // [TEMPORARY FIX] Auto-remove 'te' branch if exists
+            if (currentConfig.BRANCHES && currentConfig.BRANCHES.some(b => b.id === 'te')) {
+                currentConfig.BRANCHES = currentConfig.BRANCHES.filter(b => b.id !== 'te');
+                updateConfig({ BRANCHES: currentConfig.BRANCHES }).then(() => {
+                    console.log("'te' branch auto-removed.");
+                });
+            }
+
+            setLocalConfig(currentConfig);
         }
     }, [config]);
-
-    const themeColor = config.THEME?.PRIMARY_COLOR || '#D4AF37';
-    const contrastText = getContrastText(themeColor);
 
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            await updateConfig(localConfig);
-            alert('설정이 성공적으로 저장되었습니다.');
+            // Firestore는 undefined 값을 거부 — JSON 순환으로 정리
+            const cleanConfig = JSON.parse(JSON.stringify(localConfig));
+            await updateConfig(cleanConfig);
+            alert('설정이 저장되었습니다.');
         } catch (error) {
             console.error('Failed to save config:', error);
-            alert('설정 저장 중 오류가 발생했습니다.');
+            alert(`설정 저장 실패: ${error.message || '알 수 없는 오류'}`);
         } finally {
             setIsSaving(false);
         }
@@ -46,12 +58,60 @@ const StudioSettingsTab = () => {
 
     if (loading && !localConfig.IDENTITY) return <div style={{ padding: '40px', textAlign: 'center' }}>설정 로드 중...</div>;
 
+    // 재사용: 토글 스위치 컴포넌트
+    const ToggleSwitch = ({ checked, onChange }) => (
+        <label style={{ position: 'relative', display: 'inline-block', width: '50px', height: '26px', cursor: 'pointer', flexShrink: 0 }}>
+            <input 
+                type="checkbox" 
+                checked={checked} 
+                onChange={onChange} 
+                style={{ opacity: 0, width: 0, height: 0 }}
+            />
+            <span style={{
+                position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
+                backgroundColor: checked ? 'var(--primary-theme-color)' : 'rgba(255,255,255,0.1)',
+                transition: '0.3s', borderRadius: '26px', border: `1px solid ${checked ? 'var(--primary-theme-color)' : 'rgba(255,255,255,0.2)'}`
+            }}>
+                <span style={{
+                    position: 'absolute', height: '20px', width: '20px',
+                    left: checked ? '26px' : '3px', bottom: '2px',
+                    backgroundColor: 'white', transition: '0.3s', borderRadius: '50%', boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                }} />
+            </span>
+        </label>
+    );
+
+    // 재사용: ＋/－ 스텝퍼 컴포넌트
+    const Stepper = ({ value, onChange, min = 1, unit = '' }) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <button onClick={() => onChange(Math.max(min, value - 1))}
+                style={{ width: '32px', height: '32px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+            <span style={{ minWidth: '28px', textAlign: 'center', fontSize: '1rem', fontWeight: 'bold', color: 'white' }}>{value}</span>
+            <button onClick={() => onChange(value + 1)}
+                style={{ width: '32px', height: '32px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+            {unit && <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{unit}</span>}
+        </div>
+    );
+
+    // 재사용: 기능 카드 스타일 (홀딩/예약 공통)
+    const featureCardStyle = { 
+        marginTop: '16px', padding: '20px', 
+        background: 'rgba(255,255,255,0.02)', borderRadius: '12px', 
+        border: '1px solid var(--border-color)' 
+    };
+
+    const featureHeaderStyle = { 
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' 
+    };
+
+    const bookingRules = localConfig.POLICIES?.BOOKING_RULES || {};
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '900px', margin: '0 auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Gear size={32} weight="fill" color="var(--primary-theme-color)" />
-                    스튜디오 핵심 설정
+                    우리 요가원 설정
                 </h2>
                 <div style={{ display: 'flex', gap: '10px' }}>
                     <button 
@@ -70,7 +130,7 @@ const StudioSettingsTab = () => {
                             alignItems: 'center', 
                             gap: '8px', 
                             background: 'var(--primary-theme-color)', 
-                            color: contrastText,
+                            color: 'black',
                             padding: '8px 20px',
                             fontWeight: 'bold',
                             boxShadow: '0 4px 15px var(--primary-theme-skeleton)'
@@ -81,14 +141,64 @@ const StudioSettingsTab = () => {
                 </div>
             </div>
 
-            {/* 1. Identity Section */}
+            {/* ─── 1. 우리 요가원 ─── */}
             <div className="dashboard-card">
                 <h3 className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                    <Info size={20} weight="fill" color="var(--primary-theme-color)" /> 스튜디오 정보 (Identity)
+                    🏠 우리 요가원
                 </h3>
+
+                {/* 로고 업로드 */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px', padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                    <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--primary-gold)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.3)' }}>
+                        {localConfig.IDENTITY?.LOGO_URL ? (
+                            <img src={localConfig.IDENTITY.LOGO_URL} alt="로고" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                            <ImageIcon size={32} color="white" />
+                        )}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '6px', fontSize: '0.95rem' }}>요가원 로고</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '10px' }}>회원 앱과 알림에 표시돼요</div>
+                        <input
+                            ref={logoInputRef}
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                if (file.size > 2 * 1024 * 1024) { alert('파일 크기는 2MB 이하여야 합니다.'); return; }
+                                setLogoUploading(true);
+                                try {
+                                    const logoRef = ref(storage, `studio/logo_${Date.now()}.${file.name.split('.').pop()}`);
+                                    await uploadBytes(logoRef, file, { contentType: file.type });
+                                    const url = await getDownloadURL(logoRef);
+                                    handleChange('IDENTITY.LOGO_URL', url);
+                                    alert('로고가 업로드되었습니다. 저장 버튼을 눌러 적용하세요.');
+                                } catch (err) {
+                                    console.error('[Settings] Logo upload error:', err);
+                                    alert('로고 업로드 실패: ' + err.message);
+                                } finally {
+                                    setLogoUploading(false);
+                                }
+                            }}
+                        />
+                        <button
+                            onClick={() => logoInputRef.current?.click()}
+                            disabled={logoUploading}
+                            className="action-btn sm"
+                            style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', fontSize: '0.8rem' }}
+                        >
+                            <ImageIcon size={14} weight="bold" style={{ marginRight: '4px' }} />
+                            {logoUploading ? '업로드 중...' : '로고 변경'}
+                        </button>
+                    </div>
+                </div>
+
+                {/* 기본 정보 */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
                     <div className="input-group">
-                        <label>스튜디오 이름</label>
+                        <label>요가원 이름</label>
                         <input 
                             type="text" 
                             className="styled-input" 
@@ -97,7 +207,7 @@ const StudioSettingsTab = () => {
                         />
                     </div>
                     <div className="input-group">
-                        <label>슬로건</label>
+                        <label>한 줄 소개</label>
                         <input 
                             type="text" 
                             className="styled-input" 
@@ -106,92 +216,330 @@ const StudioSettingsTab = () => {
                         />
                     </div>
                     <div className="input-group">
-                        <label>앱 버전</label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={14} /> 전화번호</label>
+                        <input 
+                            type="tel" 
+                            className="styled-input" 
+                            placeholder="02-1234-5678"
+                            value={localConfig.IDENTITY?.PHONE || ''} 
+                            onChange={(e) => handleChange('IDENTITY.PHONE', e.target.value)} 
+                        />
+                    </div>
+                    <div className="input-group">
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPinLine size={14} /> 주소</label>
                         <input 
                             type="text" 
                             className="styled-input" 
-                            value={localConfig.IDENTITY?.APP_VERSION || ''} 
-                            onChange={(e) => handleChange('IDENTITY.APP_VERSION', e.target.value)} 
+                            placeholder="서울시 마포구..."
+                            value={localConfig.IDENTITY?.ADDRESS || ''} 
+                            onChange={(e) => handleChange('IDENTITY.ADDRESS', e.target.value)} 
                         />
                     </div>
-                </div>
-            </div>
-
-            {/* 2. Theme Section */}
-            <div className="dashboard-card">
-                <h3 className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                    <Palette size={20} weight="fill" color="var(--primary-theme-color)" /> 브랜드 테마 (Theme)
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
-                    <div className="input-group">
-                        <label>프라이머리 컬러 (Primary)</label>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <input 
-                                type="color" 
-                                style={{ width: '40px', height: '40px', padding: 0, border: 'none', background: 'none', cursor: 'pointer' }}
-                                value={localConfig.THEME?.PRIMARY_COLOR || '#D4AF37'} 
-                                onChange={(e) => handleChange('THEME.PRIMARY_COLOR', e.target.value)} 
-                            />
-                            <input 
-                                type="text" 
-                                className="styled-input" 
-                                value={localConfig.THEME?.PRIMARY_COLOR || ''} 
-                                onChange={(e) => handleChange('THEME.PRIMARY_COLOR', e.target.value)} 
-                            />
+                    <div className="input-group" style={{ gridColumn: '1 / -1' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '12px' }}>
+                            <Globe size={14} /> 외부 링크 관리 (SNS, 블로그 등)
+                        </label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {(localConfig.IDENTITY?.SOCIAL_LINKS || []).map((link, idx) => (
+                                <div key={idx} style={{ display: 'flex', gap: '10px' }}>
+                                    <input 
+                                        type="text" 
+                                        placeholder="이름 (예: 인스타그램)" 
+                                        className="styled-input" 
+                                        style={{ flex: 1, minWidth: '120px' }}
+                                        value={link.label || ''}
+                                        onChange={(e) => {
+                                            const newLinks = [...(localConfig.IDENTITY.SOCIAL_LINKS || [])];
+                                            newLinks[idx] = { ...newLinks[idx], label: e.target.value };
+                                            handleChange('IDENTITY.SOCIAL_LINKS', newLinks);
+                                        }}
+                                    />
+                                    <input 
+                                        type="url" 
+                                        placeholder="URL (https://...)" 
+                                        className="styled-input" 
+                                        style={{ flex: 2 }}
+                                        value={link.url || ''}
+                                        onChange={(e) => {
+                                            const newLinks = [...(localConfig.IDENTITY.SOCIAL_LINKS || [])];
+                                            newLinks[idx] = { ...newLinks[idx], url: e.target.value };
+                                            handleChange('IDENTITY.SOCIAL_LINKS', newLinks);
+                                        }}
+                                    />
+                                    <button 
+                                        className="action-btn sm" 
+                                        style={{ background: 'rgba(255,100,100,0.1)', color: '#ff6666', border: '1px solid rgba(255,100,100,0.2)' }}
+                                        onClick={() => {
+                                            const newLinks = [...(localConfig.IDENTITY.SOCIAL_LINKS || [])];
+                                            newLinks.splice(idx, 1);
+                                            handleChange('IDENTITY.SOCIAL_LINKS', newLinks);
+                                        }}
+                                    >
+                                        삭제
+                                    </button>
+                                </div>
+                            ))}
+                            <button 
+                                className="action-btn sm" 
+                                style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', border: '1px dashed var(--border-color)', marginTop: '4px' }}
+                                onClick={() => {
+                                    const newLinks = [...(localConfig.IDENTITY?.SOCIAL_LINKS || []), { label: '', url: '' }];
+                                    handleChange('IDENTITY.SOCIAL_LINKS', newLinks);
+                                }}
+                            >
+                                + 링크 추가
+                            </button>
                         </div>
                     </div>
-                    <div className="input-group">
-                        <label>스켈레톤 컬러 (Skeleton)</label>
-                        <input 
-                            type="text" 
-                            className="styled-input" 
-                            value={localConfig.THEME?.SKELETON_COLOR || ''} 
-                            onChange={(e) => handleChange('THEME.SKELETON_COLOR', e.target.value)} 
-                            placeholder="rgba(212, 175, 55, 0.1)"
-                        />
-                    </div>
-                </div>
-                <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed var(--border-color)' }}>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', margin: '0 0 10px 0' }}>💡 색상을 변경하면 즉시 모든 사용자의 앱 테마가 실시간으로 업데이트됩니다.</p>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <div style={{ width: '100px', height: '30px', background: localConfig.THEME?.PRIMARY_COLOR, borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: getContrastText(localConfig.THEME?.PRIMARY_COLOR || '#D4AF37'), fontWeight: 'bold' }}>
-                            PREVIEW
-                        </div>
-                    </div>
                 </div>
             </div>
 
-            {/* 3. Policies Section */}
+            {/* ─── 2. 운영 규칙 ─── */}
             <div className="dashboard-card">
                 <h3 className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                    <ShieldCheck size={20} weight="fill" color="var(--primary-theme-color)" /> 정책 임계값 (Policies)
+                    📋 운영 규칙
                 </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
-                    <div className="input-group">
-                        <label>세션 자동 종료 (초)</label>
-                        <input 
-                            type="number" 
-                            className="styled-input" 
-                            value={localConfig.POLICIES?.SESSION_AUTO_CLOSE_SEC || ''} 
-                            onChange={(e) => handleChange('POLICIES.SESSION_AUTO_CLOSE_SEC', parseInt(e.target.value))} 
+
+                {/* ── 2-1. 회원 홀딩 ── */}
+                <div style={featureCardStyle}>
+                    <div style={featureHeaderStyle}>
+                        <div>
+                            <div style={{ fontWeight: 'bold', fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '4px' }}>⏸️ 회원 홀딩 (일시정지)</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>회원이 앱에서 수강권을 일시정지할 수 있습니다</div>
+                        </div>
+                        <ToggleSwitch 
+                            checked={localConfig.POLICIES?.ALLOW_SELF_HOLD || false}
+                            onChange={(e) => handleChange('POLICIES.ALLOW_SELF_HOLD', e.target.checked)}
                         />
                     </div>
-                    <div className="input-group">
-                        <label>신규 회원 기준 (일)</label>
-                        <input 
-                            type="number" 
-                            className="styled-input" 
-                            value={localConfig.POLICIES?.NEW_MEMBER_THRESHOLD_DAYS || ''} 
-                            onChange={(e) => handleChange('POLICIES.NEW_MEMBER_THRESHOLD_DAYS', parseInt(e.target.value))} 
+
+                    {localConfig.POLICIES?.ALLOW_SELF_HOLD && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '4px' }}>홀딩 규칙 (수강권별)</div>
+                            {(localConfig.POLICIES?.HOLD_RULES || []).map((rule, rIdx) => (
+                                <div key={rIdx} style={{ display: 'flex', gap: '8px', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '12px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)', flexWrap: 'wrap' }}>
+                                    <div style={{ flex: 1, minWidth: '90px' }}>
+                                        <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', marginBottom: '6px' }}>수강 기간</div>
+                                        <Stepper 
+                                            value={rule.durationMonths || 1}
+                                            onChange={(v) => { const rules = [...(localConfig.POLICIES?.HOLD_RULES || [])]; rules[rIdx] = { ...rules[rIdx], durationMonths: v }; handleChange('POLICIES.HOLD_RULES', rules); }}
+                                            unit="개월"
+                                        />
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: '90px' }}>
+                                        <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', marginBottom: '6px' }}>최대 횟수</div>
+                                        <Stepper 
+                                            value={rule.maxCount || 1}
+                                            onChange={(v) => { const rules = [...(localConfig.POLICIES?.HOLD_RULES || [])]; rules[rIdx] = { ...rules[rIdx], maxCount: v }; handleChange('POLICIES.HOLD_RULES', rules); }}
+                                            unit="회"
+                                        />
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: '90px' }}>
+                                        <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', marginBottom: '6px' }}>1회 최대</div>
+                                        <Stepper 
+                                            value={rule.maxWeeks || 1}
+                                            onChange={(v) => { const rules = [...(localConfig.POLICIES?.HOLD_RULES || [])]; rules[rIdx] = { ...rules[rIdx], maxWeeks: v }; handleChange('POLICIES.HOLD_RULES', rules); }}
+                                            unit="주"
+                                        />
+                                    </div>
+                                    <button 
+                                        onClick={() => {
+                                            const rules = [...(localConfig.POLICIES?.HOLD_RULES || [])];
+                                            rules.splice(rIdx, 1);
+                                            handleChange('POLICIES.HOLD_RULES', rules);
+                                        }}
+                                        style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.1rem', padding: '4px 8px', alignSelf: 'flex-start', marginTop: '16px' }}
+                                        title="삭제"
+                                    >✕</button>
+                                </div>
+                            ))}
+                            <button 
+                                className="action-btn sm"
+                                style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', border: '1px dashed var(--border-color)', fontSize: '0.8rem' }}
+                                onClick={() => {
+                                    const rules = [...(localConfig.POLICIES?.HOLD_RULES || []), { durationMonths: 3, maxCount: 1, maxWeeks: 2 }];
+                                    handleChange('POLICIES.HOLD_RULES', rules);
+                                }}
+                            >+ 규칙 추가</button>
+                        </div>
+                    )}
+                </div>
+
+                {/* ── 2-2. 수업 예약 ── */}
+                <div style={featureCardStyle}>
+                    <div style={featureHeaderStyle}>
+                        <div>
+                            <div style={{ fontWeight: 'bold', fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '4px' }}>📅 수업 예약</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>회원이 앱에서 수업을 미리 예약할 수 있습니다</div>
+                        </div>
+                        <ToggleSwitch 
+                            checked={localConfig.POLICIES?.ALLOW_BOOKING || false}
+                            onChange={(e) => handleChange('POLICIES.ALLOW_BOOKING', e.target.checked)}
                         />
                     </div>
+
+                    {localConfig.POLICIES?.ALLOW_BOOKING && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            {/* 예약 없이 직접 출석 안내 */}
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', padding: '10px 14px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                💡 예약 기능을 켜도, 예약 없이 직접 오는 회원은 기존처럼 출석 가능합니다. 다만 정원이 찬 수업은 워크인이 제한될 수 있습니다.
+                            </div>
+
+                            {/* 정원 */}
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', background: 'rgba(255,255,255,0.03)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)', flexWrap: 'wrap' }}>
+                                <div style={{ flex: 1, minWidth: '140px' }}>
+                                    <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '4px' }}>수업당 최대 인원</div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginBottom: '8px' }}>시간표에서 수업별로 따로 정할 수도 있습니다</div>
+                                    {(localConfig.BRANCHES?.length || 0) >= 2 ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', minWidth: '50px' }}>기본값</span>
+                                                <Stepper 
+                                                    value={bookingRules.defaultCapacity || 15}
+                                                    onChange={(v) => handleChange('POLICIES.BOOKING_RULES', { ...bookingRules, defaultCapacity: v })}
+                                                    unit="명"
+                                                />
+                                            </div>
+                                            {localConfig.BRANCHES.map((branch) => (
+                                                <div key={branch.id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <span style={{ fontSize: '0.7rem', color: 'var(--primary-theme-color)', minWidth: '50px', fontWeight: 'bold' }}>{branch.name}</span>
+                                                    <Stepper 
+                                                        value={(bookingRules.branchCapacity || {})[branch.id] || bookingRules.defaultCapacity || 15}
+                                                        onChange={(v) => {
+                                                            const bc = { ...(bookingRules.branchCapacity || {}) };
+                                                            bc[branch.id] = v;
+                                                            handleChange('POLICIES.BOOKING_RULES', { ...bookingRules, branchCapacity: bc });
+                                                        }}
+                                                        unit="명"
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <Stepper 
+                                            value={bookingRules.defaultCapacity || 15}
+                                            onChange={(v) => handleChange('POLICIES.BOOKING_RULES', { ...bookingRules, defaultCapacity: v })}
+                                            unit="명"
+                                        />
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* 예약 시간 규칙 */}
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', background: 'rgba(255,255,255,0.03)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)', flexWrap: 'wrap' }}>
+                                <div style={{ flex: 1, minWidth: '120px' }}>
+                                    <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', marginBottom: '6px' }}>예약 가능 기간</div>
+                                    <Stepper 
+                                        value={bookingRules.windowDays || 7}
+                                        onChange={(v) => handleChange('POLICIES.BOOKING_RULES', { ...bookingRules, windowDays: v })}
+                                        unit="일 전부터"
+                                    />
+                                </div>
+                                <div style={{ flex: 1, minWidth: '120px' }}>
+                                    <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', marginBottom: '6px' }}>예약 마감</div>
+                                    <Stepper 
+                                        value={bookingRules.deadlineHours || 1}
+                                        onChange={(v) => handleChange('POLICIES.BOOKING_RULES', { ...bookingRules, deadlineHours: v })}
+                                        unit="시간 전"
+                                    />
+                                </div>
+                                <div style={{ flex: 1, minWidth: '120px' }}>
+                                    <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', marginBottom: '6px' }}>취소 마감</div>
+                                    <Stepper 
+                                        value={bookingRules.cancelDeadlineHours || 3}
+                                        onChange={(v) => handleChange('POLICIES.BOOKING_RULES', { ...bookingRules, cancelDeadlineHours: v })}
+                                        unit="시간 전"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* 예약 제한 */}
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', background: 'rgba(255,255,255,0.03)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)', flexWrap: 'wrap' }}>
+                                <div style={{ flex: 1, minWidth: '120px' }}>
+                                    <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', marginBottom: '6px' }}>동시 예약 한도</div>
+                                    <Stepper 
+                                        value={bookingRules.maxActiveBookings || 3}
+                                        onChange={(v) => handleChange('POLICIES.BOOKING_RULES', { ...bookingRules, maxActiveBookings: v })}
+                                        unit="건"
+                                    />
+                                </div>
+                                <div style={{ flex: 1, minWidth: '120px' }}>
+                                    <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', marginBottom: '6px' }}>하루 최대 예약</div>
+                                    <Stepper 
+                                        value={bookingRules.maxDailyBookings || 2}
+                                        onChange={(v) => handleChange('POLICIES.BOOKING_RULES', { ...bookingRules, maxDailyBookings: v })}
+                                        unit="건"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* 노쇼 규칙 */}
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', background: 'rgba(255,255,255,0.03)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)', flexWrap: 'wrap' }}>
+                                <div style={{ flex: 1, minWidth: '140px' }}>
+                                    <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '8px' }}>노쇼 (예약 후 미출석)</div>
+                                    <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', marginBottom: '6px' }}>미출석 시 횟수 차감</div>
+                                    <Stepper 
+                                        value={bookingRules.noshowCreditDeduct || 1}
+                                        onChange={(v) => handleChange('POLICIES.BOOKING_RULES', { ...bookingRules, noshowCreditDeduct: v })}
+                                        min={0}
+                                        unit="회 차감"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* 대기열 */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                <div>
+                                    <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '4px' }}>대기열</div>
+                                    <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>정원 초과 시 대기 → 취소 발생 시 자동 예약 + 알림</div>
+                                </div>
+                                <ToggleSwitch 
+                                    checked={bookingRules.enableWaitlist !== false}
+                                    onChange={(e) => handleChange('POLICIES.BOOKING_RULES', { ...bookingRules, enableWaitlist: e.target.checked })}
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* ── 2-3. 출석 화면 카메라 ── */}
+                <div style={featureCardStyle}>
+                    <div style={featureHeaderStyle}>
+                        <div>
+                            <div style={{ fontWeight: 'bold', fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '4px' }}>📷 출석 화면 카메라</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>출석체크 화면에 카메라 영상을 표시합니다</div>
+                        </div>
+                        <ToggleSwitch 
+                            checked={localConfig.POLICIES?.SHOW_CAMERA_PREVIEW || false}
+                            onChange={(e) => handleChange('POLICIES.SHOW_CAMERA_PREVIEW', e.target.checked)}
+                        />
+                    </div>
+
+                    {/* 하위 옵션: 안면인식 자동 출석 (카메라 ON일 때만 표시) */}
+                    {localConfig.POLICIES?.SHOW_CAMERA_PREVIEW && (
+                        <div style={{ 
+                            marginTop: '12px', paddingTop: '12px', paddingLeft: '20px',
+                            borderTop: '1px solid rgba(255,255,255,0.05)'
+                        }}>
+                            <div style={featureHeaderStyle}>
+                                <div>
+                                    <div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '4px' }}>🧠 안면인식 자동 출석</div>
+                                    <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>등록된 회원의 얼굴을 인식하면 자동으로 출석 처리합니다</div>
+                                </div>
+                                <ToggleSwitch 
+                                    checked={localConfig.POLICIES?.FACE_RECOGNITION_ENABLED || false}
+                                    onChange={(e) => handleChange('POLICIES.FACE_RECOGNITION_ENABLED', e.target.checked)}
+                                />
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* 4. Branches Section */}
+            {/* ─── 3. 지점 관리 ─── */}
             <div className="dashboard-card">
                 <h3 className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                    <MapPin size={20} weight="fill" color="var(--primary-theme-color)" /> 지점 관리 (Branches)
+                    <MapPin size={20} weight="fill" color="var(--primary-theme-color)" /> 지점 관리
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {localConfig.BRANCHES?.map((branch, index) => (
@@ -200,25 +548,11 @@ const StudioSettingsTab = () => {
                                 <input 
                                     type="text" 
                                     className="styled-input sm" 
-                                    style={{ background: 'none', border: 'none', fontWeight: 'bold', padding: '4px 0' }}
+                                    style={{ background: 'none', border: 'none', fontWeight: 'bold', padding: '4px 0', color: 'var(--text-primary)' }}
                                     value={branch.name} 
                                     onChange={(e) => {
                                         const newBranches = [...localConfig.BRANCHES];
                                         newBranches[index].name = e.target.value;
-                                        handleChange('BRANCHES', newBranches);
-                                    }}
-                                />
-                                <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>ID: {branch.id}</div>
-                            </div>
-                            <div className="input-group" style={{ width: '120px', marginBottom: 0 }}>
-                                <input 
-                                    type="color" 
-                                    className="styled-input sm" 
-                                    style={{ height: '30px', padding: '2px' }}
-                                    value={branch.color || '#D4AF37'} 
-                                    onChange={(e) => {
-                                        const newBranches = [...localConfig.BRANCHES];
-                                        newBranches[index].color = e.target.value;
                                         handleChange('BRANCHES', newBranches);
                                     }}
                                 />
@@ -229,9 +563,13 @@ const StudioSettingsTab = () => {
                         className="action-btn sm" 
                         style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', border: '1px dashed var(--border-color)' }}
                         onClick={() => {
-                            const id = prompt('새 지점 ID를 입력하세요 (영문):');
-                            if (id) {
-                                const newBranches = [...(localConfig.BRANCHES || []), { id, name: '새 지점', color: '#D4AF37' }];
+                            const name = prompt('새 지점 이름을 입력하세요:');
+                            if (name) {
+                                // 자동 ID 생성: 한글→영문 변환 또는 타임스탬프 기반
+                                const id = name.replace(/[^a-zA-Z0-9가-힣]/g, '').toLowerCase() || `branch_${Date.now()}`;
+                                const autoId = id.replace(/[가-힣]+/g, () => `branch_${Date.now()}`);
+                                const finalId = /^[a-z]/.test(autoId) ? autoId : `branch_${Date.now()}`;
+                                const newBranches = [...(localConfig.BRANCHES || []), { id: finalId, name, color: '#D4AF37' }];
                                 handleChange('BRANCHES', newBranches);
                             }
                         }}
@@ -241,7 +579,7 @@ const StudioSettingsTab = () => {
                 </div>
             </div>
             
-            {/* 5. Hidden Data Migration (AI) */}
+            {/* 4. 데이터 마이그레이션 (숨김) */}
             <div style={{ marginTop: '20px', padding: '10px 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--text-tertiary)', fontSize: '0.8rem', userSelect: 'none' }}>
                     <input 
@@ -258,7 +596,6 @@ const StudioSettingsTab = () => {
                     <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
                         <SmartDataImporter onImportComplete={(type, data) => {
                             console.log('Imported:', type, data);
-                            // TODO: Add logic to save the imported data to DB
                         }} />
                     </div>
                 )}

@@ -31,6 +31,7 @@ import SelectionModal from '../components/checkin/SelectionModal';
 import DuplicateConfirmModal from '../components/checkin/DuplicateConfirmModal';
 import InstructorQRModal from '../components/InstructorQRModal';
 import KioskInstallGuideModal from '../components/checkin/KioskInstallGuideModal';
+import FaceRegistrationModal from '../components/checkin/FaceRegistrationModal';
 
 const CheckInPage = () => {
     const { config } = useStudioConfig();
@@ -61,6 +62,13 @@ const CheckInPage = () => {
     const [kioskNoticeHidden, setKioskNoticeHidden] = useState(false);
     const [showInstructorQR, setShowInstructorQR] = useState(false);
     const [keypadLocked, setKeypadLocked] = useState(false);
+    const [showFaceRegModal, setShowFaceRegModal] = useState(false);
+    const [isScanning, setIsScanning] = useState(false);
+    const faceRecognitionEnabled = config.POLICIES?.FACE_RECOGNITION_ENABLED && config.POLICIES?.SHOW_CAMERA_PREVIEW;
+    const faceVideoRef = useRef(null);
+    const biometricsCache = useRef([]);
+    const scanIntervalRef = useRef(null);
+    const lastAutoCheckInRef = useRef(0);
 
     // [FIX] Cloud Function Cold Start Warmup
     const warmupTriggered = useRef(false);
@@ -161,6 +169,81 @@ const CheckInPage = () => {
     useEffect(() => {
         loadFacialModels().then(() => setFaceModelsLoaded(true));
     }, []);
+
+    // [FACIAL] Preload all biometrics for real-time matching
+    useEffect(() => {
+        if (!faceRecognitionEnabled || !faceModelsLoaded) return;
+        
+        const loadBiometrics = async () => {
+            try {
+                const { collection, getDocs } = await import('firebase/firestore');
+                const { db } = await import('../firebase');
+                const snap = await getDocs(collection(db, 'face_biometrics'));
+                biometricsCache.current = snap.docs.map(d => ({ memberId: d.id, ...d.data() }));
+                console.log(`[FACIAL] Biometrics cache loaded: ${biometricsCache.current.length} entries`);
+            } catch (e) {
+                console.warn('[FACIAL] Biometrics cache load failed:', e);
+            }
+        };
+        loadBiometrics();
+
+        // Refresh every 5 minutes
+        const refreshInterval = setInterval(loadBiometrics, 5 * 60 * 1000);
+        return () => clearInterval(refreshInterval);
+    }, [faceRecognitionEnabled, faceModelsLoaded]);
+
+    // [FACIAL] Real-time face scan loop (every 3 seconds)
+    useEffect(() => {
+        if (!faceRecognitionEnabled || !faceModelsLoaded) return;
+
+        const scanForFace = async () => {
+            // Skip if modal/message/loading is active or recently auto-checked-in
+            const state = autoUpdateRef.current;
+            if (state.message || state.loading || state.showSelectionModal || state.showDuplicateConfirm) return;
+            if (Date.now() - lastAutoCheckInRef.current < 15000) return; // 15s cooldown
+            if (biometricsCache.current.length === 0) return;
+
+            // Use the CheckInInfoSection camera video
+            const video = faceVideoRef.current;
+            if (!video || !video.srcObject || video.readyState < 2) return;
+
+            try {
+                setIsScanning(true);
+                const descriptor = await extractFaceDescriptor(video, true);
+                setIsScanning(false);
+                
+                if (!descriptor) return;
+
+                // Match against all cached biometrics
+                let bestMatch = null;
+                let minDistance = 0.5; // Strict threshold for auto-checkin
+
+                for (const bio of biometricsCache.current) {
+                    if (!bio.descriptor) continue;
+                    const storedDesc = new Float32Array(Object.values(bio.descriptor));
+                    const faceapi = await import('@vladmandic/face-api');
+                    const distance = faceapi.euclideanDistance(descriptor, storedDesc);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        bestMatch = bio;
+                    }
+                }
+
+                if (bestMatch) {
+                    console.log(`[FACIAL] Auto-match found: ${bestMatch.memberId} (distance: ${minDistance.toFixed(3)})`);
+                    lastAutoCheckInRef.current = Date.now();
+                    lastDescriptorRef.current = descriptor;
+                    proceedWithCheckIn(null, false, bestMatch.memberId, null);
+                }
+            } catch (e) {
+                setIsScanning(false);
+                console.warn('[FACIAL] Scan error:', e.message);
+            }
+        };
+
+        scanIntervalRef.current = setInterval(scanForFace, 3000);
+        return () => { if (scanIntervalRef.current) clearInterval(scanIntervalRef.current); };
+    }, [faceRecognitionEnabled, faceModelsLoaded]);
 
 
 
@@ -552,7 +635,7 @@ const CheckInPage = () => {
             <TopBar weather={weather} currentBranch={currentBranch} branches={branches} handleBranchChange={c => { setCurrentBranch(c); storageService.setKioskBranch(c); }} toggleFullscreen={() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }} language="ko" onInstructorClick={() => setShowInstructorQR(true)} />
 
             <div className="checkin-content" style={{ zIndex: 5, flex: 1, display: 'flex', gap: '2vh', padding: '3vh 3vw 5vh', width: '100%', alignItems: 'stretch', overflow: 'hidden' }}>
-                <CheckInInfoSection pin={pin} loading={loading} aiExperience={aiExperience} aiEnhancedMsg={aiEnhancedMsg} aiLoading={aiLoading} rys200Logo={rys200Logo} logoWide={logoWide} qrCodeUrl={qrCodeUrl} handleQRInteraction={() => setShowKioskInstallGuide(true)} />
+                <CheckInInfoSection pin={pin} loading={loading} aiExperience={aiExperience} aiEnhancedMsg={aiEnhancedMsg} aiLoading={aiLoading} rys200Logo={rys200Logo} logoWide={logoWide} qrCodeUrl={qrCodeUrl} handleQRInteraction={() => setShowKioskInstallGuide(true)} onCameraTouch={() => setShowFaceRegModal(true)} faceRecognitionEnabled={faceRecognitionEnabled} isScanning={isScanning} cameraVideoRef={faceVideoRef} />
                 <CheckInKeypadSection pin={pin} loading={loading} isReady={isReady} loadingMessage={loadingMessage} keypadLocked={keypadLocked} showSelectionModal={showSelectionModal} message={message} handleKeyPress={handleKeyPress} handleClear={handleClear} handleSubmit={handleSubmit} />
             </div >
 
@@ -577,6 +660,7 @@ const CheckInPage = () => {
 
             <KioskInstallGuideModal isOpen={showKioskInstallGuide} onClose={() => setShowKioskInstallGuide(false)} />
             <InstructorQRModal isOpen={showInstructorQR} onClose={() => setShowInstructorQR(false)} />
+            <FaceRegistrationModal isOpen={showFaceRegModal} onClose={() => setShowFaceRegModal(false)} videoRef={faceVideoRef} />
             <video ref={videoRef} autoPlay playsInline muted style={{ position: 'fixed', left: '0', top: '0', width: '1px', height: '1px', opacity: 0.01, zIndex: -100, pointerEvents: 'none' }} />
             <canvas ref={canvasRef} style={{ position: 'fixed', left: '0', top: '0', width: '1px', height: '1px', opacity: 0.01, zIndex: -100, pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', top: '4px', right: '12px', fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)', pointerEvents: 'none', zIndex: 3001, fontFamily: 'monospace', letterSpacing: '0.5px' }}>{BUILD_VERSION}</div>

@@ -3,6 +3,7 @@ import { storageService } from '../../services/storage';
 import { getMonthlyClasses } from '../../services/scheduleService';
 import { isHoliday, getHolidayName } from '../../utils/holidays';
 import { useStudioConfig } from '../../contexts/StudioContext';
+import * as bookingService from '../../services/bookingService';
 
 const navBtnStyle = {
     background: 'var(--bg-input)', border: 'none', color: 'var(--text-primary)', width: '36px', height: '36px',
@@ -17,6 +18,9 @@ const InstructorSchedule = ({ instructorName }) => {
     const [dateAttendance, setDateAttendance] = useState([]);
     const [expandedClassKey, setExpandedClassKey] = useState(null); // time_title
     const [loadingAttendance, setLoadingAttendance] = useState(false);
+    const [dayBookings, setDayBookings] = useState([]);
+    const [monthlyBookingCounts, setMonthlyBookingCounts] = useState({}); // { '2026-03-16': 3, ... }
+    const allowBooking = config?.POLICIES?.ALLOW_BOOKING;
 
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth() + 1;
@@ -68,12 +72,60 @@ const InstructorSchedule = ({ instructorName }) => {
             }
         });
 
+        // 5초 타임아웃 — 구독 에러 시 무한 로딩 방지
+        const timeout = setTimeout(() => {
+            if (isInitialLoad) {
+                setLoadingAttendance(false);
+                isInitialLoad = false;
+            }
+        }, 5000);
+
         setExpandedClassKey(null); // Reset expansion on date change
         
         return () => {
             if (unsubscribe) unsubscribe();
+            clearTimeout(timeout);
         };
     }, [selectedDate]);
+
+    // [실시간] 예약 데이터 구독
+    useEffect(() => {
+        if (!selectedDate || !allowBooking || branches.length === 0) { setDayBookings([]); return; }
+        const unsubs = branches.map(branch =>
+            bookingService.subscribeDayBookings(selectedDate, branch.id, (bookings) => {
+                setDayBookings(prev => {
+                    // 다른 branch의 기존 예약 유지 + 이 branch의 예약 교체
+                    const otherBranch = prev.filter(b => b.branchId !== branch.id);
+                    return [...otherBranch, ...bookings];
+                });
+            })
+        );
+        return () => unsubs.forEach(u => u());
+    }, [selectedDate, allowBooking, branches]);
+
+    // [실시간] 월간 예약 수 요약 구독
+    useEffect(() => {
+        if (!allowBooking || branches.length === 0) { setMonthlyBookingCounts({}); return; }
+        const unsubs = branches.map(branch =>
+            bookingService.subscribeMonthBookings(branch.id, year, month, (bookings) => {
+                setMonthlyBookingCounts(prev => {
+                    // 이 branch의 카운트만 재계산
+                    const updated = { ...prev };
+                    // 이전에 이 branch에서 추가된 날짜 카운트 초기화
+                    Object.keys(updated).forEach(d => {
+                        if (updated[d] !== undefined) updated[d] = 0;
+                    });
+                    bookings.forEach(b => {
+                        if (b.status === 'booked' || b.status === 'waitlisted') {
+                            updated[b.date] = (updated[b.date] || 0) + 1;
+                        }
+                    });
+                    return updated;
+                });
+            })
+        );
+        return () => unsubs.forEach(u => u());
+    }, [year, month, allowBooking, branches]);
 
     const daysInMonth = new Date(year, month, 0).getDate();
     const firstDay = new Date(year, month - 1, 1).getDay();
@@ -185,6 +237,16 @@ const InstructorSchedule = ({ instructorName }) => {
                             textOverflow: 'ellipsis'
                         }}>
                             {holidayMap[holidayName] || holidayName}
+                        </span>
+                    )}
+                    {allowBooking && monthlyBookingCounts[dateStr] > 0 && (
+                        <span style={{
+                            fontSize: '0.6rem',
+                            color: isSelected ? 'black' : '#3B82F6',
+                            fontWeight: 'bold',
+                            marginTop: '1px'
+                        }}>
+                            📋{monthlyBookingCounts[dateStr]}
                         </span>
                     )}
                 </div>
@@ -306,12 +368,52 @@ const InstructorSchedule = ({ instructorName }) => {
                                         </div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <div style={{ fontSize: '0.95rem', textDecoration: isCancelled ? 'line-through' : 'none', color: isCancelled ? 'var(--text-secondary)' : 'var(--text-primary)' }}>{cls.title}</div>
-                                            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginRight: isCancelled ? '0' : '60px' }}>{cls.instructor}</span>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                {/* 예약/출석 인원 뱃지 */}
+                                                {allowBooking && !isCancelled && (() => {
+                                                    const clsBookings = dayBookings.filter(b => b.classIndex === idx && b.branchId === cls.branchId);
+                                                    const bookedCount = clsBookings.filter(b => b.status === 'booked' || b.status === 'attended').length;
+                                                    const capacity = bookingService.getClassCapacity(cls, cls.branchId, config);
+                                                    if (bookedCount === 0 && capacity > 0) return null;
+                                                    return (
+                                                        <span style={{
+                                                            fontSize: '0.7rem', fontWeight: 'bold',
+                                                            padding: '2px 8px', borderRadius: '10px',
+                                                            background: bookedCount >= capacity ? 'rgba(255,71,87,0.15)' : 'rgba(212,175,55,0.15)',
+                                                            color: bookedCount >= capacity ? '#ff4757' : 'var(--primary-gold)',
+                                                            border: `1px solid ${bookedCount >= capacity ? 'rgba(255,71,87,0.3)' : 'rgba(212,175,55,0.3)'}`
+                                                        }}>예약 {bookedCount}/{capacity}</span>
+                                                    );
+                                                })()}
+                                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginRight: isCancelled ? '0' : '60px' }}>{cls.instructor}</span>
+                                            </div>
                                         </div>
 
                                         {/* Attendee List Expansion */}
                                         {expandedClassKey === `${cls.time}_${cls.title}` && (
                                             <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                                                {/* 예약자 명단 */}
+                                                {allowBooking && (() => {
+                                                    const clsBookings = dayBookings.filter(b => b.classIndex === idx && b.branchId === cls.branchId && b.status !== 'cancelled');
+                                                    if (clsBookings.length === 0) return null;
+                                                    return (
+                                                        <div style={{ marginBottom: '10px' }}>
+                                                            <div style={{ fontSize: '0.8rem', color: 'var(--primary-gold)', marginBottom: '6px', fontWeight: 'bold' }}>📋 예약 명단</div>
+                                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                                                {clsBookings.map(b => (
+                                                                    <span key={b.id} style={{
+                                                                        padding: '3px 8px', borderRadius: '6px', fontSize: '0.78rem',
+                                                                        background: b.status === 'attended' ? 'rgba(46,213,115,0.1)' : b.status === 'noshow' ? 'rgba(255,71,87,0.1)' : b.status === 'waitlisted' ? 'rgba(243,156,18,0.1)' : 'rgba(212,175,55,0.08)',
+                                                                        color: b.status === 'attended' ? '#2ed573' : b.status === 'noshow' ? '#ff4757' : b.status === 'waitlisted' ? '#f39c12' : 'var(--text-secondary)',
+                                                                        border: `1px solid ${b.status === 'attended' ? 'rgba(46,213,115,0.2)' : b.status === 'noshow' ? 'rgba(255,71,87,0.2)' : b.status === 'waitlisted' ? 'rgba(243,156,18,0.2)' : 'rgba(212,175,55,0.15)'}`
+                                                                    }}>
+                                                                        {b.status === 'attended' ? '✅' : b.status === 'noshow' ? '❌' : b.status === 'waitlisted' ? '⏳' : '📋'} {b.memberName}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })()}
                                                 <div style={{ fontSize: '0.8rem', color: 'var(--primary-gold)', marginBottom: '8px', fontWeight: 'bold' }}>👥 출석 명단</div>
                                                 {loadingAttendance ? (
                                                     <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>조회 중...</div>

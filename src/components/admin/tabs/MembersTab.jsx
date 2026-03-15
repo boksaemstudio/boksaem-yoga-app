@@ -374,6 +374,18 @@ const MembersTab = ({
                                         <div style={{ flex: 1, marginLeft: '10px', width: '100%' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                                                     <strong style={{ fontSize: '1.1rem', fontWeight: 800 }}>{member.name}</strong>
+                                                    {member.hasFaceDescriptor && (
+                                                        <span className="badge" style={{
+                                                            fontSize: '0.65rem',
+                                                            background: 'rgba(99, 102, 241, 0.15)',
+                                                            color: '#818CF8',
+                                                            border: '1px solid rgba(99, 102, 241, 0.3)',
+                                                            padding: '1px 6px',
+                                                            display: 'flex', alignItems: 'center', gap: '3px'
+                                                        }}>
+                                                            🧠 안면인식
+                                                        </span>
+                                                    )}
                                                     {filterType === 'installed' && (
                                                         <span className="badge" style={{
                                                             fontSize: '0.7rem',
@@ -436,6 +448,17 @@ const MembersTab = ({
                                                 {member.upcomingMembership && !(member.upcomingMembership.startDate !== 'TBD' && new Date(member.upcomingMembership.startDate).getTime() <= todayStartMs) && (
                                                     <span className="badge" style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#C084FC', border: '1px solid rgba(168, 85, 247, 0.4)', fontWeight: 'bold' }}>
                                                         선등록 대기중
+                                                    </span>
+                                                )}
+
+                                                {/* [NEW] Hold Status Badge */}
+                                                {member.holdStatus === 'holding' && (
+                                                    <span className="badge" style={{ 
+                                                        background: 'rgba(251, 146, 60, 0.2)', color: '#fb923c', 
+                                                        border: '1px solid rgba(251, 146, 60, 0.4)', fontWeight: 'bold',
+                                                        animation: 'pulse 2s infinite'
+                                                    }}>
+                                                        ⏸️ 홀딩 중
                                                     </span>
                                                 )}
                                                 

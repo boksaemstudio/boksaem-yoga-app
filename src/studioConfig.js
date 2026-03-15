@@ -10,7 +10,7 @@ export const STUDIO_CONFIG = {
         LOGO_TEXT: "BOKSAEM",
         SLOGAN: "나를 만나는 고요한 시간",
         DESCRIPTION: "전통 요가의 깊이를 현대적 감각으로 전달하는 프리미엄 요가 스튜디오",
-        APP_VERSION: "2026.03.12 07:16",
+        APP_VERSION: "2026.03.15 16:50",
         FAVICON: "/favicon.ico",
     },
 
@@ -20,6 +20,23 @@ export const STUDIO_CONFIG = {
         EXPIRING_THRESHOLD_DAYS: 7,      // 만료 임박 알림 기준
         CHECKIN_TIMEOUT_MS: 10000,       // 동일인 중복 출석 방지 쿨다운 (10초)
         SESSION_AUTO_CLOSE_SEC: 25,      // 중복 확인 모달 자동 닫기
+        ALLOW_SELF_HOLD: false,          // 회원 자가 홀딩 기능 (기본 OFF)
+        HOLD_RULES: [
+            { durationMonths: 3, maxCount: 1, maxWeeks: 2 },
+            { durationMonths: 6, maxCount: 2, maxWeeks: 4 }
+        ],
+        ALLOW_BOOKING: false,            // 수업 예약 기능 (기본 OFF)
+        BOOKING_RULES: {
+            defaultCapacity: 15,         // 수업당 기본 최대 인원
+            windowDays: 7,               // 예약 가능 기간 (일)
+            deadlineHours: 1,            // 예약 마감 (수업 N시간 전)
+            cancelDeadlineHours: 3,      // 취소 마감 (수업 N시간 전)
+            maxActiveBookings: 3,        // 동시 예약 한도
+            maxDailyBookings: 2,         // 하루 최대 예약
+            noshowCreditDeduct: 1,       // 노쇼 시 횟수 차감
+            enableWaitlist: true         // 대기열 기능
+        },
+        SHOW_CAMERA_PREVIEW: false       // 키오스크 카메라 프리뷰 (기본 OFF)
     },
 
     // 3. Asset Nexus (이미지 및 자원 매핑)

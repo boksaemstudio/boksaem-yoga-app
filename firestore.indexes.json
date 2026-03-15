@@ -147,6 +147,58 @@
                     "order": "ASCENDING"
                 }
             ]
+        },
+        {
+            "collectionGroup": "bookings",
+            "queryScope": "COLLECTION",
+            "fields": [
+                { "fieldPath": "memberId", "order": "ASCENDING" },
+                { "fieldPath": "date", "order": "ASCENDING" },
+                { "fieldPath": "status", "order": "ASCENDING" }
+            ]
+        },
+        {
+            "collectionGroup": "bookings",
+            "queryScope": "COLLECTION",
+            "fields": [
+                { "fieldPath": "date", "order": "ASCENDING" },
+                { "fieldPath": "classIndex", "order": "ASCENDING" },
+                { "fieldPath": "branchId", "order": "ASCENDING" }
+            ]
+        },
+        {
+            "collectionGroup": "bookings",
+            "queryScope": "COLLECTION",
+            "fields": [
+                { "fieldPath": "date", "order": "ASCENDING" },
+                { "fieldPath": "classIndex", "order": "ASCENDING" },
+                { "fieldPath": "branchId", "order": "ASCENDING" },
+                { "fieldPath": "status", "order": "ASCENDING" }
+            ]
+        },
+        {
+            "collectionGroup": "bookings",
+            "queryScope": "COLLECTION",
+            "fields": [
+                { "fieldPath": "date", "order": "ASCENDING" },
+                { "fieldPath": "branchId", "order": "ASCENDING" }
+            ]
+        },
+        {
+            "collectionGroup": "bookings",
+            "queryScope": "COLLECTION",
+            "fields": [
+                { "fieldPath": "branchId", "order": "ASCENDING" },
+                { "fieldPath": "date", "order": "ASCENDING" }
+            ]
+        },
+        {
+            "collectionGroup": "bookings",
+            "queryScope": "COLLECTION",
+            "fields": [
+                { "fieldPath": "memberId", "order": "ASCENDING" },
+                { "fieldPath": "date", "order": "ASCENDING" }
+            ]
         }
     ],
     "fieldOverrides": []

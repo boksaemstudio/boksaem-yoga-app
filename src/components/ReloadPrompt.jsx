@@ -9,6 +9,8 @@ function ReloadPrompt() {
     onRegistered(r) {
       console.log('[SW] Registered');
       if (r) {
+        // 등록 직후 즉시 업데이트 확인
+        r.update().catch(() => {});
         // 백그라운드에서 1시간마다 업데이트가 있는지 조용히 체크
         setInterval(() => {
           r.update();

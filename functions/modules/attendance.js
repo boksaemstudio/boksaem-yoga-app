@@ -8,7 +8,7 @@
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
-const { admin, logAIError, getKSTDateString, getStudioName } = require("../helpers/common");
+const { admin, logAIError, getKSTDateString, getStudioName, getStudioLogoUrl } = require("../helpers/common");
 
 // Helper functions
 const calculateGap = (lastDate, currentDate) => {
@@ -191,6 +191,37 @@ exports.checkInMemberV2Call = onCall({
             
             let attendanceStatus = 'valid';
             let denialReason = null;
+
+            // [NEW] 홀딩 해제 로직 - 홀딩 중인 회원이 출석하면 자동으로 해제
+            let holdReleased = false;
+            if (memberData.holdStatus === 'holding' && memberData.holdStartDate) {
+                const holdStart = new Date(memberData.holdStartDate);
+                const todayDate = new Date(today);
+                const actualHoldDays = Math.max(1, Math.round((todayDate - holdStart) / (1000 * 60 * 60 * 24)));
+                
+                // endDate를 홀딩 일수만큼 연장
+                if (memberData.endDate && memberData.endDate !== 'TBD' && memberData.endDate !== 'unlimited') {
+                    const currentEnd = new Date(memberData.endDate);
+                    currentEnd.setDate(currentEnd.getDate() + actualHoldDays);
+                    memberData.endDate = getKSTDateString(currentEnd);
+                    console.log(`[Attendance] Hold released for ${memberId}: ${actualHoldDays} days. New endDate: ${memberData.endDate}`);
+                }
+
+                // holdHistory 업데이트 (마지막 엔트리에 releasedAt 기록)
+                const holdHistory = memberData.holdHistory || [];
+                const updatedHistory = holdHistory.map((h, i) => {
+                    if (i === holdHistory.length - 1 && !h.releasedAt) {
+                        return { ...h, releasedAt: now.toISOString(), actualDays: actualHoldDays };
+                    }
+                    return h;
+                });
+
+                memberData.holdStatus = null;
+                memberData.holdStartDate = null;
+                memberData.holdRequestedDays = null;
+                memberData.holdHistory = updatedHistory;
+                holdReleased = true;
+            }
 
             // [NEW] Check and activate upcomingMembership if it exists and is due
             let appliedUpcoming = false;
@@ -388,6 +419,14 @@ exports.checkInMemberV2Call = onCall({
                     endDate: endDate,
                     lastAttendance: now.toISOString()
                 };
+
+                // [NEW] 홀딩 해제 시 홀딩 관련 필드 초기화 및 endDate 연장 반영
+                if (holdReleased) {
+                    updates.holdStatus = admin.firestore.FieldValue.delete();
+                    updates.holdStartDate = admin.firestore.FieldValue.delete();
+                    updates.holdRequestedDays = admin.firestore.FieldValue.delete();
+                    updates.holdHistory = memberData.holdHistory; // 이미 releasedAt 업데이트됨
+                }
                 
                 if (appliedUpcoming && swappedData) {
                     // [FINANCIAL INTEGRITY FIX] Ensure the newly deducted (or set) credits are preserved
@@ -537,12 +576,13 @@ exports.onAttendanceCreated = onDocumentCreated({
                     }
 
                     // Prepare message details
+                    const studioName = await getStudioName();
+                    const logoUrl = await getStudioLogoUrl();
                     let body = `${memberName}님이 출석하셨습니다.`;
                     if (attendance.credits !== undefined || attendance.endDate) {
                         const credits = attendance.credits !== undefined ? `${attendance.credits}회 남음` : '';
                         const expiry = attendance.endDate ? `(~${attendance.endDate.slice(2)})` : '';
-                    const studioName = await getStudioName();
-                    body = `${className} | ${credits} ${expiry}`;
+                        body = `${className} | ${credits} ${expiry}`;
                     }
 
                     const attendanceId = event.params.attendanceId;
@@ -556,8 +596,8 @@ exports.onAttendanceCreated = onDocumentCreated({
                                 },
                                 webpush: { 
                                     notification: { 
-                                        icon: 'https://boksaem-yoga.web.app/logo_circle.png',
-                                        badge: 'https://boksaem-yoga.web.app/logo_circle.png',
+                                        icon: logoUrl,
+                                        badge: logoUrl,
                                         tag: `att-${attendanceId}`
                                     },
                                     fcm_options: { link: 'https://boksaem-yoga.web.app/instructor' }
@@ -796,6 +836,7 @@ exports.onAttendancePhotoAdded = onDocumentUpdated({
 
         const tokens = tokensSnap.docs.map(doc => doc.data().token).filter(Boolean);
 
+        const logoUrl = await getStudioLogoUrl();
         for (const token of tokens) {
             try {
                 await admin.messaging().send({
@@ -807,8 +848,8 @@ exports.onAttendancePhotoAdded = onDocumentUpdated({
                     },
                     webpush: {
                         notification: {
-                            icon: 'https://boksaem-yoga.web.app/logo_circle.png',
-                            badge: 'https://boksaem-yoga.web.app/logo_circle.png',
+                            icon: logoUrl,
+                            badge: logoUrl,
                             image: after.photoUrl,
                             tag: `att-${attendanceId}`,
                             renotify: false

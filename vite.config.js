@@ -1,9 +1,39 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+import { VitePWA } from 'vite-plugin-pwa';
+
 export default defineConfig({
   plugins: [
-    react()
+    react(),
+    VitePWA({
+      registerType: 'prompt', // Important for ReloadPrompt to work
+      injectRegister: 'auto',
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        cleanupOutdatedCaches: true
+      },
+      manifest: {
+        name: '복샘요가',
+        short_name: '복샘요가',
+        description: '복샘요가 관리 앱',
+        theme_color: '#08080A',
+        background_color: '#08080A',
+        display: 'standalone',
+        icons: [
+          {
+            src: 'logo_circle.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: 'logo_circle.png',
+            sizes: '512x512',
+            type: 'image/png'
+          }
+        ]
+      }
+    })
   ],
   resolve: {
     alias: {

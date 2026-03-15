@@ -108,6 +108,17 @@ textarea,
   user-select: auto;
 }
 
+/* [FIX] Hide number input spinners for better touch UX */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -500,6 +511,45 @@ select option {
     padding-bottom: 120px;
     /* Space for bottom nav */
   }
+}
+
+/* Styled Inputs (Used in Admin Settings, etc.) */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.input-group label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.styled-input {
+  background-color: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.styled-input:focus {
+  outline: none;
+  border-color: var(--primary-theme-color);
+  background-color: rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 0 2px var(--primary-theme-skeleton);
+}
+
+.styled-input.sm {
+  padding: 8px 12px;
+  font-size: 0.9rem;
 }
 
 /* Cards */

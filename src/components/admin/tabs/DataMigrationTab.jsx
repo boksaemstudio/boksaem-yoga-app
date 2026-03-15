@@ -82,7 +82,7 @@ export default function DataMigrationTab() {
     };
 
     return (
-        <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto' }}>
+        <div style={{ padding: '20px', paddingBottom: '200px', maxWidth: '900px', margin: '0 auto' }}>
             <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '20px', color: 'var(--text-primary)' }}>
                 CSV 회원 데이터 마이그레이션
             </h2>

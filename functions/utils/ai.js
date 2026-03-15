@@ -14,8 +14,7 @@ class AIService {
             generationConfig: { maxOutputTokens: 500 }
         });
         
-        // Base config for JSON model
-        // ✅ FIX: maxOutputTokens 증가 (한글은 영문 대비 ~2x 토큰 소비)
+        // Base config for JSON model (Default fallback)
         this.jsonConfig = { 
             responseMimeType: "application/json", 
             maxOutputTokens: 2500,
@@ -28,6 +27,19 @@ class AIService {
             model: "gemini-2.5-flash",
             generationConfig: this.jsonConfig
         });
+        
+        // [UPGRADE] Pro Model for Complex Parsing (High accuracy, large context)
+        this.proParsingModel = this.client.getGenerativeModel({
+            model: "gemini-1.5-pro",
+            generationConfig: {
+                responseMimeType: "application/json",
+                maxOutputTokens: 8192, // Maximum output to prevent truncation
+                temperature: 0.2, // Low temp for highly analytical/deterministic parsing
+                topP: 0.8,
+                topK: 10
+            }
+        });
+
         this.langMap = { 'ko': 'Korean', 'en': 'English', 'ru': 'Russian', 'zh': 'Chinese (Simplified)', 'ja': 'Japanese' };
     }
 
@@ -273,11 +285,18 @@ class AIService {
                 // 1. Sanitize: Remove Markdown code blocks and potential noise
                 let cleanText = text.replace(/```json\s?|```/g, '').trim();
                 
-                // 2. Extract JSON Object: Find the first '{' and the last '}'
+                // 2. Extract JSON: Support both Objects `{...}` AND Arrays `[...]`
                 const firstBrace = cleanText.indexOf('{');
                 const lastBrace = cleanText.lastIndexOf('}');
+                const firstBracket = cleanText.indexOf('[');
+                const lastBracket = cleanText.lastIndexOf(']');
                 
-                if (firstBrace !== -1 && lastBrace !== -1) {
+                // Determine if the response is an array or object
+                const isArray = firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace);
+                
+                if (isArray && lastBracket !== -1) {
+                    cleanText = cleanText.substring(firstBracket, lastBracket + 1);
+                } else if (firstBrace !== -1 && lastBrace !== -1) {
                     cleanText = cleanText.substring(firstBrace, lastBrace + 1);
                 }
 
@@ -402,6 +421,7 @@ class AIService {
                 Return ONLY a valid JSON object matching the exact schema.
                 For 'price', use integers only (e.g., 150000). Remove currency symbols.
                 For 'credits', use 9999 to represent unlimited credits (무제한).
+                CRITICAL: Output MUST BE perfectly valid JSON without trailing commas, unescaped quotes, or syntax errors. Escape any internal quotes.
             `;
             schema = {
                 type: SchemaType.OBJECT,
@@ -425,11 +445,16 @@ class AIService {
             };
         } else if (docType === 'members') {
             prompt = `
-                Parse the following unstructured member list data (likely copied from Excel or CSV) and map it to our structured schema.
-                Return ONLY a valid JSON object matching the exact schema.
-                - 'phone' should be formatted as XXX-XXXX-XXXX if possible.
-                - 'credits' should be an integer. If unlimited (무제한), use 9999.
-                - 'endDate' should be a string in YYYY-MM-DD format. If not explicitly found, try to infer it from registration dates and months, or leave null.
+                Parse the following unstructured member list data (likely copied from Excel or CSV) into our exact JSON schema.
+                
+                CRITICAL INSTRUCTIONS:
+                1. 'phone' should be formatted as XXX-XXXX-XXXX.
+                2. 'credits': If the data says "무제한", "unlimited", or implies duration without count, set credits to 9999. Extract any explicit numbers as integer.
+                3. 'endDate': MUST be a string in YYYY-MM-DD format. 
+                   - Look closely for registration dates + duration (e.g., "3개월", "1년") to calculate the end date if an exact end date is not present.
+                   - Assume the current year is ${new Date().getFullYear()} if missing.
+                   - If impossible to infer, set to null.
+                4. Extract any remaining details (like "현금결제", "학생할인") into the 'note' field.
                 
                 Data to parse:
                 ${textData || 'No text data provided.'}
@@ -475,11 +500,10 @@ class AIService {
         }
 
         try {
-            console.log(`Parsing document [${docType}] with Gemini Vision/Text API...`);
-            const result = await this.jsonModel.generateContent({
+            console.log(`Parsing document [${docType}] with Gemini Pro 1.5 (High Accuracy Model)...`);
+            const result = await this.proParsingModel.generateContent({
                 contents,
                 generationConfig: {
-                    ...this.jsonConfig,
                     responseSchema: schema
                 }
             });
@@ -490,7 +514,19 @@ class AIService {
             const lastBrace = cleanText.lastIndexOf('}');
             if (firstBrace !== -1 && lastBrace !== -1) cleanText = cleanText.substring(firstBrace, lastBrace + 1);
 
-            return JSON.parse(cleanText);
+            try {
+                // Try to parse cleanly first
+                return json5.parse(cleanText);
+            } catch (initialError) {
+                console.warn(`[AI] Initial JSON parse failed, attempting repair... Error: ${initialError.message}`);
+                // Use the built-in repair tool
+                const repairedText = this._repairTruncatedJson(cleanText);
+                try {
+                    return json5.parse(repairedText);
+                } catch (repairError) {
+                    throw new Error(`Invalid JSON format from AI even after repair: ${initialError.message}`);
+                }
+            }
         } catch (e) {
             console.error(`parseDocument [${docType}] failed:`, e.message);
             throw new Error(`AI Parsing failed: ${e.message}`);

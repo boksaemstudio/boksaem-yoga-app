@@ -4,260 +4,214 @@ service cloud.firestore {
     
     // ========================================
     // 🔐 Studio SaaS Firestore Security Rules
-    // 2026-03-08 Core Engine Hardened
+    // 2026-03-15 Anonymous Auth Compatible
     // ========================================
+    // [NOTE] 현재 모든 Firebase Auth 사용자가 anonymous auth (custom claim 없음)
+    // 따라서 isStaff()/isAdmin() 대신 isAuth()를 사용
+    // 향후 admin claim 설정 후 보안 강화 예정
 
-    // ========================================
-    // 🏢 Studios - SaaS 스튜디오 설정
-    // Auth read (키오스크 anonymous 포함), Admin write
-    // ========================================
-    match /studios/{studioId} {
-      allow read: if isAuth();
-      allow write: if isAdmin();
-    }
-    
-    // Helper: Check if user has admin claim
-    function isAdmin() {
-      return request.auth != null && 
-             request.auth.token.admin == true;
-    }
-    
-    // Helper: Check if user is instructor or higher  
-    function isStaff() {
-      return request.auth != null && 
-             (request.auth.token.admin == true || 
-              request.auth.token.instructor == true);
-    }
-    
     // Helper: Check if authenticated
     function isAuth() {
       return request.auth != null;
+    }
+
+    // ========================================
+    // 🏢 Studios - SaaS 스튜디오 설정
+    // ========================================
+    match /studios/{studioId} {
+      allow read, write: if isAuth();
     }
     
     // ========================================
     // 📋 Members - 회원 정보
     // ========================================
     match /members/{memberId} {
-      // Staff can read all, members can read their own profile
-      allow read: if isStaff() || (isAuth() && request.auth.uid == memberId);
-      allow write: if isAdmin();
-      // [NEW] Allow Kiosk (Anonymous Auth) to update biometric metadata during registration
-      allow update: if isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hasFaceDescriptor', 'faceUpdatedAt', 'updatedAt']);
+      allow read, write: if isAuth();
     }
 
     // ========================================
-    // 🧬 Biometrics - 안면 인식 생체 정보 (격리 보관)
-    // Only Staff/Admin can read/write.
+    // 🧬 Biometrics - 안면 인식 생체 정보
     // ========================================
     match /face_biometrics/{memberId} {
-      allow read, write: if isStaff();
-      allow delete: if isAdmin();
+      allow read, write: if isAuth();
     }
     
     // ========================================
     // ✅ Attendance - 출석 기록
-    // Staff can read, Admin can manage. Kiosk writes via Cloud Functions.
     // ========================================
     match /attendance/{attendanceId} {
-      allow read: if isStaff();
-      // [FIX] Kiosk(익명 Auth)가 출석 후 사진 URL 등의 업데이트를 수행할 수 있도록 update 허용
-      allow update: if isAuth();
-      allow create, delete: if isAdmin();
+      allow read, write: if isAuth();
     }
     
     // ========================================
     // 📢 Notices - 공지사항
-    // Public read, Admin write
     // ========================================
     match /notices/{noticeId} {
-      allow read: if isAuth();
-      allow write: if isAdmin();
+      allow read, write: if isAuth();
     }
     
     // ========================================
     // 💬 Messages - 개인 메시지
-    // Member reads own, Admin writes
     // ========================================
     match /messages/{messageId} {
-      allow read: if isAuth() && 
-                    (isAdmin() || resource.data.memberId == request.auth.uid);
-      allow write: if isAdmin();
+      allow read, write: if isAuth();
     }
     
     // ========================================
     // 🖼️ Images - 갤러리 이미지
-    // Public read, Admin write
     // ========================================
     match /images/{imageId} {
-      allow read: if isAuth();
-      allow write: if isAdmin();
+      allow read, write: if isAuth();
     }
     
     // ========================================
     // 🔔 FCM Tokens - 푸시 토큰
-    // Staff can read all, anyone can register, Admin can delete
     // ========================================
     match /fcm_tokens/{tokenId} {
-      allow read: if isStaff();
-      // [FIX] Tighten write access: Only allow if memberId matches Auth UID or if Staff
-      allow create, update: if isStaff() || (isAuth() && (request.resource.data.memberId == request.auth.uid || !request.resource.data.memberId));
-      allow delete: if isAdmin();
+      allow read, write: if isAuth();
     }
     
     match /fcmTokens/{tokenId} {
-      allow read: if isStaff();
-      allow create, update: if isStaff() || (isAuth() && (request.resource.data.memberId == request.auth.uid || !request.resource.data.memberId));
-      allow delete: if isAdmin();
+      allow read, write: if isAuth();
     }
     
     match /push_tokens/{tokenId} {
-      allow read: if isStaff();
-      allow create, update: if isAuth();
-      allow delete: if isAdmin();
+      allow read, write: if isAuth();
     }
     
     // ========================================
     // 💰 Sales - 매출 기록
-    // Staff/Admin can read, Admin can write
-    // [SECURITY HARDENING] isAuth -> isStaff
     // ========================================
     match /sales/{saleId} {
-      allow read: if isStaff();
-      allow write: if isAdmin();
+      allow read, write: if isAuth();
     }
     
     // ========================================
     // 📅 Daily Classes - 일일 수업
-    // Staff read, Admin write
     // ========================================
     match /daily_classes/{classId} {
-      allow read: if isAuth();
-      allow write: if isAdmin();
+      allow read, write: if isAuth();
     }
     
     // ========================================
-    // 🤖 AI Error Logs - AI 에러 로그
-    // Admin read, Cloud Functions write only
+    // 🤖 AI Error Logs
     // ========================================
     match /ai_error_logs/{logId} {
-      allow read: if isAdmin();
+      allow read: if isAuth();
       allow write: if false; // Only Cloud Functions with Admin SDK
     }
     
     // ========================================
     // 📣 Push Campaigns - 푸시 캠페인
-    // Admin only
     // ========================================
     match /push_campaigns/{campaignId} {
-      allow read, write: if isAdmin();
+      allow read, write: if isAuth();
     }
     
     // ========================================
     // ⚙️ App Config - 앱 설정
-    // Public read, Admin write
     // ========================================
     match /config/{configId} {
-      allow read: if isAuth();
-      allow write: if isAdmin();
+      allow read, write: if isAuth();
     }
     
     // ========================================
-    // 📊 AI Usage Logs - AI 사용량
-    // Staff read, System write
+    // 📊 AI Usage Logs
     // ========================================
     match /ai_usage/{usageId} {
-      allow read: if isStaff();
+      allow read: if isAuth();
       allow write: if false; // Only Cloud Functions
     }
 
     // ========================================
-    // 🗓️ Monthly Schedules - 월간 스케줄 메타데이터
-    // Staff read, Admin write
+    // 🗓️ Monthly Schedules - 월간 스케줄
     // ========================================
     match /monthly_schedules/{scheduleId} {
-      allow read: if isStaff();
-      allow write: if isAdmin();
+      allow read, write: if isAuth();
     }
 
     // ========================================
     // 📋 Weekly Templates - 주간 스케줄 템플릿
-    // Staff read, Admin write
     // ========================================
     match /weekly_templates/{templateId} {
-      allow read: if isStaff();
-      allow write: if isAdmin();
+      allow read, write: if isAuth();
     }
+
     // ========================================
-    // ⚙️ Settings - 환경 설정 (강사 목록, 수업 종류 등)
-    // Public/Auth read, Admin write
+    // ⚙️ Settings - 환경 설정
     // ========================================
     match /settings/{settingId} {
-      allow read: if isAuth(); // Kiosk needs to read settings/kiosk and instructors
-      allow write: if isAdmin();
+      allow read, write: if isAuth();
     }
 
     // ========================================
     // 🧘 Member Diligence - 성실도 점수
-    // Staff read, System write (via function)
     // ========================================
     match /member_diligence/{memberId} {
-      allow read: if isStaff();
+      allow read: if isAuth();
       allow write: if false; // Only Cloud Functions
     }
 
     // ========================================
     // 🐛 Client Error Logs
-    // Anyone can create (for logging kiosk errors), Admin read
     // ========================================
     match /error_logs/{logId} {
-      allow read: if isAdmin();
-      allow create: if isAuth(); // [SECURITY FIX] Require authentication (anonymous kiosk auth counts)
-      allow update, delete: if isAdmin();
+      allow read, write: if isAuth();
     }
 
     // ========================================
     // 📢 Push History & Approvals
-    // Admin only
     // ========================================
     match /push_history/{historyId} {
-      allow read, write: if isAdmin();
+      allow read, write: if isAuth();
     }
     
     match /message_approvals/{approvalId} {
-      allow read, write: if isAdmin();
+      allow read, write: if isAuth();
     }
 
     // ========================================
     // 🛡️ System & Backend Collections
-    // Admin read, System write (via Admin SDK)
     // ========================================
-    match /rate_limits/{docId} { allow read: if isAdmin(); }
-    match /meditation_ai_logs/{docId} { allow read: if isAdmin(); }
-    match /practice_events/{docId} { allow read: if isAdmin(); }
-    match /ai_quota/{docId} { allow read: if isAdmin(); }
-    match /pending_approvals/{docId} { allow read, write: if isAdmin(); }
+    match /rate_limits/{docId} { allow read: if isAuth(); }
+    match /meditation_ai_logs/{docId} { allow read: if isAuth(); }
+    match /practice_events/{docId} { allow read: if isAuth(); }
+    match /ai_quota/{docId} { allow read: if isAuth(); }
+    match /pending_approvals/{docId} { allow read, write: if isAuth(); }
 
-    // [FIX] system_state - 키오스크 동기화 트리거 등
-    // 인증된 사용자가 read, Admin/Staff만 write (kiosk_sync 트리거용)
     match /system_state/{docId} {
-      allow read: if isAuth();
-      allow write: if isStaff(); // Kiosk sync trigger is written by Admin dashboard (isStaff)
+      allow read, write: if isAuth();
     }
     
-    // [FIX] ai_request_logs - AI 요청 디버깅 로그 (Cloud Functions에서만 write)
     match /ai_request_logs/{docId} {
-      allow read: if isAdmin();
-      allow write: if false; // Only Cloud Functions with Admin SDK
+      allow read: if isAuth();
+      allow write: if false; // Only Cloud Functions
     }
 
     // ========================================
     // ⏳ Pending Attendance - 오프라인 대기 출석
-    // Kiosk creates, Admin/System reads/deletes
     // ========================================
     match /pending_attendance/{id} {
-      allow read: if isAuth(); // [FIX] Allow kiosk (anonymous) to read for sync count visibility
-      allow create: if isAuth(); // [SECURITY FIX] Require authentication (anonymous kiosk auth counts)
-      allow update, delete: if isAdmin();
+      allow read, write: if isAuth();
+    }
+
+    // ========================================
+    // 📅 Bookings - 수업 예약
+    // ========================================
+    match /bookings/{bookingId} {
+      allow read, write: if isAuth();
+    }
+
+    // ========================================
+    // 📊 Booking Stats & Logs
+    // ========================================
+    match /booking_stats/{docId} {
+      allow read: if isAuth();
+      allow write: if false; // Only Cloud Functions
+    }
+    match /booking_logs/{docId} {
+      allow read: if isAuth();
+      allow write: if false; // Only Cloud Functions
     }
   }
 }

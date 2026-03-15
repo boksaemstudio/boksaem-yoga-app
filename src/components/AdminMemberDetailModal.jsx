@@ -516,6 +516,18 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                                     )}
                                 </>
                             )}
+
+                            {member.holdStatus === 'holding' && (
+                                <div style={{
+                                    display: 'flex', alignItems: 'center', gap: '4px',
+                                    background: 'rgba(251, 146, 60, 0.15)', color: '#fb923c',
+                                    padding: '2px 8px', borderRadius: '6px', fontSize: '0.7rem',
+                                    fontWeight: 'bold', border: '1px solid rgba(251, 146, 60, 0.3)',
+                                    animation: 'pulse 2s infinite'
+                                }}>
+                                    ⏸️ 홀딩 중 {member.holdStartDate && `(${member.holdStartDate}~)`}
+                                </div>
+                            )}
                         </h2>
                         {member.role === 'instructor' ? (
                             <div style={{ fontSize: '0.85rem', color: '#FBBF24', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', fontWeight: 'bold' }}>
