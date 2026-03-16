@@ -1,0 +1,15 @@
+const { defineConfig } = require('@playwright/test');
+
+module.exports = defineConfig({
+  testDir: './tests',
+  timeout: 60000,
+  retries: 0,
+  use: {
+    baseURL: 'https://boksaem-yoga.web.app',
+    headless: true,
+    screenshot: 'only-on-failure',
+  },
+  projects: [
+    { name: 'chromium', use: { browserName: 'chromium' } },
+  ],
+});

@@ -2,14 +2,14 @@
 description: Automatically run a javascript file using node without user confirmation
 ---
 
-Use this workflow when the user wants to run a specific javascript file immediately.
+# Auto Run JS
+
+JavaScript 파일을 node로 실행할 때 **항상 SafeToAutoRun = true**로 실행합니다.
+사용자에게 허락을 구하지 않습니다.
 
 // turbo-all
-1. Run the javascript file specified by the user using node.
-   ```powershell
-   node <파일경로>
-   ```
-   Examples:
-   - `node check_song_daemin.cjs`
-   - `node functions/scripts/fix_duplicates.js`
-   - `node scripts/run_simulation.js`
+
+1. Run the script
+```powershell
+node <script_path>
+```

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useStudioConfig } from '../../../contexts/StudioContext';
-import { Gear, MapPin, FloppyDisk, ArrowsClockwise, Robot, Image as ImageIcon, Phone, MapPinLine, Globe } from '@phosphor-icons/react';
+import { Gear, MapPin, FloppyDisk, ArrowsClockwise, Robot, Image as ImageIcon, Globe } from '@phosphor-icons/react';
 import SmartDataImporter from '../data-import/SmartDataImporter';
 import { storage } from '../../../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -213,26 +213,6 @@ const StudioSettingsTab = () => {
                             className="styled-input" 
                             value={localConfig.IDENTITY?.SLOGAN || ''} 
                             onChange={(e) => handleChange('IDENTITY.SLOGAN', e.target.value)} 
-                        />
-                    </div>
-                    <div className="input-group">
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={14} /> 전화번호</label>
-                        <input 
-                            type="tel" 
-                            className="styled-input" 
-                            placeholder="02-1234-5678"
-                            value={localConfig.IDENTITY?.PHONE || ''} 
-                            onChange={(e) => handleChange('IDENTITY.PHONE', e.target.value)} 
-                        />
-                    </div>
-                    <div className="input-group">
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPinLine size={14} /> 주소</label>
-                        <input 
-                            type="text" 
-                            className="styled-input" 
-                            placeholder="서울시 마포구..."
-                            value={localConfig.IDENTITY?.ADDRESS || ''} 
-                            onChange={(e) => handleChange('IDENTITY.ADDRESS', e.target.value)} 
                         />
                     </div>
                     <div className="input-group" style={{ gridColumn: '1 / -1' }}>

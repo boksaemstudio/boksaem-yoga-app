@@ -2,6 +2,8 @@
 description: 린트 체크, 빌드, Git 커밋/푸시, Firebase 배포 자동화
 ---
 
+> ⚠️ **중요**: Git(add/commit/push)과 Firebase 배포(deploy)는 **사용자가 명시적으로 요청할 때만** 실행합니다. 절대 자동으로 실행하지 않습니다.
+
 # 배포 워크플로우 (Deploy)
 
 ## 방법 1: build.ps1 스크립트 (캐시 초기화 + Hosting만 배포)
