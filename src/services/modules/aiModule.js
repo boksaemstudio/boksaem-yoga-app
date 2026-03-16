@@ -140,20 +140,3 @@ export const getDailyYoga = async (language = 'ko') => {
     }
 };
 
-/**
- * AI 사용량 조회
- */
-export const getAiUsage = async (db, collection, query, orderBy, limit, getDocs) => {
-    try {
-        const q = query(
-            collection(db, 'ai_usage'),
-            orderBy("date", "desc"),
-            limit(30)
-        );
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (e) {
-        console.warn("Failed to fetch AI usage:", e);
-        return [];
-    }
-};

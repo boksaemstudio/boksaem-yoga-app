@@ -110,7 +110,7 @@ exports.processNoshowsV2 = onSchedule({
             const { tokens } = await getAllFCMTokens(null, { role: 'admin' });
             
             // type: 'admin' 토큰도 포함
-            const adminTokenSnap = await tdb.collection('fcm_tokens').where('type', '==', 'admin').get();
+            let adminTokenSnap = await tdb.collection('fcm_tokens').where('type', '==', 'admin').get();
             const adminTokens = [...new Set([...tokens, ...adminTokenSnap.docs.map(d => d.id)])];
             
             if (adminTokens.length > 0) {

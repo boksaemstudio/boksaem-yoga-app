@@ -15,7 +15,7 @@ import { tenantDb } from '../../utils/tenantDb';
  */
 export const logInfo = async (message, context = {}) => {
     try {
-        await addDoc(tenantDb.globalCollection('error_logs'), {
+        await addDoc(tenantDb.collection('error_logs'), {
             message: `[INFO] ${message}`,
             context,
             timestamp: new Date().toISOString()
@@ -30,7 +30,7 @@ export const logInfo = async (message, context = {}) => {
  */
 export const logError = async (error, context = {}) => {
     try {
-        await addDoc(tenantDb.globalCollection('error_logs'), {
+        await addDoc(tenantDb.collection('error_logs'), {
             message: `[ERROR] ${error?.message || String(error)}`,
             stack: error?.stack || null,
             context,
@@ -47,7 +47,7 @@ export const logError = async (error, context = {}) => {
 export const getErrorLogs = async (limitCount = 50) => {
     try {
         const q = query(
-            tenantDb.globalCollection('error_logs'),
+            tenantDb.collection('error_logs'),
             orderBy('timestamp', 'desc'),
             firestoreLimit(limitCount)
         );
@@ -64,7 +64,7 @@ export const getErrorLogs = async (limitCount = 50) => {
  */
 export const deleteErrorLog = async (logId) => {
     try {
-        await deleteDoc(tenantDb.globalDoc('error_logs', logId));
+        await deleteDoc(tenantDb.doc('error_logs', logId));
         return { success: true };
     } catch (e) {
         console.error("Delete error log failed:", e);
@@ -77,7 +77,7 @@ export const deleteErrorLog = async (logId) => {
  */
 export const clearErrorLogs = async () => {
     try {
-        const snapshot = await getDocs(tenantDb.globalCollection('error_logs'));
+        const snapshot = await getDocs(tenantDb.collection('error_logs'));
         const batch = writeBatch(db);
         snapshot.docs.forEach(doc => batch.delete(doc.ref));
         await batch.commit();

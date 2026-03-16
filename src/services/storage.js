@@ -171,7 +171,7 @@ export const storageService = {
 
         // [NEW] Real-time Kiosk Trigger: 단일 문서 리스너 (가벼운 실시간 동기화)
         try {
-          const syncRef = tenantDb.globalDoc('system_state', 'kiosk_sync');
+          const syncRef = tenantDb.doc('system_state', 'kiosk_sync');
           let unsubSync = null;
 
           const setupSyncListener = () => {
@@ -233,7 +233,7 @@ export const storageService = {
     // [PERF] FCM 토큰: 기본 컬렉션(fcm_tokens)만 구독 (3중 → 단일)
     // 레거시 컬렉션(fcmTokens, push_tokens)은 마이그레이션 후 제거 예정
     safelySubscribe(
-      tenantDb.globalCollection('fcm_tokens'),
+      tenantDb.collection('fcm_tokens'),
       (snapshot) => {
         cachedPushTokens = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         console.log(`[Storage] FCM Tokens: ${cachedPushTokens.length}`);
@@ -530,7 +530,7 @@ export const storageService = {
   async saveToken(token, role = 'member', language = 'ko') {
     if (!token) return;
     try {
-      const tokenRef = tenantDb.globalDoc('fcm_tokens', token);
+      const tokenRef = tenantDb.doc('fcm_tokens', token);
       await setDoc(tokenRef, { token, role, language, updatedAt: new Date().toISOString(), platform: 'web' }, { merge: true });
     } catch (e) { console.error("Save token failed:", e); }
   },
@@ -539,7 +539,7 @@ export const storageService = {
   async saveInstructorToken(token, instructorName, language = 'ko') {
     if (!token || !instructorName) return;
     try {
-      const tokenRef = tenantDb.globalDoc('fcm_tokens', token);
+      const tokenRef = tenantDb.doc('fcm_tokens', token);
       await setDoc(tokenRef, {
         token,
         role: 'instructor',
@@ -622,7 +622,7 @@ export const storageService = {
 
   async logError(error, context = {}) {
     try {
-      await addDoc(tenantDb.globalCollection('error_logs'), {
+      await addDoc(tenantDb.collection('error_logs'), {
         message: error?.message || String(error),
         context,
         url: window.location.href,
@@ -787,7 +787,7 @@ export const storageService = {
       await batch.commit();
       
       // 강사 목록도 업데이트 (지원하는 경우)
-      const instDoc = await getDoc(tenantDb.globalDoc('settings', 'instructors'));
+      const instDoc = await getDoc(tenantDb.doc('settings', 'instructors'));
       if (instDoc.exists()) {
         const list = instDoc.data().list || [];
         const updatedList = list.map(inst => {
@@ -796,7 +796,7 @@ export const storageService = {
           }
           return inst;
         });
-        await setDoc(tenantDb.globalDoc('settings', 'instructors'), { list: updatedList }, { merge: true });
+        await setDoc(tenantDb.doc('settings', 'instructors'), { list: updatedList }, { merge: true });
       }
 
       return { success: true, count };
@@ -823,11 +823,11 @@ export const storageService = {
       });
       if (token) {
         // [SYNC] Find memberId for this token and mark as pushEnabled: false
-        const tokenSnap = await getDoc(tenantDb.globalDoc('fcm_tokens', token));
+        const tokenSnap = await getDoc(tenantDb.doc('fcm_tokens', token));
         if (tokenSnap.exists() && tokenSnap.data().memberId) {
           await updateDoc(tenantDb.doc('members', tokenSnap.data().memberId), { pushEnabled: false });
         }
-        await deleteDoc(tenantDb.globalDoc('fcm_tokens', token));
+        await deleteDoc(tenantDb.doc('fcm_tokens', token));
       }
       return true;
     } catch (e) {
@@ -842,7 +842,7 @@ export const storageService = {
       if (permission === 'granted') {
         const token = await this.requestAndSaveToken('member');
         if (token && memberId) {
-          const tokenRef = tenantDb.globalDoc('fcm_tokens', token);
+          const tokenRef = tenantDb.doc('fcm_tokens', token);
           const tokenSnap = await getDoc(tokenRef);
           
           let dataToUpdate = { 
@@ -890,7 +890,7 @@ export const storageService = {
         return false;
       }
 
-      const tokenRef = tenantDb.globalDoc('fcm_tokens', token);
+      const tokenRef = tenantDb.doc('fcm_tokens', token);
       const tokenSnap = await getDoc(tokenRef);
       
       let dataToUpdate = {
@@ -1044,7 +1044,7 @@ export const storageService = {
 
       // 5. memberId와 연결하여 저장
       if (memberId) {
-        const tokenRef = tenantDb.globalDoc('fcm_tokens', token);
+        const tokenRef = tenantDb.doc('fcm_tokens', token);
         const tokenSnap = await getDoc(tokenRef);
         
         let tokenData = {
@@ -1214,7 +1214,7 @@ export const storageService = {
       // Ensure 'error_logs' collection exists or is queryable.
       // Note: Composite index might be needed for 'timestamp desc'.
       const q = query(
-        tenantDb.globalCollection('error_logs'),
+        tenantDb.collection('error_logs'),
         orderBy('timestamp', 'desc'),
         firestoreLimit(limitCount)
       );
@@ -1284,7 +1284,7 @@ export const storageService = {
   // [Added] Delete single error log
   async deleteErrorLog(logId) {
     try {
-      await deleteDoc(tenantDb.globalDoc('error_logs', logId));
+      await deleteDoc(tenantDb.doc('error_logs', logId));
       return { success: true };
     } catch (e) {
       console.error("Delete error log failed:", e);
@@ -1295,7 +1295,7 @@ export const storageService = {
   // [Added] Clear all error logs
   async clearErrorLogs() {
     try {
-      const snapshot = await getDocs(tenantDb.globalCollection('error_logs'));
+      const snapshot = await getDocs(tenantDb.collection('error_logs'));
       const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
       await Promise.all(deletePromises);
       return { success: true, count: snapshot.docs.length };
@@ -1340,9 +1340,9 @@ export const storageService = {
     try {
       console.log("[Storage] getAllPushTokens: Force fetching from Firestore collections...");
       const results = await Promise.all([
-        getDocs(tenantDb.globalCollection('fcm_tokens')).catch(() => ({ docs: [] })),
-        getDocs(tenantDb.globalCollection('fcmTokens')).catch(() => ({ docs: [] })),
-        getDocs(tenantDb.globalCollection('push_tokens')).catch(() => ({ docs: [] }))
+        getDocs(tenantDb.collection('fcm_tokens')).catch(() => ({ docs: [] })),
+        getDocs(tenantDb.collection('fcmTokens')).catch(() => ({ docs: [] })),
+        getDocs(tenantDb.collection('push_tokens')).catch(() => ({ docs: [] }))
       ]);
 
       const allMerged = {};
@@ -1564,7 +1564,7 @@ export const storageService = {
   async getKioskSettings(branchId = 'all') {
     try {
       const docId = branchId === 'all' ? 'kiosk' : `kiosk_${branchId}`;
-      const docSnap = await getDoc(tenantDb.globalDoc('settings', docId));
+      const docSnap = await getDoc(tenantDb.doc('settings', docId));
       if (docSnap.exists()) {
         return docSnap.data();
       }
@@ -1578,7 +1578,7 @@ export const storageService = {
   async updateKioskSettings(branchId = 'all', data) {
     try {
       const docId = branchId === 'all' ? 'kiosk' : `kiosk_${branchId}`;
-      await setDoc(tenantDb.globalDoc('settings', docId), {
+      await setDoc(tenantDb.doc('settings', docId), {
         ...data,
         updatedAt: new Date().toISOString()
       }, { merge: true });
@@ -1592,7 +1592,7 @@ export const storageService = {
   subscribeToKioskSettings(branchId = 'all', callback) {
     try {
       const docId = branchId === 'all' ? 'kiosk' : `kiosk_${branchId}`;
-      return onSnapshot(tenantDb.globalDoc('settings', docId), (docSnap) => {
+      return onSnapshot(tenantDb.doc('settings', docId), (docSnap) => {
         if (docSnap.exists()) {
           callback(docSnap.data());
         } else {
@@ -1668,7 +1668,7 @@ export const storageService = {
   // [NEW] Get pricing configuration from Firestore settings
   async getPricing() {
     try {
-      const docRef = tenantDb.globalDoc('settings', 'pricing');
+      const docRef = tenantDb.doc('settings', 'pricing');
       const snap = await getDoc(docRef);
       if (snap.exists()) {
         return snap.data();
@@ -1684,7 +1684,7 @@ export const storageService = {
   // [NEW] Save pricing configuration to Firestore settings
   async savePricing(pricingData) {
     try {
-      const docRef = tenantDb.globalDoc('settings', 'pricing');
+      const docRef = tenantDb.doc('settings', 'pricing');
       await setDoc(docRef, pricingData);
       notifyListeners('settings');
       return true;

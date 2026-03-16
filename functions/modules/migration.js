@@ -88,3 +88,38 @@ exports.migrateToTenantV2 = onCall({
         collections: results
     };
 });
+
+/**
+ * 가격표 데이터 복원 (studios/{studioId} PRICING → settings/pricing)
+ */
+exports.restorePricingV2 = onCall({
+    region: "asia-northeast3",
+    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
+}, async (request) => {
+    const db = admin.firestore();
+    
+    // studios/boksaem-yoga 문서에서 PRICING 필드 읽기
+    const studioDoc = await db.collection('studios').doc(STUDIO_ID).get();
+    if (!studioDoc.exists) {
+        return { success: false, error: 'Studio document not found' };
+    }
+    
+    const studioData = studioDoc.data();
+    const pricing = studioData.PRICING;
+    
+    if (!pricing) {
+        return { success: false, error: 'No PRICING field in studio document' };
+    }
+    
+    // settings/pricing 문서로 복사
+    await db.collection('settings').doc('pricing').set(pricing);
+    
+    // 테넌트 경로에도 복사
+    await db.collection(`studios/${STUDIO_ID}/settings`).doc('pricing').set(pricing);
+    
+    return {
+        success: true,
+        categories: Object.keys(pricing),
+        message: `Restored ${Object.keys(pricing).length} pricing categories`
+    };
+});

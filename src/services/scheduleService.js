@@ -503,7 +503,7 @@ export const restoreMonthlyBackup = async (branchId, year, month, backupId) => {
 // Config Getters
 export const getInstructors = async (defaultScheduleTemplate = {}) => {
     try {
-        const docSnap = await getDoc(tenantDb.globalDoc('settings', 'instructors'));
+        const docSnap = await getDoc(tenantDb.doc('settings', 'instructors'));
         if (docSnap.exists() && docSnap.data().list) return docSnap.data().list;
 
         const instructors = new Set();
@@ -521,7 +521,7 @@ export const getInstructors = async (defaultScheduleTemplate = {}) => {
 
 export const getClassTypes = async (defaultScheduleTemplate = {}) => {
     try {
-        const docSnap = await getDoc(tenantDb.globalDoc('settings', 'classTypes'));
+        const docSnap = await getDoc(tenantDb.doc('settings', 'classTypes'));
         if (docSnap.exists() && docSnap.data().list) return docSnap.data().list;
 
         const types = new Set();
@@ -539,7 +539,7 @@ export const getClassTypes = async (defaultScheduleTemplate = {}) => {
 
 export const getClassLevels = async () => {
     try {
-        const docSnap = await getDoc(tenantDb.globalDoc('settings', 'classLevels'));
+        const docSnap = await getDoc(tenantDb.doc('settings', 'classLevels'));
         if (docSnap.exists() && docSnap.data().list) return docSnap.data().list;
         return ['0.5', '1', '1.5', '2'];
     } catch {
@@ -549,7 +549,7 @@ export const getClassLevels = async () => {
 
 export const updateInstructors = async (list) => {
     try {
-        await setDoc(tenantDb.globalDoc('settings', 'instructors'), { list, updatedAt: new Date().toISOString() }, { merge: true });
+        await setDoc(tenantDb.doc('settings', 'instructors'), { list, updatedAt: new Date().toISOString() }, { merge: true });
         return { success: true };
     } catch (e) {
         console.error("Failed to update instructors:", e);
@@ -559,7 +559,7 @@ export const updateInstructors = async (list) => {
 
 export const updateClassTypes = async (list) => {
     try {
-        await setDoc(tenantDb.globalDoc('settings', 'classTypes'), { list, updatedAt: new Date().toISOString() }, { merge: true });
+        await setDoc(tenantDb.doc('settings', 'classTypes'), { list, updatedAt: new Date().toISOString() }, { merge: true });
         return { success: true };
     } catch (e) {
         console.error("Failed to update class types:", e);
@@ -569,7 +569,7 @@ export const updateClassTypes = async (list) => {
 
 export const updateClassLevels = async (list) => {
     try {
-        await setDoc(tenantDb.globalDoc('settings', 'classLevels'), { list, updatedAt: new Date().toISOString() }, { merge: true });
+        await setDoc(tenantDb.doc('settings', 'classLevels'), { list, updatedAt: new Date().toISOString() }, { merge: true });
         return { success: true };
     } catch (e) {
         console.error("Failed to update class levels:", e);

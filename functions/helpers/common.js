@@ -107,6 +107,7 @@ const getAllFCMTokens = async (_db, filters = {}) => {
             // Collection might not exist, skip
         }
     }
+
     return { tokens, tokenSources };
 };
 
@@ -115,7 +116,8 @@ const getAllFCMTokens = async (_db, filters = {}) => {
  */
 const logAIError = async (context, error) => {
     try {
-        await admin.firestore().collection('ai_error_logs').add({
+        const tdb = tenantDb();
+        await tdb.collection('ai_error_logs').add({
             context,
             error: error.message || error,
             timestamp: admin.firestore.FieldValue.serverTimestamp()
@@ -130,7 +132,8 @@ const logAIError = async (context, error) => {
  */
 const logAIRequest = async (type, memberName, data, context) => {
     try {
-        await admin.firestore().collection('ai_request_logs').add({
+        const tdb = tenantDb();
+        await tdb.collection('ai_request_logs').add({
             type,
             memberName,
             data,
@@ -156,8 +159,8 @@ const getAI = () => {
 const checkAIQuota = async () => {
     // [FIX] 순환 require('./common') 제거 — 동일 파일 스코프의 getKSTDateString 직접 사용
     const today = getKSTDateString();
-    // [FIX] 미선언 변수 db → admin.firestore() 사용
-    const quotaRef = admin.firestore().collection('ai_quota').doc(today);
+    const tdb = tenantDb();
+    const quotaRef = tdb.collection('ai_quota').doc(today);
     
     const quotaSnap = await quotaRef.get();
     const currentCount = quotaSnap.exists ? quotaSnap.data().count || 0 : 0;
@@ -179,8 +182,8 @@ const checkAIQuota = async () => {
  * Pending Approval 생성 (관리자 확인 필요한 푸시)
  */
 const createPendingApproval = async (type, targetMemberIds, title, body, data = {}) => {
-    const db = admin.firestore();
-    await db.collection('pending_approvals').add({
+    const tdb = tenantDb();
+    await tdb.collection('pending_approvals').add({
         type,
         targetMemberIds,
         title,
@@ -201,8 +204,9 @@ const getStudioName = async () => {
         if (doc.exists) {
             return doc.data().IDENTITY?.NAME || "요가 스튜디오";
         }
-        // Legacy fallback
-        const oldDoc = await admin.firestore().collection('settings').doc('identity').get();
+        // Legacy fallback — 테넌트 경로에서 settings/identity 조회
+        const tdb = tenantDb();
+        const oldDoc = await tdb.collection('settings').doc('identity').get();
         if (oldDoc.exists) {
             return oldDoc.data().studioName || "요가 스튜디오";
         }

@@ -7,7 +7,7 @@
  */
 
 const { onCall } = require("firebase-functions/v2/https");
-const { admin, getAI, checkAIQuota, logAIError, getStudioName } = require("../helpers/common");
+const { admin, tenantDb, getAI, checkAIQuota, logAIError, getStudioName } = require("../helpers/common");
 const { SchemaType } = require("@google/generative-ai"); // ✅ Import SchemaType
 
 // [PERF] TTS 클라이언트 싱글톤 — 매 호출마다 객체 생성 비용(200-500ms) 제거
@@ -646,8 +646,9 @@ JSON Output:
             transitionData: transitionData || null
         };
 
-        // [FIX] Await to prevent fire-and-forget data loss in Cloud Functions
-        await admin.firestore().collection('meditation_ai_logs').add({
+        // [FIX] 테넌트 경로에 로그 저장
+        const tdb = tenantDb();
+        await tdb.collection('meditation_ai_logs').add({
             type,
             timeContext: timeContext || 'unknown',
             weather: weather || 'unknown',

@@ -5,19 +5,9 @@ import { resolveStudioId } from './resolveStudioId';
 /**
  * [SaaS Core] 테넌트 격리를 위한 Firestore 경로 생성 유틸리티
  * 
- * 🚨 TENANT_MIGRATION_COMPLETE = false 인 동안은 기존 루트 레벨 경로를 그대로 사용합니다.
- * 데이터 마이그레이션 완료 후 이 플래그를 true로 바꾸면 자동으로 테넌트 격리 경로를 사용합니다.
- * 
- * 마이그레이션 절차:
- * 1. node scripts/migrate_tenant_data.cjs 실행
- * 2. Firestore 콘솔에서 /studios/boksaem-yoga/members 등 데이터 존재 확인
- * 3. 아래 플래그를 true로 변경 후 배포
+ * 모든 데이터는 studios/{studioId}/ 하위에 격리됩니다.
+ * studioId는 resolveStudioId()로 동적 해석됩니다.
  */
-
-// ⚠️ CF(Cloud Functions)가 아직 루트 경로(members, attendance)를 사용하므로
-// 프론트엔드도 루트 경로를 사용해야 데이터가 일치합니다.
-// CF를 테넌트 격리 경로로 수정한 후 true로 변경하세요.
-const TENANT_MIGRATION_COMPLETE = true;
 
 export const tenantDb = {
     /**
@@ -25,10 +15,6 @@ export const tenantDb = {
      * @returns {import('firebase/firestore').CollectionReference}
      */
     collection: (path) => {
-        if (!TENANT_MIGRATION_COMPLETE) {
-            // 마이그레이션 전: 기존 루트 레벨 경로 사용 (운영 안전)
-            return collection(db, path);
-        }
         const studioId = resolveStudioId();
         return collection(db, `studios/${studioId}/${path}`);
     },
@@ -39,14 +25,6 @@ export const tenantDb = {
      * @returns {import('firebase/firestore').DocumentReference}
      */
     doc: (path, id) => {
-        if (!TENANT_MIGRATION_COMPLETE) {
-            // 마이그레이션 전: 기존 루트 레벨 경로 사용 (운영 안전)
-            if (id) {
-                return doc(db, path, id);
-            } else {
-                return doc(collection(db, path));
-            }
-        }
         const studioId = resolveStudioId();
         if (id) {
             return doc(db, `studios/${studioId}/${path}`, id);
@@ -54,8 +32,4 @@ export const tenantDb = {
             return doc(collection(db, `studios/${studioId}/${path}`));
         }
     },
-    
-    // 글로벌/공용 컬렉션 접근 (설정, 에러로그 등 — 항상 루트 레벨)
-    globalCollection: (path) => collection(db, path),
-    globalDoc: (path, id) => doc(db, path, id),
 };

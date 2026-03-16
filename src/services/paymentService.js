@@ -87,7 +87,7 @@ export const paymentService = {
   async getRevenueStats() {
     // [NOTE] revenue_summary는 프론트에서 직접 사용하지 않으나 하위 호환성을 위해 유지
     try {
-      const docRef = tenantDb.globalDoc('stats', 'revenue_summary');
+      const docRef = tenantDb.doc('stats', 'revenue_summary');
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         return docSnap.data();

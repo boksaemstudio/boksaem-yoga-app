@@ -163,7 +163,7 @@ export const getDailyYoga = async (language = 'ko') => {
 export const getAiUsage = async () => {
     try {
         const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-        const docRef = tenantDb.globalDoc('ai_quota', today);
+        const docRef = tenantDb.doc('ai_quota', today);
         const snapshot = await getDoc(docRef);
         if (snapshot.exists()) {
             const data = snapshot.data();

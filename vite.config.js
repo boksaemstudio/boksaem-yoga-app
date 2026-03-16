@@ -50,18 +50,22 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
-    chunkSizeWarningLimit: 1000,
+    // [PERF] 'hidden' = 소스맵 생성하되 번들에서 참조 제거 → 에러 추적 가능 + 빌드 속도 약간 향상
+    sourcemap: 'hidden',
+    chunkSizeWarningLimit: 1500,
     // [PERF] Strip console.log and console.debug in production builds
     // console.warn and console.error are preserved for important diagnostics
     rollupOptions: {
       output: {
         // [BUILD-FIX] Appending -v12 to physically force new filenames on every single file
-        // This is a last-resort countermeasure against Workbox aggressively caching files
-        // and Vite/Rollup failing to change chunk hashes for edited React files.
         chunkFileNames: `assets/[name]-[hash]-v12.js`,
         entryFileNames: `assets/[name]-[hash]-v12.js`,
-        assetFileNames: `assets/[name]-[hash]-v12.[ext]`
+        assetFileNames: `assets/[name]-[hash]-v12.[ext]`,
+        // [PERF] 대형 라이브러리를 별도 청크로 분리 → 캐싱 효율 + 빌드 속도
+        manualChunks: {
+          'vendor-firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage', 'firebase/messaging'],
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+        }
       }
     }
   }

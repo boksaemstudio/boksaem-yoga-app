@@ -21,7 +21,7 @@ export const memberService = {
   // [NEW] Trigger Kiosk Sync
   async triggerKioskSync() {
     try {
-      const syncRef = tenantDb.globalDoc('system_state', 'kiosk_sync');
+      const syncRef = tenantDb.doc('system_state', 'kiosk_sync');
       await setDoc(syncRef, { lastMemberUpdate: new Date().toISOString() }, { merge: true });
       console.log('[memberService] Kiosk sync triggered');
     } catch (e) {

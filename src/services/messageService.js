@@ -53,7 +53,7 @@ export const messageService = {
   getPendingApprovals(callback) {
     try {
       const q = query(
-        tenantDb.globalCollection('message_approvals'),
+        tenantDb.collection('message_approvals'),
         orderBy('createdAt', 'desc')
       );
 
@@ -73,7 +73,7 @@ export const messageService = {
 
   async approvePush(id) {
     try {
-      const docRef = tenantDb.globalDoc('message_approvals', id);
+      const docRef = tenantDb.doc('message_approvals', id);
       await updateDoc(docRef, { status: 'approved', approvedAt: new Date().toISOString() });
       return { success: true };
     } catch (e) {
@@ -84,7 +84,7 @@ export const messageService = {
 
   async rejectPush(id) {
     try {
-      await deleteDoc(tenantDb.globalDoc('message_approvals', id));
+      await deleteDoc(tenantDb.doc('message_approvals', id));
       return { success: true };
     } catch (e) {
       console.error("Reject push failed:", e);

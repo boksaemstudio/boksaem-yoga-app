@@ -1,5 +1,5 @@
 // src/hooks/useAttendanceCamera.js
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { storage } from '../firebase';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
@@ -11,56 +11,137 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
     const isCapturingRef = useRef(false);
     const lastCaptureTimeRef = useRef(0);
     const capturePromisesRef = useRef([]);
+    const isRecoveringRef = useRef(false);
+    const recoveryCountRef = useRef(0);
 
-    // [PHOTO] 카메라 초기화
+    // [PHOTO] 카메라 초기화 (재사용 가능한 함수로 분리)
+    const initCamera = useCallback(async (reason = 'initial') => {
+        if (!PHOTO_ENABLED) return false;
+        if (isRecoveringRef.current) {
+            console.log('[PHOTO] Recovery already in progress, skipping.');
+            return false;
+        }
+
+        isRecoveringRef.current = true;
+        
+        try {
+            // 기존 스트림 정리
+            if (cameraStreamRef.current) {
+                try {
+                    cameraStreamRef.current.getTracks().forEach(t => t.stop());
+                } catch (e) {}
+                cameraStreamRef.current = null;
+            }
+
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'user', width: { ideal: 800 }, height: { ideal: 600 } }
+            });
+            
+            cameraStreamRef.current = stream;
+            
+            // [FIX] track.onended 이벤트 감시 — 스트림이 죽으면 자동 복구
+            stream.getVideoTracks().forEach(track => {
+                track.onended = () => {
+                    console.warn(`[PHOTO] ⚠️ Camera track ended unexpectedly! Reason: ${track.label}`);
+                    cameraStreamRef.current = null;
+                    // 짧은 딜레이 후 자동 복구 시도
+                    setTimeout(() => initCamera('track_ended'), 2000);
+                };
+            });
+            
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+                videoRef.current.setAttribute('autoplay', '');
+                videoRef.current.setAttribute('muted', '');
+                videoRef.current.setAttribute('playsinline', '');
+                
+                await videoRef.current.play().catch(e => {
+                    console.warn('[PHOTO] Autoplay blocked, will retry on interaction:', e);
+                });
+            }
+            
+            recoveryCountRef.current = reason === 'initial' ? 0 : recoveryCountRef.current + 1;
+            console.log(`[PHOTO] Camera initialized successfully (${reason}). Recovery count: ${recoveryCountRef.current}`);
+            return true;
+        } catch (err) {
+            console.error(`[PHOTO] ❌ Camera init failed (${reason}):`, err.message);
+            return false;
+        } finally {
+            isRecoveringRef.current = false;
+        }
+    }, [PHOTO_ENABLED]);
+
+    // [PHOTO] 스트림 상태 확인 유틸리티
+    const isStreamAlive = useCallback(() => {
+        if (!cameraStreamRef.current) return false;
+        const tracks = cameraStreamRef.current.getVideoTracks();
+        if (tracks.length === 0) return false;
+        // track.readyState: 'live' = 정상, 'ended' = 죽음
+        return tracks.some(t => t.readyState === 'live');
+    }, []);
+
+    // [PHOTO] 카메라 초기화 + 복구 구독
     useEffect(() => {
         if (!PHOTO_ENABLED) return;
         
         let isMounted = true;
-        
-        const initCamera = async () => {
-            try {
-                // [O] 800x600 ideal resolution for better quality
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'user', width: { ideal: 800 }, height: { ideal: 600 } }
-                });
-                
-                if (isMounted) {
-                    cameraStreamRef.current = stream;
-                    if (videoRef.current) {
-                        videoRef.current.srcObject = stream;
-                        videoRef.current.setAttribute('autoplay', '');
-                        videoRef.current.setAttribute('muted', '');
-                        videoRef.current.setAttribute('playsinline', '');
-                        
-                        videoRef.current.play().catch(e => {
-                            console.warn('[PHOTO] Autoplay blocked, will retry on interaction:', e);
-                        });
+
+        // 초기 카메라 설정
+        initCamera('initial');
+
+        // [FIX] visibilitychange 기반 카메라 복구
+        // 태블릿이 절전에서 깨어나면 카메라 스트림이 죽어있을 수 있음
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible' && isMounted) {
+                // 잠시 대기 후 스트림 상태 확인 (OS가 리소스를 재할당할 시간)
+                setTimeout(() => {
+                    if (!isMounted) return;
+                    if (!isStreamAlive()) {
+                        console.warn('[PHOTO] ⚠️ Camera stream dead after visibility change. Recovering...');
+                        initCamera('visibility_recovery');
+                    } else {
+                        // 스트림은 살아있지만 video가 paused일 수 있음
+                        if (videoRef.current && videoRef.current.paused) {
+                            console.log('[PHOTO] Video paused after visibility change, resuming...');
+                            videoRef.current.play().catch(() => {});
+                        }
                     }
-                    console.log('[PHOTO] Camera initialized successfully (800x600)');
-                } else {
-                    stream.getTracks().forEach(t => t.stop());
-                }
-            } catch (err) {
-                console.warn('[PHOTO] Camera init failed:', err.message);
+                }, 1000);
             }
         };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
 
-        initCamera();
+        // [FIX] 3분 Heartbeat — 스트림 건강 체크
+        const heartbeatInterval = setInterval(() => {
+            if (!isMounted || document.visibilityState !== 'visible') return;
+            
+            if (!isStreamAlive()) {
+                console.warn('[PHOTO] ⚠️ Heartbeat: Camera stream is dead. Recovering...');
+                initCamera('heartbeat_recovery');
+            } else if (videoRef.current && videoRef.current.paused) {
+                console.log('[PHOTO] Heartbeat: Video is paused, resuming...');
+                videoRef.current.play().catch(() => {});
+            }
+        }, 3 * 60 * 1000); // 3분
 
         return () => {
             isMounted = false;
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            clearInterval(heartbeatInterval);
             if (cameraStreamRef.current) {
                 cameraStreamRef.current.getTracks().forEach(t => t.stop());
                 cameraStreamRef.current = null;
             }
             if (videoRef.current) videoRef.current.srcObject = null;
         };
-    }, [PHOTO_ENABLED]);
+    }, [PHOTO_ENABLED, initCamera, isStreamAlive]);
 
-    // [PHOTO] 프레임 캡처
-    const capturePhoto = () => {
-        if (!PHOTO_ENABLED) return;
+    // [PHOTO] 프레임 캡처 — Silent Return 로깅 강화
+    const capturePhoto = useCallback(() => {
+        if (!PHOTO_ENABLED) {
+            // L63 silent return → 이제 로그 추가
+            return;
+        }
         
         // [O] Cooldown: Don't capture more than once every 10 seconds to save CPU
         const now = Date.now();
@@ -69,18 +150,45 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
             return;
         }
 
-        if (!videoRef.current || !canvasRef.current || !cameraStreamRef.current) return;
+        // [FIX] Silent return 경로에 로그 추가 + 스트림 복구 트리거
+        if (!videoRef.current || !canvasRef.current) {
+            console.warn('[PHOTO] ⚠️ Missing video/canvas ref. Cannot capture.');
+            return;
+        }
+        
+        if (!cameraStreamRef.current || !isStreamAlive()) {
+            console.warn('[PHOTO] ⚠️ Camera stream is not available. Triggering recovery...');
+            initCamera('capture_recovery');
+            return;
+        }
 
         const video = videoRef.current;
         if (video.readyState < 2 || video.paused) {
+            console.warn(`[PHOTO] ⚠️ Video not ready (readyState=${video.readyState}, paused=${video.paused}). Attempting play + delayed retry...`);
             video.play().catch(() => {});
+            // [FIX] 즉시 포기하지 말고 500ms 후 한번 더 시도
+            setTimeout(() => {
+                if (video.readyState >= 2 && !video.paused) {
+                    console.log('[PHOTO] Retry after play() succeeded. Capturing now...');
+                    doCapture(video);
+                } else {
+                    console.warn('[PHOTO] ⚠️ Retry failed. Video still not ready.');
+                }
+            }, 500);
             return;
         }
+        
+        doCapture(video);
+    }, [PHOTO_ENABLED, initCamera, isStreamAlive]);
+
+    // 실제 캡처 로직 분리
+    const doCapture = useCallback((video) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
         
         // [CRITICAL FIX] Clear old photo so uploadPhoto is forced to wait for THIS new capture
         capturedPhotoRef.current = null;
         
-        const canvas = canvasRef.current;
         // [O] Set higher resolution (800x600)
         canvas.width = 800;
         canvas.height = 600;
@@ -91,6 +199,7 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
         isCapturingRef.current = true;
         const capturePromise = new Promise((resolve) => {
             const timeout = setTimeout(() => {
+                console.warn('[PHOTO] ⚠️ toBlob timed out after 5s');
                 isCapturingRef.current = false;
                 resolve(null);
             }, 5000);
@@ -102,13 +211,16 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
                     if (blob) {
                         capturedPhotoRef.current = blob;
                         lastCaptureTimeRef.current = Date.now();
-                        console.log(`[PHOTO] Captured WebP: ${(blob.size / 1024).toFixed(1)}KB`);
+                        console.log(`[PHOTO] ✅ Captured WebP: ${(blob.size / 1024).toFixed(1)}KB`);
+                    } else {
+                        console.warn('[PHOTO] ⚠️ toBlob returned null blob');
                     }
                     isCapturingRef.current = false;
                     resolve(blob);
                 }, 'image/webp', 0.8);
             } catch (err) {
                 clearTimeout(timeout);
+                console.error('[PHOTO] ❌ toBlob threw:', err.message);
                 isCapturingRef.current = false;
                 resolve(null);
             }
@@ -116,7 +228,7 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
         
         capturePromisesRef.current.push(capturePromise);
         if (capturePromisesRef.current.length > 3) capturePromisesRef.current.shift();
-    };
+    }, []);
 
     // [PHOTO] 비동기 업로드
     const uploadPhoto = async (attendanceId, memberName, status) => {
@@ -142,7 +254,20 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
 
         const blob = capturedPhotoRef.current;
         if (!blob) {
-            console.warn('[PHOTO] No captured photo available for upload. Camera may not be active.');
+            console.warn(`[PHOTO] ❌ No captured photo for upload. Stream alive: ${isStreamAlive()}. Member: ${memberName || 'unknown'}`);
+            // [FIX] 사진 업로드 실패를 에러 로그에 기록
+            try {
+                const { logError } = await import('../services/modules/errorModule');
+                await logError(`[PHOTO] No photo available at upload time`, { 
+                    memberName: memberName || 'unknown',
+                    attendanceId,
+                    streamAlive: isStreamAlive(),
+                    hasVideo: !!videoRef.current,
+                    videoReadyState: videoRef.current?.readyState,
+                    videoPaused: videoRef.current?.paused,
+                    timeSinceLastCapture: Date.now() - lastCaptureTimeRef.current
+                });
+            } catch (e) {}
             return;
         }
 
@@ -167,9 +292,9 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
                     photoStatus: status || 'unknown'
                 });
             }
-            console.log(`[PHOTO] Upload Success: ${path} (${(blob.size / 1024).toFixed(1)}KB)`);
+            console.log(`[PHOTO] ✅ Upload Success: ${path} (${(blob.size / 1024).toFixed(1)}KB)`);
         } catch (err) {
-            console.error(`[PHOTO] Upload failed:`, err.message);
+            console.error(`[PHOTO] ❌ Upload failed:`, err.message);
             try {
                 const { logError } = await import('../services/modules/errorModule');
                 await logError(`[PHOTO] Upload failed for ${memberName || 'unknown'}`, { 

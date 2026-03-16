@@ -556,7 +556,7 @@ exports.onAttendanceCreated = onDocumentCreated({
         const instructorName = attendance.instructor;
         if (instructorName) {
             try {
-                const instructorTokensSnap = await tdb.collection('fcm_tokens')
+                let instructorTokensSnap = await tdb.collection('fcm_tokens')
                     .where('role', '==', 'instructor')
                     .where('instructorName', '==', instructorName)
                     .get();
@@ -565,7 +565,13 @@ exports.onAttendanceCreated = onDocumentCreated({
                     const memberName = attendance.memberName || '회원';
                     const className = attendance.className || '수업';
 
-                    const tokens = instructorTokensSnap.docs.map(doc => doc.data().token).filter(Boolean);
+                    // [FIX] doc.id를 토큰으로 사용 (doc.data().token 필드가 아님)
+                    const tokenSet = new Set();
+                    instructorTokensSnap.docs.forEach(doc => {
+                        const token = doc.data().token || doc.id;
+                        if (token) tokenSet.add(token);
+                    });
+                    const tokens = Array.from(tokenSet);
                     
                     // [NEW] Get Member Rank Label (신규, 2회차, 3회차)
                     let rankLabel = '';
@@ -586,6 +592,7 @@ exports.onAttendanceCreated = onDocumentCreated({
                     }
 
                     const attendanceId = event.params.attendanceId;
+                    console.log(`[Instructor Push] Sending to ${tokens.length} tokens for "${instructorName}"`);
                     for (const token of tokens) {
                         try {
                             await admin.messaging().send({
@@ -613,6 +620,8 @@ exports.onAttendanceCreated = onDocumentCreated({
                             }
                         }
                     }
+                } else {
+                    console.warn(`[Instructor Push] No FCM tokens found for "${instructorName}" in ANY path`);
                 }
             } catch (instructorPushError) {
                 console.error('[Instructor Push] Error:', instructorPushError);
@@ -811,7 +820,7 @@ exports.onAttendancePhotoAdded = onDocumentUpdated({
     if (!instructorName || instructorName === '미지정' || instructorName === '회원') return;
 
     try {
-        const tokensSnap = await tdb.collection('fcm_tokens')
+        let tokensSnap = await tdb.collection('fcm_tokens')
             .where('role', '==', 'instructor')
             .where('instructorName', '==', instructorName)
             .get();

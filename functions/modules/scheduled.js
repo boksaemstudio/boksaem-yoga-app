@@ -35,7 +35,7 @@ exports.checkLowCreditsV2 = onDocumentUpdated({
         
         const body = await ai.generate(`크레딧 소진 알림 (${ai.getLangName(lang)}): ${newData.name}님의 수업권이 모두 소진되었습니다. 수련 패턴: ${stats}`);
 
-        const tokensSnap = await tdb.collection('fcm_tokens').where('memberId', '==', memberId).get();
+        let tokensSnap = await tdb.collection('fcm_tokens').where('memberId', '==', memberId).get();
         if (!tokensSnap.empty) {
             const studioName = await getStudioName();
             await createPendingApproval('low_credits', [memberId], `${studioName} 알림`, body, { credits: 0, prevCredits: oldData.credits });
@@ -83,7 +83,7 @@ exports.sendDailyAdminReportV2 = onSchedule({
 
 오늘 하루도 수고 많으셨습니다. 🙏`;
 
-        const tokensSnap = await tdb.collection('fcm_tokens').where('type', '==', 'admin').get();
+        let tokensSnap = await tdb.collection('fcm_tokens').where('type', '==', 'admin').get();
         if (!tokensSnap.empty) {
             const tokens = tokensSnap.docs.map(d => d.id);
             await admin.messaging().sendEachForMulticast({
@@ -172,7 +172,7 @@ exports.sendScheduledMessages = onSchedule({
             let pushSuccess = false;
             try {
                 // Get Tokens
-                const tokensSnap = await tdb.collection("fcm_tokens").where("memberId", "==", memberId).get();
+                let tokensSnap = await tdb.collection("fcm_tokens").where("memberId", "==", memberId).get();
                 const tokens = tokensSnap.docs.map(t => t.id);
                 
                 if (tokens.length > 0) {

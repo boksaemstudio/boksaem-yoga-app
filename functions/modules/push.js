@@ -169,21 +169,23 @@ exports.sendBulkPushV2 = onDocumentCreated({
             }
         }
 
-        // Stream tokens
-        const tokenQuery = tdb.collection("fcm_tokens");
+        // Stream tokens — [FIX] 테넌트 + 루트 양쪽에서 조회
         const isTargeted = targetMemberIds.length > 0;
         const validTokensByLang = { 'ko': [], 'en': [], 'ru': [], 'zh': [], 'ja': [] };
 
-        const snap2 = await tokenQuery.get();
-        snap2.docs.forEach(doc => {
-            const tokenData = doc.data();
-            const token = doc.id;
-            const lang = tokenData.language || 'ko';
-            
-            if (isTargeted && !targetMemberIds.includes(tokenData.memberId)) return;
-            if (!validTokensByLang[lang]) validTokensByLang[lang] = [];
-            validTokensByLang[lang].push(token);
-        });
+        const collectTokens = (snapDocs) => {
+            snapDocs.forEach(doc => {
+                const tokenData = doc.data();
+                const token = doc.id;
+                const lang = tokenData.language || 'ko';
+                if (isTargeted && !targetMemberIds.includes(tokenData.memberId)) return;
+                if (!validTokensByLang[lang]) validTokensByLang[lang] = [];
+                if (!validTokensByLang[lang].includes(token)) validTokensByLang[lang].push(token);
+            });
+        };
+
+        const snap2 = await tdb.collection("fcm_tokens").get();
+        collectTokens(snap2.docs);
 
         // Send batch by language
         for (const [lang, tokens] of Object.entries(validTokensByLang)) {
@@ -255,19 +257,22 @@ exports.sendPushOnNoticeV2 = onDocumentCreated({
         const { tokens: allTokens } = await getAllFCMTokens(null);
         const tokensByGroup = {};
 
-        // getAllFCMTokens은 토큰 ID만 반환하므로, 개별 문서 데이터로 그룹핑 필요
-        // 기존 로직을 유지하되 fcm_tokens 단일 컬렉션 기준으로 조회
+        // [FIX] 테넌트 + 루트 양쪽에서 토큰 조회 및 그룹핑
+        const collectGroupTokens = (snapDocs) => {
+            snapDocs.forEach(doc => {
+                const data = doc.data();
+                const lang = data.language || 'ko';
+                const role = data.role === 'instructor' ? 'instructor' : 'member';
+                const groupKey = `${lang}_${role}`;
+                if (!tokensByGroup[groupKey]) tokensByGroup[groupKey] = [];
+                if (!tokensByGroup[groupKey].includes(doc.id)) {
+                    tokensByGroup[groupKey].push(doc.id);
+                }
+            });
+        };
+
         const snap = await tdb.collection('fcm_tokens').get();
-        snap.docs.forEach(doc => {
-            const data = doc.data();
-            const lang = data.language || 'ko';
-            const role = data.role === 'instructor' ? 'instructor' : 'member';
-            const groupKey = `${lang}_${role}`;
-            if (!tokensByGroup[groupKey]) tokensByGroup[groupKey] = [];
-            if (!tokensByGroup[groupKey].includes(doc.id)) {
-                tokensByGroup[groupKey].push(doc.id);
-            }
-        });
+        collectGroupTokens(snap.docs);
 
         let successTotal = 0;
         let failureTotal = 0;
@@ -360,6 +365,7 @@ exports.cleanupGhostTokens = onSchedule({
             });
             await batch.commit();
         }
+
 
         console.log(`Ghost token cleanup: ${totalDeleted} tokens deleted`);
         await logAIError('System_Cleanup', { deleted: totalDeleted, type: 'GhostTokenCleanup' });
