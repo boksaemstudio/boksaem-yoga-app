@@ -6,7 +6,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
     const isSubmittingRef = useRef(false);
 
     // Renew State
-    const [membershipType, setMembershipType] = useState(() => Object.keys(pricingConfig || {}).find(k => k !== '_meta') || 'general');
+    const [membershipType, setMembershipType] = useState(() => member.membershipType || Object.keys(pricingConfig || {}).find(k => k !== '_meta') || 'general');
     const [selectedOption, setSelectedOption] = useState('');
     const [duration, setDuration] = useState(1);
     const [paymentMethod, setPaymentMethod] = useState('card');
@@ -101,9 +101,9 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
     useEffect(() => { setCustomEndDate(calculatedEndDate); }, [calculatedEndDate]);
     useEffect(() => { setCustomCredits(calculatedCredits); }, [calculatedCredits]);
 
-    // [INFO] 선등록 여부 확인
+    // [INFO] 선등록 여부 확인 — credits=0이면 수강권 소진 상태이므로 선등록(TBD) 처리하지 않음
     const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-    const isAdvance = member.endDate && new Date(member.endDate) >= new Date(todayStr);
+    const isAdvance = member.endDate && new Date(member.endDate) >= new Date(todayStr) && (member.credits || 0) > 0;
 
     // Computed Info for TBD mode
     const finalStartDate = (isAdvance && autoStart) ? 'TBD' : startDate;

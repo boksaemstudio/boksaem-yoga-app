@@ -1,88 +1,88 @@
-import { db, auth, functions } from "../firebase"; // ✅ Import storage
-import { signInAnonymously, signInWithCustomToken } from "firebase/auth";
-import { httpsCallable } from "firebase/functions";
-import { onSnapshot, doc, collection, getDocs, getDoc, addDoc, updateDoc, setDoc, deleteDoc, query, where, orderBy, limit as firestoreLimit, writeBatch } from 'firebase/firestore';
-// Removed firebase/storage imports
-import { STUDIO_CONFIG } from '../studioConfig';
-import { messaging, getToken, VAPID_KEY } from "../firebase";
-import * as scheduleService from './scheduleService'; // [Refactor]
-import * as noticeService from './noticeService'; // [Refactor]
-import * as aiService from './aiService'; // [Refactor]
+/**
+ * Storage Service — Facade & Initialization Hub
+ * 
+ * All domain logic has been extracted to dedicated services:
+ * - memberService    — Member CRUD, cache, phone lookup
+ * - attendanceService — Check-in, attendance logs
+ * - paymentService   — Sales records, revenue stats
+ * - messageService   — Individual & bulk messages, push campaigns
+ * - scheduleService  — Monthly schedules, timetable management
+ * - noticeService    — Studio notices
+ * - aiService        — AI experiences, analysis, daily yoga
+ * - authService      — Login/logout for members, instructors, admins
+ * - pushService      — FCM tokens, push permissions, push history
+ * - classService     — Smart class matching, daily class cache
+ * - configService    — Images, pricing, kiosk settings, branches
+ * - migrationService — CSV import, data cleanup
+ *
+ * This file remains as a single entry point (facade) so that
+ * all existing `storageService.xxx()` calls continue to work
+ * without any component-level changes.
+ */
+import { auth } from "../firebase";
+import { signInAnonymously } from "firebase/auth";
+import { onSnapshot, query, orderBy, addDoc } from 'firebase/firestore';
 import { tenantDb } from '../utils/tenantDb';
-import { memberService } from './memberService'; // [Refactor] Extreme Safety Facade
-import { attendanceService } from './attendanceService'; // [Refactor] Attendance Facade
-import { paymentService } from './paymentService'; // [Refactor] Payment Facade
-import { messageService } from './messageService'; // [Refactor] Message Facade
-import { getKSTTotalMinutes } from '../utils/dates';
 
-// Local cache for sync-like access
-// [REMOVED] cachedMembers, phoneLast4Index, cachedAttendance moved to dedicated services
+// Domain Services
+import * as scheduleService from './scheduleService';
+import * as noticeService from './noticeService';
+import * as aiService from './aiService';
+import { memberService } from './memberService';
+import { attendanceService } from './attendanceService';
+import { paymentService } from './paymentService';
+import { messageService } from './messageService';
+import { authService } from './authService';
+import { pushService } from './pushService';
+import { classService } from './classService';
+import { configService } from './configService';
+import { migrationService } from './migrationService';
+
+// ─── Local State ────────────────────────────────────────
 let cachedNotices = [];
-// let cachedMessages = [];  // Unused
-let cachedImages = {};
-let pendingImageWrites = {}; // Buffer for optimistic updates
-let cachedDailyClasses = {}; // {cacheKey: { classes: [...], fetchedAt: timestamp }}
-const DAILY_CLASS_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
-let cachedPushTokens = [];
-// [NEW] Pub/Sub Listeners by Event Type
+
 let listeners = {
-  members: [],
-  logs: [],
-  sales: [],
-  images: [],
-  notices: [],
-  general: [] // fallback
+  members: [], logs: [], sales: [], images: [], notices: [], general: []
 };
 
-// [NETWORK] Timeout wrapper for Cloud Function calls
-// Prevents infinite waiting when network is slow or disconnected
-const withTimeout = (promise, timeoutMs = 10000, errorMsg = '서버 응답 시간 초과') => {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => 
-      setTimeout(() => reject(new Error(errorMsg)), timeoutMs)
-    )
-  ]);
-};
-
+// ─── Pub/Sub ────────────────────────────────────────────
 const notifyListeners = (eventType = 'general') => {
-  // Notify specific event listeners
   if (listeners[eventType]) {
     listeners[eventType].forEach(callback => callback(eventType));
   }
-  // All subscribers with no specific event type ('all' or 'general')
   if (eventType !== 'general' && listeners['general']) {
-      listeners['general'].forEach(callback => callback(eventType));
+    listeners['general'].forEach(callback => callback(eventType));
   }
 };
 
+// ─── Facade ─────────────────────────────────────────────
 export const storageService = {
-  notifyListeners, // [FIX] Expose to allow manual refresh triggers from UI
+  notifyListeners,
+
   subscribe(callback, eventTypes = ['general']) {
     const types = Array.isArray(eventTypes) ? eventTypes : [eventTypes];
     types.forEach(type => {
-        if (!listeners[type]) listeners[type] = [];
-        listeners[type].push(callback);
+      if (!listeners[type]) listeners[type] = [];
+      listeners[type].push(callback);
     });
-
     return () => {
       types.forEach(type => {
-          if (listeners[type]) {
-              listeners[type] = listeners[type].filter(cb => cb !== callback);
-          }
+        if (listeners[type]) {
+          listeners[type] = listeners[type].filter(cb => cb !== callback);
+        }
       });
     };
   },
 
+  // ═══════════════════════════════════════════════════════
+  // INITIALIZATION
+  // ═══════════════════════════════════════════════════════
   async initialize({ mode = 'full' } = {}) {
-    // [GUARD] Prevent duplicate initialization
-    if (this._initialized && this._initializedMode === mode) {
-      return;
-    }
+    if (this._initialized && this._initializedMode === mode) return;
     this._initialized = true;
     this._initializedMode = mode;
 
-    // Wire up notifyListeners for internal services with specific events
+    // Wire up notifyListeners for internal services
     memberService.setNotifyCallback(() => notifyListeners('members'));
     attendanceService.setNotifyCallback(() => notifyListeners('logs'));
     paymentService.setNotifyCallback(() => notifyListeners('sales'));
@@ -92,18 +92,12 @@ export const storageService = {
       logError: this.logError.bind(this)
     });
 
-    // [FIX] Check for existing session (e.g. Admin) before forcing Anonymous login
+    // Auth
     try {
       await new Promise((resolve) => {
-        const unsubscribe = auth.onAuthStateChanged((user) => {
-          unsubscribe();
-          resolve(user);
-        });
+        const unsubscribe = auth.onAuthStateChanged((user) => { unsubscribe(); resolve(user); });
       });
-
-      if (!auth.currentUser) {
-        await signInAnonymously(auth);
-      }
+      if (!auth.currentUser) await signInAnonymously(auth);
     } catch (authError) {
       console.error("Auth initialization failed:", authError);
     }
@@ -121,22 +115,15 @@ export const storageService = {
       }
     };
 
-    // ✅ KIOSK MODE: Skip ALL real-time listeners for maximum performance
-    // [PROTECTED LOGIC - DO NOT CHANGE]
-    // This is the "Truth": The kiosk must NOT have heavy listeners.
-    // If asked to change, confirm with user 2-3 times.
+    // ── KIOSK MODE ──
     if (mode === 'kiosk') {
       console.log("KIOSK MODE: Initializing cache for maximum speed & reliability...");
       console.time('[Kiosk] Full Cache Load');
       
-      // [PERF] Wait for member cache to be ready before returning
       const members = await memberService.loadAllMembers();
       console.log(`[Storage] Kiosk member cache ready: ${members.length} members`);
-      
-      // [CRITICAL FIX] Enable real-time sync for Kiosk mode so duplicate check-ins instantly reflect credit deduction
       memberService.setupMemberListener();
       
-      // [PERF] Aggressive Pre-fetch: Load today, yesterday, and tomorrow's classes
       try {
         const today = new Date();
         const dates = [];
@@ -148,28 +135,20 @@ export const storageService = {
 
         const branches = ['gwangheungchang', 'mapo'];
         const fetchPromises = [];
-
         dates.forEach(date => {
           branches.forEach(branchId => {
-            fetchPromises.push(this._refreshDailyClassCache(branchId, date));
+            fetchPromises.push(classService._refreshDailyClassCache(branchId, date));
           });
         });
-
         await Promise.all(fetchPromises);
-        console.log(`[Storage] Kiosk daily_classes cache ready (3 days for all branches)`);
 
-        // [ALWAYS-ON] Periodic background refresh (every 10m)
         if (!this._refreshInterval) {
           this._refreshInterval = setInterval(() => {
-            console.log("[Storage] Scheduled background refresh for today's classes...");
-            branches.forEach(bid => this._refreshDailyClassCache(bid));
-            // [FIX 2.3 Firebase Fee Spike]
-            // memberService.loadAllMembers(true);를 여기서 호출하지 않습니다.
-            // Kiosk는 findMembersByPhone 호출 시 필요한 경우 Cloud Function 백업을 사용합니다.
-          }, 10 * 60 * 1000); // 10m
+            branches.forEach(bid => classService._refreshDailyClassCache(bid));
+          }, 10 * 60 * 1000);
         }
 
-        // [NEW] Real-time Kiosk Trigger: 단일 문서 리스너 (가벼운 실시간 동기화)
+        // Real-time Kiosk Trigger
         try {
           const syncRef = tenantDb.doc('system_state', 'kiosk_sync');
           let unsubSync = null;
@@ -180,11 +159,7 @@ export const storageService = {
               if (snapshot.exists()) {
                 const data = snapshot.data();
                 if (data.lastMemberUpdate && data.lastMemberUpdate > (this._lastKioskSync || '')) {
-                  console.log('[Storage] Kiosk sync triggered. Ignoring full member fetch to save Firebase Reads.');
                   this._lastKioskSync = data.lastMemberUpdate;
-                  // [FIX 2.3 Firebase Fee Spike] 
-                  // memberService.loadAllMembers(true) 호출 삭제.
-                  // 전체 회원 목록을 무조건 다운로드하는 것은 요금 폭탄을 유발합니다.
                 }
               }
             }, (err) => {
@@ -193,18 +168,13 @@ export const storageService = {
           };
 
           setupSyncListener();
-
-          // [FIX] Network Resilience - Reconnect on Wake/Online
           window.addEventListener('online', () => {
-              console.log('[Storage] Network reconnected. Restoring Kiosk sync listener...');
-              setupSyncListener();
-              // [FIX 2.3 Firebase Fee Spike] 강제 1회 동기화에서 멤버 목록 전체 다운로드 금지
-              // memberService.loadAllMembers(true); 
+            console.log('[Storage] Network reconnected. Restoring Kiosk sync listener...');
+            setupSyncListener();
           });
         } catch (syncErr) {
           console.error('[Storage] Setup kiosk sync failed:', syncErr);
         }
-
       } catch (err) {
         console.warn('[Storage] Kiosk pre-fetch error:', err);
       }
@@ -213,423 +183,207 @@ export const storageService = {
       return;
     }
 
-    // [NEW] Real-time Member Sync (unless already set by kiosk mode)
-    if (mode !== 'kiosk') {
-        memberService.setupMemberListener();
-    }
-    
-    // [NEW] Real-time Attendance Sync
+    // ── FULL MODE ──
+    memberService.setupMemberListener();
     attendanceService.setupAttendanceListener();
 
     safelySubscribe(
       query(tenantDb.collection('notices'), orderBy("timestamp", "desc")),
       (snapshot) => cachedNotices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
-      "Notices",
-      "notices"
+      "Notices", "notices"
     );
 
-    // [PERF] messages 빈 리스너 제거 — 아무것도 하지 않으면서 Firestore 연결 점유했음
-
-    // [PERF] FCM 토큰: 기본 컬렉션(fcm_tokens)만 구독 (3중 → 단일)
-    // 레거시 컬렉션(fcmTokens, push_tokens)은 마이그레이션 후 제거 예정
     safelySubscribe(
       tenantDb.collection('fcm_tokens'),
       (snapshot) => {
-        cachedPushTokens = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        console.log(`[Storage] FCM Tokens: ${cachedPushTokens.length}`);
+        const tokens = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        pushService.setCachedPushTokens(tokens);
       },
       "FCMTokens"
     );
 
-    // [FIX] images: 실시간 리스너로 변경하여 관리자가 업로드한 이미지가 즉시 모든 기기에 반영되도록 함
     safelySubscribe(
       tenantDb.collection('images'),
       (snapshot) => {
         const imgs = {};
-        snapshot.docs.forEach(d => {
-          imgs[d.id] = d.data().url || d.data().base64;
-        });
-        cachedImages = imgs;
-        console.log(`[Storage] Images updated (real-time): ${Object.keys(cachedImages).length} items`);
+        snapshot.docs.forEach(d => { imgs[d.id] = d.data().url || d.data().base64; });
+        configService.setCachedImages(imgs);
       },
-      "Images",
-      "images"
+      "Images", "images"
     );
   },
 
-  _setupMemberListener() { return memberService.setupMemberListener(); },
-
-  _safeGetItem(key) { try { return localStorage.getItem(key); } catch { return null; } },
-  _safeSetItem(key, value) { try { localStorage.setItem(key, value); } catch { /* ignore */ } },
-
-  async addNotice(title, content, images = [], sendPush = true) {
-    return noticeService.addNotice(title, content, images, sendPush);
-  },
-
-  async deleteNotice(noticeId) {
-    return noticeService.deleteNotice(noticeId);
-  },
-
+  // ═══════════════════════════════════════════════════════
+  // MEMBER FACADE
+  // ═══════════════════════════════════════════════════════
   getMembers() { return memberService.getMembers(); },
   loadAllMembers(force = false) { return memberService.loadAllMembers(force); },
-  
-  // [PERF] Build O(1) lookup index for phoneLast4
   _buildPhoneLast4Index() { return memberService._buildPhoneLast4Index(); },
+  findMembersByPhone(last4Digits) { return memberService.findMembersByPhone(last4Digits); },
+  _updateLocalMemberCache(memberId, updates) { return memberService._updateLocalMemberCache(memberId, updates); },
+  updateMember(memberId, data) { return memberService.updateMember(memberId, data); },
+  addMember(data) { return memberService.addMember(data); },
+  getMemberById(id) { return memberService.getMemberById(id); },
+  async fetchMemberById(id) { return memberService.fetchMemberById(id); },
+  getMemberStreak(memberId, attendance) { return memberService.getMemberStreak(memberId, attendance); },
+  getMemberDiligence(memberId) { return memberService.getMemberDiligence(memberId); },
+  getGreetingCache(memberId) { return memberService.getGreetingCache(memberId); },
+  setGreetingCache(memberId, data) { return memberService.setGreetingCache(memberId, data); },
 
-  async loadNotices() { return noticeService.loadNotices(); },
-  getImages() { return cachedImages; },
-  getNotices() { return [...cachedNotices].sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0)); },
-
-  getSales() { return paymentService.getSales(); },
-  getRevenueStats() { return paymentService.getRevenueStats(); },
-  getAllSales() { return paymentService.getAllSales(); },
-  getSalesHistory(memberId) { return paymentService.getSalesHistory(memberId); },
-  updateSalesRecord(salesId, updates) { return paymentService.updateSalesRecord(salesId, updates); },
-  deleteSalesRecord(salesId) { return paymentService.deleteSalesRecord(salesId); },
-
+  // ═══════════════════════════════════════════════════════
+  // ATTENDANCE FACADE
+  // ═══════════════════════════════════════════════════════
   getAttendance() { return attendanceService.getAttendance(); },
   getAttendanceByMemberId(memberId) { return attendanceService.getAttendanceByMemberId(memberId); },
   getAttendanceByDate(dateStr, branchId = null) { return attendanceService.getAttendanceByDate(dateStr, branchId); },
+  subscribeAttendance(dateStr, branchId = null, callback) { return attendanceService.subscribeAttendance(dateStr, branchId, callback); },
+  checkInById(memberId, branchId, force = false) { return attendanceService.checkInById(memberId, branchId, force); },
   deleteAttendance(logId, restoreCredit) { return attendanceService.deleteAttendance(logId, restoreCredit); },
   clearAllAttendance() { return attendanceService.clearAllAttendance(); },
-
-
-
-  /**
-   * Finds members by the last 4 digits of their phone number.
-   * Standardizes on 'phoneLast4' nomenclature.
-   * [PERF] Uses O(1) index lookup when cache is ready.
-   */
-  findMembersByPhone(last4Digits) { return memberService.findMembersByPhone(last4Digits); },
-
-  checkInById(memberId, branchId, force = false) { return attendanceService.checkInById(memberId, branchId, force); },
-  
-  _updateLocalMemberCache(memberId, updates) { return memberService._updateLocalMemberCache(memberId, updates); },
-
-  async _refreshDailyClassCache(branchId, date = null) {
-    const targetDate = date || new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-    const cacheKey = `${branchId}_${targetDate}`;
-    try {
-      const docRef = tenantDb.doc('daily_classes', cacheKey);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        cachedDailyClasses[cacheKey] = { 
-          classes: docSnap.data().classes || [], 
-          fetchedAt: Date.now() 
-        };
-      } else {
-        cachedDailyClasses[cacheKey] = { 
-          classes: [], 
-          fetchedAt: Date.now() 
-        };
-      }
-    } catch (e) {
-      console.warn(`[Storage] Failed to refresh daily classes for ${cacheKey}:`, e);
-    }
+  addManualAttendance(memberId, date, branchId, className = "수동 확인", instructor = "관리자", options = {}) {
+    return attendanceService.addManualAttendance(memberId, date, branchId, className, instructor, options);
   },
-
-  async getCurrentClass(branchId, instructorName = null, membershipTypeHint = null) {
-    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-    const cacheKey = `${branchId}_${today}`;
-    
-    // [LOGIC] 1. Fetch Classes for Today (With TTL & Stale Check)
-    const cached = cachedDailyClasses[cacheKey];
-    const now = Date.now();
-    const isStale = !cached || !cached.classes || cached.classes.length === 0 || (now - (cached.fetchedAt || 0)) > DAILY_CLASS_CACHE_TTL;
-
-    if (isStale) {
-      try {
-        console.log(`[Storage] Cache stale/empty for ${cacheKey}, refreshing...`);
-        const docRef = tenantDb.doc('daily_classes', cacheKey);
-        const docSnap = await getDoc(docRef);
-        const classes = docSnap.exists() ? (docSnap.data().classes || []) : [];
-        cachedDailyClasses[cacheKey] = { classes, fetchedAt: Date.now() };
-      } catch (e) { 
-        console.warn("[Storage] Failed to fetch classes:", e);
-        return null; 
-      }
-    }
-    
-    // [LOGIC] 2. Filter & Sort Classes by Time
-    let classes = (cachedDailyClasses[cacheKey]?.classes || [])
-      .filter(c => c.status !== 'cancelled');
-
-    // Filter by instructor if provided (Smart Filter)
-    if (instructorName) {
-      const query = instructorName.trim();
-      classes = classes.filter(c => {
-        const target = (c.instructor || '').trim();
-        return target === query || target.includes(query) || query.includes(target);
-      });
-    }
-
-    classes.sort((a, b) => a.time.localeCompare(b.time));
-
-    if (classes.length === 0) return null;
-
-    const currentMinutes = getKSTTotalMinutes();
-
-    let selectedClass = null;
-    let logicReason = "No Match";
-
-    // === [NEW] Priority 0: Membership Type Hint Matching ===
-    // If a hint like "키즈플라잉" is provided, look for a class containing that keyword first.
-    if (membershipTypeHint) {
-        const keyword = membershipTypeHint.trim().toLowerCase();
-        // Ignore generic labels like "일반", "심화" when matching class names, 
-        // focus on specific class types like "키즈플라잉", "임산부", "토요하타"
-        const ignoredHints = ['일반', '심화', 'ttc (지도자과정)'];
-        
-        if (!ignoredHints.includes(keyword)) {
-            const hintMatchedClass = classes.find(c => {
-                const title = (c.title || c.className || '').toLowerCase();
-                return title.includes(keyword) || keyword.includes(title);
-            });
-
-            if (hintMatchedClass) {
-                console.log(`[SmartAttendance] Matched by Hint (${membershipTypeHint}): ${hintMatchedClass.title || hintMatchedClass.className}`);
-                return {
-                    title: hintMatchedClass.title || hintMatchedClass.className,
-                    instructor: hintMatchedClass.instructor,
-                    time: hintMatchedClass.time,
-                    debugReason: `회원권 기반 매칭: ${membershipTypeHint}`
-                };
-            }
-        }
-    }
-
-    // === [SMART MATCHING ALGORITHM] ===
-    // Priority 1: Next Class Incoming (30 mins before start) -> "Next Instructor's Territory"
-    // Priority 2: Ongoing Class (Start <= Now < End) -> "Current Instructor's Territory"
-    // Priority 3: Early Bird (60 mins before start IF no previous class blocking) -> "Allowed Early Entry"
-
-    for (let i = 0; i < classes.length; i++) {
-      const cls = classes[i];
-      const duration = cls.duration || 60;
-      const [h, m] = cls.time.split(':').map(Number);
-      const startMinutes = h * 60 + m;
-      const endMinutes = startMinutes + duration;
-
-      // Rule 1: 30-min Pre-class Zone (High Priority)
-      // If we are within 30 mins before a class starts, it belongs to THIS class.
-      // Even if the previous class is running late, the new arrival is likely for this new class.
-      if (currentMinutes >= startMinutes - 30 && currentMinutes < startMinutes) {
-        selectedClass = cls;
-        logicReason = `수업 예정: ${cls.time}`;
-        break; // Found highest priority, stop.
-      }
-
-      // Rule 2: Ongoing Class
-      if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
-        // If we already selected a "Next Class" via Rule 1 in a previous iteration? 
-        // No, because Rule 1 looks at "Future" relative to "Now".
-        // If we are HERE, it means we are INSIDE this class time.
-        // BUT wait, could we be in the overlapping 30m window of the NEXT class?
-        // -> Loop order matters. Sort by time asc.
-        // Let's check if the NEXT class (i+1) claims this time via Rule 1.
-        
-        const nextCls = classes[i+1];
-        if (nextCls) {
-           const [nh, nm] = nextCls.time.split(':').map(Number);
-           const nextStart = nh * 60 + nm;
-           if (currentMinutes >= nextStart - 30) {
-              // Overlap! The next class is starting soon (<30m).
-              // User policy: "Assign to NEXT instructor".
-              selectedClass = nextCls;
-              logicReason = `다음 수업 우선: ${nextCls.time}`;
-              break; 
-           }
-        }
-
-        selectedClass = cls;
-        logicReason = `수업 진행 중: ${cls.time}`;
-        break; 
-      }
-
-      // Rule 3: 1-Hour Early Bird (Empty Gap)
-      // Only valid if we are NOT in the range of the previous class.
-      // Since we iterate sorted, and we haven't matched Rule 1 or 2 yet for 'cls',
-      // we check if we are in the [Start - 60, Start - 30) window.
-      if (currentMinutes >= startMinutes - 60 && currentMinutes < startMinutes - 30) {
-         // Ensure no previous class is blocking this slot
-         const prevCls = classes[i-1];
-         let isBlocked = false;
-         if (prevCls) {
-            const [ph, pm] = prevCls.time.split(':').map(Number);
-            const prevEnd = (ph * 60 + pm) + (prevCls.duration || 60);
-            if (currentMinutes < prevEnd) {
-               isBlocked = true; // Still in previous class time
-            }
-         }
-
-         if (!isBlocked) {
-            selectedClass = cls;
-            logicReason = `조기 출석: ${cls.time}`;
-            break;
-         }
-      }
-    }
-
-    // Rule 4: Post-Class Grace Period (30 mins after end)
-    // If no class matched via Rules 1-3, check if we just missed a class
-    if (!selectedClass) {
-      for (let i = classes.length - 1; i >= 0; i--) {
-        const cls = classes[i];
-        const duration = cls.duration || 60;
-        const [h, m] = cls.time.split(':').map(Number);
-        const endMinutes = (h * 60 + m) + duration;
-
-        // If current time is within 30 mins after class ended
-        if (currentMinutes >= endMinutes && currentMinutes <= endMinutes + 30) {
-          selectedClass = cls;
-          logicReason = `수업 종료 직후: ${cls.time} (종료 ${currentMinutes - endMinutes}분 경과)`;
-          break;
-        }
-      }
-    }
-
-    if (selectedClass) {
-       console.log(`[SmartAttendance] Matched: ${selectedClass.title || selectedClass.className} (${logicReason})`);
-       return { 
-         title: selectedClass.title || selectedClass.className, 
-         instructor: selectedClass.instructor,
-         time: selectedClass.time,
-         debugReason: logicReason
-       };
-    }
-
-    console.log(`[SmartAttendance] No match found. currentMinutes=${currentMinutes}, classes=${classes.map(c => c.time + '(' + c.title + ')').join(', ')}`);
-    return null;
-  },
-
-  async getDailyClasses(branchId, instructorName = null, date = null) {
-    const targetDate = date || new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-    const cacheKey = `${branchId}_${targetDate}`;
-    
-    const cached = cachedDailyClasses[cacheKey];
-    if (!cached || !cached.classes) {
-      try {
-        const docRef = tenantDb.doc('daily_classes', cacheKey);
-        const docSnap = await getDoc(docRef);
-        const classes = docSnap.exists() ? (docSnap.data().classes || []) : [];
-        cachedDailyClasses[cacheKey] = { classes, fetchedAt: Date.now() };
-      } catch { return []; }
-    }
-    
-    let classes = (cachedDailyClasses[cacheKey]?.classes || [])
-      .filter(c => c.status !== 'cancelled');
-
-    if (instructorName) {
-      const target = instructorName.trim();
-      classes = classes.filter(c => (c.instructor || '').trim() === target);
-    }
-
-    return classes.sort((a, b) => a.time.localeCompare(b.time));
-  },
-
-  async saveToken(token, role = 'member', language = 'ko') {
-    if (!token) return;
-    try {
-      const tokenRef = tenantDb.doc('fcm_tokens', token);
-      await setDoc(tokenRef, { token, role, language, updatedAt: new Date().toISOString(), platform: 'web' }, { merge: true });
-    } catch (e) { console.error("Save token failed:", e); }
-  },
-
-  // [NEW] 강사용 푸시 토큰 저장 - 출석 알림 수신용
-  async saveInstructorToken(token, instructorName, language = 'ko') {
-    if (!token || !instructorName) return;
-    try {
-      // [FIX] Auth 상태 확인 - Firestore 보안 규칙 통과 필수
-      if (!auth.currentUser) {
-        console.warn('[Storage] No auth session for saveInstructorToken. Attempting anonymous auth...');
-        try {
-          await signInAnonymously(auth);
-        } catch (authErr) {
-          console.error('[Storage] Auth failed:', authErr.code);
-        }
-      }
-
-      const tokenRef = tenantDb.doc('fcm_tokens', token);
-      await setDoc(tokenRef, {
-        token,
-        role: 'instructor',
-        instructorName,
-        language,
-        updatedAt: new Date().toISOString(),
-        platform: 'web'
-      }, { merge: true });
-      console.log(`[Storage] ✅ Instructor token saved for ${instructorName}`);
-    } catch (e) {
-      console.error(`[Storage] ❌ Save instructor token FAILED for ${instructorName}:`, e.code, e.message);
-    }
-  },
-
-  async getAIExperience(memberName, attendanceCount, day, hour, upcomingClass, weather, credits, remainingDays, language = 'ko', diligence = null, context = 'profile') {
-    return aiService.getAIExperience(memberName, attendanceCount, day, hour, upcomingClass, weather, credits, remainingDays, language, diligence, context);
-  },
-
-  async getAIAnalysis(memberName, attendanceCount, logs, timeOfDay, language = 'ko', requestRole = 'member', statsData = null, context = 'profile') {
-    return aiService.getAIAnalysis(memberName, attendanceCount, logs, timeOfDay, language, requestRole, statsData, context);
-  },
-
-
-
-  async getDailyYoga(language = 'ko') {
-    return aiService.getDailyYoga(language);
-  },
-
-
-  // [Refactoring] Delegated to ScheduleService
-  async getMonthlyClasses(branchId, year, month) {
-    return scheduleService.getMonthlyClasses(branchId, year, month);
-  },
-
-  async getMonthlyScheduleStatus(branchId, year, month) {
-    return scheduleService.getMonthlyScheduleStatus(branchId, year, month);
-  },
-
-  async updateDailyClasses(branchId, date, classes) {
-    return scheduleService.updateDailyClasses(branchId, date, classes);
-  },
-
-  async batchUpdateDailyClasses(branchId, updates) {
-    return scheduleService.batchUpdateDailyClasses(branchId, updates);
-  },
-
-  async createMonthlySchedule(branchId, year, month) {
-    return scheduleService.createMonthlySchedule(branchId, year, month);
-  },
-
-  async copyMonthlySchedule(branchId, fromYear, fromMonth, toYear, toMonth) {
-    return scheduleService.copyMonthlySchedule(branchId, fromYear, fromMonth, toYear, toMonth);
-  },
-
-  async deleteMonthlySchedule(branchId, year, month) {
-    return scheduleService.deleteMonthlySchedule(branchId, year, month);
-  },
-
   async updatePastAttendanceRecords(branchId, dateStr, oldClasses, newClasses) {
     return attendanceService.updatePastAttendanceRecords(branchId, dateStr, oldClasses, newClasses);
   },
 
-  // Delegated Config Getters
+  // ═══════════════════════════════════════════════════════
+  // PAYMENT FACADE
+  // ═══════════════════════════════════════════════════════
+  getSales() { return paymentService.getSales(); },
+  getRevenueStats() { return paymentService.getRevenueStats(); },
+  getAllSales() { return paymentService.getAllSales(); },
+  getSalesHistory(memberId) { return paymentService.getSalesHistory(memberId); },
+  addSalesRecord(data) { return paymentService.addSalesRecord(data); },
+  updateSalesRecord(salesId, updates) { return paymentService.updateSalesRecord(salesId, updates); },
+  deleteSalesRecord(salesId) { return paymentService.deleteSalesRecord(salesId); },
+
+  // ═══════════════════════════════════════════════════════
+  // MESSAGE FACADE
+  // ═══════════════════════════════════════════════════════
+  getMessagesByMemberId(memberId) { return messageService.getMessagesByMemberId(memberId); },
+  getPendingApprovals(callback) { return messageService.getPendingApprovals(callback); },
+  approvePush(id) { return messageService.approvePush(id); },
+  rejectPush(id) { return messageService.rejectPush(id); },
+  addMessage(memberId, content, scheduledAt = null, templateId = null) { return messageService.addMessage(memberId, content, scheduledAt, templateId); },
+  sendBulkMessages(memberIds, content, scheduledAt = null, templateId = null) { return messageService.sendBulkMessages(memberIds, content, scheduledAt, templateId); },
+  getMessages(memberId) { return messageService.getMessages(memberId); },
+  sendBulkPushCampaign(targetMemberIds, title, body) { return messageService.sendBulkPushCampaign(targetMemberIds, title, body); },
+
+  // ═══════════════════════════════════════════════════════
+  // SCHEDULE FACADE
+  // ═══════════════════════════════════════════════════════
+  async getMonthlyClasses(branchId, year, month) { return scheduleService.getMonthlyClasses(branchId, year, month); },
+  async getMonthlyScheduleStatus(branchId, year, month) { return scheduleService.getMonthlyScheduleStatus(branchId, year, month); },
+  async updateDailyClasses(branchId, date, classes) { return scheduleService.updateDailyClasses(branchId, date, classes); },
+  async batchUpdateDailyClasses(branchId, updates) { return scheduleService.batchUpdateDailyClasses(branchId, updates); },
+  async createMonthlySchedule(branchId, year, month) { return scheduleService.createMonthlySchedule(branchId, year, month); },
+  async copyMonthlySchedule(branchId, fromYear, fromMonth, toYear, toMonth) { return scheduleService.copyMonthlySchedule(branchId, fromYear, fromMonth, toYear, toMonth); },
+  async deleteMonthlySchedule(branchId, year, month) { return scheduleService.deleteMonthlySchedule(branchId, year, month); },
   async getInstructors() { return scheduleService.getInstructors(); },
   async updateInstructors(list) { return scheduleService.updateInstructors(list); },
   async getClassTypes() { return scheduleService.getClassTypes(); },
   async updateClassTypes(list) { return scheduleService.updateClassTypes(list); },
   async getClassLevels() { return scheduleService.getClassLevels(); },
   async updateClassLevels(list) { return scheduleService.updateClassLevels(list); },
-  getMemberById(id) { return memberService.getMemberById(id); },
-  async fetchMemberById(id) { return memberService.fetchMemberById(id); },
+  async getMonthlyBackups(branchId, year, month) { return scheduleService.getMonthlyBackups(branchId, year, month); },
+  async restoreMonthlyBackup(branchId, year, month, backupId) { return scheduleService.restoreMonthlyBackup(branchId, year, month, backupId); },
 
-  async getMonthlyBackups(branchId, year, month) {
-    return scheduleService.getMonthlyBackups(branchId, year, month);
-  },
-  
-  async restoreMonthlyBackup(branchId, year, month, backupId) {
-    return scheduleService.restoreMonthlyBackup(branchId, year, month, backupId);
+  // ═══════════════════════════════════════════════════════
+  // NOTICE FACADE
+  // ═══════════════════════════════════════════════════════
+  async addNotice(title, content, images = [], sendPush = true) { return noticeService.addNotice(title, content, images, sendPush); },
+  async deleteNotice(noticeId) { return noticeService.deleteNotice(noticeId); },
+  async translateNotices(notices, targetLang) { return noticeService.translateNotices(notices, targetLang); },
+  getNotices() { return [...cachedNotices].sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0)); },
+  async loadNotices() {
+    if (cachedNotices.length > 0) return cachedNotices;
+    return noticeService.loadNotices();
   },
 
+  // ═══════════════════════════════════════════════════════
+  // AI FACADE
+  // ═══════════════════════════════════════════════════════
+  async getAIExperience(memberName, attendanceCount, day, hour, upcomingClass, weather, credits, remainingDays, language = 'ko', diligence = null, context = 'profile') {
+    return aiService.getAIExperience(memberName, attendanceCount, day, hour, upcomingClass, weather, credits, remainingDays, language, diligence, context);
+  },
+  async getAIAnalysis(memberName, attendanceCount, logs, timeOfDay, language = 'ko', requestRole = 'member', statsData = null, context = 'profile') {
+    return aiService.getAIAnalysis(memberName, attendanceCount, logs, timeOfDay, language, requestRole, statsData, context);
+  },
+  async getDailyYoga(language = 'ko') { return aiService.getDailyYoga(language); },
+  async getAiUsage() { return aiService.getAiUsage(); },
+
+  // ═══════════════════════════════════════════════════════
+  // AUTH FACADE
+  // ═══════════════════════════════════════════════════════
+  async loginMember(name, last4Digits) { return authService.loginMember(name, last4Digits); },
+  async loginInstructor(name, last4Digits) { return authService.loginInstructor(name, last4Digits); },
+  async loginAdmin(email, password) { return authService.loginAdmin(email, password); },
+  async logoutAdmin() { return authService.logoutAdmin(); },
+  onAuthStateChanged(callback) { return authService.onAuthStateChanged(callback); },
+  async logLoginFailure(type, name, phoneLast4, errorMessage) { return authService.logLoginFailure(type, name, phoneLast4, errorMessage); },
+
+  // ═══════════════════════════════════════════════════════
+  // PUSH FACADE
+  // ═══════════════════════════════════════════════════════
+  async saveToken(token, role = 'member', language = 'ko') { return pushService.saveToken(token, role, language); },
+  async saveInstructorToken(token, instructorName, language = 'ko') { return pushService.saveInstructorToken(token, instructorName, language); },
+  async deletePushToken() { return pushService.deletePushToken(); },
+  async requestPushPermission(memberId) { return pushService.requestPushPermission(memberId); },
+  async requestInstructorPushPermission(instructorName) { return pushService.requestInstructorPushPermission(instructorName); },
+  async verifyServiceWorkerRegistration() { return pushService.verifyServiceWorkerRegistration(); },
+  async checkPushNotificationStatus() { return pushService.checkPushNotificationStatus(); },
+  async reregisterPushToken(memberId) { return pushService.reregisterPushToken(memberId); },
+  async requestAndSaveToken() { return pushService.requestAndSaveToken(); },
+  async getAllPushTokens() { return pushService.getAllPushTokens(); },
+  async diagnosePushData() { return pushService.diagnosePushData(); },
+  async getPushHistory(limitCount = 50) { return pushService.getPushHistory(limitCount); },
+  subscribeToPushHistory(callback, limitCount = 50) { return pushService.subscribeToPushHistory(callback, limitCount); },
+
+  // ═══════════════════════════════════════════════════════
+  // CLASS FACADE
+  // ═══════════════════════════════════════════════════════
+  async getCurrentClass(branchId, instructorName = null, membershipTypeHint = null) {
+    return classService.getCurrentClass(branchId, instructorName, membershipTypeHint);
+  },
+  async getDailyClasses(branchId, instructorName = null, date = null) {
+    return classService.getDailyClasses(branchId, instructorName, date);
+  },
+
+  // ═══════════════════════════════════════════════════════
+  // CONFIG FACADE
+  // ═══════════════════════════════════════════════════════
+  getImages() { return configService.getImages(); },
+  async updateImage(id, base64) { return configService.updateImage(id, base64, notifyListeners); },
+  async getPricing() { return configService.getPricing(); },
+  async savePricing(pricingData) { return configService.savePricing(pricingData, notifyListeners); },
+  async getKioskSettings(branchId = 'all') { return configService.getKioskSettings(branchId); },
+  async updateKioskSettings(branchId = 'all', data) { return configService.updateKioskSettings(branchId, data); },
+  subscribeToKioskSettings(branchId = 'all', callback) { return configService.subscribeToKioskSettings(branchId, callback); },
+  getKioskBranch() { return configService.getKioskBranch(); },
+  setKioskBranch(branchId) { return configService.setKioskBranch(branchId); },
+  getCurrentBranch() { return configService.getCurrentBranch(); },
+  setBranch(branchId) { return configService.setBranch(branchId); },
+
+  // ═══════════════════════════════════════════════════════
+  // MIGRATION FACADE
+  // ═══════════════════════════════════════════════════════
+  async migratePhoneLast4() { return migrationService.migratePhoneLast4(); },
+  async migrateMembersFromCSV(csvData, dryRun = false, onProgress = null) {
+    return migrationService.migrateMembersFromCSV(
+      csvData, dryRun, onProgress,
+      this.cleanupAllData.bind(this),
+      this.loadAllMembers.bind(this),
+      notifyListeners
+    );
+  },
+  async cleanupAllData(onProgress = null) {
+    return migrationService.cleanupAllData(onProgress, notifyListeners, this.loadAllMembers.bind(this));
+  },
+
+  // ═══════════════════════════════════════════════════════
+  // ERROR LOGGING & MONITORING
+  // ═══════════════════════════════════════════════════════
   async logError(error, context = {}) {
     try {
       await addDoc(tenantDb.collection('error_logs'), {
@@ -642,1125 +396,32 @@ export const storageService = {
     } catch (e) { console.warn("Failed to log error:", e); }
   },
 
-  // Kiosk branch management (localStorage-based for tablet persistence)
-  getKioskBranch() {
-    const stored = this._safeGetItem('kiosk_branch');
-    return stored || (STUDIO_CONFIG.BRANCHES?.[0]?.id || 'main'); // Default to first branch
-  },
-
-  setKioskBranch(branchId) {
-    this._safeSetItem('kiosk_branch', branchId);
-  },
-
-  // Admin Branch Management
-  getCurrentBranch() {
-    return this._safeGetItem('admin_current_branch') || 'all';
-  },
-
-  setBranch(branchId) {
-    this._safeSetItem('admin_current_branch', branchId);
-  },
-
-  /**
-   * 로그인 실패 로깅
-   * @param {string} type - "instructor" 또는 "member"
-   * @param {string} name - 시도한 이름
-   * @param {string} phoneLast4 - 시도한 전화번호 뒷4자리
-   * @param {string} errorMessage - 에러 메시지
-   */
-  async logLoginFailure(type, name, phoneLast4, errorMessage) {
-    try {
-      await addDoc(tenantDb.collection('login_failures'), {
-        timestamp: new Date().toISOString(),
-        type: type,
-        attemptedName: name,
-        attemptedPhone: phoneLast4,
-        errorMessage: errorMessage,
-        userAgent: navigator.userAgent,
-        device: /mobile/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
-      });
-      console.log(`[Login Failure] Logged: ${type} - ${name} - ${phoneLast4}`);
-    } catch (e) {
-      console.error('[Login Failure] Failed to log:', e);
-      // 로깅 실패는 조용히 무시 (사용자 경험에 영향 없음)
-    }
-  },
-
-  // Member login (PIN-based authentication)
-  async loginMember(name, last4Digits) {
-    try {
-      if (!name || !last4Digits) {
-        return { success: false, error: 'INVALID_INPUT', message: '이름과 비밀번호를 모두 입력해주세요.' };
-      }
-
-      // [SECURITY FIX] 서버 사이드 검증 후 Custom Token 발급 (익명 우회 로그인 방지)
-      const loginFunc = httpsCallable(functions, 'memberLoginV2Call');
-      const safeName = String(name || '').trim();
-      const response = await loginFunc({ name: safeName, phoneLast4: last4Digits });
-      
-      if (response.data.success && response.data.token) {
-        try {
-          await signInWithCustomToken(auth, response.data.token);
-          console.log('[Storage] Secure custom token auth successful for member login');
-        } catch (authErr) {
-          console.error('[Storage] Custom token auth failed:', authErr);
-          // 토큰 인증 실패 시에만 예외적으로 에러 반환 (보안성 강화)
-          return { success: false, error: 'AUTH_FAILED', message: '인증 세션 생성에 실패했습니다.' };
-        }
-        return { success: true, member: { ...response.data.member, displayName: name.trim() } };
-      } else {
-        const errorMsg = response.data.message || '일치하는 회원 정보가 없습니다.';
-        await this.logLoginFailure('member', name, last4Digits, errorMsg);
-        return { success: false, error: 'NOT_FOUND', message: errorMsg };
-      }
-    } catch (e) {
-      console.error('Login failed:', e);
-      await this.logLoginFailure('member', name, last4Digits, e.message || 'SYSTEM_ERROR');
-      
-      // Firebase httpsCallable 에러 코드를 한글 메시지로 변환
-      const firebaseErrorMessages = {
-        'internal': '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
-        'unavailable': '서버에 연결할 수 없습니다. 인터넷 연결을 확인해주세요.',
-        'deadline-exceeded': '서버 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.',
-        'unauthenticated': '인증 정보가 올바르지 않습니다.',
-        'permission-denied': '접근 권한이 없습니다.',
-        'resource-exhausted': '너무 많은 시도입니다. 잠시 후 다시 시도해주세요.',
-        'invalid-argument': '입력 정보를 확인해주세요.',
-        'not-found': '일치하는 회원 정보가 없습니다.'
-      };
-      
-      const errorCode = (e.code || '').replace('functions/', '');
-      const userMessage = firebaseErrorMessages[errorCode] || '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-      
-      return { success: false, error: 'SYSTEM_ERROR', message: userMessage };
-    }
-  },
-
-  // [NEW] 강사 로그인 (Cloud Function 기반)
-  async loginInstructor(name, last4Digits) {
-    try {
-      const verifyInstructor = httpsCallable(functions, 'verifyInstructorV2Call');
-      const safeName = String(name || '').trim();
-      const response = await withTimeout(
-        verifyInstructor({ name: safeName, phoneLast4: last4Digits }),
-        10000,
-        '선생님 인증 시간 초과'
-      );
-
-      if (response.data.success) {
-        // [ROOT FIX] Firebase Auth를 반드시 보장
-        // 1차: Custom Token으로 인증 시도
-        // 2차: Custom Token 실패 시 Anonymous Auth로 인증 보장
-        // → 이후 모든 Firestore 쓰기(fcm_tokens 등)가 isAuth() 규칙을 통과
-        let authEstablished = false;
-
-        if (response.data.token) {
-          try {
-            await signInWithCustomToken(auth, response.data.token);
-            authEstablished = true;
-            console.log('[Storage] ✅ Instructor auth via custom token successful');
-          } catch (authErr) {
-            console.warn('[Storage] Custom token auth failed, trying anonymous:', authErr.code);
-          }
-        }
-
-        // Custom token이 없거나 실패한 경우, Anonymous Auth로 보장
-        if (!authEstablished) {
-          try {
-            await signInAnonymously(auth);
-            authEstablished = true;
-            console.log('[Storage] ✅ Instructor auth via anonymous fallback successful');
-          } catch (anonErr) {
-            console.error('[Storage] ❌ CRITICAL: Both auth methods failed:', anonErr.code);
-            // Auth 없이는 Firestore 쓰기 불가 - 그래도 로그인은 허용 (UX 우선)
-          }
-        }
-
-        localStorage.setItem('instructorName', response.data.name);
-        return { success: true, name: response.data.name, authEstablished };
-      } else {
-        await this.logLoginFailure('instructor', name, last4Digits, response.data.message || '인증 실패');
-        return { success: false, message: response.data.message || '인증 실패' };
-      }
-    } catch (e) {
-      console.error('Instructor login failed:', e);
-      await this.logLoginFailure('instructor', name, last4Digits, e.message || 'SYSTEM_ERROR');
-      return { success: false, message: '로그인 중 시스템 오류가 발생했습니다.' };
-    }
-  },
-
-  // [ADMIN] 데이터 마이그레이션 - phoneLast4 필드 자동 생성
-  async migratePhoneLast4() {
-    try {
-      const snapshot = await getDocs(tenantDb.collection('members'));
-      let count = 0;
-      const batchSize = 100;
-      let batch = writeBatch(db);
-
-      for (const d of snapshot.docs) {
-        const data = d.data();
-        if (data.phone && !data.phoneLast4) {
-          batch.update(tenantDb.doc('members', d.id), {
-            phoneLast4: data.phone.slice(-4)
-          });
-          count++;
-          if (count % batchSize === 0) {
-            await batch.commit();
-            batch = writeBatch(db);
-          }
-        }
-      }
-      await batch.commit();
-      
-      // 강사 목록도 업데이트 (지원하는 경우)
-      const instDoc = await getDoc(tenantDb.doc('settings', 'instructors'));
-      if (instDoc.exists()) {
-        const list = instDoc.data().list || [];
-        const updatedList = list.map(inst => {
-          if (typeof inst === 'object' && inst.phone && !inst.phoneLast4) {
-            return { ...inst, phoneLast4: inst.phone.slice(-4) };
-          }
-          return inst;
-        });
-        await setDoc(tenantDb.doc('settings', 'instructors'), { list: updatedList }, { merge: true });
-      }
-
-      return { success: true, count };
-    } catch (e) {
-      console.error('Migration failed:', e);
-      throw e;
-    }
-  },
-
-
-  updateMember(memberId, data) { return memberService.updateMember(memberId, data); },
-  addMember(data) { return memberService.addMember(data); },
-  getMemberStreak(memberId, attendance) { return memberService.getMemberStreak(memberId, attendance); },
-  getMemberDiligence(memberId) { return memberService.getMemberDiligence(memberId); },
-  getGreetingCache(memberId) { return memberService.getGreetingCache(memberId); },
-  setGreetingCache(memberId, data) { return memberService.setGreetingCache(memberId, data); },
-
-  async deletePushToken() {
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      const token = await getToken(messaging, { 
-        vapidKey: STUDIO_CONFIG.VAPID_KEY || import.meta.env.VITE_FIREBASE_VAPID_KEY,
-        serviceWorkerRegistration: registration
-      });
-      if (token) {
-        // [SYNC] Find memberId for this token and mark as pushEnabled: false
-        const tokenSnap = await getDoc(tenantDb.doc('fcm_tokens', token));
-        if (tokenSnap.exists() && tokenSnap.data().memberId) {
-          await updateDoc(tenantDb.doc('members', tokenSnap.data().memberId), { pushEnabled: false });
-        }
-        await deleteDoc(tenantDb.doc('fcm_tokens', token));
-      }
-      return true;
-    } catch (e) {
-      console.error("Delete push token failed:", e);
-      return false;
-    }
-  },
-
-  async requestPushPermission(memberId) {
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        const token = await this.requestAndSaveToken('member');
-        if (token && memberId) {
-          const tokenRef = tenantDb.doc('fcm_tokens', token);
-          const tokenSnap = await getDoc(tokenRef);
-          
-          let dataToUpdate = { 
-            memberId, 
-            role: 'member',
-            platform: 'web',
-            language: localStorage.getItem('app_language') || 'ko',
-            updatedAt: new Date().toISOString() 
-          };
-
-          if (!tokenSnap.exists() || !tokenSnap.data().createdAt) {
-            dataToUpdate.createdAt = new Date().toISOString();
-          }
-
-          await setDoc(tokenRef, dataToUpdate, { merge: true });
-          await updateDoc(tenantDb.doc('members', memberId), { pushEnabled: true });
-        }
-      }
-      return permission;
-    } catch (e) {
-      console.error("Push permission request failed:", e);
-      return 'denied';
-    }
-  },
-
-  // [NEW] 강사용 푸시 권한 요청 및 토큰 저장
-  async requestInstructorPushPermission(instructorName) {
-    if (!instructorName) return;
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        console.warn('[Push] Notification permission denied');
-        return false;
-      }
-
-      // [FIX] Auth 상태 확인 - Firestore 보안 규칙(isAuth()) 통과를 위해 필수
-      if (!auth.currentUser) {
-        console.warn('[Push] No auth session. Attempting anonymous auth for token save...');
-        try {
-          await signInAnonymously(auth);
-          console.log('[Push] Anonymous auth successful for token save');
-        } catch (authErr) {
-          console.error('[Push] Auth failed, token save will likely fail:', authErr);
-        }
-      }
-
-      const registration = await navigator.serviceWorker.ready;
-      const token = await getToken(messaging, {
-        vapidKey: VAPID_KEY,
-        serviceWorkerRegistration: registration
-      });
-
-      if (!token) {
-        console.warn('[Push] Failed to get FCM token');
-        return false;
-      }
-
-      const tokenRef = tenantDb.doc('fcm_tokens', token);
-      
-      let dataToUpdate = {
-        token,
-        role: 'instructor',
-        instructorName,
-        updatedAt: new Date().toISOString(),
-        platform: 'web'
-      };
-
-      try {
-        const tokenSnap = await getDoc(tokenRef);
-        if (!tokenSnap.exists() || !tokenSnap.data().createdAt) {
-          dataToUpdate.createdAt = new Date().toISOString();
-        }
-      } catch (readErr) {
-        console.warn('[Push] Could not read existing token, will create new:', readErr.code);
-        dataToUpdate.createdAt = new Date().toISOString();
-      }
-
-      await setDoc(tokenRef, dataToUpdate, { merge: true });
-      console.log(`[Push] ✅ Instructor token registered for ${instructorName}: ${token.substring(0, 20)}...`);
-      return true;
-    } catch (e) {
-      console.error(`[Push] ❌ Instructor push token save FAILED for ${instructorName}:`, e.code, e.message);
-      return false;
-    }
-  },
-
-  // [FIX] Service Worker 등록 상태 확인 (Vite PWA 호환)
-  async verifyServiceWorkerRegistration() {
-    if (!('serviceWorker' in navigator)) {
-      throw new Error('이 브라우저는 푸시 알림을 지원하지 않습니다.');
-    }
-
-    try {
-      // Vite PWA가 이미 SW를 등록하므로, 준비될 때까지 기다리기만 하면 됩니다.
-      // 중복 등록 시도("closed-by-client" 에러 원인)를 방지합니다.
-      const registration = await navigator.serviceWorker.ready;
-      return registration;
-    } catch (e) {
-      console.error('[Storage] Service Worker verification failed:', e);
-      throw new Error(`Service Worker 확인 실패: ${e.message}`);
-    }
-  },
-
-  // [NEW] 푸시 알림 상태 확인
-  async checkPushNotificationStatus() {
-    try {
-      // 1. 브라우저 지원 여부
-      if (!('Notification' in window)) {
-        return {
-          supported: false,
-          permission: 'unsupported',
-          serviceWorker: false,
-          message: '이 브라우저는 푸시 알림을 지원하지 않습니다.'
-        };
-      }
-
-      // 2. 권한 상태
-      const permission = Notification.permission;
-
-      // 3. Service Worker 상태
-      let serviceWorkerActive = false;
-      if ('serviceWorker' in navigator) {
-        const reg = await navigator.serviceWorker.getRegistration();
-        serviceWorkerActive = !!(reg && reg.active);
-      }
-
-      // 4. 토큰 존재 여부
-      let hasToken = false;
-      try {
-        const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
-        if (VAPID_KEY && permission === 'granted' && serviceWorkerActive) {
-          const registration = await navigator.serviceWorker.ready;
-          const token = await getToken(messaging, { 
-            vapidKey: VAPID_KEY,
-            serviceWorkerRegistration: registration
-          });
-          hasToken = !!token;
-        }
-      } catch (e) {
-        console.warn('[Storage] Token check failed:', e);
-      }
-
-      return {
-        supported: true,
-        permission,
-        serviceWorker: serviceWorkerActive,
-        hasToken,
-        message: this._getPushStatusMessage(permission, serviceWorkerActive, hasToken)
-      };
-    } catch (e) {
-      console.error('[Storage] Push notification status check failed:', e);
-      return {
-        supported: false,
-        permission: 'error',
-        serviceWorker: false,
-        hasToken: false,
-        message: '푸시 알림 상태를 확인할 수 없습니다.'
-      };
-    }
-  },
-
-  _getPushStatusMessage(permission, serviceWorker, hasToken) {
-    if (permission === 'denied') {
-      return '⚠️ 알림이 차단되었습니다. 브라우저 설정에서 허용해주세요.';
-    }
-    if (permission !== 'granted') {
-      return '알림 권한이 필요합니다.';
-    }
-    if (!serviceWorker) {
-      return '⚠️ 서비스 워커가 등록되지 않았습니다.';
-    }
-    if (!hasToken) {
-      return '⚠️ 푸시 토큰이 등록되지 않았습니다.';
-    }
-    return '✅ 푸시 알림이 정상적으로 설정되었습니다.';
-  },
-
-  // [IMPROVED] 푸시 토큰 재등록
-  async reregisterPushToken(memberId) {
-    try {
-      console.log('[Storage] Starting push token reregistration...');
-
-      // 1. Service Worker 검증
-      await this.verifyServiceWorkerRegistration();
-
-      // 2. 기존 토큰 삭제 시도 (오류 무시)
-      try {
-        await this.deletePushToken();
-      } catch (e) {
-        console.warn('[Storage] Failed to delete old token (this is OK):', e);
-      }
-
-      // 3. 권한 요청
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        throw new Error('알림 권한이 거부되었습니다.');
-      }
-
-      // 4. 새 토큰 요청
-      const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
-      if (!VAPID_KEY) {
-        throw new Error('VAPID Key가 설정되지 않았습니다.');
-      }
-
-      const token = await getToken(messaging, { 
-        vapidKey: VAPID_KEY, 
-        serviceWorkerRegistration: await this.verifyServiceWorkerRegistration() 
-      });
-      if (!token) {
-        throw new Error('토큰 발급에 실패했습니다.');
-      }
-
-      console.log('[Storage] New token obtained:', token.substring(0, 20) + '...');
-
-      // 5. memberId와 연결하여 저장
-      if (memberId) {
-        const tokenRef = tenantDb.doc('fcm_tokens', token);
-        const tokenSnap = await getDoc(tokenRef);
-        
-        let tokenData = {
-          memberId,
-          updatedAt: new Date().toISOString(),
-          platform: 'web',
-          role: 'member',
-          language: 'ko'
-        };
-
-        // Preserve original createdAt if exists, or set new if missing
-        if (!tokenSnap.exists() || !tokenSnap.data().createdAt) {
-          tokenData.createdAt = new Date().toISOString();
-        }
-
-        await setDoc(tokenRef, tokenData, { merge: true });
-
-        await updateDoc(tenantDb.doc('members', memberId), {
-          pushEnabled: true,
-          fcmToken: token, // [FIX] Save token to member doc for legacy compatibility
-          lastTokenUpdate: new Date()
-        });
-
-        console.log('[Storage] Token registered for member:', memberId);
-      }
-
-      return { success: true, token, message: '푸시 알림이 성공적으로 설정되었습니다!' };
-    } catch (error) {
-      console.error('[Storage] Token reregistration failed:', error);
-      return {
-        success: false,
-        error: error.message,
-        message: `푸시 알림 설정 실패: ${error.message}`
-      };
-    }
-  },
-
-  // Assuming requestAndSaveToken is a helper function within the same object or scope
-  // This is the function that the instruction refers to.
-  async requestAndSaveToken() {  // Removed unused 'type' parameter
-    try {
-      const permission = await Notification.requestPermission();
-      console.warn("Permission status:", permission);
-      if (permission === 'denied') {
-        throw new Error("브라우저 알림 권한이 차단되었습니다. 주소창의 자물쇠 아이콘을 눌러 허용해주세요.");
-      }
-
-      // The original instruction implies saving the token here, but the provided snippet
-      // only returns it. The saving logic for memberId is in requestPushPermission.
-      // [FIX] Ensure VAPID key is available. If .env is missing, the user needs to provide it.
-      // Used fallback from user provided key just in case env var fails in some build environments
-      const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
-
-      if (!VAPID_KEY) {
-        alert("푸시 알림 설정 오류: VAPID Key가 설정되지 않았습니다. 관리자에게 문의하세요.");
-        throw new Error("VITE_FIREBASE_VAPID_KEY is missing");
-      }
-
-      console.log(`[Storage] Requesting token with VAPID Key...`);
-
-      // 1. SW Registration 가져오기
-      const registration = await this.verifyServiceWorkerRegistration();
-
-      // 2. getToken에 registration 전달 (중요!)
-      const token = await getToken(messaging, { 
-        vapidKey: VAPID_KEY,
-        serviceWorkerRegistration: registration 
-      });
-      return token;
-    } catch (e) {
-      console.error("Token retrieval failed:", e);
-      alert("푸시 토큰 발급 실패: " + (e.message || e) + "\n\n(Firebase Console에서 웹 푸시 인증서 키를 확인해주세요.)");
-      throw e;
-    }
-  },
-
-  async translateNotices(notices, targetLang) {
-    return noticeService.translateNotices(notices, targetLang);
-  },
-
-  async getAiUsage() {
-    return aiService.getAiUsage();
-  },
-
-  onAuthStateChanged(callback) {
-    return auth.onAuthStateChanged(callback);
-  },
-
-  async getImages() {
-    // [FIX] Return cachedImages (populated by listener from 'images' collection)
-    // If cache is empty, fetch directly from Firestore as a fallback
-    if (Object.keys(cachedImages).length === 0) {
-      try {
-        console.log("[Storage] cachedImages empty, fetching from Firestore...");
-        const snapshot = await getDocs(tenantDb.collection('images'));
-        const imgs = {};
-        snapshot.docs.forEach(doc => {
-          imgs[doc.id] = doc.data().url || doc.data().base64;
-        });
-        cachedImages = imgs; // Update cache
-        console.log("[Storage] Fetched images from Firestore. Keys:", Object.keys(imgs));
-        return imgs;
-      } catch (e) {
-        console.warn("[Storage] Failed to fetch images from Firestore:", e);
-        return {};
-      }
-    }
-    return cachedImages;
-  },
-
-  async updateImage(id, base64) {
-    try {
-      if (!base64 || !id) throw new Error("Invalid image data");
-
-      console.log(`[Storage] updateImage called for ${id}. Length: ${base64.length}`);
-      // [FIX] Update cache immediately and add to pending buffer
-      cachedImages[id] = base64;
-      pendingImageWrites[id] = { base64, timestamp: Date.now() };
-      // Notify listeners immediately to reflect local change
-      notifyListeners();
-
-      await setDoc(tenantDb.doc('images', id), { base64, updatedAt: new Date().toISOString() }, { merge: true });
-      console.log(`[Storage] SetDoc complete for ${id}`);
-      return true;
-    } catch (e) {
-      console.error("Update image failed:", e);
-      throw e;
-    }
-  },
-
-  async loginAdmin(email, password) {
-    const { signInWithEmailAndPassword } = await import("firebase/auth");
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      return { success: true };
-    } catch (e) {
-      console.error('Admin login failed:', e);
-      // 실패 로깅
-      await this.logLoginFailure('admin', email, 'N/A', e.message || 'AUTH_ERROR');
-      return { success: false, message: '로그인에 실패했습니다.' };
-    }
-  },
-
-  async logoutAdmin() {
-    const { signOut } = await import("firebase/auth");
-    return signOut(auth);
-  },
-
-  // Sales & Revenue Facade
-  addSalesRecord(data) { return paymentService.addSalesRecord(data); },
-  updateSalesRecord(salesId, updates) { return paymentService.updateSalesRecord(salesId, updates); },
-  deleteSalesRecord(salesId) { return paymentService.deleteSalesRecord(salesId); },
-  getSalesHistory(memberId) { return paymentService.getSalesHistory(memberId); },
-  getAllSales() { return paymentService.getAllSales(); },
-  getSales() { return paymentService.getSales(); },
-  getRevenueStats() { return paymentService.getRevenueStats(); },
-
-  deleteAttendance(logId, restoreCredit) { return attendanceService.deleteAttendance(logId, restoreCredit); },
-
-  addManualAttendance(memberId, date, branchId, className = "수동 확인", instructor = "관리자", options = {}) {
-    return attendanceService.addManualAttendance(memberId, date, branchId, className, instructor, options);
-  },
-
-  // [Monitoring] Get Error Logs
   async getErrorLogs(limitCount = 50) {
+    const { getDocs, query: q, orderBy: ob, limit: lim } = await import('firebase/firestore');
     try {
-      // Ensure 'error_logs' collection exists or is queryable.
-      // Note: Composite index might be needed for 'timestamp desc'.
-      const q = query(
-        tenantDb.collection('error_logs'),
-        orderBy('timestamp', 'desc'),
-        firestoreLimit(limitCount)
-      );
-      const snapshot = await getDocs(q);
+      const snapshot = await getDocs(q(tenantDb.collection('error_logs'), ob('timestamp', 'desc'), lim(limitCount)));
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (e) {
-      console.warn("Failed to fetch error logs:", e);
-      return [];
-    }
+    } catch (e) { return []; }
   },
 
-  // [NEW] Get Push History
-  async getPushHistory(limitCount = 50) {
-    try {
-      const q = query(
-        tenantDb.collection('push_history'),
-        orderBy('createdAt', 'desc'),
-        firestoreLimit(limitCount)
-      );
-      const snapshot = await getDocs(q);
-      
-      return snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          ...data,
-          displayDate: data.createdAt?.toDate?.() || data.createdAt || new Date()
-        };
-      });
-    } catch (e) {
-      console.warn('Failed to fetch push history:', e);
-      return [];
-    }
-  },
-
-  // [NEW] Subscribe to Push History
-  subscribeToPushHistory(callback, limitCount = 50) {
-    try {
-      const q = query(
-        tenantDb.collection('push_history'),
-        orderBy('createdAt', 'desc'),
-        firestoreLimit(limitCount)
-      );
-      return onSnapshot(q, (snapshot) => {
-        const data = snapshot.docs.map(doc => {
-          const item = doc.data();
-          return {
-            id: doc.id,
-            ...item,
-            displayDate: item.createdAt?.toDate?.() || item.createdAt || new Date()
-          };
-        });
-        callback(data);
-      }, (error) => {
-        console.warn('[Storage] Push history listener error:', error);
-      });
-    } catch (e) {
-      console.error('[Storage] Failed to subscribe to push history:', e);
-      return () => {};
-    }
-  },
-
-  getAttendanceByMemberId(memberId) { return attendanceService.getAttendanceByMemberId(memberId); },
-  getAttendanceByDate(dateStr, branchId = null) { return attendanceService.getAttendanceByDate(dateStr, branchId); },
-  subscribeAttendance(dateStr, branchId = null, callback) { return attendanceService.subscribeAttendance(dateStr, branchId, callback); },
-
-  // [Added] Delete single error log
   async deleteErrorLog(logId) {
+    const { deleteDoc } = await import('firebase/firestore');
     try {
       await deleteDoc(tenantDb.doc('error_logs', logId));
       return { success: true };
-    } catch (e) {
-      console.error("Delete error log failed:", e);
-      return { success: false, message: e.message };
-    }
+    } catch (e) { return { success: false, message: e.message }; }
   },
 
-  // [Added] Clear all error logs
   async clearErrorLogs() {
+    const { getDocs, deleteDoc } = await import('firebase/firestore');
     try {
       const snapshot = await getDocs(tenantDb.collection('error_logs'));
-      const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
-      await Promise.all(deletePromises);
+      await Promise.all(snapshot.docs.map(doc => deleteDoc(doc.ref)));
       return { success: true, count: snapshot.docs.length };
-    } catch (e) {
-      console.error("Clear error logs failed:", e);
-      return { success: false, message: e.message };
-    }
+    } catch (e) { return { success: false, message: e.message }; }
   },
 
-  clearAllAttendance() { return attendanceService.clearAllAttendance(); },
-
-  getAttendance() { return attendanceService.getAttendance(); },
-  getNotices() { return cachedNotices; },
-
-  // [Added] Load notices with fallback for empty cache
-  async loadNotices() {
-    // If cache has data, return it
-    if (cachedNotices.length > 0) {
-      return cachedNotices;
-    }
-
-    // Fallback: fetch directly if cache is empty
-    try {
-      console.log('[Storage] Cache empty, fetching notices from Firestore...');
-      const q = query(tenantDb.collection('notices'), orderBy('timestamp', 'desc'));
-      const snapshot = await getDocs(q);
-      const notices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-      // Update cache for future calls
-      cachedNotices = notices;
-      return notices;
-    } catch (e) {
-      console.error('Failed to fetch notices:', e);
-      return [];
-    }
-  },
-
-  async getAllPushTokens() {
-    // If listeners already populated cache, return it
-    if (cachedPushTokens.length > 0) return cachedPushTokens;
-
-    try {
-      console.log("[Storage] getAllPushTokens: Force fetching from Firestore collections...");
-      const results = await Promise.all([
-        getDocs(tenantDb.collection('fcm_tokens')).catch(() => ({ docs: [] })),
-        getDocs(tenantDb.collection('fcmTokens')).catch(() => ({ docs: [] })),
-        getDocs(tenantDb.collection('push_tokens')).catch(() => ({ docs: [] }))
-      ]);
-
-      const allMerged = {};
-      results.forEach(snapshot => {
-        snapshot.docs.forEach(doc => {
-          allMerged[doc.id] = { id: doc.id, ...doc.data() };
-        });
-      });
-
-      const tokens = Object.values(allMerged);
-      cachedPushTokens = tokens;
-      console.log(`[Storage] getAllPushTokens: Total ${tokens.length} unique tokens fetched.`);
-      return tokens;
-    } catch (e) {
-      console.warn("[Storage] Critical failure in getAllPushTokens:", e);
-      return cachedPushTokens || [];
-    }
-  },
-
-  async diagnosePushData() {
-    const collections = ['fcm_tokens', 'fcmTokens', 'push_tokens', 'tokens', 'fcm_token'];
-    const results = {};
-    for (const name of collections) {
-      try {
-        const snap = await getDocs(tenantDb.collection(name));
-        results[name] = snap.size;
-      } catch (e) {
-        results[name] = "Error: " + e.message;
-      }
-    }
-    return results;
-  },
-
-
-
-  // [NEW] Get all messages (Individual + Notices) for a specific member
-  getMessagesByMemberId(memberId) { return messageService.getMessagesByMemberId(memberId); },
-
-  getPendingApprovals(callback) { return messageService.getPendingApprovals(callback); },
-  approvePush(id) { return messageService.approvePush(id); },
-  rejectPush(id) { return messageService.rejectPush(id); },
-
-  addMessage(memberId, content, scheduledAt = null, templateId = null) { return messageService.addMessage(memberId, content, scheduledAt, templateId); },
-  sendBulkMessages(memberIds, content, scheduledAt = null, templateId = null) { return messageService.sendBulkMessages(memberIds, content, scheduledAt, templateId); },
-  getMessages(memberId) { return messageService.getMessages(memberId); },
-  sendBulkPushCampaign(targetMemberIds, title, body) { return messageService.sendBulkPushCampaign(targetMemberIds, title, body); },
-
-  /**
-   * CSV 회원 데이터 마이그레이션
-   * @param {Array<Object>} csvData - 파싱된 CSV 데이터
-   * @param {boolean} dryRun - true면 실제 마이그레이션 없이 검증만
-   * @param {Function} onProgress - 진행 상황 콜백 (currentIndex, total, currentMember)
-   * @returns {Promise<Object>} 마이그레이션 결과
-   */
-  async migrateMembersFromCSV(csvData, dryRun = false, onProgress = null) {
-    const {
-      extractMonthsFromProduct,
-      calculateEndDate,
-      extractEndDateFromPeriod,
-      convertToBranchId,
-      parseCredits,
-      parseAmount,
-      parseLastVisit
-    } = await import('../utils/csvParser.js');
-
-    const results = {
-      total: csvData.length,
-      success: 0,
-      failed: 0,
-      skipped: 0,
-      errors: [],
-      members: [],
-      sales: []
-    };
-
-    console.log(`[Migration] Starting CSV migration. Total rows: ${csvData.length}, Dry Run: ${dryRun}`);
-
-    // [New] If not dry run, clear all existing data first as requested by user
-    if (!dryRun) {
-      console.log('[Migration] Not a dry run. Clearing existing data first...');
-      if (onProgress) onProgress(0, 0, '기존 데이터 정리 중 (전체 삭제)...');
-      await this.cleanupAllData((current, total, colName) => {
-        if (onProgress) onProgress(0, 0, `${colName} 삭제 중...`);
-      });
-      console.log('[Migration] Cleanup complete. Proceeding with migration...');
-    }
-
-    for (let i = 0; i < csvData.length; i++) {
-      const row = csvData[i];
-
-      try {
-        // 진행 상황 콜백
-        if (onProgress) {
-          onProgress(i + 1, csvData.length, row['이름']);
-        }
-
-        // 필수 필드 검증
-        if (!row['이름'] || !row['휴대폰1']) {
-          results.skipped++;
-          results.errors.push({ row: i + 1, name: row['이름'], error: '필수 필드 누락 (이름 또는 전화번호)' });
-          continue;
-        }
-
-        // 회원 데이터 변환
-        const branchId = convertToBranchId(row['회원번호']);
-        const credits = parseCredits(row['남은횟수']);
-        const phone = row['휴대폰1'].trim();
-        const phoneLast4 = phone.slice(-4);
-
-        // 만기일자 계산 (우선순위: 이용기간 > 만기일자 > 판매일자+기간)
-        let endDate = '';
-        
-        // 1. 이용기간에서 종료일 추출 (최우선)
-        if (row['이용기간']) {
-          endDate = extractEndDateFromPeriod(row['이용기간']);
-        }
-
-        // 2. 만기일자 컬럼 확인 (이용기간 없거나 추출 실패 시)
-        if (!endDate && row['만기일자']) {
-          endDate = row['만기일자'];
-        }
-
-        // 3. 상품명에서 기간 추출하여 계산 (마지막 수단)
-        if (!endDate && row['판매일자'] && row['마지막 판매']) {
-          const months = extractMonthsFromProduct(row['마지막 판매']);
-          endDate = calculateEndDate(row['판매일자'], months);
-        }
-
-        const memberData = {
-          name: row['이름'].trim(),
-          phone,
-          phoneLast4,
-          branchId,
-          homeBranch: branchId,
-          credits,
-          startDate: row['판매일자'] || row['등록일자'] || '',
-          endDate: endDate || '',
-          attendanceCount: 0,
-          lastAttendance: parseLastVisit(row['마지막출입']) || '',
-          createdAt: row['등록일자'] ? new Date(row['등록일자']).toISOString() : new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          streak: 0,
-          pushEnabled: false
-        };
-
-        // Dry Run 모드가 아니면 실제 마이그레이션
-        if (!dryRun) {
-          // 중복 전화번호 체크
-          const existingQuery = query(
-            tenantDb.collection('members'),
-            where('phone', '==', phone)
-          );
-          const existingSnap = await getDocs(existingQuery);
-
-          let memberId;
-          if (existingSnap.empty) {
-            // 새 회원 추가
-            const docRef = await addDoc(tenantDb.collection('members'), memberData);
-            memberId = docRef.id;
-            console.log(`[Migration] Added new member: ${memberData.name} (${memberId})`);
-          } else {
-            // 기존 회원 업데이트
-            memberId = existingSnap.docs[0].id;
-            const existingData = existingSnap.docs[0].data();
-
-            // [Fix] Ensure createdAt is never undefined
-            const existingCreatedAt = existingData.createdAt || existingData.updatedAt || new Date().toISOString();
-
-            await updateDoc(tenantDb.doc('members', memberId), {
-              ...memberData,
-              createdAt: existingCreatedAt // 기존 가입일 유지
-            });
-            console.log(`[Migration] Updated existing member: ${memberData.name} (${memberId})`);
-          }
-
-          // 판매 기록 추가 (판매금액이 0이 아닌 경우)
-          const amount = parseAmount(row['판매금액']);
-          if (amount > 0 && row['판매일자']) {
-            const salesData = {
-              memberId,
-              memberName: memberData.name,
-              amount,
-              productName: row['마지막 판매'] || '',
-              branchId,
-              timestamp: new Date(row['판매일자']).toISOString()
-            };
-            await addDoc(tenantDb.collection('sales'), salesData);
-            results.sales.push(salesData);
-            console.log(`[Migration] Added sales record: ${memberData.name} - ${amount}원`);
-          }
-        }
-
-        results.members.push(memberData);
-        results.success++;
-
-      } catch (error) {
-        results.failed++;
-        results.errors.push({
-          row: i + 1,
-          name: row['이름'],
-          error: error.message
-        });
-        console.error(`[Migration] Error at row ${i + 1}:`, error);
-      }
-    }
-
-    console.log(`[Migration] Complete. Success: ${results.success}, Failed: ${results.failed}, Skipped: ${results.skipped}`);
-
-    // 캐시 갱신 (실제 마이그레이션인 경우)
-    if (!dryRun) {
-      await this.loadAllMembers();
-      notifyListeners();
-    }
-
-    return results;
-  },
-
-  // [NEW] Kiosk Remote Settings (지점별 분리: kiosk_all, kiosk_gwangheungchang, kiosk_mapo)
-  async getKioskSettings(branchId = 'all') {
-    try {
-      const docId = branchId === 'all' ? 'kiosk' : `kiosk_${branchId}`;
-      const docSnap = await getDoc(tenantDb.doc('settings', docId));
-      if (docSnap.exists()) {
-        return docSnap.data();
-      }
-      return { active: false, imageUrl: null };
-    } catch (e) {
-      console.error('[Storage] Get kiosk settings failed:', e);
-      return { active: false, imageUrl: null };
-    }
-  },
-
-  async updateKioskSettings(branchId = 'all', data) {
-    try {
-      const docId = branchId === 'all' ? 'kiosk' : `kiosk_${branchId}`;
-      await setDoc(tenantDb.doc('settings', docId), {
-        ...data,
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
-      return true;
-    } catch (e) {
-      console.error('[Storage] Update kiosk settings failed:', e);
-      throw e;
-    }
-  },
-
-  subscribeToKioskSettings(branchId = 'all', callback) {
-    try {
-      const docId = branchId === 'all' ? 'kiosk' : `kiosk_${branchId}`;
-      return onSnapshot(tenantDb.doc('settings', docId), (docSnap) => {
-        if (docSnap.exists()) {
-          callback(docSnap.data());
-        } else {
-          callback({ active: false, imageUrl: null });
-        }
-      }, (error) => {
-        console.warn('[Storage] Kiosk settings listener error:', error);
-      });
-    } catch (e) {
-      console.error('[Storage] Failed to subscribe to kiosk settings:', e);
-      return () => {};
-    }
-  },
-
-  /**
-   * [DANGER] Clears all non-core data (members, sales, attendance, push, etc.) for a fresh start.
-   * Keeps: notices, timetable, prices, images.
-   */
-  async cleanupAllData(onProgress = null) {
-    const { getDocs, collection, writeBatch } = await import("firebase/firestore");
-
-    // Collections to definitely DELETE
-    const collectionsToClear = [
-      'members',
-      'sales',
-      'attendance',
-      'push_campaigns',
-      'push_history',
-      'notifications',
-      'messages',
-      'message_approvals',
-      'fcm_tokens',
-      'fcmTokens',
-      'push_tokens'
-    ];
-
-    let totalDeleted = 0;
-    const stats = {};
-
-    for (const colName of collectionsToClear) {
-      console.log(`[Storage] Clearing collection: ${colName}...`);
-      try {
-        const snapshot = await getDocs(tenantDb.collection(colName));
-        const docs = snapshot.docs;
-        stats[colName] = docs.length;
-
-        if (docs.length === 0) continue;
-
-        // Firestore batch limit is 500
-        for (let i = 0; i < docs.length; i += 500) {
-          const batch = writeBatch(db);
-          const chunk = docs.slice(i, i + 500);
-          chunk.forEach(d => batch.delete(d.ref));
-          await batch.commit();
-
-          totalDeleted += chunk.length;
-          if (onProgress) onProgress(totalDeleted, docs.length, colName);
-        }
-      } catch (e) {
-        console.warn(`[Cleanup] Failed to clear ${colName}:`, e);
-      }
-    }
-
-    console.log(`[Storage] Cleanup complete. Deleted ${totalDeleted} documents.`);
-
-    // Refresh cash
-    await this.loadAllMembers();
-    notifyListeners();
-
-    return { totalDeleted, stats };
-  },
-
-  // Get pricing configuration from Firestore settings
-  async getPricing() {
-    try {
-      const docRef = tenantDb.doc('settings', 'pricing');
-      const snap = await getDoc(docRef);
-      if (snap.exists()) {
-        return snap.data();
-      }
-      return {};
-    } catch (e) {
-      console.error('[Storage] Failed to get pricing:', e);
-      return {};
-    }
-  },
-
-  // [NEW] Save pricing configuration to Firestore settings
-  async savePricing(pricingData) {
-    try {
-      const docRef = tenantDb.doc('settings', 'pricing');
-      await setDoc(docRef, pricingData);
-      notifyListeners('settings');
-      return true;
-    } catch (e) {
-      console.error('[Storage] Failed to save pricing:', e);
-      return false;
-    }
-  },
-
-  // [NEW] Subscribe to Push History for PushHistoryTab
-  subscribeToPushHistory(callback, limitCount = 50) {
-    try {
-      const q = query(
-        tenantDb.collection('push_history'),
-        orderBy('createdAt', 'desc'),
-        firestoreLimit(limitCount)
-      );
-      return onSnapshot(q, (snapshot) => {
-        const data = snapshot.docs.map(doc => {
-          const item = doc.data();
-          return {
-            id: doc.id,
-            ...item,
-            displayDate: item.createdAt?.toDate?.() || item.createdAt || new Date()
-          };
-        });
-        callback(data);
-      }, (error) => {
-        console.warn('[Storage] Push history listener error:', error);
-        callback([]);
-      });
-    } catch (e) {
-      console.error('[Storage] Failed to subscribe to push history:', e);
-      callback([]);
-      return () => {};
-    }
-  }
+  // Helpers
+  _safeGetItem(key) { try { return localStorage.getItem(key); } catch { return null; } },
+  _safeSetItem(key, value) { try { localStorage.setItem(key, value); } catch { /* ignore */ } },
 };
-

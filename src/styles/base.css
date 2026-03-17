@@ -1,0 +1,224 @@
+/* =========================================
+   Base — Global Resets & Element Styles
+   ========================================= */
+
+/* Global Font Override for form elements */
+input,
+select,
+button,
+textarea {
+  font-family: var(--font-main) !important;
+}
+
+/* Date Picker Icon Color for Dark Theme */
+input[type="date"],
+input[type="datetime-local"] {
+  position: relative;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  /* Prevent ghost cursors/carets in non-input areas */
+  caret-color: transparent;
+  outline: none !important;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Enable caret only where needed and use brand gold */
+input,
+textarea,
+[contenteditable="true"] {
+  caret-color: var(--primary-theme-color) !important;
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
+/* [FIX] Hide number input spinners for better touch UX */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+  
+  /* Native App Feel */
+  overscroll-behavior-y: none; /* Prevent rubber-banding on pull */
+  -webkit-tap-highlight-color: transparent; /* Remove grey tap box */
+  -webkit-touch-callout: none;
+  user-select: none; /* Prevent accidental text selection */
+  -webkit-user-select: none;
+}
+
+/* Allow text selection & paste menu in inputs */
+input, textarea, [contenteditable="true"] {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -webkit-touch-callout: default !important; /* FIX: Enable long-press paste menu on mobile */
+}
+
+/* Custom Select Dropdown Styling */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23D4AF37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1.2em;
+  padding-right: 2.8rem !important;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.4);
+  color: var(--text-primary);
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--primary-theme-color);
+  box-shadow: 0 0 0 2px var(--primary-theme-skeleton);
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+/* 
+ * Customizing the <option> dropdown list
+ * Note: Styling <option> elements natively is highly restricted by browsers.
+ * This provides the best possible cross-browser dark theme support.
+ */
+select option {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  padding: 12px;
+  font-size: 1rem;
+}
+
+select option:checked,
+select option:hover {
+  background-color: var(--primary-theme-color);
+  color: black;
+}
+
+/* FIX: Ensure long-press context menu works in modals (iOS Safari) */
+.modal-content input,
+.modal-content textarea,
+.modal-content [contenteditable="true"] {
+  -webkit-touch-callout: default !important;
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  touch-action: auto !important;
+}
+
+/* AI Dynamic Background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background: #08080a;
+  /* Simple solid background for speed */
+  will-change: auto;
+}
+
+/* Mobile check */
+@media (max-width: 600px) {
+  body {
+    background-color: var(--bg-mobile) !important;
+  }
+
+  /* Disable transitions on mobile to prevent flickering during keyboard pops */
+  * {
+    transition: none !important;
+  }
+}
+
+h1,
+h2,
+h3,
+h4,
+.outfit-font {
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
+}
+
+button {
+  font-family: var(--font-main);
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  transition: var(--transition);
+}
+
+/* Typography Polish */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  letter-spacing: -0.02em;
+}
+
+/* Button Feedback */
+button:active {
+  transform: scale(0.96);
+}
+
+/* Scrollbar Polish */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-app); 
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2); 
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3); 
+}
+
+/* Global Fix for Select Options (Windows/Chrome visibility) */
+select option {
+  background-color: var(--bg-surface-opaque);
+  color: var(--text-primary);
+}

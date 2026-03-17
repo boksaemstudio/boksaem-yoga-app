@@ -1,0 +1,128 @@
+/* =========================================
+   Member Profile & Bottom Navigation
+   ========================================= */
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: rgba(18, 18, 20, 1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  padding: 10px 0;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  z-index: 1000;
+}
+
+.bottom-nav button {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 4px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 0;
+}
+
+.bottom-nav button.active {
+  color: var(--primary-theme-color);
+}
+
+.bottom-nav button:active {
+  transform: scale(0.95);
+}
+
+.bottom-nav button span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* =========================================
+   Meditation Background Animations (Soul Light)
+   ========================================= */
+
+/* 1. Heartbeat */
+@keyframes soul-pulse {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+  50% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.5; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+}
+
+@keyframes active-pulse {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+  50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+}
+
+/* 2. Candle Flame */
+@keyframes flame-flicker {
+  0%, 100% { transform: translate(-50%, -50%) scale(1, 1); opacity: 0.4; }
+  25% { transform: translate(-51%, -50%) scale(0.98, 1.02); opacity: 0.5; }
+  50% { transform: translate(-49%, -50%) scale(1.02, 0.98); opacity: 0.3; }
+  75% { transform: translate(-50%, -51%) scale(0.99, 1.01); opacity: 0.6; }
+}
+
+/* 4. Snow/Cloud Drift */
+@keyframes cloud-drift {
+  0% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0.3; }
+  50% { transform: translate(-48%, -52%) scale(1.05) rotate(5deg); opacity: 0.4; }
+  100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0.3; }
+}
+
+.soul-light-base {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 70vw;
+  height: 70vw;
+  max-width: 500px;
+  max-height: 500px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  transform: translate(-50%, -50%);
+  mix-blend-mode: screen;
+  filter: blur(60px);
+  will-change: transform, opacity;
+  transition: all 1s ease;
+}
+
+/* Themes */
+.soul-theme-heartbeat {
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.5), transparent 70%);
+  animation: soul-pulse 5s infinite ease-in-out;
+}
+
+.soul-theme-candle {
+  background: radial-gradient(circle, rgba(255, 140, 0, 0.5), transparent 70%);
+  animation: flame-flicker 4s infinite alternate ease-in-out;
+}
+
+.soul-theme-rain {
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.4), transparent 70%);
+  animation: soul-pulse 6s infinite ease-in-out;
+}
+
+.soul-theme-snow {
+  background: radial-gradient(circle, rgba(220, 230, 255, 0.4), transparent 70%);
+  animation: cloud-drift 8s infinite ease-in-out;
+}
+
+/* Active State (Speaking/Listening) */
+.soul-light-base.active {
+   animation: active-pulse 3s infinite ease-in-out !important;
+   filter: blur(50px) brightness(1.4);
+}

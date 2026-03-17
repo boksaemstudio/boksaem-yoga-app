@@ -120,7 +120,13 @@ const AttendanceTab = ({ logs, member, aiAnalysis, onAdd, onDelete, isSubmitting
                 member={member}
                 aiAnalysis={aiAnalysis}
                 language="ko"
-                t={(k) => translations.ko[k] || k}
+                t={(k, params = {}) => {
+                    let text = translations.ko[k] || k;
+                    Object.keys(params).forEach(p => {
+                        text = text.replace(new RegExp(`\\{${p}\\}`, 'g'), params[p]);
+                    });
+                    return text;
+                }}
                 onDelete={onDelete}
                 isSubmitting={isSubmitting}
                 logLimit={logLimit}

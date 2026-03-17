@@ -1,0 +1,67 @@
+/* =========================================
+   Design Tokens — CSS Variables & Theme
+   ========================================= */
+/* Fonts moved to index.html for parallel loading */
+
+:root {
+  /* Artistic "Genius" Palette - Deep, Rich, & Alive */
+  --bg-app: #08080A;
+  /* Deepest Void */
+  --bg-surface: rgba(24, 24, 27, 0.7);
+  /* Glass Surface */
+  --bg-surface-hover: rgba(34, 34, 38, 0.85);
+  /* Robust Mobile Fallback Colors */
+  --bg-mobile: #0d0d0f;
+  --bg-surface-opaque: #1a1a1c;
+
+  --bg-input: rgba(18, 18, 20, 0.9);
+
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-focus: rgba(212, 175, 55, 0.6);
+
+  --text-primary: #F8F8FA;
+  /* Mist White */
+  --text-secondary: #A1A1AA;
+  /* Cool Grey */
+  --text-muted: #71717A;
+
+  /* Accents - Champagne Gold & Ethereal Glows */
+  --primary-theme-color: #D4AF37;
+  --primary-gold: #D4AF37;
+  --primary-rgb: 212, 175, 55;
+  --primary-theme-dim: #C5A065;
+  --primary-gold-glow: rgba(var(--primary-rgb), 0.4);
+  --primary-theme-glow: rgba(var(--primary-rgb), 0.5);
+  
+  /* Global Layout Tokens */
+  --bg-modal: linear-gradient(145deg, rgba(30,30,35,0.98), rgba(20,20,25,0.98));
+
+  --skeleton-anim: skeleton-loading 2s infinite ease-in-out;
+  --dreamy-blur: blur(8px);
+
+  --accent-ai: #8B5CF6;
+  /* AI Purple */
+  --accent-ai-glow: rgba(139, 92, 246, 0.2);
+
+  --accent-error: #F43F5E;
+  --accent-success: #10B981;
+  --accent-info: #3B82F6;
+
+  /* Advanced Glassmorphism - Simplified for performance */
+  --glass-bg: rgba(20, 20, 25, 0.9);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  /* Removed blur for speed */
+  --glass-blur: none;
+
+  /* Spacing & Radius */
+  --radius-sm: 8px;
+  --radius-md: 20px;
+  --radius-lg: 32px;
+  --radius-full: 999px;
+
+  --font-main: "Pretendard", -apple-system, sans-serif;
+  --font-heading: "Outfit", "Pretendard", -apple-system, sans-serif;
+  --transition: none;
+  /* Completely disabled for immediate response */
+}
