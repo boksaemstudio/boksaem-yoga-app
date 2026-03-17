@@ -7,11 +7,13 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'prompt', // Important for ReloadPrompt to work
+      registerType: 'autoUpdate', // [FIX] 자동 업데이트 — 새 SW 설치 즉시 활성화 (prompt 방식은 업데이트 버튼 버그 시 이전 버전 고착 위험)
       injectRegister: 'auto',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        cleanupOutdatedCaches: true
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true
       },
       manifest: {
         name: '복샘요가',
