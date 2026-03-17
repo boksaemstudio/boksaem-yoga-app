@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { ArrowsClockwise, X } from '@phosphor-icons/react';
 
 function ReloadPrompt() {
+  const [updating, setUpdating] = useState(false);
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
@@ -21,6 +23,28 @@ function ReloadPrompt() {
       console.log('[SW] registration error', error);
     },
   });
+
+  const handleUpdate = async () => {
+    if (updating) return;
+    setUpdating(true);
+    console.log('[SW] Update button clicked');
+    
+    // 3초 타이머: updateServiceWorker가 실패하거나 반응이 없으면 강제 새로고침
+    const fallbackTimer = setTimeout(() => {
+      console.log('[SW] updateServiceWorker did not reload within 3s, forcing reload');
+      window.location.reload();
+    }, 3000);
+
+    try {
+      await updateServiceWorker(true);
+      // 정상이면 이 시점에서 페이지가 새로고침됨 (여기까지 안 올 수 있음)
+    } catch (err) {
+      console.warn('[SW] updateServiceWorker failed:', err);
+      clearTimeout(fallbackTimer);
+      // 즉시 강제 새로고침
+      window.location.reload();
+    }
+  };
 
   if (!needRefresh) {
       return null;
@@ -60,15 +84,17 @@ function ReloadPrompt() {
             새로운 기능 활성화 및 최적화를 위해<br/>지금 업데이트를 진행해주세요.
         </div>
         <button
-            onClick={() => updateServiceWorker(true)} // true = 팝업 후 사용자가 명시적 승인 (새로고침 수행)
+            onClick={handleUpdate}
+            disabled={updating}
             style={{
                 background: 'black', color: 'var(--primary-gold)',
                 border: 'none', padding: '10px', borderRadius: '8px',
-                fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer',
-                marginTop: '4px'
+                fontWeight: 'bold', fontSize: '0.9rem', cursor: updating ? 'wait' : 'pointer',
+                marginTop: '4px',
+                opacity: updating ? 0.7 : 1
             }}
         >
-            클릭하여 업데이트 및 재시작
+            {updating ? '업데이트 중...' : '클릭하여 업데이트 및 재시작'}
         </button>
     </div>
   );
