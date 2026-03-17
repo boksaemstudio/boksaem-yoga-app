@@ -19,8 +19,10 @@ const PriceTab = ({
         const loadPricing = async () => {
             const data = await storageService.getPricing();
             setPricing(data);
-            const keys = Object.keys(data);
-            if (keys.length > 0) setActiveCategory(keys[0]);
+            const keys = Object.keys(data).filter(k => k !== '_meta');
+            // 일반(general)을 기본 선택
+            if (keys.includes('general')) setActiveCategory('general');
+            else if (keys.length > 0) setActiveCategory(keys[0]);
         };
         loadPricing();
     }, []);
@@ -28,7 +30,21 @@ const PriceTab = ({
     const paymentInfo = pricing?._meta?.payment || null;
     const holdRules = pricing?._meta?.holdRules || null;
     const discountNote = pricing?._meta?.discountNote || null;
-    const categories = pricing ? Object.entries(pricing).filter(([k]) => k !== '_meta') : [];
+    
+    // 카테고리 순서: 일반적인 것 먼저, 특수한 것 뒤로
+    const CATEGORY_ORDER = ['general', 'advanced'];
+    const categories = pricing
+        ? Object.entries(pricing)
+            .filter(([k]) => k !== '_meta')
+            .sort(([a], [b]) => {
+                const aIdx = CATEGORY_ORDER.indexOf(a);
+                const bIdx = CATEGORY_ORDER.indexOf(b);
+                if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+                if (aIdx !== -1) return -1;
+                if (bIdx !== -1) return 1;
+                return a.localeCompare(b);
+            })
+        : [];
 
     return (
         <div className="fade-in">

@@ -152,7 +152,8 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
         }
 
         // 2) selectedOption 검증 — 현재 타입의 옵션 목록에 포함되어 있는지
-        const options = pricingConfig[targetType]?.options || [];
+        // [FIX] 1회권(credits === 1 && type === 'ticket') 제외
+        const options = (pricingConfig[targetType]?.options || []).filter(opt => !(opt.type === 'ticket' && opt.credits === 1));
         const isOptionValid = newMember.selectedOption && options.some(opt => opt.id === newMember.selectedOption);
 
         const needsTypeChange = targetType !== newMember.membershipType;
@@ -316,7 +317,9 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                         value={newMember.membershipType}
                         onChange={e => {
                             const newType = e.target.value;
-                            const firstOptionId = pricingConfig[newType]?.options?.[0]?.id || '';
+                            // [FIX] 1회권 제외한 첫 옵션 선택
+                            const filteredOpts = (pricingConfig[newType]?.options || []).filter(opt => !(opt.type === 'ticket' && opt.credits === 1));
+                            const firstOptionId = filteredOpts[0]?.id || '';
                             setNewMember({ ...newMember, membershipType: newType, selectedOption: firstOptionId, duration: 1 });
                         }}
                     >
@@ -335,7 +338,9 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                         value={newMember.selectedOption}
                         onChange={e => setNewMember({ ...newMember, selectedOption: e.target.value })}
                     >
-                        {pricingConfig[newMember.membershipType]?.options.map(opt => (
+                        {pricingConfig[newMember.membershipType]?.options
+                            .filter(opt => !(opt.type === 'ticket' && opt.credits === 1))
+                            .map(opt => (
                             <option key={opt.id} value={opt.id}>{opt.label}</option>
                         ))}
                     </select>

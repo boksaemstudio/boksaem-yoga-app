@@ -36,7 +36,9 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
     // Init Logic & Changed Membership Type hook
     useEffect(() => {
         if (pricingConfig && pricingConfig[membershipType] && pricingConfig[membershipType].options.length > 0) {
-            setSelectedOption(pricingConfig[membershipType]?.options?.[0]?.id || '');
+            // [FIX] 1회권(credits === 1 && type === 'ticket') 제외한 첫 옵션 선택
+            const filteredOpts = pricingConfig[membershipType].options.filter(opt => !(opt.type === 'ticket' && opt.credits === 1));
+            setSelectedOption(filteredOpts[0]?.id || '');
         }
     }, [membershipType, pricingConfig]);
 
@@ -183,7 +185,9 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                     value={membershipType}
                     onChange={e => {
                         const newType = e.target.value;
-                        const firstOptionId = pricingConfig[newType]?.options[0]?.id || '';
+                        // [FIX] 1회권 제외한 첫 옵션 선택
+                        const filteredOpts = (pricingConfig[newType]?.options || []).filter(opt => !(opt.type === 'ticket' && opt.credits === 1));
+                        const firstOptionId = filteredOpts[0]?.id || '';
                         setMembershipType(newType);
                         setSelectedOption(firstOptionId);
                         setDuration(1);
@@ -204,7 +208,9 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                     value={selectedOption}
                     onChange={e => setSelectedOption(e.target.value)}
                 >
-                    {pricingConfig?.[membershipType]?.options?.map(opt => (
+                    {pricingConfig?.[membershipType]?.options
+                        ?.filter(opt => !(opt.type === 'ticket' && opt.credits === 1))
+                        .map(opt => (
                         <option key={opt.id} value={opt.id}>{opt.label}</option>
                     ))}
                 </select>
