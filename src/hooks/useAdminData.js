@@ -162,7 +162,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         try {
             const [currentMembers, currentImages, tokensResult, usageResult, currentSales, currentStats] = await Promise.all([
                 storageService.loadAllMembers().catch(err => { console.warn("[Admin] Member load error", err); return []; }),
-                (storageService.getImages ? storageService.getImages() : Promise.resolve({})).catch(err => ({})),
+                Promise.resolve(storageService.getImages ? storageService.getImages() : {}).catch(() => ({})),
                 storageService.getAllPushTokens().catch(err => { console.error('Failed to fetch push tokens:', err); return []; }),
                 storageService.getAiUsage().catch(e => { console.warn("Failed to fetch AI usage", e); return { count: 0, limit: 2000 }; }),
                 storageService.getSales().catch(err => { console.warn("[Admin] Sales load error", err); return []; }),
