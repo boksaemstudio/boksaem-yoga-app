@@ -3,6 +3,7 @@ import { collection, doc, query, where, orderBy, getDocs, getDoc, addDoc, update
 import { getStorage, ref, deleteObject } from 'firebase/storage';
 import { httpsCallable } from 'firebase/functions';
 import { memberService } from './memberService';
+import { evaluateUpcomingActivation } from '../utils/membershipUtils';
 import { tenantDb } from '../utils/tenantDb';
 
 // [NETWORK] Timeout wrapper for Cloud Function calls
@@ -360,45 +361,15 @@ export const attendanceService = {
               denialReason = 'no_credits';
           }
 
-          // [NEW] Offline fallback: Activate upcomingMembership if current is exhausted
+          // Offline fallback: Activate upcomingMembership if current is exhausted
           if (isExpired && member.upcomingMembership && member.upcomingMembership.startDate) {
-              const isTBD = member.upcomingMembership.startDate === 'TBD';
-              let shouldActivate = false;
-              let newStartDate = member.upcomingMembership.startDate;
-              let newEndDate = member.upcomingMembership.endDate;
-
-              if (isTBD) {
-                  shouldActivate = true;
-                  newStartDate = today;
-                  const durationMonths = member.upcomingMembership.durationMonths || 1;
-                  if (durationMonths === 9999) {
-                      const end = new Date(today);
-                      end.setMonth(end.getMonth() + 1);
-                      end.setDate(end.getDate() - 1);
-                      newEndDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-                  } else {
-                      const end = new Date(today);
-                      end.setMonth(end.getMonth() + durationMonths);
-                      end.setDate(end.getDate() - 1);
-                      newEndDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-                  }
-              } else {
-                  const upcomingStart = new Date(member.upcomingMembership.startDate);
-                  const todayDate = new Date(today);
-                  if (todayDate >= upcomingStart) {
-                      shouldActivate = true;
-                  }
-              }
-
+              const { shouldActivate, newFields } = evaluateUpcomingActivation(member, today);
               if (shouldActivate) {
                   console.log(`[attendanceService] Activating upcoming membership for ${memberId} in offline mode`);
-                  // Modify the in-memory member object. The actual update will happen in memberService._updateLocalMemberCache later.
-                  member.membershipType = member.upcomingMembership.membershipType;
-                  member.credits = member.upcomingMembership.credits;
-                  member.startDate = newStartDate;
-                  member.endDate = newEndDate;
-                  
-                  // Reset expiration since we just activated a new one
+                  member.membershipType = newFields.membershipType;
+                  member.credits = newFields.credits;
+                  member.startDate = newFields.startDate;
+                  member.endDate = newFields.endDate;
                   isExpired = false;
                   denialReason = null;
               }
@@ -554,48 +525,15 @@ export const attendanceService = {
         }
       }
 
-      // [FIX] upcomingMembership 활성화 로직 (Cloud Function과 동일)
-      // 수동 출석 시에도 선등록 회원권이 활성화되어야 함
+      // upcomingMembership 활성화 (공통 함수 사용)
       let membershipUpdate = null;
       if (memberData && memberData.upcomingMembership && memberData.upcomingMembership.startDate) {
-        const upcoming = memberData.upcomingMembership;
-        const isTBD = upcoming.startDate === 'TBD';
-        let shouldActivate = false;
-        let newStartDate = upcoming.startDate;
-        let newEndDate = upcoming.endDate;
-
-        if (isTBD) {
-          // TBD: 현재 회원권이 소진/만료 시 활성화
-          const currentCredits = memberData.credits || 0;
-          const isCurrentExpired = memberData.endDate ? (new Date(dateStr) > new Date(memberData.endDate)) : false;
-          const isCurrentExhausted = currentCredits <= 0 || isCurrentExpired;
-
-          if (isCurrentExhausted) {
-            shouldActivate = true;
-            newStartDate = dateStr;
-            const durationMonths = upcoming.durationMonths || 1;
-            const end = new Date(dateStr);
-            end.setMonth(end.getMonth() + durationMonths);
-            end.setDate(end.getDate() - 1);
-            newEndDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-          }
-        } else {
-          // 시작일이 지정된 경우: 출석일 >= 시작일이면 활성화
-          const upcomingStart = new Date(upcoming.startDate);
-          const attendanceDate = new Date(dateStr);
-          if (attendanceDate >= upcomingStart) {
-            shouldActivate = true;
-          }
-        }
-
+        const { shouldActivate, newFields } = evaluateUpcomingActivation(memberData, dateStr);
         if (shouldActivate) {
           console.log(`[Manual Attendance] Activating upcoming membership for ${memberId}`);
           membershipUpdate = {
-            membershipType: upcoming.membershipType,
-            credits: upcoming.credits,
-            startDate: newStartDate,
-            endDate: newEndDate,
-            upcomingMembership: null // Firestore에서 삭제
+            ...newFields,
+            upcomingMembership: null
           };
         }
       }
