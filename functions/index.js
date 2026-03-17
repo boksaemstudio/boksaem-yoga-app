@@ -22,7 +22,7 @@ const memberFunctions = require('./modules/member');
 const attendanceFunctions = require('./modules/attendance');
 const scheduledFunctions = require('./modules/scheduled');
 const meditationFunctions = require('./modules/meditation');
-const solapiFunctions = require('./modules/solapi');
+const smsFunctions = require('./modules/sms');
 const statsFunctions = require('./modules/stats');
 const bookingFunctions = require('./modules/booking');
 const migrationFunctions = require('./modules/migration');
@@ -47,8 +47,8 @@ module.exports = {
     // Meditation AI Functions
     ...meditationFunctions,
 
-    // Solapi Message Functions
-    ...solapiFunctions,
+    // SMS Message Functions (Aligo)
+    ...smsFunctions,
 
     // Statistics and Revenue Aggregation
     ...statsFunctions,
@@ -94,7 +94,7 @@ module.exports = {
  * meditationFunctions (1):
  *   - generateMeditationGuidance
  * 
- * solapiFunctions (3):
+ * smsFunctions (3): [Aligo]
  *   - sendMessageOnApproval
  *   - sendSolapiOnMessageV2
  *   - getSolapiBalance

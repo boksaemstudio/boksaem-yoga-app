@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { PencilLine, Trash, X, Plus } from '@phosphor-icons/react';
+import { PencilLine, Trash, X, Plus, ArrowClockwise } from '@phosphor-icons/react';
 import { storageService } from '../services/storage';
 import { useStudioConfig } from '../contexts/StudioContext';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase';
 const AdminPriceManager = () => {
     const { config } = useStudioConfig();
     const branches = config.BRANCHES || [];
@@ -13,6 +15,8 @@ const AdminPriceManager = () => {
     const [editingCategory, setEditingCategory] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const optionsEndRef = useRef(null);
+
+
 
     const scrollToBottom = () => {
         if (optionsEndRef.current) {
@@ -102,7 +106,8 @@ const AdminPriceManager = () => {
         }
     };
 
-    // --- Modal Field Handlers ---
+    // --- Modal Field Handlers (below) ---
+
 
     const updateCategoryField = (field, value) => {
         setEditingCategory(prev => ({ ...prev, [field]: value }));
@@ -156,41 +161,72 @@ const AdminPriceManager = () => {
         <div style={{ paddingBottom: '80px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
                 <h3 className="section-title" style={{ margin: 0 }}>가격표 관리</h3>
-                <button
-                    onClick={handleAddNewCategory}
-                    className="action-btn"
-                    style={{ 
-                        width: 'auto', 
-                        padding: '10px 24px', 
-                        flexShrink: 0,
-                        background: `linear-gradient(135deg, var(--primary-gold) 0%, ${config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'} 100%)`, 
-                        color: '#000', 
-                        fontWeight: '800',
-                        fontSize: '0.95rem',
-                        border: 'none',
-                        boxShadow: `0 4px 15px ${config.THEME?.SKELETON_COLOR || 'rgba(var(--primary-rgb), 0.4)'}`, // Dynamic Glow
-                        borderRadius: '30px', 
-                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                    }}
-                    onMouseOver={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-                        e.currentTarget.style.boxShadow = `0 6px 20px ${config.THEME?.SKELETON_COLOR || 'rgba(var(--primary-rgb), 0.6)'}`;
-                    }}
-                    onMouseOut={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                        e.currentTarget.style.boxShadow = `0 4px 15px ${config.THEME?.SKELETON_COLOR || 'rgba(var(--primary-rgb), 0.4)'}`;
-                    }}
-                >
-                    <Plus size={20} weight="black" /> 새 가격표 추가
-                </button>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    <button
+                        onClick={handleAddNewCategory}
+                        className="action-btn"
+                        style={{ 
+                            width: 'auto', 
+                            padding: '10px 24px', 
+                            flexShrink: 0,
+                            background: `linear-gradient(135deg, var(--primary-gold) 0%, ${config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'} 100%)`, 
+                            color: '#000', 
+                            fontWeight: '800',
+                            fontSize: '0.95rem',
+                            border: 'none',
+                            boxShadow: `0 4px 15px ${config.THEME?.SKELETON_COLOR || 'rgba(var(--primary-rgb), 0.4)'}`,
+                            borderRadius: '30px', 
+                            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                        }}
+                        onMouseOver={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+                            e.currentTarget.style.boxShadow = `0 6px 20px ${config.THEME?.SKELETON_COLOR || 'rgba(var(--primary-rgb), 0.6)'}`;
+                        }}
+                        onMouseOut={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                            e.currentTarget.style.boxShadow = `0 4px 15px ${config.THEME?.SKELETON_COLOR || 'rgba(var(--primary-rgb), 0.4)'}`;
+                        }}
+                    >
+                        <Plus size={20} weight="black" /> 새 가격표 추가
+                    </button>
+                </div>
+
+                {/* 가격표 초기 데이터 세팅 버튼 */}
+                    <button
+                        onClick={async () => {
+                            if (!confirm('가격표를 초기 데이터로 복원하시겠습니까?\n(기존 가격표가 덮어씌워집니다)')) return;
+                            try {
+                                const restore = httpsCallable(functions, 'restorePricingV2');
+                                const res = await restore();
+                                if (res.data.success) {
+                                    alert(`✅ ${res.data.message}`);
+                                    const data = await storageService.getPricing();
+                                    setPricing(data);
+                                } else {
+                                    alert('실패: ' + (res.data.error || '알 수 없는 오류'));
+                                }
+                            } catch (e) {
+                                console.error(e);
+                                alert('오류: ' + e.message);
+                            }
+                        }}
+                        className="action-btn"
+                        style={{
+                            padding: '10px 18px', background: 'rgba(16,185,129,0.15)', color: '#10B981',
+                            border: '1px solid rgba(16,185,129,0.3)', borderRadius: '10px', fontWeight: '700',
+                            fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
+                        }}
+                    >
+                        <ArrowClockwise size={18} /> 가격표 데이터 초기화
+                    </button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-                {pricing && Object.entries(pricing).map(([key, category]) => (
+                {pricing && Object.entries(pricing).filter(([key]) => key !== '_meta').sort((a, b) => (b[1]?.options?.length || 0) - (a[1]?.options?.length || 0)).map(([key, category]) => (
                     <div key={key} className="dashboard-card" style={{ position: 'relative' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
                             <div>
@@ -213,11 +249,29 @@ const AdminPriceManager = () => {
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '400px', overflowY: 'auto' }}>
                             {category?.options && category.options.map((opt, idx) => (
-                                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', padding: '8px', background: 'rgba(0,0,0,0.2)', borderRadius: '6px' }}>
-                                    <span>{opt?.label || '옵션명 없음'}</span>
-                                    <span style={{ fontWeight: 'bold' }}>{opt?.basePrice?.toLocaleString() || 0}원</span>
+                                <div key={idx} style={{ padding: '10px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: opt.discount3 || opt.discount6 ? '6px' : 0 }}>
+                                        <span>{opt?.label || '옵션명 없음'}</span>
+                                        <span style={{ fontWeight: 'bold' }}>{opt?.basePrice?.toLocaleString() || 0}원</span>
+                                    </div>
+                                    {(opt.discount3 || opt.discount6) && (
+                                        <div style={{ display: 'flex', gap: '12px', marginTop: '4px', fontSize: '0.72rem' }}>
+                                            {opt.discount3 && (
+                                                <span style={{ color: '#10B981' }}>
+                                                    3개월 {opt.discount3.toLocaleString()}원
+                                                    {opt.cashDiscount3 && <span style={{ color: '#f59e0b' }}> (현금 {opt.cashDiscount3.toLocaleString()})</span>}
+                                                </span>
+                                            )}
+                                            {opt.discount6 && (
+                                                <span style={{ color: '#10B981' }}>
+                                                    6개월 {opt.discount6.toLocaleString()}원
+                                                    {opt.cashDiscount6 && <span style={{ color: '#f59e0b' }}> (현금 {opt.cashDiscount6.toLocaleString()})</span>}
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -361,6 +415,53 @@ const AdminPriceManager = () => {
                                                     </div>
                                                 </div>
                                             )}
+
+                                            {/* [NEW] 현금/이체 전용 가격 설정 */}
+                                            <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(245, 158, 11, 0.15)', background: 'rgba(245, 158, 11, 0.03)', borderRadius: '6px', padding: '10px' }}>
+                                                <div style={{ fontSize: '0.75rem', color: '#f59e0b', fontWeight: 'bold', marginBottom: '8px' }}>💰 현금/이체 가격 (선택)</div>
+                                                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                                    <div style={{ flex: 1, minWidth: '100px' }}>
+                                                        <label style={{ fontSize: '0.7rem', opacity: 0.6 }}>현금 고정가</label>
+                                                        <input
+                                                            type="number"
+                                                            className="styled-input"
+                                                            style={{ fontSize: '0.85rem', padding: '6px' }}
+                                                            value={opt.cashPrice ?? ''}
+                                                            placeholder="미설정 시 자동할인"
+                                                            onChange={(e) => updateOption(idx, 'cashPrice', e.target.value ? parseInt(e.target.value) : undefined)}
+                                                        />
+                                                    </div>
+                                                    {opt.type === 'subscription' && (
+                                                        <>
+                                                            <div style={{ flex: 1, minWidth: '100px' }}>
+                                                                <label style={{ fontSize: '0.7rem', opacity: 0.6 }}>현금 3개월</label>
+                                                                <input
+                                                                    type="number"
+                                                                    className="styled-input"
+                                                                    style={{ fontSize: '0.85rem', padding: '6px' }}
+                                                                    value={opt.cashDiscount3 ?? ''}
+                                                                    placeholder="미설정 시 카드가 적용"
+                                                                    onChange={(e) => updateOption(idx, 'cashDiscount3', e.target.value ? parseInt(e.target.value) : undefined)}
+                                                                />
+                                                            </div>
+                                                            <div style={{ flex: 1, minWidth: '100px' }}>
+                                                                <label style={{ fontSize: '0.7rem', opacity: 0.6 }}>현금 6개월</label>
+                                                                <input
+                                                                    type="number"
+                                                                    className="styled-input"
+                                                                    style={{ fontSize: '0.85rem', padding: '6px' }}
+                                                                    value={opt.cashDiscount6 ?? ''}
+                                                                    placeholder="미설정 시 카드가 적용"
+                                                                    onChange={(e) => updateOption(idx, 'cashDiscount6', e.target.value ? parseInt(e.target.value) : undefined)}
+                                                                />
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                <div style={{ fontSize: '0.65rem', color: 'rgba(245,158,11,0.5)', marginTop: '6px' }}>
+                                                    * 비어있으면 카드 가격의 5% 할인(3개월 이상) 자동 적용
+                                                </div>
+                                            </div>
                                         </div>
                                     ))}
                                     <div ref={optionsEndRef} />

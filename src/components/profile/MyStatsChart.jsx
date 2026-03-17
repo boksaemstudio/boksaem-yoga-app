@@ -1,7 +1,9 @@
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 import { useStudioConfig } from '../../contexts/StudioContext';
+import { useLanguage } from '../../hooks/useLanguage';
 
 const MyStatsChart = ({ logs }) => {
+    const { t } = useLanguage();
     const { config } = useStudioConfig();
     const COLORS = [config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)', '#FF6B6B', '#48dbfb', '#1dd1a1', '#feca57', '#5f27cd'];
     
@@ -10,7 +12,7 @@ const MyStatsChart = ({ logs }) => {
     // Aggregate by className
     const classCounts = {};
     logs.forEach(log => {
-        const name = log.className || '기타';
+        const name = log.className || t('etcLabel');
         classCounts[name] = (classCounts[name] || 0) + 1;
     });
 
@@ -38,7 +40,7 @@ const MyStatsChart = ({ logs }) => {
                 alignItems: 'center',
                 gap: '8px'
             }}>
-                📊 나의 수련 취향 (My Yoga Taste)
+                📊 {t('myYogaTaste')}
             </h3>
             <div style={{ width: '100%', height: 250 }}>
                 <ResponsiveContainer>
@@ -60,7 +62,7 @@ const MyStatsChart = ({ logs }) => {
                         <Tooltip
                             contentStyle={{ backgroundColor: '#1e1e1e', borderColor: '#444', color: '#fff', borderRadius: '8px' }}
                             itemStyle={{ color: '#fff' }}
-                            formatter={(value) => [`${value}회`, '수련 횟수']}
+                            formatter={(value) => [`${value}${t('countUnit')}`, t('practiceCount')]}
                         />
                         <Legend
                             verticalAlign="bottom"
@@ -76,7 +78,7 @@ const MyStatsChart = ({ logs }) => {
                 </ResponsiveContainer>
             </div>
             <div style={{ textAlign: 'center', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginTop: '8px' }}>
-                최근 {logs.length}번의 수련 기록을 분석했습니다.
+                {t('analyzedRecent', { n: logs.length })}
             </div>
         </div>
     );

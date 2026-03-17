@@ -3,6 +3,8 @@ import { CaretLeft, CaretRight, User, SignOut, DotsThreeVertical, List, X, House
 import { useStudioConfig } from '../contexts/StudioContext';
 import { storageService } from '../services/storage';
 import { getKSTHour } from '../utils/dates';
+import { auth } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import CosmicParticles from '../components/common/CosmicParticles';
 
 import InstructorLogin from '../components/instructor/InstructorLogin';
@@ -100,25 +102,29 @@ const InstructorPage = () => {
 
     // [PWA] Install Guide State is handled via InstallBanner component now.
 
-    // [PUSH] Auto-register push token for instructor on login
+    // [PUSH] Auto-register push token — Auth가 준비된 후에만 실행
     useEffect(() => {
         if (!instructorName) return;
         
-        const registerPush = async () => {
-            setTimeout(async () => {
-                try {
-                    // If permission is already granted, silently re-register token
-                    if ('Notification' in window && Notification.permission === 'granted') {
-                        console.log(`[InstructorPage] Auto-registering push token for: ${instructorName}`);
-                        await storageService.requestInstructorPushPermission(instructorName);
-                    }
-                } catch (e) {
-                    console.error('[InstructorPage] Push auto-registration failed:', e);
+        // [ROOT FIX] onAuthStateChanged로 Auth 준비 확인 후 push 등록
+        // setTimeout 3초 hack 제거 → auth 이벤트 기반으로 확실하게
+        const unsubAuth = onAuthStateChanged(auth, async (user) => {
+            if (!user) return; // Auth 아직 안 됨 — 기다림
+            
+            try {
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    console.log(`[InstructorPage] Auth ready (${user.uid}), registering push for: ${instructorName}`);
+                    await storageService.requestInstructorPushPermission(instructorName);
                 }
-            }, 3000);
-        };
+            } catch (e) {
+                console.error('[InstructorPage] Push registration failed:', e);
+            }
+            
+            // 한 번만 실행 후 리스너 정리
+            unsubAuth();
+        });
         
-        registerPush();
+        return () => unsubAuth();
     }, [instructorName]);
 
     // Load Attendance & Schedule in Real-time

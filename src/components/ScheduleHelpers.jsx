@@ -80,7 +80,7 @@ const ScheduleClassEditor = ({ cls, idx, dayClasses, setDayClasses, instructors,
                     return <option key={name} value={name}>{name}</option>;
                 })}
             </select>
-            {(cls.title?.includes('플라잉') || cls.title?.includes('키즈')) && (
+            {classLevels?.length > 0 && (
                 <select
                     value={String(cls.level ?? '')}
                     onChange={(e) => {
@@ -429,7 +429,7 @@ const SettingsModal = ({ show, onClose, instructors, setInstructors, classTypes,
                                     color: '#9b59b6' 
                                 }}>{classLevels?.length || 0}개</span>
                             </div>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>플라잉/키즈 수업용</span>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>레벨이 있는 수업용</span>
                         </div>
                             <div style={inputRowStyle}>
                                 <input

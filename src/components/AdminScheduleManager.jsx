@@ -568,8 +568,8 @@ const AdminScheduleManager = ({ branchId }) => {
                             <button
                                 onClick={() => setDayClasses([...dayClasses, {
                                     time: '10:00',
-                                    title: classTypes[0] || '하타',
-                                    instructor: instructors[0] || '원장',
+                                    title: classTypes[0] || '수업',
+                                    instructor: instructors[0] || '',
                                     status: 'normal',
                                     duration: 60,
                                     level: ''

@@ -3,6 +3,7 @@ import { Icons } from '../CommonIcons';
 import { getTranslatedClass } from '../../utils/classMapping';
 import { getHolidayName } from '../../utils/holidays';
 import { useStudioConfig } from '../../contexts/StudioContext';
+import { getMembershipLabel } from '../../utils/membershipLabels';
 
 const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, isSubmitting, logLimit, setLogLimit }) => {
     const { config } = useStudioConfig();
@@ -18,17 +19,13 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, is
     useEffect(() => {
         if (aiAnalysis) return;
 
-        const messages = language === 'ko' ? [
-            "호흡을 고르는 중...",
-            "수련 기록을 읽는 중...",
-            "회원님의 리듬을 파악하는 중...",
-            "고요한 통찰을 준비 중입니다..."
-        ] : [
-            "Breathing in...",
-            "Reading your flow...",
-            "Connecting to your rhythm...",
-            "Preparing insights..."
+        const messages = [
+            t('loadMsg1'),
+            t('loadMsg2'),
+            t('loadMsg3'),
+            t('loadMsg4')
         ];
+
 
         let i = 0;
         const interval = setInterval(() => {
@@ -155,7 +152,7 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, is
             {/* Statistics / AI Analysis Panel */}
             <div className="glass-panel" style={{ padding: '20px', marginBottom: '20px', background: 'rgba(20, 20, 20, 0.9)', border: '1px solid rgba(var(--primary-rgb), 0.2)' }}>
                 <h3 style={{ fontSize: '1.1rem', marginBottom: '15px', color: 'var(--primary-gold)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    ✨ AI 수련 분석
+                    {t('aiPracticeAnalysis')}
                 </h3>
                 <div style={{
                     marginBottom: '15px',
@@ -169,17 +166,17 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, is
                     </p>
                 </div>
                 {logs.length === 0 && (
-                    <p style={{ textAlign: 'center', opacity: 0.5, fontSize: '0.9rem' }}>데이터가 부족합니다.</p>
+                    <p style={{ textAlign: 'center', opacity: 0.5, fontSize: '0.9rem' }}>{t('notEnoughData')}</p>
                 )}
             </div>
 
             <div className="glass-panel" style={{ padding: '20px', background: 'rgba(24, 24, 27, 0.9)', border: '1px solid rgba(255,255,255,0.1)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <h3 style={{ fontSize: '1.2rem', color: 'var(--primary-gold)', margin: 0 }}>수련 이력</h3>
+                        <h3 style={{ fontSize: '1.2rem', color: 'var(--primary-gold)', margin: 0 }}>{t('practiceHistory')}</h3>
                         <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)' }}>
-                            정상 {validLogs.length}회 
-                            {expiredLogsCount > 0 && <span style={{ color: '#ff4d4f', marginLeft: '4px' }}>(만료취소 {expiredLogsCount}회)</span>}
+                            {t('normalCount', { n: validLogs.length })} 
+                            {expiredLogsCount > 0 && <span style={{ color: '#ff4d4f', marginLeft: '4px' }}>({t('expiredCancelCount', { n: expiredLogsCount })})</span>}
                         </span>
                     </div>
 
@@ -197,7 +194,7 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, is
                                 fontWeight: 'bold'
                             }}
                         >
-                            목록
+                            {t('listView')}
                         </button>
                         <button
                             onClick={() => setViewMode('calendar')}
@@ -211,7 +208,7 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, is
                                 fontWeight: 'bold'
                             }}
                         >
-                            달력
+                            {t('calendarView')}
                         </button>
                     </div>
                 </div>
@@ -229,21 +226,21 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, is
                             // Simpler: filter validLogs, find index of this log in validLogs?
                             // Performance: simple filter is fine for small lists
                             
-                            let displayBadge = "자율수련";
+                            let displayBadge = t('selfPractice');
                             let badgeColor = "var(--primary-gold)";
                             
                             if (isExpired) {
                                 if (log.status === 'denied') {
-                                     displayBadge = log.denialReason === 'no_credits' ? "출석거부(횟수소진)" : "출석거부(기간만료)";
+                                     displayBadge = log.denialReason === 'no_credits' ? t('deniedNoCredits') : t('deniedExpired');
                                 } else {
-                                     displayBadge = "출석거부(기간만료)"; // Legacy fallback
+                                     displayBadge = t('deniedExpired'); // Legacy fallback
                                 }
                                 badgeColor = "#ff4d4f";
                             } else {
                                 // Find index in validLogs
                                 const validIndex = validLogs.findIndex(l => l.id === log.id);
                                 // Assuming logs are descending, the count is validLogs.length - validIndex
-                                displayBadge = `${validLogs.length - validIndex}회차`;
+                                displayBadge = t('sessionN', { n: validLogs.length - validIndex });
                             }
 
                             return (
@@ -259,12 +256,12 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, is
                                             )}
                                         </div>
                                         <div style={{ fontSize: '1rem', fontWeight: 'bold', color: isExpired ? '#rgba(255,255,255,0.5)' : 'white', textDecoration: isExpired ? 'line-through' : 'none' }}>
-                                            {log.className || "자율 수련"}
+                                            {log.className || t('selfPractice')}
                                             {log.instructor && `(${log.instructor})`}
                                         </div>
                                         <div style={{ fontSize: '0.75rem', opacity: 0.4, color: 'white' }}>
                                             {(config.BRANCHES?.find(b => b.id === log.branchId)?.name || log.branchId)} |
-                                            {member.membershipType ? (t(`class_${member.membershipType}`) !== `class_${member.membershipType}` ? t(`class_${member.membershipType}`) : member.membershipType) : t('class_regular')}
+                                            {getMembershipLabel(member.membershipType, config)}
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -282,7 +279,7 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, is
                                                 onClick={() => onDelete(log.id)}
                                                 disabled={isSubmitting}
                                                 style={{ background: isSubmitting ? 'rgba(100,100,100,0.2)' : 'rgba(239, 68, 68, 0.2)', color: isSubmitting ? '#888' : '#ef4444', border: 'none', borderRadius: '6px', padding: '8px', cursor: isSubmitting ? 'not-allowed' : 'pointer', display: 'flex', opacity: isSubmitting ? 0.4 : 1, transition: 'opacity 0.2s' }}
-                                                title="출석 취소"
+                                                title={t('cancelAttendance')}
                                             >
                                                 <Icons.Trash size={16} />
                                             </button>
@@ -310,12 +307,12 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, is
                                     transition: 'all 0.2s'
                                 }}
                             >
-                                ▿ {t('loadMoreAttendance') || '과거 수련 내역 더보기'} (10개 추가)
+                                ▿ {t('loadMoreAttendance')} {t('loadMoreN')}
                             </button>
                         )}
                         {logs.length === 0 && (
                             <div style={{ textAlign: 'center', padding: '40px 0', opacity: 0.3 }}>
-                                {t('noAttendanceHistory') || '수련 기록이 없습니다.'}
+                                {t('noAttendanceHistory')}
                             </div>
                         )}
                     </div>
@@ -340,7 +337,7 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, is
                             <button onClick={() => changeMonth(1)} style={{ background: 'none', border: 'none', color: 'white', fontSize: '1.2rem' }}>&gt;</button>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px', textAlign: 'center', marginBottom: '10px' }}>
-                            {['일', '월', '화', '수', '목', '금', '토'].map(d => (
+                            {[t('sun'), t('mon'), t('tue'), t('wed'), t('thu'), t('fri'), t('sat')].map(d => (
                                 <div key={d} style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>{d}</div>
                             ))}
                         </div>

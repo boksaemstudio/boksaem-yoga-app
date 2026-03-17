@@ -24,7 +24,7 @@ const NavItem = ({ active, onClick, icon, label }) => (
 );
 
 const ProfileTabs = ({ activeTab, setActiveTab, t, config }) => {
-    const scheduleLabel = config?.POLICIES?.ALLOW_BOOKING ? `${t('tabSchedule')}/예약` : t('tabSchedule');
+    const scheduleLabel = config?.POLICIES?.ALLOW_BOOKING ? `${t('tabSchedule')}/${t('bookingTab')}` : t('tabSchedule');
     return (
         <div style={{
             position: 'fixed',
@@ -50,7 +50,7 @@ const ProfileTabs = ({ activeTab, setActiveTab, t, config }) => {
             {/* Meditation Tab - Integrated as a regular tab to maintain PWA context */}
             <NavItem active={activeTab === 'meditation'} onClick={() => {
                 setActiveTab('meditation');
-            }} icon={<Icons.Flower size={26} />} label="명상" />
+            }} icon={<Icons.Flower size={26} />} label={t('meditation')} />
 
             <NavItem active={activeTab === 'prices'} onClick={() => setActiveTab('prices')} icon={<Icons.Ticket size={26} />} label={t('tabPrices')} />
             <NavItem active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} icon={<Icons.Megaphone size={26} />} label={t('tabNotices')} />

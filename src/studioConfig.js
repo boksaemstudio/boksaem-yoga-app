@@ -11,7 +11,7 @@ export const STUDIO_CONFIG = {
         LOGO_TEXT: "YOGA",
         SLOGAN: "나를 만나는 고요한 시간",
         DESCRIPTION: "요가와 함께하는 건강한 일상",
-        APP_VERSION: "2026.03.16 12:38",
+        APP_VERSION: "2026.03.17 12:55",
         FAVICON: "/favicon.ico",
     },
 
@@ -63,6 +63,16 @@ export const STUDIO_CONFIG = {
 
     MEMBERSHIP_TYPE_MAP: {
         'general': '일반',
+        'intensive': '심화',
+        'advanced': '심화',
+        'kids': '키즈',
+        'kids_flying': '키즈플라잉',
+        'pregnancy': '임산부',
+        'prenatal': '임산부요가',
+        'sat_hatha': '토요하타',
+        'saturday_hatha': '토요하타',
+        'ttc': 'TTC',
+        'TTC': 'TTC (지도자과정)',
     },
 
     // 5. AI Persona Layer (AI 성격 설정) — 범용
@@ -106,20 +116,8 @@ export const STUDIO_CONFIG = {
     // 11. 기본 스케줄 템플릿 — 빈 기본값 (관리자가 시간표에서 직접 설정)
     DEFAULT_SCHEDULE_TEMPLATE: {},
 
-    // 12. 가격표 — 범용 기본 구조 (관리자가 설정에서 커스텀)
-    PRICING: {
-        'general': {
-            label: '일반',
-            options: [
-                { id: '10_session', label: '10회권 (3개월)', basePrice: 200000, credits: 10, months: 3, type: 'ticket' },
-                { id: 'month_8', label: '월 8회', basePrice: 150000, credits: 8, months: 1, type: 'subscription' },
-                { id: 'month_12', label: '월 12회', basePrice: 180000, credits: 12, months: 1, type: 'subscription' },
-                { id: 'unlimited', label: '월 무제한', basePrice: 220000, credits: 9999, months: 1, type: 'subscription' },
-            ]
-        }
-    },
 
-    // 13. 알림톡 템플릿 — SMS 기본만 유지 (템플릿 ID는 요가원별 솔라피 계정에서 생성)
+    // 12. 알림톡 템플릿 — SMS 기본만 유지 (템플릿 ID는 요가원별 솔라피 계정에서 생성)
     ALIMTALK_TEMPLATES: [
         { 
             id: '', 

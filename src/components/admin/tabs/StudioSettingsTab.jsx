@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 import { Gear, MapPin, FloppyDisk, ArrowsClockwise, Robot, Image as ImageIcon, Globe } from '@phosphor-icons/react';
-import SmartDataImporter from '../data-import/SmartDataImporter';
 import { storage } from '../../../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
@@ -9,7 +8,6 @@ const StudioSettingsTab = () => {
     const { config, updateConfig, refreshConfig, loading } = useStudioConfig();
     const [localConfig, setLocalConfig] = useState(config);
     const [isSaving, setIsSaving] = useState(false);
-    const [showImporter, setShowImporter] = useState(false);
     const [logoUploading, setLogoUploading] = useState(false);
     const logoInputRef = useRef(null);
 
@@ -559,27 +557,7 @@ const StudioSettingsTab = () => {
                 </div>
             </div>
             
-            {/* 4. 데이터 마이그레이션 (숨김) */}
-            <div style={{ marginTop: '20px', padding: '10px 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--text-tertiary)', fontSize: '0.8rem', userSelect: 'none' }}>
-                    <input 
-                        type="checkbox" 
-                        checked={showImporter} 
-                        onChange={(e) => setShowImporter(e.target.checked)} 
-                        style={{ opacity: 0.5 }}
-                    />
-                    요가원 초기 데이터 마이그레이션 (AI 기반) 
-                    <Robot size={14} weight="fill" style={{ opacity: showImporter ? 1 : 0.3 }} color={showImporter ? 'var(--primary-gold)' : 'currentColor'} />
-                </label>
 
-                {showImporter && (
-                    <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
-                        <SmartDataImporter onImportComplete={(type, data) => {
-                            console.log('Imported:', type, data);
-                        }} />
-                    </div>
-                )}
-            </div>
 
             <div style={{ height: '200px' }} />
         </div>

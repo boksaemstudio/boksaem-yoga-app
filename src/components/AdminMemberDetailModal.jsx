@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { getMembershipLabel } from '../utils/membershipLabels';
 import { onSnapshot, doc, collection, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
 import { tenantDb } from '../utils/tenantDb';
 import { X, CalendarCheck, ClockClockwise, Trash, PencilSimple, Phone, CalendarPlus, Receipt, ArrowRight, UserPlus, FileText, CheckCircle, ChatCircleText, Student, WarningCircle, User, Calendar, CreditCard, Chats, BellRinging, CheckSquare, Square } from '@phosphor-icons/react';
@@ -15,7 +16,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
     // Helper functions replacing studioConfig.js
     const getBranchName = (id) => (config.BRANCHES || []).find(b => b.id === id)?.name || id;
     const getBranchColor = (id) => (config.BRANCHES || []).find(b => b.id === id)?.color || 'var(--primary-gold)';
-    const getMembershipTypeLabel = (key) => config.MEMBERSHIP_TYPE_MAP?.[key] || key;
+    const getMembershipTypeLabel = (key) => getMembershipLabel(key, config);
     // [FIX] Use local state for immediate UI updates
     const [localMember, setLocalMember] = useState(initialMember);
     const member = localMember || initialMember;
@@ -764,6 +765,7 @@ const isCurrentRecord = (record, originalData) => {
 
 // Unified MemberInfoTab including history editing
 const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalData, isDirtyByUser }) => {
+    const { config } = useStudioConfig();
     const [history, setHistory] = useState([]);
     const [editingSale, setEditingSale] = useState(null);
     const [saleEditData, setSaleEditData] = useState(null);
@@ -786,10 +788,7 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
         return () => { isMounted = false; };
     }, [originalData?.id, isSavingSale]);
 
-    const getTypeLabel = (key) => {
-        // [STUDIO-AGNOSTIC] Pull from Config or return key as-is
-        return getMembershipTypeLabel(key);
-    };
+    const getTypeLabel = (key) => getMembershipLabel(key, config);
 
     const handleSaleSave = async () => {
         try {
@@ -990,7 +989,16 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                             value={editData.membershipType}
                             onChange={v => setEditData({ ...editData, membershipType: v })}
                             type="select"
-                            options={Object.keys(pricingConfig || {}).map(k => ({ value: k, label: getTypeLabel(k) }))}
+                            options={(() => {
+                                const pricingKeys = Object.keys(pricingConfig || {}).filter(k => k !== '_meta');
+                                const opts = pricingKeys.map(k => ({ value: k, label: getTypeLabel(k) }));
+                                // 현재 회원의 membershipType이 PRICING에 없으면 드롭다운에 추가 (데이터 손실 방지)
+                                const currentType = editData.membershipType;
+                                if (currentType && !pricingKeys.includes(currentType)) {
+                                    opts.unshift({ value: currentType, label: `${getTypeLabel(currentType)} (미등록)` });
+                                }
+                                return opts;
+                            })()}
                         />
                         <InputGroup label="세부 이용권" value={editData.subject || ''} onChange={v => setEditData({ ...editData, subject: v })} />
                     </div>
@@ -1270,17 +1278,7 @@ const determineStatusColor = (member) => {
     return '#10b981';
 };
 
-const getMembershipTypeLabel = (type) => {
-    const labels = {
-        'general': '일반',
-        'intensive': '심화',
-        'kids': '키즈',
-        'pregnancy': '임산부',
-        'sat_hatha': '토요하타',
-        'ttc': 'TTC'
-    };
-    return labels[type] || type;
-};
+// getMembershipTypeLabel 제거 — src/utils/membershipLabels.js 중앙 유틸리티로 대체
 
 // ==========================================
 // [FIX] Inline ConfirmModal without styled-components

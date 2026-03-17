@@ -58,7 +58,7 @@ const NoticeTab = ({
                                                         fontWeight: '600',
                                                         border: '1px solid rgba(255,255,255,0.05)'
                                                     }}>
-                                                        {notice.date || (notice.createdAt ? new Date(notice.createdAt).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }) : '최근')}
+                                                        {notice.date || (notice.createdAt ? new Date(notice.createdAt).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }) : t('recent'))}
                                                     </span>
                                                 </div>
                                             </div>
@@ -145,7 +145,7 @@ const NoticeTab = ({
                                                     borderRadius: '20px',
                                                     fontWeight: '600'
                                                 }}>
-                                                    {notice.date || (notice.createdAt ? new Date(notice.createdAt).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }) : '최근')}
+                                                    {notice.date || (notice.createdAt ? new Date(notice.createdAt).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }) : t('recent'))}
                                                 </span>
                                             </div>
                                         </div>

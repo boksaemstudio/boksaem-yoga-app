@@ -17,7 +17,7 @@ const MessagesTab = ({ messages, t, setActiveTab }) => {
                         {t('messagesTitle')}
                     </h2>
                     <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
-                        수신된 전체 알림 내역입니다.
+                        {t('messagesSubtitle')}
                     </p>
                 </div>
             </div>
@@ -82,7 +82,7 @@ const MessagesTab = ({ messages, t, setActiveTab }) => {
                                         background: 'rgba(var(--primary-rgb), 0.1)',
                                         borderRadius: '8px'
                                     }}>
-                                        {msg.type === 'admin_individual' ? '개별' : '공지'}
+                                        {msg.type === 'admin_individual' ? t('msgIndividual') : t('msgNotice')}
                                     </span>
                                     <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)' }}>
                                         {msg.timestamp || msg.createdAt ? new Date(msg.timestamp || msg.createdAt).toLocaleDateString() : ''}
@@ -108,7 +108,7 @@ const MessagesTab = ({ messages, t, setActiveTab }) => {
                                         opacity: 0.8
                                     }}>
                                         <Icons.ArrowRight size={14} />
-                                        <span>소식 보기</span>
+                                        <span>{t('viewNotice')}</span>
                                     </div>
                                 )}
                             </div>

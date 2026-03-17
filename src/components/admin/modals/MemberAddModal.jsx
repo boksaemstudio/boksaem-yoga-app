@@ -13,7 +13,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
 
     const [newMember, setNewMember] = useState({
         name: '', phone: '010', branch: branches.length > 0 ? branches[0].id : '',
-        membershipType: 'general',
+        membershipType: Object.keys(config.PRICING || {}).find(k => k !== '_meta') || 'general',
         selectedOption: '',
         duration: 1,
         paymentMethod: 'card',
@@ -70,8 +70,11 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
         let months = duration;
         let label = option.label;
 
-        // Price Calculation with Cash Price support
-        if (paymentMethod === 'cash' && option.cashPrice !== undefined) {
+        // Price Calculation with Cash/Transfer Price support
+        // [FIX] 이체(transfer)도 현금과 동일한 가격 적용
+        const isCashLike = paymentMethod === 'cash' || paymentMethod === 'transfer';
+
+        if (isCashLike && option.cashPrice !== undefined) {
             p = option.cashPrice;
             // [FIX] Preserve credits for cash payments if option defines it
             c = option.credits === 9999 ? 9999 : option.credits * duration;
@@ -83,12 +86,12 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
             } else {
                 c = option.credits === 9999 ? 9999 : option.credits * duration;
                 if (duration === 1) p = option.basePrice;
-                else if (duration === 3) p = option.discount3 || (option.basePrice * 3);
-                else if (duration === 6) p = option.discount6 || (option.basePrice * 6);
+                else if (duration === 3) p = isCashLike && option.cashDiscount3 ? option.cashDiscount3 : (option.discount3 || (option.basePrice * 3));
+                else if (duration === 6) p = isCashLike && option.cashDiscount6 ? option.cashDiscount6 : (option.discount6 || (option.basePrice * 6));
                 else p = option.basePrice * duration;
             }
 
-            if (paymentMethod === 'cash' && duration >= 3 && p > 0 && !option.cashPrice) {
+            if (isCashLike && duration >= 3 && p > 0 && !option.cashPrice && !option.cashDiscount3 && !option.cashDiscount6) {
                 p = Math.round(p * 0.95);
             }
         }
@@ -128,24 +131,41 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
         }));
     }, [calculatedPrice, calculatedCredits, calculatedEndDate, calculatedRealEndDate, calculatedProductName, isOpen]);
 
-    // Reset membership type when branch changes
+    // pricingConfig/branch/모달열림 변경 시 membershipType과 selectedOption을 항상 동시 검증
+    const getBranchName = (id) => branches.find(b => b.id === id)?.name || id;
     useEffect(() => {
-        const availableTypes = Object.keys(pricingConfig).filter(key => {
-            const config = pricingConfig[key];
-            return !config.branches || config.branches.includes(newMember.branch);
+        if (!isOpen) return;
+        const validKeys = Object.keys(pricingConfig).filter(k => k !== '_meta');
+        if (validKeys.length === 0) return;
+
+        const branchName = getBranchName(newMember.branch);
+        const availableTypes = validKeys.filter(key => {
+            const cfg = pricingConfig[key];
+            return !cfg?.branches || cfg.branches.includes(newMember.branch) || cfg.branches.includes(branchName);
         });
+        if (availableTypes.length === 0) return;
 
-        if (!availableTypes.includes(newMember.membershipType)) {
-            const firstValid = availableTypes[0] || 'general';
-            const firstOption = pricingConfig[firstValid]?.options[0]?.id || '';
+        // 1) membershipType 검증
+        let targetType = newMember.membershipType;
+        if (!availableTypes.includes(targetType)) {
+            targetType = availableTypes[0];
+        }
 
+        // 2) selectedOption 검증 — 현재 타입의 옵션 목록에 포함되어 있는지
+        const options = pricingConfig[targetType]?.options || [];
+        const isOptionValid = newMember.selectedOption && options.some(opt => opt.id === newMember.selectedOption);
+
+        const needsTypeChange = targetType !== newMember.membershipType;
+        const needsOptionChange = !isOptionValid;
+
+        if (needsTypeChange || needsOptionChange) {
             setNewMember(prev => ({
                 ...prev,
-                membershipType: firstValid,
-                selectedOption: firstOption
+                ...(needsTypeChange ? { membershipType: targetType } : {}),
+                ...(needsOptionChange ? { selectedOption: options[0]?.id || '' } : {})
             }));
         }
-    }, [newMember.branch, newMember.membershipType, isOpen, pricingConfig]);
+    }, [newMember.branch, newMember.membershipType, newMember.selectedOption, isOpen, pricingConfig]);
 
     const handleAddMember = async () => {
         if (!newMember.name || !newMember.phone) {
@@ -210,8 +230,8 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
             // Reset form
             setNewMember({
                 name: '', phone: '010', branch: branches.length > 0 ? branches[0].id : '',
-                membershipType: 'general',
-                selectedOption: pricingConfig['general']?.options[0]?.id || '',
+                membershipType: Object.keys(pricingConfig).find(k => k !== '_meta') || 'general',
+                selectedOption: '',
                 duration: 1,
                 paymentMethod: 'card',
                 credits: 0, amount: 0, regDate: new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }),
@@ -296,14 +316,14 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                         value={newMember.membershipType}
                         onChange={e => {
                             const newType = e.target.value;
-                            const firstOptionId = pricingConfig[newType].options[0].id;
+                            const firstOptionId = pricingConfig[newType]?.options?.[0]?.id || '';
                             setNewMember({ ...newMember, membershipType: newType, selectedOption: firstOptionId, duration: 1 });
                         }}
                     >
                         {Object.entries(pricingConfig)
-                            .filter(([, value]) => !value.branches || value.branches.includes(newMember.branch))
+                            .filter(([key, value]) => key !== '_meta' && (!value.branches || value.branches.includes(newMember.branch) || value.branches.includes(getBranchName(newMember.branch))))
                             .map(([key, value]) => (
-                                <option key={key} value={key}>{value.label}</option>
+                                <option key={key} value={key}>{value.label || key}</option>
                             ))}
                     </select>
                 </div>

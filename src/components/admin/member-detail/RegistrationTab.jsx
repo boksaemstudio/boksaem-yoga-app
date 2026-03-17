@@ -6,7 +6,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
     const isSubmittingRef = useRef(false);
 
     // Renew State
-    const [membershipType, setMembershipType] = useState('general');
+    const [membershipType, setMembershipType] = useState(() => Object.keys(pricingConfig || {}).find(k => k !== '_meta') || 'general');
     const [selectedOption, setSelectedOption] = useState('');
     const [duration, setDuration] = useState(1);
     const [paymentMethod, setPaymentMethod] = useState('card');
@@ -25,8 +25,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
         return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
     });
 
-    // [New] Base duration for upcoming memberships
-    const [durationMonths, setDurationMonths] = useState(1);
+    // durationMonths is now derived from useMemo below, no longer a separate state
 
     // Computed
     const [price, setPrice] = useState(0);
@@ -37,29 +36,33 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
     // Init Logic & Changed Membership Type hook
     useEffect(() => {
         if (pricingConfig && pricingConfig[membershipType] && pricingConfig[membershipType].options.length > 0) {
-            setSelectedOption(pricingConfig[membershipType].options[0].id);
+            setSelectedOption(pricingConfig[membershipType]?.options?.[0]?.id || '');
         }
     }, [membershipType, pricingConfig]);
 
     // Calculation Logic - Use useMemo for derived values
-    const { calculatedPrice, calculatedCredits, calculatedEndDate, calculatedProductName } = useMemo(() => {
-        if (!pricingConfig) return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedProductName: '' };
+    // [FIX] durationMonths를 useMemo 반환값으로 이동 (setState in useMemo 안티패턴 제거)
+    const { calculatedPrice, calculatedCredits, calculatedEndDate, calculatedProductName, durationMonths } = useMemo(() => {
+        const empty = { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedProductName: '', durationMonths: 1 };
+        if (!pricingConfig) return empty;
 
         const category = pricingConfig[membershipType];
-        if (!category) return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedProductName: '' };
+        if (!category) return empty;
 
         const option = category.options.find(opt => opt.id === selectedOption);
-        if (!option) return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedProductName: '' };
+        if (!option) return empty;
 
         let p = 0;
         let c = 0;
         let months = duration;
         let label = option.label;
 
-        if (paymentMethod === 'cash' && option.cashPrice !== undefined) {
+        // [FIX] 이체(transfer)도 현금과 동일한 가격 적용
+        const isCashLike = paymentMethod === 'cash' || paymentMethod === 'transfer';
+
+        if (isCashLike && option.cashPrice !== undefined) {
             p = option.cashPrice;
             c = option.credits === 9999 ? 9999 : option.credits * duration;
-            setDurationMonths(months);
         } else {
             if (option.type === 'ticket') {
                 p = option.basePrice;
@@ -68,15 +71,14 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
             } else {
                 c = option.credits === 9999 ? 9999 : option.credits * duration;
                 if (duration === 1) p = option.basePrice;
-                else if (duration === 3) p = option.discount3 || (option.basePrice * 3);
-                else if (duration === 6) p = option.discount6 || (option.basePrice * 6);
+                else if (duration === 3) p = isCashLike && option.cashDiscount3 ? option.cashDiscount3 : (option.discount3 || (option.basePrice * 3));
+                else if (duration === 6) p = isCashLike && option.cashDiscount6 ? option.cashDiscount6 : (option.discount6 || (option.basePrice * 6));
                 else p = option.basePrice * duration;
             }
 
-            if (paymentMethod === 'cash' && duration >= 3 && p > 0 && !option.cashPrice) {
+            if (isCashLike && duration >= 3 && p > 0 && !option.cashPrice && !option.cashDiscount3 && !option.cashDiscount6) {
                 p = Math.round(p * 0.95);
             }
-            setDurationMonths(months);
         }
 
         const start = new Date(startDate);
@@ -88,7 +90,8 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
             calculatedPrice: p,
             calculatedCredits: c,
             calculatedEndDate: end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }),
-            calculatedProductName: `${label} ${duration > 1 && option.type !== 'ticket' ? `(${duration}개월)` : ''}`
+            calculatedProductName: `${label} ${duration > 1 && option.type !== 'ticket' ? `(${duration}개월)` : ''}`,
+            durationMonths: months
         };
     }, [membershipType, selectedOption, duration, paymentMethod, startDate, pricingConfig]);
 
@@ -186,7 +189,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                         setDuration(1);
                     }}
                 >
-                    {pricingConfig && Object.entries(pricingConfig).map(([key, conf]) => (
+                    {pricingConfig && Object.entries(pricingConfig).filter(([key]) => key !== '_meta').map(([key, conf]) => (
                         <option key={key} value={key}>{conf.label || key}</option>
                     ))}
                 </select>

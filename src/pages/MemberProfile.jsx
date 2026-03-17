@@ -126,16 +126,16 @@ const MemberProfile = () => {
                 const result = await storageService.reregisterPushToken(member.id);
                 if (result.success) {
                     setPushStatus('granted');
-                    alert('푸시 알림이 설정되었습니다.');
+                    alert(t('pushSetSuccess'));
                 } else {
                     throw new Error(result.message);
                 }
             } catch (error) {
                 console.error("Push registration failed", error);
-                alert('알림 설정 실패: ' + error.message);
+                alert(t('pushSetFail') + ': ' + error.message);
             }
         } else {
-            if (window.confirm('푸시 알림을 끄시겠습니까? (브라우저 설정에서 차단해야 완벽하게 꺼집니다)')) {
+            if (window.confirm(t('pushTurnOffConfirm'))) {
                 setPushStatus('denied');
             }
         }
@@ -332,12 +332,12 @@ const MemberProfile = () => {
                     setPushStatus('granted');
                 }
             } else {
-                setLoginFormValue('error', t('errorMemberNotFound') || "회원 정보를 찾을 수 없습니다.");
+                setLoginFormValue('error', t('errorMemberNotFound'));
                 safeLocalStorage.removeItem('member');
             }
         } catch (e) {
             console.error("Load member failed:", e);
-            setLoginFormValue('error', t('unknownError') || "알 수 없는 오류가 발생했습니다.");
+            setLoginFormValue('error', t('unknownError'));
         } finally {
             setLoading(false);
         }
@@ -614,7 +614,7 @@ const MemberProfile = () => {
             }
         } catch (err) {
             console.error(err);
-            setLoginFormValue('error', t('loginFailed') || "로그인 실패");
+            setLoginFormValue('error', t('loginFailed'));
             setLoading(false);
         }
     }
@@ -928,10 +928,10 @@ const MemberProfile = () => {
                                         </div>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                             <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>
-                                                푸시 알림
+                                                {t('pushNotification')}
                                             </span>
                                             <span style={{ fontSize: '0.85rem', color: pushStatus === 'granted' ? 'var(--primary-gold)' : 'rgba(255,255,255,0.4)', transition: 'color 0.3s' }}>
-                                                {pushStatus === 'granted' ? '알림이 켜져 있습니다' : '알림이 꺼져 있습니다'}
+                                                {pushStatus === 'granted' ? t('pushOnLabel') : t('pushOffLabel')}
                                             </span>
                                         </div>
                                     </div>
@@ -996,10 +996,10 @@ const MemberProfile = () => {
                                             </div>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                                 <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>
-                                                    {deviceOS === 'ios' ? '아이폰에 앱 설치하기' : '앱 설치하기'}
+                                                    {deviceOS === 'ios' ? t('installIOS') : t('installAndroid')}
                                                 </span>
                                                 <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>
-                                                    {deviceOS === 'ios' ? '사파리(Safari)에서 홈 화면에 추가하세요' : '홈 화면에 추가하여 더 편리하게 이용하세요'}
+                                                    {deviceOS === 'ios' ? t('installIOSDesc') : t('installAndroidDesc')}
                                                 </span>
                                             </div>
                                         </div>
@@ -1008,11 +1008,11 @@ const MemberProfile = () => {
                                             <div style={{ background: 'rgba(59, 130, 246, 0.15)', padding: '15px', borderRadius: '16px' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)' }}>
                                                     <span style={{ background: '#3B82F6', color: 'white', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>1</span>
-                                                    <span>하단 <Share size={18} weight="bold" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> <strong>공유 버튼</strong> 클릭</span>
+                                                    <span>{t('iosShareStep1')}</span>
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)' }}>
                                                     <span style={{ background: '#3B82F6', color: 'white', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>2</span>
-                                                    <span><PlusSquare size={18} weight="bold" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> <strong>홈 화면에 추가</strong> 선택</span>
+                                                    <span>{t('iosShareStep2')}</span>
                                                 </div>
                                             </div>
                                         ) : (
@@ -1026,7 +1026,7 @@ const MemberProfile = () => {
                                                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
                                                 }}
                                             >
-                                                <DownloadSimple size={20} weight="bold" /> 설치하기
+                                                <DownloadSimple size={20} weight="bold" /> {t('installBtn')}
                                             </button>
                                         )}
                                     </div>

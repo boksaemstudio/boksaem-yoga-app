@@ -539,6 +539,16 @@ export const storageService = {
   async saveInstructorToken(token, instructorName, language = 'ko') {
     if (!token || !instructorName) return;
     try {
+      // [FIX] Auth 상태 확인 - Firestore 보안 규칙 통과 필수
+      if (!auth.currentUser) {
+        console.warn('[Storage] No auth session for saveInstructorToken. Attempting anonymous auth...');
+        try {
+          await signInAnonymously(auth);
+        } catch (authErr) {
+          console.error('[Storage] Auth failed:', authErr.code);
+        }
+      }
+
       const tokenRef = tenantDb.doc('fcm_tokens', token);
       await setDoc(tokenRef, {
         token,
@@ -548,9 +558,9 @@ export const storageService = {
         updatedAt: new Date().toISOString(),
         platform: 'web'
       }, { merge: true });
-      console.log(`[Storage] Instructor token saved for ${instructorName}`);
+      console.log(`[Storage] ✅ Instructor token saved for ${instructorName}`);
     } catch (e) {
-      console.error("Save instructor token failed:", e);
+      console.error(`[Storage] ❌ Save instructor token FAILED for ${instructorName}:`, e.code, e.message);
     }
   },
 
@@ -738,26 +748,42 @@ export const storageService = {
       );
 
       if (response.data.success) {
-        // [FIX] Sign in with custom token (if provided) to pass firestore rules
+        // [ROOT FIX] Firebase Auth를 반드시 보장
+        // 1차: Custom Token으로 인증 시도
+        // 2차: Custom Token 실패 시 Anonymous Auth로 인증 보장
+        // → 이후 모든 Firestore 쓰기(fcm_tokens 등)가 isAuth() 규칙을 통과
+        let authEstablished = false;
+
         if (response.data.token) {
-            try {
-                await signInWithCustomToken(auth, response.data.token);
-                console.log('[Storage] Instructor auth via token successful');
-            } catch (authErr) {
-                console.warn('[Storage] Instructor token auth failed:', authErr);
-            }
+          try {
+            await signInWithCustomToken(auth, response.data.token);
+            authEstablished = true;
+            console.log('[Storage] ✅ Instructor auth via custom token successful');
+          } catch (authErr) {
+            console.warn('[Storage] Custom token auth failed, trying anonymous:', authErr.code);
+          }
         }
-        
+
+        // Custom token이 없거나 실패한 경우, Anonymous Auth로 보장
+        if (!authEstablished) {
+          try {
+            await signInAnonymously(auth);
+            authEstablished = true;
+            console.log('[Storage] ✅ Instructor auth via anonymous fallback successful');
+          } catch (anonErr) {
+            console.error('[Storage] ❌ CRITICAL: Both auth methods failed:', anonErr.code);
+            // Auth 없이는 Firestore 쓰기 불가 - 그래도 로그인은 허용 (UX 우선)
+          }
+        }
+
         localStorage.setItem('instructorName', response.data.name);
-        return { success: true, name: response.data.name };
+        return { success: true, name: response.data.name, authEstablished };
       } else {
-        // 실패 로깅
         await this.logLoginFailure('instructor', name, last4Digits, response.data.message || '인증 실패');
         return { success: false, message: response.data.message || '인증 실패' };
       }
     } catch (e) {
       console.error('Instructor login failed:', e);
-      // 실패 로깅
       await this.logLoginFailure('instructor', name, last4Digits, e.message || 'SYSTEM_ERROR');
       return { success: false, message: '로그인 중 시스템 오류가 발생했습니다.' };
     }
@@ -878,7 +904,17 @@ export const storageService = {
         return false;
       }
 
-      // [FIX] getToken 직접 호출 (requestAndSaveToken 함수 누락 수정)
+      // [FIX] Auth 상태 확인 - Firestore 보안 규칙(isAuth()) 통과를 위해 필수
+      if (!auth.currentUser) {
+        console.warn('[Push] No auth session. Attempting anonymous auth for token save...');
+        try {
+          await signInAnonymously(auth);
+          console.log('[Push] Anonymous auth successful for token save');
+        } catch (authErr) {
+          console.error('[Push] Auth failed, token save will likely fail:', authErr);
+        }
+      }
+
       const registration = await navigator.serviceWorker.ready;
       const token = await getToken(messaging, {
         vapidKey: VAPID_KEY,
@@ -891,7 +927,6 @@ export const storageService = {
       }
 
       const tokenRef = tenantDb.doc('fcm_tokens', token);
-      const tokenSnap = await getDoc(tokenRef);
       
       let dataToUpdate = {
         token,
@@ -901,15 +936,21 @@ export const storageService = {
         platform: 'web'
       };
 
-      if (!tokenSnap.exists() || !tokenSnap.data().createdAt) {
+      try {
+        const tokenSnap = await getDoc(tokenRef);
+        if (!tokenSnap.exists() || !tokenSnap.data().createdAt) {
+          dataToUpdate.createdAt = new Date().toISOString();
+        }
+      } catch (readErr) {
+        console.warn('[Push] Could not read existing token, will create new:', readErr.code);
         dataToUpdate.createdAt = new Date().toISOString();
       }
 
       await setDoc(tokenRef, dataToUpdate, { merge: true });
-      console.log(`[Push] Instructor token registered for ${instructorName}: ${token.substring(0, 20)}...`);
+      console.log(`[Push] ✅ Instructor token registered for ${instructorName}: ${token.substring(0, 20)}...`);
       return true;
     } catch (e) {
-      console.error("Instructor push permission request failed:", e);
+      console.error(`[Push] ❌ Instructor push token save FAILED for ${instructorName}:`, e.code, e.message);
       return false;
     }
   },
@@ -1665,7 +1706,7 @@ export const storageService = {
     return { totalDeleted, stats };
   },
 
-  // [NEW] Get pricing configuration from Firestore settings
+  // Get pricing configuration from Firestore settings
   async getPricing() {
     try {
       const docRef = tenantDb.doc('settings', 'pricing');
@@ -1673,11 +1714,10 @@ export const storageService = {
       if (snap.exists()) {
         return snap.data();
       }
-      // Fallback to studio config
-      return STUDIO_CONFIG.PRICING || {};
+      return {};
     } catch (e) {
       console.error('[Storage] Failed to get pricing:', e);
-      return STUDIO_CONFIG.PRICING || {};
+      return {};
     }
   },
 

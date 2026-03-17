@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { X, Share, DotsThreeVertical, PlusSquare, ArrowDown } from '@phosphor-icons/react';
+import { useLanguage } from '../hooks/useLanguage';
 
 const InstallGuideModal = ({ isOpen, onClose }) => {
     const [tab, setTab] = useState(() => {
         const ua = window.navigator.userAgent.toLowerCase();
         return (/iphone|ipad|ipod|macintosh/.test(ua) && 'ontouchend' in document) ? 'ios' : 'android';
     });
+
+    const { t } = useLanguage();
 
     if (!isOpen) return null;
 
@@ -68,7 +71,7 @@ const InstallGuideModal = ({ isOpen, onClose }) => {
                             fontWeight: 800,
                             letterSpacing: '-0.3px'
                         }}>
-                            📲 앱 설치 안내
+                            📲 {t('installGuideTitle')}
                         </h2>
                         <p style={{
                             margin: '4px 0 0',
@@ -76,7 +79,7 @@ const InstallGuideModal = ({ isOpen, onClose }) => {
                             color: 'rgba(255,255,255,0.5)',
                             lineHeight: 1.4
                         }}>
-                            홈 화면에 추가하면 앱처럼 바로 실행돼요!
+                            {t('installGuideSub')}
                         </p>
                     </div>
                     <button
@@ -102,14 +105,14 @@ const InstallGuideModal = ({ isOpen, onClose }) => {
                 <div style={{ display: 'flex', background: 'rgba(255,255,255,0.02)' }}>
                     <TabBtn
                         active={tab === 'android'}
-                        label="안드로이드"
+                        label={t('guideAndroid')}
                         emoji="🤖"
                         color="#a4c639"
                         onClick={() => setTab('android')}
                     />
                     <TabBtn
                         active={tab === 'ios'}
-                        label="아이폰 / iPad"
+                        label={t('guideIOS')}
                         emoji="🍎"
                         color="#007aff"
                         onClick={() => setTab('ios')}
@@ -123,7 +126,7 @@ const InstallGuideModal = ({ isOpen, onClose }) => {
                     overflowY: 'auto',
                     WebkitOverflowScrolling: 'touch'
                 }}>
-                    {tab === 'android' ? <AndroidGuide /> : <IOSGuide />}
+                    {tab === 'android' ? <AndroidGuide t={t} /> : <IOSGuide t={t} />}
                 </div>
 
                 {/* Close Button */}
@@ -142,7 +145,7 @@ const InstallGuideModal = ({ isOpen, onClose }) => {
                             cursor: 'pointer'
                         }}
                     >
-                        확인했어요
+                        {t('installGuideConfirm')}
                     </button>
                 </div>
             </div>
@@ -252,7 +255,7 @@ const MobileStep = ({ number, icon, title, desc, color, isLast }) => (
     </div>
 );
 
-const AndroidGuide = () => (
+const AndroidGuide = ({ t }) => (
     <div>
         {/* Tip Banner */}
         <div style={{
@@ -267,36 +270,36 @@ const AndroidGuide = () => (
         }}>
             <span style={{ fontSize: '1.2rem' }}>💡</span>
             <span style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.4, wordBreak: 'keep-all' }}>
-                Chrome 브라우저에서 진행하면 가장 쉽게 설치할 수 있어요!
+                {t('guideChromeHint')}
             </span>
         </div>
 
         <MobileStep
             number="1"
             icon={<DotsThreeVertical size={22} weight="bold" />}
-            title="메뉴(⋮) 버튼 터치"
-            desc="화면 우측 상단의 점 3개(⋮) 메뉴를 눌러주세요."
+            title={t('guideAndroidStep1Title')}
+            desc={t('guideAndroidStep1Desc')}
             color="#a4c639"
         />
         <MobileStep
             number="2"
             icon={<PlusSquare size={22} weight="bold" />}
-            title="'홈 화면에 추가' 선택"
-            desc="메뉴 목록에서 '홈 화면에 추가' 또는 '앱 설치'를 찾아 눌러주세요."
+            title={t('guideAndroidStep2Title')}
+            desc={t('guideAndroidStep2Desc')}
             color="#a4c639"
         />
         <MobileStep
             number="3"
-            icon={<span style={{ fontSize: '0.85rem', fontWeight: 800 }}>설치</span>}
-            title="설치 완료!"
-            desc="'설치' 또는 '추가' 버튼을 누르면 홈 화면에 앱 아이콘이 생겨요. 🎉"
+            icon={<span style={{ fontSize: '0.85rem', fontWeight: 800 }}>{t('installWord')}</span>}
+            title={t('guideInstallDone')}
+            desc={t('guideAndroidStep3Desc')}
             color="#a4c639"
             isLast
         />
     </div>
 );
 
-const IOSGuide = () => (
+const IOSGuide = ({ t }) => (
     <div>
         {/* Tip Banner */}
         <div style={{
@@ -311,29 +314,29 @@ const IOSGuide = () => (
         }}>
             <span style={{ fontSize: '1.2rem' }}>💡</span>
             <span style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.4, wordBreak: 'keep-all' }}>
-                반드시 <b style={{ color: '#007aff' }}>Safari</b> 브라우저에서 진행해 주세요! (Chrome에서는 불가)
+                {t('guideSafariHint')}
             </span>
         </div>
 
         <MobileStep
             number="1"
             icon={<Share size={22} weight="bold" />}
-            title="공유(↑) 버튼 터치"
-            desc="화면 하단 중앙의 공유 버튼(네모에서 화살표 나온 모양)을 눌러주세요."
+            title={t('guideIOSStep1Title')}
+            desc={t('guideIOSStep1Desc')}
             color="#007aff"
         />
         <MobileStep
             number="2"
             icon={<PlusSquare size={22} weight="bold" />}
-            title="'홈 화면에 추가' 선택"
-            desc="공유 메뉴를 위로 스크롤하면 '홈 화면에 추가' 항목이 있어요."
+            title={t('guideIOSStep2Title')}
+            desc={t('guideIOSStep2Desc')}
             color="#007aff"
         />
         <MobileStep
             number="3"
-            icon={<span style={{ fontSize: '0.85rem', fontWeight: 800 }}>추가</span>}
-            title="설치 완료!"
-            desc="우측 상단의 '추가'를 누르면 홈 화면에 앱 아이콘이 생겨요. 🎉"
+            icon={<span style={{ fontSize: '0.85rem', fontWeight: 800 }}>{t('addWord')}</span>}
+            title={t('guideInstallDone')}
+            desc={t('guideIOSStep3Desc')}
             color="#007aff"
             isLast
         />

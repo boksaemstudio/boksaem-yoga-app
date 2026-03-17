@@ -28,13 +28,13 @@ class AIService {
             generationConfig: this.jsonConfig
         });
         
-        // [UPGRADE] Pro Model for Complex Parsing (High accuracy, large context)
+        // [PREMIUM] Pro Model for Complex Parsing (gemini-2.5-pro — 최고 정확도)
         this.proParsingModel = this.client.getGenerativeModel({
-            model: "gemini-1.5-pro",
+            model: "gemini-2.5-pro",
             generationConfig: {
                 responseMimeType: "application/json",
-                maxOutputTokens: 8192, // Maximum output to prevent truncation
-                temperature: 0.2, // Low temp for highly analytical/deterministic parsing
+                maxOutputTokens: 8192,
+                temperature: 0.2,
                 topP: 0.8,
                 topK: 10
             }
@@ -417,31 +417,63 @@ class AIService {
             };
         } else if (docType === 'pricing') {
             prompt = `
-                Extract the membership pricing list from the provided image.
-                Return ONLY a valid JSON object matching the exact schema.
-                For 'price', use integers only (e.g., 150000). Remove currency symbols.
-                For 'credits', use 9999 to represent unlimited credits (무제한).
-                CRITICAL: Output MUST BE perfectly valid JSON without trailing commas, unescaped quotes, or syntax errors. Escape any internal quotes.
+                Extract the membership pricing list from the provided image and organize it by CATEGORY.
+                
+                CRITICAL INSTRUCTIONS:
+                1. Group pricing options into categories based on the image structure.
+                   Common Korean yoga studio categories: '일반' (General), '심화' (Advanced/Intensive), 
+                   '토요하타' (Saturday Hatha), '임산부' (Prenatal), 'TTC' (Teacher Training), etc.
+                2. For each category, extract ALL pricing options with:
+                   - 'id': A machine-friendly ID (e.g., 'month_8', 'month_12', '10_session', 'unlimited')
+                   - 'label': Human-readable label (e.g., '월 8회', '10회권 (3개월)', '월 무제한')
+                   - 'basePrice': The standard 1-month price (integer, no currency symbols)
+                   - 'credits': Number of sessions. Use 9999 for unlimited (무제한)
+                   - 'months': Duration in months (default 1 for monthly subscriptions, 3 for 10-session tickets)
+                   - 'type': 'subscription' for monthly plans, 'ticket' for session-based plans
+                3. If the image shows DISCOUNTED prices for 3-month or 6-month packages (e.g., "3개월 5%할인", "6개월 10%할인"):
+                   - 'discount3': Total price for 3-month package (integer)
+                   - 'discount6': Total price for 6-month package (integer)
+                4. If a category applies only to specific branches, include 'branches' as an array of branch names.
+                5. If a pricing option has a separate cash price (현금가), include 'cashPrice'.
+                6. ALL price values must be integers (e.g., 176000, not "176,000원").
+                
+                CRITICAL: Output MUST BE perfectly valid JSON. No trailing commas, no unescaped quotes.
             `;
             schema = {
                 type: SchemaType.OBJECT,
                 properties: {
-                    pricing: {
+                    categories: {
                         type: SchemaType.ARRAY,
+                        description: "Array of pricing categories extracted from the image",
                         items: {
                             type: SchemaType.OBJECT,
                             properties: {
-                                name: { type: SchemaType.STRING, description: "Membership name (e.g., '주 2회 1개월')" },
-                                months: { type: SchemaType.INTEGER, description: "Duration in months" },
-                                credits: { type: SchemaType.INTEGER, description: "Number of credits allowed. Use 9999 for unlimited." },
-                                price: { type: SchemaType.INTEGER, description: "Price in KRW as an integer" },
-                                note: { type: SchemaType.STRING, description: "Any additional notes or conditions (e.g., '1회 정지 가능')" }
+                                categoryKey: { type: SchemaType.STRING, description: "Machine-friendly key (e.g., 'general', 'advanced', 'saturday_hatha', 'kids_flying')" },
+                                label: { type: SchemaType.STRING, description: "Category display name (e.g., '일반', '심화')" },
+                                options: {
+                                    type: SchemaType.ARRAY,
+                                    items: {
+                                        type: SchemaType.OBJECT,
+                                        properties: {
+                                            id: { type: SchemaType.STRING, description: "Machine ID (e.g., 'month_8', 'unlimited')" },
+                                            label: { type: SchemaType.STRING, description: "Display name (e.g., '월 8회')" },
+                                            basePrice: { type: SchemaType.INTEGER, description: "Standard 1-month price in KRW" },
+                                            credits: { type: SchemaType.INTEGER, description: "Session count. 9999 for unlimited" },
+                                            months: { type: SchemaType.INTEGER, description: "Duration in months" },
+                                            type: { type: SchemaType.STRING, description: "'subscription' or 'ticket'" },
+                                            discount3: { type: SchemaType.INTEGER, description: "3-month package total price (optional)" },
+                                            discount6: { type: SchemaType.INTEGER, description: "6-month package total price (optional)" },
+                                            cashPrice: { type: SchemaType.INTEGER, description: "Cash payment price (optional)" }
+                                        },
+                                        required: ["id", "label", "basePrice", "credits", "months", "type"]
+                                    }
+                                }
                             },
-                            required: ["name", "price"]
+                            required: ["categoryKey", "label", "options"]
                         }
                     }
                 },
-                required: ["pricing"]
+                required: ["categories"]
             };
         } else if (docType === 'members') {
             prompt = `

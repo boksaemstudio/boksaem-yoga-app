@@ -225,14 +225,14 @@ const MessagesTab = ({ memberId }) => {
                 <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '0.8rem', color: '#a1a1aa', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px', marginBottom: '8px' }}>
                     {(() => {
                         // Simple byte calculation (Korean ~2bytes, English 1byte)
-                        // Solapi/LMS standard: SMS <= 90 bytes, LMS > 90 bytes
+                        // Aligo standard: SMS <= 90 bytes, LMS > 90 bytes
                         let bytes = 0;
                         for (let i = 0; i < message.length; i++) {
                             const code = message.charCodeAt(i);
                             bytes += (code >> 7) ? 2 : 1;
                         }
                         const isLMS = bytes > 90;
-                        const cost = selectedTemplateId ? 15 : (isLMS ? 45 : 18); // Approx rates
+                        const cost = selectedTemplateId ? 15 : (isLMS ? 25 : 8.4); // Aligo rates: SMS 8.4원, LMS 25원
                         return (
                             <span style={{ color: selectedTemplateId ? 'var(--primary-gold)' : (isLMS ? '#f59e0b' : '#10b981') }}>
                                 {bytes} bytes ({selectedTemplateId ? '알림톡' : (isLMS ? 'LMS' : 'SMS')}) • 예상 비용: 약 {cost}원
@@ -362,20 +362,20 @@ const MessagesTab = ({ memberId }) => {
                                                     )
                                                 )}
                                                 
-                                                {/* Solapi Status */}
-                                                {log.solapiStatus ? (
-                                                    log.solapiStatus.sent ? (
+                                                {/* SMS Status (backward compatible: smsStatus || solapiStatus) */}
+                                                {(() => {
+                                                    const st = log.smsStatus || log.solapiStatus;
+                                                    if (!st) return <span style={{ fontSize: '0.75rem', color: '#f59e0b' }}>전송 완료</span>;
+                                                    return st.sent ? (
                                                         <span style={{ fontSize: '0.75rem', color: '#3B82F6', background: 'rgba(59, 130, 246, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>
-                                                            {log.solapiStatus.method === 'ALIMTALK' ? '알림톡 성공' : '문자 성공'}
+                                                            문자 성공
                                                         </span>
                                                     ) : (
-                                                        <span style={{ fontSize: '0.75rem', color: '#ef4444', background: 'rgba(239, 68, 68, 0.1)', padding: '2px 6px', borderRadius: '4px' }} title={log.solapiStatus.error || '알 수 없는 오류'}>
-                                                            문자 실패 {log.solapiStatus.error && log.solapiStatus.error.includes('TooManyRequests') ? '(요청 초과)' : ''}
+                                                        <span style={{ fontSize: '0.75rem', color: '#ef4444', background: 'rgba(239, 68, 68, 0.1)', padding: '2px 6px', borderRadius: '4px' }} title={st.error || '알 수 없는 오류'}>
+                                                            문자 실패
                                                         </span>
-                                                    )
-                                                ) : (
-                                                    <span style={{ fontSize: '0.75rem', color: '#f59e0b' }}>전송 완료</span>
-                                                )}
+                                                    );
+                                                })()}
                                             </div>
                                         )}
                                     </div>

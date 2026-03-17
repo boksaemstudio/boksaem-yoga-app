@@ -190,13 +190,18 @@ const SmartDataImporter = ({ onImportComplete }) => {
                     note: 'AI 마이그레이션된 기본 시간표'
                 }, { merge: true });
             } else if (activeTab === 'pricing' && parsedData.pricing) {
-                // Save to studios/{studioId}/pricing
-                const docRef = doc(db, `studios/${studioId}/pricing`, 'default_list');
-                batch.set(docRef, {
-                    items: parsedData.pricing,
-                    updatedAt: now,
-                    note: 'AI 마이그레이션된 가격표'
-                }, { merge: true });
+                // [FIX] Save to settings/pricing (same path as AdminPriceManager)
+                // AI now returns category-structured data matching the app's pricing format
+                const { storageService } = await import('../../../services/storage');
+                await storageService.savePricing(parsedData.pricing);
+                // Skip batch commit for pricing - savePricing handles it directly
+                if (onImportComplete) {
+                    onImportComplete(activeTab, parsedData);
+                }
+                alert('가격표 데이터가 성공적으로 저장되었습니다!');
+                handleClear();
+                setIsSaving(false);
+                return;
             }
 
             await batch.commit();

@@ -103,7 +103,7 @@ const ScheduleTab = ({
                                     padding: '0 5px'
                                 }}>
                                     <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 'bold', color: 'white' }}>
-                                        {activeMonth === 'current' ? `${currentMonthStr}월 시간표` : `${nextMonthStr}월 시간표 (미리보기)`}
+                                        {activeMonth === 'current' ? `${currentMonthStr}${t('monthUnit')} ${t('timetableLabel')}` : `${nextMonthStr}${t('monthUnit')} ${t('timetableLabel')} (${t('preview')})`}
                                     </h3>
 
                                     {hasNext && (
@@ -121,7 +121,7 @@ const ScheduleTab = ({
                                                     cursor: 'pointer'
                                                 }}
                                             >
-                                                {currentMonthStr}월
+                                                {currentMonthStr}{t('monthUnit')}
                                             </button>
                                             <button
                                                 onClick={() => setScheduleMonth('next')}
@@ -136,7 +136,7 @@ const ScheduleTab = ({
                                                     cursor: 'pointer'
                                                 }}
                                             >
-                                                {nextMonthStr}월 &gt;
+                                                {nextMonthStr}{t('monthUnit')} &gt;
                                             </button>
                                         </div>
                                     )}

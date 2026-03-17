@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useStudioConfig } from '../../contexts/StudioContext';
+import { getMembershipLabel } from '../../utils/membershipLabels';
 import { Icons } from '../CommonIcons';
 import { functions } from '../../firebase';
 import { httpsCallable } from 'firebase/functions';
@@ -51,15 +52,15 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
             const applyHold = httpsCallable(functions, 'applyMemberHoldCall');
             const result = await applyHold({ memberId: member.id, holdDays });
             if (result.data.success) {
-                alert(result.data.message || '홀딩이 적용되었습니다.');
+                alert(result.data.message || t('holdApplied'));
                 setShowHoldModal(false);
                 window.location.reload(); // 상태 새로고침
             } else {
-                alert(result.data.message || '홀딩 적용에 실패했습니다.');
+                alert(result.data.message || t('holdFailed'));
             }
         } catch (e) {
             console.error('Hold apply failed:', e);
-            alert(e.message || '홀딩 처리 중 오류가 발생했습니다.');
+            alert(e.message || t('holdError'));
         } finally {
             setHoldLoading(false);
         }
@@ -80,7 +81,7 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
     return (
         <div style={{ padding: '0 0 20px 0' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px', flexWrap: 'wrap' }}>
-                <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: 0, color: 'white' }}>{member.displayName || member.name} 님</h1>
+                <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: 0, color: 'white' }}>{member.displayName || member.name} {t('nim')}</h1>
                 <span style={{ background: 'var(--primary-gold)', color: 'black', padding: '3px 10px', borderRadius: '5px', fontSize: '0.75rem', fontWeight: 'bold' }}>
                     {(config.BRANCHES || []).find(b => b.id === member.homeBranch)?.name || member.homeBranch}
                 </span>
@@ -95,7 +96,7 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
                         border: '1px solid rgba(251, 146, 60, 0.3)',
                         animation: 'pulse 2s infinite'
                     }}>
-                        ⏸️ 홀딩 중
+                        {t('holdingStatus')}
                     </span>
                 )}
                 <span style={{ background: 'rgba(255,255,255,0.1)', color: 'white', padding: '3px 10px', borderRadius: '5px', fontSize: '0.75rem' }}>{member.phone}</span>
@@ -113,14 +114,14 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
                 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
-                            <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#fb923c', marginBottom: '4px' }}>⏸️ 수강권 일시정지 중</div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#fb923c', marginBottom: '4px' }}>{t('holdPauseTitle')}</div>
                             <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
-                                {holdInfo.startDate}부터 {holdInfo.elapsed}일 경과 (신청: {holdInfo.requested}일)
+                                {t('holdElapsed', { start: holdInfo.startDate, elapsed: holdInfo.elapsed, requested: holdInfo.requested })}
                             </div>
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)' }}>출석 시 자동 해제</div>
-                            <div style={{ fontSize: '0.7rem', color: '#fb923c' }}>마감일이 {holdInfo.elapsed}일 연장됩니다</div>
+                            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)' }}>{t('holdAutoRelease')}</div>
+                            <div style={{ fontSize: '0.7rem', color: '#fb923c' }}>{t('holdExtended', { days: holdInfo.elapsed })}</div>
                         </div>
                     </div>
                 </div>
@@ -130,7 +131,7 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
                 <div>
                     <div style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '4px', color: 'white' }}>{t('currentMembership')}</div>
                     <div style={{ fontSize: '1rem', fontWeight: 'bold', color: 'var(--primary-gold)' }}>
-                        {t(`class_${member.membershipType}`) !== `class_${member.membershipType}` ? t(`class_${member.membershipType}`) : (member.membershipType || t('class_regular'))} ({member.subject || t('ticket')})
+                        {getMembershipLabel(member.membershipType, config)} ({member.subject || t('ticket')})
                     </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
@@ -142,7 +143,7 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
                     <div style={{ fontSize: '1rem', color: 'white' }}>
                         {(() => {
                             if (!member.endDate || member.endDate === 'unlimited') return t('unlimited');
-                            if (member.endDate === 'TBD') return '첫 출석 시 확정';
+                            if (member.endDate === 'TBD') return t('endDateTBD');
                             const date = new Date(member.endDate);
                             if (isNaN(date.getTime())) return member.endDate;
                             try {
@@ -156,7 +157,7 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
                 <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '4px', color: 'white' }}>{t('daysLeft')}</div>
                     <div style={{ fontSize: '1.3rem', fontWeight: 'bold', color: isHolding ? '#fb923c' : 'white' }}>
-                        {isHolding ? '⏸️ 정지' : (member.endDate ? (daysRemaining >= 0 ? `D-${daysRemaining}` : t('expired')) : '-')}
+                        {isHolding ? t('daysLeftHolding') : (member.endDate ? (daysRemaining >= 0 ? `D-${daysRemaining}` : t('expired')) : '-')}
                     </div>
                 </div>
             </div>
@@ -174,9 +175,9 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
                         transition: 'all 0.3s ease'
                     }}
                 >
-                    ⏸️ 수강권 일시정지 (홀딩)
+                    {t('holdBtnLabel')}
                     <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>
-                        | 남은 횟수: {(matchedRule.maxCount || 1) - usedHoldCount}회
+                        | {t('holdRemaining', { n: (matchedRule.maxCount || 1) - usedHoldCount })}
                     </span>
                 </button>
             )}
@@ -196,13 +197,13 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
                         borderRadius: '24px', padding: '30px', maxWidth: '380px', width: '100%',
                         border: '1px solid rgba(251, 146, 60, 0.2)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
                     }}>
-                        <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'white', marginBottom: '8px', textAlign: 'center' }}>⏸️ 수강권 일시정지</h3>
+                        <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'white', marginBottom: '8px', textAlign: 'center' }}>{t('holdModalTitle')}</h3>
                         <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginBottom: '24px' }}>
-                            최대 {matchedRule.maxWeeks}주 · {matchedRule.maxCount}회 가능
+                            {t('holdModalDesc', { weeks: matchedRule.maxWeeks, count: matchedRule.maxCount })}
                         </p>
 
                         <div style={{ marginBottom: '20px' }}>
-                            <label style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginBottom: '8px', display: 'block' }}>홀딩 기간 선택</label>
+                            <label style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginBottom: '8px', display: 'block' }}>{t('holdSelectPeriod')}</label>
                             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                 {Array.from({ length: matchedRule.maxWeeks || 2 }, (_, i) => (i + 1) * 7).map(days => (
                                     <button
@@ -217,15 +218,15 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
                                             transition: 'all 0.2s'
                                         }}
                                     >
-                                        {days / 7}주 ({days}일)
+                                        {t('holdWeekDays', { w: days / 7, d: days })}
                                     </button>
                                 ))}
                             </div>
                         </div>
 
                         <div style={{ padding: '12px 16px', background: 'rgba(251, 146, 60, 0.08)', borderRadius: '12px', marginBottom: '20px', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', lineHeight: '1.6' }}>
-                            • 다음 출석(체크인) 시 홀딩이 자동 해제됩니다.<br/>
-                            • 해제 시 실제 쉰 일수만큼 마감일이 연장됩니다.
+                            • {t('holdNoteAuto')}<br/>
+                            • {t('holdNoteExtend')}
                         </div>
 
                         <div style={{ display: 'flex', gap: '10px' }}>
@@ -236,7 +237,7 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
                                     border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px',
                                     color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem', cursor: 'pointer'
                                 }}
-                            >취소</button>
+                            >{t('cancel')}</button>
                             <button 
                                 onClick={handleApplyHold}
                                 disabled={holdLoading}
@@ -246,7 +247,7 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
                                     color: 'white', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer',
                                     opacity: holdLoading ? 0.5 : 1
                                 }}
-                            >{holdLoading ? '처리 중...' : `${holdDays}일 홀딩 시작`}</button>
+                            >{holdLoading ? t('processing') : t('holdStartBtn', { days: holdDays })}</button>
                         </div>
                     </div>
                 </div>

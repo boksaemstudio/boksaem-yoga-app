@@ -1,9 +1,11 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { PWAContext } from '../../contexts/PWAContextDef';
 import { DownloadSimple } from '@phosphor-icons/react';
+import { useLanguage } from '../../hooks/useLanguage';
 
 const InstallBanner = ({ onManualInstallClick }) => {
     const { isStandalone, deviceOS, installApp } = useContext(PWAContext) || {};
+    const { t } = useLanguage();
     const [isVisible, setIsVisible] = useState(false);
     const [dismissed, setDismissed] = useState(false);
 
@@ -86,10 +88,10 @@ const InstallBanner = ({ onManualInstallClick }) => {
                 
                 <div style={{ flex: 1 }}>
                     <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#fff', fontWeight: 'bold' }}>
-                        앱 설치하고 1초 접속 ⚡️
+                        {t('bannerInstallTitle')}
                     </h4>
                     <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
-                        터치해서 홈 화면에 바로 추가하세요
+                        {t('bannerInstallDesc')}
                     </p>
                 </div>
 
