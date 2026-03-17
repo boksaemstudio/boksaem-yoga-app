@@ -110,11 +110,6 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
     const finalEndDate = (isAdvance && autoStart) ? 'TBD' : customEndDate;
 
     const handleRenew = async () => {
-        if (isSubmittingRef.current) {
-            console.warn('[handleRenew] isSubmittingRef stuck, force-resetting');
-            isSubmittingRef.current = false;
-            setIsSubmitting(false);
-        }
         if (isSubmitting) return;
         
         let confirmMsg = `${calculatedProductName}\n금액: ${price.toLocaleString()}원\n\n등록하시겠습니까?`;

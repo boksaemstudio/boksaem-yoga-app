@@ -11,6 +11,8 @@ import { tenantDb } from '../utils/tenantDb';
 let notifyCallback = () => {};
 let cachedSales = [];
 let salesListenerUnsubscribe = null;
+let salesReconnectAttempts = 0;
+const MAX_SALES_RECONNECT = 3;
 
 export const paymentService = {
   /**
@@ -23,47 +25,43 @@ export const paymentService = {
   },
 
   /**
-   * [ROOT SOLUTION] 실시간 매출 스트림 파이프라인 구축
-   * 중복 구독을 방지하고, 에러 시 자가 치유 기능을 포함합니다.
+   * 실시간 매출 스트림 파이프라인 구축
+   * 중복 구독을 방지하고, 에러 시 최대 3회 재연결합니다.
    */
   setupSalesListener() {
-    // 1. 기존 리스너가 있다면 안전하게 해제 (중복 구독 방지)
     if (salesListenerUnsubscribe) {
-      console.log('[paymentService] Cleaning up existing sales listener...');
       salesListenerUnsubscribe();
       salesListenerUnsubscribe = null;
     }
 
     try {
-      console.log('[paymentService] Core: Establishing real-time sales stream...');
-      
-      // 최신순 정렬 및 최근 500건으로 제한 (성능 최적화 및 서버 사이드 집계 전환)
       const q = query(
         tenantDb.collection('sales'),
         orderBy("timestamp", "desc"),
         limit(500)
       );
 
-      // 2. 실시간 엔진 가동
       salesListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+        salesReconnectAttempts = 0; // 성공 시 카운터 리셋
         const newSales = snapshot.docs.map(doc => ({ 
           id: doc.id, 
           ...doc.data() 
         }));
         
-        // 정합성 검사: 데이터 변화가 실제로 있을 때만 캐시 갱신 및 UI 통지
         if (JSON.stringify(cachedSales) !== JSON.stringify(newSales)) {
           cachedSales = newSales;
-          console.log(`[paymentService] Stream synchronized: ${cachedSales.length} records`);
           notifyCallback();
         }
       }, (error) => {
-        console.error('[paymentService] Critical: Sales stream broken.', error);
-        // [Safety Rail] 리스너 장애 시 5초 후 재연결 시도 (지속성 보장)
-        setTimeout(() => paymentService.setupSalesListener(), 5000);
+        console.error('[paymentService] Sales stream broken:', error);
+        if (salesReconnectAttempts < MAX_SALES_RECONNECT) {
+          salesReconnectAttempts++;
+          console.warn(`[paymentService] Reconnecting... (${salesReconnectAttempts}/${MAX_SALES_RECONNECT})`);
+          setTimeout(() => paymentService.setupSalesListener(), 5000);
+        } else {
+          console.error('[paymentService] Max reconnect attempts reached. Sales stream stopped.');
+        }
       });
-
-      // [REMOVED] revenue_summary 실시간 리스너 제거 — 프론트엔드에서 미사용, Firebase 비용 절감
 
       return salesListenerUnsubscribe;
     } catch (e) {

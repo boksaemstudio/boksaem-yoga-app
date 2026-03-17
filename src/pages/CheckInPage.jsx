@@ -3,7 +3,7 @@ import { signInAnonymously } from 'firebase/auth';
 import { auth } from '../firebase';
 import { storageService } from '../services/storage';
 import { getKSTHour, getDaysRemaining, safeParseDate } from '../utils/dates';
-import { logError } from '../services/modules/errorModule';
+
 import { getStaticStandbyMessage } from '../utils/aiStandbyHelper';
 import { AIMessages } from '../constants/aiMessages';
 import { CHECKIN_CONFIG } from '../constants/CheckInConfig';
@@ -496,7 +496,7 @@ const CheckInPage = () => {
                 setMessage({ type: 'error', text: res.message });
             }
         } catch (e) {
-            logError(e, { context: 'Kiosk', branch: currentBranch });
+            storageService.logError(e, { context: 'Kiosk', branch: currentBranch });
             console.error('[CheckInPage] proceedWithCheckIn error:', e);
             speak("error");
             setMessage({ type: 'error', text: '시스템 오류가 발생했습니다. 다시 시도해주세요.' });

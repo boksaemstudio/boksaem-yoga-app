@@ -173,12 +173,6 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
             alert('이름과 전화번호는 필수입니다.');
             return;
         }
-        // [FIX] 안전밸브: isSubmittingRef 잠김 상태 자동 해제
-        if (isSubmittingRef.current) {
-            console.warn('[handleAddMember] isSubmittingRef stuck, force-resetting');
-            isSubmittingRef.current = false;
-            setIsSubmitting(false);
-        }
         if (isSubmitting) return;
 
         isSubmittingRef.current = true;

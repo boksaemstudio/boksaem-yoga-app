@@ -2,6 +2,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { storage } from '../firebase';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storageService } from '../services/storage';
 
 export const useAttendanceCamera = (PHOTO_ENABLED) => {
     const videoRef = useRef(null);
@@ -257,8 +258,7 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
             console.warn(`[PHOTO] ❌ No captured photo for upload. Stream alive: ${isStreamAlive()}. Member: ${memberName || 'unknown'}`);
             // [FIX] 사진 업로드 실패를 에러 로그에 기록
             try {
-                const { logError } = await import('../services/modules/errorModule');
-                await logError(`[PHOTO] No photo available at upload time`, { 
+                storageService.logError(`[PHOTO] No photo available at upload time`, { 
                     memberName: memberName || 'unknown',
                     attendanceId,
                     streamAlive: isStreamAlive(),
@@ -296,8 +296,7 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
         } catch (err) {
             console.error(`[PHOTO] ❌ Upload failed:`, err.message);
             try {
-                const { logError } = await import('../services/modules/errorModule');
-                await logError(`[PHOTO] Upload failed for ${memberName || 'unknown'}`, { 
+                storageService.logError(`[PHOTO] Upload failed for ${memberName || 'unknown'}`, { 
                     error: err.message, 
                     attendanceId 
                 });

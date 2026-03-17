@@ -332,12 +332,6 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
     };
 
     const handleManualAttendance = async (dateStr, timeStr, branchId, className) => {
-        // [FIX] 안전밸브: isSubmittingRef 잠김 상태 자동 해제
-        if (isSubmittingRef.current) {
-            console.warn('[handleManualAttendance] isSubmittingRef stuck, force-resetting');
-            isSubmittingRef.current = false;
-            setIsSubmitting(false);
-        }
         if (isSubmitting) return;
         isSubmittingRef.current = true;
         setIsSubmitting(true);
@@ -412,19 +406,10 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
 
 
     const handleDeleteAttendance = async (logId) => {
-        console.log('[AdminMemberDetailModal] handleDeleteAttendance called, logId:', logId);
-        
-        // [FIX] 안전밸브: isSubmittingRef가 true로 영구 잠긴 경우 강제 해제
-        if (isSubmittingRef.current) {
-            console.warn('[AdminMemberDetailModal] isSubmittingRef was stuck at true, force-resetting');
-            isSubmittingRef.current = false;
-            setIsSubmitting(false);
-        }
-        
         if (isSubmitting) return;
         
         if (!confirm('정말 삭제하시겠습니까?')) return;
-        const restoreCredit = true; // 항상 수강권 복구
+        const restoreCredit = true;
         
         isSubmittingRef.current = true;
         setIsSubmitting(true);

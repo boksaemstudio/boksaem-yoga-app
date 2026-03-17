@@ -186,6 +186,7 @@ export const storageService = {
     // ── FULL MODE ──
     memberService.setupMemberListener();
     attendanceService.setupAttendanceListener();
+    paymentService.setupSalesListener();
 
     safelySubscribe(
       query(tenantDb.collection('notices'), orderBy("timestamp", "desc")),
