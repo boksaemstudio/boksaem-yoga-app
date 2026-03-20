@@ -305,16 +305,16 @@ const AdminDashboard = () => {
     }, [members, logs, currentBranch, isMemberActive]);
 
     // [FIX] bioMissingCount & facialDataRatio 계산 추가
-    const { bioMissingCount, facialDataRatio } = useMemo(() => {
+    const { bioMissingCount, facialDataRatio, facialDataCount } = useMemo(() => {
         const branchMembers = members.filter(m => currentBranch === 'all' || m.homeBranch === currentBranch);
         const activeCount = branchMembers.filter(m => isMemberActive(m)).length;
         const withFaceCount = branchMembers.filter(m => isMemberActive(m) && m.hasFaceDescriptor).length;
         const missingCount = activeCount - withFaceCount;
         const ratio = activeCount > 0 ? Math.round((withFaceCount / activeCount) * 100) : 0;
-        return { bioMissingCount: missingCount, facialDataRatio: ratio };
+        return { bioMissingCount: missingCount, facialDataRatio: ratio, facialDataCount: withFaceCount };
     }, [members, currentBranch, isMemberActive]);
 
-    const extendedSummary = { ...summary, dormantMembersCount: dormantCount, bioMissingCount, facialDataRatio };
+    const extendedSummary = { ...summary, dormantMembersCount: dormantCount, bioMissingCount, facialDataRatio, facialDataCount };
 
     const handleInstallClick = async () => {
         const result = await installApp();
