@@ -3,13 +3,12 @@ import { useRegisterSW } from 'virtual:pwa-register/react';
 import { ArrowsClockwise, X } from '@phosphor-icons/react';
 
 /**
- * 유휴 상태 자동 새로고침 + 수동 업데이트 프롬프트
+ * PWA 업데이트 관리
  * 
- * - 키오스크(/checkin)처럼 항상 켜져 있는 페이지: 
- *   SW 업데이트 감지 → 30초 유휴 대기 → 자동 새로고침
- * - 관리자/회원 페이지: 기존처럼 업데이트 배너 표시
+ * - 키오스크(/checkin): SW controller 교체 감지 → 30초 유휴 대기 → 자동 새로고침
+ * - 관리자/회원: 업데이트 배너 표시 (수동 클릭)
  */
-const IDLE_TIMEOUT_MS = 30_000; // 30초 동안 터치/클릭/키 입력 없으면 유휴
+const IDLE_TIMEOUT_MS = 30_000;
 
 function ReloadPrompt() {
   const [updating, setUpdating] = useState(false);
@@ -25,7 +24,6 @@ function ReloadPrompt() {
       console.log('[SW] Registered');
       if (r) {
         r.update().catch(() => {});
-        // 1시간마다 업데이트 체크
         setInterval(() => { r.update(); }, 60 * 60 * 1000);
       }
     },
@@ -34,7 +32,7 @@ function ReloadPrompt() {
     },
   });
 
-  // ━━━━ 유휴 감지: 터치/클릭/키 입력 추적 ━━━━
+  // ━━━━ 유휴 감지 ━━━━
   const markActivity = useCallback(() => {
     lastActivityRef.current = Date.now();
   }, []);
@@ -45,34 +43,53 @@ function ReloadPrompt() {
     return () => events.forEach(evt => window.removeEventListener(evt, markActivity));
   }, [markActivity]);
 
-  // ━━━━ 키오스크 자동 새로고침 로직 ━━━━
+  // ━━━━ 키오스크 자동 새로고침: controllerchange 이벤트 사용 ━━━━
   const isKiosk = typeof window !== 'undefined' && window.location.pathname.startsWith('/checkin');
 
-  const tryIdleReload = useCallback(() => {
-    if (!pendingReloadRef.current) return;
-    const idleMs = Date.now() - lastActivityRef.current;
-    if (idleMs >= IDLE_TIMEOUT_MS) {
-      console.log(`[SW] Kiosk idle for ${Math.round(idleMs/1000)}s — auto-reloading for update`);
-      pendingReloadRef.current = false;
-      window.location.reload();
-    }
+  const startIdleReloadLoop = useCallback(() => {
+    if (idleTimerRef.current) return; // 이미 감시 중
+    pendingReloadRef.current = true;
+    console.log('[SW] Update detected — starting idle reload loop');
+
+    idleTimerRef.current = setInterval(() => {
+      if (!pendingReloadRef.current) {
+        clearInterval(idleTimerRef.current);
+        idleTimerRef.current = null;
+        return;
+      }
+      const idleMs = Date.now() - lastActivityRef.current;
+      if (idleMs >= IDLE_TIMEOUT_MS) {
+        console.log(`[SW] Idle for ${Math.round(idleMs / 1000)}s — auto-reloading`);
+        pendingReloadRef.current = false;
+        clearInterval(idleTimerRef.current);
+        idleTimerRef.current = null;
+        window.location.reload();
+      }
+    }, 5_000);
   }, []);
 
   useEffect(() => {
-    if (!needRefresh || !isKiosk) return;
+    if (!isKiosk || !('serviceWorker' in navigator)) return;
 
-    console.log('[SW] Update detected on kiosk — waiting for idle to auto-reload');
-    pendingReloadRef.current = true;
+    // autoUpdate 모드에서 실제 SW 교체 감지
+    const onControllerChange = () => {
+      console.log('[SW] Controller changed — new SW active');
+      startIdleReloadLoop();
+    };
 
-    // 5초마다 유휴 상태 체크
-    idleTimerRef.current = setInterval(tryIdleReload, 5_000);
-    // 즉시 한 번도 체크 (이미 유휴일 수 있음)
-    tryIdleReload();
-
+    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
     return () => {
+      navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
       if (idleTimerRef.current) clearInterval(idleTimerRef.current);
     };
-  }, [needRefresh, isKiosk, tryIdleReload]);
+  }, [isKiosk, startIdleReloadLoop]);
+
+  // needRefresh 트리거도 fallback으로 유지
+  useEffect(() => {
+    if (needRefresh && isKiosk) {
+      startIdleReloadLoop();
+    }
+  }, [needRefresh, isKiosk, startIdleReloadLoop]);
 
   // ━━━━ 수동 업데이트 (관리자/회원 앱용) ━━━━
   const handleUpdate = async () => {
@@ -99,7 +116,6 @@ function ReloadPrompt() {
     return null;
   }
 
-  // 관리자/회원 앱: 업데이트 배너 표시
   return (
     <div style={{
         position: 'fixed',
