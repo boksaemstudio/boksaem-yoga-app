@@ -419,4 +419,4 @@ export default CheckInPage;
  * [BUILD-FIX] Attach unminifiable property to component object to defeat tree-shaking
  * This guarantees Rollup will generate a new chunk hash, forcing Workbox to update!
  */
-CheckInPage.__buildVersion = '2026.03.12.0620';
+CheckInPage.__buildVersion = `2026.03.20.${Date.now()}`;

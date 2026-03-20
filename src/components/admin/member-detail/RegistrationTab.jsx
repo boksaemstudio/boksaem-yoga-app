@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import CustomDatePicker from '../../common/CustomDatePicker';
 
-const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMember }) => {
+const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMember, onManualAttendance }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const isSubmittingRef = useRef(false);
 
@@ -11,8 +11,9 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
     const [duration, setDuration] = useState(1);
     const [paymentMethod, setPaymentMethod] = useState('card');
     
-    // [Smart Date Logic] — "첫 출석일 시작" 체크박스 (MemberAddModal 통일)
-    const [autoStart, setAutoStart] = useState(true);
+    // [Smart Date Logic] — 3가지 시작일 모드: 'tbd' | 'manual' | 'immediate'
+    // [FIX] 만료/소진 회원도 항상 모든 옵션 사용 가능
+    const [startDateMode, setStartDateMode] = useState('tbd');
     const [startDate, setStartDate] = useState(() => {
         const today = new Date();
         const end = member.endDate ? new Date(member.endDate) : null;
@@ -101,13 +102,16 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
     useEffect(() => { setCustomEndDate(calculatedEndDate); }, [calculatedEndDate]);
     useEffect(() => { setCustomCredits(calculatedCredits); }, [calculatedCredits]);
 
-    // [INFO] 선등록 여부 확인 — credits=0이면 수강권 소진 상태이므로 선등록(TBD) 처리하지 않음
+    // [INFO] 선등록 여부 확인 — 현재 회원권이 활성 상태인지 체크
     const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
     const isAdvance = member.endDate && new Date(member.endDate) >= new Date(todayStr) && (member.credits || 0) > 0;
 
+    // [FIX] startDateMode에 따라 finalStartDate/finalEndDate 결정
     // Computed Info for TBD mode
-    const finalStartDate = (isAdvance && autoStart) ? 'TBD' : startDate;
-    const finalEndDate = (isAdvance && autoStart) ? 'TBD' : customEndDate;
+    const isTbd = startDateMode === 'tbd';
+    const isImmediate = startDateMode === 'immediate';
+    const finalStartDate = isTbd ? 'TBD' : (isImmediate ? todayStr : startDate);
+    const finalEndDate = isTbd ? 'TBD' : customEndDate;
 
     const handleRenew = async () => {
         if (isSubmitting) return;
@@ -152,14 +156,26 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                 updateData.credits = customCredits;
                 updateData.startDate = finalStartDate;
                 updateData.endDate = finalEndDate;
+                updateData.duration = durationMonths; // [FIX] TBD 해소 시 attendance.js가 이 값으로 endDate 계산
                 updateData.lastPaymentDate = new Date().toISOString();
                 updateData.price = price;
                 if (notesText !== (member.notes || '')) updateData.notes = notesText;
             }
 
             await onUpdateMember(member.id, updateData);
+
+            // [FIX] 즉시 출석 모드일 때 등록과 동시에 출석 처리
+            if (isImmediate && onManualAttendance) {
+                try {
+                    await onManualAttendance(today, '10:00', member.homeBranch || '', '자율수련');
+                } catch (attErr) {
+                    console.error('Auto attendance error:', attErr);
+                    // 등록은 성공했으므로 출석 실패는 경고만
+                    alert('등록은 완료되었으나, 출석 처리 중 오류가 발생했습니다. 출석부에서 수동으로 처리해주세요.');
+                }
+            }
             
-            alert('등록이 완료되었습니다.');
+            alert(isImmediate ? '등록 및 출석 처리가 완료되었습니다.' : '등록이 완료되었습니다.');
         } catch (err) {
             console.error('Registration error:', err);
             alert('등록 중 오류가 발생했습니다.');
@@ -261,54 +277,38 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
             <div className="form-group">
                 <label className="form-label">수련 시작일</label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {/* 첫 출석일 시작 체크박스 — 선등록 시에만 표시 */}
-                    {isAdvance && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <label style={{
-                                padding: '12px 16px',
-                                borderRadius: '10px',
-                                background: autoStart ? 'rgba(var(--primary-rgb), 0.15)' : 'rgba(255,255,255,0.05)',
-                                border: `1px solid ${autoStart ? 'var(--primary-gold)' : 'transparent'}`,
-                                fontSize: '0.85rem',
-                                color: autoStart ? 'var(--primary-gold)' : 'var(--text-secondary)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                fontWeight: autoStart ? 'bold' : 'normal',
-                                flex: 1
-                            }}>
-                                <input
-                                    type="checkbox"
-                                    style={{ width: '16px', height: '16px' }}
-                                    checked={autoStart}
-                                    onChange={e => setAutoStart(e.target.checked)}
-                                />
-                                🧘‍♀️ 기존 마감 후 첫 출석 시 시작
-                            </label>
-                            <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
-                                <div style={{
-                                    width: '18px', height: '18px', borderRadius: '50%',
-                                    background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontSize: '11px', fontWeight: 'bold'
-                                }}>i</div>
-                                <div className="tooltip-text" style={{ width: '220px', left: 'auto', right: 0, transform: 'translateX(0)' }}>
-                                    <strong>자동 시작 로직</strong><br />
-                                    현재 이용 중인 회원권이 모두 소진되거나 만료된 후, <strong>가장 처음 출석하는 날짜</strong>를 기준으로 새 회원권의 시작일과 만료일이 자동으로 세팅됩니다.
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    {/* 3가지 시작일 모드 선택 */}
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        {[
+                            { value: 'tbd', label: isAdvance ? '기존 마감 후 첫출석 시' : '첫 출석 시 시작', icon: '🧘‍♀️', desc: '나중에 처음 올 때 자동 시작' },
+                            { value: 'manual', label: '시작일 직접 지정', icon: '📅', desc: '원하는 날짜를 직접 입력' },
+                            { value: 'immediate', label: '등록 즉시 출석', icon: '⚡', desc: '오늘부터 시작 + 출석 처리' },
+                        ].map(opt => (
+                            <button
+                                key={opt.value}
+                                onClick={() => setStartDateMode(opt.value)}
+                                style={{
+                                    flex: 1, minWidth: '120px', padding: '12px 10px',
+                                    borderRadius: '10px', cursor: 'pointer', textAlign: 'center',
+                                    border: `2px solid ${startDateMode === opt.value ? 'var(--primary-gold)' : 'rgba(255,255,255,0.08)'}`,
+                                    background: startDateMode === opt.value ? 'rgba(var(--primary-rgb), 0.15)' : 'rgba(255,255,255,0.03)',
+                                    transition: 'all 0.2s',
+                                }}
+                            >
+                                <div style={{ fontSize: '1.1rem', marginBottom: '4px' }}>{opt.icon}</div>
+                                <div style={{ fontWeight: 'bold', fontSize: '0.8rem', color: startDateMode === opt.value ? 'var(--primary-gold)' : 'var(--text-primary)', marginBottom: '2px' }}>{opt.label}</div>
+                                <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>{opt.desc}</div>
+                            </button>
+                        ))}
+                    </div>
 
-                    {/* 날짜 입력 */}
-                    {autoStart && isAdvance ? (
+                    {/* 모드별 세부 UI */}
+                    {startDateMode === 'tbd' && (
                         <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', textAlign: 'center', fontSize: '0.9rem' }}>
                             첫 출석일에 시작일/마감일 자동 확정
                         </div>
-                    ) : (
+                    )}
+                    {startDateMode === 'manual' && (
                         <input
                             type="date"
                             className="form-input"
@@ -318,32 +318,52 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                             onChange={e => setStartDate(e.target.value)}
                         />
                     )}
+                    {startDateMode === 'immediate' && (
+                        <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(76, 175, 80, 0.1)', border: '1px solid rgba(76, 175, 80, 0.3)', color: '#4CAF50', textAlign: 'center', fontSize: '0.9rem', fontWeight: 'bold' }}>
+                            ✅ 오늘({todayStr}) 시작 + 출석 1회 자동 처리
+                        </div>
+                    )}
 
                     {/* 마감일(종료일) 수정 */}
-                    <div style={{ marginTop: '4px' }}>
-                        <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-                            <span>마감일(종료일) 수정</span>
-                            {autoStart && isAdvance && <span style={{ color: 'var(--primary-gold)' }}>*첫 출석 시 조정됨</span>}
-                        </label>
-                        <input
-                            type="date"
-                            className="form-input"
-                            style={{ width: '100%', cursor: autoStart && isAdvance ? 'not-allowed' : 'pointer', opacity: autoStart && isAdvance ? 0.6 : 1 }}
-                            value={autoStart && isAdvance ? '' : customEndDate}
-                            disabled={autoStart && isAdvance}
-                            onClick={(e) => !(autoStart && isAdvance) && e.target.showPicker && e.target.showPicker()}
-                            onChange={e => setCustomEndDate(e.target.value)}
-                        />
-                    </div>
+                    {startDateMode !== 'tbd' && (
+                        <div style={{ marginTop: '4px' }}>
+                            <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                                <span>마감일(종료일) 수정</span>
+                            </label>
+                            <input
+                                type="date"
+                                className="form-input"
+                                style={{ width: '100%', cursor: 'pointer' }}
+                                value={customEndDate}
+                                onClick={(e) => e.target.showPicker && e.target.showPicker()}
+                                onChange={e => setCustomEndDate(e.target.value)}
+                            />
+                        </div>
+                    )}
+                    {startDateMode === 'tbd' && (
+                        <div style={{ marginTop: '4px' }}>
+                            <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                                <span>마감일(종료일) 수정</span>
+                                <span style={{ color: 'var(--primary-gold)' }}>*첫 출석 시 조정됨</span>
+                            </label>
+                            <input
+                                type="date"
+                                className="form-input"
+                                style={{ width: '100%', cursor: 'not-allowed', opacity: 0.6 }}
+                                value=""
+                                disabled
+                            />
+                        </div>
+                    )}
 
-                    {/* 선등록 안내 */}
+                    {/* 안내 메시지 */}
                     {isAdvance && (
                         <div style={{
                             fontSize: '0.75rem', padding: '10px',
                             background: 'rgba(56, 189, 248, 0.08)', borderRadius: '8px',
                             color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.15)'
                         }}>
-                            ℹ️ 잔여 기간이 남아있어 선등록으로 처리됩니다. {autoStart ? '기존 회원권이 모두 소진된 후, 다음 첫 출석 시에 새 회원권이 활성화됩니다.' : '지정하신 수련 시작일이 되면 새 회원권이 자동으로 활성화됩니다.'}
+                            ℹ️ 잔여 기간이 남아있어 선등록으로 처리됩니다.
                         </div>
                     )}
                 </div>

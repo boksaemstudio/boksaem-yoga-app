@@ -10,7 +10,7 @@ import { tenantDb } from '../utils/tenantDb';
 export interface BookingRules { defaultCapacity: number; windowDays: number; deadlineHours: number; cancelDeadlineHours: number; maxActiveBookings: number; maxDailyBookings: number; noshowCreditDeduct: number; enableWaitlist: boolean; branchCapacity: Record<string, number>; }
 export interface BookingData { id: string; memberId: string; memberName: string; date: string; classIndex: number; className: string; classTime: string; instructor: string; branchId: string; status: string; waitlistPosition: number | null; [key: string]: unknown; }
 export interface ClassItem { name?: string; time?: string; instructor?: string; capacity?: number; [key: string]: unknown; }
-export interface StudioConfig { POLICIES?: { ALLOW_BOOKING?: boolean; BOOKING_RULES?: Partial<BookingRules> }; [key: string]: unknown; }
+export interface StudioConfig { POLICIES?: { ALLOW_BOOKING?: boolean; BOOKING_RULES?: Partial<BookingRules>; CREDIT_RULES?: { mode?: string; weeklyResetDay?: number; allowCarryOver?: boolean; weeklyLimitSource?: string } }; [key: string]: unknown; }
 type BookingResult = { ok: boolean; reason?: string; booking?: BookingData; message?: string; creditDeducted?: number };
 
 // ── Helpers ──
@@ -43,6 +43,33 @@ export const validateBooking = async (memberId: string, date: string, classIndex
     if (activeBookings.filter(b => b.date === date).length >= rules.maxDailyBookings) return { ok: false, reason: `하루 ${rules.maxDailyBookings}건까지만 예약 가능합니다` };
     const existing = await getBooking(date, classIndex, memberId);
     if (existing && existing.status !== 'cancelled') return { ok: false, reason: '이미 이 수업에 예약되어 있습니다' };
+
+    // [SaaS] Weekly credit limit check for bookings
+    const creditRules = config?.POLICIES?.CREDIT_RULES as { mode?: string; weeklyResetDay?: number } | undefined;
+    if (creditRules?.mode === 'weekly') {
+        const memberSnap = await getDoc(tenantDb.doc('members', memberId));
+        const memberData = memberSnap.data();
+        const sessionsPerWeek = (memberData as Record<string, unknown>)?.sessionsPerWeek as number || 0;
+        if (sessionsPerWeek > 0) {
+            const { getWeekBoundary } = await import('../utils/creditPolicyUtils');
+            const { weekStart, weekEnd } = getWeekBoundary(date, creditRules.weeklyResetDay || 1);
+            // Count this week's existing bookings (non-cancelled) + attended
+            const weekBookings = activeBookings.filter(b => b.date >= weekStart && b.date <= weekEnd);
+            // Also count actual attendance this week
+            const weekAttSnap = await getDocs(query(
+                tenantDb.collection('attendance'),
+                where('memberId', '==', memberId),
+                where('date', '>=', weekStart),
+                where('date', '<=', weekEnd)
+            ));
+            const weekAttCount = weekAttSnap.docs.filter(d => (d.data() as Record<string, unknown>).status === 'valid').length;
+            const totalWeekUsage = weekBookings.length + weekAttCount;
+            if (totalWeekUsage >= sessionsPerWeek) {
+                return { ok: false, reason: `이번 주 ${sessionsPerWeek}회 수강 제한을 초과합니다` };
+            }
+        }
+    }
+
     return { ok: true };
 };
 

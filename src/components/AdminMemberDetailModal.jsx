@@ -128,7 +128,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                     )}
                     {activeTab === 'registration' && (
                         <div className="fade-in">
-                            <RegistrationTab pricingConfig={pricingConfig} member={member} onAddSalesRecord={onAddSalesRecord} onUpdateMember={onUpdateMember} />
+                            <RegistrationTab pricingConfig={pricingConfig} member={member} onAddSalesRecord={onAddSalesRecord} onUpdateMember={onUpdateMember} onManualAttendance={handleManualAttendance} />
                         </div>
                     )}
                     {activeTab === 'messages' && (

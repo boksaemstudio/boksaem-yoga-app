@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import MemberSalesHistory from '../MemberSalesHistory';
 import { storageService } from '../../../services/storage';
 import { useLanguage } from '../../../hooks/useLanguage';
+import { useStudioConfig } from '../../../contexts/StudioContext';
 
 const PriceTab = ({
     memberId,
@@ -12,6 +13,7 @@ const PriceTab = ({
     setLightboxImage
 }) => {
     const { t } = useLanguage();
+    const { config } = useStudioConfig();
     const [pricing, setPricing] = useState(null);
     const [activeCategory, setActiveCategory] = useState(null);
 
@@ -111,7 +113,7 @@ const PriceTab = ({
                                                     fontSize: '0.7rem', padding: '2px 8px',
                                                     background: 'rgba(255,255,255,0.08)', borderRadius: '10px',
                                                     color: 'var(--text-tertiary)'
-                                                }}>{b}</span>
+                                                }}>{config.BRANCHES?.find(branch => branch.id === b)?.name || b}</span>
                                             ))}
                                         </div>
                                     )}

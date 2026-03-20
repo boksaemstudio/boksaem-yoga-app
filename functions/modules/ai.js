@@ -120,9 +120,12 @@ exports.generatePageExperienceV2 = onCall({
                 `;
             }
         } else {
+            const mbti = request.data.mbti || null;
+            const mbtiContext = mbti ? `MBTI: ${mbti}. Consider their personality type when crafting the greeting (e.g., introverts might prefer calmer tones, extraverts more energetic).` : '';
             prompt = `
                 Generate a warm, personalized greeting for ${memberName || 'visitor'}.
                 Streak: ${streak}, TimeOfDay: ${timeOfDay}h, Weather: ${weather}.
+                ${mbtiContext}
                 Length: 1 sentence. Language: ${targetLang}.
                 Format: { "message": "...", "bgTheme": "dawn" }
             `;
@@ -194,6 +197,9 @@ exports.parseStudioDocument = onCall({
     timeoutSeconds: 120, // Vision parsing can be slow
     cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
 }, async (request) => {
+    // [FIX] Auth guard — 관리자만 문서 파싱 가능
+    const { requireAdmin } = require('../helpers/authGuard');
+    requireAdmin(request, 'parseStudioDocument');
     try {
         await checkAIQuota(); // Use same quota system to prevent abuse
         

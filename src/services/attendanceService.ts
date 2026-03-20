@@ -7,7 +7,7 @@ import { doc, query, where, orderBy, getDocs, getDoc, addDoc, updateDoc, deleteD
 import { getStorage, ref, deleteObject } from 'firebase/storage';
 import { httpsCallable } from 'firebase/functions';
 import { memberService } from './memberService';
-import { evaluateUpcomingActivation } from '../utils/membershipUtils';
+import { evaluateUpcomingActivation, isTBD, calculateEndDate } from '../utils/membershipUtils';
 import { tenantDb } from '../utils/tenantDb';
 
 // ── Types ──
@@ -260,61 +260,16 @@ export const attendanceService = {
 
     async addManualAttendance(memberId: string, date: string, branchId: string, className = "수동 확인", instructor = "관리자", { skipCreditDeduction = false } = {}): Promise<{ success: boolean; id?: string; message?: string }> {
         try {
-            const memberDoc = await getDoc(tenantDb.doc('members', memberId));
-            const memberData = memberDoc.exists() ? (memberDoc.data() as Record<string, unknown>) : null;
-            const memberName = memberData ? (memberData.name as string) : '알 수 없음';
-            let finalDate = new Date(date); if (isNaN(finalDate.getTime())) finalDate = new Date();
-            const timestamp = finalDate.toISOString();
-            const dateStr = finalDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-            let finalClassName = className; let finalInstructor = instructor;
-            const kstH = String(finalDate.getHours()).padStart(2, '0'); const kstM = String(finalDate.getMinutes()).padStart(2, '0');
-            let finalClassTime = `${kstH}:${kstM}`;
-
-            if (className === "수동 확인") {
-                try {
-                    const scheduleDoc = await getDoc(tenantDb.doc('daily_classes', `${branchId}_${dateStr}`));
-                    if (scheduleDoc.exists()) {
-                        const dayClasses = ((scheduleDoc.data() as { classes: Array<{ time?: string; title?: string; name?: string; instructor?: string; status?: string; duration?: number }> }).classes || []);
-                        const requestTimeMins = finalDate.getHours() * 60 + finalDate.getMinutes();
-                        let matchedClass = dayClasses.find(cls => cls.time === finalClassTime && cls.status !== 'cancelled');
-                        if (!matchedClass) {
-                            matchedClass = dayClasses.find(cls => {
-                                if (!cls.time || cls.status === 'cancelled') return false;
-                                const [classH, classM] = cls.time.split(':').map(Number);
-                                const classStartMins = classH * 60 + classM;
-                                return requestTimeMins >= classStartMins - 30 && requestTimeMins <= classStartMins + (cls.duration || 60) + 30;
-                            });
-                        }
-                        if (matchedClass) { finalClassName = matchedClass.title || matchedClass.name || "수업"; finalInstructor = matchedClass.instructor || "선생님"; finalClassTime = matchedClass.time!; }
-                        else { finalClassName = "자율수련"; finalInstructor = "회원"; }
-                    } else { finalClassName = "자율수련"; finalInstructor = "회원"; }
-                } catch { finalClassName = "자율수련"; finalInstructor = "회원"; }
+            // [DRY Refactor] 모든 비즈니스 로직은 서버의 coreLogic.js가 처리.
+            // 프론트엔드는 파라미터만 전달하는 thin client.
+            const adminAddAttendance = httpsCallable(functions, 'adminAddAttendanceCall');
+            const response = await adminAddAttendance({ memberId, branchId, date, className, instructor, skipCreditDeduction });
+            const data = response.data as Record<string, unknown>;
+            if (data.success) {
+                notifyCallback();
+                return { success: true, id: data.attendanceId as string };
             }
-
-            // upcomingMembership activation
-            let membershipUpdate: Record<string, unknown> | null = null;
-            if (memberData?.upcomingMembership && (memberData.upcomingMembership as { startDate?: string }).startDate) {
-                const { shouldActivate, newFields } = evaluateUpcomingActivation(memberData, dateStr);
-                if (shouldActivate) membershipUpdate = { ...newFields, upcomingMembership: null };
-            }
-
-            const { writeBatch: wb, deleteField } = await import('firebase/firestore');
-            const batch = wb(db);
-            const newAttRef = doc(tenantDb.collection('attendance'));
-            const attendanceData: Record<string, unknown> = { memberId, memberName, timestamp, branchId, className: finalClassName, instructor: finalInstructor, classTime: finalClassTime, type: 'manual', date: dateStr };
-            batch.set(newAttRef, attendanceData);
-            const memberRef = tenantDb.doc('members', memberId);
-
-            if (membershipUpdate) {
-                batch.update(memberRef, { membershipType: membershipUpdate.membershipType, credits: (membershipUpdate.credits as number) - 1, startDate: membershipUpdate.startDate, endDate: membershipUpdate.endDate, upcomingMembership: deleteField(), attendanceCount: increment(1), lastAttendance: timestamp });
-            } else if (skipCreditDeduction) {
-                batch.update(memberRef, { attendanceCount: increment(1), lastAttendance: timestamp });
-            } else {
-                batch.update(memberRef, { credits: increment(-1), attendanceCount: increment(1), lastAttendance: timestamp });
-            }
-            await batch.commit();
-            notifyCallback();
-            return { success: true, id: newAttRef.id };
+            return { success: false, message: (data.message as string) || '수동 출석 처리 실패' };
         } catch (e) { console.error("Add manual attendance failed:", e); return { success: false, message: (e as Error).message }; }
     },
 

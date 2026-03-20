@@ -367,6 +367,9 @@ exports.checkExpiringMembersV2 = onSchedule({
 exports.applyMemberHoldCall = onCall({
     cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
 }, async (request) => {
+    // [FIX] Auth guard — 회원 인증 필요
+    const { requireAuth } = require('../helpers/authGuard');
+    requireAuth(request, 'applyMemberHoldCall');
     const tdb = tenantDb();
     const db = tdb.raw(); // 글로벌 컬렉션(studios)용
     const { memberId, holdDays } = request.data;

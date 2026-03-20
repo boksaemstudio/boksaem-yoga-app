@@ -73,6 +73,25 @@ const MemberProfile = () => {
         return () => clearInterval(interval);
     }, [langLabels.length]);
 
+    // ─── Wearable Sync State (Mock) ───
+    const [watchSync, setWatchSync] = useState(() => localStorage.getItem('watchSync') === 'true');
+    const toggleWatchSync = (e) => {
+        const checked = e.target.checked;
+        setWatchSync(checked);
+        localStorage.setItem('watchSync', checked ? 'true' : 'false');
+    };
+
+    // ─── MBTI State ───
+    const MBTI_TYPES = ['INTJ', 'INTP', 'ENTJ', 'ENTP', 'INFJ', 'INFP', 'ENFJ', 'ENFP', 'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ', 'ISTP', 'ISFP', 'ESTP', 'ESFP'];
+    const [mbti, setMbti] = useState(() => localStorage.getItem('member_mbti') || member?.mbti || '');
+    const handleMbtiChange = (value) => {
+        setMbti(value);
+        localStorage.setItem('member_mbti', value);
+        if (member?.id) {
+            storageService.updateMember(member.id, { mbti: value });
+        }
+    };
+
     // ─── AI Greeting Fade ───
     useEffect(() => {
         if (aiExperience?.message) {
@@ -210,6 +229,90 @@ const MemberProfile = () => {
                                             }} />
                                         </span>
                                     </label>
+                                </div>
+
+                                {/* Smartwatch / Wearable Sync Toggle */}
+                                <div className="glass-panel" style={{
+                                    padding: '25px 30px', background: 'linear-gradient(145deg, rgba(20, 25, 30, 0.9), rgba(15, 15, 20, 0.95))',
+                                    marginBottom: '20px', borderRadius: '24px', border: '1px solid rgba(0, 255, 204, 0.1)',
+                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                        <div style={{
+                                            width: '44px', height: '44px', borderRadius: '50%',
+                                            background: watchSync ? 'rgba(0, 255, 204, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            border: `1px solid ${watchSync ? 'rgba(0, 255, 204, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
+                                            transition: 'all 0.3s ease'
+                                        }}>
+                                            <span style={{ fontSize: '1.2rem', filter: watchSync ? 'none' : 'grayscale(1)' }}>⌚</span>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>건강 데이터 연동</span>
+                                            <span style={{ fontSize: '0.85rem', color: watchSync ? '#00ffcc' : 'rgba(255,255,255,0.4)', transition: 'color 0.3s' }}>
+                                                {watchSync ? 'Apple/Samsung Health 연결됨' : '심박수·칼로리 기록 관리'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <label className="premium-switch" style={{ position: 'relative', display: 'inline-block', width: '56px', height: '30px' }}>
+                                        <input type="checkbox" checked={watchSync} onChange={toggleWatchSync} style={{ opacity: 0, width: 0, height: 0 }} />
+                                        <span className="premium-slider-track" style={{
+                                            position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
+                                            backgroundColor: watchSync ? 'rgba(0, 255, 204, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+                                            transition: '0.4s', borderRadius: '34px',
+                                            border: `1px solid ${watchSync ? '#00ffcc' : 'rgba(255, 255, 255, 0.2)'}`
+                                        }}>
+                                            <span style={{
+                                                position: 'absolute', height: '22px', width: '22px',
+                                                left: watchSync ? '30px' : '4px', bottom: '3px',
+                                                backgroundColor: watchSync ? '#00ffcc' : 'rgba(255, 255, 255, 0.4)',
+                                                transition: '0.4s cubic-bezier(0.4, 0.0, 0.2, 1)', borderRadius: '50%', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                            }} />
+                                        </span>
+                                    </label>
+                                </div>
+
+                                {/* MBTI Selector */}
+                                <div className="glass-panel" style={{
+                                    padding: '25px 30px', background: 'linear-gradient(145deg, rgba(20, 20, 35, 0.9), rgba(15, 15, 25, 0.95))',
+                                    marginBottom: '20px', borderRadius: '24px', border: `1px solid ${mbti ? 'rgba(212, 175, 55, 0.2)' : 'rgba(255, 255, 255, 0.08)'}`,
+                                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+                                        <div style={{
+                                            width: '44px', height: '44px', borderRadius: '50%',
+                                            background: mbti ? 'rgba(212, 175, 55, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            border: `1px solid ${mbti ? 'rgba(212, 175, 55, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
+                                            transition: 'all 0.3s ease'
+                                        }}>
+                                            <span style={{ fontSize: '1.2rem' }}>🧬</span>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>나의 MBTI</span>
+                                            <span style={{ fontSize: '0.85rem', color: mbti ? 'var(--primary-gold)' : 'rgba(255,255,255,0.4)', transition: 'color 0.3s' }}>
+                                                {mbti ? `${mbti} — AI 인사말에 반영됩니다` : 'MBTI를 설정하면 맞춤 인사말이 바뀌어요'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                                        {MBTI_TYPES.map(type => (
+                                            <button key={type} onClick={() => handleMbtiChange(type)} style={{
+                                                padding: '8px 0', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 600,
+                                                background: mbti === type ? 'rgba(212, 175, 55, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                                                border: `1px solid ${mbti === type ? 'var(--primary-gold)' : 'rgba(255, 255, 255, 0.1)'}`,
+                                                color: mbti === type ? 'var(--primary-gold)' : 'rgba(255, 255, 255, 0.6)',
+                                                cursor: 'pointer', transition: 'all 0.2s ease'
+                                            }}>{type}</button>
+                                        ))}
+                                    </div>
+                                    {mbti && (
+                                        <button onClick={() => handleMbtiChange('')} style={{
+                                            marginTop: '12px', padding: '6px 16px', borderRadius: '8px',
+                                            background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
+                                            color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', cursor: 'pointer'
+                                        }}>선택 해제</button>
+                                    )}
                                 </div>
 
                                 {/* PWA Install Guide */}

@@ -158,8 +158,21 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
         }
         
         if (!cameraStreamRef.current || !isStreamAlive()) {
-            console.warn('[PHOTO] ⚠️ Camera stream is not available. Triggering recovery...');
-            initCamera('capture_recovery');
+            console.warn('[PHOTO] ⚠️ Camera stream is not available. Triggering recovery + retry...');
+            initCamera('capture_recovery').then(ok => {
+                if (ok) {
+                    // [SaaS FIX] 복구 성공 시 1.5초 후 재캡처 (카메라 안정화 대기)
+                    setTimeout(() => {
+                        const v = videoRef.current;
+                        if (v && v.readyState >= 2 && !v.paused && isStreamAlive()) {
+                            console.log('[PHOTO] ✅ Recovery succeeded, retrying capture...');
+                            doCapture(v);
+                        } else {
+                            console.warn('[PHOTO] ⚠️ Recovery succeeded but video still not ready.');
+                        }
+                    }, 1500);
+                }
+            });
             return;
         }
 

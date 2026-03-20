@@ -201,7 +201,7 @@ export const storageService = {
     async loadNotices() { if (cachedNotices.length > 0) return cachedNotices; return noticeService.loadNotices(); },
 
     // ═══ AI ═══
-    getAIExperience(memberName: string, attendanceCount: number, day: string, hour: number, upcomingClass: string | null, weather: string | null, credits: number, remainingDays: number, language = 'ko', diligence: unknown = null, context = 'profile') { return aiService.getAIExperience(memberName, attendanceCount, day, hour, upcomingClass, weather, credits, remainingDays, language, diligence, context); },
+    getAIExperience(memberName: string, attendanceCount: number, day: string, hour: number, upcomingClass: string | null, weather: string | null, credits: number, remainingDays: number, language = 'ko', diligence: unknown = null, context = 'profile', mbti: string | null = null) { return aiService.getAIExperience(memberName, attendanceCount, day, hour, upcomingClass, weather, credits, remainingDays, language, diligence, context, mbti); },
     getAIAnalysis(memberName: string, attendanceCount: number, logs: unknown[], timeOfDay: string, language = 'ko', requestRole = 'member', statsData: unknown = null, context = 'profile') { return aiService.getAIAnalysis(memberName, attendanceCount, logs, timeOfDay, language, requestRole, statsData, context); },
     getDailyYoga(language = 'ko') { return aiService.getDailyYoga(language); },
     getAiUsage() { return aiService.getAiUsage(); },

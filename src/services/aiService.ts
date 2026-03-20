@@ -72,7 +72,7 @@ const DAILY_YOGA_FALLBACK = (language: string): DailyYogaPose[] => [
 export const getAIExperience = async (
     memberName: string, attendanceCount: number, day: string, hour: number,
     upcomingClass: string | null, weather: string | null, credits: number, remainingDays: number,
-    language = 'ko', diligence: unknown = null, context = 'profile'
+    language = 'ko', diligence: unknown = null, context = 'profile', mbti: string | null = null
 ): Promise<AIExperienceResult> => {
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
     const cacheKey = `ai_experience_${memberName}_${today}_${hour}_${language}_${context}`;
@@ -82,7 +82,7 @@ export const getAIExperience = async (
     try {
         const genAI = httpsCallable(functions, 'generatePageExperienceV2');
         const isGeneric = !memberName || ["방문 회원", "방문회원", "visitor", "Guest"].includes(memberName);
-        const res = await genAI({ memberName, attendanceCount, dayOfWeek: day, timeOfDay: hour, upcomingClass, weather, credits, remainingDays, language, diligence, role: isGeneric ? 'visitor' : 'member', type: 'experience', context });
+        const res = await genAI({ memberName, attendanceCount, dayOfWeek: day, timeOfDay: hour, upcomingClass, weather, credits, remainingDays, language, diligence, role: isGeneric ? 'visitor' : 'member', type: 'experience', context, mbti });
         const data = res.data as AIExperienceResult | null;
 
         if (!data || (Array.isArray(data) && data.length === 0)) {

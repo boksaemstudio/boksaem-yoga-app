@@ -63,7 +63,7 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, { onUpdateMe
                 const sorted = [...history].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
                 const d = new Date(sorted[0].timestamp);
                 const startDateStr = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-                const end = new Date(d); end.setMonth(end.getMonth() + (member.duration || 3));
+                const end = new Date(d); end.setMonth(end.getMonth() + (member.duration || 1)); end.setDate(end.getDate() - 1);
                 const endDateStr = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
                 storageService.updateMember(member.id, { startDate: startDateStr, endDate: endDateStr }).catch(() => {});
             }
@@ -198,7 +198,7 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, { onUpdateMe
                 if (member.startDate === 'TBD') {
                     const d = new Date(timestamp);
                     const startDateStr = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-                    const end = new Date(d); end.setMonth(end.getMonth() + (member.duration || 3));
+                    const end = new Date(d); end.setMonth(end.getMonth() + (member.duration || 1)); end.setDate(end.getDate() - 1);
                     const endDateStr = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
                     await storageService.updateMember(member.id, { startDate: startDateStr, endDate: endDateStr });
                     setLocalMember(prev => ({ ...prev, startDate: startDateStr, endDate: endDateStr }));

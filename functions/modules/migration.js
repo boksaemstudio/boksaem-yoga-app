@@ -96,6 +96,9 @@ exports.restorePricingV2 = onCall({
     region: "asia-northeast3",
     cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
 }, async (request) => {
+    // [FIX] Auth guard — 관리자만 가격표 복원 가능
+    const { requireAdmin } = require('../helpers/authGuard');
+    requireAdmin(request, 'restorePricingV2');
     const db = admin.firestore();
 
     const pricing = {

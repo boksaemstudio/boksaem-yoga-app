@@ -11,7 +11,7 @@ export const STUDIO_CONFIG = {
         LOGO_TEXT: "YOGA",
         SLOGAN: "나를 만나는 고요한 시간",
         DESCRIPTION: "요가와 함께하는 건강한 일상",
-        APP_VERSION: "2026.03.20 10:41",
+        APP_VERSION: "2026.03.20 22:20",
         FAVICON: "/favicon.ico",
     },
 
@@ -36,6 +36,12 @@ export const STUDIO_CONFIG = {
             maxDailyBookings: 2,         // 하루 최대 예약
             noshowCreditDeduct: 1,       // 노쇼 시 횟수 차감
             enableWaitlist: true         // 대기열 기능
+        },
+        CREDIT_RULES: {
+            mode: 'total',               // 'total' | 'weekly' | 'daily'
+            weeklyResetDay: 1,           // 0=일, 1=월, ..., 6=토
+            allowCarryOver: false,       // 미사용 주간 크레딧 이월 여부
+            weeklyLimitSource: 'plan'    // 'plan' = 요금제 기준, 'member' = 회원별 수동
         },
         SHOW_CAMERA_PREVIEW: false       // 키오스크 카메라 프리뷰 (기본 OFF)
     },

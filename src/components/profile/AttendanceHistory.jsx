@@ -4,11 +4,13 @@ import { getTranslatedClass } from '../../utils/classMapping';
 import { getHolidayName } from '../../utils/holidays';
 import { useStudioConfig } from '../../contexts/StudioContext';
 import { getMembershipLabel } from '../../utils/membershipLabels';
+import WorkoutReportModal from './WorkoutReportModal';
 
 const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, isSubmitting, logLimit, setLogLimit }) => {
     const { config } = useStudioConfig();
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
     const [currentDate, setCurrentDate] = useState(new Date());
+    const [selectedReportLog, setSelectedReportLog] = useState(null);
 
     const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
     const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
@@ -265,6 +267,26 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, is
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        {localStorage.getItem('watchSync') === 'true' && !isExpired && (
+                                            <button
+                                                onClick={() => setSelectedReportLog(log)}
+                                                style={{
+                                                    background: 'rgba(0, 255, 204, 0.1)',
+                                                    border: '1px solid rgba(0, 255, 204, 0.3)',
+                                                    color: '#00ffcc',
+                                                    borderRadius: '8px',
+                                                    padding: '4px 8px',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: 'bold',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px'
+                                                }}
+                                            >
+                                                ⌚ 리포트
+                                            </button>
+                                        )}
                                         <div style={{ 
                                             fontSize: '0.8rem', 
                                             color: badgeColor, 
@@ -347,6 +369,15 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, is
                     </div>
                 )}
             </div>
+
+            {/* Health Report Modal */}
+            {selectedReportLog && (
+                <WorkoutReportModal 
+                    log={selectedReportLog} 
+                    onClose={() => setSelectedReportLog(null)} 
+                    t={t} 
+                />
+            )}
         </div>
     );
 };

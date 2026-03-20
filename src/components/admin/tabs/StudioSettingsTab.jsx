@@ -343,7 +343,96 @@ const StudioSettingsTab = () => {
                     )}
                 </div>
 
-                {/* ── 2-2. 수업 예약 ── */}
+                {/* ── 2-2. 수강 방식 (Credit Policy) ── */}
+                <div style={featureCardStyle}>
+                    <div style={featureHeaderStyle}>
+                        <div>
+                            <div style={{ fontWeight: 'bold', fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '4px' }}>🔢 수강 횟수 관리 방식</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>회원의 수강 횟수를 전체 기간/주간/일간 단위로 관리합니다</div>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        {/* 모드 선택 */}
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            {[
+                                { value: 'total', label: '전체 기간', desc: '등록 기간 내 자유롭게 사용', icon: '📊' },
+                                { value: 'weekly', label: '주간 단위', desc: '주 N회 제한 (예: 주 3회)', icon: '📅' },
+                                { value: 'daily', label: '일간 단위', desc: '하루 N회 제한', icon: '🕐' },
+                            ].map(opt => (
+                                <button
+                                    key={opt.value}
+                                    onClick={() => handleChange('POLICIES.CREDIT_RULES', {
+                                        ...(localConfig.POLICIES?.CREDIT_RULES || {}),
+                                        mode: opt.value
+                                    })}
+                                    style={{
+                                        flex: 1, minWidth: '150px', padding: '16px 14px',
+                                        borderRadius: '10px', cursor: 'pointer', textAlign: 'left',
+                                        border: `2px solid ${(localConfig.POLICIES?.CREDIT_RULES?.mode || 'total') === opt.value ? 'var(--primary-theme-color)' : 'rgba(255,255,255,0.08)'}`,
+                                        background: (localConfig.POLICIES?.CREDIT_RULES?.mode || 'total') === opt.value ? 'rgba(212,175,55,0.1)' : 'rgba(255,255,255,0.02)',
+                                        transition: 'all 0.2s',
+                                    }}
+                                >
+                                    <div style={{ fontSize: '1.2rem', marginBottom: '6px' }}>{opt.icon}</div>
+                                    <div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: (localConfig.POLICIES?.CREDIT_RULES?.mode || 'total') === opt.value ? 'var(--primary-theme-color)' : 'var(--text-primary)', marginBottom: '4px' }}>{opt.label}</div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{opt.desc}</div>
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* 주간 모드 세부 설정 */}
+                        {(localConfig.POLICIES?.CREDIT_RULES?.mode === 'weekly') && (
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', background: 'rgba(255,255,255,0.03)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)', flexWrap: 'wrap' }}>
+                                <div style={{ flex: 1, minWidth: '140px' }}>
+                                    <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', marginBottom: '6px' }}>주간 리셋 요일</div>
+                                    <select
+                                        value={localConfig.POLICIES?.CREDIT_RULES?.weeklyResetDay ?? 1}
+                                        onChange={(e) => handleChange('POLICIES.CREDIT_RULES', {
+                                            ...(localConfig.POLICIES?.CREDIT_RULES || {}),
+                                            weeklyResetDay: parseInt(e.target.value)
+                                        })}
+                                        className="styled-input"
+                                        style={{ padding: '6px 10px', fontSize: '0.85rem', maxWidth: '120px' }}
+                                    >
+                                        <option value={1}>월요일</option>
+                                        <option value={2}>화요일</option>
+                                        <option value={3}>수요일</option>
+                                        <option value={4}>목요일</option>
+                                        <option value={5}>금요일</option>
+                                        <option value={6}>토요일</option>
+                                        <option value={0}>일요일</option>
+                                    </select>
+                                </div>
+                                <div style={{ flex: 1, minWidth: '140px' }}>
+                                    <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', marginBottom: '6px' }}>주간 한도 기준</div>
+                                    <select
+                                        value={localConfig.POLICIES?.CREDIT_RULES?.weeklyLimitSource || 'plan'}
+                                        onChange={(e) => handleChange('POLICIES.CREDIT_RULES', {
+                                            ...(localConfig.POLICIES?.CREDIT_RULES || {}),
+                                            weeklyLimitSource: e.target.value
+                                        })}
+                                        className="styled-input"
+                                        style={{ padding: '6px 10px', fontSize: '0.85rem', maxWidth: '160px' }}
+                                    >
+                                        <option value="plan">요금제 자동 계산</option>
+                                        <option value="member">회원별 수동 설정</option>
+                                    </select>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 안내 메시지 */}
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', padding: '10px 14px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            💡 {(localConfig.POLICIES?.CREDIT_RULES?.mode || 'total') === 'total'
+                                ? '현재 방식: 등록된 총 횟수에서 출석할 때마다 1회씩 차감됩니다.'
+                                : (localConfig.POLICIES?.CREDIT_RULES?.mode === 'weekly'
+                                    ? '주간 방식: 요금제의 주당 횟수(예: 월 12회 → 주 3회)를 초과하면 출석이 제한됩니다. 총 잔여 횟수도 함께 차감됩니다.'
+                                    : '일간 방식: 하루 수강 가능 횟수를 초과하면 출석이 제한됩니다.')
+                            }
+                        </div>
+                    </div>
+                </div>
                 <div style={featureCardStyle}>
                     <div style={featureHeaderStyle}>
                         <div>

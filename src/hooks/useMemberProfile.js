@@ -79,7 +79,8 @@ export const useMemberProfile = (language, t) => {
                 day, hour, null,
                 wData ? `${t('weather_' + wData.key)} (${wData.temp}°C)` : 'Sunny',
                 m.credits || 0, getDaysRemaining(m.endDate), language,
-                { streak, lastAttendanceAt: lastAtt }, 'profile'
+                { streak, lastAttendanceAt: lastAtt }, 'profile',
+                m.mbti || localStorage.getItem('member_mbti') || null
             );
             if (exp) {
                 setAiExperience(exp);
