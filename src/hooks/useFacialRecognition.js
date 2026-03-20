@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { extractFaceDescriptor, findBestMatch, loadFacialModels } from '../services/facialService';
+import { extractFaceDescriptor, findBestMatch, loadFacialModels, euclideanDistance } from '../services/facialService';
 
 /**
  * useFacialRecognition — 얼굴 인식 관련 로직 훅
@@ -70,8 +70,7 @@ export function useFacialRecognition({ enabled, autoUpdateRef, proceedWithCheckI
                 for (const bio of biometricsCache.current) {
                     if (!bio.descriptor) continue;
                     const storedDesc = new Float32Array(Object.values(bio.descriptor));
-                    const faceapi = await import('@vladmandic/face-api');
-                    const distance = faceapi.euclideanDistance(descriptor, storedDesc);
+                    const distance = euclideanDistance(descriptor, storedDesc);
                     if (distance < minDistance) {
                         minDistance = distance;
                         bestMatch = bio;
@@ -88,7 +87,7 @@ export function useFacialRecognition({ enabled, autoUpdateRef, proceedWithCheckI
             }
         };
 
-        scanIntervalRef.current = setInterval(scanForFace, 3000);
+        scanIntervalRef.current = setInterval(scanForFace, 1500);
         return () => { if (scanIntervalRef.current) clearInterval(scanIntervalRef.current); };
     }, [enabled, faceModelsLoaded, autoUpdateRef, proceedWithCheckIn]);
 
