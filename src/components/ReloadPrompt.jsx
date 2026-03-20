@@ -44,7 +44,10 @@ function ReloadPrompt() {
   }, [markActivity]);
 
   // ━━━━ 키오스크 자동 새로고침: controllerchange 이벤트 사용 ━━━━
-  const isKiosk = typeof window !== 'undefined' && window.location.pathname.startsWith('/checkin');
+  // 항상 켜놓는 앱: 키오스크 + 관리자앱 → 유휴 시 자동 새로고침
+  const isAlwaysOn = typeof window !== 'undefined' && (
+    window.location.pathname.startsWith('/checkin') || window.location.pathname.startsWith('/admin')
+  );
 
   const startIdleReloadLoop = useCallback(() => {
     if (idleTimerRef.current) return; // 이미 감시 중
@@ -69,7 +72,7 @@ function ReloadPrompt() {
   }, []);
 
   useEffect(() => {
-    if (!isKiosk || !('serviceWorker' in navigator)) return;
+    if (!isAlwaysOn || !('serviceWorker' in navigator)) return;
 
     // autoUpdate 모드에서 실제 SW 교체 감지
     const onControllerChange = () => {
@@ -82,14 +85,14 @@ function ReloadPrompt() {
       navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
       if (idleTimerRef.current) clearInterval(idleTimerRef.current);
     };
-  }, [isKiosk, startIdleReloadLoop]);
+  }, [isAlwaysOn, startIdleReloadLoop]);
 
   // needRefresh 트리거도 fallback으로 유지
   useEffect(() => {
-    if (needRefresh && isKiosk) {
+    if (needRefresh && isAlwaysOn) {
       startIdleReloadLoop();
     }
-  }, [needRefresh, isKiosk, startIdleReloadLoop]);
+  }, [needRefresh, isAlwaysOn, startIdleReloadLoop]);
 
   // ━━━━ 수동 업데이트 (관리자/회원 앱용) ━━━━
   const handleUpdate = async () => {
@@ -111,8 +114,8 @@ function ReloadPrompt() {
     }
   };
 
-  // 키오스크: 자동 처리 → 배너 안 보여줌
-  if (!needRefresh || isKiosk) {
+  // 키오스크/관리자: 자동 처리 → 배너 안 보여줌
+  if (!needRefresh || isAlwaysOn) {
     return null;
   }
 
