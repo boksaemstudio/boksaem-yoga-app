@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useRef, useEffect } from 'react';
 import { useStudioConfig } from '../../contexts/StudioContext';
 
 const CheckInInfoSection = memo(({
@@ -10,27 +10,135 @@ const CheckInInfoSection = memo(({
     rys200Logo,
     logoWide,
     qrCodeUrl,
-    handleQRInteraction
+    handleQRInteraction,
+    onCameraTouch,
+    faceRecognitionEnabled,
+    isScanning,
+    cameraVideoRef
 }) => {
     const { config } = useStudioConfig();
     const studioName = config.IDENTITY?.NAME || 'Studio';
+    const showCamera = config.POLICIES?.SHOW_CAMERA_PREVIEW || false;
+    const videoRef = useRef(null);
+    const streamRef = useRef(null);
+
+    useEffect(() => {
+        if (!showCamera) return;
+        let cancelled = false;
+
+        const startCamera = async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+                });
+                if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
+                streamRef.current = stream;
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                }
+                if (cameraVideoRef?.current && !cameraVideoRef.current.srcObject) {
+                    cameraVideoRef.current.srcObject = stream;
+                }
+            } catch (e) {
+                console.log('[Camera Preview] 카메라 접근 불가:', e.message);
+            }
+        };
+
+        startCamera();
+        return () => {
+            cancelled = true;
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(t => t.stop());
+                streamRef.current = null;
+            }
+        };
+    }, [showCamera]);
+
+    const isIdle = pin.length === 0 && !loading;
 
     return (
         <div className="checkin-info-section">
-            <header className="info-header" style={{ marginBottom: 'clamp(5px, 2vh, 40px)' }}>
+            <header className="info-header" style={{ marginBottom: 'clamp(5px, 1vh, 15px)' }}>
                 <div className="logo-container" style={{ display: 'flex', alignItems: 'center', gap: '35px', justifyContent: 'center' }}>
                     <img src={rys200Logo} alt="RYS200" style={{ height: 'clamp(40px, 8vh, 80px)', width: 'auto', filter: 'brightness(0) invert(1)', opacity: 0.8 }} />
                     <img src={logoWide} alt="logo" style={{ height: 'clamp(38px, 8vh, 78px)', width: 'auto' }} />
                 </div>
             </header>
 
-            <div className="info-body">
-                <div className="pin-display">
-                    {pin.padEnd(4, '•').split('').map((c, i) => (
-                        <span key={i} className={i < pin.length ? 'pin-active' : 'pin-inactive'}>{c}</span>
-                    ))}
+            {/* ━━━ 카메라 프리뷰 (로고 아래, AI 메시지 위) — 유휴 시만 표시 ━━━ */}
+            {showCamera && isIdle && (
+                <div style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+                    marginBottom: 'clamp(5px, 1vh, 12px)',
+                    animation: 'fadeIn 0.4s ease-out'
+                }}>
+                    <div style={{
+                        width: 'clamp(200px, 35vw, 400px)',
+                        aspectRatio: '4/3',
+                        borderRadius: '16px',
+                        overflow: 'hidden',
+                        border: isScanning ? '3px solid var(--primary-gold)' : '2px solid rgba(255, 215, 0, 0.2)',
+                        background: 'rgba(0,0,0,0.5)',
+                        cursor: faceRecognitionEnabled ? 'pointer' : 'default',
+                        position: 'relative',
+                        transition: 'border 0.3s',
+                        boxShadow: isScanning ? '0 0 20px rgba(var(--primary-rgb), 0.3)' : '0 4px 15px rgba(0,0,0,0.4)'
+                    }}
+                        onClick={faceRecognitionEnabled ? onCameraTouch : undefined}
+                    >
+                        <video
+                            ref={videoRef}
+                            autoPlay
+                            playsInline
+                            muted
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }}
+                        />
+                        {isScanning && (
+                            <div style={{
+                                position: 'absolute', inset: 0,
+                                border: '3px solid var(--primary-gold)',
+                                borderRadius: '14px',
+                                animation: 'pulse 1.5s ease-in-out infinite',
+                                pointerEvents: 'none'
+                            }} />
+                        )}
+                        {faceRecognitionEnabled && !isScanning && (
+                            <div style={{
+                                position: 'absolute', bottom: '8px', left: '50%', transform: 'translateX(-50%)',
+                                fontSize: 'clamp(0.7rem, 1.2vw, 0.9rem)', color: 'var(--primary-gold)', background: 'rgba(0,0,0,0.75)',
+                                padding: '4px 14px', borderRadius: '16px', whiteSpace: 'nowrap',
+                                backdropFilter: 'blur(4px)', fontWeight: 600,
+                                border: '1px solid rgba(255, 215, 0, 0.3)'
+                            }}>📸 얼굴을 비추면 자동 출석</div>
+                        )}
+                    </div>
+                    <div style={{
+                        fontSize: 'clamp(0.5rem, 0.8vw, 0.65rem)',
+                        color: 'rgba(255,255,255,0.25)',
+                        textAlign: 'center',
+                        lineHeight: 1.3
+                    }}>
+                        🔐 사진 미저장 · 암호화 128숫자 변환 · 불가역적
+                    </div>
                 </div>
+            )}
 
+            {/* ━━━ PIN 표시 (키 입력 중일 때 카메라 대신 표시) ━━━ */}
+            {pin.length > 0 && (
+                <div style={{
+                    display: 'flex', justifyContent: 'center', alignItems: 'center',
+                    marginBottom: 'clamp(5px, 1vh, 12px)',
+                    animation: 'fadeIn 0.2s ease-out'
+                }}>
+                    <div className="pin-display">
+                        {pin.padEnd(4, '•').split('').map((c, i) => (
+                            <span key={i} className={i < pin.length ? 'pin-active' : 'pin-inactive'}>{c}</span>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            <div className="info-body">
                 <div className="message-container">
                     <div className={`instruction-text ${loading ? 'loading' : ''}`}>
                         {aiExperience ? (
