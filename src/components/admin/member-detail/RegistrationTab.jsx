@@ -10,6 +10,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
     const isSubmittingRef = useRef(false);
 
     // ─── 즉시 출석 관련 상태 ───
+    const [immediateDate, setImmediateDate] = useState(() => new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }));
     const [immediateTime, setImmediateTime] = useState(() => {
         const now = new Date();
         return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -115,13 +116,12 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
     useEffect(() => { setCustomEndDate(calculatedEndDate); }, [calculatedEndDate]);
     useEffect(() => { setCustomCredits(calculatedCredits); }, [calculatedCredits]);
 
-    // ─── 즉시 출석: 당일 수업 목록 fetch ───
+    // ─── 즉시 출석: 선택 날짜/지점의 수업 목록 fetch ───
     useEffect(() => {
-        if (startDateMode !== 'immediate' || !immediateBranch) return;
-        const todayForClasses = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+        if (startDateMode !== 'immediate' || !immediateBranch || !immediateDate) return;
         const fetchClasses = async () => {
             try {
-                const classes = await storageService.getDailyClasses(immediateBranch, null, todayForClasses);
+                const classes = await storageService.getDailyClasses(immediateBranch, null, immediateDate);
                 setImmediateDailyClasses(classes || []);
             } catch (err) {
                 console.warn('[RegistrationTab] Failed to fetch daily classes:', err);
@@ -129,7 +129,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
             }
         };
         fetchClasses();
-    }, [startDateMode, immediateBranch]);
+    }, [startDateMode, immediateBranch, immediateDate]);
 
     // ─── 즉시 출석: 수업 옵션 ───
     const immediateClassOptions = useMemo(() => {
@@ -147,10 +147,10 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
         return options;
     }, [immediateDailyClasses]);
 
-    // ─── 즉시 출석: 지점 변경 시 수업 선택 초기화 ───
+    // ─── 즉시 출석: 지점/날짜 변경 시 수업 선택 초기화 ───
     useEffect(() => {
         setImmediateClassName('자율수련');
-    }, [immediateBranch]);
+    }, [immediateBranch, immediateDate]);
 
     // [INFO] 선등록 여부 확인 — 현재 회원권이 활성 상태인지 체크
     const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
@@ -160,7 +160,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
     // Computed Info for TBD mode
     const isTbd = startDateMode === 'tbd';
     const isImmediate = startDateMode === 'immediate';
-    const finalStartDate = isTbd ? 'TBD' : (isImmediate ? todayStr : startDate);
+    const finalStartDate = isTbd ? 'TBD' : (isImmediate ? immediateDate : startDate);
     const finalEndDate = isTbd ? 'TBD' : customEndDate;
 
     const handleRenew = async () => {
@@ -217,7 +217,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
             // [FIX] 즉시 출석 모드일 때 등록과 동시에 출석 처리 (선택한 시간/수업 사용)
             if (isImmediate && onManualAttendance) {
                 try {
-                    await onManualAttendance(today, immediateTime, immediateBranch || member.homeBranch || '', immediateClassName);
+                    await onManualAttendance(immediateDate, immediateTime, immediateBranch || member.homeBranch || '', immediateClassName);
                 } catch (attErr) {
                     console.error('Auto attendance error:', attErr);
                     // 등록은 성공했으므로 출석 실패는 경고만
@@ -371,15 +371,15 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                     {startDateMode === 'immediate' && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(76, 175, 80, 0.1)', border: '1px solid rgba(76, 175, 80, 0.3)', color: '#4CAF50', textAlign: 'center', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                                ✅ 오늘({todayStr}) 시작 + 출석 1회 자동 처리
+                                ✅ {immediateDate} 시작 + 출석 1회 자동 처리
                             </div>
-                            {/* 출석 시간/지점/수업 선택 UI */}
+                            {/* 출석 날짜/시간/지점/수업 선택 UI */}
                             <div style={{
                                 background: 'rgba(255,255,255,0.05)', padding: '14px', borderRadius: '10px',
                                 display: 'flex', flexDirection: 'column', gap: '10px',
                                 border: '1px solid rgba(255,255,255,0.08)'
                             }}>
-                                <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>⏰ 출석 시간 선택</label>
+                                <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>📋 출석 정보 선택</label>
                                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                                     {/* 지점 */}
                                     <select
@@ -392,6 +392,12 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                                             <option key={b.id} value={b.id}>{b.name}</option>
                                         ))}
                                     </select>
+                                    {/* 날짜 */}
+                                    <div style={{ flex: 1.5, minWidth: '130px' }}>
+                                        <CustomDatePicker value={immediateDate} onChange={setImmediateDate} />
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                                     {/* 시간 */}
                                     <input
                                         type="time"
