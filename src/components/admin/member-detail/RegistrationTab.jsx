@@ -1,9 +1,22 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import CustomDatePicker from '../../common/CustomDatePicker';
+import { useStudioConfig } from '../../../contexts/StudioContext';
+import { storageService } from '../../../services/storage';
 
 const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMember, onManualAttendance }) => {
+    const { config } = useStudioConfig();
+    const branches = config.BRANCHES || [];
     const [isSubmitting, setIsSubmitting] = useState(false);
     const isSubmittingRef = useRef(false);
+
+    // ─── 즉시 출석 관련 상태 ───
+    const [immediateTime, setImmediateTime] = useState(() => {
+        const now = new Date();
+        return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    });
+    const [immediateBranch, setImmediateBranch] = useState(member.homeBranch || (branches.length > 0 ? branches[0].id : ''));
+    const [immediateClassName, setImmediateClassName] = useState('자율수련');
+    const [immediateDailyClasses, setImmediateDailyClasses] = useState([]);
 
     // Renew State
     const [membershipType, setMembershipType] = useState(() => member.membershipType || Object.keys(pricingConfig || {}).find(k => k !== '_meta') || 'general');
@@ -102,6 +115,43 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
     useEffect(() => { setCustomEndDate(calculatedEndDate); }, [calculatedEndDate]);
     useEffect(() => { setCustomCredits(calculatedCredits); }, [calculatedCredits]);
 
+    // ─── 즉시 출석: 당일 수업 목록 fetch ───
+    useEffect(() => {
+        if (startDateMode !== 'immediate' || !immediateBranch) return;
+        const todayForClasses = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+        const fetchClasses = async () => {
+            try {
+                const classes = await storageService.getDailyClasses(immediateBranch, null, todayForClasses);
+                setImmediateDailyClasses(classes || []);
+            } catch (err) {
+                console.warn('[RegistrationTab] Failed to fetch daily classes:', err);
+                setImmediateDailyClasses([]);
+            }
+        };
+        fetchClasses();
+    }, [startDateMode, immediateBranch]);
+
+    // ─── 즉시 출석: 수업 옵션 ───
+    const immediateClassOptions = useMemo(() => {
+        const options = [{ value: '자율수련', label: '자율수련' }];
+        if (immediateDailyClasses.length > 0) {
+            immediateDailyClasses.forEach(cls => {
+                const time = cls.time || '';
+                const title = cls.title || cls.className || '';
+                const instructor = cls.instructor || '';
+                const parts = [time, title, instructor].filter(Boolean);
+                const label = parts.join(' ');
+                options.push({ value: title, label, time });
+            });
+        }
+        return options;
+    }, [immediateDailyClasses]);
+
+    // ─── 즉시 출석: 지점 변경 시 수업 선택 초기화 ───
+    useEffect(() => {
+        setImmediateClassName('자율수련');
+    }, [immediateBranch]);
+
     // [INFO] 선등록 여부 확인 — 현재 회원권이 활성 상태인지 체크
     const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
     const isAdvance = member.endDate && new Date(member.endDate) >= new Date(todayStr) && (member.credits || 0) > 0;
@@ -164,10 +214,10 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
 
             await onUpdateMember(member.id, updateData);
 
-            // [FIX] 즉시 출석 모드일 때 등록과 동시에 출석 처리
+            // [FIX] 즉시 출석 모드일 때 등록과 동시에 출석 처리 (선택한 시간/수업 사용)
             if (isImmediate && onManualAttendance) {
                 try {
-                    await onManualAttendance(today, '10:00', member.homeBranch || '', '자율수련');
+                    await onManualAttendance(today, immediateTime, immediateBranch || member.homeBranch || '', immediateClassName);
                 } catch (attErr) {
                     console.error('Auto attendance error:', attErr);
                     // 등록은 성공했으므로 출석 실패는 경고만
@@ -319,8 +369,50 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                         />
                     )}
                     {startDateMode === 'immediate' && (
-                        <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(76, 175, 80, 0.1)', border: '1px solid rgba(76, 175, 80, 0.3)', color: '#4CAF50', textAlign: 'center', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                            ✅ 오늘({todayStr}) 시작 + 출석 1회 자동 처리
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(76, 175, 80, 0.1)', border: '1px solid rgba(76, 175, 80, 0.3)', color: '#4CAF50', textAlign: 'center', fontSize: '0.9rem', fontWeight: 'bold' }}>
+                                ✅ 오늘({todayStr}) 시작 + 출석 1회 자동 처리
+                            </div>
+                            {/* 출석 시간/지점/수업 선택 UI */}
+                            <div style={{
+                                background: 'rgba(255,255,255,0.05)', padding: '14px', borderRadius: '10px',
+                                display: 'flex', flexDirection: 'column', gap: '10px',
+                                border: '1px solid rgba(255,255,255,0.08)'
+                            }}>
+                                <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>⏰ 출석 시간 선택</label>
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                                    {/* 지점 */}
+                                    <select
+                                        value={immediateBranch}
+                                        onChange={(e) => setImmediateBranch(e.target.value)}
+                                        className="form-select"
+                                        style={{ flex: 1, minWidth: '90px' }}
+                                    >
+                                        {branches.map(b => (
+                                            <option key={b.id} value={b.id}>{b.name}</option>
+                                        ))}
+                                    </select>
+                                    {/* 시간 */}
+                                    <input
+                                        type="time"
+                                        value={immediateTime}
+                                        onChange={e => setImmediateTime(e.target.value)}
+                                        className="form-input"
+                                        style={{ flex: 1, minWidth: '100px', cursor: 'pointer', fontFamily: 'var(--font-main)' }}
+                                    />
+                                    {/* 수업 */}
+                                    <select
+                                        value={immediateClassName}
+                                        onChange={(e) => setImmediateClassName(e.target.value)}
+                                        className="form-select"
+                                        style={{ flex: 1.2, minWidth: '120px' }}
+                                    >
+                                        {immediateClassOptions.map(opt => (
+                                            <option key={opt.label} value={opt.value}>{opt.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     )}
 
