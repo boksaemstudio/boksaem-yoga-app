@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { db, auth } from '../firebase';
+import { useStudioStore } from '../stores/useStudioStore';
 import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { STUDIO_CONFIG as STATIC_CONFIG } from '../studioConfig';
-import { resolveStudioId } from '../utils/resolveStudioId';
+import { resolveStudioId, onStudioChange, getCurrentStudioId } from '../utils/resolveStudioId';
 
 const StudioContext = createContext();
 
@@ -18,19 +19,24 @@ export const useStudioConfig = () => {
 export const StudioProvider = ({ children }) => {
     const [config, setConfig] = useState(STATIC_CONFIG);
     const [loading, setLoading] = useState(true);
+    const [studioId, setStudioId] = useState(() => resolveStudioId());
+
+    // [MULTI-STUDIO] 외부에서 switchStudio() 호출 시 studioId 변경 감지
+    useEffect(() => {
+        const unsub = onStudioChange((newId) => {
+            setLoading(true);
+            setStudioId(newId);
+        });
+        return unsub;
+    }, []);
 
     useEffect(() => {
-        // 호스트네임 기반으로 스튜디오 ID를 동적으로 해석
-        const studioId = resolveStudioId();
         const studioDocRef = doc(db, 'studios', studioId);
 
         let unsubscribeSnapshot = null;
 
-        // [FIX] Wait for auth to be ready BEFORE querying Firestore
-        // This prevents the race condition where StudioContext fires queries before anonymous auth completes
         const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
             if (!user) {
-                // No user yet — trigger anonymous auth (kiosk mode)
                 try {
                     await signInAnonymously(auth);
                 } catch (e) {
@@ -38,16 +44,13 @@ export const StudioProvider = ({ children }) => {
                     setLoading(false);
                     return;
                 }
-                // onAuthStateChanged will fire again with the new user, so return here
                 return;
             }
 
-            // User is authenticated — safe to query Firestore
-            // [AUTO-SEEDING] Check if config exists in Firestore, if not, push static config
+            // [AUTO-SEEDING]
             try {
                 const snap = await getDoc(studioDocRef);
                 if (!snap.exists()) {
-                    console.log(`[스튜디오] ${studioId} 최초 실행 감지. 초기 설정 저장 중...`);
                     await setDoc(studioDocRef, STATIC_CONFIG);
                 }
             } catch (e) {
@@ -104,8 +107,9 @@ export const StudioProvider = ({ children }) => {
                     if (!merged.ASSETS.LOGO?.SQUARE || merged.ASSETS.LOGO.SQUARE === '/') merged.ASSETS.LOGO.SQUARE = '/assets/logo_square.webp';
                 }
 
-                console.log('[스튜디오] 설정 동기화 완료:', merged.IDENTITY?.NAME);
+
                 setConfig(merged);
+                useStudioStore.getState().setConfig(merged);
 
                 // Update CSS Variables dynamically
                 const theme = merged.THEME || {};
@@ -114,9 +118,11 @@ export const StudioProvider = ({ children }) => {
                 document.documentElement.style.setProperty('--primary-theme-skeleton', theme.SKELETON_COLOR || 'rgba(var(--primary-rgb), 0.1)');
             }
             setLoading(false);
+                useStudioStore.getState().setLoading(false);
         }, (error) => {
             console.error('[스튜디오] 설정 동기화 오류:', error);
             setLoading(false);
+                useStudioStore.getState().setLoading(false);
         });
         }); // end onAuthStateChanged
 
@@ -124,7 +130,7 @@ export const StudioProvider = ({ children }) => {
             unsubscribeAuth();
             if (unsubscribeSnapshot) unsubscribeSnapshot();
         };
-    }, []);
+    }, [studioId]);
 
     const updateConfig = async (newConfig) => {
         try {

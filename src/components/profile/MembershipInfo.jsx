@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useStudioConfig } from '../../contexts/StudioContext';
 import { getMembershipLabel } from '../../utils/membershipLabels';
 import { Icons } from '../CommonIcons';
@@ -33,17 +33,8 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
     const usedHoldCount = holdHistory.filter(h => !h.cancelledAt).length;
     const canHold = allowSelfHold && matchedRule && !isHolding && usedHoldCount < (matchedRule.maxCount || 1);
 
-    // [DEBUG] 홀딩 디버그 로그
-    console.log('[MembershipInfo] Hold Debug:', {
-        allowSelfHold,
-        holdRulesCount: holdRules.length,
-        memberDuration,
-        matchedRule: matchedRule ? `${matchedRule.durationMonths}mo` : 'NONE',
-        isHolding,
-        usedHoldCount,
-        canHold,
-        configPolicies: config.POLICIES
-    });
+
+
 
     const handleApplyHold = async () => {
         if (!member.id || holdDays <= 0) return;
@@ -85,6 +76,20 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
                 <span style={{ background: 'var(--primary-gold)', color: 'black', padding: '3px 10px', borderRadius: '5px', fontSize: '0.75rem', fontWeight: 'bold' }}>
                     {(config.BRANCHES || []).find(b => b.id === member.homeBranch)?.name || member.homeBranch}
                 </span>
+                {member.hasFaceDescriptor && (
+                    <span style={{ 
+                        background: 'rgba(99, 102, 241, 0.15)', 
+                        color: '#818CF8', 
+                        padding: '3px 10px', 
+                        borderRadius: '5px', 
+                        fontSize: '0.75rem', 
+                        fontWeight: 'bold',
+                        border: '1px solid rgba(99, 102, 241, 0.3)',
+                        display: 'flex', alignItems: 'center', gap: '4px'
+                    }}>
+                        💠 AI 출석 등록
+                    </span>
+                )}
                 {isHolding && (
                     <span style={{ 
                         background: 'rgba(251, 146, 60, 0.2)', 
@@ -102,6 +107,23 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
                 <span style={{ background: 'rgba(255,255,255,0.1)', color: 'white', padding: '3px 10px', borderRadius: '5px', fontSize: '0.75rem' }}>{member.phone}</span>
                 <img src={config.ASSETS?.LOGO?.RYS200} alt="RYS200" style={{ height: '49px', width: 'auto', marginLeft: 'auto', filter: 'brightness(0) invert(1)' }} />
             </div>
+            {/* [NEW] 안면인식 안심 문구 */}
+            {member.hasFaceDescriptor && (
+                <div style={{ 
+                    marginBottom: '12px',
+                    padding: '10px 14px', 
+                    background: 'rgba(99, 102, 241, 0.06)', 
+                    borderRadius: '10px',
+                    border: '1px solid rgba(99, 102, 241, 0.15)',
+                    display: 'flex', alignItems: 'flex-start', gap: '10px'
+                }}>
+                    <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>🔒</span>
+                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', lineHeight: '1.5' }}>
+                        <span style={{ color: '#818CF8', fontWeight: 'bold' }}>AI 출석 안내</span> — 
+                        회원님의 사진은 <b style={{ color: 'rgba(255,255,255,0.85)' }}>저장되지 않습니다.</b> 얼굴 특징이 128차원 숫자(벡터)로 변환되어 안전하게 보관되며, 원본 이미지는 즉시 삭제됩니다. 숫자 데이터로는 얼굴을 복원할 수 없습니다.
+                    </div>
+                </div>
+            )}
 
             {/* 홀딩 중일 때 상태 표시 */}
             {isHolding && holdInfo && (
@@ -256,5 +278,5 @@ const MembershipInfo = ({ member, daysRemaining, t }) => {
     );
 };
 
-export default MembershipInfo;
+export default React.memo(MembershipInfo);
 

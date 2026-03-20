@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, memo } from 'react';
 import { BellRinging, Check, Info, Plus, NotePencil, PaperPlaneTilt, UserFocus } from '@phosphor-icons/react';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 
@@ -224,7 +224,7 @@ const MembersTab = ({
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
                             <span className="tooltip-text" style={{ width: '220px', left: '-100px' }}>
-                                얼굴 인식 시스템을 위한<br />안면 데이터가 아직 등록되지<br />않은 활성 회원입니다.
+                                얼굴 인식 시스템을 위한<br />안면 데이터가 아직 등록되지<br />않은 활성 회원입니다.<br /><br />📊 <b>미등록 수 / 전체 활성 회원</b><br />프로그레스 바 = 미등록 비율<br /><br />🔒 사진은 저장되지 않으며,<br />128차원 숫자 벡터로만 변환<br />되어 안전하게 보관됩니다.
                             </span>
                         </div>
                     </div>
@@ -587,6 +587,8 @@ const MembersTab = ({
                                                     )
                                                 )}
                                             </div>
+                                            {/* [FIX] 선생님(instructor)에게는 수강정보(일반/잔여/종료일) 표시하지 않음 */}
+                                            {member.role !== 'instructor' && (
                                             <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
                                                 <span>{member.subject || '일반'}</span>
                                                 <span style={{ opacity: 0.3 }}>|</span>
@@ -629,6 +631,7 @@ const MembersTab = ({
                                                     );
                                                 })()}
                                             </div>
+                                            )}
                                             {member.notes && (
                                                 <div 
                                                     onClick={(e) => { e.stopPropagation(); onNoteClick && onNoteClick(member); }}
@@ -718,4 +721,4 @@ const MembersTab = ({
     );
 };
 
-export default MembersTab;
+export default memo(MembersTab);

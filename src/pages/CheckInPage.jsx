@@ -7,7 +7,7 @@ import { getKSTHour, getDaysRemaining, safeParseDate } from '../utils/dates';
 import { getStaticStandbyMessage } from '../utils/aiStandbyHelper';
 import { AIMessages } from '../constants/aiMessages';
 import { CHECKIN_CONFIG } from '../constants/CheckInConfig';
-import { extractFaceDescriptor, findBestMatch, loadFacialModels } from '../services/facialService';
+import { extractFaceDescriptor } from '../services/facialService';
 import { memberService } from '../services/memberService';
 
 // Hooks
@@ -15,7 +15,9 @@ import { useAlwaysOnGuardian } from '../hooks/useAlwaysOnGuardian';
 import { useAttendanceCamera } from '../hooks/useAttendanceCamera';
 import { useNetworkMonitor } from '../hooks/useNetworkMonitor';
 import { useTTS } from '../hooks/useTTS';
-import { useNetwork } from '../contexts/NetworkContext';
+import { useFacialRecognition } from '../hooks/useFacialRecognition';
+import { useKioskNotice } from '../hooks/useKioskNotice';
+
 import { usePWA } from '../hooks/usePWA';
 import { useStudioConfig } from '../contexts/StudioContext';
 
@@ -35,10 +37,10 @@ import FaceRegistrationModal from '../components/checkin/FaceRegistrationModal';
 
 const CheckInPage = () => {
     const { config } = useStudioConfig();
-    const BUILD_VERSION = STUDIO_CONFIG.IDENTITY?.APP_VERSION;
     const logoWide = config.ASSETS?.LOGO?.WIDE || '/assets/logo_wide.webp';
     const rys200Logo = config.ASSETS?.LOGO?.RYS200 || '/assets/RYS200.webp';
     const branches = config.BRANCHES || [];
+    const faceRecognitionEnabled = config.POLICIES?.FACE_RECOGNITION_ENABLED && config.POLICIES?.SHOW_CAMERA_PREVIEW;
 
     const getBgForPeriod = (p) => {
         const bgKey = p.toUpperCase();
@@ -54,38 +56,12 @@ const CheckInPage = () => {
     const [duplicateMembers, setDuplicateMembers] = useState([]);
     const [showSelectionModal, setShowSelectionModal] = useState(false);
     const [weather, setWeather] = useState(null);
-    const [isFullscreen, setIsFullscreen] = useState(false);
     const [aiExperience, setAiExperience] = useState(null);
     const [aiEnhancedMsg, setAiEnhancedMsg] = useState(null);
     const [aiLoading, setAiLoading] = useState(false);
-    const [kioskSettings, setKioskSettings] = useState({ active: false, imageUrl: null });
-    const [kioskNoticeHidden, setKioskNoticeHidden] = useState(false);
     const [showInstructorQR, setShowInstructorQR] = useState(false);
     const [keypadLocked, setKeypadLocked] = useState(false);
     const [showFaceRegModal, setShowFaceRegModal] = useState(false);
-    const [isScanning, setIsScanning] = useState(false);
-    const faceRecognitionEnabled = config.POLICIES?.FACE_RECOGNITION_ENABLED && config.POLICIES?.SHOW_CAMERA_PREVIEW;
-    const faceVideoRef = useRef(null);
-    const biometricsCache = useRef([]);
-    const scanIntervalRef = useRef(null);
-    const lastAutoCheckInRef = useRef(0);
-
-    // [FIX] Cloud Function Cold Start Warmup
-    const warmupTriggered = useRef(false);
-    const warmupFunctions = useCallback(() => {
-        if (warmupTriggered.current) return;
-        warmupTriggered.current = true;
-        // Fire-and-forget dummy call to wake up the serverless function
-        console.log('[CheckIn] Warming up server functions...');
-        import('firebase/functions').then(({ httpsCallable }) => {
-             import('../firebase').then(({ functions }) => {
-                 const checkInCall = httpsCallable(functions, 'checkInMemberV2Call');
-                 checkInCall({ ping: true }).catch(() => {});
-                 const loginCall = httpsCallable(functions, 'memberLoginV2Call');
-                 loginCall({ ping: true }).catch(() => {});
-             }).catch(() => {});
-        }).catch(() => {});
-    }, []);
     const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
     const [showKioskInstallGuide, setShowKioskInstallGuide] = useState(false);
     const [pendingPin, setPendingPin] = useState(null);
@@ -100,33 +76,55 @@ const CheckInPage = () => {
         return 'night';
     });
     const [bgImage, setBgImage] = useState(null);
-    const [isSoundEnabled, setIsSoundEnabled] = useState(true);
-    const audioContextRef = useRef(null);
-
-    // [FIX] 실시간 시간표 연동 상태 추가
     const [monthlyClasses, setMonthlyClasses] = useState({});
     const [isOnline, setIsOnline] = useState(true);
-    const [faceModelsLoaded, setFaceModelsLoaded] = useState(false);
 
     // Refs
     const timerRef = useRef(null);
     const duplicateAutoCloseRef = useRef(null);
     const recentCheckInsRef = useRef([]);
     const autoUpdateRef = useRef({ pin, message, loading, showSelectionModal, showDuplicateConfirm });
-    const lastDescriptorRef = useRef(null);
-    const activeTaskIdRef = useRef(0); // [FACIAL] Track latest task ID to abort stale extractions
-    const pinRef = useRef(pin); // [PERF] Keep track of latest pin for stable callbacks
+    const pinRef = useRef(pin);
+    const warmupTriggered = useRef(false);
 
-    // Hooks Init
-    const pwaContext = usePWA(); // currently mostly used for other apps, keeping import just in case
+    // Custom Hooks
+    const pwaContext = usePWA();
     const { checkConnection } = useNetworkMonitor();
-    const { setIsOnline: setNetworkStatus } = useNetwork(); // Renamed to avoid conflict with local state
     const { speak } = useTTS();
     const { videoRef, canvasRef, capturePhoto, uploadPhoto } = useAttendanceCamera(true);
+
+    const {
+        faceModelsLoaded, isScanning, faceVideoRef,
+        lastDescriptorRef, activeTaskIdRef, findBestMatch
+    } = useFacialRecognition({
+        enabled: faceRecognitionEnabled,
+        autoUpdateRef,
+        proceedWithCheckIn: useCallback((pin, isDup, memberId, task) => {
+            proceedWithCheckIn(pin, isDup, memberId, task);
+        }, []),
+    });
+
+    const { kioskSettings, kioskNoticeHidden, setKioskNoticeHidden } = useKioskNotice({
+        isReady, currentBranch, message, showSelectionModal, showDuplicateConfirm
+    });
+
     const language = CHECKIN_CONFIG.LOCALE;
     const qrCodeUrl = `${CHECKIN_CONFIG.ASSETS.QR_CODE_BASE_URL}?${CHECKIN_CONFIG.ASSETS.QR_CODE_PARAMS}&data=${encodeURIComponent(window.location.origin + '/member')}`;
 
-    // Effects
+    const warmupFunctions = useCallback(() => {
+        if (warmupTriggered.current) return;
+        warmupTriggered.current = true;
+        import('firebase/functions').then(({ httpsCallable }) => {
+             import('../firebase').then(({ functions }) => {
+                 const checkInCall = httpsCallable(functions, 'checkInMemberV2Call');
+                 checkInCall({ ping: true }).catch(() => {});
+                 const loginCall = httpsCallable(functions, 'memberLoginV2Call');
+                 loginCall({ ping: true }).catch(() => {});
+             }).catch(() => {});
+        }).catch(() => {});
+    }, []);
+
+    // ── Effects ──
     useEffect(() => { 
         autoUpdateRef.current = { pin, message, loading, showSelectionModal, showDuplicateConfirm }; 
         pinRef.current = pin;
@@ -144,170 +142,20 @@ const CheckInPage = () => {
         vh(); window.addEventListener('resize', vh);
 
         let unsubClasses = () => {};
-
-        // [FIX] 실시간 시간표 구독 시작 (오늘 포함 이번 달 데이터 전체 구독)
         if (currentBranch) {
             const todayCurrent = new Date();
             unsubClasses = subscribeMonthlyClasses(
-                currentBranch,
-                todayCurrent.getFullYear(),
-                todayCurrent.getMonth() + 1,
-                (data) => {
-                    console.log("[CheckInPage] Real-time schedule updated for today/month");
-                    setMonthlyClasses(data || {});
-                }
+                currentBranch, todayCurrent.getFullYear(), todayCurrent.getMonth() + 1,
+                (data) => setMonthlyClasses(data || {})
             );
         }
 
-        return () => {
-            unsubClasses();
-            window.removeEventListener('resize', vh);
-        };
+        return () => { unsubClasses(); window.removeEventListener('resize', vh); };
     }, []);
 
-    // [FACIAL] Background load models to avoid lag later
-    useEffect(() => {
-        loadFacialModels().then(() => setFaceModelsLoaded(true));
-    }, []);
+    useEffect(() => { setBgImage(getBgForPeriod(period)); }, [period]);
 
-    // [FACIAL] Preload all biometrics for real-time matching
-    useEffect(() => {
-        if (!faceRecognitionEnabled || !faceModelsLoaded) return;
-        
-        const loadBiometrics = async () => {
-            try {
-                const { getDocs } = await import('firebase/firestore');
-                const { tenantDb } = await import('../utils/tenantDb');
-                const snap = await getDocs(tenantDb.collection('face_biometrics'));
-                biometricsCache.current = snap.docs.map(d => ({ memberId: d.id, ...d.data() }));
-                console.log(`[FACIAL] Biometrics cache loaded: ${biometricsCache.current.length} entries`);
-            } catch (e) {
-                console.warn('[FACIAL] Biometrics cache load failed:', e);
-            }
-        };
-        loadBiometrics();
-
-        // Refresh every 5 minutes
-        const refreshInterval = setInterval(loadBiometrics, 5 * 60 * 1000);
-        return () => clearInterval(refreshInterval);
-    }, [faceRecognitionEnabled, faceModelsLoaded]);
-
-    // [FACIAL] Real-time face scan loop (every 3 seconds)
-    useEffect(() => {
-        if (!faceRecognitionEnabled || !faceModelsLoaded) return;
-
-        const scanForFace = async () => {
-            // Skip if modal/message/loading is active or recently auto-checked-in
-            const state = autoUpdateRef.current;
-            if (state.message || state.loading || state.showSelectionModal || state.showDuplicateConfirm) return;
-            if (Date.now() - lastAutoCheckInRef.current < 15000) return; // 15s cooldown
-            if (biometricsCache.current.length === 0) return;
-
-            // Use the CheckInInfoSection camera video
-            const video = faceVideoRef.current;
-            if (!video || !video.srcObject || video.readyState < 2) return;
-
-            try {
-                setIsScanning(true);
-                const descriptor = await extractFaceDescriptor(video, true);
-                setIsScanning(false);
-                
-                if (!descriptor) return;
-
-                // Match against all cached biometrics
-                let bestMatch = null;
-                let minDistance = 0.5; // Strict threshold for auto-checkin
-
-                for (const bio of biometricsCache.current) {
-                    if (!bio.descriptor) continue;
-                    const storedDesc = new Float32Array(Object.values(bio.descriptor));
-                    const faceapi = await import('@vladmandic/face-api');
-                    const distance = faceapi.euclideanDistance(descriptor, storedDesc);
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        bestMatch = bio;
-                    }
-                }
-
-                if (bestMatch) {
-                    console.log(`[FACIAL] Auto-match found: ${bestMatch.memberId} (distance: ${minDistance.toFixed(3)})`);
-                    lastAutoCheckInRef.current = Date.now();
-                    lastDescriptorRef.current = descriptor;
-                    proceedWithCheckIn(null, false, bestMatch.memberId, null);
-                }
-            } catch (e) {
-                setIsScanning(false);
-                console.warn('[FACIAL] Scan error:', e.message);
-            }
-        };
-
-        scanIntervalRef.current = setInterval(scanForFace, 3000);
-        return () => { if (scanIntervalRef.current) clearInterval(scanIntervalRef.current); };
-    }, [faceRecognitionEnabled, faceModelsLoaded]);
-
-
-
-    useEffect(() => {
-        setBgImage(getBgForPeriod(period));
-    }, [period]);
-
-    // [FIX] Kiosk Notice Image Subscriber
-    useEffect(() => {
-        if (!isReady) return;
-        
-        let unsubscribeBranch = null;
-        let unsubscribeAll = null;
-
-        // 1. First listen to branch specific settings
-        unsubscribeBranch = storageService.subscribeToKioskSettings(currentBranch, (branchData) => {
-            if (branchData && branchData.active && branchData.imageUrl) {
-                setKioskSettings(branchData);
-                setKioskNoticeHidden(false);
-            } else {
-                // 2. If branch is off, listen to 'all' shared settings
-                unsubscribeAll = storageService.subscribeToKioskSettings('all', (allData) => {
-                    if (allData && allData.active && allData.imageUrl) {
-                        setKioskSettings(allData);
-                        setKioskNoticeHidden(false);
-                    } else {
-                        setKioskSettings({ active: false, imageUrl: null });
-                    }
-                });
-            }
-        });
-
-        return () => {
-            if (unsubscribeBranch) unsubscribeBranch();
-            if (unsubscribeAll) unsubscribeAll();
-        };
-    }, [isReady, currentBranch]);
-
-    // [FIX] Kiosk Notice Auto-Restore Timer (5 minutes)
-    useEffect(() => {
-        if (!kioskSettings?.active || !kioskNoticeHidden || message || showSelectionModal || showDuplicateConfirm) return;
-
-        let idleTimer;
-        const resetNoticeTimer = () => {
-            clearTimeout(idleTimer);
-            if (kioskNoticeHidden) {
-                idleTimer = setTimeout(() => setKioskNoticeHidden(false), 5 * 60 * 1000); // 5 minutes
-            }
-        };
-
-        resetNoticeTimer();
-        window.addEventListener('touchstart', resetNoticeTimer, { passive: true });
-        window.addEventListener('mousedown', resetNoticeTimer, { passive: true });
-        window.addEventListener('keydown', resetNoticeTimer, { passive: true });
-
-        return () => {
-            clearTimeout(idleTimer);
-            window.removeEventListener('touchstart', resetNoticeTimer);
-            window.removeEventListener('mousedown', resetNoticeTimer);
-            window.removeEventListener('keydown', resetNoticeTimer);
-        };
-    }, [kioskSettings?.active, kioskNoticeHidden, message, showSelectionModal, showDuplicateConfirm]);
-
-    // Business Logic: Full Restoration
+    // ── Business Logic ──
     const loadAIExperience = async (name = "방문 회원", credits = null, days = null, w = null) => {
         const isStandby = name === "방문 회원";
         try {
@@ -361,73 +209,40 @@ const CheckInPage = () => {
         }
 
         let msg = "오늘의 수련이 시작됩니다.";
-
         let isConsecutive = false;
         let isExtra = false;
 
-        // [FIX] 서버에서 멱등성(Idempotency)에 의해 중복으로 막아낸 경우 직접 Extra 처리 추가
         if (res.isDuplicate) {
             isExtra = true;
         } else if (res.sessionCount && res.sessionCount > 1) {
-            if (isDup) {
-                isExtra = true; // 정말로 단기간 내 동일 핀 재입력 + 강제 출석
-            } else {
-                isConsecutive = true; // 서버에 기록이 있는데 로컬 타이머는 지남 (연강)
-            }
+            isExtra = isDup;
+            isConsecutive = !isDup;
         }
 
-        if (isExtra) { 
-            msg = "반가워요! 이미 출석 확인이 완료되었습니다. (추가 출석)"; 
-            speak("success_extra"); 
-        }
-        else if (isConsecutive) {
-            msg = "오늘의 두 번째 수련이 시작됩니다. (연강 출석)"; 
-            speak("success_consecutive"); 
-        }
-        else if (daysLeft < 0) { 
-            msg = "수련권 기간이 완료되었습니다. 선생님께서 안내를 도와드릴게요."; 
-            speak("denied"); 
-        }
-        else if (credits < 0) { 
-            msg = "수련 횟수가 모두 소진되었습니다. 선생님께서 안내를 도와드릴게요."; 
-            speak("denied"); 
-        }
-        else if (credits === 0 || daysLeft === 0) { 
-            msg = "오늘이 이번 수련권의 마지막 날이네요. 정성 가득한 수련 되세요!"; 
-            speak("last_session"); 
-        }
-        else { 
-            speak("success"); // 처음 출석이면 "출석되었습니다"
-        }
+        if (isExtra) { msg = "반가워요! 이미 출석 확인이 완료되었습니다. (추가 출석)"; speak("success_extra"); }
+        else if (isConsecutive) { msg = "오늘의 두 번째 수련이 시작됩니다. (연강 출석)"; speak("success_consecutive"); }
+        else if (daysLeft < 0) { msg = "수련권 기간이 완료되었습니다. 선생님께서 안내를 도와드릴게요."; speak("denied"); }
+        else if (credits < 0) { msg = "수련 횟수가 모두 소진되었습니다. 선생님께서 안내를 도와드릴게요."; speak("denied"); }
+        else if (credits === 0 || daysLeft === 0) { msg = "오늘이 이번 수련권의 마지막 날이네요. 정성 가득한 수련 되세요!"; speak("last_session"); }
+        else { speak("success"); }
 
-        // [UX] Delay visual rendering slightly so the TTS audio can load and play in sync.
-        await new Promise(r => setTimeout(r, 100)); // Reduced delay to make it faster
-
+        await new Promise(r => setTimeout(r, 100));
         setMessage({ type: 'success', member: m, text: `${m.name}님`, subText: msg });
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => handleModalClose(() => setMessage(null)), CHECKIN_CONFIG.TIMEOUTS.SUCCESS_MODAL);
-
-        // [FIX] Removed AI Experience fetch to eliminate the "AI thinking..." delay.
         setAiEnhancedMsg("오늘도 평온한 요가 안내해 드릴게요. 나마스테 🙏");
         setAiLoading(false);
     };
 
     const proceedWithCheckIn = async (p, isDup = false, memberIdToForce = null, facialTask = null) => {
         setLoading(true);
-        // capturePhoto는 handleKeyPress(첫 키입력) + handleSubmit(4자리 완성)에서 이미 호출됨
-        // 여기서 다시 호출하면 기존 캡처를 null로 덮어쓰므로 제거
-        // [CRITICAL FIX] 레이스 컨디션 방지: 서버 응답을 기다리지 않고 즉시 기록 추가
-        // 이렇게 해야 연속 빠른 입력 시 두 번째도 중복으로 감지됨
         recentCheckInsRef.current.push({ pin: p, timestamp: Date.now() });
         try {
-            // [FACIAL] Await descriptor if still in flight (max 1.5s timeout)
             if (facialTask && !lastDescriptorRef.current) {
                 try {
                     const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500));
                     await Promise.race([facialTask, timeout]);
-                } catch (e) {
-                    console.warn('[FACIAL] Extraction timed out or failed');
-                }
+                } catch (e) {}
             }
 
             let targetMemberId = memberIdToForce;
@@ -435,12 +250,8 @@ const CheckInPage = () => {
 
             if (!targetMemberId) {
                 let members = [];
-                try {
-                    members = await storageService.findMembersByPhone(p);
-                } catch (lookupErr) {
-                    console.error('[CheckInPage] findMembersByPhone failed:', lookupErr);
-                    members = [];
-                }
+                try { members = await storageService.findMembersByPhone(p); }
+                catch (lookupErr) { members = []; }
                 
                 if (members.length === 0) {
                     speak("error");
@@ -449,16 +260,10 @@ const CheckInPage = () => {
                     return;
                 }
                 if (members.length > 1) {
-                    // [FACIAL] Try auto-resolution if models and current descriptor are ready
                     if (faceModelsLoaded && lastDescriptorRef.current) {
                         const bestMatch = findBestMatch(lastDescriptorRef.current, members);
-                        if (bestMatch) {
-                            console.log(`[FACIAL] Auto-resolved duplicate PIN to: ${bestMatch.name}`);
-                            targetMemberId = bestMatch.id;
-                            isFacialMatch = true;
-                        }
+                        if (bestMatch) { targetMemberId = bestMatch.id; isFacialMatch = true; }
                     }
-
                     if (!targetMemberId) {
                         setDuplicateMembers(members);
                         setIsDuplicateFlow(isDup);
@@ -471,8 +276,7 @@ const CheckInPage = () => {
             }
 
             const safeUUID = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'id_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-            const currentEventId = safeUUID();
-            const res = await storageService.checkInById(targetMemberId, currentBranch, isDup, currentEventId, isFacialMatch);
+            const res = await storageService.checkInById(targetMemberId, currentBranch, isDup, safeUUID(), isFacialMatch);
             if (res.success) {
                 setIsOnline(!res.isOffline);
                 if (res.attendanceStatus === 'denied') {
@@ -483,9 +287,6 @@ const CheckInPage = () => {
                 } else {
                     uploadPhoto(res.attendanceId, res.member?.name, 'valid');
                     await showCheckInSuccess(res, isDup);
-
-                    // [FACIAL] Background Data Collection
-                    // If unique match and member lacks face data, save it silently
                     if (faceModelsLoaded && lastDescriptorRef.current && !res.member?.faceDescriptor) {
                         memberService.updateFaceDescriptor(targetMemberId, lastDescriptorRef.current);
                     }
@@ -497,7 +298,6 @@ const CheckInPage = () => {
             }
         } catch (e) {
             storageService.logError(e, { context: 'Kiosk', branch: currentBranch });
-            console.error('[CheckInPage] proceedWithCheckIn error:', e);
             speak("error");
             setMessage({ type: 'error', text: '시스템 오류가 발생했습니다. 다시 시도해주세요.' });
         }
@@ -505,31 +305,23 @@ const CheckInPage = () => {
     };
 
     const handleSubmit = useCallback((p) => {
-        const pinCode = typeof p === 'string' ? p : pinRef.current; // [PERF] Use ref instead of state to prevent re-creation
+        const pinCode = typeof p === 'string' ? p : pinRef.current;
         if (pinCode.length !== 4 || loading) return;
         
-        // [FACIAL] Abort previous extraction and start new one with a unique ID
         const taskId = ++activeTaskIdRef.current;
         let facialTask = null;
         if (faceModelsLoaded && videoRef.current) {
             facialTask = extractFaceDescriptor(videoRef.current).then(desc => {
-                if (taskId === activeTaskIdRef.current) {
-                    lastDescriptorRef.current = desc;
-                    return desc;
-                }
-                console.log(`[FACIAL] Aborting stale task ${taskId}`);
+                if (taskId === activeTaskIdRef.current) { lastDescriptorRef.current = desc; return desc; }
                 return null;
             });
         }
 
-        // [PERF] Delay heavy synchronous photo DOM access to not block keypad frame update
         setTimeout(() => capturePhoto(), 0);
         
-        // [FIX] 중복 터치 판단: 최근 출석 기록 중 방금(20초 이내) 찍은 같은 PIN이 있는지 확인
-        // - 연강 출석은 서버에서 체크하므로, 클라이언트의 duplicate_check는 단순 더블터치 방지용 (20초)
-        const duplicateThresholdMs = 20000; // 20 sec for pure duplicate touch deterrence
+        const duplicateThresholdMs = 20000;
         const isDup = recentCheckInsRef.current.some(e => e.pin === pinCode && (Date.now() - e.timestamp) < duplicateThresholdMs);
-        
+
         if (isDup) {
             setPendingPin(pinCode);
             setShowDuplicateConfirm(true);
@@ -542,89 +334,51 @@ const CheckInPage = () => {
     }, [loading, currentBranch, config.POLICIES, faceModelsLoaded, capturePhoto]);
 
     const handleKeyPress = useCallback((n) => {
-        // [PERF 1] 가장 높은 우선순위: React 상태(UI) 부터 즉시 변경 
-        // 주의: 함수형 업데이트 내부에 사이드이펙트(handleSubmit 등)를 두면 렌더링이 블로킹 됨
         setPin(prev => {
             const next = prev + n;
             return next.length <= 4 ? next : prev;
         });
 
-        // [PERF 2] 첫 번째 숫자 입력 시 발생하는 무거운 연산을 철저하게 뒤로 지연시킴
         if (pinRef.current.length === 0) { 
-            // (1) 가벼운 네트워크 체크와 웜업(동적 import 포함)은 첫 프레임 렌더링 후(약 50ms) 실행
-            setTimeout(() => {
-                checkConnection(); 
-                warmupFunctions();
-            }, 50);
-            
-            // (2) DOM/Canvas를 조작하는 사진 촬영은 숫자가 화면에 완전히 뜬 후(300ms) 실행
-            setTimeout(() => {
-                capturePhoto();
-            }, 300);
-
-            // (3) 메인 스레드를 가장 심하게 뻗게 만드는 AI 모델링은 제일 마지막(600ms) 여유 시간에 실행
+            setTimeout(() => { checkConnection(); warmupFunctions(); }, 50);
+            setTimeout(() => capturePhoto(), 300);
             setTimeout(() => {
                 if (faceModelsLoaded && videoRef.current) {
                     const taskId = ++activeTaskIdRef.current;
                     extractFaceDescriptor(videoRef.current).then(desc => {
-                        if (taskId === activeTaskIdRef.current) {
-                            lastDescriptorRef.current = desc;
-                        }
+                        if (taskId === activeTaskIdRef.current) lastDescriptorRef.current = desc;
                     }).catch(() => {});
                 }
             }, 600);
         }
 
-        // [PERF 3] 4번째 마지막 숫자 입력 시 딜레이 해결
-        // 이전에는 4번째 숫자가 입력되자마자 동기적으로 handleSubmit이 돌아가면서 
-        // 4번째 숫자가 화면에 표시될 기회를 영영 박탈당했습니다 (검은색 닷이 안 나옴).
         const nextLength = pinRef.current.length + 1;
         if (nextLength === 4) {
             const finalPin = pinRef.current + n;
-            // 80ms라는 아주 짧은 시간을 주어, 브라우저가 마지막 4번째 점(Dot)을 화면에 
-            // "그릴 수 있는 1프레임의 시간"을 보장한 뒤 서버 통신 시작
-            setTimeout(() => {
-                handleSubmit(finalPin);
-            }, 80);
+            setTimeout(() => handleSubmit(finalPin), 80);
         }
     }, [handleSubmit, checkConnection, faceModelsLoaded, capturePhoto, warmupFunctions]);
 
-    const handleClear = useCallback(() => {
-        setPin(p => p.slice(0, -1));
-    }, []);
+    const handleClear = useCallback(() => { setPin(p => p.slice(0, -1)); }, []);
 
     const closeMessage = useCallback(() => {
-        if (timerRef.current) {
-            clearTimeout(timerRef.current);
-            timerRef.current = null;
-        }
+        if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
         handleModalClose(() => setMessage(null));
     }, [handleModalClose]);
 
-    // Guard & PWA
     useAlwaysOnGuardian(isReady);
 
-
-    // [CRITICAL FIX] Memory/CPU Leak - Clear interval when modal closes or timer hits 0
     useEffect(() => { 
         if (!showDuplicateConfirm) {
-            if (duplicateAutoCloseRef.current) {
-                clearInterval(duplicateAutoCloseRef.current);
-                duplicateAutoCloseRef.current = null;
-            }
+            if (duplicateAutoCloseRef.current) { clearInterval(duplicateAutoCloseRef.current); duplicateAutoCloseRef.current = null; }
             return;
         }
-        
-        if (duplicateTimer <= 0) { 
-            setShowDuplicateConfirm(false); 
-            proceedWithCheckIn(pendingPin, true); 
-        } 
+        if (duplicateTimer <= 0) { setShowDuplicateConfirm(false); proceedWithCheckIn(pendingPin, true); } 
     }, [duplicateTimer, showDuplicateConfirm, pendingPin]);
 
-    // Final Poetic Render
+    // ── Render ──
     return (
         <div className="checkin-wrapper" style={{ position: 'relative', width: '100%', height: 'calc(var(--vh, 1vh) * 100)', minHeight: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', background: '#000' }}>
-            {/* [PHOTO] 숨겨진 카메라 피드는 아래 단일 video/canvas 요소에서 처리 */}
             <div className="bg-container" style={{ position: 'fixed', inset: 0, zIndex: 0 }}>
                 <img src={bgImage} alt="bg" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' }} />
@@ -635,15 +389,9 @@ const CheckInPage = () => {
             <div className="checkin-content" style={{ zIndex: 5, flex: 1, display: 'flex', gap: '2vh', padding: '3vh 3vw 5vh', width: '100%', alignItems: 'stretch', overflow: 'hidden' }}>
                 <CheckInInfoSection pin={pin} loading={loading} aiExperience={aiExperience} aiEnhancedMsg={aiEnhancedMsg} aiLoading={aiLoading} rys200Logo={rys200Logo} logoWide={logoWide} qrCodeUrl={qrCodeUrl} handleQRInteraction={() => setShowKioskInstallGuide(true)} onCameraTouch={() => setShowFaceRegModal(true)} faceRecognitionEnabled={faceRecognitionEnabled} isScanning={isScanning} cameraVideoRef={faceVideoRef} />
                 <CheckInKeypadSection pin={pin} loading={loading} isReady={isReady} loadingMessage={loadingMessage} keypadLocked={keypadLocked} showSelectionModal={showSelectionModal} message={message} handleKeyPress={handleKeyPress} handleClear={handleClear} handleSubmit={handleSubmit} />
-            </div >
+            </div>
 
-            <SelectionModal 
-                show={showSelectionModal} 
-                duplicateMembers={duplicateMembers} 
-                loading={loading} 
-                onClose={() => { setShowSelectionModal(false); setPin(''); }} 
-                onSelect={id => { setShowSelectionModal(false); proceedWithCheckIn(pin, isDuplicateFlow, id); }} 
-            />
+            <SelectionModal show={showSelectionModal} duplicateMembers={duplicateMembers} loading={loading} onClose={() => { setShowSelectionModal(false); setPin(''); }} onSelect={id => { setShowSelectionModal(false); proceedWithCheckIn(pin, isDuplicateFlow, id); }} />
             <MessageOverlay message={message} onClose={closeMessage} aiExperience={aiExperience} />
             <DuplicateConfirmModal show={showDuplicateConfirm} duplicateTimer={duplicateTimer} onCancel={() => { setShowDuplicateConfirm(false); setPin(''); }} onConfirm={() => { setShowDuplicateConfirm(false); proceedWithCheckIn(pendingPin, true); }} />
             
@@ -661,7 +409,6 @@ const CheckInPage = () => {
             <FaceRegistrationModal isOpen={showFaceRegModal} onClose={() => setShowFaceRegModal(false)} videoRef={faceVideoRef} />
             <video ref={videoRef} autoPlay playsInline muted style={{ position: 'fixed', left: '0', top: '0', width: '1px', height: '1px', opacity: 0.01, zIndex: -100, pointerEvents: 'none' }} />
             <canvas ref={canvasRef} style={{ position: 'fixed', left: '0', top: '0', width: '1px', height: '1px', opacity: 0.01, zIndex: -100, pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', top: '4px', right: '12px', fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)', pointerEvents: 'none', zIndex: 3001, fontFamily: 'monospace', letterSpacing: '0.5px' }}>{BUILD_VERSION}</div>
         </div>
     );
 };

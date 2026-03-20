@@ -88,8 +88,8 @@ const CosmicParticles = () => {
                 const startX = Math.random() * canvas.width;
                 const startY = Math.random() * canvas.height * 0.5;
                 const gradient = ctx.createLinearGradient(startX, startY, startX + 100, startY + 60);
-                gradient.addColorStop(0, 'rgba(var(--primary-rgb), 0.8)');
-                gradient.addColorStop(1, 'rgba(var(--primary-rgb), 0)');
+                gradient.addColorStop(0, 'rgba(212, 175, 55, 0.8)');
+                gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
                 
                 ctx.beginPath();
                 ctx.moveTo(startX, startY);

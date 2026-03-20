@@ -1,3 +1,4 @@
+import React from 'react';
 import LanguageSelector from '../LanguageSelector';
 
 const ProfileHeader = ({ logo, studioName, langLabelIndex, langLabels, t, logout }) => {
@@ -46,4 +47,4 @@ const ProfileHeader = ({ logo, studioName, langLabelIndex, langLabels, t, logout
     );
 };
 
-export default ProfileHeader;
+export default React.memo(ProfileHeader);

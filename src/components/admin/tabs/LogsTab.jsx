@@ -1,13 +1,14 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { ClockCounterClockwise, Trash, Sparkle, CaretLeft, CaretRight, CalendarBlank, TrendUp, UserFocus } from '@phosphor-icons/react';
+import React, { useState, useMemo, useEffect, useCallback, memo } from 'react';
+import { ClockCounterClockwise, CaretLeft, CaretRight, CalendarBlank, TrendUp, UserFocus } from '@phosphor-icons/react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, LabelList } from 'recharts';
 import { guessClassTime, guessClassInfo } from '../../../utils/classUtils';
 import { storageService } from '../../../services/storage';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 import ImageLightbox from '../../common/ImageLightbox';
+import LogListItem from './LogListItem';
 
 // ─── Mini Calendar Popup ───
-const MiniCalendar = ({ selectedDate, onSelect, onClose, config }) => {
+const MiniCalendar = memo(({ selectedDate, onSelect, onClose, config }) => {
     const themeColor = config?.THEME?.PRIMARY_COLOR || 'var(--primary-gold)';
     const sel = new Date(selectedDate + 'T00:00:00+09:00');
     const [viewYear, setViewYear] = useState(sel.getFullYear());
@@ -54,9 +55,9 @@ const MiniCalendar = ({ selectedDate, onSelect, onClose, config }) => {
             }}>
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <button onClick={prevMonth} style={calNavBtn}><CaretLeft size={14} /></button>
+                    <button onClick={prevMonth} className="nav-btn-circle" style={{ width: '28px', height: '28px' }}><CaretLeft size={14} /></button>
                     <span style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{viewYear}년 {viewMonth + 1}월</span>
-                    <button onClick={nextMonth} style={calNavBtn}><CaretRight size={14} /></button>
+                    <button onClick={nextMonth} className="nav-btn-circle" style={{ width: '28px', height: '28px' }}><CaretRight size={14} /></button>
                 </div>
                 {/* Day names */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', marginBottom: '4px' }}>
@@ -112,13 +113,8 @@ const MiniCalendar = ({ selectedDate, onSelect, onClose, config }) => {
             </div>
         </div>
     );
-};
-
-const calNavBtn = {
-    background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '50%',
-    width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    cursor: 'pointer', color: 'var(--text-primary)'
-};
+});
+MiniCalendar.displayName = 'MiniCalendar';
 
 // ─── Main Component ───
 const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, members = [], onMemberClick, summary }) => {
@@ -381,46 +377,26 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
         <>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* ─── Date Navigation ─── */}
-            <div style={{
-                display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px',
-                padding: '12px 0', position: 'relative'
-            }}>
-                <button onClick={handlePrevDay} style={dateNavBtn}><CaretLeft size={18} weight="bold" /></button>
+            <div className="date-nav">
+                <button onClick={handlePrevDay} className="nav-btn-circle" style={{ width: '36px', height: '36px' }} aria-label="이전 날"><CaretLeft size={18} weight="bold" /></button>
                 <button
                     onClick={() => setShowCalendar(v => !v)}
-                    style={{
-                        background: isToday ? 'rgba(var(--primary-rgb), 0.1)' : 'rgba(255,255,255,0.05)',
-                        border: isToday ? '1px solid rgba(var(--primary-rgb), 0.3)' : '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: '10px',
-                        padding: '8px 20px',
-                        color: isToday ? 'var(--primary-gold)' : 'var(--text-primary)',
-                        fontWeight: 'bold',
-                        fontSize: '1rem',
-                        cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', gap: '8px',
-                        transition: 'all 0.2s ease'
-                    }}
+                    className={`date-nav__btn ${isToday ? 'date-nav__btn--today' : ''}`}
+                    style={{ color: isToday ? undefined : 'var(--text-primary)' }}
                 >
                     <CalendarBlank size={18} />
                     {formatDisplayDate(selectedDate)}
-                    {isToday && <span style={{ fontSize: '0.7rem', background: 'var(--primary-gold)', color: 'black', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>오늘</span>}
+                    {isToday && <span className="date-nav__today-tag">오늘</span>}
                 </button>
                 <button
                     onClick={handleNextDay}
                     disabled={selectedDate >= todayStr}
-                    style={{ ...dateNavBtn, opacity: selectedDate >= todayStr ? 0.3 : 1, cursor: selectedDate >= todayStr ? 'not-allowed' : 'pointer' }}
+                    className="nav-btn-circle"
+                    style={{ width: '36px', height: '36px', opacity: selectedDate >= todayStr ? 0.3 : 1, cursor: selectedDate >= todayStr ? 'not-allowed' : 'pointer' }}
                 ><CaretRight size={18} weight="bold" /></button>
 
                 {!isToday && (
-                    <button
-                        onClick={() => setSelectedDate(todayStr)}
-                        style={{
-                            background: 'var(--primary-gold)', color: 'black', border: 'none',
-                            padding: '6px 14px', borderRadius: '8px', fontWeight: 'bold',
-                            fontSize: '0.8rem', cursor: 'pointer',
-                            boxShadow: '0 2px 8px rgba(var(--primary-rgb), 0.3)'
-                        }}
-                    >오늘</button>
+                    <button onClick={() => setSelectedDate(todayStr)} className="date-nav__jump-today">오늘</button>
                 )}
 
                 {showCalendar && (
@@ -434,7 +410,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
             </div>
 
             {/* ─── Summary Section (Facial Data) ─── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+            <div className="summary-grid">
                 <div className="dashboard-card" style={{ border: '1px solid rgba(59, 130, 246, 0.3)', background: 'rgba(59, 130, 246, 0.05)', padding: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                         <UserFocus size={20} weight="fill" color="#60A5FA" />
@@ -665,16 +641,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                             <select 
                                 value={localBranch}
                                 onChange={(e) => setLocalBranch(e.target.value)}
-                                style={{
-                                    background: 'rgba(255,255,255,0.05)',
-                                    border: '1px solid rgba(255,255,255,0.1)',
-                                    borderRadius: '6px',
-                                    padding: '4px 8px',
-                                    color: 'var(--text-primary)',
-                                    fontSize: '0.8rem',
-                                    outline: 'none',
-                                    cursor: 'pointer'
-                                }}
+                                className="filter-select"
                             >
                                 <option value="all">전체 지점</option>
                                 {(config.BRANCHES || []).map(b => (
@@ -689,22 +656,13 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                     placeholder="이름 검색..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    style={{
-                                        background: 'rgba(255,255,255,0.05)',
-                                        border: '1px solid rgba(255,255,255,0.1)',
-                                        borderRadius: '6px',
-                                        padding: '4px 8px',
-                                        paddingRight: '25px',
-                                        color: 'var(--text-primary)',
-                                        fontSize: '0.8rem',
-                                        width: '120px',
-                                        outline: 'none'
-                                    }}
+                                    className="filter-input"
+                                    style={{ paddingRight: '25px' }}
                                 />
                                 {searchTerm && (
                                     <button 
                                         onClick={() => setSearchTerm('')}
-                                        style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#71717a', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center' }}
+                                        className="filter-clear-btn"
                                     >×</button>
                                 )}
                             </div>
@@ -743,144 +701,20 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                             return (
                                 <>
                                     {paginatedLogs.map((log, index) => (
-                                        <div
+                                        <LogListItem
                                             key={log.id || index}
-                                            onClick={() => {
-                                                if (log.memberId && onMemberClick) {
-                                                    const member = members.find(m => m.id === log.memberId);
-                                                    if (member) onMemberClick(member);
-                                                }
-                                            }}
-                                            className="log-item"
-                                            style={{
-                                                display: 'flex', alignItems: 'center', padding: '12px',
-                                                marginBottom: '6px', background: 'rgba(255,255,255,0.02)',
-                                                borderRadius: '8px',
-                                                cursor: log.memberId ? 'pointer' : 'default',
-                                                transition: 'all 0.2s ease',
-                                                borderLeft: `3px solid ${
-                                                    log.status === 'denied' ? '#ff4d4f' :
-                                                    log.type === 'checkin' ? 'var(--accent-success)' :
-                                                    log.type === 'register' ? 'var(--primary-gold)' :
-                                                    log.type === 'extend' ? '#3B82F6' :
-                                                    'var(--text-secondary)'
-                                                }`
-                                            }}
-                                            onMouseEnter={(e) => { if (log.memberId) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
-                                            onMouseLeave={(e) => { if (log.memberId) e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
-                                        >
-                                            <div style={{ width: '60px', fontSize: '0.75rem', opacity: 0.6, textAlign: 'center' }}>
-                                                {new Date(log.timestamp).toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false })}
-                                            </div>
-                                            {/* 사진 썸네일 */}
-                                            {log.photoUrl && (
-                                                <div
-                                                    onClick={(e) => { e.stopPropagation(); setLightboxImage(log.photoUrl); }}
-                                                    style={{
-                                                        width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0,
-                                                        overflow: 'hidden', cursor: 'pointer',
-                                                        border: '2px solid rgba(var(--primary-rgb), 0.4)'
-                                                    }}
-                                                >
-                                                    <img src={log.photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                </div>
-                                            )}
-                                            <div style={{ flex: 1, paddingLeft: '12px' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                                    <span style={{ fontWeight: 'bold' }}>{log.memberName || log.name || '알 수 없음'}</span>
-                                                    <span style={{ fontSize: '0.7rem', color: 'var(--primary-gold)', background: 'rgba(var(--primary-rgb), 0.1)', padding: '1px 6px', borderRadius: '4px' }}>
-                                                        {log.className || '일반'}
-                                                    </span>
-                                                    <span className="badge" style={{
-                                                        fontSize: '0.65rem', padding: '2px 6px',
-                                                        background: `${getBranchColor(log.branchId)}20`,
-                                                        color: getBranchThemeColor(log.branchId),
-                                                        border: `1px solid ${getBranchColor(log.branchId)}33`,
-                                                        fontWeight: 'bold'
-                                                    }}>
-                                                        {getBranchName(log.branchId)}
-                                                    </span>
-                                                    {log.status === 'denied' && (
-                                                        <span style={{
-                                                            fontSize: '0.65rem', padding: '1px 6px', borderRadius: '10px',
-                                                            background: 'rgba(255, 77, 79, 0.15)', color: '#ff4d4f',
-                                                            border: '1px solid rgba(255, 77, 79, 0.3)', fontWeight: 'bold',
-                                                            display: 'flex', alignItems: 'center', gap: '3px'
-                                                        }}>
-                                                            ⛔ 출석거부 ({log.denialReason === 'expired' ? '기간만료' : '횟수소진'})
-                                                        </span>
-                                                    )}
-                                                    {(log.sessionCount > 1 || log.isMultiSession) && (
-                                                        <span style={{
-                                                            fontSize: '0.65rem', padding: '1px 6px', borderRadius: '10px',
-                                                            background: 'var(--primary-gold)', color: 'black', fontWeight: 'bold',
-                                                            display: 'flex', alignItems: 'center', gap: '3px'
-                                                        }}>
-                                                            <Sparkle size={10} weight="fill" />
-                                                            {log.sessionCount || '2'}회차 Passion
-                                                        </span>
-                                                    )}
-                                                    {log.facialMatched && (
-                                                        <span style={{
-                                                            fontSize: '0.65rem', padding: '1px 6px', borderRadius: '10px',
-                                                            background: 'rgba(59, 130, 246, 0.15)', color: '#60A5FA',
-                                                            border: '1px solid rgba(59, 130, 246, 0.3)', fontWeight: 'bold',
-                                                            display: 'flex', alignItems: 'center', gap: '3px'
-                                                        }}>
-                                                            <UserFocus size={10} weight="fill" />
-                                                            안면 일치
-                                                        </span>
-                                                    )}
-                                                    {isToday && summary?.multiAttendedMemberIds?.includes(log.memberId) && (
-                                                        <span className="badge" style={{
-                                                            fontSize: '0.65rem', padding: '2px 6px',
-                                                            background: 'rgba(245, 158, 11, 0.25)', color: '#FBBF24',
-                                                            border: '1px solid rgba(245, 158, 11, 0.5)', fontWeight: 'bold',
-                                                            height: 'max-content'
-                                                        }}>
-                                                            오늘 {summary?.attendanceCountMap?.[log.memberId] || 2}회 출석 🔥
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div style={{ fontSize: '0.85rem', opacity: 0.8, marginTop: '2px', color: log.status === 'denied' ? '#ff4d4f' : 'inherit' }}>
-                                                    {log.status === 'denied'
-                                                        ? `출석 시도가 거부되었습니다 (${log.denialReason === 'expired' ? '기간만료' : '횟수소진'})`
-                                                        : (log.action?.includes('출석') ? `${log.className || '일반'} 수업 참여 (${log.instructor || '관리자'} 선생님)` : log.action)
-                                                    }
-                                                </div>
-                                            </div>
-                                            {(log.type === 'checkin' || log.type === 'register') && isToday && (
-                                                <button
-                                                    onClick={async (e) => {
-                                                        e.stopPropagation();
-                                                        if (confirm('이 출석 기록을 삭제하시겠습니까?')) {
-                                                            const restoreCredit = true; // 항상 수강권 복구
-                                                            const result = await storageService.deleteAttendance(log.id, restoreCredit);
-                                                            if (result.success) {
-                                                                // [FIX] 삭제 후 UI 강제 갱신
-                                                                setTimeout(() => {
-                                                                    storageService.notifyListeners('logs');
-                                                                    storageService.notifyListeners('members');
-                                                                }, 500);
-                                                                // 삭제 완료 — UI가 자동 갱신되므로 alert 불필요
-                                                            } else {
-                                                                alert(`삭제 실패: ${result.message}`);
-                                                            }
-                                                        }
-                                                    }}
-                                                    style={{
-                                                        background: 'none', border: 'none',
-                                                        color: 'rgba(244, 63, 94, 0.5)', cursor: 'pointer', padding: '8px'
-                                                    }}
-                                                    onMouseOver={(e) => e.currentTarget.style.color = '#F43F5E'}
-                                                    onMouseOut={(e) => e.currentTarget.style.color = 'rgba(244, 63, 94, 0.5)'}
-                                                >
-                                                    <Trash size={16} />
-                                                </button>
-                                            )}
-                                        </div>
+                                            log={log}
+                                            index={index}
+                                            isToday={isToday}
+                                            members={members}
+                                            onMemberClick={onMemberClick}
+                                            onImageClick={setLightboxImage}
+                                            getBranchName={getBranchName}
+                                            getBranchColor={getBranchColor}
+                                            getBranchThemeColor={getBranchThemeColor}
+                                            summary={summary}
+                                        />
                                     ))}
-
                                     {totalLogPages > 1 && (
                                         <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
                                             <button disabled={currentLogPage === 1} onClick={() => setCurrentLogPage(p => p - 1)} className="action-btn sm">&lt;</button>
@@ -901,18 +735,6 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
             )}
     </>
     );
-};
-
-// ─── Styles ───
-const dateNavBtn = {
-    background: 'none',
-    border: '1px solid rgba(255,255,255,0.1)',
-    borderRadius: '50%',
-    width: '36px', height: '36px',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    cursor: 'pointer',
-    color: 'var(--text-primary)',
-    transition: 'all 0.2s ease'
 };
 
 export default LogsTab;

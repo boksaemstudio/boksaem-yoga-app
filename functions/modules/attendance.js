@@ -9,6 +9,7 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const { admin, tenantDb, STUDIO_ID, logAIError, getKSTDateString, getStudioName, getStudioLogoUrl } = require("../helpers/common");
+const membershipUtils = require('../utils/membershipUtils');
 
 // Helper functions
 const calculateGap = (lastDate, currentDate) => {
@@ -227,52 +228,15 @@ exports.checkInMemberV2Call = onCall({
             let appliedUpcoming = false;
             let swappedData = null;
             if (memberData.upcomingMembership && memberData.upcomingMembership.startDate) {
-                const isTBD = memberData.upcomingMembership.startDate === 'TBD';
+                const activationResult = membershipUtils.evaluateUpcomingActivation(memberData, today);
                 
-                let shouldActivate = false;
-                let newStartDate = memberData.upcomingMembership.startDate;
-                let newEndDate = memberData.upcomingMembership.endDate;
-
-                if (isTBD) {
-                    // [CRITICAL FIX] 1회 남은 회원이 출석하여 0이 되는 '이 순간'에 활성화되면 안 됨.
-                    // 이미 출석 전부터 완전히 0회였거나 만료된 상태에서 '새롭게 출석'할 때만 활성화해야 함.
-                    const currentCredits = memberData.credits || 0;
-                    const isCurrentExpired = memberData.endDate ? (new Date(today) > new Date(memberData.endDate)) : false;
-                    
-                    // 핵심: 출석 전 크레딧이 0 이하여야 비로소 소진된 상태에서의 새 시작임.
-                    const isCurrentExhausted = currentCredits <= 0 || isCurrentExpired;
-
-                    if (isCurrentExhausted) {
-                        shouldActivate = true;
-                        newStartDate = today;
-                        const durationMonths = memberData.upcomingMembership.durationMonths || 1;
-                        if (durationMonths === 9999) { // 무제한 같은 특수 케이스 처리 (fallback)
-                            const end = new Date(today);
-                            end.setMonth(end.getMonth() + 1);
-                            end.setDate(end.getDate() - 1);
-                            newEndDate = getKSTDateString(end);
-                        } else {
-                            const end = new Date(today);
-                            end.setMonth(end.getMonth() + durationMonths);
-                            end.setDate(end.getDate() - 1);
-                            newEndDate = getKSTDateString(end);
-                        }
-                    }
-                } else {
-                    const upcomingStart = new Date(memberData.upcomingMembership.startDate);
-                    const todayDate = new Date(today);
-                    if (todayDate >= upcomingStart) {
-                        shouldActivate = true;
-                    }
-                }
-                
-                if (shouldActivate) {
+                if (activationResult.shouldActivate) {
                     console.log(`[Attendance] Activating upcoming membership for ${memberId}`);
                     // Override memberData fields in memory for current check-in logic
-                    memberData.membershipType = memberData.upcomingMembership.membershipType;
-                    memberData.credits = memberData.upcomingMembership.credits;
-                    memberData.startDate = newStartDate;
-                    memberData.endDate = newEndDate;
+                    memberData.membershipType = activationResult.membershipType;
+                    memberData.credits = activationResult.credits;
+                    memberData.startDate = activationResult.startDate;
+                    memberData.endDate = activationResult.endDate;
                     
                     swappedData = {
                         membershipType: memberData.membershipType,
@@ -373,19 +337,10 @@ exports.checkInMemberV2Call = onCall({
                 streak = calculateStreak(records, today);
                 if (!Number.isFinite(streak)) streak = 1;
 
-                if (startDate === 'TBD' || !startDate || !memberData.endDate || memberData.endDate === 'TBD') {
+                if (membershipUtils.isTBD(startDate) || !startDate || membershipUtils.isTBD(memberData.endDate) || !memberData.endDate) {
                     startDate = today;
-                    const parts = today.split('-').map(Number);
-                    const end = new Date(parts[0], parts[1] - 1, parts[2]);
-                    // [FIX] memberData.duration(개월 수)이 있으면 그 기간 적용, 없으면 30일 fallback
-                    const durationMonths = memberData.duration || 0;
-                    if (durationMonths > 0) {
-                        end.setMonth(end.getMonth() + durationMonths);
-                        end.setDate(end.getDate() - 1);
-                    } else {
-                        end.setDate(end.getDate() + 30);
-                    }
-                    endDate = getKSTDateString(end);
+                    const durationMonths = memberData.duration || 1;
+                    endDate = membershipUtils.calculateEndDate(startDate, durationMonths);
                     console.log(`[Attendance] TBD resolved: ${memberId} → start=${startDate}, end=${endDate} (duration=${durationMonths}mo)`);
 
                     // [FIX] TBD 해소 시 해당 회원의 sales 레코드도 실제 날짜로 업데이트
@@ -565,7 +520,6 @@ exports.onAttendanceCreated = onDocumentCreated({
                     const memberName = attendance.memberName || '회원';
                     const className = attendance.className || '수업';
 
-                    // [FIX] doc.id를 토큰으로 사용 (doc.data().token 필드가 아님)
                     const tokenSet = new Set();
                     instructorTokensSnap.docs.forEach(doc => {
                         const token = doc.data().token || doc.id;
@@ -573,7 +527,7 @@ exports.onAttendanceCreated = onDocumentCreated({
                     });
                     const tokens = Array.from(tokenSet);
                     
-                    // [NEW] Get Member Rank Label (신규, 2회차, 3회차)
+                    // Get Member Rank Label (신규, 2회차, 3회차)
                     let rankLabel = '';
                     const totalCount = attendance.cumulativeCount || 0;
                     if (totalCount === 1) rankLabel = ' [신규]';
@@ -612,7 +566,6 @@ exports.onAttendanceCreated = onDocumentCreated({
                             });
                         } catch (sendError) {
                             console.warn(`[Instructor Push] Send failed for token ${token.substring(0, 20)}...: ${sendError.code}`);
-                            // Clean up invalid/expired/unregistered tokens
                             if (sendError.code === 'messaging/invalid-registration-token' ||
                                 sendError.code === 'messaging/registration-token-not-registered') {
                                 console.log(`[Instructor Push] Deleting stale token: ${token.substring(0, 20)}...`);
@@ -621,7 +574,7 @@ exports.onAttendanceCreated = onDocumentCreated({
                         }
                     }
                 } else {
-                    console.warn(`[Instructor Push] No FCM tokens found for "${instructorName}" in ANY path`);
+                    console.warn(`[Instructor Push] No FCM tokens found for "${instructorName}"`);
                 }
             } catch (instructorPushError) {
                 console.error('[Instructor Push] Error:', instructorPushError);
@@ -772,11 +725,10 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
                     });
                 } else {
                     // Standard activation if TBD or past due (Backend-only fallback)
-                    if (startDate === 'TBD' || !startDate || !memberData.endDate) {
+                    if (membershipUtils.isTBD(startDate) || !startDate || membershipUtils.isTBD(memberData.endDate) || !memberData.endDate) {
                         startDate = date;
-                        const end = new Date(date);
-                        end.setDate(end.getDate() + 30);
-                        endDate = getKSTDateString(end);
+                        const durationMonths = memberData.duration || 1;
+                        endDate = membershipUtils.calculateEndDate(startDate, durationMonths);
                     }
 
                     transaction.update(memberRef, {
@@ -842,7 +794,7 @@ exports.onAttendancePhotoAdded = onDocumentUpdated({
             body = `${className} | ${credits} ${expiry}`;
         }
 
-        const tokens = tokensSnap.docs.map(doc => doc.data().token).filter(Boolean);
+        const tokens = tokensSnap.docs.map(doc => doc.data().token || doc.id).filter(Boolean);
 
         const logoUrl = await getStudioLogoUrl();
         for (const token of tokens) {

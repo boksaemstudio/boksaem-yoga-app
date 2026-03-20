@@ -15,15 +15,11 @@ const InstructorLogin = ({ onLogin, instructors }) => {
         setError('');
         try {
             // 디버깅 로그
-            console.log('🔍 [강사 로그인 시도]');
-            console.log('  - 선택한 이름:', name);
-            console.log('  - 입력한 번호:', phoneLast4);
-            console.log('  - trim 후 이름:', name.trim());
-            console.log('  - trim 후 번호:', phoneLast4.trim());
+
             
             const result = await storageService.loginInstructor(name.trim(), phoneLast4.trim());
             
-            console.log('  - 결과:', result);
+
             
             if (result.success) {
                 onLogin(result.name);

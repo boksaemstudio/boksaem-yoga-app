@@ -1,6 +1,14 @@
 {
     "indexes": [
         {
+            "collectionGroup": "fcm_tokens",
+            "queryScope": "COLLECTION",
+            "fields": [
+                { "fieldPath": "role", "order": "ASCENDING" },
+                { "fieldPath": "instructorName", "order": "ASCENDING" }
+            ]
+        },
+        {
             "collectionGroup": "daily_classes",
             "queryScope": "COLLECTION",
             "fields": [

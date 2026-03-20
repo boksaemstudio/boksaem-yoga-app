@@ -1,12 +1,12 @@
 import { useEffect, useCallback } from 'react';
-import { useNetwork } from '../contexts/NetworkContext';
+import { useNetworkStore } from '../stores/useNetworkStore';
 import { getKSTHour } from '../utils/dates';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../firebase';
 import { attendanceService } from '../services/attendanceService';
 
 export const useNetworkMonitor = () => {
-    const { isOnline, setIsOnline } = useNetwork(); // [NETWORK] GLOBAL Connectivity state
+    const isOnline = useNetworkStore(s => s.isOnline);
 
     // [NETWORK] Active Connection Check & Recovery
     const checkConnection = useCallback(async () => {
@@ -28,7 +28,7 @@ export const useNetworkMonitor = () => {
                 console.log('[Network] Connection verified ✅');
                 if (!isOnline) {
                     console.log('[Network] Restoring online state');
-                    setIsOnline(true);
+                    useNetworkStore.setState({ isOnline: true });
                 }
                 // [FIX] Try to sync any offline check-ins automatically
                 attendanceService.syncPendingCheckins().catch(e => console.error("Offline sync error:", e));
@@ -39,7 +39,7 @@ export const useNetworkMonitor = () => {
             console.warn('[Network] Ping failed:', e);
             return false;
         }
-    }, [isOnline, setIsOnline]);
+    }, [isOnline]);
 
     // [PERF] Warm-up & Keep-alive: 앱 시작 시 최우선 실행 (서버 깨우기)
     useEffect(() => {

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { UserFocus } from '@phosphor-icons/react';
 import { AttendanceHeatmap, RevenueTrend, MemberStatusPie } from '../charts/AdminCharts';
 import { useStudioConfig } from '../../../contexts/StudioContext';
@@ -18,7 +19,7 @@ const StatsTab = ({ summary, stats, revenueTrend, memberStatusDist }) => {
                     <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
                         <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.2)', color: '#60A5FA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 'bold' }}>i</div>
                         <div className="tooltip-text" style={{ width: '220px', left: 0, transform: 'translateX(0)', color: '#fff', fontSize: '0.8rem' }}>
-                            전체 활성 회원 중에서 원활한 무인 출석을 위해 안면(얼굴) 데이터 등록을 완료한 회원의 비율입니다.
+                            전체 활성 회원 중에서 원활한 무인 출석을 위해 안면(얼굴) 데이터 등록을 완료한 회원의 비율입니다.<br /><br />📊 <b>등록 수</b>: AI 출석용 안면 벡터가 저장된 회원<br /><b>비율</b>: 등록 완료 / 전체 활성 회원<br /><br />🔒 사진은 절대 저장되지 않습니다.<br />128차원 숫자 벡터로 변환 후 원본 삭제.
                         </div>
                     </div>
                 </div>
@@ -107,4 +108,4 @@ const StatsTab = ({ summary, stats, revenueTrend, memberStatusDist }) => {
     );
 };
 
-export default StatsTab;
+export default memo(StatsTab);

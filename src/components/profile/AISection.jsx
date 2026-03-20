@@ -1,3 +1,4 @@
+import React from 'react';
 import { Icons } from '../CommonIcons';
 
 const AISection = ({ aiExperience, weatherData, greetingVisible, t, getTraditionalYogaMessage }) => {
@@ -96,4 +97,4 @@ const AISection = ({ aiExperience, weatherData, greetingVisible, t, getTradition
     );
 };
 
-export default AISection;
+export default React.memo(AISection);

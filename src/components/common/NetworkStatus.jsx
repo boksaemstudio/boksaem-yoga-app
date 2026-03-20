@@ -1,27 +1,28 @@
 import { memo, useState, useEffect } from 'react';
-import { useNetwork } from '../../contexts/NetworkContext';
+import { useNetworkStore } from '../../stores/useNetworkStore';
 import { WifiHigh, WifiSlash, CloudArrowUp } from '@phosphor-icons/react'; // [ICON] CloudArrowUp for sync
-import { query, where, onSnapshot } from 'firebase/firestore';
-import { tenantDb } from '../../utils/tenantDb';
+import { getOfflineQueue } from '../../services/offlineStorage';
 
 const NetworkStatus = memo(() => {
-    const { isOnline } = useNetwork();
+    const isOnline = useNetworkStore(s => s.isOnline);
     const [pendingCount, setPendingCount] = useState(0);
 
-    // [SYNC] Monitor pending offline data count
+    // [SYNC] Monitor pending offline data count from IndexedDB
     useEffect(() => {
-        const q = query(
-            tenantDb.collection('pending_attendance'),
-            where('status', '==', 'pending-offline')
-        );
+        let isMounted = true;
+        const checkQueueInterval = setInterval(async () => {
+            try {
+                const queue = await getOfflineQueue();
+                if (isMounted) setPendingCount(queue.length);
+            } catch (err) {
+                console.warn("[NetworkStatus] Failed to check offline queue:", err);
+            }
+        }, 3000); // 3초마다 큐 사이즈 감시
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            setPendingCount(snapshot.size);
-        }, (error) => {
-            console.warn("[NetworkStatus] Failed to subscribe to pending count:", error);
-        });
-
-        return () => unsubscribe();
+        return () => {
+            isMounted = false;
+            clearInterval(checkQueueInterval);
+        };
     }, []);
 
     // [UI] Only show if there are pending items AND we are in Kiosk mode (root path)
@@ -31,28 +32,7 @@ const NetworkStatus = memo(() => {
     if (!isKioskMode || pendingCount === 0) return null;
 
     return (
-        <div 
-            className="global-network-status"
-            style={{
-                position: 'fixed',
-                bottom: '24px',
-                right: '24px',
-                zIndex: 9999,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '8px 16px',
-                background: 'rgba(255, 183, 77, 0.9)', // Orange background
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 183, 77, 1)',
-                borderRadius: '30px',
-                fontSize: '0.9rem',
-                fontWeight: 700,
-                color: '#000', // Black text for contrast
-                boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-                pointerEvents: 'none',
-            }}
-        >
+        <div className="network-status-badge">
             <CloudArrowUp size={20} weight="duotone" />
             <span>대기 중인 데이터: {pendingCount}건</span>
         </div>

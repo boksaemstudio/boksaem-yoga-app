@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Icons } from '../CommonIcons';
 import { useStudioConfig } from '../../contexts/StudioContext';
 import { profileStyles } from './profileStyles';
@@ -28,4 +29,4 @@ const SocialLinks = ({ t }) => {
     );
 };
 
-export default SocialLinks;
+export default React.memo(SocialLinks);

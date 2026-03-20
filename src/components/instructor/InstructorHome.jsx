@@ -3,6 +3,7 @@ import { Bell, BellRinging, Share, SignOut, PlusSquare, UserFocus } from '@phosp
 import { getToken } from 'firebase/messaging';
 import { messaging } from '../../firebase';
 import { storageService } from '../../services/storage';
+import { memberService } from '../../services/memberService';
 import { useStudioConfig } from '../../contexts/StudioContext';
 import { getKSTTotalMinutes } from '../../utils/dates';
 import ImageLightbox from '../common/ImageLightbox';
@@ -19,6 +20,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
         localStorage.getItem('hide_pwa_guide_instructor') === 'true'
     );
     const [lightboxImage, setLightboxImage] = useState(null);
+    const [deletingFaceMemberId, setDeletingFaceMemberId] = useState(null);
     
     const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 
@@ -261,6 +263,46 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                                                 안면일치
                                             </span>
                                         )}
+                                        {/* 안면인식 등록 상태 뱃지 */}
+                                        {(() => {
+                                            const memberData = record.memberId ? memberService.getMemberById(record.memberId) : null;
+                                            if (!memberData) return null;
+                                            return memberData.hasFaceDescriptor ? (
+                                                <span 
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (deletingFaceMemberId) return;
+                                                        if (!confirm(`${record.memberName}님의 안면 인식 데이터를 삭제하시겠습니까?\n\n삭제 후 키오스크에서 다시 등록할 수 있습니다.`)) return;
+                                                        setDeletingFaceMemberId(record.memberId);
+                                                        memberService.deleteFaceDescriptor(record.memberId)
+                                                            .then(result => {
+                                                                if (result.success) {
+                                                                    alert('안면 인식 데이터가 삭제되었습니다.');
+                                                                } else {
+                                                                    alert('삭제 실패: ' + (result.error || '알 수 없는 오류'));
+                                                                }
+                                                            })
+                                                            .catch(() => alert('삭제 중 오류가 발생했습니다.'))
+                                                            .finally(() => setDeletingFaceMemberId(null));
+                                                    }}
+                                                    style={{ 
+                                                        fontSize: '0.65rem', 
+                                                        background: 'rgba(99, 102, 241, 0.15)', 
+                                                        color: '#818CF8', 
+                                                        padding: '1px 6px', 
+                                                        borderRadius: '4px', 
+                                                        fontWeight: 'bold', 
+                                                        display: 'flex', alignItems: 'center', gap: '3px', 
+                                                        border: '1px solid rgba(99, 102, 241, 0.3)',
+                                                        cursor: 'pointer',
+                                                        opacity: deletingFaceMemberId === record.memberId ? 0.5 : 1
+                                                    }}
+                                                    title="클릭하여 안면 데이터 삭제"
+                                                >
+                                                    🧠 안면등록 ✕
+                                                </span>
+                                            ) : null;
+                                        })()}
                                     </div>
                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', gap: '8px', marginTop: '2px' }}>
                                         <span>{record.className}</span>

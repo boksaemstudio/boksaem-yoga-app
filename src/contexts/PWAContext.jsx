@@ -26,7 +26,7 @@ export const PWAProvider = ({ children }) => {
         };
         checkStandalone();
         const handleBeforeInstallPrompt = (e) => {
-            console.log('[PWA] beforeinstallprompt event fired');
+
             e.preventDefault();
             setDeferredPrompt(e);
         };
@@ -35,7 +35,7 @@ export const PWAProvider = ({ children }) => {
 
         // Check if already installed
         window.addEventListener('appinstalled', () => {
-            console.log('[PWA] App was installed');
+
             setDeferredPrompt(null);
             setIsStandalone(true);
         });
@@ -87,19 +87,19 @@ export const PWAProvider = ({ children }) => {
         }
         appleTitle.content = appTitle;
 
-        console.log(`[PWA] Manifest updated: ${manifestFile}`);
+
     }, [location]);
 
     const installApp = async () => {
         if (!deferredPrompt) {
-            console.log('[PWA] No deferredPrompt available');
+
             return false;
         }
 
         try {
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
-            console.log(`[PWA] User choice outcome: ${outcome}`);
+
 
             if (outcome === 'accepted') {
                 setDeferredPrompt(null);

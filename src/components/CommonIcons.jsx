@@ -16,6 +16,19 @@ export {
     Trash, Play, Pause, X, Wind, SpeakerHigh, SpeakerSlash, Brain, Microphone, VideoCamera, LockKey, Heartbeat, SmileySad, Lightning, CloudRain, CloudSnow, Sun, Cloud, Share, PlusSquare
 };
 
+// ArrowLeft / ArrowUp are NOT in @phosphor-icons/react — defined here as the single source of truth
+export const ArrowLeft = ({ size = 24, color = "currentColor", ...rest }) => (
+    <svg width={size} height={size} viewBox="0 0 256 256" fill={color} {...rest}>
+        <path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z" />
+    </svg>
+);
+
+export const ArrowUp = ({ size = 24, color = "currentColor", ...rest }) => (
+    <svg width={size} height={size} viewBox="0 0 256 256" fill={color} {...rest}>
+        <path d="M213.66,122.34a8,8,0,0,1-11.32,0L136,56v152a8,8,0,0,1-16,0V56L53.66,122.34a8,8,0,0,1-11.32-11.32l80-80a8,8,0,0,1,11.32,0l80,80A8,8,0,0,1,213.66,122.34Z" />
+    </svg>
+);
+
 // [STABILITY FIX] Standardized Icon Set
 // Problematic icons are handled with inline SVGs to bypass Rollup binding issues.
 export const Icons = {

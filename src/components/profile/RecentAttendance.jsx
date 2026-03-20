@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { getTranslatedClass } from '../../utils/classMapping';
 
 const RecentAttendance = ({ logs, language, t, setActiveTab }) => {
@@ -31,4 +32,4 @@ const RecentAttendance = ({ logs, language, t, setActiveTab }) => {
     );
 };
 
-export default RecentAttendance;
+export default React.memo(RecentAttendance);

@@ -154,7 +154,7 @@ const AdminDashboard = () => {
 
         // [ROOT SOLUTION] 가격 정보 실시간 동기화 구독
         const unsubscribe = storageService.subscribe(() => {
-            console.log('[AdminDashboard] Pricing updated via settings stream, syncing...');
+
             loadPricing();
         }, ['settings']);
 
@@ -418,12 +418,12 @@ const AdminDashboard = () => {
                     console.warn('Notice image upload not implemented');
                 } else {
                     try {
-                        console.log(`[Admin] Uploading image for ${target}...`);
+
                         // [FIX] Set optimistic state IMMEDIATELY and persist it in this component
                         setOptimisticImages(prev => ({ ...prev, [target]: compressedBase64 }));
 
                         await storageService.updateImage(target, compressedBase64);
-                        console.log(`[Admin] Upload success for ${target}`);
+
                         // Removed setImages call as it is handled by subscription in hook
                     } catch (err) {
                         console.error(`[Admin] Upload failed for ${target}:`, err);
@@ -763,54 +763,6 @@ const AdminDashboard = () => {
             }
             <div style={{ height: '300px', width: '100%' }}></div>
         </div >
-    );
-};
-
-const ErrorLogsView = () => {
-    const [logs, setLogs] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const q = query(
-            tenantDb.collection('error_logs'),
-            orderBy('timestamp', 'desc'),
-            limit(50)
-        );
-
-        return onSnapshot(q, (snapshot) => {
-            setLogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-            setLoading(false);
-        });
-    }, []);
-
-    if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>로딩 중...</div>;
-
-    return (
-        <div style={{ padding: '20px', background: '#1a1a1a', borderRadius: '12px', border: '1px solid #333' }}>
-            <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Clock size={20} color="#ff4757" /> 시스템 에러/디버그 로그
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {logs.length === 0 && <div style={{ color: '#888' }}>로그가 없습니다.</div>}
-                {logs.map(log => (
-                    <div key={log.id} style={{ padding: '12px', background: '#222', borderRadius: '8px', borderLeft: '4px solid #ff4757' }}>
-                        <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '4px' }}>{log.timestamp}</div>
-                        <div style={{ fontWeight: 'bold', color: '#eee' }}>{log.message}</div>
-                        {log.context && (
-                            <pre style={{ margin: '8px 0 0', padding: '8px', background: '#000', borderRadius: '4px', fontSize: '0.75rem', color: '#4cd137', overflowX: 'auto' }}>
-                                {JSON.stringify(log.context, null, 2)}
-                            </pre>
-                        )}
-                        {log.stack && (
-                            <details style={{ marginTop: '8px' }}>
-                                <summary style={{ fontSize: '0.7rem', color: '#888', cursor: 'pointer' }}>Stack Trace</summary>
-                                <pre style={{ marginTop: '4px', fontSize: '0.65rem', color: '#ff6b6b', whiteSpace: 'pre-wrap' }}>{log.stack}</pre>
-                            </details>
-                        )}
-                    </div>
-                ))}
-            </div>
-        </div>
     );
 };
 
