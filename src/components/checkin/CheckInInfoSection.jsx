@@ -1,4 +1,4 @@
-import React, { memo, useRef, useEffect } from 'react';
+import React, { memo } from 'react';
 import { useStudioConfig } from '../../contexts/StudioContext';
 
 const CheckInInfoSection = memo(({
@@ -10,50 +10,10 @@ const CheckInInfoSection = memo(({
     rys200Logo,
     logoWide,
     qrCodeUrl,
-    handleQRInteraction,
-    onCameraTouch,
-    faceRecognitionEnabled,
-    isScanning,
-    cameraVideoRef
+    handleQRInteraction
 }) => {
     const { config } = useStudioConfig();
     const studioName = config.IDENTITY?.NAME || 'Studio';
-    const showCamera = config.POLICIES?.SHOW_CAMERA_PREVIEW || false;
-    const videoRef = useRef(null);
-    const streamRef = useRef(null);
-
-    useEffect(() => {
-        if (!showCamera) return;
-        let cancelled = false;
-
-        const startCamera = async () => {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'user', width: 160, height: 120 }
-                });
-                if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
-                streamRef.current = stream;
-                if (videoRef.current) {
-                    videoRef.current.srcObject = stream;
-                }
-                // Also feed to external ref for face detection
-                if (cameraVideoRef?.current && !cameraVideoRef.current.srcObject) {
-                    cameraVideoRef.current.srcObject = stream;
-                }
-            } catch (e) {
-                console.log('[Camera Preview] 카메라 접근 불가:', e.message);
-            }
-        };
-
-        startCamera();
-        return () => {
-            cancelled = true;
-            if (streamRef.current) {
-                streamRef.current.getTracks().forEach(t => t.stop());
-                streamRef.current = null;
-            }
-        };
-    }, [showCamera]);
 
     return (
         <div className="checkin-info-section">
@@ -163,65 +123,8 @@ const CheckInInfoSection = memo(({
                 </div>
             </div>
 
-            {/* QR코드 + 카메라 프리뷰 영역 (카메라는 왼쪽) */}
-            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 'clamp(10px, 2vw, 20px)' }}>
-                {/* 카메라 프리뷰 (설정 ON일 때만) */}
-                {showCamera && (
-                    <div style={{
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
-                        animation: 'fadeIn 0.5s ease-out'
-                    }}>
-                    <div style={{
-                            width: 'clamp(80px, 14vh, 140px)',
-                            height: 'clamp(60px, 10vh, 105px)',
-                            borderRadius: '12px',
-                            overflow: 'hidden',
-                            border: isScanning ? '2px solid var(--primary-gold)' : '1px solid rgba(255, 215, 0, 0.2)',
-                            background: 'rgba(0,0,0,0.5)',
-                            cursor: faceRecognitionEnabled ? 'pointer' : 'default',
-                            position: 'relative',
-                            transition: 'border 0.3s',
-                            boxShadow: isScanning ? '0 0 15px rgba(var(--primary-rgb), 0.2)' : 'none'
-                        }}
-                            onClick={faceRecognitionEnabled ? onCameraTouch : undefined}
-                        >
-                            <video
-                                ref={videoRef}
-                                autoPlay
-                                playsInline
-                                muted
-                                style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }}
-                            />
-                            {isScanning && (
-                                <div style={{
-                                    position: 'absolute', inset: 0,
-                                    border: '2px solid var(--primary-gold)',
-                                    borderRadius: '10px',
-                                    animation: 'pulse 1.5s ease-in-out infinite',
-                                    pointerEvents: 'none'
-                                }} />
-                            )}
-                            {faceRecognitionEnabled && !isScanning && (
-                                <div style={{
-                                    position: 'absolute', bottom: '2px', left: '50%', transform: 'translateX(-50%)',
-                                    fontSize: '0.5rem', color: 'var(--primary-gold)', background: 'rgba(0,0,0,0.7)',
-                                    padding: '1px 6px', borderRadius: '4px', whiteSpace: 'nowrap'
-                                }}>터치하여 등록</div>
-                            )}
-                        </div>
-                        <div style={{
-                            fontSize: 'clamp(0.5rem, 1vh, 0.65rem)',
-                            color: 'rgba(255,255,255,0.35)',
-                            textAlign: 'center',
-                            lineHeight: 1.3,
-                            maxWidth: 'clamp(80px, 14vh, 140px)'
-                        }}>
-                            🔐 사진 미저장 · 암호화 128숫자 변환<br/>불가역적 · 재구성 불가
-                        </div>
-                    </div>
-                )}
-
-                {/* QR코드 박스 */}
+            {/* QR코드 영역 */}
+            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
                 <div
                     className="qr-box"
                     style={{

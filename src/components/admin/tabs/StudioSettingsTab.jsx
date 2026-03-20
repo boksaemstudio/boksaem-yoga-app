@@ -358,7 +358,6 @@ const StudioSettingsTab = () => {
                             {[
                                 { value: 'total', label: '전체 기간', desc: '등록 기간 내 자유롭게 사용', icon: '📊' },
                                 { value: 'weekly', label: '주간 단위', desc: '주 N회 제한 (예: 주 3회)', icon: '📅' },
-                                { value: 'daily', label: '일간 단위', desc: '하루 N회 제한', icon: '🕐' },
                             ].map(opt => (
                                 <button
                                     key={opt.value}
@@ -422,13 +421,12 @@ const StudioSettingsTab = () => {
                             </div>
                         )}
 
+
                         {/* 안내 메시지 */}
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', padding: '10px 14px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
                             💡 {(localConfig.POLICIES?.CREDIT_RULES?.mode || 'total') === 'total'
                                 ? '현재 방식: 등록된 총 횟수에서 출석할 때마다 1회씩 차감됩니다.'
-                                : (localConfig.POLICIES?.CREDIT_RULES?.mode === 'weekly'
-                                    ? '주간 방식: 요금제의 주당 횟수(예: 월 12회 → 주 3회)를 초과하면 출석이 제한됩니다. 총 잔여 횟수도 함께 차감됩니다.'
-                                    : '일간 방식: 하루 수강 가능 횟수를 초과하면 출석이 제한됩니다.')
+                                : '주간 방식: 요금제의 주당 횟수(예: 월 12회 → 주 3회)를 초과하면 출석이 제한됩니다. 총 잔여 횟수도 함께 차감됩니다.'
                             }
                         </div>
                     </div>

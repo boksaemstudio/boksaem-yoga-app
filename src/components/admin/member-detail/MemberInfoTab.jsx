@@ -283,24 +283,22 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                     <InputGroup label="이름" value={editData.name} onChange={v => setEditData({ ...editData, name: v })} lang="ko" autoComplete="off" />
                     <InputGroup label="전화번호" value={editData.phone} onChange={v => setEditData({ ...editData, phone: v })} type="tel" inputMode="numeric" pattern="[0-9]*" autoComplete="off" />
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <InputGroup
-                            label="회원권 구분"
-                            value={editData.membershipType}
-                            onChange={v => setEditData({ ...editData, membershipType: v })}
-                            type="select"
-                            options={(() => {
-                                const pricingKeys = Object.keys(pricingConfig || {}).filter(k => k !== '_meta');
-                                const opts = pricingKeys.map(k => ({ value: k, label: getTypeLabel(k) }));
-                                const currentType = editData.membershipType;
-                                if (currentType && !pricingKeys.includes(currentType)) {
-                                    opts.unshift({ value: currentType, label: `${getTypeLabel(currentType)} (미등록)` });
-                                }
-                                return opts;
-                            })()}
-                        />
-                        <InputGroup label="세부 이용권" value={editData.subject || ''} onChange={v => setEditData({ ...editData, subject: v })} />
-                    </div>
+                    <InputGroup
+                        label="회원권 구분"
+                        value={editData.membershipType}
+                        onChange={v => setEditData({ ...editData, membershipType: v })}
+                        type="select"
+                        options={(() => {
+                            const pricingKeys = Object.keys(pricingConfig || {}).filter(k => k !== '_meta');
+                            const opts = pricingKeys.map(k => ({ value: k, label: getTypeLabel(k) }));
+                            const currentType = editData.membershipType;
+                            if (currentType && !pricingKeys.includes(currentType)) {
+                                opts.unshift({ value: currentType, label: `${getTypeLabel(currentType)} (미등록)` });
+                            }
+                            return opts;
+                        })()}
+                    />
+                    <InputGroup label="세부 이용권" value={editData.subject || ''} onChange={v => setEditData({ ...editData, subject: v })} />
 
                     <InputGroup label="등록일" value={editData.regDate || ''} onChange={v => setEditData({ ...editData, regDate: v })} type="date" />
 

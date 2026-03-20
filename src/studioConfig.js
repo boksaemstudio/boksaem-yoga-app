@@ -38,7 +38,7 @@ export const STUDIO_CONFIG = {
             enableWaitlist: true         // 대기열 기능
         },
         CREDIT_RULES: {
-            mode: 'total',               // 'total' | 'weekly' | 'daily'
+            mode: 'total',               // 'total' | 'weekly'
             weeklyResetDay: 1,           // 0=일, 1=월, ..., 6=토
             allowCarryOver: false,       // 미사용 주간 크레딧 이월 여부
             weeklyLimitSource: 'plan'    // 'plan' = 요금제 기준, 'member' = 회원별 수동
