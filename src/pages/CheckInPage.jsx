@@ -287,7 +287,7 @@ const CheckInPage = () => {
                 } else {
                     uploadPhoto(res.attendanceId, res.member?.name, 'valid');
                     await showCheckInSuccess(res, isDup);
-                    if (faceModelsLoaded && lastDescriptorRef.current && !res.member?.faceDescriptor) {
+                    if (faceModelsLoaded && lastDescriptorRef.current) {
                         memberService.updateFaceDescriptor(targetMemberId, lastDescriptorRef.current);
                     }
                 }

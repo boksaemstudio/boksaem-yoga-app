@@ -139,6 +139,7 @@ export interface MemberWithDescriptor {
     id?: string;
     name?: string;
     faceDescriptor?: Record<string, number> | Float32Array;
+    faceDescriptors?: number[][];  // 다중 디스크립터 (정확도 향상)
     [key: string]: unknown;
 }
 
@@ -183,13 +184,29 @@ export const findBestMatch = (
     let minDistance = threshold;
 
     for (const member of membersWithDescriptors) {
-        if (!member.faceDescriptor) continue;
-        const storedDescriptor = new Float32Array(Object.values(member.faceDescriptor));
-        const distance = euclideanDistance(currentDescriptor, storedDescriptor);
-        if (distance < minDistance) {
-            minDistance = distance;
-            bestMatch = member;
+        // 다중 디스크립터가 있으면 모두 비교하여 최소 거리 사용
+        if (member.faceDescriptors && member.faceDescriptors.length > 0) {
+            for (const stored of member.faceDescriptors) {
+                const storedDescriptor = new Float32Array(stored);
+                const distance = euclideanDistance(currentDescriptor, storedDescriptor);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    bestMatch = member;
+                }
+            }
+        } else if (member.faceDescriptor) {
+            // 단일 디스크립터 (하위호환)
+            const storedDescriptor = new Float32Array(Object.values(member.faceDescriptor));
+            const distance = euclideanDistance(currentDescriptor, storedDescriptor);
+            if (distance < minDistance) {
+                minDistance = distance;
+                bestMatch = member;
+            }
         }
+    }
+
+    if (bestMatch) {
+        console.log(`[FACIAL] Best match: distance=${minDistance.toFixed(3)}, member=${bestMatch.name || bestMatch.id}`);
     }
 
     return bestMatch;

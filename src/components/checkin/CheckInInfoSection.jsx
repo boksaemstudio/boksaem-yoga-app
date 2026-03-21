@@ -59,74 +59,14 @@ const CheckInInfoSection = memo(({
 
     return (
         <div className="checkin-info-section">
-            <header className="info-header" style={{ marginBottom: 'clamp(5px, 1vh, 15px)' }}>
+            <header className="info-header" style={{ marginBottom: 'clamp(5px, 1vh, 15px)', flexShrink: 0 }}>
                 <div className="logo-container" style={{ display: 'flex', alignItems: 'center', gap: '35px', justifyContent: 'center' }}>
                     <img src={rys200Logo} alt="RYS200" style={{ height: 'clamp(40px, 8vh, 80px)', width: 'auto', filter: 'brightness(0) invert(1)', opacity: 0.8 }} />
                     <img src={logoWide} alt="logo" style={{ height: 'clamp(38px, 8vh, 78px)', width: 'auto' }} />
                 </div>
             </header>
 
-            {/* ━━━ 카메라 프리뷰 (로고 아래) — large 모드일 때만 ━━━ */}
-            {showCamera && cameraSize === 'large' && (
-                <div style={{
-                    visibility: isIdle ? 'visible' : 'hidden',
-                    height: isIdle ? 'auto' : '0',
-                    overflow: 'hidden',
-                    flexDirection: 'column', alignItems: 'center', gap: '6px',
-                    marginBottom: isIdle ? 'clamp(5px, 1vh, 12px)' : '0',
-                    display: 'flex',
-                    transition: 'height 0.2s, margin 0.2s',
-                }}>
-                    <div style={{
-                        width: 'clamp(112px, 19.5vw, 225px)',
-                        aspectRatio: '4/3',
-                        borderRadius: '16px',
-                        overflow: 'hidden',
-                        border: isScanning ? '3px solid var(--primary-gold)' : '2px solid rgba(255, 215, 0, 0.2)',
-                        background: 'rgba(0,0,0,0.5)',
-                        cursor: faceRecognitionEnabled ? 'pointer' : 'default',
-                        position: 'relative',
-                        transition: 'border 0.3s',
-                        boxShadow: isScanning ? '0 0 20px rgba(var(--primary-rgb), 0.3)' : '0 4px 15px rgba(0,0,0,0.4)'
-                    }}
-                        onClick={faceRecognitionEnabled ? onCameraTouch : undefined}
-                    >
-                        <video
-                            ref={videoRef}
-                            autoPlay
-                            playsInline
-                            muted
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }}
-                        />
-                        {isScanning && (
-                            <div style={{
-                                position: 'absolute', inset: 0,
-                                border: '3px solid var(--primary-gold)',
-                                borderRadius: '14px',
-                                animation: 'pulse 1.5s ease-in-out infinite',
-                                pointerEvents: 'none'
-                            }} />
-                        )}
-                        {faceRecognitionEnabled && !isScanning && (
-                            <div style={{
-                                position: 'absolute', bottom: '8px', left: '50%', transform: 'translateX(-50%)',
-                                fontSize: 'clamp(0.7rem, 1.2vw, 0.9rem)', color: 'var(--primary-gold)', background: 'rgba(0,0,0,0.75)',
-                                padding: '4px 14px', borderRadius: '16px', whiteSpace: 'nowrap',
-                                backdropFilter: 'blur(4px)', fontWeight: 600,
-                                border: '1px solid rgba(255, 215, 0, 0.3)'
-                            }}>📸 얼굴을 비추면 자동 출석</div>
-                        )}
-                    </div>
-                    <div style={{
-                        fontSize: 'clamp(0.5rem, 0.8vw, 0.65rem)',
-                        color: 'rgba(255,255,255,0.25)',
-                        textAlign: 'center',
-                        lineHeight: 1.3
-                    }}>
-                        🔐 사진 미저장 · 암호화 128숫자 변환 · 불가역적
-                    </div>
-                </div>
-            )}
+
 
             {/* ━━━ PIN 표시 (키 입력 중일 때 카메라 대신 표시) ━━━ */}
             {pin.length > 0 && (
@@ -144,6 +84,72 @@ const CheckInInfoSection = memo(({
             )}
 
             <div className="info-body">
+                {/* ━━━ Large 카메라 프리뷰 (info-body 내부 — 로고와 AI메시지 사이 중앙) ━━━ */}
+                {showCamera && cameraSize === 'large' && isIdle && (
+                    <div style={{
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+                        marginBottom: 'clamp(8px, 1.5vh, 16px)',
+                    }}>
+                        <div style={{
+                            width: 'clamp(112px, 19.5vw, 225px)',
+                            aspectRatio: '4/3',
+                            borderRadius: '16px',
+                            overflow: 'hidden',
+                            border: isScanning ? '3px solid var(--primary-gold)' : '2px solid rgba(255, 215, 0, 0.2)',
+                            background: 'rgba(0,0,0,0.5)',
+                            cursor: 'pointer',
+                            position: 'relative',
+                            transition: 'border 0.3s',
+                            boxShadow: isScanning ? '0 0 20px rgba(var(--primary-rgb), 0.3)' : '0 4px 15px rgba(0,0,0,0.4)'
+                        }}
+                            onClick={onCameraTouch}
+                        >
+                            <video
+                                ref={videoRef}
+                                autoPlay
+                                playsInline
+                                muted
+                                style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }}
+                            />
+                            {isScanning && (
+                                <div style={{
+                                    position: 'absolute', inset: 0,
+                                    border: '3px solid var(--primary-gold)',
+                                    borderRadius: '14px',
+                                    animation: 'pulse 1.5s ease-in-out infinite',
+                                    pointerEvents: 'none'
+                                }} />
+                            )}
+                            {faceRecognitionEnabled && !isScanning && (
+                                <div style={{
+                                    position: 'absolute', bottom: '8px', left: '50%', transform: 'translateX(-50%)',
+                                    fontSize: 'clamp(0.7rem, 1.2vw, 0.9rem)', color: 'var(--primary-gold)', background: 'rgba(0,0,0,0.75)',
+                                    padding: '4px 14px', borderRadius: '16px', whiteSpace: 'nowrap',
+                                    backdropFilter: 'blur(4px)', fontWeight: 600,
+                                    border: '1px solid rgba(255, 215, 0, 0.3)'
+                                }}>📸 얼굴을 비추면 자동 출석</div>
+                            )}
+                            {!faceRecognitionEnabled && (
+                                <div style={{
+                                    position: 'absolute', bottom: '8px', left: '50%', transform: 'translateX(-50%)',
+                                    fontSize: 'clamp(0.6rem, 1vw, 0.8rem)', color: 'rgba(255,255,255,0.7)', background: 'rgba(0,0,0,0.75)',
+                                    padding: '4px 12px', borderRadius: '16px', whiteSpace: 'nowrap',
+                                    backdropFilter: 'blur(4px)', fontWeight: 500,
+                                    border: '1px solid rgba(255, 255, 255, 0.15)'
+                                }}>📸 터치하여 얼굴 등록</div>
+                            )}
+                        </div>
+                        <div style={{
+                            fontSize: 'clamp(0.5rem, 0.8vw, 0.65rem)',
+                            color: 'rgba(255,255,255,0.25)',
+                            textAlign: 'center',
+                            lineHeight: 1.3
+                        }}>
+                            🔐 사진 미저장 · 암호화 128숫자 변환 · 불가역적
+                        </div>
+                    </div>
+                )}
+
                 <div className="message-container">
                     <div className={`instruction-text ${loading ? 'loading' : ''}`}>
                         {aiExperience ? (
@@ -237,7 +243,7 @@ const CheckInInfoSection = memo(({
             </div>
 
             {/* QR코드 영역 + small 카메라 */}
-            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '12px', flexShrink: 0, marginBottom: 0 }}>
                 {/* small 카메라 — QR 왼쪽 */}
                 {showCamera && cameraSize === 'small' && (
                     <div style={{
@@ -246,6 +252,7 @@ const CheckInInfoSection = memo(({
                         overflow: 'hidden',
                         flexShrink: 0,
                         transition: 'width 0.2s',
+                        alignSelf: 'flex-end',
                     }}>
                         <div style={{
                             width: '100%',
@@ -254,11 +261,11 @@ const CheckInInfoSection = memo(({
                             overflow: 'hidden',
                             border: isScanning ? '3px solid var(--primary-gold)' : '2px solid rgba(255, 215, 0, 0.2)',
                             background: 'rgba(0,0,0,0.5)',
-                            cursor: faceRecognitionEnabled ? 'pointer' : 'default',
+                            cursor: 'pointer',
                             position: 'relative',
                             boxShadow: isScanning ? '0 0 15px rgba(var(--primary-rgb), 0.3)' : '0 4px 12px rgba(0,0,0,0.4)'
                         }}
-                            onClick={faceRecognitionEnabled ? onCameraTouch : undefined}
+                            onClick={onCameraTouch}
                         >
                             <video
                                 ref={videoRef}
@@ -271,6 +278,9 @@ const CheckInInfoSection = memo(({
                             {faceRecognitionEnabled && !isScanning && (
                                 <div style={{ position: 'absolute', bottom: '4px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.6rem', color: 'var(--primary-gold)', background: 'rgba(0,0,0,0.8)', padding: '2px 8px', borderRadius: '10px', whiteSpace: 'nowrap', fontWeight: 600 }}>📸 자동 출석</div>
                             )}
+                            {!faceRecognitionEnabled && (
+                                <div style={{ position: 'absolute', bottom: '4px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.55rem', color: 'rgba(255,255,255,0.7)', background: 'rgba(0,0,0,0.8)', padding: '2px 8px', borderRadius: '10px', whiteSpace: 'nowrap', fontWeight: 500 }}>📸 얼굴 등록</div>
+                            )}
                         </div>
                     </div>
                 )}
@@ -279,7 +289,8 @@ const CheckInInfoSection = memo(({
                     style={{
                         background: 'rgba(0,0,0,0.6)', borderRadius: '20px', padding: 'clamp(10px, 2vh, 20px) clamp(12px, 2vw, 30px)',
                         cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        gap: 'clamp(8px, 1.5vw, 25px)', border: '1px solid rgba(255, 215, 0, 0.4)', touchAction: 'none'
+                        gap: 'clamp(8px, 1.5vw, 25px)', border: '1px solid rgba(255, 215, 0, 0.4)', touchAction: 'none',
+                        marginBottom: 0
                     }}
                     onTouchStart={handleQRInteraction}
                     onMouseDown={(e) => { if (e.button === 0) handleQRInteraction(e); }}

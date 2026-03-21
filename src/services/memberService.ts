@@ -134,7 +134,11 @@ export const memberService = {
             .map(async m => {
                 try {
                     const bioSnap = await getDoc(tenantDb.doc('face_biometrics', m.id));
-                    if (bioSnap.exists()) { m.faceDescriptor = (bioSnap.data() as { descriptor: number[] }).descriptor; }
+                    if (bioSnap.exists()) {
+                        const bioData = bioSnap.data() as { descriptor?: number[]; descriptors?: number[][] };
+                        m.faceDescriptor = bioData.descriptor;
+                        if (bioData.descriptors) { (m as Record<string, unknown>).faceDescriptors = bioData.descriptors; }
+                    }
                 } catch { console.warn(`[memberService] Bio load failed for ${m.id}`); }
             });
         if (bioTasks.length > 0) await Promise.all(bioTasks);
@@ -170,11 +174,53 @@ export const memberService = {
     },
 
     async updateFaceDescriptor(memberId: string, descriptor: Float32Array | null): Promise<{ success: boolean; error?: string }> {
+        const MAX_DESCRIPTORS = 10;
         try {
             if (!descriptor) return { success: false };
             const bioRef = tenantDb.doc('face_biometrics', memberId);
             const descriptorArray = Array.from(descriptor);
-            await setDoc(bioRef, { memberId, descriptor: descriptorArray, updatedAt: new Date().toISOString() });
+
+            // 기존 데이터 로드하여 다중 디스크립터 축적
+            let existingDescriptors: number[][] = [];
+            try {
+                const bioSnap = await getDoc(bioRef);
+                if (bioSnap.exists()) {
+                    const data = bioSnap.data() as { descriptors?: number[][]; descriptor?: number[] };
+                    existingDescriptors = data.descriptors || (data.descriptor ? [data.descriptor] : []);
+                }
+            } catch { /* 첫 등록 시 무시 */ }
+
+            // 중복 방지: 기존 디스크립터와 너무 비슷하면 (거리 < 0.3) 교체 대신 스킵
+            const isDuplicate = existingDescriptors.some(existing => {
+                let sum = 0;
+                for (let i = 0; i < Math.min(existing.length, descriptorArray.length); i++) {
+                    const diff = existing[i] - descriptorArray[i];
+                    sum += diff * diff;
+                }
+                return Math.sqrt(sum) < 0.3;
+            });
+
+            let updatedDescriptors: number[][];
+            if (isDuplicate) {
+                // 너무 비슷한 건 추가 안 함 (같은 조건에서 반복 촬영)
+                updatedDescriptors = existingDescriptors;
+                console.log(`[memberService] Face descriptor too similar, skipping accumulation (${existingDescriptors.length} stored)`);
+            } else {
+                // FIFO: 최대 개수 초과 시 가장 오래된 것 제거
+                updatedDescriptors = [...existingDescriptors, descriptorArray];
+                if (updatedDescriptors.length > MAX_DESCRIPTORS) {
+                    updatedDescriptors = updatedDescriptors.slice(-MAX_DESCRIPTORS);
+                }
+                console.log(`[memberService] Face descriptor accumulated: ${updatedDescriptors.length}/${MAX_DESCRIPTORS}`);
+            }
+
+            await setDoc(bioRef, {
+                memberId,
+                descriptor: descriptorArray,              // 최신값 (하위호환)
+                descriptors: updatedDescriptors,           // 다중 디스크립터 배열
+                descriptorCount: updatedDescriptors.length,
+                updatedAt: new Date().toISOString()
+            });
             await updateDoc(tenantDb.doc('members', memberId), { hasFaceDescriptor: true, faceUpdatedAt: new Date().toISOString() });
             this._updateLocalMemberCache(memberId, { faceDescriptor: descriptorArray, hasFaceDescriptor: true });
             return { success: true };
