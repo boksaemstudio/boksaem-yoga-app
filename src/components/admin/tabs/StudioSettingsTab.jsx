@@ -580,12 +580,33 @@ const StudioSettingsTab = () => {
                         />
                     </div>
 
-                    {/* 하위 옵션: 안면인식 자동 출석 (카메라 ON일 때만 표시) */}
+                    {/* 하위 옵션: 카메라 크기 + 안면인식 (카메라 ON일 때만 표시) */}
                     {localConfig.POLICIES?.SHOW_CAMERA_PREVIEW && (
                         <div style={{ 
                             marginTop: '12px', paddingTop: '12px', paddingLeft: '20px',
-                            borderTop: '1px solid rgba(255,255,255,0.05)'
+                            borderTop: '1px solid rgba(255,255,255,0.05)',
+                            display: 'flex', flexDirection: 'column', gap: '12px'
                         }}>
+                            {/* 카메라 크기 */}
+                            <div style={featureHeaderStyle}>
+                                <div>
+                                    <div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '4px' }}>📐 프리뷰 크기</div>
+                                    <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>
+                                        {(localConfig.POLICIES?.CAMERA_SIZE || 'large') === 'large' ? '로고 아래 큰 프리뷰' : 'QR 코드 옆 작은 프리뷰'}
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '2px' }}>
+                                    {['large', 'small'].map(size => (
+                                        <button key={size} onClick={() => handleChange('POLICIES.CAMERA_SIZE', size)} style={{
+                                            padding: '6px 14px', borderRadius: '6px', border: 'none', cursor: 'pointer',
+                                            fontWeight: 'bold', fontSize: '0.8rem', transition: 'all 0.2s',
+                                            background: (localConfig.POLICIES?.CAMERA_SIZE || 'large') === size ? 'var(--primary-gold)' : 'transparent',
+                                            color: (localConfig.POLICIES?.CAMERA_SIZE || 'large') === size ? 'black' : 'var(--text-tertiary)',
+                                        }}>{size === 'large' ? '크게' : '작게'}</button>
+                                    ))}
+                                </div>
+                            </div>
+                            {/* 안면인식 자동 출석 */}
                             <div style={featureHeaderStyle}>
                                 <div>
                                     <div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '4px' }}>🧠 안면인식 자동 출석</div>
@@ -645,6 +666,64 @@ const StudioSettingsTab = () => {
             </div>
             
 
+
+
+            {/* ━━━━━━━━━━ 앱 URL 및 QR 코드 ━━━━━━━━━━ */}
+            <div className="dashboard-card" style={{ marginTop: '24px' }}>
+                <h3 className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+                    <Globe size={24} weight="fill" color="var(--primary-gold)" />
+                    앱 URL 및 QR 코드
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+                    각 앱의 URL을 복사하거나 QR 코드를 공유할 수 있습니다.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                    {[
+                        { label: '관리자앱', path: '/admin', icon: '⚙️', desc: '스튜디오 관리' },
+                        { label: '강사앱', path: '/instructor', icon: '🧘', desc: '출석 확인 & 일정' },
+                        { label: '회원앱', path: '/member', icon: '📱', desc: '출석 & 수업 정보' },
+                        { label: '출석체크앱', path: '/checkin', icon: '✅', desc: '키오스크/태블릿' },
+                    ].map(app => {
+                        const fullUrl = `${window.location.origin}${app.path}`;
+                        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&format=png&data=${encodeURIComponent(fullUrl)}`;
+                        return (
+                            <div key={app.path} style={{
+                                background: 'rgba(255,255,255,0.03)', borderRadius: '16px', padding: '20px',
+                                border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column',
+                                alignItems: 'center', gap: '12px', textAlign: 'center'
+                            }}>
+                                <div style={{ fontSize: '2rem' }}>{app.icon}</div>
+                                <div>
+                                    <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '4px' }}>{app.label}</div>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>{app.desc}</div>
+                                </div>
+                                <div style={{ background: 'white', padding: '8px', borderRadius: '12px' }}>
+                                    <img src={qrUrl} alt={`${app.label} QR`} style={{ width: '120px', height: '120px', display: 'block' }} />
+                                </div>
+                                <div style={{
+                                    fontSize: '0.75rem', color: 'var(--text-tertiary)', wordBreak: 'break-all',
+                                    background: 'rgba(0,0,0,0.2)', padding: '8px 12px', borderRadius: '8px', width: '100%'
+                                }}>
+                                    {fullUrl}
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(fullUrl);
+                                        const btn = document.getElementById(`copy-btn-${app.path}`);
+                                        if (btn) { btn.textContent = '✓ 복사됨!'; setTimeout(() => { btn.textContent = 'URL 복사'; }, 2000); }
+                                    }}
+                                    id={`copy-btn-${app.path}`}
+                                    style={{
+                                        width: '100%', padding: '10px', borderRadius: '8px',
+                                        background: 'var(--primary-gold)', color: 'black', border: 'none',
+                                        fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem'
+                                    }}
+                                >URL 복사</button>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
 
             <div style={{ height: '200px' }} />
         </div>

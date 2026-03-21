@@ -19,6 +19,7 @@ const CheckInInfoSection = memo(({
     const { config } = useStudioConfig();
     const studioName = config.IDENTITY?.NAME || 'Studio';
     const showCamera = config.POLICIES?.SHOW_CAMERA_PREVIEW || false;
+    const cameraSize = config.POLICIES?.CAMERA_SIZE || 'large';
     const videoRef = useRef(null);
     const streamRef = useRef(null);
 
@@ -65,8 +66,8 @@ const CheckInInfoSection = memo(({
                 </div>
             </header>
 
-            {/* ━━━ 카메라 프리뷰 (로고 아래, AI 메시지 위) — 항상 마운트, visibility로 숨김 ━━━ */}
-            {showCamera && (
+            {/* ━━━ 카메라 프리뷰 (로고 아래) — large 모드일 때만 ━━━ */}
+            {showCamera && cameraSize === 'large' && (
                 <div style={{
                     visibility: isIdle ? 'visible' : 'hidden',
                     height: isIdle ? 'auto' : '0',
@@ -235,8 +236,44 @@ const CheckInInfoSection = memo(({
                 </div>
             </div>
 
-            {/* QR코드 영역 */}
-            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+            {/* QR코드 영역 + small 카메라 */}
+            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '12px' }}>
+                {/* small 카메라 — QR 왼쪽 */}
+                {showCamera && cameraSize === 'small' && (
+                    <div style={{
+                        visibility: isIdle ? 'visible' : 'hidden',
+                        width: isIdle ? 'clamp(100px, 14vh, 160px)' : '0',
+                        overflow: 'hidden',
+                        flexShrink: 0,
+                        transition: 'width 0.2s',
+                    }}>
+                        <div style={{
+                            width: '100%',
+                            aspectRatio: '3/4',
+                            borderRadius: '16px',
+                            overflow: 'hidden',
+                            border: isScanning ? '3px solid var(--primary-gold)' : '2px solid rgba(255, 215, 0, 0.2)',
+                            background: 'rgba(0,0,0,0.5)',
+                            cursor: faceRecognitionEnabled ? 'pointer' : 'default',
+                            position: 'relative',
+                            boxShadow: isScanning ? '0 0 15px rgba(var(--primary-rgb), 0.3)' : '0 4px 12px rgba(0,0,0,0.4)'
+                        }}
+                            onClick={faceRecognitionEnabled ? onCameraTouch : undefined}
+                        >
+                            <video
+                                ref={cameraSize === 'small' ? videoRef : undefined}
+                                autoPlay playsInline muted
+                                style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }}
+                            />
+                            {isScanning && (
+                                <div style={{ position: 'absolute', inset: 0, border: '3px solid var(--primary-gold)', borderRadius: '14px', animation: 'pulse 1.5s ease-in-out infinite', pointerEvents: 'none' }} />
+                            )}
+                            {faceRecognitionEnabled && !isScanning && (
+                                <div style={{ position: 'absolute', bottom: '4px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.6rem', color: 'var(--primary-gold)', background: 'rgba(0,0,0,0.8)', padding: '2px 8px', borderRadius: '10px', whiteSpace: 'nowrap', fontWeight: 600 }}>📸 자동 출석</div>
+                            )}
+                        </div>
+                    </div>
+                )}
                 <div
                     className="qr-box"
                     style={{
