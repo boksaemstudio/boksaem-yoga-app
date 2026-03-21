@@ -13,6 +13,17 @@ service firebase.storage {
                    && request.resource.size < 10 * 1024 * 1024; // Max 10MB
     }
 
+    // ========================================
+    // 📺 Kiosk Notices - 키오스크 공지 이미지/영상
+    // Admin can upload (max 50MB), anyone can read (kiosk anonymous access)
+    // ========================================
+    match /kiosk_notices/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.auth.token.admin == true
+                   && request.resource.size < 50 * 1024 * 1024; // Max 50MB
+    }
+
     // Helper: Check if authenticated
     function isAuth() {
       return request.auth != null;
