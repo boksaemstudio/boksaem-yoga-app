@@ -342,14 +342,6 @@ const CheckInPage = () => {
         if (pinRef.current.length === 0) { 
             setTimeout(() => { checkConnection(); warmupFunctions(); }, 50);
             setTimeout(() => capturePhoto(), 300);
-            setTimeout(() => {
-                if (faceModelsLoaded && videoRef.current) {
-                    const taskId = ++activeTaskIdRef.current;
-                    extractFaceDescriptor(videoRef.current).then(desc => {
-                        if (taskId === activeTaskIdRef.current) lastDescriptorRef.current = desc;
-                    }).catch(() => {});
-                }
-            }, 600);
         }
 
         const nextLength = pinRef.current.length + 1;

@@ -65,15 +65,19 @@ const CheckInInfoSection = memo(({
                 </div>
             </header>
 
-            {/* ━━━ 카메라 프리뷰 (로고 아래, AI 메시지 위) — 항상 마운트, CSS로 숨김 ━━━ */}
+            {/* ━━━ 카메라 프리뷰 (로고 아래, AI 메시지 위) — 항상 마운트, visibility로 숨김 ━━━ */}
             {showCamera && (
                 <div style={{
-                    display: isIdle ? 'flex' : 'none',
+                    visibility: isIdle ? 'visible' : 'hidden',
+                    height: isIdle ? 'auto' : '0',
+                    overflow: 'hidden',
                     flexDirection: 'column', alignItems: 'center', gap: '6px',
-                    marginBottom: 'clamp(5px, 1vh, 12px)',
+                    marginBottom: isIdle ? 'clamp(5px, 1vh, 12px)' : '0',
+                    display: 'flex',
+                    transition: 'height 0.2s, margin 0.2s',
                 }}>
                     <div style={{
-                        width: 'clamp(150px, 26vw, 300px)',
+                        width: 'clamp(112px, 19.5vw, 225px)',
                         aspectRatio: '4/3',
                         borderRadius: '16px',
                         overflow: 'hidden',
