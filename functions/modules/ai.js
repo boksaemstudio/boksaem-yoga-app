@@ -123,7 +123,8 @@ exports.generatePageExperienceV2 = onCall({
             const mbti = request.data.mbti || null;
             const mbtiContext = mbti ? `MBTI: ${mbti}. Consider their personality type when crafting the greeting (e.g., introverts might prefer calmer tones, extraverts more energetic).` : '';
             prompt = `
-                Generate a warm, personalized greeting for ${memberName || 'visitor'}.
+                Generate a warm greeting for someone arriving at a yoga studio.
+                Do NOT address them by any name or title (no "회원님", no "방문자님", no names).
                 Streak: ${streak}, TimeOfDay: ${timeOfDay}h, Weather: ${weather}.
                 ${mbtiContext}
                 Length: 1 sentence. Language: ${targetLang}.
