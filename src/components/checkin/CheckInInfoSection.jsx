@@ -53,7 +53,7 @@ const CheckInInfoSection = memo(({
                 streamRef.current = null;
             }
         };
-    }, [showCamera]);
+    }, [showCamera, cameraSize]);
 
     const isIdle = pin.length === 0 && !loading;
 
@@ -261,7 +261,7 @@ const CheckInInfoSection = memo(({
                             onClick={faceRecognitionEnabled ? onCameraTouch : undefined}
                         >
                             <video
-                                ref={cameraSize === 'small' ? videoRef : undefined}
+                                ref={videoRef}
                                 autoPlay playsInline muted
                                 style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }}
                             />
