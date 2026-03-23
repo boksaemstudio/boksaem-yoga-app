@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { CaretLeft, CaretRight, User, SignOut, DotsThreeVertical, List, X, House, Calendar, ChatCircleText, Table, UsersFour, ChartBar, Bell, BellSlash, SpinnerGap, CalendarBlank } from '@phosphor-icons/react';
 import { useStudioConfig } from '../contexts/StudioContext';
 import { storageService } from '../services/storage';
-import { getKSTHour } from '../utils/dates';
+import { getKSTHour, getKSTDayOfWeek } from '../utils/dates';
 import { auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import CosmicParticles from '../components/common/CosmicParticles';
@@ -251,7 +251,7 @@ const InstructorPage = () => {
     useEffect(() => {
         if (!instructorName) return;
 
-        const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][new Date().getDay()];
+        const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][getKSTDayOfWeek()];
         
         // 1. Try Cache First for instant display
         const cacheKey = `ai_greeting_${instructorName}_${todayStr}_${hour}`;

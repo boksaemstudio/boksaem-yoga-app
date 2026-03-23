@@ -14,7 +14,7 @@ const { admin, tenantDb, getAI, createPendingApproval, logAIError, getKSTDateStr
  * 보안 회원 조회 (PIN 기반)
  */
 exports.getSecureMemberV2Call = onCall({ 
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
+    cors: require('../helpers/cors').ALLOWED_ORIGINS
 }, async (request) => {
     const tdb = tenantDb();
     const db = tdb.raw(); // 글로벌 컬렉션(rate_limits)용
@@ -90,7 +90,7 @@ exports.getSecureMemberV2Call = onCall({
  * 서버에서 검증 후 Custom Token을 발급하여 안전한 인증 세션을 수립합니다.
  */
 exports.memberLoginV2Call = onCall({
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
+    cors: require('../helpers/cors').ALLOWED_ORIGINS
 }, async (request) => {
     const tdb = tenantDb();
     const db = tdb.raw(); // 글로벌 컬렉션(rate_limits)용
@@ -214,7 +214,7 @@ exports.memberLoginV2Call = onCall({
  * 강사 인증 (이름 & PIN 기반)
  */
 exports.verifyInstructorV2Call = onCall({
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
+    cors: require('../helpers/cors').ALLOWED_ORIGINS
 }, async (request) => {
     const tdb = tenantDb();
     const db = tdb.raw(); // 글로벌 컬렉션(rate_limits)용
@@ -365,7 +365,7 @@ exports.checkExpiringMembersV2 = onSchedule({
  * - 홀딩 규칙은 studios/{studioId} 또는 settings 컬렉션에서 읽어옵니다.
  */
 exports.applyMemberHoldCall = onCall({
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
+    cors: require('../helpers/cors').ALLOWED_ORIGINS
 }, async (request) => {
     // [FIX] Auth guard — 회원 인증 필요
     const { requireAuth } = require('../helpers/authGuard');

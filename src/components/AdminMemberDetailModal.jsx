@@ -61,7 +61,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                                     </div>
                                     {member.faceUpdatedAt && (
                                         <span style={{ fontSize: '0.65rem', opacity: 0.5, fontWeight: 'normal', transform: 'translateY(2px)' }}>
-                                            (학습일: {new Date(member.faceUpdatedAt).toLocaleDateString()})
+                                            (학습일: {new Date(member.faceUpdatedAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })})
                                         </span>
                                     )}
                                 </>

@@ -91,20 +91,42 @@ const getAllFCMTokens = async (_db, filters = {}) => {
 
     for (const col of FCM_COLLECTIONS) {
         try {
-            let q = tdb.collection(col);
-            if (filters.memberId) q = q.where('memberId', '==', filters.memberId);
-            if (filters.role) q = q.where('role', '==', filters.role);
-            if (filters.instructorName) q = q.where('instructorName', '==', filters.instructorName);
+            // [FIX] roles 배열(array-contains) + role 단일필드 병행 조회
+            // 원장이 admin/instructor 두 역할을 모두 가지면 role 필드가 마지막 접속 역할로 덮어써지므로
+            // roles 배열에서도 찾아야 토큰 누락을 방지할 수 있음
+            const queries = [];
             
-            const snap = await q.get();
-            snap.docs.forEach(doc => {
-                if (!tokens.includes(doc.id)) {
-                    tokens.push(doc.id);
-                    tokenSources[doc.id] = col;
-                }
-            });
+            if (filters.role && !filters.memberId) {
+                // (1) roles 배열에서 array-contains로 조회
+                let q1 = tdb.collection(col).where('roles', 'array-contains', filters.role);
+                if (filters.instructorName) q1 = q1.where('instructorName', '==', filters.instructorName);
+                queries.push(q1);
+                
+                // (2) 레거시: role 단일 필드로도 조회 (roles 배열이 없는 구 토큰 호환)
+                let q2 = tdb.collection(col).where('role', '==', filters.role);
+                if (filters.instructorName) q2 = q2.where('instructorName', '==', filters.instructorName);
+                queries.push(q2);
+            } else {
+                // memberId 필터 또는 필터 없음 — 기존 로직 유지
+                let q = tdb.collection(col);
+                if (filters.memberId) q = q.where('memberId', '==', filters.memberId);
+                if (filters.role) q = q.where('role', '==', filters.role);
+                if (filters.instructorName) q = q.where('instructorName', '==', filters.instructorName);
+                queries.push(q);
+            }
+
+            for (const q of queries) {
+                const snap = await q.get();
+                snap.docs.forEach(doc => {
+                    if (!tokens.includes(doc.id)) {
+                        tokens.push(doc.id);
+                        tokenSources[doc.id] = col;
+                    }
+                });
+            }
         } catch (e) {
             // Collection might not exist, skip
+            console.warn(`[getAllFCMTokens] Query error for ${col}:`, e.message);
         }
     }
 
@@ -229,7 +251,7 @@ const getStudioLogoUrl = async () => {
     } catch (e) {
         console.warn("Failed to fetch studio logo:", e);
     }
-    return 'https://boksaem-yoga.web.app/logo_circle.png'; // 기본 폴백
+    return `https://${STUDIO_ID}.web.app/logo_circle.png`; // 동적 폴백
 };
 
 module.exports = {

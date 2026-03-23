@@ -9,6 +9,7 @@
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { admin, tenantDb, STUDIO_ID, getAI, logAIError, getAllFCMTokens, getStudioName, getStudioLogoUrl } = require("../helpers/common");
+const { getStudioUrl } = require('../helpers/urls');
 
 /**
  * 개인 메시지 푸시 알림
@@ -323,8 +324,8 @@ exports.sendPushOnNoticeV2 = onDocumentCreated({
             const body = await ai.translate(bodyOriginal.substring(0, 100), lang);
 
             const clickUrl = role === 'instructor' 
-                ? "https://boksaem-yoga.web.app/instructor?tab=notices" 
-                : "https://boksaem-yoga.web.app/member?tab=notices";
+                ? getStudioUrl('/instructor?tab=notices') 
+                : getStudioUrl('/member?tab=notices');
 
             const chunkSize = 500;
             for (let i = 0; i < tokens.length; i += chunkSize) {
@@ -335,7 +336,7 @@ exports.sendPushOnNoticeV2 = onDocumentCreated({
                     data: { 
                         title, 
                         body, 
-                        url: clickUrl.replace('https://boksaem-yoga.web.app', ''),
+                        url: clickUrl.replace(getStudioUrl(''), ''),
                         icon: logoUrl || ''
                     },
                     webpush: { headers: { Urgency: 'high' } },

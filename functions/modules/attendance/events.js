@@ -5,6 +5,7 @@
 
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { admin, tenantDb, getKSTDateString, logAIError, getStudioName, getStudioLogoUrl } = require("../../helpers/common");
+const { getStudioUrl } = require('../../helpers/urls');
 const { calculateStreak, getTimeBand, getMostCommon, generateEventMessage } = require('./helpers');
 
 exports.onAttendanceCreated = onDocumentCreated({
@@ -59,31 +60,32 @@ exports.onAttendanceCreated = onDocumentCreated({
             createdAt: admin.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
 
-        // ━━━━ Send push to instructor ━━━━
-        const instructorName = attendance.instructor;
-        if (instructorName) {
-            try {
-                const { getAllFCMTokens } = require("../../helpers/common");
+        // ━━━━ Send push to instructor + admin (원장) ━━━━
+        try {
+            const { getAllFCMTokens } = require("../../helpers/common");
+            const memberName = attendance.memberName || '회원';
+            const className = attendance.className || '수업';
+            
+            let rankLabel = '';
+            const totalCount = attendance.cumulativeCount || 0;
+            if (totalCount === 1) rankLabel = ' [신규]';
+            else if (totalCount >= 2 && totalCount <= 3) rankLabel = ` [${totalCount}회차]`;
+
+            const studioName = await getStudioName();
+            const logoUrl = await getStudioLogoUrl();
+            let body = `${memberName}님이 출석하셨습니다.`;
+            if (attendance.credits !== undefined || attendance.endDate) {
+                const credits = attendance.credits !== undefined ? `${attendance.credits}회 남음` : '';
+                const expiry = attendance.endDate ? `(~${attendance.endDate.slice(2)})` : '';
+                body = `${className} | ${credits} ${expiry}`;
+            }
+
+            // [1] 강사에게 푸시
+            const instructorName = attendance.instructor;
+            const allSentTokens = new Set();
+            if (instructorName) {
                 const { tokens, tokenSources } = await getAllFCMTokens(null, { role: 'instructor', instructorName });
-
                 if (tokens.length > 0) {
-                    const memberName = attendance.memberName || '회원';
-                    const className = attendance.className || '수업';
-                    
-                    let rankLabel = '';
-                    const totalCount = attendance.cumulativeCount || 0;
-                    if (totalCount === 1) rankLabel = ' [신규]';
-                    else if (totalCount >= 2 && totalCount <= 3) rankLabel = ` [${totalCount}회차]`;
-
-                    const studioName = await getStudioName();
-                    const logoUrl = await getStudioLogoUrl();
-                    let body = `${memberName}님이 출석하셨습니다.`;
-                    if (attendance.credits !== undefined || attendance.endDate) {
-                        const credits = attendance.credits !== undefined ? `${attendance.credits}회 남음` : '';
-                        const expiry = attendance.endDate ? `(~${attendance.endDate.slice(2)})` : '';
-                        body = `${className} | ${credits} ${expiry}`;
-                    }
-
                     console.log(`[Instructor Push] Sending to ${tokens.length} tokens for "${instructorName}"`);
                     for (const token of tokens) {
                         try {
@@ -92,9 +94,10 @@ exports.onAttendanceCreated = onDocumentCreated({
                                 notification: { title: `🧘‍♀️ ${memberName}${rankLabel}님 출석`, body: `${studioName} | ${body}` },
                                 webpush: { 
                                     notification: { icon: logoUrl, badge: logoUrl, tag: `att-${attendanceId}` },
-                                    fcm_options: { link: 'https://boksaem-yoga.web.app/instructor' }
+                                    fcm_options: { link: getStudioUrl('/instructor') }
                                 }
                             });
+                            allSentTokens.add(token);
                         } catch (sendError) {
                             console.warn(`[Instructor Push] Send failed for token ${token.substring(0, 20)}...: ${sendError.code}`);
                             if (sendError.code === 'messaging/invalid-registration-token' || sendError.code === 'messaging/registration-token-not-registered') {
@@ -103,9 +106,33 @@ exports.onAttendanceCreated = onDocumentCreated({
                         }
                     }
                 }
-            } catch (instructorPushError) {
-                console.error('[Instructor Push] Error:', instructorPushError);
             }
+
+            // [2] 관리자(원장)에게도 항상 푸시 — 강사에게 이미 보낸 토큰은 중복 전송 방지
+            const { tokens: adminTokens } = await getAllFCMTokens(null, { role: 'admin' });
+            const newAdminTokens = adminTokens.filter(t => !allSentTokens.has(t));
+            if (newAdminTokens.length > 0) {
+                console.log(`[Admin Push] Sending attendance push to ${newAdminTokens.length} admin tokens`);
+                for (const token of newAdminTokens) {
+                    try {
+                        await admin.messaging().send({
+                            token,
+                            notification: { title: `🧘‍♀️ ${memberName}${rankLabel}님 출석`, body: `${studioName} | ${body}` },
+                            webpush: {
+                                notification: { icon: logoUrl, badge: logoUrl, tag: `att-${attendanceId}` },
+                                fcm_options: { link: getStudioUrl('/instructor') }
+                            }
+                        });
+                    } catch (sendError) {
+                        console.warn(`[Admin Push] Send failed for token ${token.substring(0, 20)}...: ${sendError.code}`);
+                        if (sendError.code === 'messaging/invalid-registration-token' || sendError.code === 'messaging/registration-token-not-registered') {
+                            await tdb.collection('fcm_tokens').doc(token).delete().catch(() => {});
+                        }
+                    }
+                }
+            }
+        } catch (pushError) {
+            console.error('[Attendance Push] Error:', pushError);
         }
 
         // ━━━━ Send push/SMS to MEMBER ━━━━
@@ -150,7 +177,7 @@ exports.onAttendanceCreated = onDocumentCreated({
                                 notification: { title, body: `${studioName} | ${body}` },
                                 webpush: {
                                     notification: { icon: logoUrl, badge: logoUrl, tag: `member-att-${attendanceId}` },
-                                    fcm_options: { link: 'https://boksaem-yoga.web.app/' }
+                                    fcm_options: { link: getStudioUrl('/') }
                                 }
                             });
                         } catch (sendErr) {

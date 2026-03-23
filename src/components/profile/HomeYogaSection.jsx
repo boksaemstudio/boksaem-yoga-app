@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { storageService } from '../../services/storage';
 import { useLanguage } from '../../hooks/useLanguage';
+import { getKSTYear } from '../../utils/dates';
 
 // ─── MBTI별 3분 홈트 데이터 ───
 const HOME_TRAINING_DB = {
@@ -74,7 +75,7 @@ const getTrainingForMBTI = (mbti) => {
     if (!mbti || mbti.length < 4) return null;
     // MBTI 4글자 → 각 성격 특성에서 가장 강한 특성 1~2개 기반으로 추천
     // 오늘 날짜 기반으로 1개 포즈를 순환 선택
-    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+    const dayOfYear = Math.floor((Date.now() - new Date(getKSTYear(), 0, 0)) / 86400000);
     const traits = mbti.split('');
     
     // 1차 특성 (에너지 방향) + 2차 특성 (인식) 조합

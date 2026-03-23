@@ -59,7 +59,7 @@ const generateInternalAudio = async (text, type = 'default') => {
  */
 exports.generateMeditationGuidance = onCall({
     region: "asia-northeast3",
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173'],
+    cors: require('../helpers/cors').ALLOWED_ORIGINS,
     memory: "512MiB",
     timeoutSeconds: 120,
     minInstances: 1, // ✅ Cold Start 방지

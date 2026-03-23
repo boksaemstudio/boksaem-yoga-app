@@ -8,7 +8,7 @@ import { auth } from '../firebase';
 import { tenantDb } from '../utils/tenantDb';
 import { storageService } from '../services/storage';
 import { safeLocalStorage } from '../utils/safeLocalStorage';
-import { getDaysRemaining, getKSTHour } from '../utils/dates';
+import { getDaysRemaining, getKSTHour, getKSTMonth, getKSTDayNameEN } from '../utils/dates';
 
 /**
  * @param {Object} options
@@ -41,7 +41,7 @@ export function useMemberData({ t, language, setLoginFormValue, setLoginForm }) 
   // ── Traditional yoga greeting fallback ──
   const getTraditionalYogaMessage = () => {
     const hour = getKSTHour();
-    const month = new Date().getMonth() + 1;
+    const month = getKSTMonth();
     let timeMsg = '';
     if (hour >= 5 && hour < 9) timeMsg = t('trad_dawn');
     else if (hour >= 9 && hour < 12) timeMsg = t('trad_morning');
@@ -62,10 +62,8 @@ export function useMemberData({ t, language, setLoginFormValue, setLoginForm }) 
     if (!m) return;
     if (aiExperience && !aiExperience.isFallback) return;
 
-    const now = new Date();
     const hour = getKSTHour();
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const day = days[now.getDay()];
+    const day = getKSTDayNameEN();
 
     const validAttendance = attendanceData ? attendanceData.filter(l => l.status !== 'denied') : [];
     const currentArgs = `${m.id}_${validAttendance.length}_${day}_${hour}_${wData?.key || 'null'}_${language}`;

@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../firebase';
 import { AI_SESSION_MESSAGES, MEDITATION_MODES, DIAGNOSIS_OPTIONS } from '../constants/meditationConstants';
+import { getKSTHour } from '../utils/dates';
 
 const generateMeditationGuidance = httpsCallable(functions, 'generateMeditationGuidance');
 const SELECTED_DIAGNOSIS_FALLBACK = DIAGNOSIS_OPTIONS[0];
@@ -106,7 +107,7 @@ export const useMeditationAI = ({
         currentRequestIdRef.current = requestId;
         
         try {
-            const hour = new Date().getHours();
+            const hour = getKSTHour();
             let currentContext = 'night';
             if (hour >= 5 && hour < 12) currentContext = 'morning';
             else if (hour >= 12 && hour < 18) currentContext = 'afternoon';

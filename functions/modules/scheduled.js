@@ -9,6 +9,7 @@
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const { admin, tenantDb, STUDIO_ID, getAI, createPendingApproval, logAIError, getKSTDateString, getStudioName } = require("../helpers/common");
+const { getStudioUrl } = require('../helpers/urls');
 const chunk = require('lodash/chunk');
 
 /**
@@ -159,7 +160,7 @@ exports.sendScheduledMessages = onSchedule({
                 if (tokens.length > 0) {
                     const payload = {
                         notification: { title: "내요가 예약 알림", body: content },
-                        data: { url: "https://boksaem-yoga.web.app/member?tab=messages" }
+                        data: { url: getStudioUrl('/member?tab=messages') }
                     };
                     const response = await admin.messaging().sendEachForMulticast({
                         tokens,
@@ -184,7 +185,8 @@ exports.sendScheduledMessages = onSchedule({
                     if (memberDoc.exists) {
                         const phone = memberDoc.data().phone?.replace(/-/g, '');
                         if (phone) {
-                            smsResult = await sendSMS(phone, content, "복샘요가 알림");
+                            const smsStudioName = await getStudioName();
+                            smsResult = await sendSMS(phone, content, `${smsStudioName} 알림`);
                         }
                     }
                 } catch (e) {

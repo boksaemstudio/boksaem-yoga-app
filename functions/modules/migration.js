@@ -27,7 +27,7 @@ exports.migrateToTenantV2 = onCall({
     region: "asia-northeast3",
     timeoutSeconds: 540,
     memory: "1GiB",
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
+    cors: require('../helpers/cors').ALLOWED_ORIGINS
 }, async (request) => {
     // 관리자 인증 체크 (auth가 없으면 anonymous이므로 거부)
     // 실제로는 admin claim 체크하는게 좋지만, 기존 패턴에 맞춰 존재만 확인
@@ -94,7 +94,7 @@ exports.migrateToTenantV2 = onCall({
  */
 exports.restorePricingV2 = onCall({
     region: "asia-northeast3",
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
+    cors: require('../helpers/cors').ALLOWED_ORIGINS
 }, async (request) => {
     // [FIX] Auth guard — 관리자만 가격표 복원 가능
     const { requireAdmin } = require('../helpers/authGuard');

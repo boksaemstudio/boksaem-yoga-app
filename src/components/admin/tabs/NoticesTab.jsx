@@ -77,7 +77,7 @@ const NoticesTab = ({ notices, setShowNoticeModal, refreshData }) => {
                                         {notice.title}
                                     </div>
                                     <div style={{ fontSize: '0.8rem', opacity: 0.5 }}>
-                                        {notice.date || (notice.timestamp ? new Date(notice.timestamp).toLocaleDateString() : '날짜 정보 없음')} 등록
+                                        {notice.date || (notice.timestamp ? new Date(notice.timestamp).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' }) : '날짜 정보 없음')} 등록
                                     </div>
                                 </div>
                                 <button

@@ -38,7 +38,7 @@ function getKSTTimeString(date) {
 const { processAttendanceCore } = require('./coreLogic');
 
 exports.adminAddAttendanceCall = onCall({
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173'],
+    cors: require('../../helpers/cors').ALLOWED_ORIGINS,
     minInstances: 0
 }, async (request) => {
     requireAdmin(request, 'adminAddAttendanceCall');

@@ -46,7 +46,7 @@ const WorkoutReportModal = ({ log, onClose, t }) => {
                         {log.className ? getTranslatedClass(log.className, t) : t('selfPractice')}
                     </p>
                     <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', marginTop: '5px', margin: 0 }}>
-                        {new Date(log.timestamp).toLocaleDateString()}
+                        {new Date(log.timestamp).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}
                     </p>
                 </div>
 

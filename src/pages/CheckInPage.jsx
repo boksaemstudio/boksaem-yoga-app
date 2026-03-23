@@ -3,6 +3,7 @@ import { signInAnonymously } from 'firebase/auth';
 import { auth } from '../firebase';
 import { storageService } from '../services/storage';
 import { getKSTHour, getDaysRemaining, safeParseDate } from '../utils/dates';
+import { isMemberActive } from '../utils/adminCalculations';
 
 import { getStaticStandbyMessage } from '../utils/aiStandbyHelper';
 import { AIMessages } from '../constants/aiMessages';
@@ -270,15 +271,56 @@ const CheckInPage = () => {
                     return;
                 }
                 if (members.length > 1) {
-                    if (faceModelsLoaded && lastDescriptorRef.current) {
-                        const bestMatch = findBestMatch(lastDescriptorRef.current, members);
-                        if (bestMatch) { targetMemberId = bestMatch.id; isFacialMatch = true; }
-                    }
-                    if (!targetMemberId) {
-                        setDuplicateMembers(members);
-                        setIsDuplicateFlow(isDup);
-                        setShowSelectionModal(true);
-                        return;
+                    // [FIX] 비활성 회원 제외 (수강권 만료/횟수 소진)
+                    const activeMembers = members.filter(m => isMemberActive(m));
+                    const candidateMembers = activeMembers.length > 0 ? activeMembers : members;
+
+                    if (candidateMembers.length === 1) {
+                        // 활성 회원이 1명뿐이면 바로 선택
+                        targetMemberId = candidateMembers[0].id;
+                    } else if (candidateMembers.length > 1) {
+                        // [FIX] 전원 안면 데이터가 있을 때만 자동 판단
+                        const allHaveFace = candidateMembers.every(m =>
+                            (m.faceDescriptors && m.faceDescriptors.length > 0) || m.faceDescriptor
+                        );
+
+                        if (allHaveFace && faceModelsLoaded && lastDescriptorRef.current) {
+                            const bestMatch = findBestMatch(lastDescriptorRef.current, candidateMembers);
+                            if (bestMatch) {
+                                const { euclideanDistance } = await import('../services/facialService');
+                                let secondBestDist = 999;
+                                const bestDesc = bestMatch.faceDescriptors?.[0]
+                                    ? new Float32Array(bestMatch.faceDescriptors[0])
+                                    : bestMatch.faceDescriptor
+                                        ? new Float32Array(Object.values(bestMatch.faceDescriptor))
+                                        : null;
+                                const bestDist = bestDesc ? euclideanDistance(lastDescriptorRef.current, bestDesc) : 999;
+                                for (const m of candidateMembers) {
+                                    if (m.id === bestMatch.id) continue;
+                                    const desc = m.faceDescriptors?.[0]
+                                        ? new Float32Array(m.faceDescriptors[0])
+                                        : m.faceDescriptor
+                                            ? new Float32Array(Object.values(m.faceDescriptor))
+                                            : null;
+                                    if (desc) {
+                                        const d = euclideanDistance(lastDescriptorRef.current, desc);
+                                        if (d < secondBestDist) secondBestDist = d;
+                                    }
+                                }
+                                const gap = secondBestDist - bestDist;
+                                if (gap > 0.15) {
+                                    targetMemberId = bestMatch.id;
+                                    isFacialMatch = true;
+                                }
+                            }
+                        }
+                        // 자동 판단 못 했으면 → 선택 모달
+                        if (!targetMemberId) {
+                            setDuplicateMembers(candidateMembers);
+                            setIsDuplicateFlow(isDup);
+                            setShowSelectionModal(true);
+                            return;
+                        }
                     }
                 } else {
                     targetMemberId = members[0].id;

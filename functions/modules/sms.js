@@ -352,7 +352,7 @@ exports.sendSolapiOnMessageV2 = onDocumentCreated({
  */
 exports.getSolapiBalance = onCall({
     region: "asia-northeast3",
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
+    cors: require('../helpers/cors').ALLOWED_ORIGINS
 }, async (request) => {
     try {
         const config = getAligoConfig();

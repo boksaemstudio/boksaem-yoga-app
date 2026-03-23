@@ -85,7 +85,7 @@ const MessagesTab = ({ messages, t, setActiveTab }) => {
                                         {msg.type === 'admin_individual' ? t('msgIndividual') : t('msgNotice')}
                                     </span>
                                     <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)' }}>
-                                        {msg.timestamp || msg.createdAt ? new Date(msg.timestamp || msg.createdAt).toLocaleDateString() : ''}
+                                        {msg.timestamp || msg.createdAt ? new Date(msg.timestamp || msg.createdAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' }) : ''}
                                     </span>
                                 </div>
                                 <p style={{

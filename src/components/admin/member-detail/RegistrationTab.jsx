@@ -80,6 +80,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
         if (isCashLike && option.cashPrice !== undefined) {
             p = option.cashPrice;
             c = option.credits === 9999 ? 9999 : option.credits * duration;
+            months = duration * (option.months || 1);
         } else {
             if (option.type === 'ticket') {
                 p = option.basePrice;
@@ -87,6 +88,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                 months = option.months || 3;
             } else {
                 c = option.credits === 9999 ? 9999 : option.credits * duration;
+                months = duration * (option.months || 1);
                 if (duration === 1) p = option.basePrice;
                 else if (duration === 3) p = isCashLike && option.cashDiscount3 ? option.cashDiscount3 : (option.discount3 || (option.basePrice * 3));
                 else if (duration === 6) p = isCashLike && option.cashDiscount6 ? option.cashDiscount6 : (option.discount6 || (option.basePrice * 6));

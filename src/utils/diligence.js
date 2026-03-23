@@ -155,10 +155,10 @@ const calculateConsecutiveDays = (history) => {
 
     const uniqueDays = [...new Set(history.map(h => {
         const d = h.timestamp ? new Date(h.timestamp.seconds * 1000 || h.timestamp) : new Date(h.createdAt);
-        return d.toLocaleDateString('en-CA');
+        return d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
     }))].sort().reverse();
 
-    const today = new Date().toLocaleDateString('en-CA');
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 
     // If today is not in list (e.g. calculating BEFORE check-in for UI), handle separate
     // But usually history includes current check-in if called after.
@@ -173,7 +173,7 @@ const calculateConsecutiveDays = (history) => {
     } else {
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
-        if (uniqueDays[0] === yesterday.toLocaleDateString('en-CA')) {
+        if (uniqueDays[0] === yesterday.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })) {
             // Streak is alive, but today not yet checked in. 
             // Depending on when we call this function. 
             // If we call it AFTER checkin, today MUST be there.
@@ -190,7 +190,7 @@ const calculateConsecutiveDays = (history) => {
 
     for (let i = startIndex; i < uniqueDays.length; i++) {
         checkDate.setDate(checkDate.getDate() - 1);
-        if (uniqueDays[i] === checkDate.toLocaleDateString('en-CA')) {
+        if (uniqueDays[i] === checkDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })) {
             currentStreak++;
         } else {
             break;

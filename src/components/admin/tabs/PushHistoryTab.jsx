@@ -60,7 +60,7 @@ const PushHistoryTab = ({ onSelectMember, setActiveTab, pendingApprovals = [], o
                                         <span style={{ fontSize: '0.9rem', color: '#FFF' }}>{item.title}</span>
                                     </div>
                                     <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>
-                                        {new Date(item.createdAt?.toDate ? item.createdAt.toDate() : item.createdAt).toLocaleString()}
+                                        {new Date(item.createdAt?.toDate ? item.createdAt.toDate() : item.createdAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
                                     </div>
                                 </div>
                                 <div style={{ 
@@ -166,7 +166,7 @@ const PushHistoryTab = ({ onSelectMember, setActiveTab, pendingApprovals = [], o
                                                 {label}
                                             </div>
                                             <div style={{ fontSize: '0.75rem', opacity: 0.5, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                <Clock size={12} /> {new Date(item.displayDate).toLocaleString()}
+                                                <Clock size={12} /> {new Date(item.displayDate).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
                                             </div>
                                         </div>
                                     </div>

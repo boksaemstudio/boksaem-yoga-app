@@ -80,7 +80,7 @@ export const DiagnosisChatView = ({
 
                 <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '20px 15px', paddingBottom: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     <div style={{ alignSelf: 'center', background: 'rgba(255,255,255,0.1)', padding: '4px 12px', borderRadius: '12px', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', marginBottom: '10px' }}>
-                        {new Date().toLocaleDateString()}
+                        {new Date().toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}
                     </div>
 
                     {chatHistory.filter(msg => !msg.content.startsWith('[System]:')).map((msg, idx) => {

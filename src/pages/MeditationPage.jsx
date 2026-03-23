@@ -67,6 +67,7 @@ import {
     CloudSnow, Cloud, User
 } from '../components/CommonIcons';
 import { storageService } from '../services/storage';
+import { getKSTHour } from '../utils/dates';
 
 const ICON_MAP = {
     Wind, Brain, Sparkle, Microphone, VideoCamera, Lightning, Barbell, Heartbeat, SmileySad, Sun, CloudRain, CloudSnow, Cloud
@@ -249,7 +250,7 @@ const MeditationPage = ({ onClose }) => {
     // 🌊 [최적화] TimeContext만 계산 — options_refresh CF 호출 + 강제 2초 대기 제거
     useEffect(() => {
         logDebug("Mount", { step, prepStep });
-        const hour = new Date().getHours();
+        const hour = getKSTHour();
         const tCtx = (hour >= 5 && hour < 11) ? 'morning' : 
                      (hour >= 18 || hour < 5) ? 'evening' : 'day';
         setTimeContext(tCtx);

@@ -458,7 +458,7 @@ const MessagesTab = ({ memberId, member, prefillMessage, onPrefillConsumed }) =>
                                                 </span>
                                             )}
                                             <span style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>
-                                                {log.timestamp ? new Date(log.timestamp).toLocaleString() : '전송 중...'}
+                                                {log.timestamp ? new Date(log.timestamp).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }) : '전송 중...'}
                                             </span>
                                         </div>
                                         {log.type === 'individual' && (

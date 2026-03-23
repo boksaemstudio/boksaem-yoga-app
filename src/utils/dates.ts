@@ -44,16 +44,12 @@ export const getTodayKST = (): string => {
  */
 export const toKSTDateString = (date: DateInput): string => {
     if (!date) return '';
-    let d: Date;
-    if (typeof date === 'string') d = new Date(date);
-    else if (typeof date === 'object' && 'toDate' in date && typeof date.toDate === 'function') d = date.toDate();
-    else if (typeof date === 'object' && 'seconds' in date && date.seconds) d = new Date(date.seconds * 1000);
-    else d = new Date(date as any);
-    
+    const d = safeParseDate(date);
     if (isNaN(d.getTime())) return '';
     
-    const kstDate = new Date(d.getTime() + (9 * 60 * 60 * 1000));
-    return kstDate.toISOString().split('T')[0];
+    // [FIX] 브라우저 내장 timezone API 사용 — 수동 UTC+9 오프셋 제거
+    // 'sv-SE' 로케일은 'YYYY-MM-DD' 형식을 반환
+    return d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 };
 
 /**
@@ -99,7 +95,7 @@ export const compareDates = (date1: string, date2: string): number => {
  * 날짜 문자열에 일수를 더하거나 뺌
  */
 export const addDays = (dateStr: string, days: number): string => {
-    const date = new Date(dateStr);
+    const date = safeParseDate(dateStr);
     date.setDate(date.getDate() + days);
     return toKSTDateString(date);
 };
@@ -108,8 +104,8 @@ export const addDays = (dateStr: string, days: number): string => {
  * 두 날짜 사이의 일수 차이 계산
  */
 export const getDaysDifference = (startDate: string, endDate: string): number => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = safeParseDate(startDate);
+    const end = safeParseDate(endDate);
     const diffTime = end.getTime() - start.getTime();
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
@@ -175,18 +171,14 @@ export const isWeekend = (dateStr: string): boolean => {
  * KST 기준 현재 시(Hour)를 반환 (0-23)
  */
 export const getKSTHour = (): number => {
-    const now = new Date();
-    const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
-    return kstDate.getUTCHours();
+    return parseInt(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul', hour: '2-digit', hour12: false }), 10);
 };
 
 /**
  * KST 기준 현재 분(Minute)을 반환 (0-59)
  */
 export const getKSTMinutes = (): number => {
-    const now = new Date();
-    const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
-    return kstDate.getUTCMinutes();
+    return parseInt(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul', minute: '2-digit' }), 10);
 };
 
 /**
@@ -194,4 +186,52 @@ export const getKSTMinutes = (): number => {
  */
 export const getKSTTotalMinutes = (): number => {
     return getKSTHour() * 60 + getKSTMinutes();
+};
+
+/**
+ * KST 기준 현재 월을 반환 (1-12)
+ */
+export const getKSTMonth = (): number => {
+    return parseInt(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul', month: 'numeric' }), 10);
+};
+
+/**
+ * KST 기준 현재 연도를 반환
+ */
+export const getKSTYear = (): number => {
+    return parseInt(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul', year: 'numeric' }), 10);
+};
+
+/**
+ * KST 기준 현재 요일 숫자를 반환 (0=일, 1=월, ... 6=토)
+ */
+export const getKSTDayOfWeek = (): number => {
+    const d = new Date();
+    const kstDateStr = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+    const [y, m, day] = kstDateStr.split('-').map(Number);
+    return new Date(y, m - 1, day).getDay();
+};
+
+/**
+ * KST 기준 현재 요일을 영문 이름으로 반환 ('Sunday', 'Monday', ...)
+ */
+export const getKSTDayNameEN = (): string => {
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return dayNames[getKSTDayOfWeek()];
+};
+
+/**
+ * KST 기준 현재 요일을 한글 이름으로 반환 ('일', '월', ...)
+ */
+export const getKSTDayNameKR = (): string => {
+    return DAY_NAMES[getKSTDayOfWeek()];
+};
+
+/**
+ * Date 객체를 KST 기준 'YYYY-MM-DD' 날짜 문자열로 안전하게 변환
+ * (Firestore 타임스탬프/Date/문자열 모두 지원)
+ */
+export const dateToKSTDateString = (date: Date): string => {
+    if (!date || isNaN(date.getTime())) return '';
+    return date.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 };

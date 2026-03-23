@@ -10,7 +10,7 @@ const { admin, tenantDb, getKSTDateString } = require("../../helpers/common");
 const { processAttendanceCore } = require('./coreLogic');
 
 exports.checkInMemberV2Call = onCall({ 
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173'],
+    cors: require('../../helpers/cors').ALLOWED_ORIGINS,
     minInstances: 0
 }, async (request) => {
     if (request.data.ping) {

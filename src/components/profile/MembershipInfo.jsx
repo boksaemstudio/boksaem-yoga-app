@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStudioConfig } from '../../contexts/StudioContext';
 import { getMembershipLabel } from '../../utils/membershipLabels';
+import { toKSTDateString } from '../../utils/dates';
 import { Icons } from '../CommonIcons';
 import { functions } from '../../firebase';
 import { httpsCallable } from 'firebase/functions';
@@ -319,7 +320,7 @@ const MembershipInfo = ({ member, daysRemaining, logs = [], t }) => {
                     if (!ts) return null;
                     const d = typeof ts === 'string' ? new Date(ts) : (ts.toDate ? ts.toDate() : new Date(ts.seconds ? ts.seconds * 1000 : ts));
                     if (isNaN(d.getTime())) return null;
-                    return d.toISOString().slice(0, 10);
+                    return toKSTDateString(d);
                 }).filter(Boolean))].sort();
 
                 if (attendDates.length < 3) return null;
@@ -350,7 +351,7 @@ const MembershipInfo = ({ member, daysRemaining, logs = [], t }) => {
                 const consistencyScore = Math.round((recentWeeks.reduce((a, b) => a + b, 0) / 4) * 100);
 
                 // 4. 최근 활력 (최근 2주 출석 빈도)
-                const twoWeeksAgo = new Date(now - 14 * DAY).toISOString().slice(0, 10);
+                const twoWeeksAgo = toKSTDateString(new Date(now - 14 * DAY));
                 const recentCount = attendDates.filter(d => d >= twoWeeksAgo).length;
                 const vitalityScore = Math.min(100, Math.round((recentCount / 6) * 100)); // 2주에 6회 = 100%
 

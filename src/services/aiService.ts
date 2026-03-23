@@ -6,6 +6,7 @@ import { functions } from "../firebase";
 import { httpsCallable } from "firebase/functions";
 import { getDoc } from "firebase/firestore";
 import { tenantDb } from '../utils/tenantDb';
+import { getKSTHour } from '../utils/dates';
 
 // ── Types ──
 export interface AIExperienceResult {
@@ -103,7 +104,7 @@ export const getAIAnalysis = async (
     const todayDate = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
     const cacheKey = context === 'admin'
         ? `ai_analysis_admin_${todayDate}_${language}`
-        : `ai_analysis_${memberName}_${attendanceCount}_${language}_${new Date().getHours()}`;
+        : `ai_analysis_${memberName}_${attendanceCount}_${language}_${getKSTHour()}`;
     const cached = _safeGetItem(cacheKey);
     if (cached) return JSON.parse(cached);
 
@@ -142,7 +143,7 @@ export const getChurnAnalysis = async (
     language = 'ko'
 ): Promise<AIAnalysisResult> => {
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-    const hour = new Date().getHours();
+    const hour = getKSTHour();
     const mode = churnData.detailed ? 'detailed' : 'brief';
     const cacheKey = `ai_churn_${mode}_${churnData.branch}_${today}_${Math.floor(hour / 2)}`;
     const cached = _safeGetItem(cacheKey);
@@ -204,7 +205,7 @@ export const getDailyYoga = async (language = 'ko', mbti: string | null = null):
     }
     try {
         const genYoga = httpsCallable(functions, 'generateDailyYogaV2');
-        const response = await genYoga({ language, timeOfDay: new Date().getHours(), weather: 'Sunny', mbti });
+        const response = await genYoga({ language, timeOfDay: getKSTHour(), weather: 'Sunny', mbti });
         const data = response.data as DailyYogaPose[] | null;
         if (!data || (Array.isArray(data) && data.length === 0)) return DAILY_YOGA_FALLBACK(language);
         _safeSetItem(cacheKey, JSON.stringify(data));

@@ -9,6 +9,14 @@
             ]
         },
         {
+            "collectionGroup": "fcm_tokens",
+            "queryScope": "COLLECTION",
+            "fields": [
+                { "fieldPath": "roles", "arrayConfig": "CONTAINS" },
+                { "fieldPath": "instructorName", "order": "ASCENDING" }
+            ]
+        },
+        {
             "collectionGroup": "daily_classes",
             "queryScope": "COLLECTION",
             "fields": [

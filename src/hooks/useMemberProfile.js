@@ -4,7 +4,7 @@ import { auth } from '../firebase';
 import { tenantDb } from '../utils/tenantDb';
 import { storageService } from '../services/storage';
 import { safeLocalStorage } from '../utils/safeLocalStorage';
-import { getDaysRemaining, getKSTHour } from '../utils/dates';
+import { getDaysRemaining, getKSTHour, getKSTMonth, getKSTDayNameEN, toKSTDateString } from '../utils/dates';
 
 /**
  * useMemberProfile — MemberProfile 페이지의 모든 데이터 로딩/리스너/AI 로직을 관리하는 훅
@@ -39,7 +39,7 @@ export const useMemberProfile = (language, t) => {
     // ─── Traditional Yoga Fallback Message ───
     const getTraditionalYogaMessage = useCallback(() => {
         const hour = getKSTHour();
-        const month = new Date().getMonth() + 1;
+        const month = getKSTMonth();
 
         let timeMsg = "";
         if (hour >= 5 && hour < 9) timeMsg = t('trad_dawn');
@@ -62,8 +62,7 @@ export const useMemberProfile = (language, t) => {
         if (aiExperience && !aiExperience.isFallback) return;
 
         const hour = getKSTHour();
-        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        const day = days[new Date().getDay()];
+        const day = getKSTDayNameEN();
         const validAttendance = attendanceData ? attendanceData.filter(l => l.status !== 'denied') : [];
         const currentArgs = `${m.id}_${validAttendance.length}_${day}_${hour}_${wData?.key || 'null'}_${language}`;
 
@@ -82,7 +81,7 @@ export const useMemberProfile = (language, t) => {
                 const ts = l.timestamp || l.date;
                 if (!ts) return null;
                 const d = typeof ts === 'string' ? new Date(ts) : (ts.toDate ? ts.toDate() : new Date(ts.seconds ? ts.seconds * 1000 : ts));
-                return isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
+                return isNaN(d.getTime()) ? null : toKSTDateString(d);
             }).filter(Boolean))].sort();
             let diligenceGrade = null;
             if (attendDates.length >= 3) {
@@ -98,7 +97,7 @@ export const useMemberProfile = (language, t) => {
                 const recentWeeks = [0, 0, 0, 0];
                 attendDates.forEach(d => { const w = Math.floor((nowMs - new Date(d).getTime()) / WEEK); if (w >= 0 && w < 4) recentWeeks[w] = 1; });
                 const consistencyScore = Math.round((recentWeeks.reduce((a, b) => a + b, 0) / 4) * 100);
-                const twoWeeksAgo = new Date(nowMs - 14 * DAY).toISOString().slice(0, 10);
+                const twoWeeksAgo = toKSTDateString(new Date(nowMs - 14 * DAY));
                 const recentCount = attendDates.filter(d => d >= twoWeeksAgo).length;
                 const vitalityScore = Math.min(100, Math.round((recentCount / 6) * 100));
                 const totalScore = Math.round(weeklyScore * 0.3 + regularityScore * 0.25 + consistencyScore * 0.25 + vitalityScore * 0.2);

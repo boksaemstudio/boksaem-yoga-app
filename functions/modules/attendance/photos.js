@@ -4,7 +4,8 @@
  */
 
 const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
-const { admin, tenantDb, getStudioLogoUrl } = require("../../helpers/common");
+const { admin, tenantDb, getAllFCMTokens, getStudioName, getStudioLogoUrl } = require('../../helpers/common');
+const { getStudioUrl } = require('../../helpers/urls');
 
 exports.onAttendancePhotoAdded = onDocumentUpdated({
     document: `studios/{studioId}/attendance/{attendanceId}`,
@@ -52,7 +53,7 @@ exports.onAttendancePhotoAdded = onDocumentUpdated({
                     notification: { title: `🧘‍♀️ ${memberName}${rankLabel}님 출석`, body, imageUrl: after.photoUrl },
                     webpush: {
                         notification: { icon: logoUrl, badge: logoUrl, image: after.photoUrl, tag: `att-${attendanceId}`, renotify: false },
-                        fcm_options: { link: 'https://boksaem-yoga.web.app/instructor' }
+                        fcm_options: { link: getStudioUrl('/instructor') }
                     }
                 });
             } catch (sendErr) {

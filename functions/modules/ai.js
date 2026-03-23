@@ -16,7 +16,7 @@ exports.generatePageExperienceV2 = onCall({
     region: "asia-northeast3", 
     memory: "512MiB",
     timeoutSeconds: 120,
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173'] 
+    cors: require('../helpers/cors').ALLOWED_ORIGINS 
 }, async (request) => {
     await checkAIQuota();
 
@@ -243,7 +243,7 @@ exports.translateNoticesV2 = onCall({
     region: "asia-northeast3", 
     memory: "512MiB",
     timeoutSeconds: 120,
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173'] 
+    cors: require('../helpers/cors').ALLOWED_ORIGINS 
 }, async (request) => {
     const { notices, language = 'ko' } = request.data;
     try {
@@ -262,7 +262,7 @@ exports.generateDailyYogaV2 = onCall({
     region: "asia-northeast3", 
     memory: "512MiB",
     timeoutSeconds: 120,
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173'] 
+    cors: require('../helpers/cors').ALLOWED_ORIGINS 
 }, async (request) => {
     try {
         await checkAIQuota();
@@ -286,7 +286,7 @@ exports.parseStudioDocument = onCall({
     region: "asia-northeast3",
     memory: "1GiB", // Vision API might require more memory for base64 processing
     timeoutSeconds: 120, // Vision parsing can be slow
-    cors: ['https://boksaem-yoga.web.app', 'https://boksaem-yoga.firebaseapp.com', 'http://localhost:5173']
+    cors: require('../helpers/cors').ALLOWED_ORIGINS
 }, async (request) => {
     // [FIX] Auth guard — 관리자만 문서 파싱 가능
     const { requireAdmin } = require('../helpers/authGuard');

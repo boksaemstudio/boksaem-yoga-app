@@ -174,7 +174,7 @@ const MemberSalesHistory = ({ memberId, member }) => {
                                         {item.paymentMethod === 'card' ? t('payCard') : item.paymentMethod === 'cash' ? t('payCash') : item.paymentMethod === 'none' ? t('payOther') : t('payTransfer')}
                                     </span>
                                     <span style={{ color: 'rgba(255,255,255,0.4)' }}>
-                                        {new Date(item.timestamp || item.date).toLocaleDateString()} {t('paidOn')}
+                                        {new Date(item.timestamp || item.date).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })} {t('paidOn')}
                                     </span>
                                 </div>
                             </div>
