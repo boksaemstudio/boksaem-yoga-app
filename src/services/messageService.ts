@@ -78,21 +78,21 @@ export const messageService = {
         return { success: true };
     },
 
-    async addMessage(memberId: string, content: string, scheduledAt: string | null = null, templateId: string | null = null): Promise<{ success: boolean; id: string }> {
+    async addMessage(memberId: string, content: string, scheduledAt: string | null = null, sendMode: string = 'push_first'): Promise<{ success: boolean; id: string }> {
         if (!memberId || !content) throw new Error("Invalid message data");
         const messageData: Record<string, unknown> = {
             memberId, content, type: 'admin_individual',
             createdAt: new Date().toISOString(), timestamp: new Date().toISOString(),
-            status: scheduledAt ? 'scheduled' : 'pending'
+            status: scheduledAt ? 'scheduled' : 'pending',
+            sendMode // 'push_only' | 'push_first' | 'sms_only'
         };
         if (scheduledAt) messageData.scheduledAt = scheduledAt;
-        if (templateId) messageData.templateId = templateId;
 
         const docRef = await addDoc(tenantDb.collection('messages'), messageData);
         return { success: true, id: docRef.id };
     },
 
-    async sendBulkMessages(memberIds: string[], content: string, scheduledAt: string | null = null, templateId: string | null = null): Promise<{ success: boolean; count: number }> {
+    async sendBulkMessages(memberIds: string[], content: string, scheduledAt: string | null = null, sendMode: string = 'push_first'): Promise<{ success: boolean; count: number }> {
         if (!memberIds || memberIds.length === 0) throw new Error("No members selected");
         if (!content) throw new Error("Content is empty");
 
@@ -107,10 +107,10 @@ export const messageService = {
                 const messageData: Record<string, unknown> = {
                     memberId, content, type: 'admin_individual',
                     createdAt: new Date().toISOString(), timestamp: new Date().toISOString(),
-                    status: scheduledAt ? 'scheduled' : 'pending'
+                    status: scheduledAt ? 'scheduled' : 'pending',
+                    sendMode // 'push_only' | 'push_first' | 'sms_only'
                 };
                 if (scheduledAt) messageData.scheduledAt = scheduledAt;
-                if (templateId) messageData.templateId = templateId;
                 batch.set(docRef, messageData);
             });
             await batch.commit();

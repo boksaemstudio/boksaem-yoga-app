@@ -98,7 +98,7 @@ const WorkoutReportModal = ({ log, onClose, t }) => {
                 <button onClick={onClose} style={{
                     width: 'calc(100% - 40px)', margin: '0 20px 20px', padding: '15px',
                     borderRadius: '16px', border: 'none', background: 'var(--primary-gold)',
-                    color: 'black', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer'
+                    color: 'var(--text-on-primary)', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer'
                 }}>
                     닫기
                 </button>

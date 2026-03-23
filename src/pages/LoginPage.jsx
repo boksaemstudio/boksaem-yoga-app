@@ -152,7 +152,7 @@ const LoginPage = () => {
                             borderRadius: '12px',
                             border: 'none',
                             backgroundColor: 'var(--primary-gold)',
-                            color: 'black',
+                            color: 'var(--text-on-primary)',
                             fontSize: '1rem',
                             fontWeight: 'bold',
                             cursor: loading ? 'not-allowed' : 'pointer',

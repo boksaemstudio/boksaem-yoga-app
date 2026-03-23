@@ -212,7 +212,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                     let count = 0;
                     
                     dayLogs.forEach(log => {
-                        const info = guessClassInfo(log, config.DEFAULT_SCHEDULE_TEMPLATE);
+                        const info = guessClassInfo(log);
                         const cName = info?.className || log.className || '일반';
                         const cInst = info?.instructor || log.instructor || '선생님';
                         const cTime = info?.startTime || '00:00';
@@ -276,7 +276,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
         const groups = {};
 
         activeLogs.forEach(log => {
-            const info = guessClassInfo(log, config.DEFAULT_SCHEDULE_TEMPLATE);
+            const info = guessClassInfo(log);
             const classTime = info?.startTime || '00:00';
             const canonicalClassName = info?.className || log.className || '일반';
             const canonicalInstructor = info?.instructor || log.instructor || '선생님';
@@ -409,26 +409,8 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                 )}
             </div>
 
-            {/* ─── Summary Section (Facial Data) ─── */}
+            {/* ─── Summary Section ─── */}
             <div className="summary-grid">
-                <div className="dashboard-card" style={{ border: '1px solid rgba(59, 130, 246, 0.3)', background: 'rgba(59, 130, 246, 0.05)', padding: '16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                        <UserFocus size={20} weight="fill" color="#60A5FA" />
-                        <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>안면 데이터 수집 현황</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                        <span style={{ fontSize: '1.5rem', fontWeight: '800', color: 'var(--primary-gold)' }}>{summary?.facialDataCount || 0}</span>
-                        <span style={{ fontSize: '0.9rem', opacity: 0.6 }}>명 수집됨</span>
-                        <span style={{ marginLeft: 'auto', fontSize: '1rem', fontWeight: 'bold', color: '#60A5FA' }}>{summary?.facialDataRatio || 0}%</span>
-                    </div>
-                    <div style={{ marginTop: '8px', height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
-                        <div style={{ width: `${summary?.facialDataRatio || 0}%`, height: '100%', background: '#60A5FA', transition: 'width 0.5s ease-out' }} />
-                    </div>
-                    <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '8px', margin: '8px 0 0 0' }}>
-                        * 활성 회원 대비 안면 데이터가 등록된 비중입니다.
-                    </p>
-                </div>
-                {/* Additional summary cards can be added here if needed */}
                 <div className="dashboard-card" style={{ padding: '16px', background: 'rgba(255,255,255,0.02)' }}>
                     <div className="card-label" style={{ fontSize: '0.85rem', marginBottom: '8px' }}>오늘 총 출석</div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
@@ -462,8 +444,8 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                             const key = `${cls.className}-${cls.instructor}-${cls.branchId}-${cls.classTime || 'no-time'}`;
                             const isSelected = selectedClassKey === key;
                             return (
+                                <React.Fragment key={key}>
                                 <div
-                                    key={key}
                                     onClick={() => handleClassClick(cls)}
                                     style={{
                                         padding: '12px',
@@ -514,7 +496,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                             {cls.memberNames.map(name => (
                                                 <span key={name} style={{
                                                     fontSize: '0.8rem', 
-                                                    color: 'var(--primary-gold)', // Just color change requested
+                                                    color: 'var(--primary-gold)',
                                                     fontWeight: 'bold'
                                                 }}>
                                                     {name}
@@ -522,77 +504,81 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                             ))}
                                         </div>
                                     )}
-                                    {/* [UX] Removed "Filtering..." text as requested */}
                                 </div>
+
+                                {/* [UX FIX] 차트를 선택된 카드 바로 아래에 인라인 표시 */}
+                                {isSelected && (
+                                    <div style={{ 
+                                        gridColumn: '1 / -1',
+                                        padding: '16px', 
+                                        borderRadius: '10px',
+                                        background: 'rgba(var(--primary-rgb), 0.03)',
+                                        border: '1px solid rgba(var(--primary-rgb), 0.15)',
+                                        animation: 'fadeInDown 0.3s ease-out'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                            <TrendUp size={16} color="var(--primary-gold)" />
+                                            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                                {cls.className} · {cls.instructor} 선생님 — 최근 3주 추세
+                                            </span>
+                                        </div>
+                                        
+                                        {loadingTrend ? (
+                                            <div style={{ height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                                                데이터 분석 중...
+                                            </div>
+                                        ) : trendData && trendData.length > 0 ? (
+                                            <div style={{ width: '100%', height: '160px' }}>
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <LineChart
+                                                        data={trendData}
+                                                        margin={{ top: 16, right: 16, left: -20, bottom: 0 }}
+                                                    >
+                                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                                        <XAxis 
+                                                            dataKey="date" 
+                                                            stroke="rgba(255,255,255,0.3)" 
+                                                            fontSize={11} 
+                                                            tickMargin={8}
+                                                            tickFormatter={(value, idx) => {
+                                                                if (trendData.length > 10 && idx !== 0 && idx !== trendData.length - 1 && idx !== Math.floor(trendData.length / 2)) {
+                                                                    return '';
+                                                                }
+                                                                return value;
+                                                            }}
+                                                        />
+                                                        <YAxis 
+                                                            stroke="rgba(255,255,255,0.3)" 
+                                                            fontSize={11} 
+                                                            allowDecimals={false}
+                                                            domain={[0, 'dataMax + 2']}
+                                                        />
+                                                        <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(var(--primary-rgb), 0.2)', strokeWidth: 2 }} />
+                                                        <Line 
+                                                            type="linear" 
+                                                            dataKey="count" 
+                                                            stroke="var(--primary-gold)" 
+                                                            strokeWidth={2}
+                                                            dot={{ r: 4, fill: 'var(--primary-gold)', stroke: '#fff', strokeWidth: 1 }}
+                                                            activeDot={{ r: 6, fill: '#fff', stroke: 'var(--primary-gold)', strokeWidth: 2 }}
+                                                            animationDuration={600}
+                                                        >
+                                                            <LabelList dataKey="count" position="top" fill="rgba(255,255,255,0.8)" fontSize={11} offset={8} />
+                                                        </Line>
+                                                    </LineChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        ) : (
+                                            <div style={{ height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                                                최근 3주 내에 동일한 시간대의 수업 기록이 없습니다.
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                </React.Fragment>
                             );
                         })}
                     </div>
-                    
-                    {/* [NEW] Class Attendance Trend Chart */}
-                    {selectedClassKey && (
-                        <div style={{ 
-                            marginTop: '20px', 
-                            paddingTop: '20px', 
-                            borderTop: '1px solid rgba(var(--primary-rgb), 0.2)',
-                            animation: 'fadeInDown 0.3s ease-out'
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                                <TrendUp size={18} color="var(--primary-gold)" />
-                                <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-primary)' }}>해당 수업 과거 출석 추세 (최근 3주)</h4>
-                            </div>
-                            
-                            {loadingTrend ? (
-                                <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
-                                    데이터 분석 중...
-                                </div>
-                            ) : trendData && trendData.length > 0 ? (
-                                <div style={{ width: '100%', height: '200px' }}>
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <LineChart
-                                            data={trendData}
-                                            margin={{ top: 20, right: 20, left: -20, bottom: 0 }}
-                                        >
-                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                                            <XAxis 
-                                                dataKey="date" 
-                                                stroke="rgba(255,255,255,0.3)" 
-                                                fontSize={12} 
-                                                tickMargin={10}
-                                                tickFormatter={(value, idx) => {
-                                                    // Only show first, last, and middle ticks if many data points to avoid clutter
-                                                    if (trendData.length > 10 && idx !== 0 && idx !== trendData.length - 1 && idx !== Math.floor(trendData.length / 2)) {
-                                                        return '';
-                                                    }
-                                                    return value;
-                                                }}
-                                            />
-                                            <YAxis 
-                                                stroke="rgba(255,255,255,0.3)" 
-                                                fontSize={12} 
-                                                allowDecimals={false}
-                                                domain={[0, 'dataMax + 2']}
-                                            />
-                                            <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(var(--primary-rgb), 0.2)', strokeWidth: 2 }} />
-                                            <Line 
-                                                type="monotone" 
-                                                dataKey="count" 
-                                                stroke="var(--primary-gold)" 
-                                                strokeWidth={3}
-                                                activeDot={{ r: 6, fill: '#fff', stroke: 'var(--primary-gold)', strokeWidth: 2 }}
-                                                animationDuration={1000}
-                                            >
-                                                <LabelList dataKey="count" position="top" fill="rgba(255,255,255,0.8)" fontSize={11} offset={8} />
-                                            </Line>
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            ) : (
-                                <div style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                                    최근 3주 내에 동일한 시간대의 수업 기록이 없습니다.
-                                </div>
-                            )}
-                        </div>
-                    )}
                 </div>
             )}
 
@@ -627,7 +613,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                 <button
                                     onClick={() => setSelectedClassKey(null)}
                                     style={{
-                                        background: 'var(--primary-gold)', color: 'black', border: 'none',
+                                        background: 'var(--primary-gold)', color: 'var(--text-on-primary)', border: 'none',
                                         padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem',
                                         fontWeight: 'bold', cursor: 'pointer',
                                         display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap'
@@ -673,7 +659,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                         {(() => {
                             const filteredLogs = (selectedClassKey
                                 ? activeLogs.filter(l => {
-                                    const info = guessClassInfo(l, config.DEFAULT_SCHEDULE_TEMPLATE);
+                                    const info = guessClassInfo(l);
                                     const classTime = info?.startTime || '00:00';
                                     const canonicalClassName = info?.className || l.className || '일반';
                                     const canonicalInstructor = info?.instructor || l.instructor || '선생님';

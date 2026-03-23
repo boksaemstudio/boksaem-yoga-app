@@ -302,7 +302,7 @@ const SmartDataImporter = ({ onImportComplete }) => {
                                 <button 
                                     onClick={(e) => { e.stopPropagation(); handleUpload(); }}
                                     className="action-btn primary"
-                                    style={{ background: 'var(--primary-gold)', color: '#000', fontWeight: 'bold', border: 'none' }}
+                                    style={{ background: 'var(--primary-gold)', color: 'var(--text-on-primary)', fontWeight: 'bold', border: 'none' }}
                                 >
                                     데이터 추출 시작
                                 </button>
@@ -343,7 +343,7 @@ const SmartDataImporter = ({ onImportComplete }) => {
                             onClick={handleSave}
                             disabled={isSaving}
                             className="action-btn primary" 
-                            style={{ padding: '12px 24px', fontSize: '1.1rem', background: 'var(--primary-gold)', color: '#000', fontWeight: 'bold' }}
+                            style={{ padding: '12px 24px', fontSize: '1.1rem', background: 'var(--primary-gold)', color: 'var(--text-on-primary)', fontWeight: 'bold' }}
                         >
                             {isSaving ? <Spinner className="spin" /> : <Table size={20} weight="bold" />} 
                             {isSaving ? ' 저장 중...' : ' 데이터 저장하기'}

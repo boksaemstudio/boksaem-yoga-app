@@ -133,7 +133,7 @@ function ReloadPrompt() {
         flexDirection: 'column',
         gap: '12px',
         zIndex: 9999,
-        color: 'black',
+        color: 'var(--text-on-primary)',
         fontFamily: 'var(--font-main)',
         animation: 'slideUp 0.3s ease-out'
     }}>
@@ -144,7 +144,7 @@ function ReloadPrompt() {
              </div>
              <button 
                 onClick={() => setNeedRefresh(false)}
-                style={{ background: 'none', border: 'none', color: 'black', cursor: 'pointer', padding: 0, opacity: 0.6 }}
+                style={{ background: 'none', border: 'none', color: 'var(--text-on-primary)', cursor: 'pointer', padding: 0, opacity: 0.6 }}
              >
                  <X size={20} weight="bold" />
              </button>

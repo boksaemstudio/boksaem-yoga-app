@@ -99,7 +99,7 @@ export const ChatDialog = ({
                 {!isAILoading && currentAIChat?.isFinalAnalysis && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', animation: 'fadeIn 0.5s ease' }}>
                         <button onClick={onStartMeditation} style={{
-                            width: '100%', background: 'var(--primary-gold)', color: 'black',
+                            width: '100%', background: 'var(--primary-gold)', color: 'var(--text-on-primary)',
                             padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
                             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                             boxShadow: '0 10px 20px rgba(var(--primary-rgb), 0.3)'

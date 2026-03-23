@@ -170,7 +170,7 @@ const AdminPriceManager = () => {
                             padding: '10px 24px', 
                             flexShrink: 0,
                             background: `linear-gradient(135deg, var(--primary-gold) 0%, ${config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'} 100%)`, 
-                            color: '#000', 
+                            color: 'var(--text-on-primary)', 
                             fontWeight: '800',
                             fontSize: '0.95rem',
                             border: 'none',

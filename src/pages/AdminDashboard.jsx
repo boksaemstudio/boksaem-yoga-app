@@ -42,6 +42,7 @@ import AdminNav from '../components/admin/AdminNav';
 import StudioSettingsTab from '../components/admin/tabs/StudioSettingsTab';
 import BookingsTab from '../components/admin/tabs/BookingsTab';
 import AdminInsights from '../components/AdminInsights';
+import ChurnReportPanel from '../components/admin/ChurnReportPanel';
 import { usePWA } from '../hooks/usePWA';
 import ScheduleTab from '../components/admin/tabs/ScheduleTab';
 import { getContrastText } from '../utils/colors';
@@ -304,6 +305,13 @@ const AdminDashboard = () => {
         }).length;
     }, [members, logs, currentBranch, isMemberActive]);
 
+    // [NEW] Dormant members list for ChurnReportPanel
+    const dormantMembersList = useMemo(() => {
+        const branchMembers = members.filter(m => currentBranch === 'all' || m.homeBranch === currentBranch);
+        const segments = getDormantSegments(branchMembers);
+        return segments['all'] || [];
+    }, [members, currentBranch, getDormantSegments]);
+
     // [FIX] bioMissingCount & facialDataRatio 계산 추가
     const { bioMissingCount, facialDataRatio, facialDataCount } = useMemo(() => {
         const branchMembers = members.filter(m => currentBranch === 'all' || m.homeBranch === currentBranch);
@@ -324,7 +332,7 @@ const AdminDashboard = () => {
     };
 
     const handleForceUpdate = async () => {
-        if (!window.confirm(`업데이트 및 캐시를 초기화하시겠습니까?\n(로그아웃 될 수 있습니다)`)) return;
+        if (!window.confirm(`업데이트 및 캐시를 초기화하시겠습니까?\n(로그아웃될 수 있습니다)`)) return;
 
         console.log('[App] Forcing update and clearing ALL caches...');
         
@@ -496,26 +504,34 @@ const AdminDashboard = () => {
 
 
 
+    const [pushLoading, setPushLoading] = useState(false);
     const handleSubscribePush = async () => {
-        if (pushEnabled) {
-            setPushEnabled(false);
-            localStorage.setItem('admin_push_enabled', 'false');
-            await storageService.deletePushToken(); // Delete token from server
-            alert('이 기기에서의 알림 수신 표시를 껐습니다. (브라우저 권한은 유지됩니다)');
-            return;
-        }
+        setPushLoading(true);
+        try {
+            if (pushEnabled) {
+                setPushEnabled(false);
+                localStorage.setItem('admin_push_enabled', 'false');
+                // [ROOT FIX] role='admin'만 삭제 — instructor 토큰 보호
+                await storageService.deletePushToken('admin');
+                alert('이 기기에서 알림 수신을 껐습니다. (브라우저 권한은 유지됩니다)');
+                return;
+            }
 
-        const result = await storageService.requestPushPermission();
-        if (result === 'granted') {
-            setPushEnabled(true);
-            localStorage.setItem('admin_push_enabled', 'true');
-            alert('원격 푸시 알림 수신 대상으로 등록되었습니다.');
-        } else if (result === 'denied') {
-            setPushEnabled(false);
-            localStorage.setItem('admin_push_enabled', 'false');
-            alert('푸시 알림 권한이 거부되었습니다. 브라우저 설정에서 권한을 허용해주세요.');
-        } else {
-            alert('알림 설정 중 문제가 발생했습니다.');
+            // [ROOT FIX] role='admin'으로 토큰 저장 — memberId 없어도 저장됨
+            const result = await storageService.requestPushPermission(undefined, 'admin');
+            if (result === 'granted') {
+                setPushEnabled(true);
+                localStorage.setItem('admin_push_enabled', 'true');
+                alert('원격 푸시 알림 수신 대상으로 등록되었습니다.');
+            } else if (result === 'denied') {
+                setPushEnabled(false);
+                localStorage.setItem('admin_push_enabled', 'false');
+                alert('푸시 알림 권한이 거부되었습니다. 브라우저 설정에서 권한을 허용해주세요.');
+            } else {
+                alert('알림 설정 중 문제가 발생했습니다.');
+            }
+        } finally {
+            setPushLoading(false);
         }
     };
 
@@ -531,6 +547,7 @@ const AdminDashboard = () => {
                 loadingInsight={loadingInsight}
                 aiUsage={aiUsage}
                 pushEnabled={pushEnabled}
+                pushLoading={pushLoading}
                 handleSubscribePush={handleSubscribePush}
                 themeContrastText={themeContrastText}
                 activeTab={activeTab}
@@ -650,6 +667,8 @@ const AdminDashboard = () => {
                                 briefing={aiInsight.message} 
                             />
                         )}
+
+
                         <MembersTab
                             members={members}
                             filteredMembers={filteredMembers}

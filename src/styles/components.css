@@ -437,25 +437,26 @@
 
 .tooltip-text {
   visibility: hidden;
-  width: 200px;
-  background-color: rgba(0, 0, 0, 0.9);
+  width: 220px;
+  background-color: rgba(0, 0, 0, 0.95);
   color: #fff;
-  text-align: center;
-  border-radius: 6px;
-  padding: 8px;
+  text-align: left;
+  border-radius: 10px;
+  padding: 10px 12px;
   position: absolute;
   z-index: 100;
   bottom: 125%;
-  left: 50%;
-  margin-left: -100px;
+  left: 0;
+  margin-left: 0;
   opacity: 0;
   transition: opacity 0.3s;
   font-size: 0.75rem;
-  line-height: 1.4;
+  line-height: 1.5;
   font-weight: normal;
   pointer-events: none;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  word-break: keep-all;
 }
 
 .tooltip-text::after {

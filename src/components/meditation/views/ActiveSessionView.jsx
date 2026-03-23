@@ -98,7 +98,7 @@ export const ActiveSessionView = ({
                     <X size={28} />
                 </button>
 
-                <button onClick={togglePlay} style={{ width: '80px', height: '80px', borderRadius: '50%', background: activeMode?.color || 'var(--primary-gold)', border: 'none', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 30px ${activeMode?.color}60`, cursor: 'pointer' }}>
+                <button onClick={togglePlay} style={{ width: '80px', height: '80px', borderRadius: '50%', background: activeMode?.color || 'var(--primary-gold)', border: 'none', color: 'var(--text-on-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 30px ${activeMode?.color}60`, cursor: 'pointer' }}>
                     {isPlaying ? <Pause size={32} weight="fill" /> : <Play size={32} weight="fill" />}
                 </button>
 

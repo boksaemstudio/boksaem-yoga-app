@@ -302,13 +302,13 @@ const InstructorSchedule = ({ instructorName }) => {
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '8px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', marginBottom: '0' }}>
                 {dayNames.map(day => (
-                    <div key={day} style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)', padding: '8px' }}>{day}</div>
+                    <div key={day} style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)', padding: '4px 0' }}>{day}</div>
                 ))}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', marginBottom: '20px' }}>
                 {renderCalendar()}
             </div>
 
@@ -337,7 +337,11 @@ const InstructorSchedule = ({ instructorName }) => {
                                             position: 'relative',
                                             opacity: isCancelled ? 0.7 : 1,
                                             cursor: (!isCancelled && cls.instructor === instructorName) ? 'pointer' : 'default',
-                                            border: (expandedClassKey === `${cls.time}_${cls.title}`) ? `1px solid ${cls.branchColor}` : 'none'
+                                            ...(expandedClassKey === `${cls.time}_${cls.title}` ? {
+                                                borderTop: `1px solid ${cls.branchColor}`,
+                                                borderRight: `1px solid ${cls.branchColor}`,
+                                                borderBottom: `1px solid ${cls.branchColor}`
+                                            } : {})
                                         }}
                                     >
                                         <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', gap: '6px' }}>
@@ -367,7 +371,7 @@ const InstructorSchedule = ({ instructorName }) => {
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                                             <span style={{ fontWeight: 'bold', fontSize: '1.1rem', textDecoration: isCancelled ? 'line-through' : 'none' }}>{cls.time}</span>
-                                            {cls.instructor === instructorName && !isCancelled && <span style={{ fontSize: '0.75rem', background: 'var(--primary-gold)', color: 'black', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>내 수업</span>}
+                                            {cls.instructor === instructorName && !isCancelled && <span style={{ fontSize: '0.75rem', background: 'var(--primary-gold)', color: 'var(--text-on-primary)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>내 수업</span>}
                                         </div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <div style={{ fontSize: '0.95rem', textDecoration: isCancelled ? 'line-through' : 'none', color: isCancelled ? 'var(--text-secondary)' : 'var(--text-primary)' }}>{cls.title}</div>

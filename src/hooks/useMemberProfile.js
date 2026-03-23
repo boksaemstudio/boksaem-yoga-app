@@ -74,12 +74,44 @@ export const useMemberProfile = (language, t) => {
             const streak = attendanceData ? storageService.getMemberStreak(m.id, validAttendance) : 0;
             const lastAtt = validAttendance.length > 0 ? (validAttendance[0].timestamp || validAttendance[0].date) : null;
 
+            // 근면성실도 계산
+            const DAY = 86400000;
+            const WEEK = 7 * DAY;
+            const nowMs = Date.now();
+            const attendDates = [...new Set(validAttendance.map(l => {
+                const ts = l.timestamp || l.date;
+                if (!ts) return null;
+                const d = typeof ts === 'string' ? new Date(ts) : (ts.toDate ? ts.toDate() : new Date(ts.seconds ? ts.seconds * 1000 : ts));
+                return isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
+            }).filter(Boolean))].sort();
+            let diligenceGrade = null;
+            if (attendDates.length >= 3) {
+                const dates = attendDates.map(d => new Date(d).getTime());
+                const totalWeeks = Math.max(1, Math.ceil((nowMs - dates[0]) / WEEK));
+                const weeklyAvg = Math.min(7, attendDates.length / totalWeeks);
+                const weeklyScore = Math.min(100, Math.round((weeklyAvg / 3) * 100));
+                const gaps = [];
+                for (let i = 1; i < dates.length; i++) gaps.push((dates[i] - dates[i - 1]) / DAY);
+                const avgGap = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+                const stdDev = Math.sqrt(gaps.reduce((a, g) => a + Math.pow(g - avgGap, 2), 0) / gaps.length);
+                const regularityScore = Math.round(Math.max(0, Math.min(100, 100 - stdDev * 10)));
+                const recentWeeks = [0, 0, 0, 0];
+                attendDates.forEach(d => { const w = Math.floor((nowMs - new Date(d).getTime()) / WEEK); if (w >= 0 && w < 4) recentWeeks[w] = 1; });
+                const consistencyScore = Math.round((recentWeeks.reduce((a, b) => a + b, 0) / 4) * 100);
+                const twoWeeksAgo = new Date(nowMs - 14 * DAY).toISOString().slice(0, 10);
+                const recentCount = attendDates.filter(d => d >= twoWeeksAgo).length;
+                const vitalityScore = Math.min(100, Math.round((recentCount / 6) * 100));
+                const totalScore = Math.round(weeklyScore * 0.3 + regularityScore * 0.25 + consistencyScore * 0.25 + vitalityScore * 0.2);
+                const grade = totalScore >= 85 ? 'S' : totalScore >= 70 ? 'A' : totalScore >= 50 ? 'B' : totalScore >= 30 ? 'C' : 'D';
+                diligenceGrade = { grade, score: totalScore, weeklyAvg: weeklyAvg.toFixed(1), regularity: stdDev < 2 ? '매우 규칙적' : stdDev < 4 ? '규칙적' : '불규칙' };
+            }
+
             const exp = await storageService.getAIExperience(
                 m.name, m.attendanceCount || validAttendance.length,
                 day, hour, null,
                 wData ? `${t('weather_' + wData.key)} (${wData.temp}°C)` : 'Sunny',
                 m.credits || 0, getDaysRemaining(m.endDate), language,
-                { streak, lastAttendanceAt: lastAtt }, 'profile',
+                { streak, lastAttendanceAt: lastAtt, diligence: diligenceGrade }, 'profile',
                 m.mbti || localStorage.getItem('member_mbti') || null
             );
             if (exp) {

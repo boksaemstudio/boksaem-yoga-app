@@ -32,6 +32,9 @@
   --primary-theme-dim: #C5A065;
   --primary-gold-glow: rgba(var(--primary-rgb), 0.4);
   --primary-theme-glow: rgba(var(--primary-rgb), 0.5);
+
+  /* Theme-safe text color on primary background */
+  --text-on-primary: #000000;
   
   /* Global Layout Tokens */
   --bg-modal: linear-gradient(145deg, rgba(30,30,35,0.98), rgba(20,20,25,0.98));

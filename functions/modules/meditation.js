@@ -416,7 +416,10 @@ JSON Output:
             
             // 시간대별 컨텍스트
             let timePhrase = '';
-            const hour = new Date().getHours();
+            // [FIX] Cloud Functions는 UTC — KST 변환 필요
+            const nowUtc = new Date();
+            const kstMs = nowUtc.getTime() + 9 * 60 * 60 * 1000;
+            const hour = new Date(kstMs).getUTCHours();
             if (hour >= 5 && hour < 12) timePhrase = '아침';
             else if (hour >= 12 && hour < 18) timePhrase = '오후';
             else timePhrase = '오늘';
@@ -523,7 +526,10 @@ JSON Output:
 
         // TYPE 6: DYNAMIC OPTIONS (새로운 기능)
         else if (type === 'options_refresh') {
-            const timeHour = new Date().getHours();
+            // [FIX] Cloud Functions는 UTC — KST 변환 필요
+            const nowUtc2 = new Date();
+            const kstMs2 = nowUtc2.getTime() + 9 * 60 * 60 * 1000;
+            const timeHour = new Date(kstMs2).getUTCHours();
             let timeOfDay = 'day';
             if (timeHour >= 5 && timeHour < 11) timeOfDay = 'morning';
             else if (timeHour >= 22 || timeHour < 5) timeOfDay = 'late_night';

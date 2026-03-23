@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { CaretLeft, CaretRight, User, SignOut, DotsThreeVertical, List, X, House, Calendar, ChatCircleText, Table, UsersFour, ChartBar, Bell, CalendarBlank } from '@phosphor-icons/react';
+import { CaretLeft, CaretRight, User, SignOut, DotsThreeVertical, List, X, House, Calendar, ChatCircleText, Table, UsersFour, ChartBar, Bell, BellSlash, SpinnerGap, CalendarBlank } from '@phosphor-icons/react';
 import { useStudioConfig } from '../contexts/StudioContext';
 import { storageService } from '../services/storage';
 import { getKSTHour } from '../utils/dates';
@@ -40,6 +40,8 @@ const InstructorPage = () => {
     const [aiGreetingLoading, setAiGreetingLoading] = useState(false); // [AI] 로딩 애니메이션
     const [aiEnhancedGreeting, setAiEnhancedGreeting] = useState(null); // [AI] AI 보강 메시지
     const [showInstallGuide, setShowInstallGuide] = useState(false); // [PWA] Install Guide
+    const [pushEnabled, setPushEnabled] = useState('Notification' in window && Notification.permission === 'granted');
+    const [pushLoading, setPushLoading] = useState(false);
     
     // Attendance State (Global)
     const [attendance, setAttendance] = useState([]);
@@ -54,7 +56,7 @@ const InstructorPage = () => {
     useEffect(() => {
         const loadInstructors = async () => {
             try {
-                const insts = await storageService.getInstructors(config.DEFAULT_SCHEDULE_TEMPLATE);
+                const insts = await storageService.getInstructors();
                 if (insts && insts.length > 0) {
                     setInstructors(insts);
                 }
@@ -135,7 +137,7 @@ const InstructorPage = () => {
         const loadInitialData = async () => {
             try {
                 // Fetch Classes (Static for the day)
-                const classPromises = branches.map(b => storageService.getDailyClasses(b.id, instructorName, config.DEFAULT_SCHEDULE_TEMPLATE));
+                const classPromises = branches.map(b => storageService.getDailyClasses(b.id, instructorName, todayStr));
                 
                 // Fetch Attendance (Baseline)
                 const attendancePromises = branches.map(b => storageService.getAttendanceByDate(todayStr, b.id));
@@ -310,6 +312,23 @@ const InstructorPage = () => {
         setAttendance([]);
     };
 
+    const handlePushToggle = async () => {
+        setPushLoading(true);
+        try {
+            if (pushEnabled) {
+                await storageService.deletePushToken('instructor');
+                setPushEnabled(false);
+            } else {
+                const result = await storageService.requestInstructorPushPermission(instructorName);
+                setPushEnabled(result);
+            }
+        } catch (e) {
+            console.error('[InstructorPage] Push toggle failed:', e);
+        } finally {
+            setPushLoading(false);
+        }
+    };
+
     if (loading) {
         return (
             <div style={{ minHeight: '100dvh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -337,9 +356,38 @@ const InstructorPage = () => {
                     <h1 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--primary-gold)' }}>{config.IDENTITY?.NAME || 'Studio'} 선생님</h1>
                     <div style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{instructorName} 선생님</div>
                 </div>
-                <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                    <SignOut size={24} color="var(--text-secondary)" />
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                        onClick={handlePushToggle}
+                        disabled={pushLoading}
+                        style={{
+                            background: pushEnabled ? 'rgba(var(--primary-rgb), 0.15)' : 'rgba(255,255,255,0.05)',
+                            border: pushEnabled ? '1px solid rgba(var(--primary-rgb), 0.3)' : '1px solid rgba(255,255,255,0.1)',
+                            color: pushEnabled ? 'var(--primary-gold)' : 'var(--text-secondary)',
+                            cursor: pushLoading ? 'wait' : 'pointer',
+                            padding: '6px 10px',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            opacity: pushLoading ? 0.6 : 1,
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        {pushLoading ? (
+                            <><SpinnerGap size={16} style={{ animation: 'spin 0.6s linear infinite' }} /> 설정 중</>
+                        ) : pushEnabled ? (
+                            <><Bell size={16} weight="fill" /> 알림ON</>
+                        ) : (
+                            <><BellSlash size={16} /> 알림OFF</>
+                        )}
+                    </button>
+                    <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                        <SignOut size={24} color="var(--text-secondary)" />
+                    </button>
+                </div>
             </div>
 
             {/* AI Greeting (Top of Content) */}

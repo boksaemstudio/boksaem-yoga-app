@@ -102,12 +102,13 @@ const BookingsTab = ({ currentBranch }) => {
     const moveDate = (days) => {
         const d = new Date(selectedDate);
         d.setDate(d.getDate() + days);
-        setSelectedDate(d.toISOString().split('T')[0]);
+        // [FIX] toISOString().split('T')[0]은 UTC 기준. KST 자정~09시에 전날 반환됨
+        setSelectedDate(d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }));
     };
 
     const moveMonth = (dir) => {
         const d = new Date(calYear, calMonth - 1 + dir, 1);
-        setSelectedDate(d.toISOString().split('T')[0]);
+        setSelectedDate(d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }));
     };
 
     const isToday = selectedDate === getTodayKST();

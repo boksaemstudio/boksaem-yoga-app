@@ -84,7 +84,7 @@ const DuplicateConfirmModal = ({
                             borderRadius: '20px',
                             border: 'none',
                             background: `linear-gradient(135deg, ${config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'}, #f5d76e)`,
-                            color: '#1a1a1a',
+                            color: 'var(--text-on-primary)',
                             fontSize: '1.5rem',
                             fontWeight: 800,
                             cursor: 'pointer',

@@ -118,7 +118,7 @@ export const FeedbackView = ({
                 <button onClick={onClose} style={{
                     width: '100%', padding: '20px', marginTop: '30px',
                     background: activeMode?.color || config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)', border: 'none', borderRadius: '15px',
-                    color: 'black', fontWeight: 800, fontSize: '1.2rem', cursor: 'pointer',
+                    color: 'var(--text-on-primary)', fontWeight: 800, fontSize: '1.2rem', cursor: 'pointer',
                     boxShadow: `0 10px 30px ${activeMode?.color || config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'}40`
                 }}>
                     마음 챙김 마치고 돌아가기

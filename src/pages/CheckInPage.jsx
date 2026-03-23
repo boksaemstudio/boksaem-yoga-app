@@ -17,6 +17,7 @@ import { useNetworkMonitor } from '../hooks/useNetworkMonitor';
 import { useTTS } from '../hooks/useTTS';
 import { useFacialRecognition } from '../hooks/useFacialRecognition';
 import { useKioskNotice } from '../hooks/useKioskNotice';
+import { useProximityReturn } from '../hooks/useProximityReturn';
 
 import { usePWA } from '../hooks/usePWA';
 import { useStudioConfig } from '../contexts/StudioContext';
@@ -106,6 +107,15 @@ const CheckInPage = () => {
 
     const { kioskSettings, kioskNoticeHidden, setKioskNoticeHidden } = useKioskNotice({
         isReady, currentBranch, message, showSelectionModal, showDuplicateConfirm
+    });
+
+    // 근접 감지: 공지 화면 표시 중 + 옵션 ON이면 카메라로 얼굴 감지 → 자동 전환
+    const isNoticeVisible = !!(kioskSettings?.active && kioskSettings?.imageUrl && !kioskNoticeHidden && !message);
+    useProximityReturn({
+        enabled: !!kioskSettings?.proximityReturn,
+        isNoticeVisible,
+        videoRef: faceVideoRef,
+        onPersonDetected: useCallback(() => setKioskNoticeHidden(true), [setKioskNoticeHidden])
     });
 
     const language = CHECKIN_CONFIG.LOCALE;
@@ -221,7 +231,7 @@ const CheckInPage = () => {
 
         if (isExtra) { msg = "반가워요! 이미 출석 확인이 완료되었습니다. (추가 출석)"; speak("success_extra"); }
         else if (isConsecutive) { msg = "오늘의 두 번째 수련이 시작됩니다. (연강 출석)"; speak("success_consecutive"); }
-        else if (daysLeft < 0) { msg = "수련권 기간이 완료되었습니다. 선생님께서 안내를 도와드릴게요."; speak("denied"); }
+        else if (daysLeft < 0) { msg = "수련권 기간이 만료되었습니다. 선생님께서 안내를 도와드릴게요."; speak("denied"); }
         else if (credits < 0) { msg = "수련 횟수가 모두 소진되었습니다. 선생님께서 안내를 도와드릴게요."; speak("denied"); }
         else if (credits === 0 || daysLeft === 0) { msg = "오늘이 이번 수련권의 마지막 날이네요. 정성 가득한 수련 되세요!"; speak("last_session"); }
         else { speak("success"); }
@@ -394,16 +404,19 @@ const CheckInPage = () => {
                     ) : (
                         <img src={kioskSettings.imageUrl} alt="notice" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                     )}
-                    <div style={{ position: 'absolute', bottom: '6vh', background: 'rgba(0, 0, 0, 0.85)', color: 'white', padding: '16px 36px', borderRadius: '50px', fontSize: '1.6rem', fontWeight: 'bold', border: '3px solid rgba(var(--primary-rgb), 0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', pointerEvents: 'none' }}>
-                        <span style={{ fontSize: '2rem' }}>👆</span> 화면을 터치하면 출석부로 이동합니다
-                    </div>
+                    {kioskSettings.showTouchGuide !== false && (
+                        <div style={{ position: 'absolute', bottom: '6vh', background: 'rgba(0, 0, 0, 0.85)', color: 'white', padding: '16px 36px', borderRadius: '50px', fontSize: '1.6rem', fontWeight: 'bold', border: '3px solid rgba(var(--primary-rgb), 0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', pointerEvents: 'none' }}>
+                            <span style={{ fontSize: '2rem' }}>👆</span> 화면을 터치하면 출석부로 이동합니다
+                        </div>
+                    )}
                 </div>
             )}
 
             <KioskInstallGuideModal isOpen={showKioskInstallGuide} onClose={() => setShowKioskInstallGuide(false)} />
             <InstructorQRModal isOpen={showInstructorQR} onClose={() => setShowInstructorQR(false)} />
-            <FaceRegistrationModal isOpen={showFaceRegModal} onClose={() => setShowFaceRegModal(false)} videoRef={faceVideoRef} />
+            <FaceRegistrationModal isOpen={showFaceRegModal} onClose={() => setShowFaceRegModal(false)} videoRef={faceVideoRef} modelsAlreadyLoaded={faceModelsLoaded} />
             <video ref={videoRef} autoPlay playsInline muted style={{ position: 'fixed', left: '0', top: '0', width: '1px', height: '1px', opacity: 0.01, zIndex: -100, pointerEvents: 'none' }} />
+            <video ref={faceVideoRef} autoPlay playsInline muted style={{ position: 'fixed', left: '-9999px', width: '1px', height: '1px', opacity: 0.01, zIndex: -100, pointerEvents: 'none' }} />
             <canvas ref={canvasRef} style={{ position: 'fixed', left: '0', top: '0', width: '1px', height: '1px', opacity: 0.01, zIndex: -100, pointerEvents: 'none' }} />
         </div>
     );

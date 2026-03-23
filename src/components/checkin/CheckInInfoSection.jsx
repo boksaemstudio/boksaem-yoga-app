@@ -37,8 +37,9 @@ const CheckInInfoSection = memo(({
                 if (videoRef.current) {
                     videoRef.current.srcObject = stream;
                 }
-                if (cameraVideoRef?.current && !cameraVideoRef.current.srcObject) {
+                if (cameraVideoRef?.current) {
                     cameraVideoRef.current.srcObject = stream;
+                    cameraVideoRef.current.play().catch(() => {});
                 }
             } catch (e) {
                 console.log('[Camera Preview] 카메라 접근 불가:', e.message);
@@ -87,8 +88,10 @@ const CheckInInfoSection = memo(({
                 {/* ━━━ Large 카메라 프리뷰 (info-body 내부 — 로고와 AI메시지 사이 중앙) ━━━ */}
                 {showCamera && cameraSize === 'large' && isIdle && (
                     <div style={{
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
-                        marginBottom: 'clamp(8px, 1.5vh, 16px)',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                        gap: '6px',
+                        flex: 1,
+                        minHeight: 0,
                     }}>
                         <div style={{
                             width: 'clamp(112px, 19.5vw, 225px)',
@@ -313,6 +316,15 @@ const CheckInInfoSection = memo(({
         </div>
     );
 });
+
+// 근접감지용 숨겨진 비디오 — faceVideoRef 연결
+const HiddenFaceVideo = React.forwardRef((props, ref) => (
+    <video
+        ref={ref}
+        autoPlay playsInline muted
+        style={{ position: 'fixed', left: '-9999px', width: '1px', height: '1px', opacity: 0.01, pointerEvents: 'none' }}
+    />
+));
 
 CheckInInfoSection.displayName = 'CheckInInfoSection';
 export default CheckInInfoSection;

@@ -82,14 +82,43 @@ const MemberProfile = () => {
     };
 
     // ─── MBTI State ───
-    const MBTI_TYPES = ['INTJ', 'INTP', 'ENTJ', 'ENTP', 'INFJ', 'INFP', 'ENFJ', 'ENFP', 'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ', 'ISTP', 'ISFP', 'ESTP', 'ESFP'];
+    const MBTI_STEPS = [
+        { label: '에너지 방향', options: [{ letter: 'E', title: '외향', desc: '사람들과 어울리며 에너지 충전' }, { letter: 'I', title: '내향', desc: '혼자만의 시간으로 에너지 충전' }] },
+        { label: '인식 기능', options: [{ letter: 'S', title: '감각', desc: '현실적, 구체적 사실 중시' }, { letter: 'N', title: '직관', desc: '가능성과 아이디어 중시' }] },
+        { label: '판단 기능', options: [{ letter: 'T', title: '사고', desc: '논리와 원칙으로 판단' }, { letter: 'F', title: '감정', desc: '사람과 관계를 먼저 고려' }] },
+        { label: '생활 양식', options: [{ letter: 'J', title: '판단', desc: '계획적이고 체계적인 생활' }, { letter: 'P', title: '인식', desc: '유연하고 자유로운 생활' }] }
+    ];
     const [mbti, setMbti] = useState(() => localStorage.getItem('member_mbti') || member?.mbti || '');
-    const handleMbtiChange = (value) => {
-        setMbti(value);
-        localStorage.setItem('member_mbti', value);
-        if (member?.id) {
-            storageService.updateMember(member.id, { mbti: value });
+    const [mbtiStep, setMbtiStep] = useState(() => {
+        const saved = localStorage.getItem('member_mbti') || member?.mbti || '';
+        return saved.length >= 4 ? 4 : 0; // 이미 설정됨 → 완료 상태, 아니면 처음부터
+    });
+    const [mbtiPicks, setMbtiPicks] = useState(() => {
+        const saved = localStorage.getItem('member_mbti') || member?.mbti || '';
+        return saved ? saved.split('') : [];
+    });
+    const handleMbtiPick = (letter, stepIdx) => {
+        const newPicks = [...mbtiPicks];
+        newPicks[stepIdx] = letter;
+        setMbtiPicks(newPicks);
+        if (stepIdx < 3) {
+            setTimeout(() => setMbtiStep(stepIdx + 1), 300);
         }
+        // 4번째는 자동 저장 안 함 — 완료 버튼으로 확정
+    };
+    const handleMbtiConfirm = () => {
+        const result = mbtiPicks.join('');
+        setMbti(result);
+        localStorage.setItem('member_mbti', result);
+        if (member?.id) storageService.updateMember(member.id, { mbti: result });
+        setMbtiStep(4);
+    };
+    const handleMbtiReset = () => {
+        setMbtiPicks([]);
+        setMbtiStep(0);
+        setMbti('');
+        localStorage.removeItem('member_mbti');
+        if (member?.id) storageService.updateMember(member.id, { mbti: '' });
     };
 
     // ─── AI Greeting Fade ───
@@ -133,13 +162,22 @@ const MemberProfile = () => {
     const isPwaStandalone = pwaCtx.isStandalone;
 
     // ─── Push Toggle Wrapper ───
+    const [pushLoading, setPushLoading] = useState(false);
     const onNotificationToggle = async (e) => {
         if (e.target.checked) {
-            const result = await handleNotificationToggle(true);
-            if (result.success) alert(t('pushSetSuccess'));
-            else alert(t('pushSetFail') + ': ' + result.message);
+            setPushLoading(true);
+            try {
+                const result = await handleNotificationToggle(true);
+                if (result.success) alert(t('pushSetSuccess'));
+                else alert(t('pushSetFail') + ': ' + result.message);
+            } finally {
+                setPushLoading(false);
+            }
         } else {
-            if (window.confirm(t('pushTurnOffConfirm'))) handleNotificationToggle(false);
+            if (window.confirm(t('pushTurnOffConfirm'))) {
+                setPushLoading(true);
+                try { await handleNotificationToggle(false); } finally { setPushLoading(false); }
+            }
         }
     };
 
@@ -184,10 +222,10 @@ const MemberProfile = () => {
                     {activeTab === 'home' && (
                         <div className="fade-in">
                             <div className="glass-panel" style={{ padding: '24px', marginBottom: '20px', background: 'rgba(20, 20, 20, 0.9)', border: '1px solid rgba(255,255,255,0.15)' }}>
-                                <MembershipInfo member={member} daysRemaining={daysRemaining} t={t} />
+                                <MembershipInfo member={member} daysRemaining={daysRemaining} logs={validLogs} t={t} />
                                 <MyStatsChart logs={validLogs} />
                                 <AISection aiExperience={aiExperience} weatherData={weatherData} greetingVisible={greetingVisible} t={t} getTraditionalYogaMessage={getTraditionalYogaMessage} />
-                                <HomeYogaSection language={language} t={t} />
+                                <HomeYogaSection language={language} t={t} mbti={mbti} />
                                 <RecentAttendance logs={validLogs} language={language} t={t} setActiveTab={setActiveTab} />
 
                                 {/* Push Notification Toggle */}
@@ -199,22 +237,24 @@ const MemberProfile = () => {
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                                         <div style={{
                                             width: '44px', height: '44px', borderRadius: '50%',
-                                            background: pushStatus === 'granted' ? 'rgba(var(--primary-rgb), 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                                            background: pushLoading ? 'rgba(var(--primary-rgb), 0.1)' : pushStatus === 'granted' ? 'rgba(var(--primary-rgb), 0.15)' : 'rgba(255, 255, 255, 0.05)',
                                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                                             border: `1px solid ${pushStatus === 'granted' ? 'rgba(var(--primary-rgb), 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
                                             transition: 'all 0.3s ease'
                                         }}>
-                                            {pushStatus === 'granted' ? <BellRinging size={22} weight="fill" color="var(--primary-gold)" /> : <BellSlash size={22} color="rgba(255,255,255,0.4)" />}
+                                            {pushLoading ? (
+                                                <div style={{ width: '20px', height: '20px', border: '2px solid rgba(var(--primary-rgb), 0.2)', borderTop: '2px solid var(--primary-gold)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                                            ) : pushStatus === 'granted' ? <BellRinging size={22} weight="fill" color="var(--primary-gold)" /> : <BellSlash size={22} color="rgba(255,255,255,0.4)" />}
                                         </div>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                             <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>{t('pushNotification')}</span>
-                                            <span style={{ fontSize: '0.85rem', color: pushStatus === 'granted' ? 'var(--primary-gold)' : 'rgba(255,255,255,0.4)', transition: 'color 0.3s' }}>
-                                                {pushStatus === 'granted' ? t('pushOnLabel') : t('pushOffLabel')}
+                                            <span style={{ fontSize: '0.85rem', color: pushLoading ? 'var(--primary-gold)' : pushStatus === 'granted' ? 'var(--primary-gold)' : 'rgba(255,255,255,0.4)', transition: 'color 0.3s' }}>
+                                                {pushLoading ? '설정 중...' : pushStatus === 'granted' ? t('pushOnLabel') : t('pushOffLabel')}
                                             </span>
                                         </div>
                                     </div>
-                                    <label className="premium-switch" style={{ position: 'relative', display: 'inline-block', width: '56px', height: '30px' }}>
-                                        <input type="checkbox" checked={pushStatus === 'granted'} onChange={onNotificationToggle} style={{ opacity: 0, width: 0, height: 0 }} />
+                                    <label className="premium-switch" style={{ position: 'relative', display: 'inline-block', width: '56px', height: '30px', opacity: pushLoading ? 0.5 : 1, pointerEvents: pushLoading ? 'none' : 'auto' }}>
+                                        <input type="checkbox" checked={pushStatus === 'granted'} onChange={onNotificationToggle} disabled={pushLoading} style={{ opacity: 0, width: 0, height: 0 }} />
                                         <span className="premium-slider-track" style={{
                                             position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
                                             backgroundColor: pushStatus === 'granted' ? 'rgba(var(--primary-rgb), 0.2)' : 'rgba(255, 255, 255, 0.1)',
@@ -272,13 +312,14 @@ const MemberProfile = () => {
                                     </label>
                                 </div>
 
-                                {/* MBTI Selector */}
+                                {/* MBTI Selector — 4-Step Flow */}
                                 <div className="glass-panel" style={{
                                     padding: '25px 30px', background: 'linear-gradient(145deg, rgba(20, 20, 35, 0.9), rgba(15, 15, 25, 0.95))',
                                     marginBottom: '20px', borderRadius: '24px', border: `1px solid ${mbti ? 'rgba(212, 175, 55, 0.2)' : 'rgba(255, 255, 255, 0.08)'}`,
-                                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)', overflow: 'hidden'
                                 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+                                    {/* Header */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
                                         <div style={{
                                             width: '44px', height: '44px', borderRadius: '50%',
                                             background: mbti ? 'rgba(212, 175, 55, 0.15)' : 'rgba(255, 255, 255, 0.05)',
@@ -288,30 +329,109 @@ const MemberProfile = () => {
                                         }}>
                                             <span style={{ fontSize: '1.2rem' }}>🧬</span>
                                         </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
                                             <span style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>나의 MBTI</span>
                                             <span style={{ fontSize: '0.85rem', color: mbti ? 'var(--primary-gold)' : 'rgba(255,255,255,0.4)', transition: 'color 0.3s' }}>
-                                                {mbti ? `${mbti} — AI 인사말에 반영됩니다` : 'MBTI를 설정하면 맞춤 인사말이 바뀌어요'}
+                                                {mbti ? `${mbti} — AI 인사말과 맞춤 코칭에 반영돼요` : '설정하면 나만의 AI 인사말과 코칭을 받아요 ✨'}
                                             </span>
                                         </div>
                                     </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
-                                        {MBTI_TYPES.map(type => (
-                                            <button key={type} onClick={() => handleMbtiChange(type)} style={{
-                                                padding: '8px 0', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 600,
-                                                background: mbti === type ? 'rgba(212, 175, 55, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-                                                border: `1px solid ${mbti === type ? 'var(--primary-gold)' : 'rgba(255, 255, 255, 0.1)'}`,
-                                                color: mbti === type ? 'var(--primary-gold)' : 'rgba(255, 255, 255, 0.6)',
-                                                cursor: 'pointer', transition: 'all 0.2s ease'
-                                            }}>{type}</button>
+
+                                    {/* Step Progress Dots — 선택 중에만 표시 */}
+                                    {mbtiStep < 4 && (
+                                    <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '20px' }}>
+                                        {MBTI_STEPS.map((_, i) => (
+                                            <div key={i} onClick={() => { if (i < mbtiStep) setMbtiStep(i); }} style={{
+                                                width: mbtiStep === i ? '28px' : '8px', height: '8px', borderRadius: '4px',
+                                                background: i < mbtiStep ? 'var(--primary-gold)' : i === mbtiStep ? 'rgba(212, 175, 55, 0.6)' : 'rgba(255,255,255,0.15)',
+                                                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                cursor: i < mbtiStep ? 'pointer' : 'default'
+                                            }} />
                                         ))}
                                     </div>
-                                    {mbti && (
-                                        <button onClick={() => handleMbtiChange('')} style={{
-                                            marginTop: '12px', padding: '6px 16px', borderRadius: '8px',
-                                            background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
-                                            color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', cursor: 'pointer'
-                                        }}>선택 해제</button>
+                                    )}
+
+                                    {/* Step Content */}
+                                    {mbtiStep < 4 ? (
+                                        <div style={{ position: 'relative', minHeight: '120px' }}>
+                                            {/* Step Label */}
+                                            <div style={{ textAlign: 'center', marginBottom: '16px', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', letterSpacing: '2px', textTransform: 'uppercase' }}>
+                                                {MBTI_STEPS[mbtiStep]?.label}
+                                            </div>
+                                            {/* Two Option Cards */}
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                                {MBTI_STEPS[mbtiStep]?.options.map(opt => {
+                                                    const isSelected = mbtiPicks[mbtiStep] === opt.letter;
+                                                    return (
+                                                        <button key={opt.letter} onClick={() => handleMbtiPick(opt.letter, mbtiStep)} style={{
+                                                            padding: '20px 16px', borderRadius: '16px',
+                                                            background: isSelected
+                                                                ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(212, 175, 55, 0.1))'
+                                                                : 'rgba(255, 255, 255, 0.04)',
+                                                            border: `2px solid ${isSelected ? 'var(--primary-gold)' : 'rgba(255, 255, 255, 0.08)'}`,
+                                                            cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
+                                                            transform: isSelected ? 'scale(1.03)' : 'scale(1)',
+                                                            boxShadow: isSelected ? '0 4px 20px rgba(212, 175, 55, 0.15)' : 'none'
+                                                        }}>
+                                                            <span style={{
+                                                                fontSize: '2rem', fontWeight: 800,
+                                                                color: isSelected ? 'var(--primary-gold)' : 'rgba(255,255,255,0.7)',
+                                                                lineHeight: 1, transition: 'color 0.3s'
+                                                            }}>{opt.letter}</span>
+                                                            <span style={{
+                                                                fontSize: '0.9rem', fontWeight: 600,
+                                                                color: isSelected ? 'white' : 'rgba(255,255,255,0.6)'
+                                                            }}>{opt.title}</span>
+                                                            <span style={{
+                                                                fontSize: '0.75rem',
+                                                                color: isSelected ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.3)',
+                                                                lineHeight: 1.3, textAlign: 'center'
+                                                            }}>{opt.desc}</span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                            {/* Progress Letters */}
+                                            <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '16px' }}>
+                                                {[0,1,2,3].map(i => (
+                                                    <span key={i} style={{
+                                                        fontSize: '1.1rem', fontWeight: 700, width: '28px', textAlign: 'center',
+                                                        color: mbtiPicks[i] ? 'var(--primary-gold)' : 'rgba(255,255,255,0.15)',
+                                                        transition: 'color 0.3s'
+                                                    }}>{mbtiPicks[i] || '·'}</span>
+                                                ))}
+                                            </div>
+                                            {/* 완료 버튼 — 4개 다 선택했을 때만 */}
+                                            {mbtiPicks.length >= 4 && mbtiPicks[3] && (
+                                                <button onClick={handleMbtiConfirm} style={{
+                                                    marginTop: '16px', width: '100%', padding: '14px',
+                                                    borderRadius: '14px', border: 'none', cursor: 'pointer',
+                                                    background: 'linear-gradient(135deg, var(--primary-gold), #f5d17a)',
+                                                    color: '#1a1a2e', fontSize: '1rem', fontWeight: 700,
+                                                    letterSpacing: '2px',
+                                                    boxShadow: '0 4px 16px rgba(212, 175, 55, 0.3)',
+                                                    transition: 'all 0.3s ease'
+                                                }}>
+                                                    {mbtiPicks.join('')} 완료 ✓
+                                                </button>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        /* Completed State */
+                                        <div style={{ textAlign: 'center', padding: '10px 0' }}>
+                                            <div style={{
+                                                fontSize: '2.5rem', fontWeight: 800, letterSpacing: '8px',
+                                                background: 'linear-gradient(135deg, var(--primary-gold), #f5d17a)',
+                                                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                                                marginBottom: '12px'
+                                            }}>{mbti}</div>
+                                            <button onClick={handleMbtiReset} style={{
+                                                padding: '6px 16px', borderRadius: '8px',
+                                                background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
+                                                color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', cursor: 'pointer'
+                                            }}>다시 선택</button>
+                                        </div>
                                     )}
                                 </div>
 
@@ -345,7 +465,7 @@ const MemberProfile = () => {
                                                 </div>
                                             </div>
                                         ) : (
-                                            <button onClick={installApp} style={{ background: 'var(--primary-gold)', color: 'black', border: 'none', padding: '12px 18px', borderRadius: '14px', fontWeight: 'bold', fontSize: '0.95rem', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                            <button onClick={installApp} style={{ background: 'var(--primary-gold)', color: 'var(--text-on-primary)', border: 'none', padding: '12px 18px', borderRadius: '14px', fontWeight: 'bold', fontSize: '0.95rem', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                                                 <DownloadSimple size={20} weight="bold" /> {t('installBtn')}
                                             </button>
                                         )}

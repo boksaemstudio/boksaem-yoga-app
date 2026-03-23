@@ -50,14 +50,14 @@ export function useScheduleData(branchId, config) {
 
     const loadMasterData = useCallback(async () => {
         const [instructorList, classTypeList, classLevelList] = await Promise.all([
-            storageService.getInstructors(config.DEFAULT_SCHEDULE_TEMPLATE),
-            storageService.getClassTypes(config.DEFAULT_SCHEDULE_TEMPLATE),
+            storageService.getInstructors(),
+            storageService.getClassTypes(),
             storageService.getClassLevels()
         ]);
         setInstructors(instructorList);
         setClassTypes(classTypeList);
         setClassLevels(classLevelList);
-    }, [config.DEFAULT_SCHEDULE_TEMPLATE]);
+    }, []);
 
     // 초기화 + 실시간 구독
     useEffect(() => {
@@ -103,7 +103,7 @@ export function useScheduleData(branchId, config) {
         if (!window.confirm(confirmMsg)) return;
         setLoading(true);
         try {
-            const res = await storageService.createMonthlySchedule(branchId, year, month, config.DEFAULT_SCHEDULE_TEMPLATE);
+            const res = await storageService.createMonthlySchedule(branchId, year, month);
             alert(res.message || "표준 시간표가 생성되었습니다.");
             await loadMonthlyData();
         } catch (error) {

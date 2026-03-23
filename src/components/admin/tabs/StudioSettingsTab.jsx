@@ -128,7 +128,7 @@ const StudioSettingsTab = () => {
                             alignItems: 'center', 
                             gap: '8px', 
                             background: 'var(--primary-theme-color)', 
-                            color: 'black',
+                            color: 'var(--text-on-primary)',
                             padding: '8px 20px',
                             fontWeight: 'bold',
                             boxShadow: '0 4px 15px var(--primary-theme-skeleton)'
@@ -715,7 +715,7 @@ const StudioSettingsTab = () => {
                                     id={`copy-btn-${app.path}`}
                                     style={{
                                         width: '100%', padding: '10px', borderRadius: '8px',
-                                        background: 'var(--primary-gold)', color: 'black', border: 'none',
+                                        background: 'var(--primary-gold)', color: 'var(--text-on-primary)', border: 'none',
                                         fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem'
                                     }}
                                 >URL 복사</button>

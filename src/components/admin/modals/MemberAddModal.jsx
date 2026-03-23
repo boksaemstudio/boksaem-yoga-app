@@ -210,9 +210,12 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
 
             // [NEW] Automatically add attendance record if "Include Today" is checked
             if (newMember.includeToday) {
+                // [FIX] ISO timestamp 대신 YYYY-MM-DD 날짜를 전달
+                // 이전: new Date().toISOString() → UTC 변환되어 서버에서 date/classTime이 잘못 저장됨
+                const todayDateStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
                 await storageService.addManualAttendance(
                     res.id,
-                    new Date().toISOString(),
+                    todayDateStr,
                     newMember.branch,
                     newMember.todayClass?.title || "등록 당일 수련",
                     newMember.todayClass?.instructor || "시스템 자동",

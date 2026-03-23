@@ -136,12 +136,16 @@ const generateScheduleFromTemplateImpl = async (branchId: string, year: number, 
     return { success: true };
 };
 
-export const createMonthlySchedule = async (branchId: string, year: number, month: number, defaultScheduleTemplate: Record<string, WeeklyTemplateClass[]> = {}): Promise<ScheduleResult> => {
+export const createMonthlySchedule = async (branchId: string, year: number, month: number): Promise<ScheduleResult> => {
     try {
         const templateSnap = await getDoc(tenantDb.doc('weekly_templates', branchId));
         let template: WeeklyTemplateClass[] = [];
-        if (templateSnap.exists()) { template = (templateSnap.data() as { classes: WeeklyTemplateClass[] }).classes || []; }
-        else { console.warn("Weekly template not found, using config fallback."); template = defaultScheduleTemplate[branchId] || []; }
+        if (templateSnap.exists()) {
+            template = (templateSnap.data() as { classes: WeeklyTemplateClass[] }).classes || [];
+        } else {
+            console.warn(`[Schedule] weekly_templates/${branchId} not found. 관리자 페이지에서 시간표 템플릿을 설정해주세요.`);
+            return { success: false, message: '주간 시간표 템플릿이 없습니다. 관리자 페이지에서 먼저 설정해주세요.' };
+        }
         return generateScheduleFromTemplateImpl(branchId, year, month, template);
     } catch (e) { console.error("Create monthly schedule failed:", e); throw e; }
 };
@@ -257,24 +261,24 @@ export const restoreMonthlyBackup = async (branchId: string, year: number, month
 };
 
 // ── Service — Config Getters ──
-export const getInstructors = async (defaultScheduleTemplate: Record<string, WeeklyTemplateClass[]> = {}): Promise<(string | Record<string, unknown>)[]> => {
+export const getInstructors = async (): Promise<(string | Record<string, unknown>)[]> => {
     try {
         const docSnap = await getDoc(tenantDb.doc('settings', 'instructors'));
         if (docSnap.exists() && (docSnap.data() as { list?: unknown[] }).list) return (docSnap.data() as { list: (string | Record<string, unknown>)[] }).list;
-        const instructors = new Set<string>();
-        Object.values(defaultScheduleTemplate).forEach(schedule => { schedule.forEach(cls => { if (cls.instructor) instructors.add(cls.instructor); }); });
-        return Array.from(instructors).sort();
-    } catch (e) { console.warn("Failed to load instructors:", e); return ['원장', '한아', '정연', '미선', '희정', '보윤', '소영', '은혜', '혜실', '세연', 'anu', '송미', '다나', '리안', '성희', '효원', '희연']; }
+        // SaaS: Firestore에 데이터 없으면 빈 배열 — 관리자가 설정해야 함
+        console.warn('[Schedule] settings/instructors not found. 관리자 페이지에서 강사를 등록해주세요.');
+        return [];
+    } catch (e) { console.warn("Failed to load instructors:", e); return []; }
 };
 
-export const getClassTypes = async (defaultScheduleTemplate: Record<string, WeeklyTemplateClass[]> = {}): Promise<string[]> => {
+export const getClassTypes = async (): Promise<string[]> => {
     try {
         const docSnap = await getDoc(tenantDb.doc('settings', 'classTypes'));
         if (docSnap.exists() && (docSnap.data() as { list?: string[] }).list) return (docSnap.data() as { list: string[] }).list;
-        const types = new Set<string>();
-        Object.values(defaultScheduleTemplate).forEach(schedule => { schedule.forEach(cls => { if (cls.className) types.add(cls.className); }); });
-        return Array.from(types).sort();
-    } catch (e) { console.warn("Failed to load class types:", e); return ['하타', '마이솔', '아쉬탕가', '인요가', '하타+인', '하타인텐시브', '임신부요가', '플라잉', '키즈플라잉', '빈야사', '인양요가', '힐링', '로우플라잉']; }
+        // SaaS: Firestore에 데이터 없으면 빈 배열 — 관리자가 설정해야 함
+        console.warn('[Schedule] settings/classTypes not found. 관리자 페이지에서 수업 유형을 등록해주세요.');
+        return [];
+    } catch (e) { console.warn("Failed to load class types:", e); return []; }
 };
 
 export const getClassLevels = async (): Promise<string[]> => {

@@ -11,7 +11,7 @@ export const STUDIO_CONFIG = {
         LOGO_TEXT: "YOGA",
         SLOGAN: "나를 만나는 고요한 시간",
         DESCRIPTION: "요가와 함께하는 건강한 일상",
-        APP_VERSION: "2026.03.21 22:15",
+        APP_VERSION: "2026.03.23 12:24",
         FAVICON: "/favicon.ico",
     },
 
@@ -123,14 +123,6 @@ export const STUDIO_CONFIG = {
     DEFAULT_SCHEDULE_TEMPLATE: {},
 
 
-    // 12. 알림톡 템플릿 — SMS 기본만 유지 (템플릿 ID는 요가원별 솔라피 계정에서 생성)
-    ALIMTALK_TEMPLATES: [
-        { 
-            id: '', 
-            name: '일반 문자 (LMS/SMS)',
-            content: ''
-        }
-    ]
 };
 
 export const getBranchName = (id) => {

@@ -52,7 +52,7 @@ const PushHistoryTab = ({ onSelectMember, setActiveTab, pendingApprovals = [], o
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                                     <div>
                                         <span style={{ 
-                                            background: '#FFC107', color: '#000', 
+                                            background: '#FFC107', color: 'var(--text-on-primary)', 
                                             padding: '2px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', marginRight: '8px' 
                                         }}>
                                             {item.type === 'low_credits' ? '크레딧 알림' : (item.type === 'notice' ? '공지 발송' : '기타 알림')}
@@ -87,7 +87,7 @@ const PushHistoryTab = ({ onSelectMember, setActiveTab, pendingApprovals = [], o
                                             onClick={() => onApprove(item.id, item.title)}
                                             style={{
                                                 padding: '8px 20px', borderRadius: '8px', border: 'none',
-                                                background: '#FFC107', color: '#000', fontWeight: 'bold', cursor: 'pointer'
+                                                background: '#FFC107', color: 'var(--text-on-primary)', fontWeight: 'bold', cursor: 'pointer'
                                             }}
                                         >
                                             승인 및 발송

@@ -75,12 +75,17 @@ exports.generatePageExperienceV2 = onCall({
                     - Expiring Soon: ${statsData.expiringCount || 0}
                     - Branch Context: ${actualBranch === 'all' ? '전체 지점 종합 분석' : branchInfo + ' 단독 분석'}
                     - Top Classes: ${JSON.stringify(statsData.topClasses || [])}
+                    - Current Time: ${statsData.currentHour || 'unknown'}시 (${statsData.timeContext || 'unknown'})
+                    
+                    ⚠️ CRITICAL TIME-AWARE INSTRUCTION:
+                    ${statsData.timeGuidance || 'Provide a balanced analysis based on current data.'}
                     
                     Your Mission:
                     1. Provide a professional, encouraging, yet critically analytical briefing (2-3 sentences).
-                    2. Focus on actionable insights based on today's numbers.
+                    2. Focus on actionable insights appropriate for the current time of day.
                     3. Focus on "Revenue Intelligence": Mention the New vs Re-registration ratio if significant.
                     4. Suggest a specific action for expiring members if any (e.g., targeted push campaign).
+                    5. NEVER state obvious facts like "today's revenue is 0" in the morning before classes start.
                     
                     Format: { "message": "...", "bgTheme": "sophisticated" }
                     Tone: Expert, Insightful, Visionary. NEVER use the word "undefined" in your response.
@@ -119,6 +124,91 @@ exports.generatePageExperienceV2 = onCall({
                     Tone: Warm, Personal, Encouraging.
                 `;
             }
+        } else if (type === 'churn_analysis') {
+            // === AI CHURN ANALYSIS — 실제 회원 데이터 기반 이탈 분석 ===
+            const churnData = request.data.churnData || {};
+            const branchName = churnData.branch || '전체';
+            const activeCount = churnData.activeCount || 0;
+            const totalMembers = churnData.totalMembers || 0;
+            
+            // 실제 이탈 위험 회원 목록 (프론트에서 전달)
+            const riskMembers = (churnData.riskMembers || []).slice(0, 30); // 최대 30명까지만
+
+            const memberDataStr = riskMembers.map((m, i) => 
+                `${i+1}. ${m.name} | 미출석 ${m.daysSince}일 | 잔여 ${m.credits}회 | 수강: ${m.subject || '일반'} | 등급: ${m.level}`
+            ).join('\n');
+
+            prompt = `
+                당신은 요가/필라테스 스튜디오 운영 전문 AI 컨설턴트입니다.
+                아래는 "${branchName}" 업장의 실제 회원 이탈 위험 데이터입니다.
+                
+                📊 업장 현황:
+                - 활성 회원: ${activeCount}명 / 전체: ${totalMembers}명
+                - 이탈 위험 총: ${riskMembers.length}명
+                  (위험 ${churnData.criticalCount || 0}명, 주의 ${churnData.highCount || 0}명, 관찰 ${churnData.mediumCount || 0}명)
+                
+                📋 이탈 위험 회원 상세:
+                ${memberDataStr || '현재 이탈 위험 회원 없음'}
+                
+                ⚙️ 분류 기준:
+                - 위험: 30일+ 미출석 또는 잔여 1회 이하 + 14일+ 미출석
+                - 주의: 21~29일 미출석
+                - 관찰: 14~20일 미출석
+                
+                ${churnData.detailed ? `
+                상세 분석 모드입니다. 아래 형식의 JSON으로 응답하세요:
+                {
+                    "critical": "[위험 등급 회원들에 대한 구체적 분석 (이름 언급, 미출석 패턴, 잔여 횟수 위험도, 시급한 조치 방안). 해당 회원이 없으면 '해당 없음']",
+                    "high": "[주의 등급 회원들에 대한 구체적 분석 (이름 언급, 이탈 전조 패턴, 복귀 유도 전략). 해당 회원이 없으면 '해당 없음']",
+                    "medium": "[관찰 등급 회원들에 대한 구체적 분석 (이름 언급, 현재 추세, 예방 조치). 해당 회원이 없으면 '해당 없음']",
+                    "summary": "[전체 총평: 이 업장의 이탈 위험 전체 흐름을 거시적으로 분석. 이탈률 추세, 패턴 특징점, 가장 시급한 조치, 중장기 전략을 전문가 관점으로 4~5문장으로 상세히 작성]"
+                }
+                
+                각 분석은:
+                - 회원 이름을 구체적으로 언급하세요
+                - 각 등급별 2~3문장으로 작성하세요
+                - 이모지를 적절히 사용하세요
+                - summary는 전문 컨설턴트의 종합 의견으로 4~5문장으로 자세하게 작성하세요
+                ` : `
+                요청:
+                1. 이 업장의 이탈 현황을 표어(슬로건)처럼 한줄로 요약하세요.
+                2. 반드시 30자 이내, 1문장으로 작성하세요.
+                3. 핵심 수치를 포함하되 간결하게. 예: "위험 11명, 긴급 관리 필요 🚨"
+                4. 이모지 1개만 문장 끝에 사용하세요.
+                
+                Format: { "message": "..." }
+                `}
+                반드시 ${targetLang}로 작성하세요.
+            `;
+        } else if (type === 'churn_message') {
+            // === AI 개인 맞춤 안부 메시지 — 이탈 위험 회원별 ===
+            const memberInfo = request.data.memberInfo || {};
+            const studioName = request.data.studioName || '스튜디오';
+            
+            prompt = `
+                당신은 "${studioName}"의 따뜻한 요가 선생님입니다.
+                아래 회원에게 보낼 개인 맞춤 안부 메시지를 작성해주세요.
+                
+                📌 회원 정보:
+                - 이름: ${memberInfo.name}
+                - 미출석: ${memberInfo.daysSince}일
+                - 잔여 횟수: ${memberInfo.credits}회
+                - 수강 과목: ${memberInfo.subject || '일반'}
+                - 위험 등급: ${memberInfo.level}
+                
+                메시지 작성 규칙:
+                - 회원 이름으로 시작하세요 (예: "${memberInfo.name} 회원님")
+                - ${memberInfo.level === '위험' ? '오래 못 뵌 것에 대한 진심 어린 걱정과 안부를 전하세요. 다시 오라는 압박 없이 자연스럽게' : 
+                  memberInfo.level === '주의' ? '최근 뜸한 것에 대해 부드럽게 안부를 묻고, 수련의 좋은 점을 상기시켜 주세요' :
+                  '꾸준한 수련의 중요성을 따뜻하게 전하면서 다시 오기를 기다린다고 하세요'}
+                - 잔여 횟수가 ${memberInfo.credits}회이므로 ${memberInfo.credits <= 2 ? '잔여 횟수가 얼마 남지 않았음을 자연스럽게 언급' : '횟수는 언급하지 마세요'}
+                - 이모지를 2~3개 자연스럽게 사용
+                - 3~4문장, 80자 이내
+                - 광고성 느낌 없이 진심이 느껴지도록
+                - 반드시 ${targetLang}로 작성
+                
+                Format: { "message": "..." }
+            `;
         } else {
             const mbti = request.data.mbti || null;
             const mbtiContext = mbti ? `MBTI: ${mbti}. Consider their personality type when crafting the greeting (e.g., introverts might prefer calmer tones, extraverts more energetic).` : '';

@@ -80,7 +80,7 @@ const InstallBanner = ({ onManualInstallClick }) => {
                     borderRadius: '50%',
                     background: 'linear-gradient(135deg, var(--primary-gold), #b8860b)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#000',
+                    color: 'var(--text-on-primary)',
                     flexShrink: 0
                 }}>
                     <DownloadSimple size={20} weight="bold" />

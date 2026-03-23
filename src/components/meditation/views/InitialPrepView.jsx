@@ -28,7 +28,7 @@ export const InitialPrepView = ({
                     </div>
                 </div>
                 <button onClick={() => { setPrepSelections(prev => ({...prev, notified: true})); setStep('intention'); }}
-                    style={{ width: '100%', background: 'var(--primary-gold)', color: 'black', padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    style={{ width: '100%', background: 'var(--primary-gold)', color: 'var(--text-on-primary)', padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
                     확인했습니다
                 </button>

@@ -1,30 +1,30 @@
 import React, { useState, useRef } from 'react';
-import { X, PaperPlaneTilt, Calendar, CurrencyKrw, Info, Copy } from '@phosphor-icons/react';
+import { X, PaperPlaneTilt, Calendar, CurrencyKrw } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
-import { useStudioConfig } from '../../../contexts/StudioContext';
+
+const SEND_MODES = [
+    { id: 'push_only', label: '앱 푸시만', desc: '무료', icon: '📱', color: '#10b981' },
+    { id: 'push_first', label: '푸시 우선', desc: '푸시 실패 시 SMS', icon: '📱➡📩', color: 'var(--primary-gold)' },
+    { id: 'sms_only', label: 'SMS/LMS만', desc: '문자 비용 발생', icon: '📩', color: '#3B82F6' }
+];
 
 const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) => {
-    const { config } = useStudioConfig();
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
     const [isScheduled, setIsScheduled] = useState(false);
     const [scheduledTime, setScheduledTime] = useState('');
-    const [selectedTemplateId, setSelectedTemplateId] = useState('');
+    const [sendMode, setSendMode] = useState('push_first');
     const scheduleInputRef = useRef(null);
 
     if (!isOpen) return null;
 
     const templates = [
-        "회원님, 재등록 기간입니다. 확인 부탁드려요! 🧘‍♀️",
-        "안녕하세요! 이번 주 휴강 안내드립니다.",
-        "오랜만이네요! 수련하러 오세요 ✨",
-        "수강권이 7일 남았습니다.",
-        "[공지] 다음 주 수업 일정 변경 안내"
+        "[일괄연장] 휴무로 인해 전 회원 수강 기간이 O일 연장되었습니다.",
+        "[임시휴무] O월 O일~O일 휴무 안내드립니다. 양해 부탁드립니다 🙏",
+        "[명절인사] 즐거운 명절 보내세요! 연휴 기간 수강권이 자동 연장됩니다.",
+        "[수업변경] 다음 주 수업 시간표가 변경됩니다. 확인 부탁드립니다.",
+        "[이벤트] 친구 추천 이벤트! 함께 등록 시 할인 혜택을 드립니다 🎁"
     ];
-
-    // [Solapi] AlimTalk Templates
-    const alimTalkTemplates = config.ALIMTALK_TEMPLATES || [];
-    const selectedTemplate = alimTalkTemplates.find(t => t.id === selectedTemplateId);
 
     const calculateCost = (msg) => {
         let bytes = 0;
@@ -33,9 +33,8 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
             bytes += (code >> 7) ? 2 : 1;
         }
         const isLMS = bytes > 90;
-        // AlimTalk is usually cheaper (e.g., 15 KRW), but fallback to LMS if failed. 
-        // Let's assume standard LMS cost for safety estimation or 15 won if AlimTalk.
-        const costPerMsg = selectedTemplateId ? 15 : (isLMS ? 45 : 18);
+        // Push is free, SMS costs apply only for sms_only/push_first fallback
+        const costPerMsg = sendMode === 'push_only' ? 0 : (isLMS ? 25 : 8.4);
         return { bytes, isLMS, costPerMsg, totalCost: costPerMsg * memberCount };
     };
 
@@ -48,21 +47,26 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
             return;
         }
 
-        const method = selectedTemplateId ? '알림톡' : (costInfo.isLMS ? 'LMS' : 'SMS');
-        if (!confirm(`${memberCount}명에게 ${method}를 전송하시겠습니까?\n예상 비용: 약 ${costInfo.totalCost.toLocaleString()}원`)) {
+        const modeLabel = SEND_MODES.find(m => m.id === sendMode)?.label || sendMode;
+        const costText = sendMode === 'push_only' ? '무료' : `약 ${costInfo.totalCost.toLocaleString()}원`;
+        if (!confirm(`${memberCount}명에게 ${modeLabel} 방식으로 전송하시겠습니까?\n예상 비용: ${costText}`)) {
             return;
         }
 
         setSending(true);
         try {
-            // [Solapi] Pass selectedTemplateId
-            await storageService.sendBulkMessages(selectedMemberIds, message, isScheduled ? scheduledTime : null, selectedTemplateId);
-            alert("전송이 시작되었습니다.");
+            await storageService.sendBulkMessages(
+                selectedMemberIds, 
+                message, 
+                isScheduled ? scheduledTime : null, 
+                sendMode
+            );
+            alert(isScheduled ? "예약 발송이 설정되었습니다." : "전송이 시작되었습니다.");
             onClose();
             setMessage('');
             setIsScheduled(false);
             setScheduledTime('');
-            setSelectedTemplateId('');
+            setSendMode('push_first');
         } catch (error) {
             console.error("Bulk send failed:", error);
             alert("전송 실패: " + error.message);
@@ -81,25 +85,6 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
                     if (scheduleInputRef.current) scheduleInputRef.current.showPicker();
                 } catch (err) { console.log('showPicker not supported', err); }
             }, 100);
-        }
-    };
-
-    const handleTemplateSelect = (e) => {
-        const id = e.target.value;
-        setSelectedTemplateId(id);
-        
-        // [UX] Auto-fill message content when template is selected
-        const template = alimTalkTemplates.find(t => t.id === id);
-        if (template && template.content) {
-            setMessage(template.content);
-        } else if (!id) {
-            setMessage('');
-        }
-    };
-
-    const handleCopyTemplate = () => {
-        if (selectedTemplate && selectedTemplate.content) {
-            setMessage(selectedTemplate.content);
         }
     };
 
@@ -129,77 +114,78 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
                     <span style={{ color: 'var(--primary-gold)', fontWeight: 'bold' }}>{memberCount}명</span>의 회원에게 메시지를 보냅니다.
                 </div>
 
-                {/* [Solapi] Template Selection */}
+                {/* [NEW] Send Mode Selection — 3-way button group */}
                 <div style={{ marginBottom: '16px' }}>
-                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.85rem', color: '#a1a1aa' }}>발송 유형 (알림톡/문자)</label>
-                    <select
-                        value={selectedTemplateId}
-                        onChange={handleTemplateSelect}
-                        style={{
-                            width: '100%', padding: '10px', borderRadius: '8px',
-                            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                            color: 'white', outline: 'none', cursor: 'pointer'
-                        }}
-                    >
-                        {alimTalkTemplates.map(t => (
-                            <option key={t.id} value={t.id} style={{ background: '#1d1d2b' }}>
-                                {t.name}
-                            </option>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.85rem', color: '#a1a1aa' }}>전송 방식</label>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                        {SEND_MODES.map(mode => (
+                            <button
+                                key={mode.id}
+                                onClick={() => setSendMode(mode.id)}
+                                style={{
+                                    flex: 1,
+                                    padding: '10px 6px',
+                                    borderRadius: '10px',
+                                    border: sendMode === mode.id ? `2px solid ${mode.color}` : '1px solid rgba(255,255,255,0.1)',
+                                    background: sendMode === mode.id ? `${mode.color}15` : 'rgba(255,255,255,0.03)',
+                                    color: sendMode === mode.id ? mode.color : '#a1a1aa',
+                                    cursor: 'pointer',
+                                    fontSize: '0.8rem',
+                                    fontWeight: sendMode === mode.id ? '700' : '500',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '3px',
+                                    transition: 'all 0.15s ease'
+                                }}
+                            >
+                                <span style={{ fontSize: '1.1rem' }}>{mode.icon}</span>
+                                <span>{mode.label}</span>
+                                <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>{mode.desc}</span>
+                            </button>
                         ))}
-                    </select>
-
-                    {/* [NEW] AlimTalk Template Preview */}
-                    {selectedTemplateId && selectedTemplate && (
-                        <div style={{ 
-                            marginTop: '12px', padding: '12px', 
-                            background: 'rgba(var(--primary-rgb), 0.05)', 
-                            borderRadius: '8px', border: '1px dashed rgba(var(--primary-rgb), 0.3)' 
-                        }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--primary-gold)' }}>
-                                    <Info size={14} /> 알림톡 템플릿 가이드
-                                </div>
-                                <button 
-                                    onClick={handleCopyTemplate}
-                                    style={{ 
-                                        background: 'rgba(var(--primary-rgb), 0.2)', color: 'white', 
-                                        border: 'none', borderRadius: '4px', padding: '4px 8px', 
-                                        fontSize: '0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' 
-                                    }}
-                                >
-                                    <Copy size={12} /> 내용 복사하기
-                                </button>
-                            </div>
-                            <div style={{ fontSize: '0.85rem', color: '#e4e4e7', lineHeight: '1.4', wordBreak: 'break-all' }}>
-                                {selectedTemplate.content}
-                            </div>
-                        </div>
-                    )}
+                    </div>
                 </div>
 
                 <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px', marginBottom: '16px' }}>
                     <textarea
                         value={message}
                         onChange={e => setMessage(e.target.value)}
-                        placeholder={selectedTemplateId ? "알림톡 템플릿 내용과 일치하게 입력해주세요." : "전송할 내용을 입력하세요..."}
+                        placeholder="전송할 내용을 입력하세요..."
                         style={{
                             width: '100%', height: '120px', background: 'transparent', border: 'none',
                             color: 'white', fontSize: '1rem', resize: 'none', outline: 'none'
                         }}
                     />
                     
-                    {/* Cost Info */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '10px', marginTop: '10px' }}>
-                        <span style={{ fontSize: '0.8rem', color: selectedTemplateId ? 'var(--primary-gold)' : '#a1a1aa' }}>
-                            {selectedTemplateId ? '카카오 알림톡' : (costInfo.isLMS ? 'LMS' : 'SMS')}
-                        </span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.85rem', color: '#a1a1aa' }}>
-                            <span>{costInfo.bytes}B</span>
-                            <span style={{ color: costInfo.isLMS ? '#f59e0b' : '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <CurrencyKrw size={14} />
-                                약 {costInfo.totalCost.toLocaleString()}원
-                            </span>
-                        </div>
+                    {/* Cost & SMS/LMS Info Bar */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '10px', marginTop: '10px', fontSize: '0.8rem', color: '#a1a1aa' }}>
+                        {sendMode === 'push_only' ? (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                <span>{message.length}자</span>
+                                <span style={{ color: '#10b981', fontWeight: '600' }}>📱 앱 푸시 • 무료</span>
+                            </div>
+                        ) : (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <span style={{ 
+                                        background: costInfo.isLMS ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                                        color: costInfo.isLMS ? '#f59e0b' : '#10b981',
+                                        padding: '2px 6px', borderRadius: '4px', fontWeight: '700', fontSize: '0.7rem'
+                                    }}>
+                                        {costInfo.isLMS ? 'LMS' : 'SMS'}
+                                    </span>
+                                    <span>{message.length}자 • {costInfo.bytes}/{costInfo.isLMS ? 2000 : 90} bytes</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: costInfo.isLMS ? '#f59e0b' : '#10b981', fontWeight: '600' }}>
+                                    <span>건당 {costInfo.costPerMsg}원</span>
+                                    <span style={{ opacity: 0.6 }}>×</span>
+                                    <span>{memberCount}명</span>
+                                    <span style={{ opacity: 0.6 }}>=</span>
+                                    <span style={{ fontWeight: '700' }}>약 {costInfo.totalCost.toLocaleString()}원</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -240,27 +226,25 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
                     )}
                 </div>
 
-                {/* Templates (Quick Text) - Only show if standard SMS/LMS mode */}
-                {!selectedTemplateId && (
-                    <div style={{ marginBottom: '25px' }}>
-                        <p style={{ color: '#a1a1aa', fontSize: '0.85rem', marginBottom: '8px' }}>자주 쓰는 문구</p>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                            {templates.map((t, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => setMessage(t)}
-                                    style={{
-                                        background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.1)',
-                                        borderRadius: '20px', padding: '6px 12px', color: '#e4e4e7', fontSize: '0.8rem',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    {t.length > 15 ? t.substring(0, 15) + '...' : t}
-                                </button>
-                            ))}
-                        </div>
+                {/* Templates (Quick Text) */}
+                <div style={{ marginBottom: '25px' }}>
+                    <p style={{ color: '#a1a1aa', fontSize: '0.85rem', marginBottom: '8px' }}>자주 쓰는 문구</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                        {templates.map((t, i) => (
+                            <button
+                                key={i}
+                                onClick={() => setMessage(t)}
+                                style={{
+                                    background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: '20px', padding: '6px 12px', color: '#e4e4e7', fontSize: '0.8rem',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                {t.length > 15 ? t.substring(0, 15) + '...' : t}
+                            </button>
+                        ))}
                     </div>
-                )}
+                </div>
 
                 <button
                     onClick={handleSend}
@@ -268,7 +252,7 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
                     style={{
                         width: '100%',
                         background: sending ? '#52525b' : 'var(--primary-gold)',
-                        color: sending ? '#d4d4d8' : 'black',
+                        color: sending ? '#d4d4d8' : 'var(--text-on-primary)',
                         border: 'none', borderRadius: '12px', padding: '14px',
                         fontSize: '1rem', fontWeight: 'bold', cursor: sending ? 'wait' : 'pointer',
                         boxShadow: sending ? 'none' : '0 4px 12px rgba(var(--primary-rgb), 0.3)'

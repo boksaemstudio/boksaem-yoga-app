@@ -16,7 +16,7 @@ export const profileStyles = {
         borderRadius: '12px',
         border: 'none',
         background: 'var(--primary-gold)',
-        color: 'black',
+        color: 'var(--text-on-primary)',
         fontSize: '1rem',
         fontWeight: 'bold'
     },

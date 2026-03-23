@@ -127,7 +127,7 @@ export const DiagnosisChatView = ({
                                 setTimeLeft(defaultMode.time);
                                 setInteractionType(diag?.prescription?.type || 'v1');
                                 setStep('interaction_select');
-                            }} style={{ width: '100%', background: 'var(--primary-gold)', color: 'black', padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 10px 20px rgba(var(--primary-rgb), 0.3)' }}>
+                            }} style={{ width: '100%', background: 'var(--primary-gold)', color: 'var(--text-on-primary)', padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 10px 20px rgba(var(--primary-rgb), 0.3)' }}>
                                 🧘 명상 시작하기
                             </button>
                             <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>당신에게 맞는 명상을 준비했어요</p>

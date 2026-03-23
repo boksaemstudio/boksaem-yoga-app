@@ -171,8 +171,8 @@ export const storageService = {
     getPendingApprovals(callback: (items: ApprovalItem[]) => void) { return messageService.getPendingApprovals(callback); },
     approvePush(id: string) { return messageService.approvePush(id); },
     rejectPush(id: string) { return messageService.rejectPush(id); },
-    addMessage(memberId: string, content: string, scheduledAt: string | null = null, templateId: string | null = null) { return messageService.addMessage(memberId, content, scheduledAt, templateId); },
-    sendBulkMessages(memberIds: string[], content: string, scheduledAt: string | null = null, templateId: string | null = null) { return messageService.sendBulkMessages(memberIds, content, scheduledAt, templateId); },
+    addMessage(memberId: string, content: string, scheduledAt: string | null = null, sendMode: string = 'push_first') { return messageService.addMessage(memberId, content, scheduledAt, sendMode); },
+    sendBulkMessages(memberIds: string[], content: string, scheduledAt: string | null = null, sendMode: string = 'push_first') { return messageService.sendBulkMessages(memberIds, content, scheduledAt, sendMode); },
     getMessages(memberId: string) { return messageService.getMessages(memberId); },
     sendBulkPushCampaign(targetMemberIds: string[], title: string, body: string) { return messageService.sendBulkPushCampaign(targetMemberIds, title, body); },
 
@@ -203,7 +203,7 @@ export const storageService = {
     // ═══ AI ═══
     getAIExperience(memberName: string, attendanceCount: number, day: string, hour: number, upcomingClass: string | null, weather: string | null, credits: number, remainingDays: number, language = 'ko', diligence: unknown = null, context = 'profile', mbti: string | null = null) { return aiService.getAIExperience(memberName, attendanceCount, day, hour, upcomingClass, weather, credits, remainingDays, language, diligence, context, mbti); },
     getAIAnalysis(memberName: string, attendanceCount: number, logs: unknown[], timeOfDay: string, language = 'ko', requestRole = 'member', statsData: unknown = null, context = 'profile') { return aiService.getAIAnalysis(memberName, attendanceCount, logs, timeOfDay, language, requestRole, statsData, context); },
-    getDailyYoga(language = 'ko') { return aiService.getDailyYoga(language); },
+    getDailyYoga(language = 'ko', mbti: string | null = null) { return aiService.getDailyYoga(language, mbti); },
     getAiUsage() { return aiService.getAiUsage(); },
 
     // ═══ AUTH ═══
@@ -217,8 +217,8 @@ export const storageService = {
     // ═══ PUSH ═══
     saveToken(token: string, role = 'member', language = 'ko') { return pushService.saveToken(token, role, language); },
     saveInstructorToken(token: string, instructorName: string, language = 'ko') { return pushService.saveInstructorToken(token, instructorName, language); },
-    deletePushToken() { return pushService.deletePushToken(); },
-    requestPushPermission(memberId: string) { return pushService.requestPushPermission(memberId); },
+    deletePushToken(role?: string) { return pushService.deletePushToken(role); },
+    requestPushPermission(memberId?: string, role = 'member') { return pushService.requestPushPermission(memberId, role); },
     requestInstructorPushPermission(instructorName: string) { return pushService.requestInstructorPushPermission(instructorName); },
     verifyServiceWorkerRegistration() { return pushService.verifyServiceWorkerRegistration(); },
     checkPushNotificationStatus() { return pushService.checkPushNotificationStatus(); },

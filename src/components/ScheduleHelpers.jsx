@@ -609,7 +609,7 @@ const improvedActionBtnStyle = {
     borderRadius: '10px', 
     border: 'none', 
     background: 'var(--primary-gold)', 
-    color: '#1a1a1a',
+    color: 'var(--text-on-primary)',
     fontWeight: '700', 
     cursor: 'pointer', 
     display: 'flex', 

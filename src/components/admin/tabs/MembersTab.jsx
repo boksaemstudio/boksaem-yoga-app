@@ -1,6 +1,8 @@
-import React, { useState, useMemo, useEffect, memo } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback, memo } from 'react';
 import { BellRinging, Check, Info, Plus, NotePencil, PaperPlaneTilt, UserFocus } from '@phosphor-icons/react';
 import { useStudioConfig } from '../../../contexts/StudioContext';
+import ChurnReportPanel, { getChurnRisk } from '../ChurnReportPanel';
+import { getChurnAnalysis } from '../../../services/aiService';
 
 
 
@@ -35,7 +37,10 @@ const MembersTab = ({
     const getBranchColor = (id) => branches.find(b => b.id === id)?.color || 'var(--primary-gold)';
     const getBranchThemeColor = (id) => branches.find(b => b.id === id)?.color || 'var(--primary-gold)';
 
-    const [localSort, setLocalSort] = useState('default'); // 'default', 'credits_asc', 'credits_desc', 'enddate_asc', 'enddate_desc'
+    const [localSort, setLocalSort] = useState('default');
+    const [churnAiMessage, setChurnAiMessage] = useState(null);
+    const [churnAiLoading, setChurnAiLoading] = useState(false);
+    const churnAiCalledRef = useRef(false);
 
     // [FIX] 자정 넘김 시 날짜 자동 갱신 — dateKey가 변경되면 todayKstStr/todayStartMs도 재계산
     const [dateKey, setDateKey] = useState(() => new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }));
@@ -52,9 +57,16 @@ const MembersTab = ({
         return new Date(dateKey).getTime();
     }, [dateKey]);
 
+    // [churn] ChurnReportPanel용 — 검색 필터 무시, 전체 dormant
+    const allDormantMembers = useMemo(() => {
+        if (filterType !== 'churn' || !getDormantSegments) return [];
+        const segments = getDormantSegments(members);
+        return segments['all'] || [];
+    }, [filterType, members, getDormantSegments]);
+
     const finalFiltered = useMemo(() => {
         let result = filteredMembers;
-        if (filterType === 'dormant' && getDormantSegments) {
+        if ((filterType === 'dormant' || filterType === 'churn') && getDormantSegments) {
             const segments = getDormantSegments(filteredMembers);
             result = segments['all'] || [];
         }
@@ -111,7 +123,7 @@ const MembersTab = ({
                         활성 회원
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
-                            <span className="tooltip-text" style={{ width: '220px', left: '-100px' }}>
+                            <span className="tooltip-text">
                                 잔여 횟수가 1회 이상이며,<br />만료일이 지나지 않아 수강<br />자격이 유효한 회원입니다.
                             </span>
                         </div>
@@ -138,8 +150,8 @@ const MembersTab = ({
                         오늘 전체 등록
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
-                            <span className="tooltip-text" style={{ width: '220px', left: '-100px' }}>
-                                오늘 결제/등록된 수강권의<br />총합계입니다. (신규 가입 및<br />기존 회원 재등록 포함)
+                            <span className="tooltip-text">
+                                오늘 새로 등록하거나<br />수강권을 재결제한 회원
                             </span>
                         </div>
                     </div>
@@ -151,35 +163,133 @@ const MembersTab = ({
                         <span style={{ opacity: 0.4 }}>|</span>
                         <span>재등록 {summary.todayReRegCount || 0}</span>
                     </div>
+
+                    {/* 재등록률 */}
+                    <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                            <span style={{ fontSize: '0.78rem', color: '#a1a1aa' }}>누적 재등록률</span>
+                            <span style={{ 
+                                fontSize: '1.1rem', fontWeight: '800',
+                                color: (summary.reRegistrationRate || 0) >= 50 ? '#10b981' : (summary.reRegistrationRate || 0) >= 30 ? '#f59e0b' : '#ef4444'
+                            }}>
+                                {summary.reRegistrationRate || 0}%
+                            </span>
+                        </div>
+                        <div style={{ 
+                            height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,0.08)', overflow: 'hidden'
+                        }}>
+                            <div style={{
+                                width: `${Math.min(summary.reRegistrationRate || 0, 100)}%`,
+                                height: '100%', borderRadius: '3px', transition: 'width 0.5s ease',
+                                background: (summary.reRegistrationRate || 0) >= 50 ? '#10b981' : (summary.reRegistrationRate || 0) >= 30 ? '#f59e0b' : '#ef4444'
+                            }} />
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '0.68rem', color: '#71717a' }}>
+                            <span>재등록 {summary.membersReRegistered || 0}명 / 전체 {summary.membersWithSales || 0}명</span>
+                            <span>최근3개월 {summary.recentReRegRate || 0}% ({summary.recentReRegisteredCount || 0}/{summary.recentExpiredCount || 0})</span>
+                        </div>
+                    </div>
                 </div>
-                <div className={`dashboard-card interactive ${filterType === 'expiring' ? 'highlight' : ''}`}
-                    onClick={selectExpiringMembers}
-                    style={{ transition: 'all 0.3s ease' }}>
+                {/* AI 이탈예측 카드 (만료/잠든 카드 통합) */}
+                <div className={`dashboard-card interactive ${filterType === 'churn' ? 'highlight' : ''}`}
+                    onClick={() => handleToggleFilter('churn')}
+                    style={{ transition: 'all 0.3s ease', border: '1px solid rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.03)' }}>
                     <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        만료/횟수 임박
+                        🧠 AI 이탈 예측
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
-                            <span className="tooltip-text" style={{ width: '240px', left: '-110px' }}>
-                                잔여 횟수가 2회 이하,<br />만료일이 7일 이내이거나 만료 후<br />30일 이내인 재등록 권장 회원입니다.
+                            <span className="tooltip-text" style={{ width: '260px' }}>
+                                <strong>AI 이탈 예측이란?</strong><br />
+                                활성 회원 중 최근 출석이 없는<br />회원을 위험도별로 분류합니다.<br /><br />
+                                <strong>⚠ 위험</strong>: 30일+ 미출석 또는<br />잔여 1회 이하 + 14일+ 미출석<br />
+                                <strong>🔶 주의</strong>: 21~29일 미출석<br />
+                                <strong>💤 관찰</strong>: 14~20일 미출석<br /><br />
+                                카드를 터치하면 상세 목록과<br />맞춤 안부 메시지 전송 기능을<br />사용할 수 있습니다.
                             </span>
                         </div>
                     </div>
-                    <div className="card-value error">{summary.expiringMembersCount}명</div>
-                </div>
-                {/* [NEW] Dormant Members Card */}
-                <div className={`dashboard-card interactive ${filterType === 'dormant' ? 'highlight' : ''}`}
-                    onClick={() => handleToggleFilter('dormant')}
-                    style={{ transition: 'all 0.3s ease' }}>
-                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        잠든 회원
-                        <div className="tooltip-container" onClick={e => e.stopPropagation()}>
-                            <Info size={14} style={{ opacity: 0.7 }} />
-                            <span className="tooltip-text" style={{ width: '220px', left: '-100px' }}>
-                                현재 활성 회원 상태지만,<br />최근 14일 이상 스튜디오에<br />출석하지 않은 회원입니다.
-                            </span>
-                        </div>
-                    </div>
-                    <div className="card-value error">{summary.dormantMembersCount || 0}명</div>
+                    {(() => {
+                        let criticalCount = 0, highCount = 0, mediumCount = 0;
+                        const riskMembers = [];
+                        if (getDormantSegments) {
+                            const segments = getDormantSegments(members);
+                            const dormant = segments['all'] || [];
+                            dormant.forEach(m => {
+                                const risk = getChurnRisk(m);
+                                if (risk.level === 'critical') criticalCount++;
+                                else if (risk.level === 'high') highCount++;
+                                else mediumCount++;
+                                riskMembers.push({
+                                    name: m.name,
+                                    daysSince: risk.daysSince,
+                                    credits: Number(m.credits || 0),
+                                    subject: m.subject || '일반',
+                                    level: risk.level === 'critical' ? '위험' : risk.level === 'high' ? '주의' : '관찰'
+                                });
+                            });
+                        }
+                        const totalCount = criticalCount + highCount + mediumCount;
+
+                        // AI 분석 호출 (최초 1회)
+                        if (totalCount > 0 && !churnAiCalledRef.current && !churnAiMessage && !churnAiLoading) {
+                            churnAiCalledRef.current = true;
+                            setChurnAiLoading(true);
+                            getChurnAnalysis({
+                                branch: '전체',
+                                activeCount: summary.activeMembers || 0,
+                                totalMembers: summary.totalMembers || 0,
+                                criticalCount,
+                                highCount,
+                                mediumCount,
+                                riskMembers: riskMembers.slice(0, 30)
+                            }).then(result => {
+                                setChurnAiMessage(result?.message || null);
+                            }).catch(() => {
+                                setChurnAiMessage(null);
+                            }).finally(() => {
+                                setChurnAiLoading(false);
+                            });
+                        }
+
+                        return (
+                            <>
+                                <div className="card-value error">{totalCount}명</div>
+                                <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                                    <span style={{ fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(239,68,68,0.15)', color: '#EF4444', fontWeight: '700' }}>
+                                        ⚠ 위험 {criticalCount}
+                                    </span>
+                                    <span style={{ fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(245,158,11,0.15)', color: '#F59E0B', fontWeight: '700' }}>
+                                        🔶 주의 {highCount}
+                                    </span>
+                                    <span style={{ fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(96,165,250,0.15)', color: '#60A5FA', fontWeight: '700' }}>
+                                        💤 관찰 {mediumCount}
+                                    </span>
+                                </div>
+                                <div style={{
+                                    marginTop: '10px', padding: '8px 10px', borderRadius: '8px',
+                                    background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.1)',
+                                    fontSize: '0.78rem', color: '#d4d4d8', lineHeight: '1.5',
+                                    minHeight: '20px'
+                                }}>
+                                    {churnAiLoading ? (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <svg width="20" height="20" viewBox="0 0 24 24" style={{ animation: 'spin 2s ease-in-out infinite' }}>
+                                                <circle cx="12" cy="12" r="10" fill="none" stroke="rgba(168,85,247,0.3)" strokeWidth="2" />
+                                                <path d="M12 2 a10 10 0 0 1 10 10" fill="none" stroke="#A855F7" strokeWidth="2" strokeLinecap="round" />
+                                            </svg>
+                                            <span style={{ color: '#A855F7', fontSize: '0.78rem' }}>AI가 회원 데이터를 분석하고 있습니다...</span>
+                                        </div>
+                                    ) : churnAiMessage ? (
+                                        <span>{churnAiMessage}</span>
+                                    ) : totalCount === 0 ? (
+                                        <span>✨ 모든 회원이 꾸준히 출석 중입니다.</span>
+                                    ) : (
+                                        <span>📊 이탈 위험 회원 {totalCount}명 감지됨</span>
+                                    )}
+                                </div>
+                            </>
+                        );
+                    })()}
                 </div>
                 {/* [NEW] App Usage & Push Stats (Redesigned) */}
                 <div className={`dashboard-card interactive ${filterType === 'installed' ? 'highlight' : ''}`}
@@ -188,8 +298,8 @@ const MembersTab = ({
                         <BellRinging size={16} weight="fill" /> 알림 수신 가능
                         <div className="tooltip-container">
                             <Info size={14} style={{ opacity: 0.7 }} />
-                            <span className="tooltip-text" style={{ width: '240px', left: '-120px' }}>
-                                푸시 알림을 문제없이 수신<br/>할 수 있는(설치+알림 켜짐)<br/>인원수 현황입니다.
+                            <span className="tooltip-text">
+                                앱 설치 + 알림 켜짐 상태로<br />메시지를 받을 수 있는 인원
                             </span>
                         </div>
                     </div>
@@ -223,8 +333,8 @@ const MembersTab = ({
                         <UserFocus size={16} weight="fill" color="#60A5FA" /> 안면 미등록 회원
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
-                            <span className="tooltip-text" style={{ width: '220px', left: '-100px' }}>
-                                얼굴 인식 시스템을 위한<br />안면 데이터가 아직 등록되지<br />않은 활성 회원입니다.<br /><br />📊 <b>미등록 수 / 전체 활성 회원</b><br />프로그레스 바 = 미등록 비율<br /><br />🔒 사진은 저장되지 않으며,<br />128차원 숫자 벡터로만 변환<br />되어 안전하게 보관됩니다.
+                            <span className="tooltip-text">
+                                키오스크 얼굴인식 출석을<br />위해 얼굴 등록이 아직<br />안 된 활성 회원 수
                             </span>
                         </div>
                     </div>
@@ -239,22 +349,91 @@ const MembersTab = ({
             </div>
 
             {/* Revenue Card (Visual Bar Chart Simulated) */}
-            <div className="dashboard-card interactive" style={{ marginBottom: '24px', cursor: 'pointer' }} onClick={() => setActiveTab('revenue')}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '10px' }}>
-                    <div>
-                        <span className="card-label outfit-font" style={{ letterSpacing: '0.1em', textTransform: 'uppercase', fontSize: '0.7rem' }}>월간 총 매출</span>
-                        <div className="outfit-font" style={{ fontSize: '1.6rem', fontWeight: '800', color: 'var(--primary-gold)', textShadow: '0 0 20px var(--primary-gold-glow)' }}>
-                            {summary.monthlyRevenue.toLocaleString()}원
+            {(() => {
+                const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+                const month = now.getMonth() + 1;
+                const day = now.getDate();
+                const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                const progressPct = Math.round((day / daysInMonth) * 100);
+                return (
+                    <div className="dashboard-card interactive" style={{ marginBottom: '24px', cursor: 'pointer' }} onClick={() => setActiveTab('revenue')}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '10px' }}>
+                            <div>
+                                <span className="card-label outfit-font" style={{ letterSpacing: '0.1em', fontSize: '0.7rem' }}>
+                                    {month}월 {day}일까지 현재 매출
+                                </span>
+                                <div className="outfit-font" style={{ fontSize: '1.6rem', fontWeight: '800', color: 'var(--primary-gold)', textShadow: '0 0 20px var(--primary-gold-glow)' }}>
+                                    {summary.monthlyRevenue.toLocaleString()}원
+                                </div>
+                            </div>
+                            <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                                오늘: {summary.totalRevenueToday.toLocaleString()}원
+                            </div>
+                        </div>
+                        <div style={{ marginTop: '4px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{day}일 경과</span>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>잔여 {daysInMonth - day}일</span>
+                            </div>
+                            <div style={{ position: 'relative', height: '20px', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', overflow: 'hidden' }}>
+                                <div style={{ 
+                                    width: `${progressPct}%`, height: '100%', 
+                                    background: 'linear-gradient(90deg, var(--primary-gold-dim), var(--primary-gold))', 
+                                    borderRadius: '10px', transition: 'width 0.8s ease',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '8px'
+                                }}>
+                                    <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#000', textShadow: 'none' }}>{progressPct}%</span>
+                                </div>
+                            </div>
+                            <div style={{ textAlign: 'center', marginTop: '4px', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                                {month}월 {day}일 / {daysInMonth}일
+                            </div>
                         </div>
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                        오늘: {summary.totalRevenueToday.toLocaleString()}원
+                );
+            })()}
+
+            {/* 월별 재등록 추이 (매출 카드 아래, 검색 위) */}
+            {filterType === 'registration' && summary.monthlyReRegTrend && (
+                <div className="dashboard-card" style={{ marginBottom: '24px', overflow: 'visible' }}>
+                    <div style={{ marginBottom: '14px' }}>
+                        <span style={{ fontSize: '0.85rem', color: '#a1a1aa', fontWeight: '600' }}>📊 월별 재등록 추이 (최근 6개월)</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: '120px', marginBottom: '10px' }}>
+                        {summary.monthlyReRegTrend.map((m, i) => {
+                            const maxTotal = Math.max(...summary.monthlyReRegTrend.map(t => t.total), 1);
+                            const totalH = Math.max((m.total / maxTotal) * 70, 6);
+                            const reRegH = m.total > 0 ? (m.reReg / m.total) * totalH : 0;
+                            return (
+                                <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', minWidth: 0 }}>
+                                    <span style={{ fontSize: '0.6rem', color: m.rate >= 50 ? '#10b981' : m.rate >= 30 ? '#f59e0b' : '#ef4444', fontWeight: '700', lineHeight: 1, whiteSpace: 'nowrap' }}>
+                                        {m.rate}%
+                                    </span>
+                                    <div style={{ position: 'relative', width: '70%', maxWidth: '36px', height: `${totalH}px`, borderRadius: '4px', background: 'rgba(255,255,255,0.08)' }}>
+                                        <div style={{
+                                            position: 'absolute', bottom: 0, width: '100%', height: `${reRegH}px`,
+                                            borderRadius: '4px',
+                                            background: m.rate >= 50 ? 'linear-gradient(180deg, #10b981, #059669)' : m.rate >= 30 ? 'linear-gradient(180deg, #f59e0b, #d97706)' : 'linear-gradient(180deg, #ef4444, #dc2626)',
+                                            transition: 'height 0.5s ease'
+                                        }} />
+                                    </div>
+                                    <span style={{ fontSize: '0.6rem', color: '#71717a', fontWeight: '500', lineHeight: 1, marginTop: '2px' }}>{m.month}</span>
+                                    <span style={{ fontSize: '0.5rem', color: '#52525b', lineHeight: 1, whiteSpace: 'nowrap' }}>{m.reReg}/{m.total}명</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', fontSize: '0.65rem', color: '#71717a' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#10b981', display: 'inline-block' }} /> 재등록</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '8px', height: '8px', borderRadius: '2px', background: 'rgba(255,255,255,0.08)', display: 'inline-block' }} /> 전체</span>
                     </div>
                 </div>
-                <div style={{ display: 'flex', height: '10px', width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '5px', overflow: 'hidden' }}>
-                    <div style={{ width: '100%', background: 'linear-gradient(90deg, var(--primary-gold-dim), var(--primary-gold))' }}></div>
-                </div>
-            </div>
+            )}
+
+            {/* AI Churn Report — churn 필터 시 3등급 분류 패널 (매출 바로 아래) */}
+            {filterType === 'churn' && allDormantMembers.length > 0 && (
+                <ChurnReportPanel dormantMembers={allDormantMembers} />
+            )}
     
             {/* Search & Bulk Actions */}
             <div className="search-row" style={{ display: 'flex', gap: '10px', marginBottom: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -284,6 +463,7 @@ const MembersTab = ({
                         {filterType === 'registration' && '오늘 등록 회원'}
                         {filterType === 'expiring' && '만료/횟수 임박 회원'}
                         {filterType === 'dormant' && '잠든 회원'}
+                        {filterType === 'churn' && 'AI 이탈 예측 회원'}
                         {filterType === 'installed' && '앱 설치 회원'}
                         {filterType === 'bio_missing' && '안면 미등록 회원'}
                     </strong> 목록을{' '}
@@ -313,6 +493,7 @@ const MembersTab = ({
                 </select>
             </div>
 
+
             {/* Member List */}
             <div className="card-list">
                 {(() => {
@@ -339,7 +520,7 @@ const MembersTab = ({
                                     <button 
                                         onClick={() => setShowBulkMessageModal(true)}
                                         style={{
-                                            background: 'var(--primary-gold)', color: 'black', border: 'none',
+                                            background: 'var(--primary-gold)', color: 'var(--text-on-primary)', border: 'none',
                                             borderRadius: '6px', padding: '4px 12px', fontSize: '0.8rem',
                                             fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
                                         }}

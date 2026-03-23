@@ -229,7 +229,7 @@ const MeditationPage = ({ onClose }) => {
     // 🌊 Dynamic Options State (AI Generated)
     const [dynamicCategories, setDynamicCategories] = useState(MEDITATION_CATEGORIES);
     const [dynamicIntentions, setDynamicIntentions] = useState(MEDITATION_INTENTIONS);
-    const [isOptionsLoading, setIsOptionsLoading] = useState(true); // ✅ Start with meditative loading
+    const [isOptionsLoading, setIsOptionsLoading] = useState(false); // ✅ 즉시 시작 (CF 호출 제거)
 
     // [MOVED TO TOP] Debug & Audio Hooks
     // 🧘 Preparation Flow States
@@ -246,58 +246,16 @@ const MeditationPage = ({ onClose }) => {
         goal: null
     });
 
-    // 🌊 Initial AI Options Fetch
+    // 🌊 [최적화] TimeContext만 계산 — options_refresh CF 호출 + 강제 2초 대기 제거
     useEffect(() => {
         logDebug("Mount", { step, prepStep });
-        
-        const fetchOptions = async () => {
-            try {
-                // Time Context
-                const hour = new Date().getHours();
-                const tCtx = (hour >= 5 && hour < 11) ? 'morning' : 
-                             (hour >= 18 || hour < 5) ? 'evening' : 'day';
-                setTimeContext(tCtx);
-                logDebug("TimeContext", { tCtx });
-
-                // Fetch Dynamic Options
-                logDebug("FetchOptions:Start");
-                const startTime = Date.now();
-                const result = await generateMeditationGuidance({ 
-                    type: 'options_refresh', 
-                    timeContext: tCtx,
-                    weather: 'unknown' // Client-side weather can be added if needed
-                });
-                setAiLatency(Date.now() - startTime);
-                logDebug("FetchOptions:Result", result.data);
-
-                if (result.data) {
-                    if (result.data.categories && Array.isArray(result.data.categories)) {
-                        // Merge with constants to keep emojis/IDs but update labels
-                        const mergedCats = MEDITATION_CATEGORIES.map(c => {
-                            const dyn = result.data.categories.find(d => d.id === c.id);
-                            return dyn ? { ...c, label: dyn.label, description: dyn.description } : c;
-                        });
-                        setDynamicCategories(mergedCats);
-                    }
-                    if (result.data.intentions && Array.isArray(result.data.intentions)) {
-                        const mergedInts = MEDITATION_INTENTIONS.map(i => {
-                            const dyn = result.data.intentions.find(d => d.id === i.id);
-                            return dyn ? { ...i, label: dyn.label } : i;
-                        });
-                        setDynamicIntentions(mergedInts);
-                    }
-                }
-            } catch (error) {
-                console.error("Failed to fetch dynamic options:", error);
-                logDebug("FetchOptions:Error", error);
-                // Fallback to constants (already set as default)
-            } finally {
-                // ✅ Minimum loading time for meditative feel (2s)
-                setTimeout(() => setIsOptionsLoading(false), 2000);
-            }
-        };
-        fetchOptions();
+        const hour = new Date().getHours();
+        const tCtx = (hour >= 5 && hour < 11) ? 'morning' : 
+                     (hour >= 18 || hour < 5) ? 'evening' : 'day';
+        setTimeContext(tCtx);
+        logDebug("TimeContext", { tCtx });
     }, []);
+
 
 
     // V3 Pose States
@@ -539,19 +497,9 @@ const MeditationPage = ({ onClose }) => {
     const stopSessionRef = useRef(stopSession);
     useEffect(() => { stopSessionRef.current = stopSession; }, [stopSession]);
 
-    // 🤖 Cleanup on Unmount
+    // 🤖 Cleanup on Unmount — [최적화] timeContext 중복 계산 제거
     useEffect(() => {
-        const hour = new Date().getHours();
-        let context = 'morning';
-        if (hour >= 5 && hour < 12) context = 'morning';
-        else if (hour >= 12 && hour < 18) context = 'afternoon';
-        else context = 'night';
-        
-        setTimeContext(context);
-        
-        // 🌤️ AUTO WEATHER DETECTION
         detectWeather();
-
         return () => { stopSessionRef.current(); };
     }, []);
 

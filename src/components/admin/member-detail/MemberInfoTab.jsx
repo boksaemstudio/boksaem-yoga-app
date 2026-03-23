@@ -264,7 +264,7 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                                     disabled={isSavingSale}
                                     style={{
                                         padding: '15px', borderRadius: '10px', border: 'none',
-                                        background: 'var(--primary-gold)', color: 'black',
+                                        background: 'var(--primary-gold)', color: 'var(--text-on-primary)',
                                         fontWeight: 'bold', fontSize: '1.1rem', marginTop: '10px'
                                     }}
                                 >
@@ -480,7 +480,7 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                         return (
                             <button
                                 onClick={onSave}
-                                style={{ padding: '15px', borderRadius: '10px', border: 'none', background: 'var(--primary-gold)', color: 'black', fontWeight: 'bold', fontSize: '1.1rem', marginTop: '10px' }}
+                                style={{ padding: '15px', borderRadius: '10px', border: 'none', background: 'var(--primary-gold)', color: 'var(--text-on-primary)', fontWeight: 'bold', fontSize: '1.1rem', marginTop: '10px' }}
                             >
                                 현재 회원정보 저장하기
                             </button>

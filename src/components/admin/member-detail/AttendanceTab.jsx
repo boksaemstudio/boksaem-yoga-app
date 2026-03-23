@@ -105,7 +105,7 @@ const AttendanceTab = ({ logs, member, aiAnalysis, onAdd, onDelete, isSubmitting
                     disabled={isSubmitting}
                     style={{
                         background: isSubmitting ? 'rgba(var(--primary-rgb), 0.3)' : 'var(--primary-gold)',
-                        color: 'black', fontWeight: 'bold', border: 'none',
+                        color: 'var(--text-on-primary)', fontWeight: 'bold', border: 'none',
                         padding: '10px 15px', borderRadius: '8px', whiteSpace: 'nowrap', flex: '0 0 auto',
                         cursor: isSubmitting ? 'not-allowed' : 'pointer',
                         opacity: isSubmitting ? 0.6 : 1

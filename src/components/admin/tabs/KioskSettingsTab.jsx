@@ -1,61 +1,77 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { storageService } from '../../../services/storage';
-import { Image, ToggleLeft, ToggleRight, Info, VideoCamera, FilmSlate } from '@phosphor-icons/react';
+import { Image, ToggleLeft, ToggleRight, Info, VideoCamera, FilmSlate, Trash, CheckCircle, X } from '@phosphor-icons/react';
 import { useStudioConfig } from '../../../contexts/StudioContext';
-import { ref, uploadBytes, getDownloadURL, listAll, deleteObject } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, listAll, deleteObject, getMetadata } from 'firebase/storage';
 import { storage } from '../../../firebase';
 
-const MAX_IMAGE_SIZE = 10 * 1024 * 1024;  // 10MB
-const MAX_VIDEO_SIZE = 50 * 1024 * 1024;  // 50MB
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+const MAX_VIDEO_SIZE = 50 * 1024 * 1024;
 
 const KioskSettingsTab = () => {
     const { config } = useStudioConfig();
     const branches = config.BRANCHES || [];
     const [settings, setSettings] = useState({ active: false, imageUrl: null, mediaType: 'image' });
     const [isUploading, setIsUploading] = useState(false);
-    const [previewUrl, setPreviewUrl] = useState(null);
-    const [mediaType, setMediaType] = useState('image');
     const [uploadProgress, setUploadProgress] = useState('');
-
     const [selectedBranch, setSelectedBranch] = useState('all');
+    // [NEW] 갤러리: 업로드된 모든 미디어 리스트
+    const [gallery, setGallery] = useState([]);
+    const [loadingGallery, setLoadingGallery] = useState(true);
 
+    // ─── 설정 + 갤러리 로드 ───
     useEffect(() => {
-        const loadSettings = async () => {
+        const loadAll = async () => {
+            setLoadingGallery(true);
+            // 1. 키오스크 설정
             const data = await storageService.getKioskSettings(selectedBranch);
             setSettings(data);
-            setPreviewUrl(data.imageUrl);
-            setMediaType(data.mediaType || 'image');
+            
+            // 2. Storage에서 모든 미디어 파일 로드
+            try {
+                const folderRef = ref(storage, `kiosk_notices/${selectedBranch}`);
+                const list = await listAll(folderRef);
+                const items = await Promise.all(list.items.map(async (item) => {
+                    const url = await getDownloadURL(item);
+                    let meta = {};
+                    try { meta = await getMetadata(item); } catch (e) { /* ignore */ }
+                    const isVideo = item.name.match(/\.(mp4|webm|mov)$/i) || meta.contentType?.startsWith('video');
+                    return {
+                        name: item.name,
+                        url,
+                        type: isVideo ? 'video' : 'image',
+                        size: meta.size || 0,
+                        createdAt: meta.timeCreated || '',
+                        fullPath: item.fullPath,
+                        isActive: url === data.imageUrl
+                    };
+                }));
+                // 최신순 정렬
+                items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                setGallery(items);
+            } catch (e) {
+                setGallery([]);
+            }
+            setLoadingGallery(false);
         };
-        loadSettings();
-        const unsubscribe = storageService.subscribe(() => loadSettings(), ['settings']);
+        loadAll();
+        const unsubscribe = storageService.subscribe(() => loadAll(), ['settings']);
         return () => unsubscribe();
     }, [selectedBranch]);
 
     const isVideoMedia = (url, type) => {
         if (type === 'video') return true;
         if (!url) return false;
-        return url.match(/notice_video\.|\.mp4|\.webm|\.mov/i);
+        return url.match(/\.(mp4|webm|mov)/i);
     };
 
-    // ━━━ Storage 기반 통합 업로드 (이미지 + 영상) ━━━
+    // ─── 업로드 (기존 삭제 안 함 → 갤러리에 추가) ───
     const uploadToStorage = async (file, type) => {
         setIsUploading(true);
-        const localUrl = URL.createObjectURL(file);
-        setPreviewUrl(localUrl);
-        setMediaType(type);
-
         try {
-            // 기존 미디어 삭제
-            setUploadProgress('기존 파일 정리 중...');
-            try {
-                const folderRef = ref(storage, `kiosk_notices/${selectedBranch}`);
-                const list = await listAll(folderRef);
-                await Promise.all(list.items.map(item => deleteObject(item)));
-            } catch (e) { /* 폴더가 없으면 무시 */ }
-
-            // 업로드
             const ext = file.name.split('.').pop().toLowerCase();
-            const fileName = type === 'video' ? `notice_video.${ext}` : `notice_image.${ext}`;
+            const ts = Date.now();
+            const fileName = `${type}_${ts}.${ext}`;
             const storageRef = ref(storage, `kiosk_notices/${selectedBranch}/${fileName}`);
 
             setUploadProgress(`업로드 중... (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
@@ -64,21 +80,26 @@ const KioskSettingsTab = () => {
             setUploadProgress('URL 생성 중...');
             const downloadUrl = await getDownloadURL(storageRef);
 
-            // Firestore 설정 저장
+            // 업로드한 파일을 자동으로 활성 미디어로 설정
             await storageService.updateKioskSettings(selectedBranch, {
                 ...settings, imageUrl: downloadUrl, mediaType: type
             });
-
-            URL.revokeObjectURL(localUrl);
-            setPreviewUrl(downloadUrl);
             setSettings(prev => ({ ...prev, imageUrl: downloadUrl, mediaType: type }));
-            alert(`${type === 'video' ? '영상' : '이미지'}이(가) 성공적으로 업로드되었습니다.`);
+
+            // 갤러리에 추가
+            let meta = {};
+            try { meta = await getMetadata(storageRef); } catch (e) { /* ignore */ }
+            setGallery(prev => [{
+                name: fileName, url: downloadUrl, type, size: file.size,
+                createdAt: meta.timeCreated || new Date().toISOString(),
+                fullPath: `kiosk_notices/${selectedBranch}/${fileName}`,
+                isActive: true
+            }, ...prev.map(g => ({ ...g, isActive: false }))]);
+
+            alert(`✅ ${type === 'video' ? '영상' : '이미지'} 업로드 완료!`);
         } catch (err) {
-            console.error('[Admin] Kiosk media upload failed:', err);
-            alert(`업로드에 실패했습니다: ${err.message}`);
-            URL.revokeObjectURL(localUrl);
-            setPreviewUrl(settings.imageUrl);
-            setMediaType(settings.mediaType || 'image');
+            console.error('[Admin] Upload failed:', err);
+            alert(`업로드 실패: ${err.message}`);
         } finally {
             setIsUploading(false);
             setUploadProgress('');
@@ -88,17 +109,50 @@ const KioskSettingsTab = () => {
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        if (file.size > MAX_IMAGE_SIZE) { alert(`이미지 용량이 너무 큽니다. (최대 ${MAX_IMAGE_SIZE / 1024 / 1024}MB)`); return; }
+        if (file.size > MAX_IMAGE_SIZE) { alert(`이미지 최대 ${MAX_IMAGE_SIZE / 1024 / 1024}MB`); return; }
         uploadToStorage(file, 'image');
+        e.target.value = '';
     };
 
     const handleVideoUpload = (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        if (file.size > MAX_VIDEO_SIZE) { alert(`영상 용량이 너무 큽니다. (최대 ${MAX_VIDEO_SIZE / 1024 / 1024}MB)`); return; }
+        if (file.size > MAX_VIDEO_SIZE) { alert(`영상 최대 ${MAX_VIDEO_SIZE / 1024 / 1024}MB`); return; }
         const allowed = ['video/mp4', 'video/webm', 'video/quicktime'];
-        if (!allowed.includes(file.type)) { alert('지원하는 영상 형식: MP4, WebM, MOV'); return; }
+        if (!allowed.includes(file.type)) { alert('지원 형식: MP4, WebM, MOV'); return; }
         uploadToStorage(file, 'video');
+        e.target.value = '';
+    };
+
+    // ─── 갤러리에서 선택 → 키오스크에 표시 ───
+    const handleSelectMedia = async (item) => {
+        try {
+            await storageService.updateKioskSettings(selectedBranch, {
+                ...settings, imageUrl: item.url, mediaType: item.type
+            });
+            setSettings(prev => ({ ...prev, imageUrl: item.url, mediaType: item.type }));
+            setGallery(prev => prev.map(g => ({ ...g, isActive: g.url === item.url })));
+        } catch (err) {
+            alert('선택 실패: ' + err.message);
+        }
+    };
+
+    // ─── 개별 삭제 ───
+    const handleDeleteItem = async (item) => {
+        if (!window.confirm(`이 ${item.type === 'video' ? '영상' : '이미지'}을 삭제할까요?`)) return;
+        try {
+            const itemRef = ref(storage, item.fullPath);
+            await deleteObject(itemRef);
+
+            // 활성 미디어였으면 해제
+            if (item.isActive) {
+                await storageService.updateKioskSettings(selectedBranch, { imageUrl: null, mediaType: 'image', active: false });
+                setSettings({ active: false, imageUrl: null, mediaType: 'image' });
+            }
+            setGallery(prev => prev.filter(g => g.url !== item.url));
+        } catch (err) {
+            alert('삭제 실패: ' + err.message);
+        }
     };
 
     const handleToggleActive = async () => {
@@ -107,27 +161,11 @@ const KioskSettingsTab = () => {
             await storageService.updateKioskSettings(selectedBranch, { ...settings, active: newActive });
             setSettings(prev => ({ ...prev, active: newActive }));
         } catch (err) {
-            alert('설정 변경에 실패했습니다.');
+            alert('설정 변경 실패');
         }
     };
 
-    const handleRemoveMedia = async () => {
-        if (!window.confirm('미디어를 삭제하시겠습니까?')) return;
-        try {
-            try {
-                const folderRef = ref(storage, `kiosk_notices/${selectedBranch}`);
-                const list = await listAll(folderRef);
-                await Promise.all(list.items.map(item => deleteObject(item)));
-            } catch (e) { /* ignore */ }
-
-            await storageService.updateKioskSettings(selectedBranch, { imageUrl: null, mediaType: 'image', active: false });
-            setSettings({ active: false, imageUrl: null, mediaType: 'image' });
-            setPreviewUrl(null);
-            setMediaType('image');
-        } catch (err) {
-            alert('삭제에 실패했습니다.');
-        }
-    };
+    const activeMedia = gallery.find(g => g.isActive) || null;
 
     return (
         <div className="dashboard-card" style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -138,10 +176,16 @@ const KioskSettingsTab = () => {
 
             <div style={{ padding: '16px', background: 'rgba(var(--primary-rgb), 0.05)', borderRadius: '12px', border: '1px solid rgba(var(--primary-rgb), 0.2)', marginBottom: '24px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                 <Info size={20} color="var(--primary-gold)" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                    <p style={{ margin: '0 0 8px 0', color: 'var(--text-primary)', fontWeight: 'bold' }}>키오스크 공지 기능 안내</p>
-                    이곳에서 <strong>이미지 또는 영상</strong>을 업로드하고 활성화하면, 출석체크 태블릿(키오스크) 화면 전체에 표시됩니다.
-                    <br/><span style={{ fontSize: '0.8rem', opacity: 0.7 }}>이미지: 최대 10MB | 영상: 최대 50MB (MP4/WebM/MOV, 자동 반복 재생)</span>
+                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.7' }}>
+                    <p style={{ margin: '0 0 10px 0', color: 'var(--text-primary)', fontWeight: 'bold' }}>키오스크 공지 기능 안내</p>
+                    출석체크 태블릿 화면에 이미지나 영상을 표시할 수 있습니다.
+                    <br/><strong style={{ color: 'var(--primary-gold)' }}>사용 방법:</strong>
+                    <ol style={{ margin: '6px 0 6px 0', paddingLeft: '18px', lineHeight: '1.8' }}>
+                        <li>아래 <strong>📎 업로드</strong> 버튼으로 이미지 또는 영상 파일을 올립니다</li>
+                        <li>갤러리에서 <strong>표시할 미디어를 선택</strong>합니다</li>
+                        <li>하단의 <strong>"출석기에 표시"</strong> 토글을 켜면 태블릿에 표시됩니다</li>
+                    </ol>
+                    <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>지원 파일: 이미지(최대 10MB) | 영상(최대 50MB, MP4/WebM/MOV)</span>
                 </div>
             </div>
 
@@ -160,51 +204,56 @@ const KioskSettingsTab = () => {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                {/* Media Upload */}
+
+                {/* ─── 현재 활성 미디어 미리보기 ─── */}
                 <div style={{ background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                         <h4 style={{ margin: 0, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            {isVideoMedia(previewUrl, mediaType) ? <VideoCamera size={20} weight="fill" color="var(--primary-gold)" /> : <Image size={20} weight="fill" color="var(--primary-gold)" />}
-                            화면 {isVideoMedia(previewUrl, mediaType) ? '영상' : '이미지'}
+                            {activeMedia?.type === 'video' ? <VideoCamera size={20} weight="fill" color="var(--primary-gold)" /> : <Image size={20} weight="fill" color="var(--primary-gold)" />}
+                            선택된 미디어
                         </h4>
+                        {/* 업로드 버튼 (통합) */}
                         <div style={{ display: 'flex', gap: '8px' }}>
-                            {previewUrl && (
-                                <button onClick={handleRemoveMedia} className="action-btn sm"
-                                    style={{ background: 'rgba(244,63,94,0.1)', color: '#F43F5E', border: '1px solid rgba(244,63,94,0.3)' }}>삭제</button>
-                            )}
-                            <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} id="upload-kiosk-image" disabled={isUploading} />
-                            <label htmlFor="upload-kiosk-image" className="action-btn sm" style={{
-                                background: 'var(--primary-gold)', color: 'black',
+                            <input type="file" accept="image/*,video/mp4,video/webm,video/quicktime" onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (!file) return;
+                                const isVideo = file.type.startsWith('video/');
+                                if (isVideo) {
+                                    if (file.size > MAX_VIDEO_SIZE) { alert(`영상 최대 ${MAX_VIDEO_SIZE / 1024 / 1024}MB`); return; }
+                                    const allowed = ['video/mp4', 'video/webm', 'video/quicktime'];
+                                    if (!allowed.includes(file.type)) { alert('지원 형식: MP4, WebM, MOV'); return; }
+                                    uploadToStorage(file, 'video');
+                                } else {
+                                    if (file.size > MAX_IMAGE_SIZE) { alert(`이미지 최대 ${MAX_IMAGE_SIZE / 1024 / 1024}MB`); return; }
+                                    uploadToStorage(file, 'image');
+                                }
+                                e.target.value = '';
+                            }} style={{ display: 'none' }} id="upload-kiosk-media" disabled={isUploading} />
+                            <label htmlFor="upload-kiosk-media" className="action-btn sm" style={{
+                                background: 'var(--primary-gold)', color: 'var(--text-on-primary)',
                                 cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.7 : 1,
                                 fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px'
-                            }}><Image size={16} weight="bold" /> 이미지</label>
-                            <input type="file" accept="video/mp4,video/webm,video/quicktime" onChange={handleVideoUpload} style={{ display: 'none' }} id="upload-kiosk-video" disabled={isUploading} />
-                            <label htmlFor="upload-kiosk-video" className="action-btn sm" style={{
-                                background: 'rgba(var(--primary-rgb),0.15)', color: 'var(--primary-gold)',
-                                cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.7 : 1,
-                                fontWeight: 'bold', border: '1px solid rgba(var(--primary-rgb),0.4)',
-                                display: 'flex', alignItems: 'center', gap: '4px'
-                            }}><VideoCamera size={16} weight="bold" /> 영상</label>
+                            }}>📎 업로드</label>
                         </div>
                     </div>
 
                     <div style={{
-                        background: 'rgba(0,0,0,0.3)', borderRadius: '12px', minHeight: '300px',
+                        background: 'rgba(0,0,0,0.3)', borderRadius: '12px', minHeight: '200px',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         border: '1px dashed rgba(255,255,255,0.1)', overflow: 'hidden', position: 'relative'
                     }}>
-                        {previewUrl ? (
-                            isVideoMedia(previewUrl, mediaType) ? (
-                                <video src={previewUrl} controls loop muted playsInline
-                                    style={{ width: '100%', height: 'auto', maxHeight: '500px', objectFit: 'contain' }} />
+                        {settings.imageUrl ? (
+                            isVideoMedia(settings.imageUrl, settings.mediaType) ? (
+                                <video src={settings.imageUrl} controls loop muted playsInline
+                                    style={{ width: '100%', height: 'auto', maxHeight: '400px', objectFit: 'contain' }} />
                             ) : (
-                                <img src={previewUrl} alt="키오스크 공지" style={{ width: '100%', height: 'auto', maxHeight: '500px', objectFit: 'contain' }} />
+                                <img src={settings.imageUrl} alt="키오스크 공지" style={{ width: '100%', height: 'auto', maxHeight: '400px', objectFit: 'contain' }} />
                             )
                         ) : (
-                            <div style={{ color: 'var(--text-tertiary)', textAlign: 'center' }}>
+                            <div style={{ color: 'var(--text-tertiary)', textAlign: 'center', padding: '40px' }}>
                                 <FilmSlate size={48} weight="light" style={{ marginBottom: '8px', opacity: 0.5 }} />
-                                <div>등록된 미디어가 없습니다</div>
-                                <div style={{ fontSize: '0.8rem', marginTop: '4px', opacity: 0.6 }}>이미지 또는 영상을 업로드하세요</div>
+                                <div>아래 갤러리에서 선택하거나</div>
+                                <div style={{ fontSize: '0.8rem', marginTop: '4px', opacity: 0.6 }}>위 버튼으로 새로 업로드하세요</div>
                             </div>
                         )}
                         {isUploading && (
@@ -221,26 +270,163 @@ const KioskSettingsTab = () => {
                     </div>
                 </div>
 
+                {/* ─── 갤러리: 업로드된 모든 미디어 ─── */}
+                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+                    <h4 style={{ margin: '0 0 16px 0', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        📂 미디어 갤러리
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 'normal' }}>
+                            ({gallery.length}개)
+                        </span>
+                    </h4>
+
+                    {loadingGallery ? (
+                        <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-tertiary)' }}>불러오는 중...</div>
+                    ) : gallery.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-tertiary)' }}>
+                            업로드된 미디어가 없습니다
+                        </div>
+                    ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
+                            {gallery.map((item) => (
+                                <div key={item.url} style={{
+                                    borderRadius: '12px', overflow: 'hidden', position: 'relative',
+                                    border: item.isActive ? '2px solid var(--primary-gold)' : '1px solid var(--border-color)',
+                                    background: 'rgba(0,0,0,0.3)', cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: item.isActive ? '0 0 12px rgba(var(--primary-rgb), 0.3)' : 'none'
+                                }}
+                                onClick={() => handleSelectMedia(item)}
+                                >
+                                    {/* 썸네일 */}
+                                    <div style={{ width: '100%', height: '120px', overflow: 'hidden', position: 'relative' }}>
+                                        {item.type === 'video' ? (
+                                            <video src={item.url} muted preload="metadata"
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                onLoadedData={e => { e.target.currentTime = 1; }}
+                                            />
+                                        ) : (
+                                            <img src={item.url} alt={item.name}
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        )}
+                                        {/* 타입 뱃지 */}
+                                        <div style={{
+                                            position: 'absolute', top: '6px', left: '6px',
+                                            padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem',
+                                            background: item.type === 'video' ? 'rgba(239, 68, 68, 0.8)' : 'rgba(59, 130, 246, 0.8)',
+                                            color: 'white', fontWeight: 'bold'
+                                        }}>
+                                            {item.type === 'video' ? '🎬 영상' : '🖼 이미지'}
+                                        </div>
+                                        {/* 활성 뱃지 */}
+                                        {item.isActive && (
+                                            <div style={{
+                                                position: 'absolute', top: '6px', right: '6px',
+                                                background: 'rgba(16, 185, 129, 0.9)', borderRadius: '50%',
+                                                width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                            }}>
+                                                <CheckCircle size={16} weight="fill" color="white" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    {/* 하단 정보 */}
+                                    <div style={{ padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                            {(item.size / 1024 / 1024).toFixed(1)}MB
+                                        </div>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleDeleteItem(item); }}
+                                            style={{
+                                                background: 'rgba(244,63,94,0.1)', border: '1px solid rgba(244,63,94,0.3)',
+                                                borderRadius: '6px', padding: '4px 8px', cursor: 'pointer',
+                                                color: '#F43F5E', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '3px'
+                                            }}
+                                        >
+                                            <Trash size={12} /> 삭제
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
                 {/* Toggle */}
                 <div style={{
                     background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '16px',
                     border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between',
-                    alignItems: 'center', opacity: previewUrl ? 1 : 0.5, pointerEvents: previewUrl ? 'auto' : 'none'
+                    alignItems: 'center', opacity: settings.imageUrl ? 1 : 0.5, pointerEvents: settings.imageUrl ? 'auto' : 'none'
                 }}>
                     <div>
                         <h4 style={{ margin: '0 0 4px 0', fontSize: '1.2rem', color: settings.active ? '#10B981' : 'var(--text-primary)' }}>
                             {settings.active ? '출석기에 표시 중' : '출석기에 미표시'}
                         </h4>
                         <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                            활성화하면 태블릿 화면에 이 {isVideoMedia(previewUrl, mediaType) ? '영상' : '이미지'}가 우선 표시됩니다. (터치하면 닫힘)
+                            활성화하면 태블릿 화면에 선택한 미디어가 우선 표시됩니다. (터치하면 닫힘)
                         </p>
                     </div>
                     <button onClick={handleToggleActive} style={{
                         background: 'none', border: 'none', cursor: 'pointer',
                         color: settings.active ? '#10B981' : 'var(--text-tertiary)', padding: 0, display: 'flex'
-                    }} disabled={!previewUrl}>
+                    }} disabled={!settings.imageUrl}>
                         {settings.active ? <ToggleRight size={56} weight="fill" /> : <ToggleLeft size={56} weight="regular" />}
                     </button>
+                </div>
+
+                {/* ─── 추가 옵션 ─── */}
+                <div style={{
+                    background: 'rgba(255,255,255,0.02)', padding: '20px 24px', borderRadius: '16px',
+                    border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '16px',
+                    opacity: settings.active ? 1 : 0.5, pointerEvents: settings.active ? 'auto' : 'none'
+                }}>
+                    <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)' }}>⚙️ 공지 화면 옵션</h4>
+
+                    {/* 터치 안내 텍스트 */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div>
+                            <div style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px' }}>
+                                터치 안내 텍스트 표시
+                            </div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                하단에 "👆 화면을 터치하면 출석부로 이동합니다" 안내 표시
+                            </div>
+                        </div>
+                        <button onClick={async () => {
+                            const newVal = !(settings.showTouchGuide !== false);
+                            try {
+                                await storageService.updateKioskSettings(selectedBranch, { ...settings, showTouchGuide: newVal });
+                                setSettings(prev => ({ ...prev, showTouchGuide: newVal }));
+                            } catch (err) { alert('설정 변경 실패'); }
+                        }} style={{
+                            background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex',
+                            color: settings.showTouchGuide !== false ? '#10B981' : 'var(--text-tertiary)'
+                        }}>
+                            {settings.showTouchGuide !== false ? <ToggleRight size={44} weight="fill" /> : <ToggleLeft size={44} weight="regular" />}
+                        </button>
+                    </div>
+
+                    {/* 근접 감지 자동 복귀 */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0' }}>
+                        <div>
+                            <div style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px' }}>
+                                근접 감지 자동 복귀
+                            </div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                카메라로 사람 접근 감지 시 자동으로 출석체크 화면 전환
+                            </div>
+                        </div>
+                        <button onClick={async () => {
+                            const newVal = !settings.proximityReturn;
+                            try {
+                                await storageService.updateKioskSettings(selectedBranch, { ...settings, proximityReturn: newVal });
+                                setSettings(prev => ({ ...prev, proximityReturn: newVal }));
+                            } catch (err) { alert('설정 변경 실패'); }
+                        }} style={{
+                            background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex',
+                            color: settings.proximityReturn ? '#10B981' : 'var(--text-tertiary)'
+                        }}>
+                            {settings.proximityReturn ? <ToggleRight size={44} weight="fill" /> : <ToggleLeft size={44} weight="regular" />}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

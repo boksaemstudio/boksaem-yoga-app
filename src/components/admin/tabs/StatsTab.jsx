@@ -15,17 +15,17 @@ const StatsTab = ({ summary, stats, revenueTrend, memberStatusDist }) => {
             <div className="dashboard-card" style={{ border: '1px solid rgba(59, 130, 246, 0.3)', background: 'rgba(59, 130, 246, 0.05)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                     <UserFocus size={20} weight="fill" color="#60A5FA" />
-                    <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>안면 전산화 완료 현황</span>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>얼굴 등록 현황</span>
                     <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
                         <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.2)', color: '#60A5FA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 'bold' }}>i</div>
-                        <div className="tooltip-text" style={{ width: '220px', left: 0, transform: 'translateX(0)', color: '#fff', fontSize: '0.8rem' }}>
-                            전체 활성 회원 중에서 원활한 무인 출석을 위해 안면(얼굴) 데이터 등록을 완료한 회원의 비율입니다.<br /><br />📊 <b>등록 수</b>: AI 출석용 안면 벡터가 저장된 회원<br /><b>비율</b>: 등록 완료 / 전체 활성 회원<br /><br />🔒 사진은 절대 저장되지 않습니다.<br />128차원 숫자 벡터로 변환 후 원본 삭제.
+                        <div className="tooltip-text" style={{ width: '200px', left: 0, transform: 'translateX(0)', color: '#fff', fontSize: '0.8rem' }}>
+                            키오스크 얼굴인식 출석을 위해<br />얼굴 데이터를 등록한 활성 회원의<br />비율입니다.
                         </div>
                     </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
                     <span style={{ fontSize: '1.8rem', fontWeight: '800', color: primaryColor }}>{summary?.facialDataCount || 0}</span>
-                    <span style={{ fontSize: '1rem', opacity: 0.6 }}>명의 회원이 등록되었습니다.</span>
+                    <span style={{ fontSize: '1rem', opacity: 0.6 }}>명 등록</span>
                     <span style={{ marginLeft: 'auto', fontSize: '1.4rem', fontWeight: '900', color: '#60A5FA' }}>{summary?.facialDataRatio || 0}%</span>
                 </div>
                 <div style={{ marginTop: '12px', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
@@ -49,8 +49,8 @@ const StatsTab = ({ summary, stats, revenueTrend, memberStatusDist }) => {
                         <h3 className="card-label" style={{ margin: 0 }}>시간대별 이용 현황</h3>
                         <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
                             <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 'bold' }}>i</div>
-                            <div className="tooltip-text" style={{ width: '220px', left: 0, transform: 'translateX(0)', color: '#fff', fontSize: '0.8rem' }}>
-                                출석 로그 데이터를 기반으로 시간대별 총 이용 건수를 집계합니다.
+                            <div className="tooltip-text" style={{ width: '200px', left: 0, transform: 'translateX(0)', color: '#fff', fontSize: '0.8rem' }}>
+                                몇 시에 회원이 가장 많이<br />오는지 한눈에 보여줍니다.
                             </div>
                         </div>
                     </div>
@@ -71,8 +71,8 @@ const StatsTab = ({ summary, stats, revenueTrend, memberStatusDist }) => {
                         <h3 className="card-label" style={{ margin: 0 }}>수업별 인기 현황</h3>
                         <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
                             <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 'bold' }}>i</div>
-                            <div className="tooltip-text" style={{ width: '220px', left: 'auto', right: 0, transform: 'translateX(0)', color: '#fff', fontSize: '0.8rem' }}>
-                                출석 로그를 바탕으로 각 수업(종목)별 누적 참석 횟수를 보여줍니다.
+                            <div className="tooltip-text" style={{ width: '200px', left: 'auto', right: 0, transform: 'translateX(0)', color: '#fff', fontSize: '0.8rem' }}>
+                                어떤 수업이 가장 인기있는지<br />참석 횟수 기준으로 보여줍니다.
                             </div>
                         </div>
                     </div>

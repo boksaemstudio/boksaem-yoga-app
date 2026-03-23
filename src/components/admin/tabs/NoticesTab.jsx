@@ -31,7 +31,7 @@ const NoticesTab = ({ notices, setShowNoticeModal, refreshData }) => {
                         padding: '10px 24px', // Slightly reduced padding
                         flexShrink: 0, // Prevent shrinking
                         background: `linear-gradient(135deg, var(--primary-gold) 0%, ${config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'} 100%)`,
-                        color: 'black', // Black text for contrast
+                        color: 'var(--text-on-primary)', // Black text for contrast
                         fontWeight: 'bold',
                         fontSize: '0.95rem',
                         border: 'none',

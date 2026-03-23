@@ -99,6 +99,9 @@ async function sendSMS(receiver, msg, title, msgType) {
     return result;
 }
 
+// [EXPORT] push.js 등 다른 모듈에서 sendSMS 직접 호출 가능하도록 export
+exports.sendSMS = sendSMS;
+
 /**
  * 대량 문자 발송 (알리고 - 쉼표 구분 최대 1000명)
  * @param {string[]} receivers - 수신자 번호 배열

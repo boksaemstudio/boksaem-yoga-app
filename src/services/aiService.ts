@@ -100,7 +100,10 @@ export const getAIAnalysis = async (
     memberName: string, attendanceCount: number, logs: unknown[], timeOfDay: string,
     language = 'ko', requestRole = 'member', statsData: unknown = null, context = 'profile'
 ): Promise<AIAnalysisResult> => {
-    const cacheKey = `ai_analysis_${memberName}_${attendanceCount}_${language}_${new Date().getHours()}`;
+    const todayDate = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+    const cacheKey = context === 'admin'
+        ? `ai_analysis_admin_${todayDate}_${language}`
+        : `ai_analysis_${memberName}_${attendanceCount}_${language}_${new Date().getHours()}`;
     const cached = _safeGetItem(cacheKey);
     if (cached) return JSON.parse(cached);
 
@@ -117,16 +120,91 @@ export const getAIAnalysis = async (
     }
 };
 
-export const getDailyYoga = async (language = 'ko'): Promise<DailyYogaPose[]> => {
+export interface ChurnAnalysisData {
+    branch: string;
+    activeCount: number;
+    totalMembers: number;
+    criticalCount: number;
+    highCount: number;
+    mediumCount: number;
+    detailed?: boolean;
+    riskMembers: Array<{
+        name: string;
+        daysSince: number;
+        credits: number;
+        subject: string;
+        level: string;
+    }>;
+}
+
+export const getChurnAnalysis = async (
+    churnData: ChurnAnalysisData,
+    language = 'ko'
+): Promise<AIAnalysisResult> => {
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-    const cacheKey = `daily_yoga_${today}_${language}_v3`;
+    const hour = new Date().getHours();
+    const mode = churnData.detailed ? 'detailed' : 'brief';
+    const cacheKey = `ai_churn_${mode}_${churnData.branch}_${today}_${Math.floor(hour / 2)}`;
+    const cached = _safeGetItem(cacheKey);
+    if (cached) return JSON.parse(cached);
+
+    try {
+        const genAI = httpsCallable(functions, 'generatePageExperienceV2');
+        const res = await genAI({ 
+            type: 'churn_analysis', 
+            language,
+            churnData,
+            memberName: 'Admin',
+            role: 'admin'
+        });
+        const data = res.data as AIAnalysisResult;
+        if (data && !data.isFallback) _safeSetItem(cacheKey, JSON.stringify(data));
+        return data;
+    } catch (error) {
+        console.warn("AI Churn Analysis failed, using fallback:", error);
+        return { message: `이탈 위험 회원 ${churnData.criticalCount + churnData.highCount + churnData.mediumCount}명 감지.`, isFallback: true };
+    }
+};
+
+export const generateChurnMessage = async (
+    memberInfo: { name: string; daysSince: number; credits: number; subject: string; level: string },
+    studioName = '스튜디오',
+    language = 'ko'
+): Promise<string> => {
+    const cacheKey = `ai_churn_msg_${memberInfo.name}_${memberInfo.daysSince}`;
+    const cached = _safeGetItem(cacheKey);
+    if (cached) return cached;
+
+    try {
+        const genAI = httpsCallable(functions, 'generatePageExperienceV2');
+        const res = await genAI({
+            type: 'churn_message',
+            language,
+            memberInfo,
+            studioName,
+            memberName: memberInfo.name,
+            role: 'admin'
+        });
+        const data = res.data as AIAnalysisResult;
+        const msg = data?.message || '';
+        if (msg && !data.isFallback) _safeSetItem(cacheKey, msg);
+        return msg;
+    } catch (error) {
+        console.warn("AI Churn Message failed:", error);
+        return `${memberInfo.name} 회원님, 안녕하세요! 요즘 어떻게 지내세요? 😊 다시 뵙기를 기다리고 있어요 🧘‍♀️`;
+    }
+};
+
+export const getDailyYoga = async (language = 'ko', mbti: string | null = null): Promise<DailyYogaPose[]> => {
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+    const cacheKey = `daily_yoga_${today}_${language}_${mbti || 'none'}_v4`;
     const cached = _safeGetItem(cacheKey);
     if (cached && cached !== 'null' && cached !== 'undefined') {
         try { const parsed = JSON.parse(cached); if (Array.isArray(parsed) && parsed.length > 0) return parsed; } catch { /* ignore */ }
     }
     try {
         const genYoga = httpsCallable(functions, 'generateDailyYogaV2');
-        const response = await genYoga({ language, timeOfDay: new Date().getHours(), weather: 'Sunny' });
+        const response = await genYoga({ language, timeOfDay: new Date().getHours(), weather: 'Sunny', mbti });
         const data = response.data as DailyYogaPose[] | null;
         if (!data || (Array.isArray(data) && data.length === 0)) return DAILY_YOGA_FALLBACK(language);
         _safeSetItem(cacheKey, JSON.stringify(data));
@@ -142,10 +220,10 @@ export const getAiUsage = async (): Promise<AIUsage> => {
         const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
         const docRef = tenantDb.doc('ai_quota', today);
         const snapshot = await getDoc(docRef);
-        if (snapshot.exists()) { const data = snapshot.data() as { count?: number }; return { count: data.count || 0, limit: 5000 }; }
-        return { count: 0, limit: 5000 };
+        if (snapshot.exists()) { const data = snapshot.data() as { count?: number }; return { count: data.count || 0, limit: 1500 }; }
+        return { count: 0, limit: 1500 };
     } catch (e) {
         console.error("AI Usage fetch failed:", e);
-        return { count: 0, limit: 5000 };
+        return { count: 0, limit: 1500 };
     }
 };

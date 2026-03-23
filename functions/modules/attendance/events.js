@@ -108,6 +108,81 @@ exports.onAttendanceCreated = onDocumentCreated({
             }
         }
 
+        // ━━━━ Send push/SMS to MEMBER ━━━━
+        // 무제한 회원(credits >= 999999)이 아닌 경우만
+        const credits = attendance.credits;
+        const isUnlimited = credits === undefined || credits >= 999999;
+        
+        if (!isUnlimited && attendance.status === 'valid') {
+            try {
+                const { getAllFCMTokens } = require("../../helpers/common");
+                const memberName = attendance.memberName || '회원';
+                const className = attendance.className || '수업';
+                const endDate = attendance.endDate;
+                const cumulativeCount = attendance.cumulativeCount || 0;
+                const studioName = await getStudioName();
+                const logoUrl = await getStudioLogoUrl();
+
+                // 잔여일 계산
+                let daysLeft = '';
+                if (endDate && endDate !== 'TBD' && endDate !== 'unlimited') {
+                    const today = new Date();
+                    const end = new Date(endDate);
+                    const diff = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+                    daysLeft = diff >= 0 ? `${diff}일 남음` : '기간 만료';
+                }
+
+                const title = `✅ ${memberName}님 출석 완료`;
+                const parts = [];
+                if (credits !== undefined) parts.push(`잔여 ${credits}회`);
+                if (daysLeft) parts.push(daysLeft);
+                if (endDate && endDate !== 'TBD' && endDate !== 'unlimited') parts.push(`~${endDate.slice(5)}`);
+                const body = `${className} | ${parts.join(' • ')}`;
+
+                // [1] 회원 앱 푸시 (무료)
+                const { tokens: memberTokens } = await getAllFCMTokens(null, { memberId });
+                if (memberTokens.length > 0) {
+                    console.log(`[Member Push] Sending attendance push to ${memberTokens.length} tokens for "${memberName}"`);
+                    for (const token of memberTokens) {
+                        try {
+                            await admin.messaging().send({
+                                token,
+                                notification: { title, body: `${studioName} | ${body}` },
+                                webpush: {
+                                    notification: { icon: logoUrl, badge: logoUrl, tag: `member-att-${attendanceId}` },
+                                    fcm_options: { link: 'https://boksaem-yoga.web.app/' }
+                                }
+                            });
+                        } catch (sendErr) {
+                            if (sendErr.code === 'messaging/invalid-registration-token' || sendErr.code === 'messaging/registration-token-not-registered') {
+                                await tdb.collection('fcm_tokens').doc(token).delete().catch(() => {});
+                            }
+                        }
+                    }
+                }
+
+                // [2] 출석 SMS 알림 (회원 설정에 따라, 비용 발생)
+                const memberDoc = await tdb.collection('members').doc(memberId).get();
+                const memberSettings = memberDoc.exists ? memberDoc.data() : {};
+                
+                if (memberSettings.attendanceSmsEnabled) {
+                    try {
+                        const { sendSMS } = require('../sms');
+                        const phone = memberSettings.phone;
+                        if (phone) {
+                            const smsBody = `[${studioName}] ${memberName}님 출석 확인\n${className} | ${parts.join(' | ')}\n${cumulativeCount > 0 ? `누적 ${cumulativeCount}회 출석` : ''}`;
+                            await sendSMS(phone, smsBody);
+                            console.log(`[Member SMS] Attendance SMS sent to ${memberName} (${phone})`);
+                        }
+                    } catch (smsErr) {
+                        console.error('[Member SMS] Error:', smsErr);
+                    }
+                }
+            } catch (memberNotifError) {
+                console.error('[Member Notification] Error:', memberNotifError);
+            }
+        }
+
     } catch (error) {
         await logAIError('PracticeEvent_Calculation', error);
     }

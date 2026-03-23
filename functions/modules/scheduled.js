@@ -83,7 +83,7 @@ exports.sendDailyAdminReportV2 = onSchedule({
 
 오늘 하루도 수고 많으셨습니다. 🙏`;
 
-        let tokensSnap = await tdb.collection('fcm_tokens').where('type', '==', 'admin').get();
+        let tokensSnap = await tdb.collection('fcm_tokens').where('role', '==', 'admin').get();
         if (!tokensSnap.empty) {
             const tokens = tokensSnap.docs.map(d => d.id);
             await admin.messaging().sendEachForMulticast({
@@ -134,31 +134,12 @@ exports.sendScheduledMessages = onSchedule({
         }
 
         console.log(`[Scheduled] Found ${snapshot.size} messages to send.`);
-        const solapiModule = require('./solapi'); // Lazy load if needed, or re-implement logic
-        // Since we cannot easily invoke other cloud functions directly from here without HTTP,
-        // and logic is relatively simple, we will duplicate the core sending logic or trigger updates.
-        
-        // BETTER APPROACH: 
-        // We will update the status to 'pending' (or a new trigger state 'sending_scheduled')
-        // But our existing triggers ignore 'scheduled', so changing to 'pending' MIGHT trigger them?
-        // No, onDocumentCreated only triggers on creation. onDocumentUpdated is NOT set up for messages.
-        
-        // So we must Implement Sending Logic Here.
-        
-        const messageService = solapiModule.messageService; // Access exported service if available? 
-        // Actually solapi.js exports 'sendSolapiOnMessageV2', not the service instance usually.
-        // We'll initialize Solapi Service here locally or import a helper if we had one.
-        // To be safe and quick, let's re-implement the core sending steps for these docs.
 
-        // Initialize Solapi ONLY if needed
-        const { SolapiMessageService } = require("solapi");
-        let myMessageService = null;
-        if (process.env.SOLAPI_API_KEY && process.env.SOLAPI_API_SECRET) {
-            myMessageService = new SolapiMessageService(
-                process.env.SOLAPI_API_KEY, 
-                process.env.SOLAPI_API_SECRET
-            );
-        }
+        // [FIX] 솔라피→알리고 전환: sms.js 모듈의 sendSMS 사용
+        const { sendSMS } = require('./sms');
+        const aligoKey = process.env.ALIGO_API_KEY;
+        const aligoUserId = process.env.ALIGO_USER_ID;
+        const hasAligo = !!(aligoKey && aligoUserId);
 
         const docsToProcess = snapshot.docs;
         const results = [];
@@ -192,26 +173,22 @@ exports.sendScheduledMessages = onSchedule({
                 console.error(`[Scheduled] Push failed for ${doc.id}:`, e);
             }
 
-            // 2. Send Solapi (SMS/AlimTalk)
-            let solapiResult = null;
-            if (myMessageService && !msg.skipSolapi) {
+            // 2. Send SMS via Aligo — sendMode에 따라 건너뛰기
+            let smsResult = null;
+            const msgSendMode = msg.sendMode || 'push_first';
+            const shouldSendSMS = msgSendMode === 'sms_only' || (msgSendMode === 'push_first' && !pushSuccess);
+            
+            if (hasAligo && shouldSendSMS) {
                 try {
                     const memberDoc = await tdb.collection('members').doc(memberId).get();
                     if (memberDoc.exists) {
                         const phone = memberDoc.data().phone?.replace(/-/g, '');
                         if (phone) {
-                             const solapiPayload = {
-                                to: phone,
-                                from: process.env.SOLAPI_SENDER_NUMBER || "01022232789",
-                                text: content,
-                                subject: "복샘요가 알림"
-                            };
-                            // Simple LMS/SMS for now
-                            solapiResult = await myMessageService.sendOne(solapiPayload);
+                            smsResult = await sendSMS(phone, content, "복샘요가 알림");
                         }
                     }
                 } catch (e) {
-                    console.error(`[Scheduled] Solapi failed for ${doc.id}:`, e);
+                    console.error(`[Scheduled] Aligo SMS failed for ${doc.id}:`, e);
                 }
             }
 
@@ -222,9 +199,9 @@ exports.sendScheduledMessages = onSchedule({
                     status: 'sent',
                     sentAt: new Date().toISOString(),
                     pushStatus: { sent: pushSuccess, note: 'Scheduled Send' },
-                    solapiStatus: solapiResult ? { sent: true, result: solapiResult } : { sent: false }
+                    ...(smsResult ? { smsStatus: smsResult } : {})
                 },
-                historyData: (pushSuccess || solapiResult) ? {
+                historyData: (pushSuccess || smsResult) ? {
                     type: 'individual_scheduled',
                     title: "예약 알림",
                     body: content,

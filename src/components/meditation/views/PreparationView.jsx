@@ -17,7 +17,7 @@ export const PreparationView = ({
         },
         lying: {
             title: "누운 명상", desc: "깊은 이완과 수면을 위해",
-            steps: ["등을 대고 편안하게 눕습니다.", "다리는 어깨너비로 벌리고 발끝을 툭 떨어뜨립니다.", "팔은 몸 옆에 두고 손바닥이 하늘을 향하게 합니다."]
+            steps: ["등을 대고 편안하게 눕습니다.", "다리는 어깨 너비로 벌리고 발끝을 툭 떨어뜨립니다.", "팔은 몸 옆에 두고 손바닥이 하늘을 향하게 합니다."]
         }
     };
 
@@ -74,7 +74,7 @@ export const PreparationView = ({
                             </div>
                             <button onClick={() => { setPrepSelections({...prepSelections, notified: true}); setPrepStep(2); }}
                                 style={{
-                                    width: '100%', background: 'var(--primary-gold)', color: 'black',
+                                    width: '100%', background: 'var(--primary-gold)', color: 'var(--text-on-primary)',
                                     padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
                                     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
                                 }}>확인했습니다</button>
@@ -114,7 +114,7 @@ export const PreparationView = ({
                             </div>
                             <button onClick={() => setPrepStep(2)} 
                                 style={{
-                                    width: '100%', background: 'white', color: 'black',
+                                    width: '100%', background: 'white', color: 'var(--text-on-primary)',
                                     padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
                                     cursor: 'pointer', marginBottom: '15px'
                                 }}>기기 위치 설정으로</button>
@@ -141,7 +141,7 @@ export const PreparationView = ({
                             </div>
                             <button onClick={() => startSession(activeMode)}
                                 style={{
-                                    width: '100%', background: 'var(--primary-gold)', color: 'black',
+                                    width: '100%', background: 'var(--primary-gold)', color: 'var(--text-on-primary)',
                                     padding: '18px', borderRadius: '20px', fontSize: '1.1rem', fontWeight: 800, border: 'none',
                                     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
                                 }}>준비 완료 (명상 시작)</button>

@@ -52,7 +52,7 @@ export const PrescriptionWizardView = ({
                     </div>
 
                     <button onClick={() => setStep('interaction_select')}
-                        style={{ width: '100%', maxWidth: '300px', background: 'var(--primary-gold)', color: 'black', padding: '20px', borderRadius: '20px', fontSize: '1.2rem', fontWeight: 800, border: 'none', cursor: 'pointer', boxShadow: '0 10px 20px rgba(var(--primary-rgb), 0.3)' }}>
+                        style={{ width: '100%', maxWidth: '300px', background: 'var(--primary-gold)', color: 'var(--text-on-primary)', padding: '20px', borderRadius: '20px', fontSize: '1.2rem', fontWeight: 800, border: 'none', cursor: 'pointer', boxShadow: '0 10px 20px rgba(var(--primary-rgb), 0.3)' }}>
                         명상 모드 선택하기
                     </button>
                 </div>
@@ -189,7 +189,7 @@ export const PrescriptionWizardView = ({
                         </div>
 
                         <div style={{ width: '100%', maxWidth: '350px', marginTop: '30px' }}>
-                            <button onClick={startFromPrescription} style={{ width: '100%', background: 'var(--primary-gold)', color: 'black', padding: '16px', borderRadius: '18px', fontSize: '1.1rem', fontWeight: 800, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: 'pointer', boxShadow: '0 10px 20px rgba(var(--primary-rgb), 0.3)' }}><Play size={24} weight="fill" /> 시작하기</button>
+                            <button onClick={startFromPrescription} style={{ width: '100%', background: 'var(--primary-gold)', color: 'var(--text-on-primary)', padding: '16px', borderRadius: '18px', fontSize: '1.1rem', fontWeight: 800, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: 'pointer', boxShadow: '0 10px 20px rgba(var(--primary-rgb), 0.3)' }}><Play size={24} weight="fill" /> 시작하기</button>
                             <button onClick={handleReturnToChat} style={{ marginTop: '15px', width: '100%', background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.4)', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.85rem' }}>다시 선택 (대화로 돌아가기)</button>
                         </div>
                     </div>

@@ -67,7 +67,7 @@ export const pushService = {
         }
     },
 
-    async deletePushToken(): Promise<boolean> {
+    async deletePushToken(role?: string): Promise<boolean> {
         try {
             const registration = await navigator.serviceWorker.ready;
             const token = await getToken(messaging, { vapidKey: getVapidKey(), serviceWorkerRegistration: registration });
@@ -75,26 +75,95 @@ export const pushService = {
                 const tokenSnap = await getDoc(tenantDb.doc('fcm_tokens', token));
                 if (tokenSnap.exists()) {
                     const data = tokenSnap.data() as PushToken;
+                    // [ROOT FIX] instructor 토큰은 보호 — admin에서 삭제 시 instructor 토큰까지 날리지 않음
+                    if (role && data.role !== role) {
+                        console.log(`[Push] Skipping delete: token role is '${data.role}', requested delete for '${role}'`);
+                        return true;
+                    }
                     if (data.memberId) await updateDoc(tenantDb.doc('members', data.memberId), { pushEnabled: false });
                 }
-                await deleteDoc(tenantDb.doc('fcm_tokens', token));
+                // role 필터 없으면 기존처럼 삭제 (회원용)
+                if (!role || (tokenSnap.exists() && (tokenSnap.data() as PushToken).role === role)) {
+                    await deleteDoc(tenantDb.doc('fcm_tokens', token));
+                }
             }
             return true;
         } catch (e) { console.error("Delete push token failed:", e); return false; }
     },
 
-    async requestPushPermission(memberId: string): Promise<string> {
+    async requestPushPermission(memberId?: string, role: string = 'member'): Promise<string> {
         try {
             const permission = await Notification.requestPermission();
             if (permission === 'granted') {
                 const token = await this.requestAndSaveToken();
-                if (token && memberId) {
+                if (token) {
                     const tokenRef = tenantDb.doc('fcm_tokens', token);
                     const tokenSnap = await getDoc(tokenRef);
-                    const dataToUpdate: Record<string, unknown> = { memberId, role: 'member', platform: 'web', language: localStorage.getItem('app_language') || 'ko', updatedAt: new Date().toISOString() };
-                    if (!tokenSnap.exists() || !(tokenSnap.data() as Record<string, unknown>).createdAt) dataToUpdate.createdAt = new Date().toISOString();
+                    const existingData = tokenSnap.exists() ? (tokenSnap.data() as Record<string, unknown>) : {};
+                    
+                    // [ROOT FIX] roles 배열로 다중 역할 누적 저장
+                    const existingRoles = (existingData.roles as string[]) || (existingData.role ? [existingData.role as string] : []);
+                    const roles = [...new Set([...existingRoles, role])]; // 중복 제거
+                    
+                    const dataToUpdate: Record<string, unknown> = { 
+                        role, // 최신 역할 (backward compatibility)
+                        roles, // 전체 역할 배열
+                        platform: 'web', 
+                        language: localStorage.getItem('app_language') || 'ko', 
+                        updatedAt: new Date().toISOString() 
+                    };
+                    
+                    // [ROOT FIX] memberId — 현재 전달된 것 or 기존 것 보존
+                    if (memberId) {
+                        dataToUpdate.memberId = memberId;
+                    } else if (existingData.memberId) {
+                        dataToUpdate.memberId = existingData.memberId;
+                    }
+                    
+                    // instructorName 보존
+                    if (existingData.instructorName) {
+                        dataToUpdate.instructorName = existingData.instructorName;
+                    }
+                    
+                    if (!tokenSnap.exists() || !existingData.createdAt) {
+                        dataToUpdate.createdAt = new Date().toISOString();
+                    }
+
+                    // [ROOT FIX] 동일 기기의 이전 stale 토큰 정리 + 기존 데이터 이관
+                    const devicePrefix = token.split(':')[0];
+                    if (devicePrefix) {
+                        try {
+                            const allTokens = await getDocs(tenantDb.collection('fcm_tokens'));
+                            for (const doc of allTokens.docs) {
+                                if (doc.id === token) continue;
+                                if (doc.id.startsWith(devicePrefix + ':')) {
+                                    const oldData = doc.data() as Record<string, unknown>;
+                                    // 이전 토큰의 모든 정보 이관
+                                    if (oldData.memberId && !dataToUpdate.memberId) {
+                                        dataToUpdate.memberId = oldData.memberId;
+                                    }
+                                    if (oldData.instructorName && !dataToUpdate.instructorName) {
+                                        dataToUpdate.instructorName = oldData.instructorName;
+                                    }
+                                    // 이전 토큰 roles 이관
+                                    const oldRoles = (oldData.roles as string[]) || (oldData.role ? [oldData.role as string] : []);
+                                    dataToUpdate.roles = [...new Set([...(dataToUpdate.roles as string[]), ...oldRoles])];
+                                    
+                                    await deleteDoc(tenantDb.doc('fcm_tokens', doc.id));
+                                    console.log(`[Push] 🧹 Cleaned stale token: ${doc.id.substring(0, 30)}...`);
+                                }
+                            }
+                        } catch (cleanupErr) {
+                            console.warn('[Push] Stale token cleanup failed (non-critical):', cleanupErr);
+                        }
+                    }
+
                     await setDoc(tokenRef, dataToUpdate, { merge: true });
-                    await updateDoc(tenantDb.doc('members', memberId), { pushEnabled: true });
+                    console.log(`[Push] ✅ Token saved: role=${role}, roles=${(dataToUpdate.roles as string[]).join(',')}, memberId=${dataToUpdate.memberId || 'N/A'}`);
+                    // memberId가 있으면 members 문서의 fcmToken도 최신으로 갱신
+                    if (dataToUpdate.memberId) {
+                        await updateDoc(tenantDb.doc('members', dataToUpdate.memberId as string), { pushEnabled: true, fcmToken: token });
+                    }
                 }
             }
             return permission;
@@ -110,10 +179,47 @@ export const pushService = {
             const registration = await navigator.serviceWorker.ready;
             const token = await getToken(messaging, { vapidKey: getVapidKey(), serviceWorkerRegistration: registration });
             if (!token) return false;
+            
             const tokenRef = tenantDb.doc('fcm_tokens', token);
-            const dataToUpdate: Record<string, unknown> = { token, role: 'instructor', instructorName, updatedAt: new Date().toISOString(), platform: 'web' };
-            try { const snap = await getDoc(tokenRef); if (!snap.exists() || !(snap.data() as Record<string, unknown>).createdAt) dataToUpdate.createdAt = new Date().toISOString(); } catch { dataToUpdate.createdAt = new Date().toISOString(); }
+            const tokenSnap = await getDoc(tokenRef);
+            const existingData = tokenSnap.exists() ? (tokenSnap.data() as Record<string, unknown>) : {};
+            
+            // [ROOT FIX] roles 배열로 다중 역할 누적 저장
+            const existingRoles = (existingData.roles as string[]) || (existingData.role ? [existingData.role as string] : []);
+            const roles = [...new Set([...existingRoles, 'instructor'])];
+            
+            const dataToUpdate: Record<string, unknown> = { 
+                role: 'instructor', roles, instructorName, 
+                updatedAt: new Date().toISOString(), platform: 'web' 
+            };
+            
+            // 기존 memberId 보존
+            if (existingData.memberId) dataToUpdate.memberId = existingData.memberId;
+            if (!tokenSnap.exists() || !existingData.createdAt) dataToUpdate.createdAt = new Date().toISOString();
+            
+            // [ROOT FIX] 동일 기기의 이전 stale 토큰 정리 + 기존 데이터 이관
+            const devicePrefix = token.split(':')[0];
+            if (devicePrefix) {
+                try {
+                    const allTokens = await getDocs(tenantDb.collection('fcm_tokens'));
+                    for (const doc of allTokens.docs) {
+                        if (doc.id === token) continue;
+                        if (doc.id.startsWith(devicePrefix + ':')) {
+                            const oldData = doc.data() as Record<string, unknown>;
+                            if (oldData.memberId && !dataToUpdate.memberId) dataToUpdate.memberId = oldData.memberId;
+                            const oldRoles = (oldData.roles as string[]) || (oldData.role ? [oldData.role as string] : []);
+                            dataToUpdate.roles = [...new Set([...(dataToUpdate.roles as string[]), ...oldRoles])];
+                            await deleteDoc(tenantDb.doc('fcm_tokens', doc.id));
+                            console.log(`[Push] 🧹 Cleaned stale instructor token: ${doc.id.substring(0, 30)}...`);
+                        }
+                    }
+                } catch (cleanupErr) {
+                    console.warn('[Push] Instructor stale token cleanup failed:', cleanupErr);
+                }
+            }
+            
             await setDoc(tokenRef, dataToUpdate, { merge: true });
+            console.log(`[Push] ✅ Instructor token saved: ${instructorName}, roles=${(dataToUpdate.roles as string[]).join(',')}`);
             return true;
         } catch (e) { console.error(`[Push] Instructor push failed for ${instructorName}:`, e); return false; }
     },
@@ -164,8 +270,21 @@ export const pushService = {
             if (memberId) {
                 const tokenRef = tenantDb.doc('fcm_tokens', token);
                 const tokenSnap = await getDoc(tokenRef);
-                const tokenData: Record<string, unknown> = { memberId, updatedAt: new Date().toISOString(), platform: 'web', role: 'member', language: 'ko' };
-                if (!tokenSnap.exists() || !(tokenSnap.data() as Record<string, unknown>).createdAt) tokenData.createdAt = new Date().toISOString();
+                const existingData = tokenSnap.exists() ? (tokenSnap.data() as Record<string, unknown>) : {};
+                
+                // [ROOT FIX] roles 배열 보존
+                const existingRoles = (existingData.roles as string[]) || (existingData.role ? [existingData.role as string] : []);
+                const roles = [...new Set([...existingRoles, 'member'])];
+                
+                const tokenData: Record<string, unknown> = { 
+                    memberId, role: 'member', roles,
+                    updatedAt: new Date().toISOString(), platform: 'web', 
+                    language: localStorage.getItem('app_language') || 'ko'
+                };
+                // 기존 instructorName 보존
+                if (existingData.instructorName) tokenData.instructorName = existingData.instructorName;
+                if (!tokenSnap.exists() || !existingData.createdAt) tokenData.createdAt = new Date().toISOString();
+                
                 await setDoc(tokenRef, tokenData, { merge: true });
                 await updateDoc(tenantDb.doc('members', memberId), { pushEnabled: true, fcmToken: token, lastTokenUpdate: new Date() });
             }
@@ -188,14 +307,8 @@ export const pushService = {
     async getAllPushTokens(): Promise<PushToken[]> {
         if (cachedPushTokens.length > 0) return cachedPushTokens;
         try {
-            const results = await Promise.all([
-                getDocs(tenantDb.collection('fcm_tokens')).catch(() => ({ docs: [] as never[] })),
-                getDocs(tenantDb.collection('fcmTokens')).catch(() => ({ docs: [] as never[] })),
-                getDocs(tenantDb.collection('push_tokens')).catch(() => ({ docs: [] as never[] }))
-            ]);
-            const allMerged: Record<string, PushToken> = {};
-            results.forEach(snapshot => { snapshot.docs.forEach((d: { id: string; data: () => Record<string, unknown> }) => { allMerged[d.id] = { id: d.id, ...d.data() } as PushToken; }); });
-            cachedPushTokens = Object.values(allMerged);
+            const snapshot = await getDocs(tenantDb.collection('fcm_tokens')).catch(() => ({ docs: [] as never[] }));
+            cachedPushTokens = snapshot.docs.map((d: { id: string; data: () => Record<string, unknown> }) => ({ id: d.id, ...d.data() } as PushToken));
             return cachedPushTokens;
         } catch { return cachedPushTokens || []; }
     },

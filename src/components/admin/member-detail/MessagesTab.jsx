@@ -1,28 +1,55 @@
 import { useState, useEffect, useRef } from 'react';
 
 import { storageService } from '../../../services/storage';
-import { onSnapshot, query, where, orderBy, limit as firestoreLimit, getDocs } from 'firebase/firestore';
+import { onSnapshot, query, where, orderBy, limit as firestoreLimit, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { tenantDb } from '../../../utils/tenantDb';
-import { useStudioConfig } from '../../../contexts/StudioContext';
-import { Info, Copy } from '@phosphor-icons/react';
+import { DeviceMobileSpeaker, PaperPlaneTilt, ChatText } from '@phosphor-icons/react';
 
-const MessagesTab = ({ memberId }) => {
-    const { config } = useStudioConfig();
+const SEND_MODES = [
+    { id: 'push_only', label: '앱 푸시만', desc: '무료', icon: '📱', color: '#10b981' },
+    { id: 'push_first', label: '푸시 우선', desc: '푸시 실패 시 SMS', icon: '📱➡📩', color: 'var(--primary-gold)' },
+    { id: 'sms_only', label: 'SMS/LMS만', desc: '문자 비용 발생', icon: '📩', color: '#3B82F6' }
+];
+
+const MessagesTab = ({ memberId, member, prefillMessage, onPrefillConsumed }) => {
+    const isUnlimited = member && (member.credits >= 999999 || member.endDate === 'unlimited');
+    const [attendanceSmsEnabled, setAttendanceSmsEnabled] = useState(member?.attendanceSmsEnabled || false);
+    const [smsSaving, setSmsSaving] = useState(false);
+
+    const handleToggleAttendanceSms = async () => {
+        const newVal = !attendanceSmsEnabled;
+        setSmsSaving(true);
+        try {
+            const memberRef = doc(tenantDb.collection('members'), memberId);
+            await updateDoc(memberRef, { attendanceSmsEnabled: newVal });
+            setAttendanceSmsEnabled(newVal);
+        } catch (err) {
+            console.error('[MessagesTab] Toggle SMS failed:', err);
+            alert('설정 저장 실패');
+        } finally {
+            setSmsSaving(false);
+        }
+    };
     const [message, setMessage] = useState('');
+
+    // 변경 내역 자동 채우기 (회원정보 저장 후 메시지 탭 이동 시)
+    useEffect(() => {
+        if (prefillMessage) {
+            setMessage(prefillMessage);
+            setSendMode('push_first');
+            onPrefillConsumed?.();
+        }
+    }, [prefillMessage]);
     const [sending, setSending] = useState(false);
     const [history, setHistory] = useState([]);
     const [msgLimit, setMsgLimit] = useState(10);
     const [notices, setNotices] = useState([]);
+    const [sendMode, setSendMode] = useState('push_first');
     
     // [NEW] Scheduled Sending State
     const [isScheduled, setIsScheduled] = useState(false);
     const [scheduledTime, setScheduledTime] = useState('');
-    const [selectedTemplateId, setSelectedTemplateId] = useState('');
     const scheduleInputRef = useRef(null);
-
-    // [Solapi] AlimTalk Templates
-    const alimTalkTemplates = config.ALIMTALK_TEMPLATES || [];
-    const selectedTemplate = alimTalkTemplates.find(t => t.id === selectedTemplateId);
 
     // [UX] Auto-open picker when scheduled is checked
     const handleScheduleToggle = (e) => {
@@ -36,25 +63,6 @@ const MessagesTab = ({ memberId }) => {
                     // ignore
                 }
             }, 100);
-        }
-    };
-
-    const handleTemplateSelect = (e) => {
-        const id = e.target.value;
-        setSelectedTemplateId(id);
-        
-        // [UX] Auto-fill message content when template is selected
-        const template = alimTalkTemplates.find(t => t.id === id);
-        if (template && template.content) {
-            setMessage(template.content);
-        } else if (!id) {
-            setMessage('');
-        }
-    };
-
-    const handleCopyTemplate = () => {
-        if (selectedTemplate && selectedTemplate.content) {
-            setMessage(selectedTemplate.content);
         }
     };
 
@@ -110,39 +118,23 @@ const MessagesTab = ({ memberId }) => {
     const handleSend = async () => {
         if (!message.trim() || !memberId) return;
         
-        let method = selectedTemplateId ? '알림톡' : '문자(LMS)';
-        let confirmMsg = `메시지를 실제 전송하시겠습니까? 회원의 스마트폰으로 ${method}가 발송됩니다.`;
-        if (isScheduled) {
-            if (!scheduledTime) {
-                alert('예약 시간을 설정해주세요.');
-                return;
-            }
-            const scheduledDate = new Date(scheduledTime);
-            if (scheduledDate <= new Date()) {
-                alert('예약 시간은 현재 시간 이후여야 합니다.');
-                return;
-            }
-            confirmMsg = `메시지를 예약하시겠습니까?\n발송 예정: ${scheduledDate.toLocaleString()}`;
-        }
-
-        if (!confirm(confirmMsg)) return;
-
         setSending(true);
         try {
             await storageService.addMessage(
                 memberId, 
                 message, 
                 isScheduled ? new Date(scheduledTime).toISOString() : null,
-                selectedTemplateId
+                sendMode
             );
+            const sentMsg = message;
             setMessage('');
             setIsScheduled(false);
             setScheduledTime('');
-            setSelectedTemplateId('');
-            if (isScheduled) alert('메시지가 예약되었습니다.');
+            // [UX FIX] 전송 성공 피드백
+            alert(isScheduled ? '메시지가 예약되었습니다.' : '✅ 메시지가 전송되었습니다.');
         } catch (error) {
             console.error("Message send failed:", error);
-            alert('발송에 실패했습니다. 네트워크 상태를 확인해주세요.');
+            alert('❌ 발송에 실패했습니다. 네트워크 상태를 확인해주세요.');
         } finally {
             setSending(false);
         }
@@ -150,98 +142,207 @@ const MessagesTab = ({ memberId }) => {
 
     const templates = [
         "회원님, 재등록 기간입니다. 확인 부탁드려요! 🧘‍♀️",
-        "안녕하세요! 이번 주 휴강 안내드립니다.",
         "오랜만이네요! 수련하러 오세요 ✨",
-        "수강권이 7일 남았습니다."
+        "수강권이 곧 만료됩니다. 재등록을 안내드려요!",
+        "잔여 횟수가 얼마 남지 않았어요. 확인해주세요!"
     ];
 
     return (
         <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            {/* 출석 알림 설정 */}
+            <div style={{ 
+                background: 'rgba(255,255,255,0.05)', padding: '14px 16px', borderRadius: '12px', marginBottom: '16px',
+                border: '1px solid rgba(255,255,255,0.08)'
+            }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '1rem' }}>📲</span>
+                        <span style={{ fontSize: '0.85rem', color: 'white', fontWeight: '700' }}>출석 알림 설정</span>
+                    </div>
+                </div>
+                {/* 앱 푸시 안내 */}
+                <div style={{
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                    padding: '8px 10px', borderRadius: '8px',
+                    background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.15)',
+                    marginBottom: '8px'
+                }}>
+                    <span style={{ fontSize: '0.8rem' }}>📱</span>
+                    <span style={{ fontSize: '0.78rem', color: '#10b981' }}>
+                        앱 푸시 알림: 출석 시 자동 전송 (잔여 횟수 · 기간 정보 포함, 무료)
+                    </span>
+                </div>
+                {/* SMS 옵션 — 출석 시 자동 / 지금 보내기 */}
+                {!isUnlimited ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {/* 자동 보내기 토글 */}
+                        <div style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            padding: '8px 10px', borderRadius: '8px',
+                            background: attendanceSmsEnabled ? 'rgba(59,130,246,0.08)' : 'rgba(255,255,255,0.03)',
+                            border: `1px solid ${attendanceSmsEnabled ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.08)'}`,
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '0.8rem' }}>📩</span>
+                                <div>
+                                    <div style={{ fontSize: '0.78rem', color: attendanceSmsEnabled ? '#3B82F6' : '#a1a1aa', fontWeight: attendanceSmsEnabled ? '700' : '500' }}>
+                                        출석 시 자동 SMS 발송
+                                    </div>
+                                    <div style={{ fontSize: '0.68rem', color: '#71717a', marginTop: '2px' }}>
+                                        ⚠️ 건당 8.4원 비용 발생 • 잔여횟수 · 기간 · 만료일
+                                    </div>
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleToggleAttendanceSms}
+                                disabled={smsSaving}
+                                style={{
+                                    width: '44px', height: '24px', borderRadius: '12px', border: 'none',
+                                    background: attendanceSmsEnabled ? '#3B82F6' : 'rgba(255,255,255,0.15)',
+                                    cursor: smsSaving ? 'not-allowed' : 'pointer',
+                                    position: 'relative', transition: 'background 0.2s'
+                                }}
+                            >
+                                <div style={{
+                                    width: '18px', height: '18px', borderRadius: '50%',
+                                    background: 'white', position: 'absolute', top: '3px',
+                                    left: attendanceSmsEnabled ? '22px' : '4px',
+                                    transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                                }} />
+                            </button>
+                        </div>
+                        {/* 지금 보내기 버튼 */}
+                        <button
+                            onClick={() => {
+                                setSendMode('sms_only');
+                                const name = member?.name || '회원';
+                                const credits = member?.credits;
+                                const endDate = member?.endDate;
+                                const count = member?.attendanceCount || 0;
+                                const parts = [`${name} 회원님 출석 현황 안내`];
+                                if (credits !== undefined && credits < 999999) parts.push(`잔여 ${credits}회`);
+                                if (endDate && endDate !== 'TBD' && endDate !== 'unlimited') {
+                                    const today = new Date();
+                                    const end = new Date(endDate);
+                                    const diff = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+                                    parts.push(`기간: ~${endDate.slice(5)} (${diff >= 0 ? diff + '일 남음' : '만료'})`);
+                                }
+                                if (count > 0) parts.push(`누적 ${count}회 출석`);
+                                setMessage(parts.join('\n'));
+                            }}
+                            style={{
+                                padding: '8px 10px', borderRadius: '8px', cursor: 'pointer',
+                                background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.25)',
+                                color: '#3B82F6', fontSize: '0.78rem', fontWeight: '700',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                                transition: 'all 0.15s'
+                            }}
+                        >
+                            📤 지금 SMS로 잔여 정보 보내기
+                            <span style={{ fontSize: '0.65rem', fontWeight: '500', opacity: 0.7 }}>(건당 8.4원)</span>
+                        </button>
+                    </div>
+                ) : (
+                    <div style={{
+                        padding: '8px 10px', borderRadius: '8px',
+                        background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+                        fontSize: '0.78rem', color: '#71717a'
+                    }}>
+                        📩 SMS 알림: 무제한 회원은 보내지 않습니다 (잔여 횟수 정보 없음)
+                    </div>
+                )}
+            </div>
+
             {/* Input Area */}
             <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px', marginBottom: '20px' }}>
                 
-                {/* [Solapi] Template Selection */}
+                {/* [NEW] Send Mode Selection — 3-way radio */}
                 <div style={{ marginBottom: '12px' }}>
-                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.8rem', color: '#a1a1aa' }}>발송 유형 (알림톡/문자)</label>
-                    <select
-                        value={selectedTemplateId}
-                        onChange={handleTemplateSelect}
-                        style={{
-                            width: '100%', padding: '8px', borderRadius: '8px',
-                            background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)',
-                            color: 'white', outline: 'none', cursor: 'pointer', fontSize: '0.9rem'
-                        }}
-                    >
-                        {alimTalkTemplates.map(t => (
-                            <option key={t.id} value={t.id} style={{ background: '#1d1d2b' }}>
-                                {t.name}
-                            </option>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.8rem', color: '#a1a1aa' }}>전송 방식</label>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                        {SEND_MODES.map(mode => (
+                            <button
+                                key={mode.id}
+                                onClick={() => setSendMode(mode.id)}
+                                style={{
+                                    flex: 1,
+                                    padding: '8px 6px',
+                                    borderRadius: '8px',
+                                    border: sendMode === mode.id ? `2px solid ${mode.color}` : '1px solid rgba(255,255,255,0.1)',
+                                    background: sendMode === mode.id ? `${mode.color}15` : 'rgba(255,255,255,0.03)',
+                                    color: sendMode === mode.id ? mode.color : '#a1a1aa',
+                                    cursor: 'pointer',
+                                    fontSize: '0.75rem',
+                                    fontWeight: sendMode === mode.id ? '700' : '500',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '2px',
+                                    transition: 'all 0.15s ease'
+                                }}
+                            >
+                                <span style={{ fontSize: '1rem' }}>{mode.icon}</span>
+                                <span>{mode.label}</span>
+                                <span style={{ fontSize: '0.65rem', opacity: 0.7 }}>{mode.desc}</span>
+                            </button>
                         ))}
-                    </select>
-
-                    {/* [NEW] AlimTalk Template Preview */}
-                    {selectedTemplateId && selectedTemplate && (
-                        <div style={{ 
-                            marginTop: '12px', padding: '12px', 
-                            background: 'rgba(var(--primary-rgb), 0.05)', 
-                            borderRadius: '8px', border: '1px dashed rgba(var(--primary-rgb), 0.3)' 
-                        }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--primary-gold)' }}>
-                                    <Info size={14} /> 알림톡 템플릿 가이드
-                                </div>
-                                <button 
-                                    onClick={handleCopyTemplate}
-                                    style={{ 
-                                        background: 'rgba(var(--primary-rgb), 0.2)', color: 'white', 
-                                        border: 'none', borderRadius: '4px', padding: '4px 8px', 
-                                        fontSize: '0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' 
-                                    }}
-                                >
-                                    <Copy size={12} /> 내용 복사하기
-                                </button>
-                            </div>
-                            <div style={{ fontSize: '0.85rem', color: '#e4e4e7', lineHeight: '1.4', wordBreak: 'break-all' }}>
-                                {selectedTemplate.content}
-                            </div>
-                            <div style={{ marginTop: '8px', fontSize: '0.7rem', color: '#a1a1aa' }}>
-                                * 알림톡은 템플릿 내용과 일치해야 발송됩니다. 변수 부분만 수정하여 입력해주세요.
-                            </div>
-                        </div>
-                    )}
+                    </div>
                 </div>
 
                 <textarea
                     value={message}
                     onChange={e => setMessage(e.target.value)}
-                    placeholder={selectedTemplateId ? "알림톡 템플릿 내용과 일치하게 입력해주세요." : "회원에게 보낼 메시지를 입력하세요..."}
+                    placeholder="회원에게 보낼 메시지를 입력하세요..."
                     style={{
                         width: '100%', height: '80px', background: 'transparent', border: 'none',
                         color: 'white', fontSize: '1rem', resize: 'none', outline: 'none'
                     }}
                 />
                 
-                {/* [NEW] Cost Estimation */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '0.8rem', color: '#a1a1aa', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px', marginBottom: '8px' }}>
+                {/* Cost & SMS/LMS Info Bar */}
+                <div style={{ 
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    fontSize: '0.8rem', color: '#a1a1aa', 
+                    borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px', marginBottom: '8px'
+                }}>
                     {(() => {
-                        // Simple byte calculation (Korean ~2bytes, English 1byte)
-                        // Aligo standard: SMS <= 90 bytes, LMS > 90 bytes
                         let bytes = 0;
                         for (let i = 0; i < message.length; i++) {
                             const code = message.charCodeAt(i);
                             bytes += (code >> 7) ? 2 : 1;
                         }
                         const isLMS = bytes > 90;
-                        const cost = selectedTemplateId ? 15 : (isLMS ? 25 : 8.4); // Aligo rates: SMS 8.4원, LMS 25원
-                        return (
-                            <span style={{ color: selectedTemplateId ? 'var(--primary-gold)' : (isLMS ? '#f59e0b' : '#10b981') }}>
-                                {bytes} bytes ({selectedTemplateId ? '알림톡' : (isLMS ? 'LMS' : 'SMS')}) • 예상 비용: 약 {cost}원
-                            </span>
+                        const smsCost = 8.4;
+                        const lmsCost = 25;
+                        const cost = sendMode === 'push_only' ? 0 : (isLMS ? lmsCost : smsCost);
+                        const maxBytes = isLMS ? 2000 : 90;
+
+                        return sendMode === 'push_only' ? (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                <span>{message.length}자</span>
+                                <span style={{ color: '#10b981', fontWeight: '600' }}>📱 앱 푸시 • 무료</span>
+                            </div>
+                        ) : (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <span style={{ 
+                                        background: isLMS ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                                        color: isLMS ? '#f59e0b' : '#10b981',
+                                        padding: '2px 6px', borderRadius: '4px', fontWeight: '700', fontSize: '0.7rem'
+                                    }}>
+                                        {isLMS ? 'LMS' : 'SMS'}
+                                    </span>
+                                    <span>{message.length}자 • {bytes}/{maxBytes} bytes</span>
+                                </div>
+                                <span style={{ color: isLMS ? '#f59e0b' : '#10b981', fontWeight: '600' }}>
+                                    건당 {cost}원{sendMode === 'push_first' ? ' (푸시 실패 시)' : ''}
+                                </span>
+                            </div>
                         );
                     })()}
                 </div>
 
-                {/* [NEW] Scheduling UI */}
+                {/* Scheduling UI */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <input 
@@ -286,10 +387,13 @@ const MessagesTab = ({ memberId }) => {
                         onClick={handleSend}
                         disabled={sending || !message.trim()}
                         style={{
-                            background: sending ? '#52525b' : 'var(--primary-gold)',
-                            color: sending ? '#d4d4d8' : 'black',
+                            background: (sending || !message.trim()) ? '#52525b' : 'var(--primary-gold)',
+                            color: (sending || !message.trim()) ? '#71717a' : 'var(--text-on-primary)',
                             border: 'none', borderRadius: '8px', padding: '8px 20px',
-                            fontWeight: 'bold', cursor: sending ? 'wait' : 'pointer'
+                            fontWeight: 'bold', 
+                            cursor: (sending || !message.trim()) ? 'not-allowed' : 'pointer',
+                            opacity: (sending || !message.trim()) ? 0.5 : 1,
+                            transition: 'all 0.2s'
                         }}
                     >
                         {sending ? '처리 중...' : (isScheduled ? '예약 하기' : '전송 하기')}
@@ -347,6 +451,12 @@ const MessagesTab = ({ memberId }) => {
                                             }}>
                                                 {log.type === 'notice' ? '공지' : '개별'}
                                             </span>
+                                            {/* Send Mode Badge */}
+                                            {log.sendMode && (
+                                                <span style={{ fontSize: '0.65rem', color: '#a1a1aa', padding: '1px 4px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px' }}>
+                                                    {log.sendMode === 'push_only' ? '📱푸시' : log.sendMode === 'sms_only' ? '📩SMS' : '📱➡📩'}
+                                                </span>
+                                            )}
                                             <span style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>
                                                 {log.timestamp ? new Date(log.timestamp).toLocaleString() : '전송 중...'}
                                             </span>
@@ -362,10 +472,10 @@ const MessagesTab = ({ memberId }) => {
                                                     )
                                                 )}
                                                 
-                                                {/* SMS Status (backward compatible: smsStatus || solapiStatus) */}
-                                                {(() => {
+                                                {/* SMS Status — 앱 푸시만 모드에서는 숨기기 */}
+                                                {log.sendMode !== 'push_only' && (() => {
                                                     const st = log.smsStatus || log.solapiStatus;
-                                                    if (!st) return <span style={{ fontSize: '0.75rem', color: '#f59e0b' }}>전송 완료</span>;
+                                                    if (!st) return null;
                                                     return st.sent ? (
                                                         <span style={{ fontSize: '0.75rem', color: '#3B82F6', background: 'rgba(59, 130, 246, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>
                                                             문자 성공

@@ -130,7 +130,7 @@ export const useMeditationAI = ({
                             error: "timeout"
                         }
                     });
-                }, 45000); // Increased timeout to prevent premature disconnects
+                }, 12000); // [최적화] 45초→12초 타임아웃 단축
             });
 
             const startTime = Date.now();

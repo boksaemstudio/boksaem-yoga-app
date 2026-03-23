@@ -13,7 +13,10 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         cleanupOutdatedCaches: true,
         skipWaiting: true,
-        clientsClaim: true
+        clientsClaim: true,
+        // [ROOT FIX] Firebase 메시징 핸들러를 workbox SW에 포함
+        // push 이벤트가 workbox의 sw.js로 전달되므로, firebase 핸들러도 여기에 있어야 함
+        importScripts: ['/firebase-messaging-sw.js']
       },
       manifest: {
         name: '복샘요가',

@@ -34,7 +34,7 @@ const CustomGlassModal = ({ message, isConfirm, onConfirm, onCancel }) => (
                )}
                <button onClick={onConfirm || onCancel} style={{
                    padding: '12px 24px', borderRadius: '14px', border: 'none',
-                   background: 'var(--primary-gold)', color: 'black', fontWeight: '700', flex: 1,
+                   background: 'var(--primary-gold)', color: 'var(--text-on-primary)', fontWeight: '700', flex: 1,
                    boxShadow: '0 4px 15px rgba(255, 215, 0, 0.2)'
                }}>
                    확인

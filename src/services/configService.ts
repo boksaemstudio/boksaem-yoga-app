@@ -11,6 +11,8 @@ export interface KioskSettings {
   active: boolean;
   imageUrl: string | null;
   updatedAt?: string;
+  showTouchGuide?: boolean;      // 터치 안내 텍스트 표시 여부 (기본 true)
+  proximityReturn?: boolean;     // 근접 감지 자동 복귀 (기본 false)
 }
 
 export interface PricingData {

@@ -129,7 +129,7 @@ select option {
 select option:checked,
 select option:hover {
   background-color: var(--primary-theme-color);
-  color: black;
+  color: var(--text-on-primary);
 }
 
 /* FIX: Ensure long-press context menu works in modals (iOS Safari) */

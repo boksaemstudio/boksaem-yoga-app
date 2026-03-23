@@ -12,6 +12,7 @@ const AdminHeader = ({
     loadingInsight,
     aiUsage,
     pushEnabled,
+    pushLoading,
     handleSubscribePush,
     themeContrastText,
     activeTab,
@@ -87,19 +88,33 @@ const AdminHeader = ({
 
                 <button
                     onClick={handleSubscribePush}
+                    disabled={pushLoading}
                     className={`action-btn sm ${pushEnabled ? 'primary' : ''}`}
                     style={{
                         padding: '6px 8px',
                         minWidth: '60px',
-                        background: pushEnabled ? 'var(--primary-theme-color)' : 'rgba(255,255,255,0.05)',
+                        background: pushLoading ? 'rgba(var(--primary-rgb), 0.15)' : pushEnabled ? 'var(--primary-theme-color)' : 'rgba(255,255,255,0.05)',
                         color: pushEnabled ? themeContrastText : 'var(--text-secondary)',
                         fontWeight: 'bold',
                         fontSize: '0.7rem',
                         border: 'none',
-                        borderRadius: '6px'
+                        borderRadius: '6px',
+                        opacity: pushLoading ? 0.7 : 1,
+                        cursor: pushLoading ? 'wait' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        transition: 'all 0.2s'
                     }}
                 >
-                    {pushEnabled ? '알림ON' : '알림OFF'}
+                    {pushLoading ? (
+                        <>
+                            <div style={{ width: '10px', height: '10px', border: '2px solid rgba(255,255,255,0.2)', borderTop: '2px solid currentColor', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+                            설정 중
+                        </>
+                    ) : (
+                        pushEnabled ? '알림ON' : '알림OFF'
+                    )}
                 </button>
                 {/* 지점 선택: 회원, 매출 탭에서만 표시 */}
                 {(activeTab === 'members' || activeTab === 'revenue') && (

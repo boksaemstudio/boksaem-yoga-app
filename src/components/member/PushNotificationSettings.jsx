@@ -287,7 +287,7 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: 'black',
+        color: 'var(--text-on-primary)',
         border: 'none',
         borderRadius: '8px',
         padding: '12px 20px',

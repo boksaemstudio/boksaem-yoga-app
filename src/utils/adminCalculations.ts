@@ -235,6 +235,73 @@ export const calculateDerivedData = (
         if (t.instructorName) instructorNamesWithPush.add(t.instructorName);
     });
 
+    // ━━━━ 재등록률 계산 ━━━━
+    // 1. 누적 재등록률: 2건 이상 결제한 회원 / 결제 이력이 있는 회원
+    const salesByMember = new Map<string, string[]>();  // memberId -> [date1, date2, ...]
+    enrichedSales.forEach(s => {
+        if (!s.parsedDate || !s.memberId) return;
+        if (currentBranch !== 'all' && s.branchId !== currentBranch && memberMapCache.get(s.memberId)?.homeBranch !== currentBranch) return;
+        const arr = salesByMember.get(s.memberId) || [];
+        arr.push(s.parsedDate);
+        salesByMember.set(s.memberId, arr);
+    });
+
+    const membersWithSales = salesByMember.size;
+    const membersReRegistered = Array.from(salesByMember.values()).filter(dates => dates.length >= 2).length;
+    const reRegistrationRate = membersWithSales > 0 ? Math.round((membersReRegistered / membersWithSales) * 100) : 0;
+
+    // 2. 최근 3개월 재등록률: 만료된 회원 중 재결제한 비율
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+    const threeMonthsAgoStr = toKSTDateString(threeMonthsAgo);
+    
+    const recentExpiredMembers = uniqueMembers.filter(m => {
+        if (!isMemberInBranch(m)) return false;
+        if (!m.endDate || m.endDate === 'TBD' || m.endDate === 'unlimited') return false;
+        return m.endDate >= threeMonthsAgoStr && m.endDate <= todayStr;
+    });
+    const recentExpiredIds = new Set(recentExpiredMembers.map(m => m.id));
+    const recentReRegistered = Array.from(salesByMember.entries()).filter(([id, dates]) => {
+        if (!recentExpiredIds.has(id)) return false;
+        const expiredMember = recentExpiredMembers.find(m => m.id === id);
+        if (!expiredMember) return false;
+        // 만료일 이후에 결제한 이력이 있는지 확인
+        return dates.some(d => d > (expiredMember.endDate || ''));
+    }).length;
+    const recentReRegRate = recentExpiredMembers.length > 0 ? Math.round((recentReRegistered / recentExpiredMembers.length) * 100) : 0;
+
+    // 3. 월별 재등록 트렌드 (최근 6개월)
+    const monthlyReRegTrend: { month: string; total: number; reReg: number; rate: number }[] = [];
+    for (let i = 5; i >= 0; i--) {
+        const d = new Date();
+        d.setMonth(d.getMonth() - i);
+        const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        const monthLabel = `${d.getMonth() + 1}월`;
+        
+        // 해당 월의 결제 건수
+        const monthSales = new Set<string>();
+        const monthReReg = new Set<string>();
+        
+        enrichedSales.forEach(s => {
+            if (!s.parsedDate || !s.memberId) return;
+            if (currentBranch !== 'all' && s.branchId !== currentBranch && memberMapCache.get(s.memberId)?.homeBranch !== currentBranch) return;
+            if (!s.parsedDate.startsWith(monthStr)) return;
+            
+            monthSales.add(s.memberId);
+            // 이 회원이 이 월 이전에 결제 이력이 있으면 → 재등록
+            const memberDates = salesByMember.get(s.memberId) || [];
+            const hasPriorSale = memberDates.some(d => d < monthStr);
+            if (hasPriorSale) monthReReg.add(s.memberId);
+        });
+        
+        monthlyReRegTrend.push({
+            month: monthLabel,
+            total: monthSales.size,
+            reReg: monthReReg.size,
+            rate: monthSales.size > 0 ? Math.round((monthReReg.size / monthSales.size) * 100) : 0
+        });
+    }
+
     const summary = {
         totalMembers,
         activeMembers,
@@ -252,6 +319,14 @@ export const calculateDerivedData = (
         deniedCount,
         deniedExpiredCount,
         deniedNoCreditsCount,
+        // 재등록률 지표
+        reRegistrationRate,        // 누적 재등록률 (%)
+        recentReRegRate,           // 최근 3개월 재등록률 (%)
+        recentExpiredCount: recentExpiredMembers.length,
+        recentReRegisteredCount: recentReRegistered,
+        membersWithSales,
+        membersReRegistered,
+        monthlyReRegTrend,         // 월별 트렌드 [{month, total, reReg, rate}]
         installedCount: uniqueMembers.filter(m => isMemberInBranch(m) && pushTokens.some(t => t.memberId === m.id)).length,
         todayInstalledCount: uniqueMembers.filter(m => isMemberInBranch(m) && m.installedAt && toKSTDateString(new Date(m.installedAt)) === todayStr).length,
         pushEnabledCount: uniqueMembers.filter(m => isMemberInBranch(m) && pushTokens.some(t => t.memberId === m.id) && m.pushEnabled !== false).length,

@@ -136,19 +136,22 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats }) => {
                             />
                             <Tooltip
                                 cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                wrapperStyle={{ maxWidth: '180px', fontSize: '0.75rem', zIndex: 10, pointerEvents: 'none' }}
                                 contentStyle={{ 
                                     backgroundColor: '#18181b', 
                                     borderColor: '#3f3f46', 
                                     borderRadius: '8px',
                                     color: '#fff',
-                                    padding: '12px'
+                                    padding: '8px 10px',
+                                    fontSize: '0.75rem',
+                                    whiteSpace: 'nowrap'
                                 }}
                                 formatter={(value, name) => [
                                     `${new Intl.NumberFormat('ko-KR').format(value)}원`, 
-                                    name === 'amount' || name === 'partialAmount' ? (name === 'amount' ? '월 전체 매출' : `${currentDate.getDate()}일까지 매출`) : name
+                                    name === 'amount' || name === 'partialAmount' ? (name === 'amount' ? '월 전체' : `${currentDate.getDate()}일까지`) : name
                                 ]}
-                                itemStyle={{ color: 'var(--primary-theme-color)' }}
-                                labelStyle={{ color: '#a1a1aa', marginBottom: '8px' }}
+                                itemStyle={{ color: 'var(--primary-theme-color)', fontSize: '0.75rem' }}
+                                labelStyle={{ color: '#a1a1aa', marginBottom: '4px', fontSize: '0.7rem' }}
                             />
                             <Legend 
                                 wrapperStyle={{ fontSize: '0.75rem', color: '#a1a1aa', paddingTop: '10px' }}
@@ -302,16 +305,19 @@ const StraightLineChart = ({ data, branches, showBranches }) => {
                         domain={[0, yMax]}
                     />
                     <Tooltip 
+                        wrapperStyle={{ maxWidth: '160px', fontSize: '0.72rem', zIndex: 10, pointerEvents: 'none' }}
                         contentStyle={{ 
                             backgroundColor: '#18181b', 
                             borderColor: '#3f3f46', 
                             borderRadius: '8px',
                             color: '#fff',
-                            fontSize: '0.85rem'
+                            padding: '6px 8px',
+                            fontSize: '0.72rem',
+                            whiteSpace: 'nowrap'
                         }}
-                        itemStyle={{ color: 'var(--primary-theme-color)' }}
+                        itemStyle={{ color: 'var(--primary-theme-color)', fontSize: '0.72rem' }}
                         formatter={(value, name) => [`${new Intl.NumberFormat('ko-KR').format(value)}원`, name === 'amount' ? '총합' : name]}
-                        labelStyle={{ color: '#a1a1aa', marginBottom: '4px' }}
+                        labelStyle={{ color: '#a1a1aa', marginBottom: '2px', fontSize: '0.65rem' }}
                     />
                     <Line 
                         type="linear" 

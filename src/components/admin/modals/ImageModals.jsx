@@ -56,7 +56,7 @@ export const TimeTableModal = ({ isOpen, onClose, images, setOptimisticImages, o
                         <div key={branch.id} style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                                 <h3 style={{ margin: 0 }}>{branch.name} 시간표</h3>
-                                <button  style={{ background: 'var(--primary-gold)', color: 'black', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}>
+                                <button  style={{ background: 'var(--primary-gold)', color: 'var(--text-on-primary)', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}>
                                     이미지 변경
                                 </button>
                             </div>

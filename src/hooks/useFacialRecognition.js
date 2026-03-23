@@ -51,6 +51,8 @@ export function useFacialRecognition({ enabled, autoUpdateRef, proceedWithCheckI
 
         const scanForFace = async () => {
             const state = autoUpdateRef.current;
+            // [CRITICAL] 키패드 입력 중이면 TF.js 추론 실행하지 않음 — 키패드 반응 최우선
+            if (state.pin?.length > 0) return;
             if (state.message || state.loading || state.showSelectionModal || state.showDuplicateConfirm) return;
             if (Date.now() - lastAutoCheckInRef.current < 15000) return;
             if (biometricsCache.current.length === 0) return;

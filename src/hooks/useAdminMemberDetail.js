@@ -192,12 +192,14 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, { onUpdateMe
         isSubmittingRef.current = true;
         setIsSubmitting(true);
         try {
-            const timestamp = new Date(`${dateStr}T${timeStr || '12:00'}`).toISOString();
-            const result = await storageService.addManualAttendance(member.id, timestamp, branchId, className || '수동 확인');
+            // [FIX] ISO timestamp 대신 YYYY-MM-DD 날짜를 서버에 전달
+            // 이전: new Date(`${dateStr}T${timeStr}`).toISOString() → UTC 변환되어 date 필드에 ISO 저장됨
+            // 수정: YYYY-MM-DD 그대로 전달, 서버가 KST 기준으로 처리
+            const result = await storageService.addManualAttendance(member.id, dateStr, branchId, className || '수동 확인');
             if (result.success) {
                 if (member.startDate === 'TBD') {
-                    const d = new Date(timestamp);
-                    const startDateStr = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+                    const startDateStr = dateStr;
+                    const d = new Date(dateStr);
                     const end = new Date(d); end.setMonth(end.getMonth() + (member.duration || 1)); end.setDate(end.getDate() - 1);
                     const endDateStr = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
                     await storageService.updateMember(member.id, { startDate: startDateStr, endDate: endDateStr });

@@ -45,8 +45,8 @@ const tenantDb = () => {
 };
 // ──────────────────────────────────────────────────────────────────
 
-// [UNIFIED] FCM 토큰 컬렉션 상수 (레거시 마이그레이션 완료 시까지 유지)
-const FCM_COLLECTIONS = ["fcm_tokens", "fcmTokens", "push_tokens"];
+// [UNIFIED] FCM 토큰 컬렉션 — 레거시 마이그레이션 완료, 단일 컬렉션 사용
+const FCM_COLLECTIONS = ["fcm_tokens"];
 
 /**
  * 한국 표준시(KST) 기준의 "YYYY-MM-DD" 포맷 문자열 반환

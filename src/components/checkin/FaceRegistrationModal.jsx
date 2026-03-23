@@ -9,7 +9,7 @@ import { memberService } from '../../services/memberService';
  * [FIX] 모달이 자체 카메라 스트림을 독립적으로 관리합니다.
  * videoRef props가 없거나 srcObject가 없어도 자체 getUserMedia로 카메라를 획득합니다.
  */
-const FaceRegistrationModal = ({ isOpen, onClose, videoRef: externalVideoRef }) => {
+const FaceRegistrationModal = ({ isOpen, onClose, videoRef: externalVideoRef, modelsAlreadyLoaded = false }) => {
     const [step, setStep] = useState(1); // 1: intro, 2: pin, 3: capture, 4: done
     const [pin, setPin] = useState('');
     const [matchedMember, setMatchedMember] = useState(null);
@@ -174,12 +174,29 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef: externalVideoRef }) 
     const captureAndSave = useCallback(async () => {
         setSaving(true);
         setError('');
-        setStatusMsg('AI 모델 로딩 중...');
         
-        try {
-            await loadFacialModels();
+        // [ROOT FIX] 모델이 이미 페이지 레벨에서 로딩되었으면 건너뛰기
+        if (modelsAlreadyLoaded) {
+            console.log('[FaceReg] Models already loaded by useFacialRecognition hook — skipping');
             setStatusMsg('얼굴 분석 중...');
+        } else {
+            setStatusMsg('AI 모델 로딩 중...');
+            try {
+                await Promise.race([
+                    loadFacialModels(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('AI 모델 로딩 시간 초과. 다시 시도해주세요.')), 15000))
+                ]);
+                setStatusMsg('얼굴 분석 중...');
+            } catch (e) {
+                setSaving(false);
+                setStatusMsg('');
+                setError(e.message);
+                setCountdown(3);
+                return;
+            }
+        }
 
+        try {
             const video = getActiveVideo();
             if (!video) {
                 throw new Error('카메라 영상을 가져올 수 없어요. 카메라 권한을 확인해주세요.');
@@ -191,7 +208,6 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef: externalVideoRef }) 
                 setError('얼굴을 인식하지 못했어요. 카메라를 정면으로 바라봐주세요.');
                 setSaving(false);
                 setStatusMsg('');
-                // [FIX] countdown을 다시 3으로 세팅하되, 자동 재시작하지 않음
                 setCountdown(3);
                 return;
             }
@@ -202,7 +218,8 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef: externalVideoRef }) 
             if (result.success) {
                 setStep(4);
             } else {
-                throw new Error('저장에 실패했어요.');
+                console.error('[FaceReg] updateFaceDescriptor failed:', result.error);
+                throw new Error(result.error || '저장에 실패했어요. 다시 시도해주세요.');
             }
         } catch (e) {
             console.error('[FaceReg] Save failed:', e);
@@ -212,7 +229,7 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef: externalVideoRef }) 
             setSaving(false);
             setStatusMsg('');
         }
-    }, [matchedMember, getActiveVideo]);
+    }, [matchedMember, getActiveVideo, modelsAlreadyLoaded]);
 
     // [FIX] 카메라 준비되면 자동으로 카운트다운 시작
     useEffect(() => {
@@ -281,7 +298,7 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef: externalVideoRef }) 
                             }}>다음에 할게요</button>
                             <button onClick={() => setStep(2)} style={{
                                 flex: 1, padding: '14px', borderRadius: '12px', fontSize: '1rem',
-                                background: 'var(--primary-gold)', color: '#000', fontWeight: 'bold', border: 'none',
+                                background: 'var(--primary-gold)', color: 'var(--text-on-primary)', fontWeight: 'bold', border: 'none',
                                 cursor: 'pointer'
                             }}>등록할게요!</button>
                         </div>
@@ -311,7 +328,7 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef: externalVideoRef }) 
                                     color: i < pin.length ? '#000' : 'rgba(255,255,255,0.3)',
                                     transition: 'all 0.2s'
                                 }}>
-                                    {i < pin.length ? '●' : ''}
+                                    {i < pin.length ? pin[i] : ''}
                                 </div>
                             ))}
                         </div>
@@ -462,13 +479,13 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef: externalVideoRef }) 
                                     }
                                 }} style={{
                                     display: 'block', margin: '10px auto 0', padding: '8px 20px',
-                                    borderRadius: '8px', background: 'var(--primary-gold)', color: '#000',
+                                    borderRadius: '8px', background: 'var(--primary-gold)', color: 'var(--text-on-primary)',
                                     fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.9rem'
                                 }}>다시 시도</button>
                             </div>
                         )}
 
-                        <button onClick={onClose} style={{
+                        <button onClick={() => { setSaving(false); setStatusMsg(''); setError(''); setCountdown(3); onClose(); }} style={{
                             marginTop: '8px', background: 'none', border: 'none',
                             color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', cursor: 'pointer'
                         }}>취소</button>
@@ -490,7 +507,7 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef: externalVideoRef }) 
                         </p>
                         <button onClick={onClose} style={{
                             padding: '14px 40px', borderRadius: '12px', fontSize: '1.1rem',
-                            background: 'var(--primary-gold)', color: '#000', fontWeight: 'bold', border: 'none',
+                            background: 'var(--primary-gold)', color: 'var(--text-on-primary)', fontWeight: 'bold', border: 'none',
                             cursor: 'pointer'
                         }}>확인</button>
                     </div>

@@ -80,7 +80,7 @@ const AISection = ({ aiExperience, weatherData, greetingVisible, t, getTradition
                                         ✨ {t('todayWisdom')}
                                     </div>
                                     {isMultiSession && (
-                                        <div style={{ background: 'var(--primary-gold)', color: 'black', padding: '2px 8px', borderRadius: '10px', fontSize: '0.65rem', fontWeight: '800' }}>
+                                        <div style={{ background: 'var(--primary-gold)', color: 'var(--text-on-primary)', padding: '2px 8px', borderRadius: '10px', fontSize: '0.65rem', fontWeight: '800' }}>
                                             {t('sessionComplete', { n: sessionCount })}
                                         </div>
                                     )}

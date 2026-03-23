@@ -136,7 +136,7 @@ export default function DataMigrationTab() {
                         display: 'inline-block',
                         padding: '12px 24px',
                         background: 'var(--primary-gold)',
-                        color: 'black',
+                        color: 'var(--text-on-primary)',
                         borderRadius: '8px',
                         cursor: 'pointer',
                         fontWeight: 'bold'
@@ -261,7 +261,7 @@ export default function DataMigrationTab() {
                         style={{
                             padding: '12px 24px',
                             background: 'var(--primary-gold)',
-                            color: 'black',
+                            color: 'var(--text-on-primary)',
                             border: 'none',
                             borderRadius: '8px',
                             fontWeight: 'bold',
@@ -290,7 +290,7 @@ export default function DataMigrationTab() {
                         style={{
                             padding: '12px 24px',
                             background: 'var(--primary-gold)',
-                            color: 'black',
+                            color: 'var(--text-on-primary)',
                             border: 'none',
                             borderRadius: '8px',
                             fontWeight: 'bold',

@@ -21,6 +21,7 @@ exports.sendPushOnMessageV2 = onDocumentCreated({
     const messageData = event.data.data();
     const memberId = messageData.memberId;
     const content = messageData.content;
+    const sendMode = messageData.sendMode || 'push_first'; // 'push_only' | 'push_first' | 'sms_only'
 
     if (!memberId || !content) return;
     
@@ -32,85 +33,121 @@ exports.sendPushOnMessageV2 = onDocumentCreated({
 
     try {
         const tdb = tenantDb();
-        // [FIX] 인라인 3중 컬렉션 순회 → getAllFCMTokens 헬퍼로 통합
-        const { tokens, tokenSources } = await getAllFCMTokens(null, { memberId });
-
-        if (tokens.length === 0) {
-            await event.data.ref.update({
-                pushStatus: {
-                    sent: false,
-                    error: "No registered device found.",
-                    sentAt: admin.firestore.FieldValue.serverTimestamp()
-                }
-            });
-            return;
-        }
-
         const studioName = await getStudioName();
         const logoUrl = await getStudioLogoUrl();
-        const payload = {
-            notification: { title: `${studioName} 메시지`, body: content },
-            data: { url: "https://boksaem-yoga.web.app/member?tab=messages" }
-        };
 
-        const response = await admin.messaging().sendEachForMulticast({
-            tokens,
-            notification: payload.notification,
-            data: payload.data,
-            webpush: {
-                notification: { icon: logoUrl },
-                fcm_options: { link: "https://boksaem-yoga.web.app/member?tab=messages" }
-            },
-            android: {
-                notification: { color: "#D4AF37", icon: "stock_ticker_update" }
+        let pushResult = null;
+        let smsResult = null;
+
+        // ── STEP 1: Push 전송 (push_only or push_first) ──
+        if (sendMode !== 'sms_only') {
+            const { tokens, tokenSources } = await getAllFCMTokens(null, { memberId });
+
+            if (tokens.length > 0) {
+                const response = await admin.messaging().sendEachForMulticast({
+                    tokens,
+                    // [ROOT FIX] data-only 메시지 — notification 필드 없음
+                    // → onBackgroundMessage가 showNotification 직접 호출
+                    // → notificationclick 핸들러가 data.url로 올바른 페이지 이동
+                    data: { 
+                        title: `${studioName} 메시지`, 
+                        body: content, 
+                        url: "/member?tab=messages",
+                        icon: logoUrl || ''
+                    },
+                    webpush: {
+                        headers: { Urgency: 'high' }
+                    },
+                    android: { priority: 'high' }
+                });
+
+                pushResult = {
+                    sent: response.successCount > 0,
+                    successCount: response.successCount,
+                    failureCount: response.failureCount,
+                    sentAt: admin.firestore.FieldValue.serverTimestamp()
+                };
+
+                // Clean stale tokens
+                const tokensToDelete = [];
+                response.responses.forEach((res, idx) => {
+                    if (!res.success && 
+                        (res.error?.code === 'messaging/invalid-registration-token' ||
+                         res.error?.code === 'messaging/registration-token-not-registered')) {
+                        tokensToDelete.push({ token: tokens[idx], col: tokenSources[tokens[idx]] });
+                    }
+                });
+                if (tokensToDelete.length > 0) {
+                    const batch = tdb.raw().batch();
+                    tokensToDelete.forEach(item => batch.delete(tdb.collection(item.col).doc(item.token)));
+                    await batch.commit();
+                }
+                pushResult.cleanupCount = tokensToDelete.length;
+            } else {
+                pushResult = { sent: false, error: "No registered device found.", sentAt: admin.firestore.FieldValue.serverTimestamp() };
             }
-        });
-
-        // Clean stale tokens
-        const tokensToDelete = [];
-        response.responses.forEach((res, idx) => {
-            if (!res.success && 
-                (res.error?.code === 'messaging/invalid-registration-token' ||
-                 res.error?.code === 'messaging/registration-token-not-registered')) {
-                tokensToDelete.push({ token: tokens[idx], col: tokenSources[tokens[idx]] });
-            }
-        });
-
-        if (tokensToDelete.length > 0) {
-            const batch = tdb.raw().batch();
-            tokensToDelete.forEach(item => {
-                batch.delete(tdb.collection(item.col).doc(item.token));
-            });
-            await batch.commit();
         }
 
+        // ── STEP 2: SMS 전송 (sms_only OR push_first에서 push 실패 시) ──
+        // [FIX] 솔라피→알리고 전환: sms.js 모듈의 aligoRequest 사용
+        const shouldSendSMS = sendMode === 'sms_only' || (sendMode === 'push_first' && pushResult && !pushResult.sent);
+
+        if (shouldSendSMS) {
+            try {
+                const aligoKey = process.env.ALIGO_API_KEY;
+                const aligoUserId = process.env.ALIGO_USER_ID;
+                const aligoSender = process.env.ALIGO_SENDER || "01022232789";
+
+                if (aligoKey && aligoUserId) {
+                    const memberDoc = await tdb.collection('members').doc(memberId).get();
+                    if (memberDoc.exists) {
+                        const phone = memberDoc.data().phone?.replace(/-/g, '');
+                        if (phone) {
+                            const { sendSMS } = require('./sms');
+                            const result = await sendSMS(phone, content, `${studioName} 알림`);
+                            smsResult = { sent: true, result, provider: 'aligo' };
+                        } else {
+                            smsResult = { sent: false, error: "전화번호 없음" };
+                        }
+                    } else {
+                        smsResult = { sent: false, error: "회원 없음" };
+                    }
+                } else {
+                    smsResult = { sent: false, error: "Aligo API 키 미설정" };
+                }
+            } catch (smsErr) {
+                console.error("[Push] SMS (Aligo) failed:", smsErr);
+                smsResult = { sent: false, error: smsErr.message };
+            }
+        }
+
+        // ── STEP 3: 결과 저장 ──
+        const updateData = {};
+        if (pushResult) updateData.pushStatus = pushResult;
+        if (smsResult) updateData.smsStatus = smsResult;
+        // push_only 모드에서는 smsStatus 필드 자체를 저장하지 않음
+        await event.data.ref.update(updateData);
+
         // Write to push_history
-        if (response.successCount > 0) {
+        const overallSuccess = (pushResult?.sent) || (smsResult?.sent);
+        if (overallSuccess) {
             const memberDoc = await tdb.collection('members').doc(memberId).get();
             const memberName = memberDoc.exists ? memberDoc.data().name : 'Unknown';
             
             await tdb.collection('push_history').add({
                 type: 'individual',
-                title: payload.notification.title,
-                body: payload.notification.body,
+                title: `${studioName} 메시지`,
+                body: content,
                 status: 'sent',
-                successCount: response.successCount,
-                failureCount: response.failureCount,
+                sendMode,
+                successCount: pushResult?.successCount || 0,
+                failureCount: pushResult?.failureCount || 0,
+                smsResult: smsResult?.sent || false,
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
                 targetMemberId: memberId,
                 memberName: memberName
             });
         }
-
-        await event.data.ref.update({
-            pushStatus: {
-                sent: response.successCount > 0,
-                successCount: response.successCount,
-                failureCount: response.failureCount,
-                sentAt: admin.firestore.FieldValue.serverTimestamp(),
-                cleanupCount: tokensToDelete.length
-            }
-        });
 
     } catch (error) {
         console.error("Error sending push:", error);
@@ -294,13 +331,15 @@ exports.sendPushOnNoticeV2 = onDocumentCreated({
                 const chunk = tokens.slice(i, i + chunkSize);
                 const response = await admin.messaging().sendEachForMulticast({
                     tokens: chunk,
-                    notification: { title, body },
-                    data: { url: clickUrl },
-                    webpush: { 
-                        notification: { icon: logoUrl },
-                        fcm_options: { link: clickUrl }
+                    // [ROOT FIX] data-only — 클릭 시 올바른 페이지로 이동
+                    data: { 
+                        title, 
+                        body, 
+                        url: clickUrl.replace('https://boksaem-yoga.web.app', ''),
+                        icon: logoUrl || ''
                     },
-                    android: { notification: { color: "#D4AF37" } }
+                    webpush: { headers: { Urgency: 'high' } },
+                    android: { priority: 'high' }
                 });
                 successTotal += response.successCount;
                 failureTotal += response.failureCount;

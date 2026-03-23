@@ -8,7 +8,7 @@ class AIService {
         if (!key) throw new Error("API Key is missing for AIService (Check .env or config)");
         this.client = new GoogleGenerativeAI(key);
         
-        // Using "gemini-2.5-flash" for extremely low latency chat generation
+        // gemini-2.5-flash — 현재 SDK 지원 최신 모델
         this.model = this.client.getGenerativeModel({
             model: "gemini-2.5-flash",
             generationConfig: { maxOutputTokens: 500 }
@@ -532,7 +532,7 @@ class AIService {
         }
 
         try {
-            console.log(`Parsing document [${docType}] with Gemini Pro 1.5 (High Accuracy Model)...`);
+            console.log(`Parsing document [${docType}] with Gemini 2.5 Pro (High Accuracy Model)...`);
             const result = await this.proParsingModel.generateContent({
                 contents,
                 generationConfig: {

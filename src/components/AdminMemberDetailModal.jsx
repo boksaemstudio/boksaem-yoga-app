@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { getMembershipLabel } from '../utils/membershipLabels';
 import { X, User, Calendar, CreditCard, Chats, BellRinging, CheckSquare, Square } from '@phosphor-icons/react';
 import RegistrationTab from './admin/member-detail/RegistrationTab';
@@ -9,6 +10,7 @@ import { useAdminMemberDetail } from '../hooks/useAdminMemberDetail';
 
 const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberLogs, onClose, pricingConfig, onUpdateMember, onAddSalesRecord, pushTokens = [] }) => {
     const { config } = useStudioConfig();
+    const [prefillMessage, setPrefillMessage] = useState(null);
 
     const getBranchName = (id) => (config.BRANCHES || []).find(b => b.id === id)?.name || id;
     const getBranchColor = (id) => (config.BRANCHES || []).find(b => b.id === id)?.color || 'var(--primary-gold)';
@@ -133,7 +135,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                     )}
                     {activeTab === 'messages' && (
                         <div className="fade-in">
-                            <MessagesTab memberId={member.id} />
+                            <MessagesTab memberId={member.id} member={member} prefillMessage={prefillMessage} onPrefillConsumed={() => setPrefillMessage(null)} />
                         </div>
                     )}
                 </div>
@@ -169,7 +171,32 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                         <div style={{ display: 'flex', gap: '10px' }}>
                             <button onClick={() => setShowChangeModal(false)} style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid #52525b', color: '#a1a1aa', borderRadius: '8px' }}>취소</button>
                             <button
-                                onClick={() => { const d = {}; selectedChangeKeys.forEach(key => { d[key] = editData[key]; }); if (Object.keys(d).length === 0) return; handleFinalSave(d); }}
+                                onClick={() => {
+                                    const d = {};
+                                    selectedChangeKeys.forEach(key => { d[key] = editData[key]; });
+                                    if (Object.keys(d).length === 0) return;
+                                    
+                                    // 기간/횟수 변경이 포함되어 있으면 메시지 탭으로 이동 준비
+                                    const hasImportantChange = selectedChangeKeys.has('credits') || selectedChangeKeys.has('endDate') || selectedChangeKeys.has('startDate');
+                                    
+                                    if (hasImportantChange) {
+                                        const changes = pendingChanges.filter(c => selectedChangeKeys.has(c.key));
+                                        const lines = [
+                                            `${member.name} 회원님, 수강권 정보가 변경되었습니다.`,
+                                            '',
+                                            ...changes.map(c => `• ${c.label}: ${c.oldValue} → ${c.newValue}`),
+                                            '',
+                                            '확인 부탁드립니다 🙏'
+                                        ];
+                                        setPrefillMessage(lines.join('\n'));
+                                    }
+                                    
+                                    handleFinalSave(d);
+                                    
+                                    if (hasImportantChange) {
+                                        setTimeout(() => setActiveTab('messages'), 300);
+                                    }
+                                }}
                                 disabled={selectedChangeKeys.size === 0}
                                 style={{ flex: 2, padding: '12px', borderRadius: '8px', border: 'none', background: selectedChangeKeys.size > 0 ? 'var(--primary-gold)' : '#3f3f46', color: selectedChangeKeys.size > 0 ? 'black' : '#a1a1aa', fontWeight: 'bold' }}
                             >

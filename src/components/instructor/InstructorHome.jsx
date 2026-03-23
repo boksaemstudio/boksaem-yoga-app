@@ -71,22 +71,25 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                      handleEnablePush();
                  }, 3000); // 3초 뒤 자연스럽게 권한 요청 팝업 띄움
              } else if (window.Notification.permission === 'granted') {
-                 // 이미 허용된 상태면 토큰만 조용히 재등록 (Firestore에 토큰이 없을 수도 있으므로)
+                 // [ROOT FIX] serviceWorkerRegistration 필수 — 없으면 토큰 발급 자체 실패
                  const refreshToken = async () => {
                      try {
+                         const registration = await navigator.serviceWorker.ready;
                          const token = await getToken(messaging, {
-                             vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
+                             vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
+                             serviceWorkerRegistration: registration
                          });
                          if (token) {
                              await storageService.saveInstructorToken(token, instructorName);
-                             console.log('[InstructorHome] Token refreshed for:', instructorName);
+                             console.log('[InstructorHome] ✅ Token saved for:', instructorName, 'token:', token.substring(0, 20) + '...');
+                         } else {
+                             console.error('[InstructorHome] ❌ getToken returned null for:', instructorName);
                          }
                      } catch (e) {
-                         console.warn('[InstructorHome] Silent token refresh failed:', e);
+                         console.error('[InstructorHome] ❌ Token refresh FAILED for:', instructorName, e);
                      }
                  };
-                 setTimeout(refreshToken, 2000); // 초기 등록
-                 // [NEW] 1시간마다 토큰 자동 갱신 — 브라우저가 토큰을 교체해도 항상 최신 유지
+                 setTimeout(refreshToken, 2000);
                  tokenRefreshInterval = setInterval(refreshToken, 60 * 60 * 1000);
              }
         }
@@ -110,13 +113,17 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
 
             const permission = await window.Notification.requestPermission();
             if (permission === 'granted') {
+                // [ROOT FIX] serviceWorkerRegistration 필수
+                const registration = await navigator.serviceWorker.ready;
                 const token = await getToken(messaging, {
-                    vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
+                    vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
+                    serviceWorkerRegistration: registration
                 });
                 if (token) {
                     await storageService.saveInstructorToken(token, instructorName);
                     setPushEnabled(true);
                     setPushMessage('✅ 알림이 활성화되었습니다!');
+                    console.log('[InstructorHome] ✅ Push enabled for:', instructorName, 'token:', token.substring(0, 20) + '...');
                 } else {
                     setPushMessage('❌ 토큰을 가져올 수 없습니다.');
                 }
@@ -335,7 +342,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
             {/* Attendance */}
             <div style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '12px', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <h3 style={{ margin: 0, fontSize: '1rem' }}>📋 나의 오늘 출석현황</h3>
+                    <h3 style={{ margin: 0, fontSize: '1rem' }}>📋 오늘 나의 수업 출석 현황</h3>
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{todayStr} ({attendance.length}명)</span>
                 </div>
                 
@@ -375,11 +382,32 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
             <div style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '12px', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
                     {pushEnabled ? <BellRinging size={24} color="var(--primary-gold)" weight="fill" /> : <Bell size={24} color="var(--text-secondary)" />}
-                    <div>
+                    <div style={{ flex: 1 }}>
                         <h3 style={{ margin: 0, fontSize: '1rem' }}>나의 수업 출석회원 알림</h3>
                         <div style={{ margin: '2px 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                             회원 출석 시 알림 받기
                         </div>
+                    </div>
+                    {/* Toggle Switch */}
+                    <div
+                        onClick={() => pushEnabled ? handleDisablePush() : handleEnablePush()}
+                        style={{
+                            width: '50px', height: '28px', borderRadius: '14px',
+                            background: pushEnabled ? '#4CAF50' : 'rgba(255,255,255,0.15)',
+                            position: 'relative', cursor: pushLoading ? 'wait' : 'pointer',
+                            transition: 'background 0.3s ease',
+                            flexShrink: 0,
+                            opacity: pushLoading ? 0.5 : 1
+                        }}
+                    >
+                        <div style={{
+                            width: '22px', height: '22px', borderRadius: '50%',
+                            background: 'white',
+                            position: 'absolute', top: '3px',
+                            left: pushEnabled ? '25px' : '3px',
+                            transition: 'left 0.3s ease',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                        }} />
                     </div>
                 </div>
                 
@@ -387,7 +415,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                     <div style={{ textAlign: 'center', background: 'rgba(76, 175, 80, 0.1)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(76, 175, 80, 0.3)' }}>
                         <BellRinging size={28} weight="fill" color="#4CAF50" style={{ marginBottom: '8px' }} />
                         <div style={{ color: '#4CAF50', fontWeight: 'bold', fontSize: '1rem', marginBottom: '4px' }}>알림 설정이 켜져 있습니다</div>
-                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>브라우저 알림 설정에서 끌 수 있습니다.</div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>토글을 눌러 알림을 끌 수 있습니다.</div>
                     </div>
                 ) : (
                     <button 
@@ -481,7 +509,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                             onClick={handleInstallPWA} 
                             style={{ 
                                 width: '100%', padding: '14px', borderRadius: '10px', border: 'none', 
-                                background: 'var(--primary-gold)', color: '#000000', fontWeight: 'bold', 
+                                background: 'var(--primary-gold)', color: 'var(--text-on-primary)', fontWeight: 'bold', 
                                 fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', 
                                 justifyContent: 'center', gap: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
                             }}
