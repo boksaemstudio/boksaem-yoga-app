@@ -214,8 +214,18 @@ const SuperAdminPage = () => {
                     </div>
 
                     {/* 관리자 흐름 안내 */}
-                    <div style={{ marginBottom: '20px', padding: '14px 18px', background: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.15)', borderRadius: '10px', fontSize: '0.8rem', color: '#8ab4f8' }}>
-                        💡 <strong>관리자 추가 순서:</strong> 이메일 등록 → 비밀번호 설정 링크를 관리자에게 전달 → 관리자가 직접 비밀번호 설정 → 로그인
+                    <div style={{ marginBottom: '20px', padding: '16px 20px', background: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '12px', color: '#e2e8f0', lineHeight: '1.6', fontSize: '0.85rem' }}>
+                        <div style={{ fontWeight: '700', fontSize: '0.95rem', color: '#60A5FA', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <ShieldCheck size={18} /> 새 관리자 추가 순서 (슈퍼어드민 숨김 방식)
+                        </div>
+                        <ol style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <li>우측 상단의 <strong>[+ 새 관리자]</strong> 버튼 클릭</li>
+                            <li>이메일과 담당 업장만 선택하고 "생성하기" 클릭 (비밀번호 입력란 없음)</li>
+                            <li>성공하면 화면에 <strong>"비밀번호 설정 링크"</strong> 생성</li>
+                            <li>이 링크 복사 버튼을 눌러서 해당 원장님께 카톡/문자로 전달</li>
+                            <li>원장님이 링크를 누르면 본인이 직접 사용할 비밀번호를 입력하고 저장</li>
+                            <li>원장님은 설정한 비밀번호로 본인 업장에 로그인 (자신만의 단독 앱이라 인식)</li>
+                        </ol>
                     </div>
 
                     {adminsLoading ? (
