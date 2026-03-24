@@ -26,6 +26,7 @@ const smsFunctions = require('./modules/sms');
 const statsFunctions = require('./modules/stats');
 const bookingFunctions = require('./modules/booking');
 const migrationFunctions = require('./modules/migration');
+const backupFunctions = require('./modules/backup');
 
 // Re-export all functions
 module.exports = {
@@ -57,7 +58,10 @@ module.exports = {
     ...bookingFunctions,
 
     // [TEMP] Tenant Migration (마이그레이션 완료 후 제거)
-    ...migrationFunctions
+    ...migrationFunctions,
+
+    // Firestore Automatic Backup (하루 2회)
+    ...backupFunctions
 };
 
 /**
