@@ -89,3 +89,121 @@ exports.getMyClaimsCall = onCall({
         studioId: request.auth.token.studioId || null,
     };
 });
+
+/**
+ * 관리자 계정 생성 (슈퍼어드민 전용)
+ * 임시 비밀번호로 생성 후 비밀번호 재설정 링크를 반환
+ * → 관리자 본인이 직접 비밀번호를 설정하게 함
+ */
+exports.createAdminCall = onCall({
+    region: "asia-northeast3",
+}, async (request) => {
+    if (!request.auth || request.auth.token.role !== "superadmin") {
+        throw new HttpsError("permission-denied", "슈퍼어드민만 관리자를 생성할 수 있습니다.");
+    }
+
+    const { email, role, studioId, displayName } = request.data;
+
+    if (!email || !role) {
+        throw new HttpsError("invalid-argument", "이메일과 역할은 필수입니다.");
+    }
+    if (role === "admin" && !studioId) {
+        throw new HttpsError("invalid-argument", "일반 관리자는 업장 ID(studioId)가 필수입니다.");
+    }
+
+    try {
+        // 1. 임시 비밀번호로 Firebase Auth 사용자 생성
+        const tempPassword = Math.random().toString(36).slice(-12) + "A1!";
+        const userRecord = await admin.auth().createUser({
+            email,
+            password: tempPassword,
+            displayName: displayName || email.split("@")[0],
+        });
+
+        // 2. Claims 설정
+        const claims = { role };
+        if (studioId) claims.studioId = studioId;
+        await admin.auth().setCustomUserClaims(userRecord.uid, claims);
+
+        // 3. 비밀번호 재설정 링크 생성 (관리자가 직접 비밀번호 설정)
+        const resetLink = await admin.auth().generatePasswordResetLink(email);
+
+        console.log(`[AdminClaims] Created admin: ${email} (${role})`);
+
+        return {
+            success: true,
+            message: `${email} 관리자 계정 생성 완료`,
+            uid: userRecord.uid,
+            claims,
+            resetLink // 슈퍼어드민이 이 링크를 관리자에게 전달
+        };
+    } catch (e) {
+        console.error("[AdminClaims] Create error:", e);
+        if (e.code === "auth/email-already-exists") {
+            throw new HttpsError("already-exists", "이미 등록된 이메일입니다.");
+        }
+        throw new HttpsError("internal", e.message);
+    }
+});
+
+/**
+ * 관리자 목록 조회 (슈퍼어드민 전용)
+ * 이메일이 있는 실제 사용자만 반환 (익명 제외)
+ */
+exports.listAdminsCall = onCall({
+    region: "asia-northeast3",
+}, async (request) => {
+    if (!request.auth || request.auth.token.role !== "superadmin") {
+        throw new HttpsError("permission-denied", "슈퍼어드민만 조회할 수 있습니다.");
+    }
+
+    try {
+        const listResult = await admin.auth().listUsers(1000);
+        const admins = listResult.users
+            .filter(u => u.email) // 이메일 있는 사용자만
+            .map(u => ({
+                uid: u.uid,
+                email: u.email,
+                displayName: u.displayName || "",
+                role: u.customClaims?.role || null,
+                studioId: u.customClaims?.studioId || null,
+                lastSignIn: u.metadata?.lastSignInTime || null,
+                createdAt: u.metadata?.creationTime || null,
+            }));
+
+        return { success: true, admins };
+    } catch (e) {
+        console.error("[AdminClaims] List error:", e);
+        throw new HttpsError("internal", e.message);
+    }
+});
+
+/**
+ * 관리자 비밀번호 변경 (슈퍼어드민 전용)
+ */
+exports.resetAdminPasswordCall = onCall({
+    region: "asia-northeast3",
+}, async (request) => {
+    if (!request.auth || request.auth.token.role !== "superadmin") {
+        throw new HttpsError("permission-denied", "슈퍼어드민만 비밀번호를 변경할 수 있습니다.");
+    }
+
+    const { uid, newPassword } = request.data;
+
+    if (!uid || !newPassword) {
+        throw new HttpsError("invalid-argument", "uid와 newPassword는 필수입니다.");
+    }
+    if (newPassword.length < 6) {
+        throw new HttpsError("invalid-argument", "비밀번호는 최소 6자 이상이어야 합니다.");
+    }
+
+    try {
+        await admin.auth().updateUser(uid, { password: newPassword });
+        const user = await admin.auth().getUser(uid);
+        console.log(`[AdminClaims] Password reset for ${user.email}`);
+        return { success: true, message: `${user.email} 비밀번호 변경 완료` };
+    } catch (e) {
+        console.error("[AdminClaims] Password reset error:", e);
+        throw new HttpsError("internal", e.message);
+    }
+});
