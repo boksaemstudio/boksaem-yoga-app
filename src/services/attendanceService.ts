@@ -190,6 +190,17 @@ export const attendanceService = {
         }
     },
 
+    async getDeletedAttendance(): Promise<AttendanceLog[]> {
+        try {
+            const q = query(tenantDb.collection('attendance'), where('deletedAt', '!=', null), orderBy('deletedAt', 'desc'));
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as AttendanceLog));
+        } catch (e) {
+            console.warn("[attendanceService] getDeletedAttendance failed:", e);
+            return [];
+        }
+    },
+
     async syncPendingCheckins(): Promise<{ successCount: number; remainingCount: number }> {
         if (!navigator.onLine) return { successCount: 0, remainingCount: 0 };
         const queue: Record<string, unknown>[] = JSON.parse(localStorage.getItem('pending_checkins_queue') || '[]');

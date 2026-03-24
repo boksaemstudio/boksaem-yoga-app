@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
     Users, ClockCounterClockwise, Calendar, Tag, ChartBar, 
-    Megaphone, BellRinging, Database, Desktop, Gear, CalendarCheck 
+    Megaphone, BellRinging, Database, Desktop, Gear, CalendarCheck, Trash 
 } from '@phosphor-icons/react';
 
 const AdminNav = ({ activeTab, setActiveTab, pendingApprovals, config }) => {
@@ -62,6 +62,10 @@ const AdminNav = ({ activeTab, setActiveTab, pendingApprovals, config }) => {
                     <span>데이터</span>
                 </button>
             )}
+            <button onClick={() => setActiveTab('trash')} className={`nav-tab-item ${activeTab === 'trash' ? 'active' : ''}`}>
+                <Trash size={22} weight={activeTab === 'trash' ? "fill" : "regular"} />
+                <span>휴지통</span>
+            </button>
             <button onClick={() => setActiveTab('settings')} className={`nav-tab-item ${activeTab === 'settings' ? 'active' : ''}`}>
                 <Gear size={22} weight={activeTab === 'settings' ? "fill" : "regular"} />
                 <span>설정</span>

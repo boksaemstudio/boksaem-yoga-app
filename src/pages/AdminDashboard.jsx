@@ -41,6 +41,7 @@ import AdminHeader from '../components/admin/AdminHeader';
 import AdminNav from '../components/admin/AdminNav';
 import StudioSettingsTab from '../components/admin/tabs/StudioSettingsTab';
 import BookingsTab from '../components/admin/tabs/BookingsTab';
+import TrashTab from '../components/admin/tabs/TrashTab';
 import AdminInsights from '../components/AdminInsights';
 import ChurnReportPanel from '../components/admin/ChurnReportPanel';
 import { usePWA } from '../hooks/usePWA';
@@ -736,6 +737,10 @@ const AdminDashboard = () => {
 
                 {activeTab === 'kiosk' && (
                     <KioskSettingsTab />
+                )}
+
+                {activeTab === 'trash' && (
+                    <TrashTab />
                 )}
 
                 {activeTab === 'settings' && (

@@ -157,6 +157,7 @@ export const storageService = {
     clearAllAttendance() { return attendanceService.clearAllAttendance(); },
     addManualAttendance(memberId: string, date: string, branchId: string, className = "수동 확인", instructor = "관리자", options: { skipCreditDeduction?: boolean } = {}) { return attendanceService.addManualAttendance(memberId, date, branchId, className, instructor, options); },
     updatePastAttendanceRecords(branchId: string, dateStr: string, oldClasses: DailyClass[] | null, newClasses: DailyClass[] | null) { return attendanceService.updatePastAttendanceRecords(branchId, dateStr, oldClasses, newClasses); },
+    getDeletedAttendance() { return attendanceService.getDeletedAttendance(); },
 
     // ═══ PAYMENT ═══
     getSales(): SalesRecord[] { return paymentService.getSales(); },
