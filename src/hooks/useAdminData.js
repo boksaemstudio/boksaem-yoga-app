@@ -48,10 +48,18 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
             try {
                 const parsed = JSON.parse(cachedBriefing);
                 if (parsed && parsed.message && !parsed.isFallback) {
-                    setAiInsight(parsed);
-                    loadingRef.current = false;
-                    setLoadingInsight(false);
-                    return;
+                    // [FIX] 캐시된 activeMembers와 현재 값 비교 — 큰 차이가 있으면 캐시 무효화
+                    const cachedActive = parsed._cachedActiveMembers ?? -1;
+                    const currentActive = currentSummary.activeMembers || 0;
+                    const isStale = (cachedActive === 0 && currentActive > 0) || 
+                                    (currentActive > 0 && Math.abs(cachedActive - currentActive) / currentActive > 0.5);
+                    if (!isStale) {
+                        setAiInsight(parsed);
+                        loadingRef.current = false;
+                        setLoadingInsight(false);
+                        return;
+                    }
+                    console.log(`[AI] Cache invalidated: cached activeMembers=${cachedActive}, current=${currentActive}`);
                 }
             } catch {} // 파싱 실패 시 새로 생성
         }
@@ -194,7 +202,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
                 setAiInsight(insight);
                 // 하루 캐시 저장 (다음 접속 시 즉시 로드)
                 if (!insight.isFallback) {
-                    try { localStorage.setItem(dailyCacheKey, JSON.stringify(insight)); } catch {}
+                    try { localStorage.setItem(dailyCacheKey, JSON.stringify({ ...insight, _cachedActiveMembers: currentSummary.activeMembers })); } catch {}
                 }
             }
         } catch (err) {
