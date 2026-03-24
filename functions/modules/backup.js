@@ -138,41 +138,41 @@ async function cleanupOldBackups() {
 }
 
 /**
- * 새벽 4시 자동 백업 (전일 마감 데이터 확보)
+ * 밤 11시 자동 백업 (당일 마감 데이터 확보)
  */
 exports.firestoreBackupMorningV2 = onSchedule({
-    schedule: "0 4 * * *",
+    schedule: "0 23 * * *",
     timeZone: "Asia/Seoul",
     region: "asia-northeast3",
     memory: "512MiB",
     timeoutSeconds: 300,
 }, async () => {
     try {
-        const opName = await runBackup("morning");
-        console.log(`[Backup] Morning backup started: ${opName}`);
+        const opName = await runBackup("night");
+        console.log(`[Backup] Night backup started: ${opName}`);
 
         // 새벽 백업 시 오래된 백업 정리도 함께 실행
         const deleted = await cleanupOldBackups();
         console.log(`[Backup] Cleanup completed: ${deleted} files removed.`);
     } catch (error) {
-        console.error("[Backup] Morning backup FAILED:", error);
+        console.error("[Backup] Night backup FAILED:", error);
     }
 });
 
 /**
- * 오후 2시 자동 백업 (오전 수업 데이터 확보)
+ * 오후 1시 자동 백업 (오전 수업 데이터 확보)
  */
 exports.firestoreBackupAfternoonV2 = onSchedule({
-    schedule: "0 14 * * *",
+    schedule: "0 13 * * *",
     timeZone: "Asia/Seoul",
     region: "asia-northeast3",
     memory: "512MiB",
     timeoutSeconds: 300,
 }, async () => {
     try {
-        const opName = await runBackup("afternoon");
-        console.log(`[Backup] Afternoon backup started: ${opName}`);
+        const opName = await runBackup("early_morning");
+        console.log(`[Backup] Early morning backup started: ${opName}`);
     } catch (error) {
-        console.error("[Backup] Afternoon backup FAILED:", error);
+        console.error("[Backup] Early morning backup FAILED:", error);
     }
 });
