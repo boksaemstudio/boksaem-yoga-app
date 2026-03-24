@@ -19,8 +19,10 @@ service firebase.storage {
     // ========================================
     match /kiosk_notices/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null
+      // [FIX] create/update와 delete 분리 — 삭제 시 request.resource가 없어서 size 체크 불가
+      allow create, update: if request.auth != null
                    && request.resource.size < 50 * 1024 * 1024; // Max 50MB
+      allow delete: if request.auth != null;
     }
 
     // Helper: Check if authenticated
