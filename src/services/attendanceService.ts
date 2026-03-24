@@ -99,7 +99,7 @@ export const attendanceService = {
             try {
                 const q = query(tenantDb.collection('attendance'), where('memberId', '==', memberId));
                 const snapshot = await getDocs(q);
-                results = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as AttendanceLog));
+                results = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as AttendanceLog)).filter(r => !(r as Record<string, unknown>).deletedAt);
                 results.sort((a, b) => new Date(b.timestamp || '').getTime() - new Date(a.timestamp || '').getTime());
             } catch (e) { console.warn('[Attendance] Firestore fallback failed:', e); }
         }
@@ -110,7 +110,7 @@ export const attendanceService = {
         try {
             const q = query(tenantDb.collection('attendance'), where("date", "==", dateStr));
             const snapshot = await getDocs(q);
-            let records: AttendanceLog[] = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as AttendanceLog));
+            let records: AttendanceLog[] = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as AttendanceLog)).filter(r => !(r as Record<string, unknown>).deletedAt);
             records.sort((a, b) => { const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0; const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0; return timeB - timeA; });
             if (branchId) records = records.filter(r => r.branchId === branchId);
             return records;
@@ -121,7 +121,7 @@ export const attendanceService = {
         try {
             const q = query(tenantDb.collection('attendance'), where("date", "==", dateStr));
             return onSnapshot(q, (snapshot) => {
-                let records: AttendanceLog[] = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as AttendanceLog));
+                let records: AttendanceLog[] = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as AttendanceLog)).filter(r => !(r as Record<string, unknown>).deletedAt);
                 records.sort((a, b) => { const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0; const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0; return timeB - timeA; });
                 if (branchId) records = records.filter(r => r.branchId === branchId);
                 callback(records);
@@ -145,27 +145,47 @@ export const attendanceService = {
                     batch.update(tenantDb.doc('members', logData.memberId), { credits: increment(creditsToRestore), attendanceCount: increment(-creditsToRestore) });
                 }
             }
-            batch.delete(logRef);
+            // Soft Delete: 실제 삭제 대신 deletedAt 필드 설정 (복원 가능)
+            batch.update(logRef, { deletedAt: new Date().toISOString(), _deletedBy: 'admin' });
             await batch.commit();
 
-            // Delete associated photo from Storage
-            if (logSnap.exists()) {
-                const logData = logSnap.data() as AttendanceLog;
-                if (logData.photoUrl) {
-                    try {
-                        const storage = getStorage(app);
-                        const urlObj = new URL(logData.photoUrl);
-                        const pathParts = urlObj.pathname.split('/o/');
-                        if (pathParts.length > 1) { const filePath = decodeURIComponent(pathParts[1]); await deleteObject(ref(storage, filePath)); }
-                    } catch (photoErr) { console.warn(`[attendanceService] Failed to delete associated photo:`, photoErr); }
-                }
-            }
+            // 사진은 보존 (soft delete이므로 나중에 복원 시 필요)
             cachedAttendance = cachedAttendance.filter(l => l.id !== logId);
             notifyCallback();
             return { success: true };
         } catch (e) {
-            console.error("Delete attendance failed:", e);
+            console.error("Soft-delete attendance failed:", e);
             await deps.logError(e, { context: 'deleteAttendance', logId });
+            return { success: false, message: (e as Error).message };
+        }
+    },
+
+    async restoreAttendance(logId: string): Promise<{ success: boolean; message?: string }> {
+        try {
+            const logRef = tenantDb.doc('attendance', logId);
+            const logSnap = await getDoc(logRef);
+            if (!logSnap.exists()) return { success: false, message: '출석 기록을 찾을 수 없습니다.' };
+
+            const logData = logSnap.data() as AttendanceLog;
+            const { writeBatch: wb, deleteField: df } = await import('firebase/firestore');
+            const batch = wb(db);
+
+            // deletedAt 필드 제거
+            batch.update(logRef, { deletedAt: df(), _deletedBy: df() });
+
+            // 크레딧 차감 복원
+            const lowerStatus = (logData.status || '').toLowerCase();
+            const wasValid = lowerStatus === 'valid' || lowerStatus === 'success' || (!logData.status && !logData.denialReason);
+            if (logData.memberId && wasValid && (logData.type === 'checkin' || logData.type === 'manual' || !logData.type || logData.type === 'attendance')) {
+                const creditsToDeduct = logData.sessionCount || 1;
+                batch.update(tenantDb.doc('members', logData.memberId), { credits: increment(-creditsToDeduct), attendanceCount: increment(creditsToDeduct) });
+            }
+
+            await batch.commit();
+            notifyCallback();
+            return { success: true };
+        } catch (e) {
+            console.error("Restore attendance failed:", e);
             return { success: false, message: (e as Error).message };
         }
     },

@@ -92,11 +92,40 @@ export const paymentService = {
 
     async deleteSalesRecord(salesId: string): Promise<boolean> {
         try {
-            await deleteDoc(tenantDb.doc('sales', salesId));
+            // Soft Delete: 실제 삭제 대신 deletedAt 필드 설정 (복원 가능)
+            await updateDoc(tenantDb.doc('sales', salesId), { 
+                deletedAt: new Date().toISOString(),
+                _deletedBy: 'admin'
+            });
             return true;
         } catch (e) {
-            console.error("[paymentService] Delete sales record failed:", e);
+            console.error("[paymentService] Soft-delete sales record failed:", e);
             throw e;
+        }
+    },
+
+    async restoreSalesRecord(salesId: string): Promise<boolean> {
+        try {
+            const { deleteField } = await import('firebase/firestore');
+            await updateDoc(tenantDb.doc('sales', salesId), { 
+                deletedAt: deleteField(),
+                _deletedBy: deleteField()
+            });
+            return true;
+        } catch (e) {
+            console.error("[paymentService] Restore sales record failed:", e);
+            throw e;
+        }
+    },
+
+    async getDeletedSales(): Promise<SalesRecord[]> {
+        try {
+            const q = query(tenantDb.collection('sales'), where('deletedAt', '!=', null), orderBy('deletedAt', 'desc'));
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SalesRecord));
+        } catch (e) {
+            console.warn("[paymentService] getDeletedSales failed:", e);
+            return [];
         }
     },
 
