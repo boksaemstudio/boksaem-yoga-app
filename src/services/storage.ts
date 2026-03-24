@@ -160,7 +160,7 @@ export const storageService = {
     getDeletedAttendance() { return attendanceService.getDeletedAttendance(); },
 
     // ═══ PAYMENT ═══
-    getSales(): SalesRecord[] { return paymentService.getSales(); },
+    getSales() { return paymentService.getSales(); },
     getRevenueStats() { return paymentService.getRevenueStats(); },
     getAllSales() { return paymentService.getAllSales(); },
     getSalesHistory(memberId: string) { return paymentService.getSalesHistory(memberId); },
@@ -244,7 +244,7 @@ export const storageService = {
     savePricing(pricingData: Record<string, unknown>) { return configService.savePricing(pricingData, notifyListeners); },
     getKioskSettings(branchId = 'all') { return configService.getKioskSettings(branchId); },
     updateKioskSettings(branchId: string, data: Record<string, unknown>) { return configService.updateKioskSettings(branchId, data); },
-    subscribeToKioskSettings(branchId = 'all', callback: (data: Record<string, unknown>) => void) { return configService.subscribeToKioskSettings(branchId, callback); },
+    subscribeToKioskSettings(branchId = 'all', callback: (data: any) => void) { return configService.subscribeToKioskSettings(branchId, callback); },
     getKioskBranch() { return configService.getKioskBranch(); },
     setKioskBranch(branchId: string) { return configService.setKioskBranch(branchId); },
     getCurrentBranch() { return configService.getCurrentBranch(); },

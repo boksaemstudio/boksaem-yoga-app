@@ -377,18 +377,22 @@ exports.sendPushOnNoticeV2 = onDocumentCreated({
 });
 
 /**
- * 유령 토큰 정기 정리 (매주 일요일 새벽 4시)
+ * 유령 토큰 + 익명 사용자 정기 정리 (매주 일요일 새벽 4시)
  */
 exports.cleanupGhostTokens = onSchedule({
     schedule: '0 4 * * 0',
     timeZone: 'Asia/Seoul',
-    region: "asia-northeast3"
+    region: "asia-northeast3",
+    memory: "512MiB",
+    timeoutSeconds: 300,
 }, async (event) => {
     const tdb = tenantDb();
     const batchSize = 400;
-    let totalDeleted = 0;
+    let totalTokensDeleted = 0;
+    let totalUsersDeleted = 0;
 
     try {
+        // ── STEP 1: 유령 FCM 토큰 정리 ──
         const twoMonthsAgo = new Date();
         twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
         
@@ -401,14 +405,33 @@ exports.cleanupGhostTokens = onSchedule({
             const batch = tdb.raw().batch();
             ghostSnap.docs.forEach(doc => {
                 batch.delete(doc.ref);
-                totalDeleted++;
+                totalTokensDeleted++;
             });
             await batch.commit();
         }
 
+        // ── STEP 2: 익명 Firebase Auth 사용자 정리 ──
+        // 키오스크 signInAnonymously()가 생성한 익명 계정 삭제
+        let pageToken;
+        do {
+            const listResult = await admin.auth().listUsers(1000, pageToken);
+            pageToken = listResult.pageToken;
 
-        console.log(`Ghost token cleanup: ${totalDeleted} tokens deleted`);
-        await logAIError('System_Cleanup', { deleted: totalDeleted, type: 'GhostTokenCleanup' });
+            const anonymousUids = listResult.users
+                .filter(u => !u.email && !u.phoneNumber)
+                .map(u => u.uid);
+
+            if (anonymousUids.length > 0) {
+                // 100명씩 배치 삭제
+                for (let i = 0; i < anonymousUids.length; i += 100) {
+                    const batch = anonymousUids.slice(i, i + 100);
+                    const result = await admin.auth().deleteUsers(batch);
+                    totalUsersDeleted += result.successCount;
+                }
+            }
+        } while (pageToken);
+
+        console.log(`[Cleanup] Ghost tokens: ${totalTokensDeleted}, Anonymous users: ${totalUsersDeleted}`);
 
     } catch (error) {
         console.error("Cleanup failed:", error);

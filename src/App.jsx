@@ -94,6 +94,100 @@ const RequireAuth = ({ children }) => {
   return children;
 };
 
+// --- ADMIN GUARD (claims.role === admin/superadmin + studioId 일치) ---
+const RequireAdmin = ({ children }) => {
+  const [checked, setChecked] = useState(false);
+  const [allowed, setAllowed] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) { navigate('/login', { replace: true }); return; }
+      try {
+        const tokenResult = await user.getIdTokenResult();
+        const claims = tokenResult.claims;
+        const role = claims.role;
+
+        // 슈퍼어드민은 모든 업장 접근 가능
+        if (role === 'superadmin') { setAllowed(true); setChecked(true); return; }
+
+        // 일반 어드민은 studioId 일치 필요
+        if (role === 'admin') {
+          const { getCurrentStudioId } = await import('./utils/resolveStudioId');
+          const currentStudioId = getCurrentStudioId();
+          if (claims.studioId === currentStudioId) { setAllowed(true); setChecked(true); return; }
+        }
+
+        // claims 미설정 시 — 점진적 마이그레이션을 위해 일단 허용 (콘솔 경고)
+        if (!role) {
+          console.warn('[Auth] ⚠️ No admin claims set for', user.email, '- allowing access during migration period');
+          setAllowed(true); setChecked(true); return;
+        }
+
+        setAllowed(false); setChecked(true);
+      } catch (e) {
+        console.error('[Auth] Claims check failed:', e);
+        setAllowed(false); setChecked(true);
+      }
+    });
+    return () => unsub();
+  }, [navigate]);
+
+  if (!checked) return <div className="auth-checking">권한 확인 중...</div>;
+  if (!allowed) return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#08080A', color: '#f0f0f0' }}>
+      <div style={{ textAlign: 'center', padding: '40px' }}>
+        <h2 style={{ color: '#EF4444', marginBottom: '16px' }}>🔒 접근 권한 없음</h2>
+        <p style={{ color: '#888' }}>이 업장의 관리자 권한이 없습니다.</p>
+        <button onClick={() => { auth.signOut(); navigate('/login'); }} style={{ marginTop: '20px', padding: '10px 20px', background: '#3B82F6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>로그아웃</button>
+      </div>
+    </div>
+  );
+  return children;
+};
+
+// --- SUPER ADMIN GUARD (claims.role === superadmin 전용) ---
+const RequireSuperAdmin = ({ children }) => {
+  const [checked, setChecked] = useState(false);
+  const [allowed, setAllowed] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) { navigate('/login', { replace: true }); return; }
+      try {
+        const tokenResult = await user.getIdTokenResult();
+        const role = tokenResult.claims.role;
+        
+        // claims 미설정 시 — 마이그레이션 기간 허용
+        if (!role) {
+          console.warn('[Auth] ⚠️ No superadmin claims set for', user.email, '- allowing during migration');
+          setAllowed(true); setChecked(true); return;
+        }
+
+        setAllowed(role === 'superadmin');
+        setChecked(true);
+      } catch (e) {
+        console.error('[Auth] SuperAdmin check failed:', e);
+        setAllowed(false); setChecked(true);
+      }
+    });
+    return () => unsub();
+  }, [navigate]);
+
+  if (!checked) return <div className="auth-checking">권한 확인 중...</div>;
+  if (!allowed) return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#08080A', color: '#f0f0f0' }}>
+      <div style={{ textAlign: 'center', padding: '40px' }}>
+        <h2 style={{ color: '#EF4444', marginBottom: '16px' }}>👑 슈퍼어드민 전용</h2>
+        <p style={{ color: '#888' }}>이 페이지는 플랫폼 관리자만 접근할 수 있습니다.</p>
+        <button onClick={() => navigate('/admin')} style={{ marginTop: '20px', padding: '10px 20px', background: '#3B82F6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>관리자 대시보드로</button>
+      </div>
+    </div>
+  );
+  return children;
+};
+
 function App() {
   // 네트워크 상태 트리거 마운트 (이벤트 콜러 역할)
   const isOnline = useNetworkStatus();
@@ -131,12 +225,12 @@ function App() {
               <NotificationListener />
               <Routes>
                 <Route path="/" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><CheckInPage /></Suspense></ErrorBoundary>} />
-                <Route path="/admin" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><RequireAuth><AdminDashboard /></RequireAuth></Suspense></ErrorBoundary>} />
+                <Route path="/admin" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><RequireAdmin><AdminDashboard /></RequireAdmin></Suspense></ErrorBoundary>} />
                 <Route path="/member" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><MemberProfile /></Suspense></ErrorBoundary>} />
                 <Route path="/login" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><LoginPage /></Suspense></ErrorBoundary>} />
                 <Route path="/instructor" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><InstructorPage /></Suspense></ErrorBoundary>} />
                 <Route path="/meditation" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><MeditationPage /></Suspense></ErrorBoundary>} />
-                <Route path="/super-admin" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><RequireAuth><SuperAdminPage /></RequireAuth></Suspense></ErrorBoundary>} />
+                <Route path="/super-admin" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><RequireSuperAdmin><SuperAdminPage /></RequireSuperAdmin></Suspense></ErrorBoundary>} />
                 <Route path="/privacy" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><PrivacyPolicyPage /></Suspense></ErrorBoundary>} />
               </Routes>
               <NetworkStatus />

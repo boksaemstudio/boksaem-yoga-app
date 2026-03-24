@@ -27,6 +27,7 @@ const statsFunctions = require('./modules/stats');
 const bookingFunctions = require('./modules/booking');
 const migrationFunctions = require('./modules/migration');
 const backupFunctions = require('./modules/backup');
+const adminClaimsFunctions = require('./modules/adminClaims');
 
 // Re-export all functions
 module.exports = {
@@ -61,7 +62,10 @@ module.exports = {
     ...migrationFunctions,
 
     // Firestore Automatic Backup (하루 2회)
-    ...backupFunctions
+    ...backupFunctions,
+
+    // Admin Claims (Custom Claims 기반 권한 관리)
+    ...adminClaimsFunctions
 };
 
 /**
