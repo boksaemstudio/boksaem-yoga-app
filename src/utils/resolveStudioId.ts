@@ -33,6 +33,42 @@ export const resolveStudioId = (): string => {
         return _cachedStudioId;
     }
 
+    // 3-1. 데모앱 (리허설 + 고객 시연)
+    if (host.includes('passflow-demo.web.app') || host.includes('passflow-demo.firebaseapp.com')) {
+        _cachedStudioId = 'demo-yoga';
+        return _cachedStudioId;
+    }
+
+    // 3-2. 쌍문요가
+    if (host.includes('ssangmun-yoga.web.app') || host.includes('ssangmun-yoga.firebaseapp.com')) {
+        _cachedStudioId = 'ssangmun-yoga';
+        return _cachedStudioId;
+    }
+
+    // 3-1. 데모앱 (리허설 + 고객 시연)
+    if (host.includes('passflow-demo.web.app') || host.includes('passflow-demo.firebaseapp.com')) {
+        _cachedStudioId = 'demo-yoga';
+        return _cachedStudioId;
+    }
+
+    // 3-2. 쌍문요가
+    if (host.includes('ssangmun-yoga.web.app') || host.includes('ssangmun-yoga.firebaseapp.com')) {
+        _cachedStudioId = 'ssangmun-yoga';
+        return _cachedStudioId;
+    }
+
+    // 3-1. 데모앱 (리허설 + 고객 시연)
+    if (host.includes('passflow-demo.web.app') || host.includes('passflow-demo.firebaseapp.com')) {
+        _cachedStudioId = 'demo-yoga';
+        return _cachedStudioId;
+    }
+
+    // 3-2. 쌍문요가
+    if (host.includes('ssangmun-yoga.web.app') || host.includes('ssangmun-yoga.firebaseapp.com')) {
+        _cachedStudioId = 'ssangmun-yoga';
+        return _cachedStudioId;
+    }
+
     // 4. 서브도메인 파싱 (namaste.boksaem.app -> namaste)
     const parts: string[] = host.split('.');
     if (parts.length >= 3 && parts[0] !== 'www') {
