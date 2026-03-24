@@ -3,7 +3,7 @@
  */
 const { execSync } = require('child_process');
 
-const sites = ['boksaem-yoga', 'passflow-demo', 'ssangmun-yoga'];
+const sites = ['boksaem-yoga', 'passflow-demo-0324', 'ssangmun-yoga-0324'];
 
 console.log('🚀 전체 배포 시작...\n');
 
