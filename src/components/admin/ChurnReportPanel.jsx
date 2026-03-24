@@ -53,7 +53,7 @@ const getRecommendedMessage = (member, risk) => {
     return `${name} 회원님, 오랜만이에요! 수련하러 오세요 😊 함께하면 더 좋아요! 🧘‍♀️`;
 };
 
-const ChurnReportPanel = ({ dormantMembers, onSendMessage, onClose }) => {
+const ChurnReportPanel = ({ dormantMembers, onSendMessage, onClose, sales }) => {
     const [sendingId, setSendingId] = useState(null);
     const [sentIds, setSentIds] = useState(new Set());
     const [sendMode, setSendMode] = useState('push_first');
@@ -83,6 +83,39 @@ const ChurnReportPanel = ({ dormantMembers, onSendMessage, onClose }) => {
     const criticalCount = analysisResults.filter(r => r.risk.level === 'critical').length;
     const highCount = analysisResults.filter(r => r.risk.level === 'high').length;
     const mediumCount = analysisResults.filter(r => r.risk.level === 'medium').length;
+
+    // 예상 손실 금액 계산 — sales에서 회원별 마지막 결제 금액 lookup
+    const lastPaymentMap = useMemo(() => {
+        const map = new Map(); // memberId -> lastAmount
+        if (!sales || sales.length === 0) return map;
+        // sales를 날짜 역순 정렬 (최근 결제가 앞에)
+        const sorted = [...sales].sort((a, b) => {
+            const da = a.date || a.timestamp || '';
+            const db = b.date || b.timestamp || '';
+            return String(db).localeCompare(String(da));
+        });
+        sorted.forEach(s => {
+            if (!map.has(s.memberId)) {
+                const amt = Number(s.amount) || 0;
+                if (amt > 0) map.set(s.memberId, amt);
+            }
+        });
+        return map;
+    }, [sales]);
+
+    const getMemberLoss = (member) => {
+        // 1순위: sales의 마지막 결제 금액
+        if (lastPaymentMap.has(member.id)) return lastPaymentMap.get(member.id);
+        // 2순위: member.price
+        return Number(member.price) || 0;
+    };
+
+    const calcLoss = (level) => analysisResults
+        .filter(r => r.risk.level === level)
+        .reduce((sum, r) => sum + getMemberLoss(r.member), 0);
+    const criticalLoss = calcLoss('critical');
+    const highLoss = calcLoss('high');
+    const mediumLoss = calcLoss('medium');
 
     // [AI] 메시지 미리보기 — AI가 맞춤 메시지 생성
     const [messageLoading, setMessageLoading] = useState(false);
@@ -303,9 +336,9 @@ const ChurnReportPanel = ({ dormantMembers, onSendMessage, onClose }) => {
             {/* Risk Summary Cards */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
                 {[
-                    { level: 'critical', label: '⚠ 위험', count: criticalCount, color: '#EF4444', bg: 'rgba(239, 68, 68, 0.1)' },
-                    { level: 'high', label: '🔶 주의', count: highCount, color: '#F59E0B', bg: 'rgba(245, 158, 11, 0.1)' },
-                    { level: 'medium', label: '💤 관찰', count: mediumCount, color: '#60A5FA', bg: 'rgba(96, 165, 250, 0.1)' },
+                    { level: 'critical', label: '⚠ 위험', count: criticalCount, loss: criticalLoss, color: '#EF4444', bg: 'rgba(239, 68, 68, 0.1)' },
+                    { level: 'high', label: '🔶 주의', count: highCount, loss: highLoss, color: '#F59E0B', bg: 'rgba(245, 158, 11, 0.1)' },
+                    { level: 'medium', label: '💤 관찰', count: mediumCount, loss: mediumLoss, color: '#60A5FA', bg: 'rgba(96, 165, 250, 0.1)' },
                 ].map(cat => (
                     <div key={cat.level} 
                     onClick={() => setActiveLevel(prev => prev === cat.level ? null : cat.level)}
@@ -319,6 +352,11 @@ const ChurnReportPanel = ({ dormantMembers, onSendMessage, onClose }) => {
                     }}>
                         <div style={{ fontSize: '0.8rem', color: cat.color, marginBottom: '4px' }}>{cat.label}</div>
                         <div style={{ fontSize: '1.5rem', fontWeight: '800', color: cat.color }}>{cat.count}명</div>
+                        {cat.loss > 0 && (
+                            <div style={{ fontSize: '0.75rem', color: cat.color, opacity: 0.85, marginTop: '2px', fontWeight: '600' }}>
+                                💸 {cat.loss >= 10000 ? `${Math.round(cat.loss / 10000)}만원` : `${cat.loss.toLocaleString()}원`}
+                            </div>
+                        )}
                         {cat.count > 0 && (
                             <button 
                                 onClick={(e) => { e.stopPropagation(); openBulkConfirm(cat.level); }}

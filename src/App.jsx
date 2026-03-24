@@ -23,6 +23,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage'));
 const InstructorPage = lazy(() => import('./pages/InstructorPage'));
 const MeditationPage = lazy(() => import('./pages/MeditationPage'));
 const SuperAdminPage = lazy(() => import('./pages/SuperAdminPage'));
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 
 // Loading fallback
 const LoadingScreen = () => {
@@ -136,6 +137,7 @@ function App() {
                 <Route path="/instructor" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><InstructorPage /></Suspense></ErrorBoundary>} />
                 <Route path="/meditation" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><MeditationPage /></Suspense></ErrorBoundary>} />
                 <Route path="/super-admin" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><RequireAuth><SuperAdminPage /></RequireAuth></Suspense></ErrorBoundary>} />
+                <Route path="/privacy" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><PrivacyPolicyPage /></Suspense></ErrorBoundary>} />
               </Routes>
               <NetworkStatus />
               <ReloadPrompt />

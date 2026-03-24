@@ -725,6 +725,12 @@ const StudioSettingsTab = () => {
                 </div>
             </div>
 
+            {/* 개인정보처리방침 */}
+            <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', textDecoration: 'none' }}>
+                    🔒 개인정보처리방침
+                </a>
+            </div>
             <div style={{ height: '200px' }} />
         </div>
     );

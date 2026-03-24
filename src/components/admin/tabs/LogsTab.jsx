@@ -6,6 +6,7 @@ import { storageService } from '../../../services/storage';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 import ImageLightbox from '../../common/ImageLightbox';
 import LogListItem from './LogListItem';
+import AttendanceTrendChart from './AttendanceTrendChart';
 
 // ─── Mini Calendar Popup ───
 const MiniCalendar = memo(({ selectedDate, onSelect, onClose, config }) => {
@@ -419,6 +420,9 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                     </div>
                 </div>
             </div>
+
+            {/* ─── Attendance Trend Analytics ─── */}
+            <AttendanceTrendChart selectedDate={selectedDate} members={members} />
 
             {/* ─── Loading State ─── */}
             {loadingHistorical && (

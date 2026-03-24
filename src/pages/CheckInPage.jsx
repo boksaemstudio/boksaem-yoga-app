@@ -457,6 +457,7 @@ const CheckInPage = () => {
             <KioskInstallGuideModal isOpen={showKioskInstallGuide} onClose={() => setShowKioskInstallGuide(false)} />
             <InstructorQRModal isOpen={showInstructorQR} onClose={() => setShowInstructorQR(false)} />
             <FaceRegistrationModal isOpen={showFaceRegModal} onClose={() => setShowFaceRegModal(false)} videoRef={faceVideoRef} modelsAlreadyLoaded={faceModelsLoaded} />
+            <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ position: 'fixed', bottom: '8px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.55rem', color: 'rgba(255,255,255,0.15)', textDecoration: 'none', zIndex: 5, letterSpacing: '0.5px' }}>개인정보처리방침</a>
             <video ref={videoRef} autoPlay playsInline muted style={{ position: 'fixed', left: '0', top: '0', width: '1px', height: '1px', opacity: 0.01, zIndex: -100, pointerEvents: 'none' }} />
             <video ref={faceVideoRef} autoPlay playsInline muted style={{ position: 'fixed', left: '-9999px', width: '1px', height: '1px', opacity: 0.01, zIndex: -100, pointerEvents: 'none' }} />
             <canvas ref={canvasRef} style={{ position: 'fixed', left: '0', top: '0', width: '1px', height: '1px', opacity: 0.01, zIndex: -100, pointerEvents: 'none' }} />

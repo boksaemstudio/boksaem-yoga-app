@@ -306,6 +306,21 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch, reve
             });
         }
 
+        // 6. Membership Type Sales (회원권별 판매수)
+        const membershipMap = new Map();
+        finalItems.forEach(item => {
+            if (!item.date.startsWith(monthStr)) return;
+            const key = item.item || '수강권';
+            const current = membershipMap.get(key) || { name: key, count: 0, revenue: 0, newCount: 0, reregCount: 0 };
+            current.count += 1;
+            current.revenue += item.amount;
+            if (item.isNew) current.newCount += 1;
+            else current.reregCount += 1;
+            membershipMap.set(key, current);
+        });
+        const membershipSales = Array.from(membershipMap.values())
+            .sort((a, b) => b.count - a.count);
+
         return {
             dailyStats: Object.values(daily),
             monthlyStats: {
@@ -320,7 +335,8 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch, reve
                 today: statToday
             },
             recentTrend: trendData,
-            monthlyTrend: monthlyTrendData
+            monthlyTrend: monthlyTrendData,
+            membershipSales
         };
 
     }, [members, sales, currentDate, currentBranch, revenueStats]);

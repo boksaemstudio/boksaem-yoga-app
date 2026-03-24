@@ -52,7 +52,22 @@ export const pushService = {
         if (!token) return;
         try {
             const tokenRef = tenantDb.doc('fcm_tokens', token);
-            await setDoc(tokenRef, { token, role, language, updatedAt: new Date().toISOString(), platform: 'web' }, { merge: true });
+            const tokenSnap = await getDoc(tokenRef);
+            const existingData = tokenSnap.exists() ? (tokenSnap.data() as Record<string, unknown>) : {};
+
+            // [FIX] roles 배열 보존
+            const existingRoles = (existingData.roles as string[]) || (existingData.role ? [existingData.role as string] : []);
+            const roles = [...new Set([...existingRoles, role])];
+
+            const dataToUpdate: Record<string, unknown> = {
+                token, role, roles, language,
+                updatedAt: new Date().toISOString(), platform: 'web'
+            };
+            // 기존 memberId, instructorName 보존
+            if (existingData.memberId) dataToUpdate.memberId = existingData.memberId;
+            if (existingData.instructorName) dataToUpdate.instructorName = existingData.instructorName;
+
+            await setDoc(tokenRef, dataToUpdate, { merge: true });
         } catch (e) { console.error("Save token failed:", e); }
     },
 
@@ -61,7 +76,22 @@ export const pushService = {
         try {
             if (!auth.currentUser) { try { await signInAnonymously(auth); } catch (authErr) { console.error('[Push] Auth failed:', authErr); } }
             const tokenRef = tenantDb.doc('fcm_tokens', token);
-            await setDoc(tokenRef, { token, role: 'instructor', instructorName, language, updatedAt: new Date().toISOString(), platform: 'web' }, { merge: true });
+            const tokenSnap = await getDoc(tokenRef);
+            const existingData = tokenSnap.exists() ? (tokenSnap.data() as Record<string, unknown>) : {};
+
+            // [FIX] roles 배열 보존 — admin 등 기존 역할이 사라지지 않도록 누적
+            const existingRoles = (existingData.roles as string[]) || (existingData.role ? [existingData.role as string] : []);
+            const roles = [...new Set([...existingRoles, 'instructor'])];
+
+            const dataToUpdate: Record<string, unknown> = {
+                token, role: 'instructor', roles, instructorName, language,
+                updatedAt: new Date().toISOString(), platform: 'web'
+            };
+            // 기존 memberId 보존
+            if (existingData.memberId) dataToUpdate.memberId = existingData.memberId;
+
+            await setDoc(tokenRef, dataToUpdate, { merge: true });
+            console.log(`[Push] ✅ Instructor token saved: ${instructorName}, roles=${roles.join(',')}`);
         } catch (e) {
             console.error(`[Push] Save instructor token FAILED for ${instructorName}:`, e);
         }

@@ -484,6 +484,9 @@ const InstructorPage = () => {
 
             <InstallBanner onManualInstallClick={() => setShowInstallGuide(true)} />
             <InstallGuideModal isOpen={showInstallGuide} onClose={() => setShowInstallGuide(false)} />
+            <div style={{ textAlign: 'center', padding: '16px 0 80px', position: 'relative', zIndex: 1 }}>
+                <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.2)', textDecoration: 'none' }}>개인정보처리방침</a>
+            </div>
         </div>
     );
 };

@@ -693,6 +693,7 @@ const AdminDashboard = () => {
                             setActiveTab={setActiveTab}
                             onNoteClick={(m) => openModal('note', { member: m })}
                             todayReRegMemberIds={todayReRegMemberIds}
+                            sales={sales}
                         />
                 </div>
             )}

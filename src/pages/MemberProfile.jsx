@@ -527,8 +527,10 @@ const MemberProfile = () => {
             <InstallBanner onManualInstallClick={openInstallGuide} />
             <InstallGuideModal isOpen={modals.installGuide} onClose={closeInstallGuide} />
 
-            <div style={{ padding: '40px 20px', textAlign: 'center', opacity: 0.1, fontSize: '0.6rem', color: 'white' }}>
-                v1.0.5 | {config.IDENTITY?.NAME?.toLowerCase().replace(/\s/g, '-') || 'studio'}
+            <div style={{ padding: '40px 20px', textAlign: 'center', fontSize: '0.6rem', color: 'white' }}>
+                <span style={{ opacity: 0.1 }}>v1.0.5 | {config.IDENTITY?.NAME?.toLowerCase().replace(/\s/g, '-') || 'studio'}</span>
+                <br />
+                <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.2)', textDecoration: 'none', fontSize: '0.65rem' }}>개인정보처리방침</a>
             </div>
         </div>
     );

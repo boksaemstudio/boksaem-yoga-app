@@ -29,7 +29,8 @@ const MembersTab = ({
     setBulkMessageInitialText,
     setActiveTab,
     onNoteClick,
-    todayReRegMemberIds
+    todayReRegMemberIds,
+    sales
 }) => {
     const { config } = useStudioConfig();
     const branches = config.BRANCHES || [];
@@ -167,7 +168,7 @@ const MembersTab = ({
                     {/* 재등록률 */}
                     <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                            <span style={{ fontSize: '0.78rem', color: '#a1a1aa' }}>누적 재등록률</span>
+                            <span style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>누적 재등록률</span>
                             <span style={{ 
                                 fontSize: '1.1rem', fontWeight: '800',
                                 color: (summary.reRegistrationRate || 0) >= 50 ? '#10b981' : (summary.reRegistrationRate || 0) >= 30 ? '#f59e0b' : '#ef4444'
@@ -184,8 +185,8 @@ const MembersTab = ({
                                 background: (summary.reRegistrationRate || 0) >= 50 ? '#10b981' : (summary.reRegistrationRate || 0) >= 30 ? '#f59e0b' : '#ef4444'
                             }} />
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '0.68rem', color: '#71717a' }}>
-                            <span>재등록 {summary.membersReRegistered || 0}명 / 전체 {summary.membersWithSales || 0}명</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '0.8rem', color: '#71717a' }}>
+                            <span>재등록 {summary.membersReRegistered || 0}명 / 결제 회원 {summary.membersWithSales || 0}명</span>
                             <span>최근3개월 {summary.recentReRegRate || 0}% ({summary.recentReRegisteredCount || 0}/{summary.recentExpiredCount || 0})</span>
                         </div>
                     </div>
@@ -255,13 +256,13 @@ const MembersTab = ({
                             <>
                                 <div className="card-value error">{totalCount}명</div>
                                 <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
-                                    <span style={{ fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(239,68,68,0.15)', color: '#EF4444', fontWeight: '700' }}>
+                                    <span style={{ fontSize: '0.8rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(239,68,68,0.15)', color: '#EF4444', fontWeight: '700' }}>
                                         ⚠ 위험 {criticalCount}
                                     </span>
-                                    <span style={{ fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(245,158,11,0.15)', color: '#F59E0B', fontWeight: '700' }}>
+                                    <span style={{ fontSize: '0.8rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(245,158,11,0.15)', color: '#F59E0B', fontWeight: '700' }}>
                                         🔶 주의 {highCount}
                                     </span>
-                                    <span style={{ fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(96,165,250,0.15)', color: '#60A5FA', fontWeight: '700' }}>
+                                    <span style={{ fontSize: '0.8rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(96,165,250,0.15)', color: '#60A5FA', fontWeight: '700' }}>
                                         💤 관찰 {mediumCount}
                                     </span>
                                 </div>
@@ -319,7 +320,7 @@ const MembersTab = ({
                             </div>
                         </div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '8px', paddingTop: '6px', borderTop: `1px solid rgba(255,255,255,0.1)` }}>
-                            <span style={{ color: '#93C5FD' }}>앱 설치 회원 {summary.installedCount}명 ({summary.installRatio}%)</span>
+                            <span style={{ color: '#93C5FD', fontSize: '0.85rem' }}>앱 설치 회원 {summary.installedCount}명 ({summary.installRatio}%)</span>
                             <span style={{ margin: '0 4px', opacity: 0.3 }}>|</span>
                              오늘 +{summary.todayInstalledCount}
                         </div>
@@ -359,7 +360,7 @@ const MembersTab = ({
                     <div className="dashboard-card interactive" style={{ marginBottom: '24px', cursor: 'pointer' }} onClick={() => setActiveTab('revenue')}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '10px' }}>
                             <div>
-                                <span className="card-label outfit-font" style={{ letterSpacing: '0.1em', fontSize: '0.7rem' }}>
+                                <span className="card-label outfit-font" style={{ letterSpacing: '0.1em', fontSize: '0.8rem' }}>
                                     {month}월 {day}일까지 현재 매출
                                 </span>
                                 <div className="outfit-font" style={{ fontSize: '1.6rem', fontWeight: '800', color: 'var(--primary-gold)', textShadow: '0 0 20px var(--primary-gold-glow)' }}>
@@ -371,22 +372,21 @@ const MembersTab = ({
                             </div>
                         </div>
                         <div style={{ marginTop: '4px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{day}일 경과</span>
-                                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>잔여 {daysInMonth - day}일</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '6px' }}>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '600' }}>{day}일 경과</span>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '600' }}>잔여 {daysInMonth - day}일</span>
                             </div>
-                            <div style={{ position: 'relative', height: '20px', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', overflow: 'hidden' }}>
+                            <div style={{ position: 'relative', height: '14px', background: 'rgba(255,255,255,0.08)', borderRadius: '7px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)' }}>
                                 <div style={{ 
                                     width: `${progressPct}%`, height: '100%', 
-                                    background: 'linear-gradient(90deg, var(--primary-gold-dim), var(--primary-gold))', 
-                                    borderRadius: '10px', transition: 'width 0.8s ease',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '8px'
-                                }}>
-                                    <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#000', textShadow: 'none' }}>{progressPct}%</span>
-                                </div>
+                                    background: 'linear-gradient(90deg, #b8860b, var(--primary-gold), #ffd700)', 
+                                    borderRadius: '7px', transition: 'width 0.8s ease',
+                                    boxShadow: '0 0 8px rgba(255, 215, 0, 0.3)'
+                                }} />
                             </div>
-                            <div style={{ textAlign: 'center', marginTop: '4px', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-                                {month}월 {day}일 / {daysInMonth}일
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '8px', gap: '4px' }}>
+                                <span style={{ fontSize: '0.9rem', fontWeight: '800', color: 'var(--primary-gold)' }}>{month}월 {day}일</span>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>/ {daysInMonth}일</span>
                             </div>
                         </div>
                     </div>
@@ -402,37 +402,43 @@ const MembersTab = ({
                     <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: '120px', marginBottom: '10px' }}>
                         {summary.monthlyReRegTrend.map((m, i) => {
                             const maxTotal = Math.max(...summary.monthlyReRegTrend.map(t => t.total), 1);
-                            const totalH = Math.max((m.total / maxTotal) * 70, 6);
-                            const reRegH = m.total > 0 ? (m.reReg / m.total) * totalH : 0;
+                            const hasData = m.total > 0;
+                            const totalH = hasData ? Math.max((m.total / maxTotal) * 70, 6) : 0;
+                            const reRegH = hasData ? (m.reReg / m.total) * totalH : 0;
+                            const rate = m.rate;
                             return (
                                 <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', minWidth: 0 }}>
-                                    <span style={{ fontSize: '0.6rem', color: m.rate >= 50 ? '#10b981' : m.rate >= 30 ? '#f59e0b' : '#ef4444', fontWeight: '700', lineHeight: 1, whiteSpace: 'nowrap' }}>
-                                        {m.rate}%
+                                    <span style={{ fontSize: '0.75rem', color: !hasData ? '#52525b' : rate >= 50 ? '#10b981' : rate >= 30 ? '#f59e0b' : '#ef4444', fontWeight: '700', lineHeight: 1, whiteSpace: 'nowrap' }}>
+                                        {hasData ? `${rate}%` : '—'}
                                     </span>
-                                    <div style={{ position: 'relative', width: '70%', maxWidth: '36px', height: `${totalH}px`, borderRadius: '4px', background: 'rgba(255,255,255,0.08)' }}>
-                                        <div style={{
-                                            position: 'absolute', bottom: 0, width: '100%', height: `${reRegH}px`,
-                                            borderRadius: '4px',
-                                            background: m.rate >= 50 ? 'linear-gradient(180deg, #10b981, #059669)' : m.rate >= 30 ? 'linear-gradient(180deg, #f59e0b, #d97706)' : 'linear-gradient(180deg, #ef4444, #dc2626)',
-                                            transition: 'height 0.5s ease'
-                                        }} />
-                                    </div>
-                                    <span style={{ fontSize: '0.6rem', color: '#71717a', fontWeight: '500', lineHeight: 1, marginTop: '2px' }}>{m.month}</span>
-                                    <span style={{ fontSize: '0.5rem', color: '#52525b', lineHeight: 1, whiteSpace: 'nowrap' }}>{m.reReg}/{m.total}명</span>
+                                    {hasData ? (
+                                        <div style={{ position: 'relative', width: '70%', maxWidth: '36px', height: `${totalH}px`, borderRadius: '4px', background: 'rgba(255,255,255,0.08)' }}>
+                                            <div style={{
+                                                position: 'absolute', bottom: 0, width: '100%', height: `${reRegH}px`,
+                                                borderRadius: '4px',
+                                                background: rate >= 50 ? 'linear-gradient(180deg, #10b981, #059669)' : rate >= 30 ? 'linear-gradient(180deg, #f59e0b, #d97706)' : 'linear-gradient(180deg, #ef4444, #dc2626)',
+                                                transition: 'height 0.5s ease'
+                                            }} />
+                                        </div>
+                                    ) : (
+                                        <div style={{ width: '70%', maxWidth: '36px', height: '6px', borderRadius: '4px', background: 'rgba(255,255,255,0.04)' }} />
+                                    )}
+                                    <span style={{ fontSize: '0.9rem', color: '#a1a1aa', fontWeight: '600', lineHeight: 1, marginTop: '4px' }}>{m.month}</span>
+                                    <span style={{ fontSize: '0.8rem', color: '#8b8b99', lineHeight: 1, whiteSpace: 'nowrap', marginTop: '2px' }}>{hasData ? `${m.reReg}/${m.total}명` : '—'}</span>
                                 </div>
                             );
                         })}
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', fontSize: '0.65rem', color: '#71717a' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem', color: '#a1a1aa' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#10b981', display: 'inline-block' }} /> 재등록</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '8px', height: '8px', borderRadius: '2px', background: 'rgba(255,255,255,0.08)', display: 'inline-block' }} /> 전체</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '8px', height: '8px', borderRadius: '2px', background: 'rgba(255,255,255,0.08)', display: 'inline-block' }} /> 만료 회원</span>
                     </div>
                 </div>
             )}
 
             {/* AI Churn Report — churn 필터 시 3등급 분류 패널 (매출 바로 아래) */}
             {filterType === 'churn' && allDormantMembers.length > 0 && (
-                <ChurnReportPanel dormantMembers={allDormantMembers} />
+                <ChurnReportPanel dormantMembers={allDormantMembers} sales={sales} />
             )}
     
             {/* Search & Bulk Actions */}

@@ -11,7 +11,7 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats }) => {
 
     const [currentDate, setCurrentDate] = useState(new Date());
 
-    const { dailyStats, monthlyStats, comparativeStats, recentTrend, monthlyTrend } = useRevenueStats(sales, members, currentDate, currentBranch, revenueStats);
+    const { dailyStats, monthlyStats, comparativeStats, recentTrend, monthlyTrend, membershipSales } = useRevenueStats(sales, members, currentDate, currentBranch, revenueStats);
 
     const formatCurrency = (val) => new Intl.NumberFormat('ko-KR').format(val);
 
@@ -188,6 +188,77 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats }) => {
                     </ResponsiveContainer>
                 </div>
             </div>
+
+            {/* Membership Type Sales */}
+            {membershipSales && membershipSales.length > 0 && (
+                <div className="dashboard-card">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+                        <h3 style={{ fontSize: '1.1rem', margin: 0, color: 'var(--text-secondary)' }}>회원권별 판매 현황</h3>
+                        <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
+                            <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>i</div>
+                            <div className="tooltip-text" style={{ width: '220px', left: 0, transform: 'translateX(0)' }}>
+                                <strong>회원권별 판매 현황</strong><br/>이번 달 회원권 유형별 판매 건수와 매출을 비교합니다. 어떤 회원권이 많이 팔리는지 한눈에 확인하세요.
+                            </div>
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {membershipSales.map((ms, idx) => {
+                            const maxCount = membershipSales[0]?.count || 1;
+                            const pct = (ms.count / maxCount) * 100;
+                            return (
+                                <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '0.9rem', color: '#e4e4e7', fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            {idx === 0 && '🏆 '}{ms.name}
+                                        </span>
+                                        <span style={{ fontSize: '0.8rem', color: '#a1a1aa', whiteSpace: 'nowrap', marginLeft: '12px' }}>
+                                            <strong style={{ color: 'var(--primary-theme-color)', fontSize: '1rem' }}>{ms.count}</strong>건
+                                            <span style={{ margin: '0 6px', opacity: 0.3 }}>|</span>
+                                            {formatCurrency(ms.revenue)}원
+                                        </span>
+                                    </div>
+                                    <div style={{ position: 'relative', height: '22px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', overflow: 'hidden' }}>
+                                        {ms.reregCount > 0 && (
+                                            <div style={{
+                                                position: 'absolute', left: 0, top: 0, height: '100%',
+                                                width: `${pct}%`,
+                                                background: 'var(--primary-theme-color)',
+                                                borderRadius: '6px',
+                                                opacity: 0.7,
+                                                transition: 'width 0.5s ease'
+                                            }} />
+                                        )}
+                                        {ms.newCount > 0 && (
+                                            <div style={{
+                                                position: 'absolute', left: 0, top: 0, height: '100%',
+                                                width: `${(ms.newCount / maxCount) * 100}%`,
+                                                background: '#4ade80',
+                                                borderRadius: '6px',
+                                                opacity: 0.85,
+                                                transition: 'width 0.5s ease'
+                                            }} />
+                                        )}
+                                        <div style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', fontSize: '0.65rem', color: '#fff', fontWeight: 600, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                                            {ms.newCount > 0 && <span style={{ marginRight: '8px' }}>신규 {ms.newCount}</span>}
+                                            {ms.reregCount > 0 && <span>재등록 {ms.reregCount}</span>}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    <div style={{ display: 'flex', gap: '16px', marginTop: '16px', justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#a1a1aa' }}>
+                            <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#4ade80' }} />
+                            신규
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#a1a1aa' }}>
+                            <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'var(--primary-theme-color)', opacity: 0.7 }} />
+                            재등록
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Calendar View */}
             <div className="dashboard-card" style={{ padding: '0', overflowX: 'auto' }}>

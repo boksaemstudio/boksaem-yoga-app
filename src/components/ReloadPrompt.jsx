@@ -44,9 +44,10 @@ function ReloadPrompt() {
   }, [markActivity]);
 
   // ━━━━ 키오스크 자동 새로고침: controllerchange 이벤트 사용 ━━━━
-  // 항상 켜놓는 앱: 키오스크 + 관리자앱 → 유휴 시 자동 새로고침
+  // 항상 켜놓는 무인 앱: 키오스크만 — 유휴 시 자동 새로고침
+  // [FIX] 관리자앱은 원장이 보고 있으므로 자동 리로드하면 깜박임 → 배너로 안내
   const isAlwaysOn = typeof window !== 'undefined' && (
-    window.location.pathname.startsWith('/checkin') || window.location.pathname.startsWith('/admin')
+    window.location.pathname.startsWith('/checkin')
   );
 
   const startIdleReloadLoop = useCallback(() => {
