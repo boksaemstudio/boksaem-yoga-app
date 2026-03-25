@@ -3,7 +3,7 @@ import CustomDatePicker from '../../common/CustomDatePicker';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 import { storageService } from '../../../services/storage';
 
-const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMember, onManualAttendance }) => {
+const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMember, onManualAttendance, setActiveTab, setPrefillMessage }) => {
     const { config } = useStudioConfig();
     const branches = config.BRANCHES || [];
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -230,7 +230,23 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                 }
             }
             
-            alert(isImmediate ? '등록 및 출석 처리가 완료되었습니다.' : '등록이 완료되었습니다.');
+            // [NEW] Auto-Message Redirect
+            if (setPrefillMessage && setActiveTab) {
+                const msgLines = [
+                    `${member.name} 회원님, 수강권 등록/연장이 확정되었습니다.`,
+                    '',
+                    `• 등록 항목: ${pricingConfig[membershipType]?.label || membershipType} - ${option.label}`,
+                    `• 등록 상태: ${isAdvance ? '🗓️ 기존 만료 후 적용 (선등록)' : '✅ 진행 중'}`,
+                    `• 잔여 횟수: ${customCredits >= 999 ? '무제한 횟수' : customCredits + '회'}`,
+                    `• 이용 기간: ${finalStartDate === 'TBD' ? '첫 출석 시 확정' : finalStartDate} ~ ${finalEndDate === 'TBD' ? '첫 출석 시 확정' : finalEndDate}`,
+                    '',
+                    '패스플로우와 함께 오늘도 건강한 하루 보내세요! 🙏'
+                ];
+                setPrefillMessage(msgLines.join('\n'));
+                setTimeout(() => setActiveTab('messages'), 300);
+            } else {
+                alert(isImmediate ? '등록 및 출석 처리가 완료되었습니다.' : '등록이 완료되었습니다.');
+            }
         } catch (err) {
             console.error('Registration error:', err);
             alert('등록 중 오류가 발생했습니다.');
