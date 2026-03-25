@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CaretDown, CaretUp, CheckCircle, Clock, CalendarCheck, Bell, Robot, ShieldCheck, Users, Warning, Info, Lightbulb } from '@phosphor-icons/react';
+import { CaretDown, CaretUp, CheckCircle, Clock, CalendarCheck, Bell, Robot, ShieldCheck, Users, Warning, Info, Lightbulb, CreditCard, ArrowsClockwise } from '@phosphor-icons/react';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 
 /**
@@ -13,7 +13,7 @@ const OperationsGuideTab = () => {
     const creditRules = policies.CREDIT_RULES || {};
     const holdRules = policies.HOLD_RULES || [];
 
-    const [openSections, setOpenSections] = useState({ members: true, booking: false, alerts: false, automation: false });
+    const [openSections, setOpenSections] = useState({ members: true, membership: false, booking: false, alerts: false, automation: false });
 
     const toggle = (key) => setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
 
@@ -106,8 +106,9 @@ const OperationsGuideTab = () => {
                     <RuleCard
                         icon={<CalendarCheck size={20} weight="fill" color="#8b5cf6" />}
                         title="선등록 (미래 수강권 예약)"
-                        description="현재 수강권이 진행 중인 회원에게 다음 수강권을 미리 등록할 수 있습니다. 선등록된 수강권의 시작일이 도래하면 자동으로 현재 수강권을 교체합니다."
-                        badge="시작일 도래 시 자동 전환"
+                        description="현재 수강권이 진행 중인 회원에게 다음 수강권을 미리 등록할 수 있습니다. 기존 횟수가 소진되거나 기간이 만료되면 첫 출석 시 선등록 수강권이 자동 활성화됩니다. 활성화 시 기존 잔여 횟수는 무조건 0이 되고, 새 수강권의 횟수와 기간으로 교체됩니다."
+                        badge="소진/만료 시 자동 전환"
+                        tip="선등록 수강권은 시작일 옵션(TBD/직접지정/즉시출석)에 따라 종료일이 산정됩니다."
                     />
                     <RuleCard
                         icon={<Users size={20} weight="fill" color="#71717a" />}
@@ -120,6 +121,46 @@ const OperationsGuideTab = () => {
                         title="만료 임박 알림"
                         description={`종료일이 가까워진 회원을 미리 파악할 수 있습니다. 대시보드에 만료 임박 배지가 표시되며, 자동 알림을 보낼 수 있습니다.`}
                         badge={`종료 ${policies.EXPIRING_THRESHOLD_DAYS || 7}일 전부터`}
+                    />
+                </div>
+            )}
+
+            {/* ━━━ 1-2. 회원권 등록/재등록 로직 ━━━ */}
+            <SectionHeader sectionKey="membership" icon={<CreditCard size={18} weight="fill" color="#10b981" />} title="회원권 등록 · 재등록 로직" count={5} color="#10b981" />
+            {openSections.membership && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingLeft: '4px' }}>
+                    <RuleCard
+                        icon={<CreditCard size={20} weight="fill" color="#10b981" />}
+                        title="종료일 산정 기준"
+                        description="종료일은 항상 '시작일 + 수강권 기간(개월) - 1일'로 자동 계산됩니다. 예를 들어 시작일이 3월 25일이고 3개월 수강권이면 종료일은 6월 24일입니다."
+                        badge="시작일 기준 자동 계산"
+                        tip="예: 3/25 + 1개월 → 4/24 | 3/25 + 3개월 → 6/24 | 4/1 + 3개월 → 6/30"
+                    />
+                    <RuleCard
+                        icon={<ArrowsClockwise size={20} weight="fill" color="#3b82f6" />}
+                        title="횟수 0 + 기간 남음 → 재등록"
+                        description="잔여 횟수가 0이지만 종료일이 아직 남아있는 경우 재등록하면, 선택한 시작일부터 새 수강권 기간만큼 종료일이 산정됩니다. 기존의 남은 기간은 무시됩니다."
+                        badge="시작일부터 새로 계산"
+                    />
+                    <RuleCard
+                        icon={<ArrowsClockwise size={20} weight="fill" color="#f59e0b" />}
+                        title="횟수 남음 + 기간 종료 → 재등록"
+                        description="기간이 만료되었지만 잔여 횟수가 남아있는 경우 재등록하면, 기존 잔여 횟수는 삭제(0)되고 새 수강권의 횟수가 부여됩니다. 종료일도 새 수강권 기간에 따라 새로 산정됩니다."
+                        badge="기존 횟수 삭제 → 새로 부여"
+                        tip="예: 기존 5회 남았지만 기간 만료 → 재등록 시 새 수강권 35회로 교체"
+                    />
+                    <RuleCard
+                        icon={<ArrowsClockwise size={20} weight="fill" color="#ef4444" />}
+                        title="횟수 0 + 기간 종료 → 재등록 (신규와 동일)"
+                        description="횟수도 0이고 기간도 지난 경우 재등록하면, 신규 등록과 완전히 동일하게 처리됩니다. 선택한 시작일부터 수강권 기간에 따라 종료일이 산정되고 새 횟수가 부여됩니다."
+                        badge="신규 등록과 동일"
+                    />
+                    <RuleCard
+                        icon={<CalendarCheck size={20} weight="fill" color="#8b5cf6" />}
+                        title="선등록 시 회원권 전환"
+                        description="현재 수강권이 활성 상태인 회원에게 선등록하면, 기존 횟수가 소진되거나 기간이 만료되었을 때 첫 출석 시 자동으로 전환됩니다. 전환 시 기존 잔여 횟수는 0이 되고, 새 수강권의 횟수와 기간으로 완전히 교체됩니다."
+                        badge="기존 횟수 사라짐"
+                        tip="시작일 옵션(TBD/직접지정/즉시출석)에 따라 종료일이 산정됩니다. 어떤 경우든 기존 횟수는 보존되지 않습니다."
                     />
                 </div>
             )}
