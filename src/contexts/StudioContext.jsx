@@ -107,6 +107,15 @@ export const StudioProvider = ({ children }) => {
                     if (!merged.ASSETS.LOGO?.SQUARE || merged.ASSETS.LOGO.SQUARE === '/') merged.ASSETS.LOGO.SQUARE = '/assets/logo_square.webp';
                 }
 
+                // [DEMO OVERRIDE] 원장님 요청: 데모 사이트는 무조건 PassFlow 로고 노출
+                if (window.location.hostname.includes('passflow-demo')) {
+                    if (!merged.ASSETS) merged.ASSETS = {};
+                    if (!merged.ASSETS.LOGO) merged.ASSETS.LOGO = {};
+                    merged.ASSETS.LOGO.WIDE = '/assets/passflow_logo.png';
+                    merged.ASSETS.LOGO.SQUARE = '/assets/passflow_logo.png';
+                    if (!merged.IDENTITY) merged.IDENTITY = {};
+                    merged.IDENTITY.NAME = 'PassFlow 데모';
+                }
 
                 setConfig(merged);
                 useStudioStore.getState().setConfig(merged);
