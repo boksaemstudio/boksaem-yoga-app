@@ -14,7 +14,7 @@ const ColorLegend = memo(({ branchId }) => {
         { label: '일반', color: '#FFFFFF', border: '#DDDDDD', branches: (config.BRANCHES || []).map(b => b.id) },
         { label: '특별/심화', color: 'rgba(255, 190, 118, 0.9)', border: 'rgba(255, 190, 118, 1)', branches: (config.BRANCHES || []).map(b => b.id) },
     ];
-    const filteredItems = branchId ? items.filter(item => item.branches.includes(branchId)) : items;
+    const filteredItems = branchId ? items.filter(item => !item.branches || item.branches.includes(branchId)) : items;
 
     return (
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', justifyContent: 'flex-end' }}>
