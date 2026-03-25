@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { storageService } from '../services/storage';
 // [Refactor] Ensuring initialization order for SaaS engine
 import { useStudioConfig } from '../contexts/StudioContext';
-import { useAdminData } from '../hooks/useAdminData'; 
+import { useAdminData } from '../hooks/useAdminData';
 import { useNavigate } from 'react-router-dom';
 import { safeParseDate, toKSTDateString, toKSTTimeString, getTodayKST } from '../utils/dates';
 import {
@@ -13,7 +13,8 @@ import {
     ChartPieSlice,
     ShieldCheck,
     Clock,
-    Gear
+    Gear,
+    PresentationChart, Kanban, ToggleLeft, ToggleRight, List, ChartLineUp
 } from '@phosphor-icons/react';
 import { query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import AdminScheduleManager from '../components/AdminScheduleManager';
@@ -42,9 +43,11 @@ import AdminNav from '../components/admin/AdminNav';
 import StudioSettingsTab from '../components/admin/tabs/StudioSettingsTab';
 import BookingsTab from '../components/admin/tabs/BookingsTab';
 import TrashTab from '../components/admin/tabs/TrashTab';
+import OperationsGuideTab from '../components/admin/tabs/OperationsGuideTab';
 import AdminInsights from '../components/AdminInsights';
 import ChurnReportPanel from '../components/admin/ChurnReportPanel';
-import { usePWA } from '../hooks/usePWA';
+import { usePWA }
+from '../hooks/usePWA';
 import ScheduleTab from '../components/admin/tabs/ScheduleTab';
 import { getContrastText } from '../utils/colors';
 
@@ -64,7 +67,7 @@ const isMemberDormant = (m, logs, isMemberActiveFn) => {
     // If credits == 0, they are Expired, not just Dormant. But they can be both.
     // Let's focus on "Active but not attending".
 
-    /* 
+    /*
        Definition:
        - Has credits > 0 (Active)
        - No attendance for 14 days
@@ -82,7 +85,7 @@ const isMemberDormant = (m, logs, isMemberActiveFn) => {
         lastAttDate = safeParseDate(m.lastAttendance);
     } else if (m.attendanceCount > 0) {
         // Fallback: If no lastAttendance field but has count, try to find in loaded logs
-        // Note: 'logs' passed here might be limited. 
+        // Note: 'logs' passed here might be limited.
         // If not found in recent logs, assume it was long ago -> Dormant.
         const lastLog = logs.find(l => l.memberId === m.id);
         if (lastLog) {
@@ -107,7 +110,9 @@ const isMemberDormant = (m, logs, isMemberActiveFn) => {
 const AdminDashboard = () => {
     const { config, loading } = useStudioConfig();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('logs');
+    const initialTab = new URLSearchParams(window.location.search).get('tab') || 'logs';
+    const [activeTab, setActiveTab] = useState(initialTab);
+    const [viewMode, setViewMode] = useState(() => localStorage.getItem('dashboardViewMode') || 'full'); // 'compact' | 'full'
 
     // [Refactor] Use Custom Hook for Data & Logic
     const adminData = useAdminData(activeTab, 'all');
@@ -151,7 +156,7 @@ const AdminDashboard = () => {
             const data = await storageService.getPricing();
             if (data) setPricingConfig(data);
         };
-        
+
         loadPricing();
 
         // [ROOT SOLUTION] 가격 정보 실시간 동기화 구독
@@ -177,6 +182,19 @@ const AdminDashboard = () => {
         selectFilteredMembers,
         selectExpiringMembers
     } = useAdminFilters();
+
+    // 탭 변경 시 URL 업데이트
+    const handleTabChange = (tabId) => {
+        setActiveTab(tabId);
+        window.history.replaceState(null, '', `?tab=${tabId}`);
+    };
+
+    // 뷰 모드 토글
+    const handleViewModeToggle = () => {
+        const newMode = viewMode === 'full' ? 'compact' : 'full';
+        setViewMode(newMode);
+        localStorage.setItem('dashboardViewMode', newMode);
+    };
 
     // Auth Logout
     const handleLogout = async () => {
@@ -336,11 +354,11 @@ const AdminDashboard = () => {
         if (!window.confirm(`업데이트 및 캐시를 초기화하시겠습니까?\n(로그아웃될 수 있습니다)`)) return;
 
         console.log('[App] Forcing update and clearing ALL caches...');
-        
+
         // [CRITICAL] 1. Delete ALL Firestore/Firebase IndexedDB databases
         try {
             const dbs = await indexedDB.databases();
-            const targetDbs = dbs.filter(db => 
+            const targetDbs = dbs.filter(db =>
                 db.name && (db.name.includes('firestore') || db.name.includes('firebase'))
             );
             for (const dbInfo of targetDbs) {
@@ -372,7 +390,7 @@ const AdminDashboard = () => {
                 console.log('[App] SW Unregistered:', registration);
             }
         }
-        
+
         // Force reload ignoring cache
         window.location.reload(true);
     };
@@ -539,7 +557,7 @@ const AdminDashboard = () => {
     // --- RENDER ---
     return (
         <div className="admin-container">
-            <AdminHeader 
+            <AdminHeader
                 config={config}
                 handleForceUpdate={handleForceUpdate}
                 handleInstallClick={handleInstallClick}
@@ -554,12 +572,14 @@ const AdminDashboard = () => {
                 activeTab={activeTab}
                 currentBranch={currentBranch}
                 handleBranchChange={handleBranchChange}
+                viewMode={viewMode}
+                handleViewModeToggle={handleViewModeToggle}
             />
 
-            <AdminNav 
-                activeTab={activeTab} 
-                setActiveTab={setActiveTab} 
-                pendingApprovals={pendingApprovals} 
+            <AdminNav
+                activeTab={activeTab}
+                setActiveTab={handleTabChange}
+                pendingApprovals={pendingApprovals}
                 config={config}
             />
 
@@ -630,7 +650,7 @@ const AdminDashboard = () => {
                 )}
 
                 {activeTab === 'revenue' && (
-                    <AdminRevenue members={members} sales={sales} currentBranch={currentBranch} revenueStats={revenueStats} />
+                    <AdminRevenue members={members} sales={sales} currentBranch={currentBranch} revenueStats={revenueStats} viewMode={viewMode} />
                 )}
 
                 {activeTab === 'pricing' && (
@@ -695,6 +715,7 @@ const AdminDashboard = () => {
                             onNoteClick={(m) => openModal('note', { member: m })}
                             todayReRegMemberIds={todayReRegMemberIds}
                             sales={sales}
+                            viewMode={viewMode}
                         />
                 </div>
             )}
@@ -724,6 +745,7 @@ const AdminDashboard = () => {
                         members={members}
                         onMemberClick={handleOpenEdit}
                         summary={extendedSummary}
+                        viewMode={viewMode}
                     />
                 )}
 
@@ -741,6 +763,10 @@ const AdminDashboard = () => {
 
                 {activeTab === 'trash' && (
                     <TrashTab />
+                )}
+
+                {activeTab === 'guide' && (
+                    <OperationsGuideTab />
                 )}
 
                 {activeTab === 'settings' && (

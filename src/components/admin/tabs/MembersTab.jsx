@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback, memo } from 'react';
+import CollapsibleCard from '../CollapsibleCard';
 import { BellRinging, Check, Info, Plus, NotePencil, PaperPlaneTilt, UserFocus } from '@phosphor-icons/react';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 import ChurnReportPanel, { getChurnRisk } from '../ChurnReportPanel';
@@ -30,7 +31,8 @@ const MembersTab = ({
     setActiveTab,
     onNoteClick,
     todayReRegMemberIds,
-    sales
+    sales,
+    viewMode
 }) => {
     const { config } = useStudioConfig();
     const branches = config.BRANCHES || [];
@@ -349,7 +351,7 @@ const MembersTab = ({
                 </div>
             </div>
 
-            {/* Revenue Card (Visual Bar Chart Simulated) */}
+            {/* Revenue Card (Visual Bar Chart Simulated) — 접기/펼치기 적용 */}
             {(() => {
                 const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
                 const month = now.getMonth() + 1;
@@ -357,7 +359,15 @@ const MembersTab = ({
                 const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
                 const progressPct = Math.round((day / daysInMonth) * 100);
                 return (
-                    <div className="dashboard-card interactive" style={{ marginBottom: '24px', cursor: 'pointer' }} onClick={() => setActiveTab('revenue')}>
+                    <CollapsibleCard
+                        id="members-revenue"
+                        title={`💰 ${month}월 매출 현황`}
+                        titleExtra={`${summary.monthlyRevenue.toLocaleString()}원`}
+                        defaultOpen={viewMode !== 'compact'}
+                        className="interactive animated-show"
+                        style={{ marginBottom: '24px', cursor: 'pointer' }}
+                        onClick={() => setActiveTab('revenue')}
+                    >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '10px' }}>
                             <div>
                                 <span className="card-label outfit-font" style={{ letterSpacing: '0.1em', fontSize: '0.8rem' }}>
@@ -389,16 +399,20 @@ const MembersTab = ({
                                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>/ {daysInMonth}일</span>
                             </div>
                         </div>
-                    </div>
+                    </CollapsibleCard>
                 );
             })()}
 
-            {/* 월별 재등록 추이 (매출 카드 아래, 검색 위) */}
+            {/* 월별 재등록 추이 (매출 카드 아래, 검색 위) — 접기/펼치기 적용 */}
             {filterType === 'registration' && summary.monthlyReRegTrend && (
-                <div className="dashboard-card" style={{ marginBottom: '24px', overflow: 'visible' }}>
-                    <div style={{ marginBottom: '14px' }}>
-                        <span style={{ fontSize: '0.85rem', color: '#a1a1aa', fontWeight: '600' }}>📊 월별 재등록 추이 (최근 6개월)</span>
-                    </div>
+                <CollapsibleCard
+                    id="members-rereg-trend"
+                    title="📊 월별 재등록 추이 (최근 6개월)"
+                    titleExtra={`재등록률 ${summary.reRegistrationRate || 0}%`}
+                    defaultOpen={viewMode !== 'compact'}
+                    className="animated-show"
+                    style={{ marginBottom: '24px', overflow: 'visible' }}
+                >
                     <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: '120px', marginBottom: '10px' }}>
                         {summary.monthlyReRegTrend.map((m, i) => {
                             const maxTotal = Math.max(...summary.monthlyReRegTrend.map(t => t.total), 1);
@@ -433,7 +447,7 @@ const MembersTab = ({
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#10b981', display: 'inline-block' }} /> 재등록</span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '8px', height: '8px', borderRadius: '2px', background: 'rgba(255,255,255,0.08)', display: 'inline-block' }} /> 만료 회원</span>
                     </div>
-                </div>
+                </CollapsibleCard>
             )}
 
             {/* AI Churn Report — churn 필터 시 3등급 분류 패널 (매출 바로 아래) */}

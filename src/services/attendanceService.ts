@@ -201,6 +201,17 @@ export const attendanceService = {
         }
     },
 
+    async permanentDeleteAttendance(logId: string): Promise<{ success: boolean; message?: string }> {
+        try {
+            await deleteDoc(tenantDb.doc('attendance', logId));
+            notifyCallback();
+            return { success: true };
+        } catch (e) {
+            console.error('[attendanceService] Permanent delete attendance failed:', e);
+            return { success: false, message: (e as Error).message };
+        }
+    },
+
     async syncPendingCheckins(): Promise<{ successCount: number; remainingCount: number }> {
         if (!navigator.onLine) return { successCount: 0, remainingCount: 0 };
         const queue: Record<string, unknown>[] = JSON.parse(localStorage.getItem('pending_checkins_queue') || '[]');

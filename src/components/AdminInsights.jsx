@@ -1,23 +1,15 @@
 import { useMemo } from 'react';
+import CollapsibleCard from './admin/CollapsibleCard';
 
 const AdminInsights = ({ briefing }) => {
 
-
     return (
         <div className="fade-in" style={{ marginBottom: '20px' }}>
-            {/* AI Briefing Card */}
-            <div style={{
-                background: 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.15) 0%, rgba(0,0,0,0) 100%)',
-                border: '1px solid var(--primary-gold)',
-                borderRadius: '16px',
-                padding: '20px',
-                display: 'flex',
-                alignItems: 'start',
-                gap: '15px'
-            }}>
-                <div style={{ fontSize: '1.5rem' }}>🧙‍♂️</div>
-                <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <CollapsibleCard 
+                id="admin-ai-briefing" 
+                title={
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '1.2rem' }}>🧙‍♂️</span>
                         <h4 style={{ margin: 0, color: 'var(--primary-gold)', fontSize: '1rem' }}>AI 원장님의 브리핑</h4>
                         <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
                             <div style={{
@@ -32,11 +24,20 @@ const AdminInsights = ({ briefing }) => {
                             </div>
                         </div>
                     </div>
+                } 
+                defaultOpen={true}
+                customStyle={{ borderColor: 'var(--primary-gold)' }}
+            >
+                <div style={{
+                    background: 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.15) 0%, rgba(0,0,0,0) 100%)',
+                    borderRadius: '8px',
+                    padding: '16px'
+                }}>
                     <p style={{ margin: 0, color: '#e4e4e7', whiteSpace: 'pre-line', lineHeight: '1.6', fontSize: '0.95rem' }}>
                         {briefing}
                     </p>
                 </div>
-            </div>
+            </CollapsibleCard>
         </div>
     );
 };

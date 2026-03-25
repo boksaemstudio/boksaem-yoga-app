@@ -126,4 +126,77 @@ export const studioRegistryService = {
             return false;
         }
     },
+
+    // ==========================================
+    // 🚀 Onboarding & Pending Studios
+    // ==========================================
+
+    /** 대기 중인 온보딩 신청 목록 조회 */
+    async listPendingStudios() {
+        try {
+            const q = query(collection(db, 'platform/registry/pending_studios'), orderBy('createdAt', 'desc'));
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (e) {
+            console.error('[Registry] Failed to list pending:', e);
+            return [];
+        }
+    },
+
+    /** 신규 온보딩 신청 (원장님용) */
+    async requestOnboarding(data: any) {
+        try {
+            const newDocRef = doc(collection(db, 'platform/registry/pending_studios'));
+            await setDoc(newDocRef, {
+                ...data,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            });
+            return { success: true, id: newDocRef.id };
+        } catch (e) {
+            console.error('[Registry] Failed to request onboarding:', e);
+            return { success: false, message: e.message };
+        }
+    },
+
+    /** 온보딩 승인 및 스튜디오 자동 발급 (슈퍼어드민용) */
+    async approveOnboarding(pendingId: string, studioId: string, ownerEmail: string, name: string) {
+        try {
+            const pendingRef = doc(db, 'platform/registry/pending_studios', pendingId);
+            const pendingSnap = await getDoc(pendingRef);
+            if (!pendingSnap.exists()) return { success: false, message: '신청서를 찾을 수 없습니다.' };
+            
+            // 1. 실제 스튜디오 등록 처리
+            const regResult = await this.registerStudio({
+                studioId,
+                name,
+                ownerEmail,
+                plan: 'basic'
+            });
+
+            if (!regResult.success) {
+                return { success: false, message: regResult.message };
+            }
+
+            // 2. Pending 승인 처리
+            await setDoc(pendingRef, { status: 'approved', approvedAt: new Date().toISOString() }, { merge: true });
+            
+            return { success: true, message: '스튜디오 세팅 및 승인 완료!' };
+        } catch (e) {
+            console.error('[Registry] Approve failed:', e);
+            return { success: false, message: e.message };
+        }
+    },
+
+    /** 온보딩 반려 (슈퍼어드민용) */
+    async rejectOnboarding(pendingId: string, reason: string) {
+        try {
+            const pendingRef = doc(db, 'platform/registry/pending_studios', pendingId);
+            await setDoc(pendingRef, { status: 'rejected', rejectReason: reason, rejectedAt: new Date().toISOString() }, { merge: true });
+            return true;
+        } catch (e) {
+            console.error('[Registry] Reject failed:', e);
+            return false;
+        }
+    }
 };

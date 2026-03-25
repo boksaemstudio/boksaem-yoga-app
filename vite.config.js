@@ -7,16 +7,32 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate', // [FIX] 자동 업데이트 — 새 SW 설치 즉시 활성화 (prompt 방식은 업데이트 버튼 버그 시 이전 버전 고착 위험)
+      registerType: 'autoUpdate',
       injectRegister: 'auto',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // [PERF] 대형 청크(face-api 1.4MB, CheckInPage 등) 제외 → 프리캐시 용량 대폭 축소
+        globPatterns: ['**/*.{css,html,ico,png,svg}', 'assets/index-*.js', 'assets/vendor-*.js'],
+        // [PERF] 600KB 이하 파일만 프리캐시 허용 (vendor-firebase 512KB 수용, CheckInPage 1.4MB 제외)
+        maximumFileSizeToCacheInBytes: 600 * 1024,
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
+        // [PERF] Navigation Preload: SW 부팅과 페이지 네트워크 요청을 병렬 실행
+        // → 홈 화면 아이콘 터치 시 1st tap 반응 속도 대폭 개선
+        navigationPreload: true,
         // [ROOT FIX] Firebase 메시징 핸들러를 workbox SW에 포함
-        // push 이벤트가 workbox의 sw.js로 전달되므로, firebase 핸들러도 여기에 있어야 함
-        importScripts: ['/firebase-messaging-sw.js']
+        importScripts: ['/firebase-messaging-sw.js'],
+        // [PERF] 프리캐시에서 제외된 대형 JS는 런타임에 캐시
+        runtimeCaching: [
+          {
+            urlPattern: /\.js$/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'js-runtime-cache',
+              expiration: { maxEntries: 60, maxAgeSeconds: 7 * 24 * 60 * 60 }
+            }
+          }
+        ]
       },
       manifest: {
         name: '복샘요가',
@@ -25,6 +41,7 @@ export default defineConfig({
         theme_color: '#08080A',
         background_color: '#08080A',
         display: 'standalone',
+        start_url: '/',
         icons: [
           {
             src: 'logo_circle.png',

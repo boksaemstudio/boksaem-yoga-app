@@ -196,9 +196,16 @@ const AdminPriceManager = () => {
                 </div>
 
                 {/* 가격표 초기 데이터 세팅 버튼 */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
+                        <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>i</div>
+                        <div className="tooltip-text" style={{ width: '280px', left: 'auto', right: 0, transform: 'translateX(0)', textAlign: 'left', zIndex: 10 }}>
+                            <strong>데이터 초기화란?</strong><br/>기존에 추가/수정한 가격표를 지우고, 패스플로우 제공 <strong>표준 가격표 템플릿(심화, 일반, 토요하타, 키즈플라잉)</strong>으로 되돌립니다.<br/><span style={{fontSize: '0.85em', color: '#ff6b6b'}}>* 예: 일반 1회권 25,000원, 심화 1회권 35,000원 등 복샘요가 평균 시세 기준</span>
+                        </div>
+                    </div>
                     <button
                         onClick={async () => {
-                            if (!confirm('가격표를 초기 데이터로 복원하시겠습니까?\n(기존 가격표가 덮어씌워집니다)')) return;
+                            if (!confirm('가격표를 초기 데이터로 복원하시겠습니까?\n(기존 가격표가 모두 삭제되고 기본값으로 덮어씌워집니다)')) return;
                             try {
                                 const restore = httpsCallable(functions, 'restorePricingV2');
                                 const res = await restore();
@@ -214,15 +221,18 @@ const AdminPriceManager = () => {
                                 alert('오류: ' + e.message);
                             }
                         }}
-                        className="action-btn"
                         style={{
-                            padding: '10px 18px', background: 'rgba(16,185,129,0.15)', color: '#10B981',
-                            border: '1px solid rgba(16,185,129,0.3)', borderRadius: '10px', fontWeight: '700',
-                            fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
+                            padding: '6px 12px', background: 'transparent', color: 'rgba(255,255,255,0.4)',
+                            border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', fontWeight: '500',
+                            fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
+                            transition: 'all 0.2s ease'
                         }}
+                        onMouseOver={(e) => { e.currentTarget.style.color = '#ff6b6b'; e.currentTarget.style.borderColor = 'rgba(255, 107, 107, 0.4)'; e.currentTarget.style.background = 'rgba(255, 107, 107, 0.05)'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.background = 'transparent'; }}
                     >
-                        <ArrowClockwise size={18} /> 가격표 데이터 초기화
+                        <ArrowClockwise size={14} /> 가격표 초기화
                     </button>
+                </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>

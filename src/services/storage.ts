@@ -143,6 +143,10 @@ export const storageService = {
     getMemberDiligence(memberId: string) { return memberService.getMemberDiligence(memberId); },
     getGreetingCache(memberId: string) { return memberService.getGreetingCache(memberId); },
     setGreetingCache(memberId: string, data: Record<string, unknown>) { return memberService.setGreetingCache(memberId, data); },
+    softDeleteMember(memberId: string) { return memberService.softDeleteMember(memberId); },
+    restoreMember(memberId: string) { return memberService.restoreMember(memberId); },
+    getDeletedMembers() { return memberService.getDeletedMembers(); },
+    permanentDeleteMember(memberId: string) { return memberService.permanentDeleteMember(memberId); },
     updateFaceDescriptor(memberId: string, descriptor: Float32Array | null) { return memberService.updateFaceDescriptor(memberId, descriptor); },
     deleteFaceDescriptor(memberId: string) { return memberService.deleteFaceDescriptor(memberId); },
 
@@ -158,6 +162,7 @@ export const storageService = {
     addManualAttendance(memberId: string, date: string, branchId: string, className = "수동 확인", instructor = "관리자", options: { skipCreditDeduction?: boolean } = {}) { return attendanceService.addManualAttendance(memberId, date, branchId, className, instructor, options); },
     updatePastAttendanceRecords(branchId: string, dateStr: string, oldClasses: DailyClass[] | null, newClasses: DailyClass[] | null) { return attendanceService.updatePastAttendanceRecords(branchId, dateStr, oldClasses, newClasses); },
     getDeletedAttendance() { return attendanceService.getDeletedAttendance(); },
+    permanentDeleteAttendance(logId: string) { return attendanceService.permanentDeleteAttendance(logId); },
 
     // ═══ PAYMENT ═══
     getSales() { return paymentService.getSales(); },
@@ -169,6 +174,7 @@ export const storageService = {
     deleteSalesRecord(salesId: string) { return paymentService.deleteSalesRecord(salesId); },
     restoreSalesRecord(salesId: string) { return paymentService.restoreSalesRecord(salesId); },
     getDeletedSales() { return paymentService.getDeletedSales(); },
+    permanentDeleteSalesRecord(salesId: string) { return paymentService.permanentDeleteSalesRecord(salesId); },
 
     // ═══ MESSAGE ═══
     getMessagesByMemberId(memberId: string) { return messageService.getMessagesByMemberId(memberId); },

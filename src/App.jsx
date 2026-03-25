@@ -23,6 +23,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage'));
 const InstructorPage = lazy(() => import('./pages/InstructorPage'));
 const MeditationPage = lazy(() => import('./pages/MeditationPage'));
 const SuperAdminPage = lazy(() => import('./pages/SuperAdminPage'));
+const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 
 // Loading fallback
@@ -101,8 +102,31 @@ const RequireAdmin = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // [DEMO] 데모사이트는 로그인 없이 접근 가능
+    const isDemoSite = window.location.hostname.includes('passflow-demo-0324');
+    
     const unsub = onAuthStateChanged(auth, async (user) => {
-      if (!user) { navigate('/login', { replace: true }); return; }
+      if (!user) {
+        if (isDemoSite) {
+          // 데모 사이트: 자동 익명 인증 후 접근 허용
+          try {
+            const { signInAnonymously } = await import('firebase/auth');
+            await signInAnonymously(auth);
+            // onAuthStateChanged가 다시 호출됨
+          } catch (e) {
+            console.warn('[Demo] Anonymous auth failed, granting access anyway');
+            setAllowed(true); setChecked(true);
+          }
+          return;
+        }
+        navigate('/login', { replace: true }); return;
+      }
+      
+      // [DEMO] 데모 사이트: 모든 사용자(익명 포함) 접근 허용
+      if (isDemoSite) {
+        setAllowed(true); setChecked(true); return;
+      }
+      
       try {
         const tokenResult = await user.getIdTokenResult();
         const claims = tokenResult.claims;
@@ -118,10 +142,10 @@ const RequireAdmin = ({ children }) => {
           if (claims.studioId === currentStudioId) { setAllowed(true); setChecked(true); return; }
         }
 
-        // claims 미설정 시 — 점진적 마이그레이션을 위해 일단 허용 (콘솔 경고)
+        // [SECURITY] claims 미설정 사용자 → 접근 차단 (마이그레이션 기간 종료)
         if (!role) {
-          console.warn('[Auth] ⚠️ No admin claims set for', user.email, '- allowing access during migration period');
-          setAllowed(true); setChecked(true); return;
+          console.warn('[Auth] ❌ No admin claims for', user.email, '- ACCESS DENIED');
+          setAllowed(false); setChecked(true); return;
         }
 
         setAllowed(false); setChecked(true);
@@ -134,7 +158,35 @@ const RequireAdmin = ({ children }) => {
   }, [navigate]);
 
   if (!checked) return <div className="auth-checking">권한 확인 중...</div>;
-  if (!allowed) return (
+  if (!allowed) {
+    // [DEMO] 접근 거부 시에도 데모 사이트면 캐시 지우고 자동 새로고침
+    const isDemoFallback = window.location.hostname.includes('passflow-demo-0324');
+    if (isDemoFallback) {
+      const reloadKey = 'demo-cache-cleared';
+      if (!sessionStorage.getItem(reloadKey)) {
+        // 1회만 캐시 지우고 새로고침
+        sessionStorage.setItem(reloadKey, '1');
+        if ('caches' in window) {
+          caches.keys().then(names => names.forEach(name => caches.delete(name)));
+        }
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+        }
+        setTimeout(() => window.location.reload(), 500);
+        return <div className="auth-checking">데모 사이트 준비 중...</div>;
+      }
+      // 새로고침 후에도 여전히 차단이면 → 수동 버튼
+      return (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#08080A', color: '#f0f0f0' }}>
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <h2 style={{ color: 'var(--primary-gold)', marginBottom: '16px' }}>🎯 데모 사이트</h2>
+            <p style={{ color: '#888', marginBottom: '20px' }}>데모 사이트에 접속합니다.</p>
+            <button onClick={() => { sessionStorage.removeItem(reloadKey); auth.signOut().then(() => window.location.reload()); }} style={{ padding: '12px 30px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}>데모 접속하기</button>
+          </div>
+        </div>
+      );
+    }
+    return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#08080A', color: '#f0f0f0' }}>
       <div style={{ textAlign: 'center', padding: '40px' }}>
         <h2 style={{ color: '#EF4444', marginBottom: '16px' }}>🔒 접근 권한 없음</h2>
@@ -143,6 +195,7 @@ const RequireAdmin = ({ children }) => {
       </div>
     </div>
   );
+  }
   return children;
 };
 
@@ -159,10 +212,10 @@ const RequireSuperAdmin = ({ children }) => {
         const tokenResult = await user.getIdTokenResult();
         const role = tokenResult.claims.role;
         
-        // claims 미설정 시 — 마이그레이션 기간 허용
+        // [SECURITY] claims 미설정 사용자 → 슈퍼어드민 접근 완전 차단
         if (!role) {
-          console.warn('[Auth] ⚠️ No superadmin claims set for', user.email, '- allowing during migration');
-          setAllowed(true); setChecked(true); return;
+          console.warn('[Auth] ❌ No superadmin claims for', user.email, '- ACCESS DENIED');
+          setAllowed(false); setChecked(true); return;
         }
 
         setAllowed(role === 'superadmin');
@@ -228,6 +281,7 @@ function App() {
                 <Route path="/admin" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><RequireAdmin><AdminDashboard /></RequireAdmin></Suspense></ErrorBoundary>} />
                 <Route path="/member" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><MemberProfile /></Suspense></ErrorBoundary>} />
                 <Route path="/login" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><LoginPage /></Suspense></ErrorBoundary>} />
+                <Route path="/onboarding" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><OnboardingPage /></Suspense></ErrorBoundary>} />
                 <Route path="/instructor" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><InstructorPage /></Suspense></ErrorBoundary>} />
                 <Route path="/meditation" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><MeditationPage /></Suspense></ErrorBoundary>} />
                 <Route path="/super-admin" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><RequireSuperAdmin><SuperAdminPage /></RequireSuperAdmin></Suspense></ErrorBoundary>} />

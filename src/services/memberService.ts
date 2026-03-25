@@ -3,7 +3,7 @@
  * TypeScript version — Full type annotations
  */
 import { db, functions } from '../firebase';
-import { doc, query, where, getDocs, getDoc, addDoc, updateDoc, setDoc, deleteDoc, onSnapshot, Unsubscribe } from 'firebase/firestore';
+import { doc, query, where, getDocs, getDoc, addDoc, updateDoc, setDoc, deleteDoc, onSnapshot, Unsubscribe, orderBy, deleteField } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { tenantDb } from '../utils/tenantDb';
 
@@ -76,7 +76,7 @@ export const memberService = {
         try {
             if (memberListenerUnsubscribe) memberListenerUnsubscribe();
             memberListenerUnsubscribe = onSnapshot(tenantDb.collection('members'), (snapshot) => {
-                const members: Member[] = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Member));
+                const members: Member[] = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Member)).filter(m => !(m as Record<string, unknown>).deletedAt);
                 cachedMembers = members;
                 try { localStorage.setItem('kiosk_member_cache', JSON.stringify(cachedMembers)); }
                 catch { console.warn('[memberService] Cache persistence failed'); }
@@ -94,7 +94,7 @@ export const memberService = {
         try {
             console.time('[memberService] Force Fetch Members');
             const snapshot = await getDocs(tenantDb.collection('members'));
-            cachedMembers = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Member));
+            cachedMembers = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Member)).filter(m => !(m as Record<string, unknown>).deletedAt);
             try { localStorage.setItem('kiosk_member_cache', JSON.stringify(cachedMembers)); }
             catch { console.warn('[memberService] Local cache save failed (Storage full?)'); }
             this._buildPhoneLast4Index();
@@ -295,5 +295,60 @@ export const memberService = {
 
     setGreetingCache(memberId: string, data: Record<string, unknown>): void {
         this._safeSetItem(`greeting_${memberId}`, JSON.stringify(data));
+    },
+
+    // ═══ SOFT DELETE ═══
+    async softDeleteMember(memberId: string): Promise<{ success: boolean; error?: string }> {
+        try {
+            await updateDoc(tenantDb.doc('members', memberId), {
+                deletedAt: new Date().toISOString(),
+                _deletedBy: 'admin'
+            });
+            // 로컬 캐시에서 즉시 제거
+            cachedMembers = cachedMembers.filter(m => m.id !== memberId);
+            this._buildPhoneLast4Index();
+            notifyCallback();
+            this.triggerKioskSync();
+            return { success: true };
+        } catch (e) {
+            console.error('[memberService] Soft-delete member failed:', e);
+            return { success: false, error: (e as Error).message };
+        }
+    },
+
+    async restoreMember(memberId: string): Promise<{ success: boolean; error?: string }> {
+        try {
+            await updateDoc(tenantDb.doc('members', memberId), {
+                deletedAt: deleteField(),
+                _deletedBy: deleteField()
+            });
+            this.triggerKioskSync();
+            return { success: true };
+        } catch (e) {
+            console.error('[memberService] Restore member failed:', e);
+            return { success: false, error: (e as Error).message };
+        }
+    },
+
+    async getDeletedMembers(): Promise<Member[]> {
+        try {
+            const q = query(tenantDb.collection('members'), where('deletedAt', '!=', null), orderBy('deletedAt', 'desc'));
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Member));
+        } catch (e) {
+            console.warn('[memberService] getDeletedMembers failed:', e);
+            return [];
+        }
+    },
+
+    async permanentDeleteMember(memberId: string): Promise<{ success: boolean; error?: string }> {
+        try {
+            await deleteDoc(tenantDb.doc('members', memberId));
+            this.triggerKioskSync();
+            return { success: true };
+        } catch (e) {
+            console.error('[memberService] Permanent delete member failed:', e);
+            return { success: false, error: (e as Error).message };
+        }
     }
 };

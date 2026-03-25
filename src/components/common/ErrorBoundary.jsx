@@ -58,6 +58,22 @@ class ErrorBoundary extends Component {
                 );
             }
 
+            const isChunkError = this.state.error?.message?.includes('Failed to fetch dynamically imported module') || this.state.error?.message?.includes('Importing a module script failed');
+
+            if (isChunkError) {
+                return (
+                    <div className="eb-fallback-full" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', textAlign: 'center', background: 'var(--bg-dark)' }}>
+                        <h1 className="eb-title" style={{ color: 'var(--primary-gold)', marginBottom: '16px' }}>✨ 업데이트가 완료되었습니다</h1>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '30px', maxWidth: '400px', lineHeight: '1.5' }}>
+                            새로운 기능이 배포되어 최신 버전을 불러와야 합니다.<br />아래 버튼을 눌러 앱을 재시작해주세요.
+                        </p>
+                        <button onClick={() => { sessionStorage.setItem('chunk_reload', 'true'); window.location.reload(); }} className="eb-btn-primary" style={{ padding: '12px 24px', fontSize: '1rem' }}>
+                            앱 재시작 (F5)
+                        </button>
+                    </div>
+                );
+            }
+
             return (
                 <div className="eb-fallback-full">
                     <h1 className="eb-title">⚠️ 시스템 오류 발생</h1>

@@ -186,6 +186,7 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
     };
 
     return (
+        <>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {/* --- TOP: EDIT FORM --- */}
             {editingSale ? (
@@ -283,6 +284,8 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                     <InputGroup label="이름" value={editData.name} onChange={v => setEditData({ ...editData, name: v })} lang="ko" autoComplete="off" />
                     <InputGroup label="전화번호" value={editData.phone} onChange={v => setEditData({ ...editData, phone: v })} type="tel" inputMode="numeric" pattern="[0-9]*" autoComplete="off" />
 
+                    {/* 강사(instructor)가 아닌 일반 회원만 수강권 정보 표시 */}
+                    {originalData?.role !== 'instructor' && (<>
                     <InputGroup
                         label="회원권 구분"
                         value={editData.membershipType}
@@ -368,6 +371,7 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                             </div>
                         </div>
                     </div>
+                    </>)}
 
                     <InputGroup 
                         label="원장 메모 / 기타 특이사항" 
@@ -376,7 +380,8 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                         type="textarea" 
                     />
 
-                    {/* 얼굴인식 관리 섹션 */}
+                    {/* 얼굴인식 관리 섹션 — 강사가 아닌 회원만 표시 */}
+                    {originalData?.role !== 'instructor' && (
                     <div style={{
                         background: originalData?.hasFaceDescriptor 
                             ? 'rgba(99, 102, 241, 0.08)' 
@@ -433,7 +438,6 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                                             const result = await memberService.deleteFaceDescriptor(originalData.id);
                                             if (result.success) {
                                                 alert('안면 인식 데이터가 삭제되었습니다.\n키오스크에서 다시 등록해주세요.');
-                                                // Trigger UI refresh via listeners
                                                 storageService.notifyListeners('members');
                                             } else {
                                                 alert('삭제에 실패했습니다: ' + (result.error || '알 수 없는 오류'));
@@ -465,6 +469,7 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                             )}
                         </div>
                     </div>
+                    )}
 
                     {(() => {
                         const editableKeys = ['name', 'phone', 'membershipType', 'subject', 'regDate', 'startDate', 'endDate', 'credits', 'price', 'notes'];
@@ -609,6 +614,71 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                 )}
             </div>
         </div>
+
+        {/* ━━━ 회원 삭제 ━━━ */}
+        {(() => {
+            const credits = Number(originalData.credits || 0);
+            const endDate = originalData.endDate;
+            const isTBD = endDate === 'TBD';
+            let isActive = false;
+            if (isTBD) {
+                isActive = true;
+            } else if (endDate) {
+                const end = new Date(endDate);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                isActive = end >= today && credits > 0;
+            }
+            
+            if (isActive) {
+                // 활성/선등록 회원: 삭제 버튼 없음, 안내만
+                return (
+                    <div style={{ marginTop: '20px', padding: '14px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', textAlign: 'center' }}>
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#71717a' }}>
+                            {isTBD 
+                                ? '🔒 선등록 회원은 삭제할 수 없습니다. 수강 만료 후 삭제가 가능합니다.'
+                                : `🔒 활성 회원은 삭제할 수 없습니다. (잔여 ${credits}회 / 만료 ${endDate})`
+                            }
+                        </p>
+                    </div>
+                );
+            }
+            
+            // 만료/비활성 회원: 삭제 버튼 표시
+            return (
+                <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.15)', borderRadius: '12px' }}>
+                    <button
+                        onClick={async () => {
+                            if (!confirm(`"${originalData.name}" 회원을 삭제하시겠습니까?\n\n삭제된 회원은 휴지통에서 복원할 수 있습니다.`)) return;
+                            try {
+                                const result = await storageService.softDeleteMember(originalData.id);
+                                if (result.success) {
+                                    alert('회원이 삭제되었습니다.\n휴지통 탭에서 복원할 수 있습니다.');
+                                    if (typeof window !== 'undefined') window.dispatchEvent(new Event('member-deleted'));
+                                } else {
+                                    alert('삭제 실패: ' + (result.error || '알 수 없는 오류'));
+                                }
+                            } catch (e) {
+                                alert('삭제 중 오류: ' + e.message);
+                            }
+                        }}
+                        style={{
+                            width: '100%', padding: '12px', borderRadius: '8px',
+                            border: '1px solid rgba(239, 68, 68, 0.3)', background: 'transparent',
+                            color: '#ef4444', fontSize: '0.85rem', fontWeight: '600',
+                            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
+                        }}
+                    >
+                        <Trash size={16} weight="fill" />
+                        회원 삭제 (휴지통으로 이동)
+                    </button>
+                    <p style={{ margin: '8px 0 0', fontSize: '0.72rem', color: '#71717a', textAlign: 'center' }}>
+                        삭제된 회원은 회원 목록에서 사라지며, 휴지통 탭에서 언제든 복원할 수 있습니다.
+                    </p>
+                </div>
+            );
+        })()}
+        </>
     );
 };
 

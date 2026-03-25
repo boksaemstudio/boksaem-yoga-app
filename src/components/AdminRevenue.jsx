@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line, Cell, Legend } from 'recharts';
 import { CaretLeft, CaretRight, CalendarBlank as CalendarIcon } from '@phosphor-icons/react';
+import CollapsibleCard from './admin/CollapsibleCard';
 import { useRevenueStats } from '../hooks/useRevenueStats';
 import { useStudioConfig } from '../contexts/StudioContext';
 
-const AdminRevenue = ({ members, sales, currentBranch, revenueStats }) => {
+const AdminRevenue = ({ members, sales, currentBranch, revenueStats, viewMode }) => {
     const { config } = useStudioConfig();
     const branches = config.BRANCHES || [];
     const getBranchName = (id) => branches.find(b => b.id === id)?.name || id;
@@ -37,170 +38,159 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats }) => {
             </div>
 
             {/* Total Month Summary */}
-            <div className="dashboard-card revenue-summary-card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                    <div>
-                        <div className="revenue-summary-title">
-                            {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월 총 매출
-                        </div>
-                        <div className="revenue-summary-amount">
-                            {formatCurrency(monthlyStats.totalRevenue)}원
-                        </div>
-                        <div className="revenue-summary-details">
-                            (신규: <span className="revenue-new">{formatCurrency(monthlyStats.totalRevenueNew)}원</span> / 
-                             재등록: <span className="revenue-rereg">{formatCurrency(monthlyStats.totalRevenueReReg)}원</span>)
-                        </div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                        <div style={{ marginBottom: '12px' }}>
-                            <div className="revenue-count-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
-                                오늘 매출
-                                <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
-                                    <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 'bold' }}>i</div>
-                                    <div className="tooltip-text" style={{ width: '200px', left: 'auto', right: 0, transform: 'translateX(0)', textAlign: 'left' }}>
-                                        <strong>오늘 매출 기준</strong><br/>현재 날짜(자정 0시 기준)에 발생한 결제 금액의 총합입니다.
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="revenue-summary-amount" style={{ fontSize: '1.4rem', color: 'var(--primary-theme-color)' }}>
-                                {formatCurrency(comparativeStats.today)}원
-                            </div>
-                        </div>
+            <CollapsibleCard id="revenue-summary" title={`${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월 총 매출 요약`} defaultOpen={true}>
+                <div className="dashboard-card revenue-summary-card" style={{ marginTop: '0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                         <div>
-                            <div className="revenue-count-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
-                                총 결제 건수
-                                <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
-                                    <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 'bold' }}>i</div>
-                                    <div className="tooltip-text" style={{ width: '200px', left: 'auto', right: 0, transform: 'translateX(0)', textAlign: 'left' }}>
-                                        <strong>총 결제 건수</strong><br/>이번 달 발생한 승인 완료된 결제의 총 횟수입니다.
+                            <div className="revenue-summary-title">
+                                이번 달 누적 매출
+                            </div>
+                            <div className="revenue-summary-amount">
+                                {formatCurrency(monthlyStats.totalRevenue)}원
+                            </div>
+                            <div className="revenue-summary-details">
+                                (신규: <span className="revenue-new">{formatCurrency(monthlyStats.totalRevenueNew)}원</span> / 
+                                 재등록: <span className="revenue-rereg">{formatCurrency(monthlyStats.totalRevenueReReg)}원</span>)
+                            </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                            <div style={{ marginBottom: '12px' }}>
+                                <div className="revenue-count-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
+                                    오늘 발생 매출
+                                    <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                        <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 'bold' }}>i</div>
+                                        <div className="tooltip-text" style={{ width: '200px', left: 'auto', right: 0, transform: 'translateX(0)', textAlign: 'left' }}>
+                                            <strong>오늘 매출 기준</strong><br/>현재 날짜(자정 0시 기준)에 발생한 결제 금액의 총합입니다.
+                                        </div>
                                     </div>
                                 </div>
+                                <div className="revenue-summary-amount" style={{ fontSize: '1.4rem', color: 'var(--primary-theme-color)' }}>
+                                    {formatCurrency(comparativeStats.today)}원
+                                </div>
                             </div>
-                            <div className="revenue-count">{monthlyStats.totalCount}건</div>
+                            <div>
+                                <div className="revenue-count-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
+                                    이번 달 결제 건수
+                                    <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                        <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 'bold' }}>i</div>
+                                        <div className="tooltip-text" style={{ width: '200px', left: 'auto', right: 0, transform: 'translateX(0)', textAlign: 'left' }}>
+                                            <strong>총 결제 건수</strong><br/>이번 달 발생한 승인 완료된 결제의 총 횟수입니다.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="revenue-count">{monthlyStats.totalCount}건</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </CollapsibleCard>
 
             {/* Revenue Graph (Straight Line) */}
-            <div className="dashboard-card">
-                <h3 style={{ fontSize: '1.1rem', marginBottom: '20px', color: 'var(--text-secondary)' }}>최근 14일 일별 매출</h3>
-                <StraightLineChart data={recentTrend} branches={branches} showBranches={currentBranch === 'all' && branches.length > 1} />
-            </div>
+            {viewMode !== 'compact' && (
+                <CollapsibleCard id="revenue-daily" title="📈 최근 14일 일별 매출" defaultOpen={true}>
+                    <StraightLineChart data={recentTrend} branches={branches} showBranches={currentBranch === 'all' && branches.length > 1} />
+                </CollapsibleCard>
+            )}
 
             {/* Monthly Bar Chart */}
-            <div className="dashboard-card" style={{ height: '400px', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '1.1rem', margin: 0, color: 'var(--text-secondary)' }}>월별 매출 추이 (최근 6개월)</h3>
-                    <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
-                        <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>i</div>
-                        <div className="tooltip-text" style={{ width: '220px', left: 0, transform: 'translateX(0)' }}>
-                            <strong>매출 진도율 비교</strong><br/>선택한 조회 기준일(예: 15일)까지의 매출액 누적분과 해당 월의 최종 전체 매출을 겹쳐서 비교합니다. 다중 지점일 경우 누적분이 지점별로 분할되어 표시됩니다.
-                        </div>
-                    </div>
-                </div>
-                <div style={{ flex: 1, minHeight: 0 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={monthlyTrend.map(d => {
-                            const row = { ...d };
-                            if (d.partialBranches) {
-                                Object.entries(d.partialBranches).forEach(([bId, amt]) => {
-                                    row[`partial_${bId}`] = amt;
-                                });
-                            }
-                            return row;
-                        })} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
-                            
-                            <XAxis 
-                                xAxisId={0}
-                                dataKey="name" 
-                                stroke="#71717a" 
-                                tick={{ fill: '#71717a', fontSize: 12 }} 
-                                axisLine={{ stroke: '#3f3f46' }}
-                                tickLine={false}
-                            />
-                            <XAxis 
-                                xAxisId={1} 
-                                dataKey="name" 
-                                hide 
-                            />
+            {viewMode !== 'compact' && (
+                <CollapsibleCard id="revenue-monthly" title="📊 월별 매출 추이 (최근 6개월)" defaultOpen={true}>
+                <div style={{ height: '360px', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ flex: 1, minHeight: 0 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={monthlyTrend.map(d => {
+                                const row = { ...d };
+                                if (d.partialBranches) {
+                                    Object.entries(d.partialBranches).forEach(([bId, amt]) => {
+                                        row[`partial_${bId}`] = amt;
+                                    });
+                                }
+                                return row;
+                            })} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+                                
+                                <XAxis 
+                                    xAxisId={0}
+                                    dataKey="name" 
+                                    stroke="#71717a" 
+                                    tick={{ fill: '#71717a', fontSize: 12 }} 
+                                    axisLine={{ stroke: '#3f3f46' }}
+                                    tickLine={false}
+                                />
+                                <XAxis 
+                                    xAxisId={1} 
+                                    dataKey="name" 
+                                    hide 
+                                />
 
-                            <YAxis 
-                                stroke="#71717a" 
-                                tick={{ fill: '#71717a', fontSize: 12 }} 
-                                tickFormatter={(value) => value === 0 ? '0' : `${(value / 10000).toLocaleString()}만`}
-                                axisLine={false}
-                                tickLine={false}
-                                width={60}
-                            />
-                            <Tooltip
-                                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                                wrapperStyle={{ maxWidth: '180px', fontSize: '0.75rem', zIndex: 10, pointerEvents: 'none' }}
-                                contentStyle={{ 
-                                    backgroundColor: '#18181b', 
-                                    borderColor: '#3f3f46', 
-                                    borderRadius: '8px',
-                                    color: '#fff',
-                                    padding: '8px 10px',
-                                    fontSize: '0.75rem',
-                                    whiteSpace: 'nowrap'
-                                }}
-                                formatter={(value, name) => [
-                                    `${new Intl.NumberFormat('ko-KR').format(value)}원`, 
-                                    name === 'amount' || name === 'partialAmount' ? (name === 'amount' ? '월 전체' : `${currentDate.getDate()}일까지`) : name
-                                ]}
-                                itemStyle={{ color: 'var(--primary-theme-color)', fontSize: '0.75rem' }}
-                                labelStyle={{ color: '#a1a1aa', marginBottom: '4px', fontSize: '0.7rem' }}
-                            />
-                            <Legend 
-                                wrapperStyle={{ fontSize: '0.75rem', color: '#a1a1aa', paddingTop: '10px' }}
-                                formatter={(value) => {
-                                    if (value === 'amount') return '월 전체 매출';
-                                    if (value === 'partialAmount') return `${currentDate.getDate()}일까지 매출`;
-                                    return value;
-                                }}
-                            />
-                            
-                            {/* Background bar: Total Amount (Faint) */}
-                            <Bar xAxisId={0} dataKey="amount" name="amount" radius={[4, 4, 0, 0]} maxBarSize={60}>
-                                {monthlyTrend.map((entry, index) => (
-                                    <Cell key={`cell-bg-${index}`} fill={entry.monthParams === `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}` ? 'rgba(var(--primary-rgb), 0.2)' : '#27272a'} />
-                                ))}
-                            </Bar>
-                            
-                            {/* Foreground bar: Partial Amount up to current day */}
-                            {currentBranch === 'all' && branches.length > 1 ? (
-                                branches.map((b, i) => {
-                                    const branchColors = ['#00C49F', '#2196F3', '#FFBB28', '#FF8042', '#8884d8'];
-                                    return (
-                                        <Bar key={b.id} xAxisId={1} stackId="a" dataKey={`partial_${b.id}`} name={b.name} fill={branchColors[i % branchColors.length]} maxBarSize={60} />
-                                    );
-                                })
-                            ) : (
-                                <Bar xAxisId={1} dataKey="partialAmount" name="partialAmount" radius={[4, 4, 0, 0]} maxBarSize={60}>
+                                <YAxis 
+                                    stroke="#71717a" 
+                                    tick={{ fill: '#71717a', fontSize: 12 }} 
+                                    tickFormatter={(value) => value === 0 ? '0' : `${(value / 10000).toLocaleString()}만`}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    width={60}
+                                />
+                                <Tooltip
+                                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                    wrapperStyle={{ maxWidth: '180px', fontSize: '0.75rem', zIndex: 10, pointerEvents: 'none' }}
+                                    contentStyle={{ 
+                                        backgroundColor: '#18181b', 
+                                        borderColor: '#3f3f46', 
+                                        borderRadius: '8px',
+                                        color: '#fff',
+                                        padding: '8px 10px',
+                                        fontSize: '0.75rem',
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                    formatter={(value, name) => [
+                                        `${new Intl.NumberFormat('ko-KR').format(value)}원`, 
+                                        name === 'amount' || name === 'partialAmount' ? (name === 'amount' ? '월 전체' : `${currentDate.getDate()}일까지`) : name
+                                    ]}
+                                    itemStyle={{ color: 'var(--primary-theme-color)', fontSize: '0.75rem' }}
+                                    labelStyle={{ color: '#a1a1aa', marginBottom: '4px', fontSize: '0.7rem' }}
+                                />
+                                <Legend 
+                                    wrapperStyle={{ fontSize: '0.75rem', color: '#a1a1aa', paddingTop: '10px' }}
+                                    formatter={(value) => {
+                                        if (value === 'amount') return '월 전체 매출';
+                                        if (value === 'partialAmount') return `${currentDate.getDate()}일까지 매출`;
+                                        return value;
+                                    }}
+                                />
+                                
+                                {/* Background bar: Total Amount (Faint) */}
+                                <Bar xAxisId={0} dataKey="amount" name="amount" radius={[4, 4, 0, 0]} maxBarSize={60}>
                                     {monthlyTrend.map((entry, index) => (
-                                        <Cell key={`cell-fg-${index}`} fill={entry.monthParams === `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}` ? 'var(--primary-theme-color)' : '#52525b'} />
+                                        <Cell key={`cell-bg-${index}`} fill={entry.monthParams === `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}` ? 'rgba(var(--primary-rgb), 0.2)' : '#27272a'} />
                                     ))}
                                 </Bar>
-                            )}
-                        </BarChart>
-                    </ResponsiveContainer>
+                                
+                                {/* Foreground bar: Partial Amount up to current day */}
+                                {currentBranch === 'all' && branches.length > 1 ? (
+                                    branches.map((b, i) => {
+                                        const branchColors = ['#00C49F', '#2196F3', '#FFBB28', '#FF8042', '#8884d8'];
+                                        return (
+                                            <Bar key={b.id} xAxisId={1} stackId="a" dataKey={`partial_${b.id}`} name={b.name} fill={branchColors[i % branchColors.length]} maxBarSize={60} />
+                                        );
+                                    })
+                                ) : (
+                                    <Bar xAxisId={1} dataKey="partialAmount" name="partialAmount" radius={[4, 4, 0, 0]} maxBarSize={60}>
+                                        {monthlyTrend.map((entry, index) => (
+                                            <Cell key={`cell-fg-${index}`} fill={entry.monthParams === `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}` ? 'var(--primary-theme-color)' : '#52525b'} />
+                                        ))}
+                                    </Bar>
+                                )}
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
-            </div>
+                </CollapsibleCard>
+            )}
 
             {/* Membership Type Sales */}
-            {membershipSales && membershipSales.length > 0 && (
-                <div className="dashboard-card">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                        <h3 style={{ fontSize: '1.1rem', margin: 0, color: 'var(--text-secondary)' }}>회원권별 판매 현황</h3>
-                        <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
-                            <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>i</div>
-                            <div className="tooltip-text" style={{ width: '220px', left: 0, transform: 'translateX(0)' }}>
-                                <strong>회원권별 판매 현황</strong><br/>이번 달 회원권 유형별 판매 건수와 매출을 비교합니다. 어떤 회원권이 많이 팔리는지 한눈에 확인하세요.
-                            </div>
-                        </div>
-                    </div>
+            {membershipSales && membershipSales.length > 0 && viewMode !== 'compact' && (
+                <CollapsibleCard id="revenue-membership" title="🏷️ 회원권별 판매 현황" titleExtra={`${membershipSales.length}종`} defaultOpen={true}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {membershipSales.map((ms, idx) => {
                             const maxCount = membershipSales[0]?.count || 1;
@@ -257,15 +247,11 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats }) => {
                             재등록
                         </div>
                     </div>
-                </div>
+                </CollapsibleCard>
             )}
 
             {/* Calendar View */}
-            <div className="dashboard-card" style={{ padding: '0', overflowX: 'auto' }}>
-                <div className="revenue-calendar-header">
-                    <CalendarIcon size={20} weight="fill" color="var(--primary-theme-color)" />
-                    <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월 정산 달력</h3>
-                </div>
+            <CollapsibleCard id="revenue-calendar" title={`📅 ${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월 정산 달력`} defaultOpen={true}>
                 <div className="calendar-grid custom-scroll" style={{ minWidth: '600px' }}>
                     {/* Header */}
                     {['일', '월', '화', '수', '목', '금', '토'].map((dayName, index) => (
@@ -320,7 +306,7 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats }) => {
                         </div>
                     ))}
                 </div>
-            </div>
+            </CollapsibleCard>
 
         </div>
     );

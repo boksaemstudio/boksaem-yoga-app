@@ -129,6 +129,17 @@ export const paymentService = {
         }
     },
 
+    async permanentDeleteSalesRecord(salesId: string): Promise<boolean> {
+        try {
+            const { deleteDoc } = await import('firebase/firestore');
+            await deleteDoc(tenantDb.doc('sales', salesId));
+            return true;
+        } catch (e) {
+            console.error("[paymentService] Permanent delete sales record failed:", e);
+            throw e;
+        }
+    },
+
     async getSalesHistory(memberId: string): Promise<SalesRecord[]> {
         if (cachedSales && cachedSales.length > 0) return cachedSales.filter(s => s.memberId === memberId);
         try {

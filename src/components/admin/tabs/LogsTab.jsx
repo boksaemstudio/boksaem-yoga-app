@@ -7,6 +7,7 @@ import { useStudioConfig } from '../../../contexts/StudioContext';
 import ImageLightbox from '../../common/ImageLightbox';
 import LogListItem from './LogListItem';
 import AttendanceTrendChart from './AttendanceTrendChart';
+import CollapsibleCard from '../CollapsibleCard';
 
 // ─── Mini Calendar Popup ───
 const MiniCalendar = memo(({ selectedDate, onSelect, onClose, config }) => {
@@ -118,7 +119,7 @@ const MiniCalendar = memo(({ selectedDate, onSelect, onClose, config }) => {
 MiniCalendar.displayName = 'MiniCalendar';
 
 // ─── Main Component ───
-const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, members = [], onMemberClick, summary }) => {
+const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, members = [], onMemberClick, summary, viewMode }) => {
     const { config } = useStudioConfig();
     const branches = config.BRANCHES || [];
     const getBranchName = (id) => branches.find(b => b.id === id)?.name || id;
@@ -422,7 +423,11 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
             </div>
 
             {/* ─── Attendance Trend Analytics ─── */}
-            <AttendanceTrendChart selectedDate={selectedDate} members={members} />
+            {viewMode !== 'compact' && (
+                <CollapsibleCard id="logs-trend" title="📈 출석 추세 분석" defaultOpen={true}>
+                    <AttendanceTrendChart selectedDate={selectedDate} members={members} />
+                </CollapsibleCard>
+            )}
 
             {/* ─── Loading State ─── */}
             {loadingHistorical && (
@@ -439,10 +444,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
 
             {/* ─── Class Summary Cards ─── */}
             {!loadingHistorical && classCards.length > 0 && (
-                <div className="dashboard-card" style={{ border: '1px solid rgba(var(--primary-rgb), 0.2)' }}>
-                    <h3 className="card-label" style={{ marginBottom: '15px', color: 'var(--primary-gold)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <ClockCounterClockwise size={18} /> {isToday ? '오늘' : formatDisplayDate(selectedDate)} 수업별 출석 요약
-                    </h3>
+                <CollapsibleCard id="logs-class-summary" title={`📊 ${isToday ? '오늘' : formatDisplayDate(selectedDate)} 수업별 출석 요약`} titleExtra={`${classCards.length}개 수업`} defaultOpen={true}>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
                         {classCards.map((cls, idx) => {
                             const key = `${cls.className}-${cls.instructor}-${cls.branchId}-${cls.classTime || 'no-time'}`;
@@ -511,7 +513,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                 </div>
 
                                 {/* [UX FIX] 차트를 선택된 카드 바로 아래에 인라인 표시 */}
-                                {isSelected && (
+                                {isSelected && viewMode !== 'compact' && (
                                     <div style={{ 
                                         gridColumn: '1 / -1',
                                         padding: '16px', 
@@ -583,7 +585,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                             );
                         })}
                     </div>
-                </div>
+                </CollapsibleCard>
             )}
 
             {/* ─── Empty State ─── */}
@@ -601,18 +603,8 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
 
             {/* ─── Activity Log List ─── */}
             {!loadingHistorical && (
-                <div className="dashboard-card">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                            <h3 className="card-label" style={{ margin: 0, whiteSpace: 'nowrap' }}>
-                                {isToday ? '오늘 활동 로그' : `${formatDisplayDate(selectedDate)} 활동 로그`}
-                            </h3>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>
-                                {activeLogs.length}건
-                            </span>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <CollapsibleCard id="logs-activity" title={isToday ? '오늘 활동 로그' : `${formatDisplayDate(selectedDate)} 활동 로그`} titleExtra={`${activeLogs.length}건`} defaultOpen={true}>
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '10px' }}>
                             {selectedClassKey && (
                                 <button
                                     onClick={() => setSelectedClassKey(null)}
@@ -657,8 +649,6 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                 )}
                             </div>
                         </div>
-
-                    </div>
                     <div style={{ marginTop: '10px' }}>
                         {(() => {
                             const filteredLogs = (selectedClassKey
@@ -716,7 +706,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                             );
                         })()}
                     </div>
-                </div>
+                </CollapsibleCard>
             )}
         </div>
 

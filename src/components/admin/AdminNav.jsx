@@ -66,6 +66,10 @@ const AdminNav = ({ activeTab, setActiveTab, pendingApprovals, config }) => {
                 <Trash size={22} weight={activeTab === 'trash' ? "fill" : "regular"} />
                 <span>휴지통</span>
             </button>
+            <button onClick={() => setActiveTab('guide')} className={`nav-tab-item ${activeTab === 'guide' ? 'active' : ''}`}>
+                <span style={{ fontSize: '22px' }}>📖</span>
+                <span>가이드</span>
+            </button>
             <button onClick={() => setActiveTab('settings')} className={`nav-tab-item ${activeTab === 'settings' ? 'active' : ''}`}>
                 <Gear size={22} weight={activeTab === 'settings' ? "fill" : "regular"} />
                 <span>설정</span>

@@ -9,6 +9,7 @@ import { httpsCallable } from 'firebase/functions';
 const SuperAdminPage = () => {
     const { config } = useStudioConfig();
     const [studios, setStudios] = useState([]);
+    const [pendingStudios, setPendingStudios] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showRegister, setShowRegister] = useState(false);
     const [currentStudioId, setCurrentStudioId] = useState(() => getCurrentStudioId());
@@ -35,8 +36,16 @@ const SuperAdminPage = () => {
 
     const loadStudios = async () => {
         setLoading(true);
-        const list = await studioRegistryService.listStudios();
+        const [list, pendingList] = await Promise.all([
+            studioRegistryService.listStudios(),
+            studioRegistryService.listPendingStudios()
+        ]);
         setStudios(list);
+        
+        // pendingList에서 status가 'pending'인 것만 필터링
+        const pList = pendingList.filter(p => p.status === 'pending');
+        setPendingStudios(pList);
+        
         setLoading(false);
     };
 
@@ -108,6 +117,31 @@ const SuperAdminPage = () => {
         else alert(result.message);
     };
 
+    const handleApproveOnboarding = async (pending) => {
+        const studioId = prompt('✅ 승인 처리를 위해 부여할 영문 스튜디오 ID를 입력하세요\n(예: namaste-yoga)', '');
+        if (!studioId) return;
+        if (!/^[a-z0-9-]+$/.test(studioId)) { alert('영문 소문자, 숫자, 하이픈만 가능합니다.'); return; }
+        
+        setLoading(true);
+        const result = await studioRegistryService.approveOnboarding(pending.id, studioId, pending.ownerEmail, pending.name);
+        if (result.success) {
+            alert('🎉 ' + result.message);
+            loadStudios();
+        } else {
+            alert('승인 실패: ' + result.message);
+            setLoading(false);
+        }
+    };
+
+    const handleRejectOnboarding = async (pending) => {
+        const reason = prompt('❌ 반려 (거절) 사유를 입력하세요 (신청자에게 발송 안됨, 기록용):', '');
+        if (reason === null) return;
+        
+        setLoading(true);
+        await studioRegistryService.rejectOnboarding(pending.id, reason);
+        loadStudios();
+    };
+
     const handleSwitch = (studioId) => {
         if (currentStudioId === studioId) return;
         if (!window.confirm(`[${studioId}] 스튜디오로 전환하시겠습니까?\n\n모든 데이터가 해당 스튜디오의 데이터로 바뀝니다.`)) return;
@@ -168,34 +202,66 @@ const SuperAdminPage = () => {
                     {loading ? (
                         <div style={{ textAlign: 'center', padding: '60px', color: '#666' }}>불러오는 중...</div>
                     ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px' }}>
-                            {studios.map(studio => {
-                                const isCurrent = studio.id === currentStudioId;
-                                return (
-                                    <div key={studio.id} style={{ background: isCurrent ? 'rgba(212, 175, 55, 0.06)' : 'rgba(255,255,255,0.03)', border: isCurrent ? '2px solid rgba(212, 175, 55, 0.4)' : '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '20px', position: 'relative', cursor: 'pointer' }} onClick={() => handleSwitch(studio.id)}>
-                                        {isCurrent && <div style={{ position: 'absolute', top: '12px', right: '12px', fontSize: '0.7rem', padding: '3px 8px', borderRadius: '12px', background: '#D4AF37', color: '#000', fontWeight: '700' }}>현재</div>}
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
-                                            <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'linear-gradient(135deg, #3B82F6, #8B5CF6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '1rem', color: 'white', flexShrink: 0 }}>{studio.name?.substring(0, 1) || '?'}</div>
-                                            <div style={{ minWidth: 0 }}>
-                                                <div style={{ fontWeight: '700', fontSize: '1.05rem' }}>{studio.name}</div>
-                                                <div style={{ fontSize: '0.75rem', color: '#888' }}>{studio.id}</div>
+                        <>
+                            {/* 신규 가입 심사 대기소 */}
+                            {pendingStudios.length > 0 && (
+                                <div style={{ marginBottom: '32px', padding: '24px', background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '16px' }}>
+                                    <h3 style={{ margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#60A5FA', fontSize: '1.2rem' }}>
+                                        <Crown size={24} weight="fill" /> 신규 가입 심사 대기소 ({pendingStudios.length}건)
+                                        <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 'normal', marginLeft: 'auto' }}>❓ 새로 신청한 원장님들을 검토하고 스튜디오를 발급해주는 공간입니다.</span>
+                                    </h3>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+                                        {pendingStudios.map(p => (
+                                            <div key={p.id} style={{ background: 'rgba(0,0,0,0.3)', border: '1px dashed rgba(59, 130, 246, 0.4)', borderRadius: '12px', padding: '16px' }}>
+                                                <div style={{ fontWeight: '700', fontSize: '1.1rem', marginBottom: '4px' }}>{p.name} {p.nameEnglish && `(${p.nameEnglish})`}</div>
+                                                <div style={{ fontSize: '0.85rem', color: '#aaa', marginBottom: '4px' }}>📧 {p.ownerEmail}</div>
+                                                <div style={{ fontSize: '0.85rem', color: '#aaa', marginBottom: '16px' }}>📦 요금제: {p.plan === 'pro' ? '프로' : p.plan === 'basic' ? '베이직' : '무료체험'}</div>
+                                                
+                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                    <button onClick={() => handleApproveOnboarding(p)} title="이 버튼을 누르면 원장님 전용 DB가 자동으로 세팅되며 카톡 알림이 전송됩니다." style={{ flex: 1, padding: '10px', background: '#3B82F6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem' }}>
+                                                        ✅ 승인 및 ID 발급
+                                                    </button>
+                                                    <button onClick={() => handleRejectOnboarding(p)} title="가짜 신청이거나 중복 신청일 경우 거절합니다." style={{ padding: '10px 16px', background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
+                                                        ❌ 반려
+                                                    </button>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-                                            <span style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: '10px', background: `${statusColors[studio.status]}22`, color: statusColors[studio.status], fontWeight: '600' }}>{statusLabels[studio.status] || studio.status}</span>
-                                            <span style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: '10px', background: `${planColors[studio.plan]}22`, color: planColors[studio.plan], fontWeight: '600' }}>{planLabels[studio.plan] || studio.plan}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: '#888' }}>
-                                            <span>{studio.ownerEmail}</span>
-                                            <div style={{ display: 'flex', gap: '4px' }} onClick={e => e.stopPropagation()}>
-                                                <button onClick={() => handleSwitch(studio.id)} title="전환" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#3B82F6', padding: '4px' }}><ArrowSquareOut size={18} /></button>
-                                                <button onClick={() => handleDelete(studio)} title="삭제" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', padding: '4px' }}><Trash size={18} /></button>
-                                            </div>
-                                        </div>
+                                        ))}
                                     </div>
-                                );
-                            })}
-                        </div>
+                                </div>
+                            )}
+
+                            {/* 기존 스튜디오 목록 */}
+                            <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', color: '#ccc' }}>등록된 스튜디오 목록</h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px' }}>
+                                {studios.map(studio => {
+                                    const isCurrent = studio.id === currentStudioId;
+                                    return (
+                                        <div key={studio.id} style={{ background: isCurrent ? 'rgba(212, 175, 55, 0.06)' : 'rgba(255,255,255,0.03)', border: isCurrent ? '2px solid rgba(212, 175, 55, 0.4)' : '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '20px', position: 'relative', cursor: 'pointer' }} onClick={() => handleSwitch(studio.id)} title={`클릭하면 이 화면 전체가 [${studio.name}]의 데이터로 탈바꿈합니다.`}>
+                                            {isCurrent && <div style={{ position: 'absolute', top: '12px', right: '12px', fontSize: '0.7rem', padding: '3px 8px', borderRadius: '12px', background: '#D4AF37', color: '#000', fontWeight: '700' }}>현재 접속중</div>}
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+                                                <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'linear-gradient(135deg, #3B82F6, #8B5CF6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '1rem', color: 'white', flexShrink: 0 }}>{studio.name?.substring(0, 1) || '?'}</div>
+                                                <div style={{ minWidth: 0 }}>
+                                                    <div style={{ fontWeight: '700', fontSize: '1.05rem' }}>{studio.name}</div>
+                                                    <div style={{ fontSize: '0.75rem', color: '#888' }}>{studio.id}</div>
+                                                </div>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                                                <span style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: '10px', background: `${statusColors[studio.status]}22`, color: statusColors[studio.status], fontWeight: '600' }}>{statusLabels[studio.status] || studio.status}</span>
+                                                <span style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: '10px', background: `${planColors[studio.plan]}22`, color: planColors[studio.plan], fontWeight: '600' }}>{planLabels[studio.plan] || studio.plan}</span>
+                                            </div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: '#888' }}>
+                                                <span>{studio.ownerEmail}</span>
+                                                <div style={{ display: 'flex', gap: '4px' }} onClick={e => e.stopPropagation()}>
+                                                    <button onClick={() => handleSwitch(studio.id)} title={`[관제탑 전환] 이 버튼을 누르면 마치 내가 ${studio.name}의 원장님이 된 것처럼 대시보드가 통째로 이동합니다.`} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#3B82F6', padding: '4px' }}><ArrowSquareOut size={18} /></button>
+                                                    <button onClick={() => handleDelete(studio)} title={`[가입 해지] 이 요가원을 플랫폼 목록에서 아예 삭제합니다.`} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', padding: '4px' }}><Trash size={18} /></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </>
                     )}
                 </>
             )}
