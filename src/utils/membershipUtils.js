@@ -27,7 +27,8 @@ export const toKSTDateString = (date) => {
  * @returns {string} YYYY-MM-DD
  */
 export const calculateEndDate = (startDateStr, durationMonths) => {
-  const end = new Date(startDateStr);
+  // [FIX] KST 기준으로 파싱하여 UTC 오프셋 문제 방지
+  const end = new Date(startDateStr + 'T00:00:00+09:00');
   const months = (durationMonths === 9999) ? 1 : durationMonths; // 9999 = 무제한 특수 처리
   end.setMonth(end.getMonth() + months);
   end.setDate(end.getDate() - 1);

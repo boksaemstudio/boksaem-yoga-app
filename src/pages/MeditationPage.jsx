@@ -529,18 +529,8 @@ const MeditationPage = ({ onClose }) => {
         updateAmbientVolume(soundEnabled ? audioVolumes.ambient : 0);
     }, [soundEnabled, audioVolumes, updateBinauralVolume, updateAmbientVolume]);
 
-    // 🎵 Global Ambient Audio Manager
-    useEffect(() => {
-        const activeAmbientSteps = ['session'];
-        const shouldPlay = (isPlaying || activeAmbientSteps.includes(step)) && soundEnabled;
-
-        if (shouldPlay) {
-            const ambientDef = AMBIENT_SOUNDS.find(s => s.id === selectedAmbient);
-            playAmbientMusic(ambientDef, audioVolumes.ambient);
-        } else {
-            stopAmbientMusic();
-        }
-    }, [selectedAmbient, isPlaying, soundEnabled, audioVolumes.ambient, step, playAmbientMusic, stopAmbientMusic]);
+    // 🎵 Global Ambient Audio Manager (Removed useEffect to fix Autoplay policy)
+    // Ambient sound is now triggered directly inside startSession, togglePlay, and stopSession.
 
 
 
@@ -689,11 +679,11 @@ const MeditationPage = ({ onClose }) => {
             }
         }
 
-        // 🎵 Ambient Sound is now handled by global useEffect
-        if (selectedAmbient === 'none') {
-             console.log(`🎵 [Audio Debug] No ambient sound selected (mode: 'none')`);
-        } else {
-             console.log(`🎵 [Audio Debug] Ambient '${selectedAmbient}' managing globally`);
+        // 🎵 Ambient Sound - TRIGGERS DIRECTLY ON USER CLICK to bypass browser Autoplay blocks
+        if (selectedAmbient !== 'none' && soundEnabled) {
+            const ambientDef = AMBIENT_SOUNDS.find(s => s.id === selectedAmbient);
+            playAmbientMusic(ambientDef, audioVolumes.ambient);
+            console.log(`🎵 [Audio] Playing Ambient '${selectedAmbient}'`);
         }
 
 
@@ -774,6 +764,7 @@ const MeditationPage = ({ onClose }) => {
             if (audioContextRef.current) audioContextRef.current.suspend();
             pauseAudioAnalysis();
             if (videoRef.current) videoRef.current.pause();
+            stopAmbientMusic(); // 🎵 환경음 중지
             setIsPlaying(false);
             isPlayingRef.current = false; // ✅ Ref 업데이트
         } else {
@@ -783,6 +774,12 @@ const MeditationPage = ({ onClose }) => {
             if (audioContextRef.current) audioContextRef.current.resume();
             if (interactionType === 'v2') resumeAudioAnalysis();
             if (videoRef.current) videoRef.current.play();
+            
+            // 🎵 환경음 재개
+            if (selectedAmbient !== 'none' && soundEnabled) {
+                const ambientDef = AMBIENT_SOUNDS.find(s => s.id === selectedAmbient);
+                playAmbientMusic(ambientDef, audioVolumes.ambient);
+            }
         }
     };
 

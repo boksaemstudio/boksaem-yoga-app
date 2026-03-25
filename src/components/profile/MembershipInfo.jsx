@@ -106,7 +106,9 @@ const MembershipInfo = ({ member, daysRemaining, logs = [], t }) => {
                     </span>
                 )}
                 <span style={{ background: 'rgba(255,255,255,0.1)', color: 'white', padding: '3px 10px', borderRadius: '5px', fontSize: '0.75rem' }}>{member.phone}</span>
-                <img src={config.ASSETS?.LOGO?.RYS200} alt="RYS200" style={{ height: '49px', width: 'auto', marginLeft: 'auto', filter: 'brightness(0) invert(1)' }} />
+                {typeof window !== 'undefined' && window.location.hostname.includes('passflow') ? null : (
+                    <img src={config.ASSETS?.LOGO?.RYS200} alt="RYS200" style={{ height: '49px', width: 'auto', marginLeft: 'auto', filter: 'brightness(0) invert(1)' }} />
+                )}
             </div>
             {/* [NEW] 안면인식 안심 문구 */}
             {member.hasFaceDescriptor && (

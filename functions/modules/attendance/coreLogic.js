@@ -50,8 +50,8 @@ function processHoldRelease(memberData, dateStr, timestampISO) {
         return { holdReleased: false, holdUpdates: {} };
     }
 
-    const holdStart = new Date(memberData.holdStartDate);
-    const todayDate = new Date(dateStr);
+    const holdStart = new Date(memberData.holdStartDate + 'T00:00:00+09:00');
+    const todayDate = new Date(dateStr + 'T00:00:00+09:00');
     const actualHoldDays = Math.max(1, Math.round((todayDate - holdStart) / (1000 * 60 * 60 * 24)));
 
     if (memberData.endDate && memberData.endDate !== 'TBD' && memberData.endDate !== 'unlimited') {
@@ -227,7 +227,7 @@ async function processAttendanceCore(transaction, params, options = {}) {
     if (!skipValidation) {
         // 기간 만료 체크
         if (memberData.endDate && memberData.endDate !== 'TBD' && memberData.endDate !== 'unlimited') {
-            if (new Date(dateStr) > new Date(memberData.endDate)) {
+            if (new Date(dateStr + 'T00:00:00+09:00') > new Date(memberData.endDate + 'T00:00:00+09:00')) {
                 attendanceStatus = 'denied';
                 denialReason = 'expired';
             }

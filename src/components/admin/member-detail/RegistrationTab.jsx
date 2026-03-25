@@ -100,7 +100,10 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
             }
         }
 
-        const start = new Date(startDate);
+        // [FIX] immediate 모드에서는 immediateDate를 시작일로 사용하여
+        // 실제 저장되는 시작일과 종료일 계산 기준이 일치하도록 보장
+        const effectiveStartDate = startDateMode === 'immediate' ? immediateDate : startDate;
+        const start = new Date(effectiveStartDate + 'T00:00:00+09:00');
         const end = new Date(start);
         end.setMonth(end.getMonth() + months);
         end.setDate(end.getDate() - 1);
@@ -112,7 +115,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
             calculatedProductName: `${label} ${duration > 1 && option.type !== 'ticket' ? `(${duration}개월)` : ''}`,
             durationMonths: months
         };
-    }, [membershipType, selectedOption, duration, paymentMethod, startDate, pricingConfig]);
+    }, [membershipType, selectedOption, duration, paymentMethod, startDate, startDateMode, immediateDate, pricingConfig]);
 
     useEffect(() => { setPrice(calculatedPrice); }, [calculatedPrice]);
     useEffect(() => { setCustomEndDate(calculatedEndDate); }, [calculatedEndDate]);

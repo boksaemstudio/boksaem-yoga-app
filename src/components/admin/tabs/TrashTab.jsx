@@ -295,29 +295,29 @@ const TrashTab = () => {
                                 </div>
                                 <div style={{ display: 'flex', gap: '8px' }}>
                                     <button
-                                        onClick={() => handleRestoreSales(sale.id)}
-                                        disabled={restoringId === sale.id}
+                                        onClick={() => handleRestoreAttendance(log.id)}
+                                        disabled={restoringId === log.id}
                                         style={{
                                             padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(var(--primary-rgb),0.3)',
                                             background: 'rgba(var(--primary-rgb),0.08)', color: 'var(--primary-gold)',
-                                            fontSize: '0.75rem', cursor: restoringId === sale.id ? 'wait' : 'pointer',
+                                            fontSize: '0.75rem', cursor: restoringId === log.id ? 'wait' : 'pointer',
                                             display: 'flex', alignItems: 'center', gap: '4px',
-                                            opacity: restoringId === sale.id ? 0.5 : 1,
+                                            opacity: restoringId === log.id ? 0.5 : 1,
                                             transition: 'all 0.2s', whiteSpace: 'nowrap'
                                         }}
                                     >
-                                        {restoringId === sale.id ? <Spinner size={12} className="spin" /> : <ArrowCounterClockwise size={12} />}
+                                        {restoringId === log.id ? <Spinner size={12} className="spin" /> : <ArrowCounterClockwise size={12} />}
                                         복원
                                     </button>
                                     <button
-                                        onClick={() => handlePermanentDeleteSales(sale.id)}
-                                        disabled={restoringId === sale.id}
+                                        onClick={() => handlePermanentDeleteAttendance(log.id)}
+                                        disabled={restoringId === log.id}
                                         style={{
                                             padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)',
                                             background: 'transparent', color: 'var(--text-muted)',
-                                            fontSize: '0.75rem', cursor: restoringId === sale.id ? 'wait' : 'pointer',
+                                            fontSize: '0.75rem', cursor: restoringId === log.id ? 'wait' : 'pointer',
                                             display: 'flex', alignItems: 'center', gap: '4px',
-                                            opacity: restoringId === sale.id ? 0.5 : 1,
+                                            opacity: restoringId === log.id ? 0.5 : 1,
                                             transition: 'all 0.2s', whiteSpace: 'nowrap'
                                         }}
                                         onMouseOver={(e) => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.5)'; }}

@@ -79,10 +79,9 @@ export const PrescriptionWizardView = ({
                                 setActiveMode(modeToUse);
                                 setTimeLeft(modeToUse.time);
                                 fetchAIPrescription(selectedDiagnosis?.id || 'stress', weatherContext?.id || 'sun', modeToUse.id, t.id, "");
-                                setStep('preparation');
-                                setPrepStep(3); // Go to Posture Guide
                             }}
-                                style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '25px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', color: 'white', textAlign: 'left', cursor: 'pointer', transition: 'all 0.3s' }}>
+                                style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '25px', background: interactionType === t.id ? 'rgba(var(--primary-rgb), 0.15)' : 'rgba(255,255,255,0.05)', border: interactionType === t.id ? '1px solid var(--primary-gold)' : '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', color: 'white', textAlign: 'left', cursor: 'pointer', transition: 'all 0.3s' }}>
+
                                 <div style={{ width: '50px', height: '50px', borderRadius: '15px', background: 'rgba(var(--primary-rgb), 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-gold)' }}>
                                     {t.id === 'v1' ? <Wind size={28} /> : t.id === 'v2' ? <Microphone size={28} /> : <VideoCamera size={28} />}
                                 </div>
@@ -114,6 +113,17 @@ export const PrescriptionWizardView = ({
                                         style={{ padding: '8px 16px', borderRadius: '16px', fontSize: '0.85rem', background: selectedAmbient === a.id ? `${a.color}30` : 'rgba(255,255,255,0.05)', color: selectedAmbient === a.id ? a.color : 'rgba(255,255,255,0.5)', border: selectedAmbient === a.id ? `1px solid ${a.color}50` : '1px solid transparent', fontWeight: 600, cursor: 'pointer' }}>{a.label}</button>
                                 ))}
                             </div>
+                        </div>
+
+                        <div style={{ marginTop: '40px' }}>
+                            <button onClick={() => {
+                                setStep('preparation');
+                                setPrepStep(3);
+                            }}
+                                disabled={!interactionType}
+                                style={{ width: '100%', background: interactionType ? 'var(--primary-gold)' : 'rgba(255,255,255,0.1)', color: interactionType ? 'var(--text-on-primary)' : 'rgba(255,255,255,0.3)', padding: '18px', borderRadius: '18px', fontSize: '1.2rem', fontWeight: 800, border: 'none', cursor: interactionType ? 'pointer' : 'not-allowed', boxShadow: interactionType ? '0 10px 20px rgba(var(--primary-rgb), 0.3)' : 'none', transition: 'all 0.3s' }}>
+                                {interactionType ? '명상 준비하기' : '원하시는 명상을 선택해주세요'}
+                            </button>
                         </div>
                     </div>
                 </div>

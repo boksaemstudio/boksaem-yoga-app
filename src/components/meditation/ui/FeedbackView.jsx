@@ -51,9 +51,6 @@ export const FeedbackView = ({
                     <h2 style={{ color: 'white', fontSize: '1.8rem', fontWeight: 600, marginBottom: '10px' }}>
                         명상 수련 완료
                     </h2>
-                    <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1.1rem' }}>
-                        {modeName} • {Math.floor(actualTime / 60)}분 {actualTime % 60}초 수련
-                    </p>
                 </div>
 
                 {feedbackData ? (

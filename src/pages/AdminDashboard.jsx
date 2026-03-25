@@ -296,17 +296,22 @@ const AdminDashboard = () => {
             if (filterType === 'expiring') return checkIsExpiring(m);
             if (filterType === 'dormant') return isMemberDormant(m, logs, isMemberActive);
             // [New] Installed Filter
-            if (filterType === 'installed') return !!m.installedAt;
+            if (filterType === 'installed') {
+                return !!m.installedAt || (pushTokens && pushTokens.some(t => t.memberId === m.id));
+            }
             // [NEW] Bio Missing Filter (Active members without face descriptor)
             if (filterType === 'bio_missing') return !m.hasFaceDescriptor && isMemberActive(m);
 
             return true; // 'all'
         }).sort((a, b) => {
             if (filterType === 'installed') {
-                // Sort by installedAt desc
-                if (!a.installedAt) return 1;
-                if (!b.installedAt) return -1;
-                return new Date(b.installedAt) - new Date(a.installedAt);
+                // Sort by install date desc
+                const getInstallDate = (m) => {
+                    if (m.installedAt) return new Date(m.installedAt);
+                    const t = pushTokens ? pushTokens.find(pt => pt.memberId === m.id) : null;
+                    return t ? new Date(t.updatedAt || t.createdAt || 0) : new Date(0);
+                };
+                return getInstallDate(b) - getInstallDate(a);
             }
             if (filterType === 'registration') {
                 const dateA = new Date(a.lastPaymentDate || a.regDate || 0);

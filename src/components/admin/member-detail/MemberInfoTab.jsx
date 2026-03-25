@@ -327,7 +327,7 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
                             onChange={v => {
                                 const updates = { startDate: v };
                                 if (v && v !== 'TBD' && editData.duration) {
-                                    const start = new Date(v);
+                                    const start = new Date(v + 'T00:00:00+09:00');
                                     const end = new Date(start);
                                     end.setMonth(end.getMonth() + (Number(editData.duration) || 1));
                                     end.setDate(end.getDate() - 1);

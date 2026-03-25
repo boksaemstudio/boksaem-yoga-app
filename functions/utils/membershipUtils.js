@@ -17,14 +17,16 @@ function calculateEndDate(startDateStr, durationMonths) {
     if (isTBD(startDateStr)) return 'TBD';
     if (durationMonths === 9999) return 'unlimited';
 
-    const end = new Date(startDateStr);
+    // [FIX] KST 기준으로 파싱하여 UTC 오프셋 문제 방지
+    const end = new Date(startDateStr + 'T00:00:00+09:00');
     end.setMonth(end.getMonth() + durationMonths);
     end.setDate(end.getDate() - 1);
     
-    // YYYY-MM-DD format based on KST (simple padding)
-    const y = end.getFullYear();
-    const m = String(end.getMonth() + 1).padStart(2, '0');
-    const d = String(end.getDate()).padStart(2, '0');
+    // KST 기준 YYYY-MM-DD 포맷
+    const kst = new Date(end.getTime() + (9 * 60 * 60 * 1000));
+    const y = kst.getUTCFullYear();
+    const m = String(kst.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(kst.getUTCDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
 }
 
@@ -47,8 +49,8 @@ function evaluateUpcomingActivation(currentMemberData, currentDateStr) {
         let isCurrentExpired = false;
         
         if (currentMemberData.endDate && !isTBD(currentMemberData.endDate)) {
-            const todayObj = new Date(currentDateStr);
-            const endObj = new Date(currentMemberData.endDate);
+            const todayObj = new Date(currentDateStr + 'T00:00:00+09:00');
+            const endObj = new Date(currentMemberData.endDate + 'T00:00:00+09:00');
             isCurrentExpired = todayObj > endObj;
         }
 
