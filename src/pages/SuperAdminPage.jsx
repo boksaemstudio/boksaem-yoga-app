@@ -69,7 +69,16 @@ const SuperAdminPage = () => {
             const fn = httpsCallable(functions, 'createAdminCall');
             const result = await fn(addForm);
             setCreatedResetLink(result.data.resetLink);
-            alert(result.data.message + '\n\n비밀번호 설정 링크가 생성되었습니다. 관리자에게 전달해주세요.');
+            
+            try {
+                // 파이어베이스 공식 '비번 재설정 이메일' 동시 발송
+                const { sendPasswordResetEmail } = await import('firebase/auth');
+                await sendPasswordResetEmail(auth, addForm.email);
+                alert(`${result.data.message}\n\n✅ 해당 이메일로 '비밀번호 직접 설정' 메일이 자동 발송되었습니다!\n(메일 확인이 어려울 경우 아래 링크를 직접 복사해서 보내주셔도 무방합니다)`);
+            } catch (emailErr) {
+                console.error('안내 이메일 발송 에러:', emailErr);
+                alert(`${result.data.message}\n\n⚠️ 이메일 자동 발송에 실패했습니다. 아래 링크를 직접 복사해서 카톡으로 전달해주세요.`);
+            }
             loadAdmins();
         } catch (e) {
             alert('생성 실패: ' + (e.message || '오류 발생'));
@@ -125,12 +134,30 @@ const SuperAdminPage = () => {
         setLoading(true);
         const result = await studioRegistryService.approveOnboarding(pending.id, studioId, pending.ownerEmail, pending.name);
         if (result.success) {
-            alert('🎉 ' + result.message);
+            try {
+                // 1. 관리자 계정 자동 생성 (임시 비번 부여됨)
+                const fn = httpsCallable(functions, 'createAdminCall');
+                await fn({
+                    email: pending.ownerEmail,
+                    displayName: pending.name + ' 원장님',
+                    role: 'admin',
+                    studioId: studioId
+                });
+                
+                // 2. 파이어베이스 공식 '비번 재설정 이메일' 발송
+                const { sendPasswordResetEmail } = await import('firebase/auth');
+                await sendPasswordResetEmail(auth, pending.ownerEmail);
+
+                alert(`🎉 스튜디오 승인 완료!\n\n${pending.ownerEmail} 으로 '비밀번호 직접 설정' 안내 이메일이 무사히 발송되었습니다!\n원장님이 직접 본인 메일함을 열어 고유 비밀번호를 세팅하고 즉시 영업을 시작하시게 됩니다.`);
+            } catch (err) {
+                console.error('계정 자동 생성 및 메일 발송 에러:', err);
+                alert(`승인은 완료되었으나, 계정 자동 세팅 및 안내 메일 발송에 실패했습니다.\n[관리자 계정] 탭에서 수동으로 새 관리자 계정을 추가해주세요.\n(사유: ${err.message})`);
+            }
             loadStudios();
         } else {
             alert('승인 실패: ' + result.message);
-            setLoading(false);
         }
+        setLoading(false);
     };
 
     const handleRejectOnboarding = async (pending) => {
