@@ -175,7 +175,7 @@ const HomeYogaSection = ({ language, t, mbti }) => {
                         <span style={{ fontSize: '1.4rem' }}>{training.emoji}</span>
                         <div>
                             <div style={{ fontSize: '0.7rem', color: 'var(--primary-gold)', fontWeight: 'bold', letterSpacing: '1px', textTransform: 'uppercase' }}>
-                                오늘의 3분 홈트
+                                MBTI 특별 맞춤 홈트
                             </div>
                             <div style={{ fontSize: '1.1rem', fontWeight: '700', color: 'white' }}>
                                 {training.name}
