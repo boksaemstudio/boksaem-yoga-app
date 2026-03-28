@@ -3,36 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PassFlow - 전체 기능 스펙 명세서</title>
-    <meta name="description" content="AI 스튜디오 관리 플랫폼 PassFlow의 4가지 앱 전용 기능 명세서입니다.">
+    <title>PassFlow - 상세 기술 스펙 명세서</title>
+    <meta name="description" content="AI 기반 다중역할 스마트 스튜디오 관리 플랫폼 PassFlow의 전체 상세 기술 명세서입니다.">
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="stylesheet" href="style.css?v=11">
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=12">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
+        body {
+            background-color: #08080A; /* 기본 다크 배경 */
+            color: #ffffff;
+        }
+
+        /* 공통 헤더 배경 */
+        .features-header {
+            position: relative;
+            padding: clamp(100px, 12vw, 150px) 0 clamp(60px, 8vw, 100px);
+            text-align: center;
+            background: linear-gradient(rgba(8, 8, 10, 0.6), rgba(8, 8, 10, 0.95)), 
+                        url('assets/feature_automation_bg.png') center/cover no-repeat fixed;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
         .detailed-list {
-            margin-top: 15px;
+            margin-top: 20px;
             padding-left: 20px;
             list-style-type: none;
         }
         .detailed-list li {
             position: relative;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
             font-size: 0.95rem;
-            color: rgba(255,255,255,0.7);
+            color: rgba(255,255,255,0.75);
             line-height: 1.6;
             word-break: keep-all;
         }
         .detailed-list li::before {
-            content: "•";
+            content: "✓";
             position: absolute;
-            left: -15px;
+            left: -22px;
             color: #d4af37;
             font-weight: bold;
+            font-size: 1.1em;
         }
+        
+        .detailed-list li strong {
+            color: rgba(255,255,255,0.95);
+            font-weight: 600;
+        }
+
+        .feat-role-section {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: clamp(30px, 5vw, 50px);
+            margin-bottom: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feat-role-section::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #d4af37, transparent);
+            opacity: 0.5;
+        }
+
+        .feat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
         .feat-item {
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 30px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .feat-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.08);
+            border-color: rgba(212, 175, 55, 0.3);
+        }
+
+        .feat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), transparent);
+            width: 60px; height: 60px;
+            text-align: center;
+            line-height: 60px;
+            border-radius: 12px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .feat-item h4 {
+            font-size: 1.3rem;
+            color: #fff;
+            margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
     </style>
 </head>
@@ -64,205 +140,174 @@
 
     <!-- 2. Header -->
     <header class="features-header">
-        <div class="container">
-            <h1 class="gradient-text" style="font-size: 3.5rem; margin-bottom: 25px;">전체 스펙 명세서</h1>
-            <p style="font-size: 1.25rem;">PassFlow는 4가지 독자적인 앱 환경을 모두 제공합니다.<br>각 역할에 최적화된 상세하고 강력한 기술 기능을 확인해 보세요.</p>
+        <div class="container" style="position: relative; z-index: 2;">
+            <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border-radius:30px; background:rgba(212, 175, 55, 0.1); border:1px solid rgba(212, 175, 55, 0.3); margin-bottom:20px; font-size:0.85rem; color:#d4af37; font-weight:600; letter-spacing:1px;">
+                TECHNICAL SPECIFICATIONS
+            </div>
+            <h1 class="gradient-text" style="font-size: clamp(3rem, 6vw, 4rem); margin-bottom: 25px; line-height: 1.2;">모든 기능을 하나로<br>완벽한 스튜디오 통제망</h1>
+            <p style="font-size: clamp(1.1rem, 2vw, 1.25rem); max-width: 800px; margin: 0 auto; color:rgba(255,255,255,0.8); line-height:1.6;">
+                단순한 관리 프로그램을 넘어, 관리자·강사·회원을 연결하는 4개의 앱 생태계를 구축합니다.<br>이탈 예측부터 휴지통 복원 시스템까지, 운영에 필요한 모든 세부 스펙을 공개합니다.
+            </p>
         </div>
     </header>
 
     <!-- 3. Features Layout -->
-    <div class="features-layout" style="padding-top: 50px;">
-        
-        <!-- ======================= -->
-        <!-- 1. 관리자(원장님) 전용 앱 -->
-        <!-- ======================= -->
-        <section class="feat-role-section">
-            <h2 class="feat-role-title">👨‍💼 1. 통합 관리자 대시보드 운영 (Admin App)</h2>
-            <p class="feat-role-desc">스튜디오의 모든 흐름을 장악하는 관제탑. 반복 업무를 AI와 자동화 로직에 위임합니다.</p>
+    <div class="features-layout" style="padding: 60px 0; background-color: #08080A;">
+        <div class="container">
             
-            <div class="feat-grid">
-                <div class="feat-item">
-                    <div class="feat-icon">📊</div>
-                    <h4>실시간 운영 대시보드</h4>
-                    <ul class="detailed-list">
-                        <li>당월 예상 총 매출, 실제 입금액, 미수금 현황 자동 집계</li>
-                        <li>기간별(주/월/년) 매출 추이 및 활성 회원 수 그래프 시각화</li>
-                        <li>일일 클래스 점유율 및 출석률 실시간 모니터링</li>
-                        <li>AI 기반 스튜디오 일일 경영 브리핑 리포트 매일 자동 생성</li>
-                    </ul>
+            <!-- ======================= -->
+            <!-- 1. 관리자(원장님) 전용 앱 -->
+            <!-- ======================= -->
+            <section class="feat-role-section" id="admin-spec">
+                <h2 class="feat-role-title" style="font-size: 2rem; color: #fff; margin-bottom: 10px;">👨‍💼 1. 마스터 관리자 대시보드 (Admin Dashboard)</h2>
+                <p class="feat-role-desc" style="color: rgba(255,255,255,0.6); font-size: 1.1rem;">경영자가 스튜디오의 모든 흐름을 원격으로 장악하고, 반복 업무를 AI에 위임하는 관제탑입니다.</p>
+                
+                <div class="feat-grid">
+                    <div class="feat-item">
+                        <div class="feat-icon">🧠</div>
+                        <h4>1.1 AI 지능형 경영 브리핑</h4>
+                        <ul class="detailed-list">
+                            <li><strong>실시간 상황 인지:</strong> 오전/오후 시간에 따라 문맥을 변경하며 동적 메시지 생성</li>
+                            <li><strong>휴면 회원 추적 (이탈 예측):</strong> 최근 14일 이상 미출석한 회원의 이탈 위험도 자동 산출 및 리스트업</li>
+                            <li><strong>AI 스마트 제안 엔진:</strong> 장기 미접속 회원 리스트를 분석, 원클릭으로 보낼 수 있는 '안부 메시지' 초안을 자동 승인 대기열에 상신</li>
+                            <li><strong>데이터 추이 보고:</strong> 전월/현재의 일일 매출 속도를 비교해 목표 초과 달성 여부 예측 분석</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">📊</div>
+                        <h4>1.2 멀티-지점 (Multi-Tenant) 관리</h4>
+                        <ul class="detailed-list">
+                            <li><strong>지점별 격리 프레임워크:</strong> '본점', '2호점' 등 여러 개의 지점을 하나의 계정으로 실시간 스위칭하며 관리 가능</li>
+                            <li><strong>독립적 스케줄 보드:</strong> 지점 간 시간표 데이터 개별 저장 (강사, 수강 공간 별도 분리 지원)</li>
+                            <li><strong>지점간 통합 매출 집계:</strong> 지점 전체 합산 매출 통계와 개별 지점 성장을 교차 비교하는 데이터 시각화 패널 제공</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">💳</div>
+                        <h4>1.3 빈틈없는 수강권 & 결제 제어</h4>
+                        <ul class="detailed-list">
+                            <li><strong>다이내믹 수강권 설정:</strong> 월 구독형, 패키지(횟수), 무제한 이용권, 현금/카드 교차 할인가 개별 셋업</li>
+                            <li><strong>위약금 및 환불 자동 계산:</strong> 남은 횟수/기간에 비례해 약관에 맞춘 양도비 및 중도 해지 위약금 수식 내장</li>
+                            <li><strong>마이너스(-) 크레딧 허용 제어:</strong> 정책에 따라 수강권이 약간 오버되어도 임시 예약을 허용/차단 가능</li>
+                            <li><strong>히스토리 무결성:</strong> 회원의 모든 수강 내역(결제, 차감, 출석) 데이터 타임라인 방식 영구 추적 보존</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">🛡️</div>
+                        <h4>1.4 휴지통(Trash) 복구 및 보안 인프라</h4>
+                        <ul class="detailed-list">
+                            <li><strong>소프트 딜리트 (Soft Delete):</strong> 실수로 회원이나 결제 내역을 삭제해도 완전 파기되지 않고 '휴지통' 탭으로 분리</li>
+                            <li><strong>1초 롤백 복원:</strong> 휴지통에서 언제든 삭제 당시 상태 그대로 100% 원복 가능 (결제액, 횟수 유지)</li>
+                            <li><strong>자동 데이터 스냅샷:</strong> Cloud Functions 연동을 통해 매일 새벽 3시 DB 백업 상태 무결성 검증 통과 완료</li>
+                            <li><strong>기기별 강력한 권한 제어:</strong> 관리자만 접근 가능한 특수 Dashboard URL 방화벽 보호</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="feat-item">
-                    <div class="feat-icon">👥</div>
-                    <h4>빈틈없는 회원 관리 (CRM)</h4>
-                    <ul class="detailed-list">
-                        <li>수강권별(횟수제/기간제) 자동 차감 및 만료일 직관적 표시</li>
-                        <li>가족 쉐어링 지원: 한 수강권을 여러 명이 분할 사용 가능</li>
-                        <li>결제 히스토리, 이전 수강권 내역 평생 추적 (Soft Delete 적용)</li>
-                        <li>상담 기록 및 특이사항 등 비밀 메모 기능</li>
-                    </ul>
-                </div>
-                <div class="feat-item">
-                    <div class="feat-icon">📅</div>
-                    <h4>탁월한 스케줄링 시스템</h4>
-                    <ul class="detailed-list">
-                        <li>강남점/홍대점 등 여러 지점 동시 멀티 테넌트(Multi-Tenant) 탭 관리</li>
-                        <li>반복적인 시간표를 위한 '지난달 스케줄 이월 복사' 기능</li>
-                        <li>대기 예약자 자동 승급 및 알림발송 처리 로직 내장</li>
-                        <li>특정 클래스에 강사 단독 배정 및 권한 제어 부여</li>
-                    </ul>
-                </div>
-                <div class="feat-item">
-                    <div class="feat-icon">⚠️</div>
-                    <h4>스마트 정산 및 데이터 보호</h4>
-                    <ul class="detailed-list">
-                        <li>잔여 수강권 일수/횟수 대비 양도·중도 환불 위약금 자동 수식화 계산</li>
-                        <li>관리자의 실수로 지워진 회원을 되살리는 <b>휴지통 복원(Trash/Rollback)</b> 시스템</li>
-                        <li>24시간 주기 자동 DB 스냅샷 백업 수행 (Cloud Functions 연동)</li>
-                        <li>CSV 파일 대량 익스포트 및 오프라인 명부 출력 (엑셀 지원)</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- ======================= -->
-        <!-- 2. 강사 전용 앱 -->
-        <!-- ======================= -->
-        <section class="feat-role-section">
-            <h2 class="feat-role-title">🧘‍♀️ 2. 강사 전용 모바일 룸 (Instructor App)</h2>
-            <p class="feat-role-desc">수업 준비와 수강생 집중을 위한 가벼운 교탁. 오직 나에게 할당된 수업만 보입니다.</p>
-            
-            <div class="feat-grid">
-                <div class="feat-item">
-                    <div class="feat-icon">📱</div>
-                    <h4>앱스토어가 필요 없는 PWA 전용앱</h4>
-                    <ul class="detailed-list">
-                        <li>설치 과정 없이 QR코드나 링크 하나로 스마트폰 바탕화면에 즉시 앱 설치(PWA) 지원</li>
-                        <li>원장님의 코어 관리자 권한과 물리적으로 분리된 안전한 샌드박스 환경 제공</li>
-                    </ul>
+            <!-- ======================= -->
+            <!-- 2. 회원 전용 앱 / 웹 -->
+            <!-- ======================= -->
+            <section class="feat-role-section" id="member-spec">
+                <h2 class="feat-role-title" style="font-size: 2rem; color: #fff; margin-bottom: 10px;">📱 2. 회원 전용 모바일 룸 (Member App)</h2>
+                <p class="feat-role-desc" style="color: rgba(255,255,255,0.6); font-size: 1.1rem;">상담원이 필요 없는 자율 예약/관리 시스템입니다. PWA 기술로 앱스토어 심사 없이 1초만에 폰에 설치됩니다.</p>
+                
+                <div class="feat-grid">
+                    <div class="feat-item">
+                        <div class="feat-icon">⚡</div>
+                        <h4>2.1 초고속 마찰 제로 예약망</h4>
+                        <ul class="detailed-list">
+                            <li><strong>PIN 로그인 (Zero-Friction):</strong> 아이디/비밀번호 찾기 장애를 없앱니다. 본인 폰번호 뒷자리(4자리)로 즉시 모바일 접근 허용</li>
+                            <li><strong>실시간 클래스 정원 제어:</strong> 수강 잔여석이 0석일 시 붉은색 표시와 함께 자동으로 예약 버튼을 [대기접수] 모드로 강제 스위칭</li>
+                            <li><strong>복합 수강권 지원:</strong> 필라테스 기구권 10회, 요가 무제한 30일 등 여러 수강권을 탭(Tab)별로 확인 및 각각의 정책에 맞춰 예약 차감</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">🔁</div>
+                        <h4>2.2 대기 예약 오토-릴레이 엔진</h4>
+                        <ul class="detailed-list">
+                            <li><strong>우선순위 대기열 (Queue):</strong> 만석인 수업에 대기 등록 시 실시간 대기 순번 부여 (내 순번 즉시 확인 가능)</li>
+                            <li><strong>취소 즉시 자동 확정:</strong> 기존 예약자가 취소하는 순간, 0.1초 랙 없이 다음 순번을 자동 [예약 확정] 상태로 리프팅</li>
+                            <li><strong>푸시 및 알림톡 발송:</strong> 대기가 확정되면 해당 회원 스마트폰으로 PWA 백그라운드 푸시와 카카오 알림톡 동시 타격</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">📸</div>
+                        <h4>2.3 얼굴 인식(Face ID) 출석 패스</h4>
+                        <ul class="detailed-list">
+                            <li><strong>셀프 생체 정보 등록:</strong> 회원 앱 내에서 스마트폰 카메라로 본인의 정면 얼굴 특징점(Vector Descriptor) 칩핑 등록 가능</li>
+                            <li><strong>최적 프레임 추출:</strong> 서버로 얼굴 사진을 넘기지 않고 브라우저 단에서 수학적 벡터 데이타(128차원)만 생성하여 개인정보 침해 요소 제거</li>
+                            <li><strong>AI 스캐닝 입장 지시:</strong> 스튜디오 입구 키오스크 화면을 쳐다보기만 해도 0.2초 내로 매칭되어 센터 자동 출석 완료 처리</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="feat-item">
-                    <div class="feat-icon">👀</div>
-                    <h4>할당된 수업 스케줄 다이렉트 뷰</h4>
-                    <ul class="detailed-list">
-                        <li>본인이 배정된 당일 또는 주간 클래스만 깔끔하게 목록화 되어 노출</li>
-                        <li>현재 예약 확정된 수강생의 명단(이름/잔여횟수 등)을 미리 확인</li>
-                    </ul>
-                </div>
-                <div class="feat-item">
-                    <div class="feat-icon">✅</div>
-                    <h4>비대면 하이브리드 수동 출석</h4>
-                    <ul class="detailed-list">
-                        <li>안내데스크 키오스크가 고장나거나 혼잡할 때, 강사가 휴대폰에서 버튼 터치로 직접 출석/결석 강제 처리 가능</li>
-                        <li>출석 여부에 따른 컬러 하이라이팅으로 즉각적 시각 안내</li>
-                    </ul>
-                </div>
-                <div class="feat-item">
-                    <div class="feat-icon">📝</div>
-                    <h4>프라이빗 클래스 리뷰 및 시퀀스 노트</h4>
-                    <ul class="detailed-list">
-                        <li>당일 진행한 수업의 시퀀스나 클래스 전반적인 난이도를 비공개 메모</li>
-                        <li>특정 회원에 대한 부상 부위나 특이점 기록 연동 (관리자와 공유됨)</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- ======================= -->
-        <!-- 3. 회원용 예약 웹/앱 -->
-        <!-- ======================= -->
-        <section class="feat-role-section">
-            <h2 class="feat-role-title">📱 3. 스마트 회원 뷰 (Member Web App)</h2>
-            <p class="feat-role-desc">문자/카톡 문의 없이도 회원들이 스스로 통제하고 예약하는 자율 시스템입니다.</p>
-            
-            <div class="feat-grid">
-                <div class="feat-item">
-                    <div class="feat-icon">📆</div>
-                    <h4>1초 컷 직관적인 예약 시스템</h4>
-                    <ul class="detailed-list">
-                        <li>별도 로그인 절차 없이, 원장님이 부여한 보안 PIN 번호로 즉시 로그인</li>
-                        <li>날짜별 클래스 정원/잔여석 실시간 연동 (만석 시 붉은색 표시 등)</li>
-                        <li>클릭 2번만으로 이루어지는 당일/주간/월간 클래스 다이렉트 예약 확정</li>
-                    </ul>
+            <!-- ======================= -->
+            <!-- 3. 강사 전용 업무 리모컨 -->
+            <!-- ======================= -->
+            <section class="feat-role-section" id="instructor-spec">
+                <h2 class="feat-role-title" style="font-size: 2rem; color: #fff; margin-bottom: 10px;">🧘‍♀️ 3. 강사용 하이브리드 교탁 (Instructor App)</h2>
+                <p class="feat-role-desc" style="color: rgba(255,255,255,0.6); font-size: 1.1rem;">수업 진행에만 집중하십시오. 원장님의 매출 데이터를 숨기고 강사 고유의 클래스 명단만 노출합니다.</p>
+                
+                <div class="feat-grid">
+                    <div class="feat-item">
+                        <div class="feat-icon">📋</div>
+                        <h4>3.1 배정된 클래스 타겟팅 뷰</h4>
+                        <ul class="detailed-list">
+                            <li><strong>개인화 된 스케줄 파싱:</strong> 전체 스튜디오 스케줄러 중 로그인한 강사 이름과 매칭된 시간표와 수강생만 필터링하여 노출 (정보 오입력·유출 차단)</li>
+                            <li><strong>수업별 예약자 프로필 조회:</strong> 회원의 이름, 성별, 수강권 만료 유무, 특이사항(부상/주의)을 버튼 클릭 한 번에 브리핑</li>
+                            <li><strong>실시간 컬러 마커:</strong> 출석 대기(회색), 출석 완료(녹색), 결석(적색) 등 현재 회원의 입장 상태 실시간 하이라이트 동기화</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">✒️</div>
+                        <h4>3.2 강권 출석 제어 및 시퀀스 노트</h4>
+                        <ul class="detailed-list">
+                            <li><strong>비대면 키오스크 대체(강제 마킹):</strong> 안내데스크 미배치 샵이나 기계 고장 시, 강사가 스마트폰에서 터치 한 번으로 체크인 통과 명령 전송</li>
+                            <li><strong>클래스 히스토리 노트:</strong> 당일 수업 피드백, 시퀀스 루틴, 회원의 난이도 체감 불만 사항 등을 노트에 기록 가능 (이 기록은 관리자 대시보드와 자동 연동)</li>
+                            <li><strong>개별 수강생 평가록 (VIP 관리):</strong> 문제성 회원이나 장기 미참석 조짐이 보이는 회원에게 주의/알람 플래그 부여 가능</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="feat-item">
-                    <div class="feat-icon">⏳</div>
-                    <h4>대기자 명단 스마트 자동 릴레이</h4>
-                    <ul class="detailed-list">
-                        <li>클래스 정원 만석 시 시스템 상 대기자로 등록 가능</li>
-                        <li>기존 예약자가 수강 취소 시, 시스템이 대기 순번에 따라 자동 예약 확정 후 카톡/푸시 알림 실시간 발송</li>
-                    </ul>
-                </div>
-                <div class="feat-item">
-                    <div class="feat-icon">💳</div>
-                    <h4>투명한 마이페이지 (수강권 & 내역 조회)</h4>
-                    <ul class="detailed-list">
-                        <li>사용 중인 다수의 수강권(요가 10회권, 필라테스 기구 3달권 등) 각각의 잔여 상태 개별 조회 가능</li>
-                        <li>과거 6개월 치 본인의 출석 히스토리를 캘린더 피드로 시각화</li>
-                    </ul>
-                </div>
-                <div class="feat-item">
-                    <div class="feat-icon">🔔</div>
-                    <h4>만료 전 넛지 알림 (Retention 기능)</h4>
-                    <ul class="detailed-list">
-                        <li>수강권 기한 만료 임박, 또는 잔여 횟수가 2회 이하로 떨어지면 자동으로 회원에게 재연장 안내 알림 팝업 전송</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- ======================= -->
-        <!-- 4. 출석 체크 키오스크 -->
-        <!-- ======================= -->
-        <section class="feat-role-section">
-            <h2 class="feat-role-title">🖥️ 4. 스튜디오 프론트 태블릿 모니터 (Kiosk App)</h2>
-            <p class="feat-role-desc">안내데스크에 아이패드나 태블릿 단 한 대만 켜두면, 무인 출석이 완성됩니다.</p>
-            
-            <div class="feat-grid">
-                <div class="feat-item">
-                    <div class="feat-icon">🔢</div>
-                    <h4>하이브리드 다중 인증 모드</h4>
-                    <ul class="detailed-list">
-                        <li>빠르고 직관적인 PIN 번호(ex: 뒷자리 4개) 방식 지원</li>
-                        <li>카메라 기반 AI 오프라인 얼굴인식 보정 출석 지원 (선택 옵션)</li>
-                        <li>오차 없는 동명이인 처리 로직 (번호 뒷자리 충돌 시 안전 UI 지원)</li>
-                    </ul>
+            <!-- ======================= -->
+            <!-- 4. 데스크톱 무인 키오스크 -->
+            <!-- ======================= -->
+            <section class="feat-role-section" id="kiosk-spec">
+                <h2 class="feat-role-title" style="font-size: 2rem; color: #fff; margin-bottom: 10px;">🤖 4. 입구 무인 안면인식 센터 (Smart Kiosk)</h2>
+                <p class="feat-role-desc" style="color: rgba(255,255,255,0.6); font-size: 1.1rem;">리셉션 직원의 인건비를 0으로 만듭니다. 태블릿이나 웹캠 연결 PC 한 대면 완벽하게 가동됩니다.</p>
+                
+                <div class="feat-grid">
+                    <div class="feat-item">
+                        <div class="feat-icon">👁️</div>
+                        <h4>4.1 듀얼 인증 보안망 (얼굴 & 핀셋)</h4>
+                        <ul class="detailed-list">
+                            <li><strong>페이스 캡처 (Face-API):</strong> 웹캠 근처 1미터 이내로 사용자가 들어오면 고속 안면 트래커가 작동하여 명단 속 수백 명 중 일치자 색출 (정확도 99% 텐서 인퍼런스)</li>
+                            <li><strong>투스텝 PIN 백업:</strong> 안경 교체, 마스크, 극심한 조명 변화 등으로 생체 인식 우회 시 연락처 4자리 눌러 즉시 통과 지원</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">🗣️</div>
+                        <h4>4.2 AI 개인화 음성 그리팅 엔진 (TTS)</h4>
+                        <ul class="detailed-list">
+                            <li><strong>맞춤형 음성 피드백:</strong> "복순 회원님 환영합니다." 단방향 알림을 넘어, "복순님, 일주일 만이네요!" 형태의 날짜 차이 모듈 연산에 따른 AI 음성 안내 조합</li>
+                            <li><strong>예외 차단 시스템 (Gatekeeper):</strong> 예약 시간이 아니거나, 수강 잔여 횟수가 0회인 회원이 출석 시, 스크린에 경고(적색 UI) 및 접근 불가 사유를 출력하여 미승인 출입 원천 방지</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="feat-item">
-                    <div class="feat-icon">🔊</div>
-                    <h4>상황별 TTS 음성 피드백 연동</h4>
-                    <ul class="detailed-list">
-                        <li>단순 팝업을 넘어 "김XX 회원님 출석되었습니다" 와 같은 스마트 음성 즉시 송출 기능 적용</li>
-                        <li>"수강권이 만료되었습니다", "수강권 등록이 필요합니다" 등 엣지케이스별 에러 대응 음성 지원</li>
-                    </ul>
-                </div>
-                <div class="feat-item">
-                    <div class="feat-icon">🌐</div>
-                    <h4>끊김 방지 오프라인 데이터 생존 모드</h4>
-                    <ul class="detailed-list">
-                        <li>스튜디오 와이파이(Wi-Fi)가 불안정하거나 인터넷이 일시적으로 끊어져도 로컬 스토리지 엔진이 출석 데이터를 영구 캐싱함</li>
-                        <li>인터넷 복구 순간 메인 서버(Firestore)로 수십 건의 대기 패킷을 1초 만에 일괄 동기화 및 누락 방지 처리</li>
-                    </ul>
-                </div>
-                <div class="feat-item">
-                    <div class="feat-icon">🤖</div>
-                    <h4>다이나믹 AI 인사말 위젯</h4>
-                    <ul class="detailed-list">
-                        <li>오늘 날씨 정보와 계절, 시간대(아침반/저녁반)를 AI가 분석하여, 출석 후 화면에 자동 인사말과 컨디션 추천 팝업 로딩 (캐싱을 통해 속도 지연 0초 실현)</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-        
-        <div style="text-align:center; padding: 40px 0 80px;">
-            <a href="home.html" class="btn-primary" style="padding: 18px 50px; font-size: 1.15rem; border-radius:30px; text-decoration:none;">홈으로 되돌아가기</a>
+            </section>
         </div>
     </div>
 
-    <!-- 4. Footer -->
-    <footer class="footer" style="padding: 40px 0; text-align: center;">
+    <!-- 7. Footer / CTA -->
+    <footer class="footer" style="padding: 60px 0; background: #000; text-align: center;">
         <div class="container">
+            <h2 style="font-size: 2rem; color: #fff; margin-bottom: 20px;">지금, 관리의 패러다임을 바꾸세요</h2>
+            <a href="https://passflow-demo-0324.web.app/admin" target="_blank" class="btn-primary" style="padding: 18px 40px; font-size: 1.1rem; border-radius: 40px; text-decoration: none; display: inline-block; margin-bottom: 40px; box-shadow: 0 10px 30px rgba(212,175,55,0.3);">최고 등급 마스터 데모 체험</a>
             <div class="footer-bottom" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 30px;">
-                <p>&copy; 2026 PassFlow. AI가 운영을 돕는 스튜디오 관리 플랫폼.</p>
+                <p>&copy; 2026 PassFlow. AI가 운영을 돕는 무인 스튜디오 관리 스위트.</p>
             </div>
         </div>
     </footer>

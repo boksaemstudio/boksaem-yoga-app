@@ -666,7 +666,7 @@ const AdminDashboard = () => {
                             <h3 className="card-label" style={{ marginBottom: '20px' }}>가격표 개요 (이미지)</h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                                 <div style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
-                                    <h3 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '15px' }}>심화</h3>
+                                    <h3 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '15px', color:'rgba(255,255,255,0.7)' }}>기본 요금표 1</h3>
                                     <img src={optimisticImages.price_table_1 || images.price_table_1 || ''} alt="가격표 1" style={{ width: '100%', borderRadius: '12px', marginBottom: '15px' }} />
                                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                         <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'price_table_1')} style={{ display: 'none' }} id="up-price-1" />
@@ -674,7 +674,7 @@ const AdminDashboard = () => {
                                     </div>
                                 </div>
                                 <div style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
-                                    <h3 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '15px' }}>일반</h3>
+                                    <h3 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '15px', color:'rgba(255,255,255,0.7)' }}>추가 요금표 2</h3>
                                     <img src={optimisticImages.price_table_2 || images.price_table_2 || ''} alt="가격표 2" style={{ width: '100%', borderRadius: '12px', marginBottom: '15px' }} />
                                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                         <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'price_table_2')} style={{ display: 'none' }} id="up-price-2" />
