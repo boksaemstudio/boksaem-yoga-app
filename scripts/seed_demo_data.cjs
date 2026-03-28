@@ -40,7 +40,7 @@ async function seedData() {
             IDENTITY: { NAME: 'ZenFlow Yoga & Pilates', SLOGAN: '도심 속 작은 안식처, 젠플로우에서 완벽한 호흡을 경험하세요' },
             THEME: { PRIMARY_COLOR: '#8B5CF6', SKELETON_COLOR: '#1a1a1a' },
             ASSETS: {
-                LOGO: { SQUARE: 'https://passflow-landing.web.app/assets/yoga_custom.png', WIDE: 'https://passflow-landing.web.app/assets/yoga_custom.png' },
+                LOGO: { SQUARE: 'https://passflow-0324.web.app/assets/demo_logo.png', WIDE: 'https://passflow-0324.web.app/assets/demo_logo.png' },
                 MEMBER_BG: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1200&auto=format&fit=crop'
             },
             MEMBERSHIP: { TYPES: { 'MTypeA': '기구필라테스 30회권', 'MTypeB': '플라잉요가 1개월권', 'MTypeC': '빈야사 무제한 패스' } },
@@ -49,6 +49,15 @@ async function seedData() {
         },
         updatedAt: new Date().toISOString()
     };
+    const globalToday = new Date();
+    const currM = `${globalToday.getFullYear()}-${String(globalToday.getMonth() + 1).padStart(2, '0')}`;
+    const nextM = `${globalToday.getFullYear()}-${String(globalToday.getMonth() + 2).padStart(2, '0')}`;
+    configData.scheduleImages = {
+        [`main_${currM}`]: 'https://passflow-0324.web.app/assets/demo_schedule.png',
+        [`main_${nextM}`]: 'https://passflow-0324.web.app/assets/demo_schedule.png'
+    };
+    configData.pricingImage = 'https://passflow-0324.web.app/assets/demo_pricing.png';
+
     await tenantDb.set(configData, { merge: true });
     console.log('✅ 1. Config seeded');
 
@@ -82,7 +91,7 @@ async function seedData() {
     const classTimes = ['07:00', '10:00', '14:00', '19:00', '21:00'];
     const instructors = ['지수 원장', '사라 강사', '보미 선생님'];
     
-    for (let d = -7; d <= 7; d++) {
+    for (let d = -30; d <= 30; d++) {
         const date = new Date(today); date.setDate(today.getDate() + d);
         const dateStr = date.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
         for (let i = 0; i < 3; i++) {

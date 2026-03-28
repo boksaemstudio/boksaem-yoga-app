@@ -101,7 +101,11 @@ const AttendanceTab = ({ logs, member, aiAnalysis, onAdd, onDelete, isSubmitting
                     ))}
                 </select>
                 <button
-                    onClick={() => onAdd(manualDate, '10:00', manualBranch, manualClassName)}
+                    onClick={() => {
+                        const selectedInfo = classOptions.find(opt => opt.value === manualClassName) || { time: '10:00', instructor: '관리자' };
+                        // Pass (date, time, branch, className, instructor)
+                        onAdd(manualDate, selectedInfo.time, manualBranch, manualClassName, selectedInfo.instructor);
+                    }}
                     disabled={isSubmitting}
                     style={{
                         background: isSubmitting ? 'rgba(var(--primary-rgb), 0.3)' : 'var(--primary-gold)',

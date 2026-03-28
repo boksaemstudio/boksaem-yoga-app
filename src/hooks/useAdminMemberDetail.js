@@ -187,15 +187,20 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, { onUpdateMe
     }, [getChangedFields, isDirtyByUser, onClose]);
 
     // ─── Manual Attendance ───
-    const handleManualAttendance = useCallback(async (dateStr, timeStr, branchId, className) => {
+    const handleManualAttendance = useCallback(async (dateStr, timeStr, branchId, className, instructorName) => {
         if (isSubmitting) return;
         isSubmittingRef.current = true;
         setIsSubmitting(true);
         try {
-            // [FIX] ISO timestamp 대신 YYYY-MM-DD 날짜를 서버에 전달
-            // 이전: new Date(`${dateStr}T${timeStr}`).toISOString() → UTC 변환되어 date 필드에 ISO 저장됨
-            // 수정: YYYY-MM-DD 그대로 전달, 서버가 KST 기준으로 처리
-            const result = await storageService.addManualAttendance(member.id, dateStr, branchId, className || '수동 확인');
+            // [FIX] 수동 출석의 실제 수업 시간을 백엔드에 전달하기 위해 Date와 Time을 결합해 전달합니다.
+            // 서버는 ISO 포맷을 받아 KST로 변환 후 dateStr(YYYY-MM-DD) 추출, 시간은 timestamp로 온전히 보전합니다.
+            let combinedDateStr = dateStr;
+            if (timeStr && timeStr !== 'no-time') {
+                const [hh, mm] = timeStr.split(':');
+                combinedDateStr = `${dateStr}T${hh}:${mm}:00+09:00`;
+            }
+
+            const result = await storageService.addManualAttendance(member.id, combinedDateStr, branchId, className || '수동 확인', instructorName || '관리자');
             if (result.success) {
                 if (member.startDate === 'TBD') {
                     const startDateStr = dateStr;
