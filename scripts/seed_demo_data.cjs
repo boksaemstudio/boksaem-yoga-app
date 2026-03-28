@@ -52,11 +52,24 @@ async function seedData() {
     const globalToday = new Date();
     const currM = `${globalToday.getFullYear()}-${String(globalToday.getMonth() + 1).padStart(2, '0')}`;
     const nextM = `${globalToday.getFullYear()}-${String(globalToday.getMonth() + 2).padStart(2, '0')}`;
+    
+    // Default branches for the generic demo app
+    configData.branches = [
+        { id: 'gangnam', name: '강남점' },
+        { id: 'hongdae', name: '홍대점' }
+    ];
+    
+    const genericImgUrl = 'https://passflow-0324.web.app/assets/demo_schedule.png';
     configData.scheduleImages = {
-        [`main_${currM}`]: 'https://passflow-0324.web.app/assets/demo_schedule.png',
-        [`main_${nextM}`]: 'https://passflow-0324.web.app/assets/demo_schedule.png'
+        [`timetable_gangnam`]: genericImgUrl,
+        [`timetable_hongdae`]: genericImgUrl,
+        [`gangnam_${currM}`]: genericImgUrl,
+        [`gangnam_${nextM}`]: genericImgUrl,
+        [`hongdae_${currM}`]: genericImgUrl,
+        [`hongdae_${nextM}`]: genericImgUrl,
+        'price_table_1': 'https://passflow-0324.web.app/assets/demo_pricing.png',
+        'price_table_2': 'https://passflow-0324.web.app/assets/demo_pricing.png'
     };
-    configData.pricingImage = 'https://passflow-0324.web.app/assets/demo_pricing.png';
 
     await tenantDb.set(configData, { merge: true });
     console.log('✅ 1. Config seeded');
