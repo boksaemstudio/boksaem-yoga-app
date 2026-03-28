@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PassFlow - 전 구간 기능 스펙</title>
+    <meta name="description" content="AI 스튜디오 관리 플랫폼 PassFlow의 상세 기능 명세서입니다.">
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="stylesheet" href="style.css?v=6">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 1. Navbar -->
+    <nav class="navbar glass">
+        <a href="home.html" class="logo">
+            <span class="logo-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <defs>
+                        <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#fff"/>
+                            <stop offset="100%" stop-color="#d4af37"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                </svg>
+            </span>
+            <span class="logo-pass">Pass</span><span class="logo-flow">Flow</span>
+        </a>
+        <div class="nav-links" id="navLinks">
+            <a href="home.html#live-demo">데모</a>
+            <a href="features.html">기능</a>
+            <a href="home.html#pricing">가격</a>
+            <a href="home.html#contact">문의</a>
+        </div>
+        <button class="nav-hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+    </nav>
+
+    <!-- 2. Header -->
+    <header class="features-header">
+        <div class="container">
+            <h1 class="gradient-text">기능 상세 스펙</h1>
+            <p>스튜디오에 필요한 모든 것을 담았습니다. 관리자, 강사, 회원을 위한 전용 기능을 확인해보세요.</p>
+        </div>
+    </header>
+
+    <!-- 3. Features Layout -->
+    <div class="features-layout">
+        
+        <!-- 원장님/관리자용 -->
+        <section class="feat-role-section">
+            <h2 class="feat-role-title">👨‍💼 관리자 스튜디오 운영</h2>
+            <p class="feat-role-desc">귀찮고 반복적인 스튜디오 관리, 전부 자동화하세요.</p>
+            
+            <div class="feat-grid">
+                <div class="feat-item">
+                    <div class="feat-icon">🎯</div>
+                    <h4>AI 오프라인 출석</h1>
+                    <p>태블릿에서 얼굴 인식 및 PIN 번호로 회원 출석을 안전하고 빠르게 처리합니다. 오프라인 상태에서도 지연 복구 기능을 지원합니다.</p>
+                </div>
+                <div class="feat-item">
+                    <div class="feat-icon">📊</div>
+                    <h4>실시간 매출 통계</h4>
+                    <p>월별, 주별 예상 매출과 미수금 현황을 한눈에 확인할 수 있는 대시보드를 제공하여 빠른 재무 의사결정을 돕습니다.</p>
+                </div>
+                <div class="feat-item">
+                    <div class="feat-icon">💬</div>
+                    <h4>카카오톡 알림톡 연동</h4>
+                    <p>예약 확정, 수강권 만료, 대기자 승급 등 주요 알림을 카카오 알림톡으로 자동 발송합니다.</p>
+                </div>
+                <div class="feat-item">
+                    <div class="feat-icon">🔄</div>
+                    <h4>자동 위약금 및 양도 계산</h4>
+                    <p>회원이 수강권을 양도하거나 중도 환불할 때 남은 일수나 횟수에 기반한 위약금과 환불금을 자동으로 계산합니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 강사용 -->
+        <section class="feat-role-section">
+            <h2 class="feat-role-title">🧑‍🏫 강사 전용 관리</h2>
+            <p class="feat-role-desc">수업 준비와 수강생 관리에만 집중할 수 있게 도와줍니다.</p>
+            
+            <div class="feat-grid">
+                <div class="feat-item">
+                    <div class="feat-icon">📱</div>
+                    <h4>일일 수업 스케줄 확인</h4>
+                    <p>오늘 내가 진행해야 할 수업 목록과 담당 회원 리스트를 강사 전용 앱에서 실시간으로 확인할 수 있습니다.</p>
+                </div>
+                <div class="feat-item">
+                    <div class="feat-icon">✅</div>
+                    <h4>클래스별 출석 체크</h4>
+                    <p>스튜디오 태블릿을 보지 않아도, 강사 휴대폰에서 직접 수강생들의 출석 여부를 체크할 수 있습니다.</p>
+                </div>
+                <div class="feat-item">
+                    <div class="feat-icon">📝</div>
+                    <h4>시퀀스 및 리뷰 메모</h4>
+                    <p>수강생별 특이사항이나 그날의 수업 시퀀스를 비공개 메모로 남겨 다음 수업에 참고할 수 있습니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 회원용 -->
+        <section class="feat-role-section">
+            <h2 class="feat-role-title">🧘‍♀️ 회원 전용 앱</h2>
+            <p class="feat-role-desc">번거로운 연락 없이도 스스로 예약하고 관리할 수 있습니다.</p>
+            
+            <div class="feat-grid">
+                <div class="feat-item">
+                    <div class="feat-icon">📅</div>
+                    <h4>자율 예약 및 대기</h4>
+                    <p>원하는 수업을 스마트폰에서 1초 만에 예약할 수 있습니다. 이미 만석인 경우 대기 예약도 가능합니다.</p>
+                </div>
+                <div class="feat-item">
+                    <div class="feat-icon">✨</div>
+                    <h4>대기자 자동 승급</h4>
+                    <p>다른 회원이 예약을 취소하면 빈자리에 시스템이 대기자를 가장 먼저 순차적으로 예약 확정 시킵니다.</p>
+                </div>
+                <div class="feat-item">
+                    <div class="feat-icon">🎫</div>
+                    <h4>보유 수강권 현황 조회</h4>
+                    <p>자신이 보유한 수강권의 잔여 횟수, 기한 만료일, 과거 출석 기록을 내 정보 창에서 곧바로 조회합니다.</p>
+                </div>
+                <div class="feat-item">
+                    <div class="feat-icon">👨‍👩‍👧</div>
+                    <h4>가족 수강권 셰어링</h4>
+                    <p>자녀나 부모님과 함께 동일한 수강권을 공유하는 경우, 합산된 잔여 횟수로 간편하게 나누어 사용할 수 있습니다.</p>
+                </div>
+            </div>
+        </section>
+        
+        <div style="text-align:center; padding: 40px 0 80px;">
+            <a href="home.html" class="btn-primary" style="padding: 18px 40px; font-size: 1.1rem; border-radius:30px;">홈으로 돌아가기</a>
+        </div>
+    </div>
+
+    <!-- 4. Footer -->
+    <footer class="footer" style="padding: 40px 0; text-align: center;">
+        <div class="container">
+            <div class="footer-bottom" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 30px;">
+                <p>&copy; 2026 PassFlow. AI가 운영을 돕는 스튜디오 관리 플랫폼.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
