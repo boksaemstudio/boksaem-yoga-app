@@ -14,30 +14,40 @@ const db = admin.firestore();
 
 async function fixDemo() {
     const STUDIO_ID = 'demo-yoga';
-    console.log(`Fixing images for ${STUDIO_ID}...`);
+    console.log(`Fixing images and branches for ${STUDIO_ID}...`);
     
-    // 1. Update Pricing Images
-    await db.collection('studios').doc(STUDIO_ID).collection('assets').doc('pricing').set({
-        mainUrl: 'https://firebasestorage.googleapis.com/v0/b/passflow-0324.appspot.com/o/demo-yoga%2Fassets%2Fpricing_generic.png?alt=media',
-        subUrl: 'https://firebasestorage.googleapis.com/v0/b/passflow-0324.appspot.com/o/demo-yoga%2Fassets%2Fpricing_generic_2.png?alt=media',
+    // 0. Update Branches strictly to 1 Main Branch (본점)
+    await db.collection('studios').doc(STUDIO_ID).update({
+        branches: [
+            { id: 'main', name: '본점' }
+        ],
         updatedAt: new Date().toISOString()
-    }, { merge: true });
-    console.log('✅ Pricing updated');
+    });
+    console.log('✅ Branches updated to [본점]');
 
-    // 2. Update Schedule Images
-    await db.collection('studios').doc(STUDIO_ID).collection('assets').doc('schedule').set({
-        currentUrl: 'https://firebasestorage.googleapis.com/v0/b/passflow-0324.appspot.com/o/demo-yoga%2Fassets%2Fschedule_generic.png?alt=media',
-        nextUrl: 'https://firebasestorage.googleapis.com/v0/b/passflow-0324.appspot.com/o/demo-yoga%2Fassets%2Fschedule_generic_2.png?alt=media',
+    // 1. Update Pricing Images (Using relative paths pointing to public/assets/)
+    // 월/주간 시간표를 둘 다 채우라고 하셨으니, subUrl(심화/일반)에도 꽉 채워넣습니다.
+    await db.collection('studios').doc(STUDIO_ID).collection('assets').doc('pricing').set({
+        mainUrl: '/assets/demo_pricing.png',
+        subUrl: '/assets/demo_pricing.png',
         updatedAt: new Date().toISOString()
     }, { merge: true });
-    console.log('✅ Schedule updated');
-    
+    console.log('✅ Pricing URLs updated');
+
+    // 2. Update Schedule Images (월간 / 다음달 전부 채우기)
+    await db.collection('studios').doc(STUDIO_ID).collection('assets').doc('schedule').set({
+        currentUrl: '/assets/demo_schedule.png',
+        nextUrl: '/assets/demo_schedule.png',
+        updatedAt: new Date().toISOString()
+    }, { merge: true });
+    console.log('✅ Schedule URLs updated');
+
     // 3. Update Logo Image
     await db.collection('studios').doc(STUDIO_ID).collection('assets').doc('logo').set({
-        url: 'https://firebasestorage.googleapis.com/v0/b/passflow-0324.appspot.com/o/demo-yoga%2Fassets%2Flogo_generic.png?alt=media',
+        url: '/assets/demo_logo.png', // Assuming demo_logo was also generated
         updatedAt: new Date().toISOString()
     }, { merge: true });
-    console.log('✅ Logo updated');
+    console.log('✅ Logo URL updated');
 
     console.log('Done!');
     process.exit(0);

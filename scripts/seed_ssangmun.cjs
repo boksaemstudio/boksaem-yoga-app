@@ -15,7 +15,7 @@ if (!admin.apps.length) {
     });
 }
 const db = admin.firestore();
-const STUDIO_ID = 'demo-yoga'; // Target Tenant
+const STUDIO_ID = 'ssangmun-yoga'; // Target Tenant
 const tenantDb = db.collection('studios').doc(STUDIO_ID);
 
 const FIRST_NAMES = ['김','이','박','최','정','강','조','윤','장','임','한','오','서','신','권','황','안','송','전','홍'];
@@ -32,13 +32,13 @@ async function seedData() {
     console.log(`🌱 Seeding data for tenant: ${STUDIO_ID}`);
 
     const configData = {
-        name: 'ZenFlow Yoga',
-        ownerEmail: 'demo@zenflow.yoga',
+        name: '쌍문요가',
+        ownerEmail: 'ssangmun@yoga.com',
         plan: 'pro',
         status: 'active',
         settings: {
-            IDENTITY: { NAME: 'ZenFlow Yoga & Pilates', SLOGAN: '도심 속 작은 안식처, 젠플로우에서 완벽한 호흡을 경험하세요' },
-            THEME: { PRIMARY_COLOR: '#8B5CF6', SKELETON_COLOR: '#1a1a1a' },
+            IDENTITY: { NAME: '쌍문요가', SLOGAN: '도봉구 쌍문동 최고의 요가 공간, 나를 만나는 고요한 시간' },
+            THEME: { PRIMARY_COLOR: '#d4af37', SKELETON_COLOR: '#1a1a1a' },
             ASSETS: {
                 LOGO: { SQUARE: 'https://passflow-0324.web.app/assets/demo_logo.png', WIDE: 'https://passflow-0324.web.app/assets/demo_logo.png' },
                 MEMBER_BG: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1200&auto=format&fit=crop'
@@ -49,29 +49,34 @@ async function seedData() {
         },
         updatedAt: new Date().toISOString()
     };
-    const globalToday = new Date();
-    const currM = `${globalToday.getFullYear()}-${String(globalToday.getMonth() + 1).padStart(2, '0')}`;
-    const nextM = `${globalToday.getFullYear()}-${String(globalToday.getMonth() + 2).padStart(2, '0')}`;
     
     // Default branch for the generic demo app
     configData.branches = [
         { id: 'main', name: '본점' }
     ];
     
-    const genericImgUrl = 'https://passflow-0324.web.app/assets/demo_schedule.png';
-    configData.scheduleImages = {
-        [`timetable_gangnam`]: genericImgUrl,
-        [`timetable_hongdae`]: genericImgUrl,
-        [`gangnam_${currM}`]: genericImgUrl,
-        [`gangnam_${nextM}`]: genericImgUrl,
-        [`hongdae_${currM}`]: genericImgUrl,
-        [`hongdae_${nextM}`]: genericImgUrl,
-        'price_table_1': 'https://passflow-0324.web.app/assets/demo_pricing.png',
-        'price_table_2': 'https://passflow-0324.web.app/assets/demo_pricing.png'
-    };
 
     await tenantDb.set(configData, { merge: true });
-    console.log('✅ 1. Config seeded');
+    
+    // Seed assets subcollections properly
+    await tenantDb.collection('assets').doc('schedule').set({
+        currentUrl: '/assets/demo_schedule.png',
+        nextUrl: '/assets/demo_schedule.png',
+        updatedAt: new Date().toISOString()
+    }, { merge: true });
+
+    await tenantDb.collection('assets').doc('pricing').set({
+        mainUrl: '/assets/demo_pricing.png',
+        subUrl: '/assets/demo_pricing.png',
+        updatedAt: new Date().toISOString()
+    }, { merge: true });
+
+    await tenantDb.collection('assets').doc('logo').set({
+        url: '/assets/demo_logo.png',
+        updatedAt: new Date().toISOString()
+    }, { merge: true });
+    
+    console.log('✅ 1. Config & Assets seeded');
 
     let currentBatch = db.batch(); let batchCount = 0;
     const commitBatch = async () => { if (batchCount > 0) { await currentBatch.commit(); currentBatch = db.batch(); batchCount = 0; } };
@@ -156,7 +161,7 @@ async function seedData() {
     }
 
     await commitBatch();
-    console.log('🎉 Seeding successfully completed for ZenFlow Yoga!');
+    console.log(`🎉 Seeding successfully completed for ${STUDIO_ID}!`);
 }
 
 seedData().catch(console.error).finally(() => process.exit(0));

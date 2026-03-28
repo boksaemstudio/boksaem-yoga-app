@@ -270,12 +270,19 @@ const RequireSuperAdmin = ({ children }) => {
 const RootRoute = () => {
   const isMainDomain = window.location.hostname === 'passflow-0324.web.app';
   if (isMainDomain) {
-    // 메인 도메인에서는 React 앱의 출석체크가 아닌, 정적 랜딩페이지(home.html)를 띄워줍니다.
-    // PWA Service Worker가 '/'를 가로챘더라도 여기서 강제로 home.html로 브라우저를 이동시킵니다.
-    window.location.href = '/home.html';
+    if (window.location.pathname === '/') window.location.href = '/home.html';
     return null;
   }
   return <CheckInPage />;
+};
+
+// [FIX] Force hard reload to break Service Worker hijacking for static HTML files
+const HardReload = ({ target }) => {
+  useEffect(() => {
+    // We append a timestamp to completely evade any existing SW caches
+    window.location.href = target + '?v=' + new Date().getTime();
+  }, [target]);
+  return <div className="auth-checking">Redirecting...</div>;
 };
 
 function App() {
@@ -322,7 +329,8 @@ function App() {
                 <Route path="/instructor" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><InstructorPage /></Suspense></ErrorBoundary>} />
                 <Route path="/meditation" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><MeditationPage /></Suspense></ErrorBoundary>} />
                 <Route path="/super-admin" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><RequireSuperAdmin><SuperAdminPage /></RequireSuperAdmin></Suspense></ErrorBoundary>} />
-                <Route path="/privacy" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><PrivacyPolicyPage /></Suspense></ErrorBoundary>} />
+                <Route path="/features.html" element={<HardReload target="/features.html" />} />
+                <Route path="/home.html" element={<HardReload target="/home.html" />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
               <NetworkStatus />
