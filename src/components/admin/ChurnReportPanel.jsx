@@ -92,7 +92,7 @@ const ChurnReportPanel = ({ dormantMembers, onSendMessage, onClose, sales }) => 
         const sorted = [...sales].sort((a, b) => {
             const da = a.date || a.timestamp || '';
             const db = b.date || b.timestamp || '';
-            return String(db).localeCompare(String(da));
+            return String(db || '').localeCompare(String(da || ''));
         });
         sorted.forEach(s => {
             if (!map.has(s.memberId)) {

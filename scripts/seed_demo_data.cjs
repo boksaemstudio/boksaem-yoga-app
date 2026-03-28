@@ -59,15 +59,14 @@ async function seedData() {
     ];
     
     const genericImgUrl = 'https://passflow-0324.web.app/assets/demo_schedule.png';
+    const genericPriceUrl = 'https://passflow-0324.web.app/assets/demo_pricing.png';
     configData.scheduleImages = {
-        [`timetable_gangnam`]: genericImgUrl,
-        [`timetable_hongdae`]: genericImgUrl,
-        [`gangnam_${currM}`]: genericImgUrl,
-        [`gangnam_${nextM}`]: genericImgUrl,
-        [`hongdae_${currM}`]: genericImgUrl,
-        [`hongdae_${nextM}`]: genericImgUrl,
-        'price_table_1': 'https://passflow-0324.web.app/assets/demo_pricing.png',
-        'price_table_2': 'https://passflow-0324.web.app/assets/demo_pricing.png'
+        [`main_${currM}`]: genericImgUrl,
+        [`main_${nextM}`]: genericImgUrl,
+        'timetable_1': genericImgUrl,
+        'timetable_2': genericImgUrl,
+        'price_table_1': genericPriceUrl,
+        'price_table_2': genericPriceUrl
     };
 
     await tenantDb.set(configData, { merge: true });
@@ -78,21 +77,26 @@ async function seedData() {
     const addOp = async (opFunc) => { opFunc(); batchCount++; if (batchCount >= 400) await commitBatch(); };
 
     console.log('Generating 50 Members...');
-    const memberIds = [];
     const today = new Date();
     const threeMonthsAgo = new Date(today); threeMonthsAgo.setMonth(today.getMonth() - 3);
-
+    
+    const memberIds = Array.from({ length: 50 }, (_, i) => tenantDb.collection('members').doc().id);
     for (let i = 0; i < 50; i++) {
-        const id = tenantDb.collection('members').doc().id;
-        memberIds.push(id);
-        const type = Math.random() > 0.6 ? 'MTypeA' : Math.random() > 0.5 ? 'MTypeB' : 'MTypeC';
-        const isUnlimited = type === 'MTypeC';
-        const credits = isUnlimited ? 999 : Math.floor(Math.random() * 30);
+        const id = memberIds[i];
+        const isUnlimited = Math.random() > 0.8;
+        const type = isUnlimited ? 'MTypeC' : (Math.random() > 0.5 ? 'MTypeA' : 'MTypeB');
+        const credits = isUnlimited ? 999 : Math.floor(Math.random() * 20);
+        const regDate = getRandomDate(threeMonthsAgo, today).toISOString().split('T')[0];
+        const startDate = regDate;
+        const endObj = new Date(regDate);
+        endObj.setMonth(endObj.getMonth() + 3);
+        const endDate = endObj.toISOString().split('T')[0];
+        
         await addOp(() => {
             currentBatch.set(tenantDb.collection('members').doc(id), {
                 id, name: getRandomName(), phone: `010-0000-${String(1000+i).padStart(4, '0')}`,
                 membershipType: type, credits: credits, originalCredits: isUnlimited ? 999 : 30,
-                regDate: getRandomDate(threeMonthsAgo, today).toISOString().split('T')[0],
+                regDate: regDate, startDate: startDate, endDate: endDate,
                 hasFaceDescriptor: Math.random() > 0.2, status: 'active', createdAt: new Date().toISOString()
             });
         });
@@ -139,16 +143,27 @@ async function seedData() {
     }
 
     console.log('Generating Sales Data...');
+    const membershipNames = ['MTypeA 1개월', 'MTypeB 3개월', 'MTypeC 무제한 1개월', 'MTypeA 10회', 'MTypeB 20회'];
     for (let m = 0; m < 4; m++) {
         for (let i = 0; i < 15; i++) {
             const saleId = tenantDb.collection('sales').doc().id;
             const saleDate = new Date(today); saleDate.setMonth(today.getMonth() - m); saleDate.setDate(Math.floor(Math.random() * 28) + 1);
+            const saleDateStr = saleDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            const months = [1, 3, 1, 1, 3][i % 5];
+            const saleEndDate = new Date(saleDate); saleEndDate.setMonth(saleEndDate.getMonth() + months);
+            const saleEndDateStr = saleEndDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            const selectedMember = memberIds[Math.floor(Math.random() * memberIds.length)];
+            const itemName = membershipNames[Math.floor(Math.random() * membershipNames.length)];
             await addOp(() => {
                 currentBatch.set(tenantDb.collection('sales').doc(saleId), {
-                    id: saleId, date: saleDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }),
-                    timestamp: saleDate.toISOString(), itemType: Math.random() > 0.7 ? 'MTypeA' : 'MTypeB',
-                    itemName: '수강권 결제', memberName: getRandomName(), memberId: memberIds[0],
-                    paymentMethod: Math.random() > 0.5 ? 'card' : 'cash', amount: (Math.floor(Math.random() * 5) + 10) * 10000,
+                    id: saleId, date: saleDateStr,
+                    timestamp: saleDate.toISOString(),
+                    item: itemName, itemType: itemName.split(' ')[0],
+                    itemName: itemName,
+                    startDate: saleDateStr, endDate: saleEndDateStr,
+                    memberName: getRandomName(), memberId: selectedMember,
+                    paymentMethod: Math.random() > 0.5 ? 'card' : 'cash',
+                    amount: (Math.floor(Math.random() * 5) + 10) * 10000,
                     status: 'completed', createdAt: new Date().toISOString()
                 });
             });
@@ -159,4 +174,30 @@ async function seedData() {
     console.log('🎉 Seeding successfully completed for ZenFlow Yoga!');
 }
 
-seedData().catch(console.error).finally(() => process.exit(0));
+// ssangmun-yoga 테넌트도 동일한 데이터로 시딩
+async function seedSsangmun() {
+    console.log('\n🌱 Seeding data for tenant: ssangmun-yoga');
+    const tenantDb = db.collection('studios').doc('ssangmun-yoga');
+    const today = new Date();
+    const currM = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    const nextM = `${today.getFullYear()}-${String(today.getMonth() + 2).padStart(2, '0')}`;
+    const genericImgUrl = 'https://passflow-0324.web.app/assets/demo_schedule.png';
+    const genericPriceUrl = 'https://passflow-0324.web.app/assets/demo_pricing.png';
+    
+    const ssConfig = {
+        studioName: '쌍문 요가',
+        branches: [{ id: 'main', name: '본점' }],
+        scheduleImages: {
+            [`main_${currM}`]: genericImgUrl,
+            [`main_${nextM}`]: genericImgUrl,
+            'timetable_1': genericImgUrl,
+            'timetable_2': genericImgUrl,
+            'price_table_1': genericPriceUrl,
+            'price_table_2': genericPriceUrl
+        }
+    };
+    await tenantDb.set(ssConfig, { merge: true });
+    console.log('✅ ssangmun-yoga config seeded');
+}
+
+seedData().then(() => seedSsangmun()).catch(console.error).finally(() => process.exit(0));

@@ -259,7 +259,7 @@ const InstructorSchedule = ({ instructorName }) => {
     };
 
     const selectedClasses = selectedDate ? (monthlyData[selectedDate] || []) : [];
-    selectedClasses.sort((a, b) => a.time.localeCompare(b.time));
+    selectedClasses.sort((a, b) => String(a.time || '').localeCompare(String(b.time || '')));
 
     return (
         <div style={{ padding: '16px' }}>

@@ -251,7 +251,7 @@ const AdminDashboard = () => {
             });
 
             // Sort by attendance time desc
-            return attendanceList.sort((a, b) => b.attendanceTime.localeCompare(a.attendanceTime));
+            return attendanceList.sort((a, b) => String(b.attendanceTime || '').localeCompare(String(a.attendanceTime || '')));
         }
 
         let baseList = members;
@@ -318,7 +318,7 @@ const AdminDashboard = () => {
                 const dateB = new Date(b.lastPaymentDate || b.regDate || 0);
                 return dateB - dateA; // Descending (latest first)
             }
-            return a.name.localeCompare(b.name, 'ko');
+            return String(a.name || '').localeCompare(String(b.name || ''), 'ko');
         });
     }, [members, logs, searchTerm, filterType, currentBranch, isMemberActive, isMemberExpiring, todayReRegMemberIds, pushTokens]);
 

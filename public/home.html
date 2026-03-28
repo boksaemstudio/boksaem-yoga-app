@@ -84,12 +84,11 @@
         }
         /* Pricing Section Enhancements */
         .pricing-section-bg {
-            position: relative; padding: clamp(60px, 10vw, 120px) 0;
-            background: url('/assets/pricing_bg_premium.png') center/cover no-repeat;
+            position: relative;
         }
         .pricing-section-bg::before {
             content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(180deg, #050508 0%, rgba(5,5,8,0.75) 40%, rgba(5,5,8,0.85) 80%, #050508 100%);
+            background: none;
             z-index: 0; pointer-events: none;
         }
         .single-plan-card {
@@ -293,7 +292,7 @@
     </section>
 
     <!-- 6. 가격 Section -->
-    <section class="pricing-section-bg" id="pricing" style="padding: 40px 0 60px; background: linear-gradient(rgba(10,10,12,0.4), rgba(10,10,12,0.6)), url('assets/feature_ballet_bg.png') center/cover no-repeat fixed;">
+    <section class="pricing-section-bg" id="pricing" style="padding: 40px 0 60px; background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.2)), url('assets/feature_ballet_bg.png') center/cover no-repeat fixed;">
         <div class="container" style="position: relative; z-index: 1;">
             <h2 style="text-align:center; margin-bottom: clamp(30px, 5vw, 40px);">합리적인 <span class="gradient-text">프리미엄 플랜</span></h2>
             

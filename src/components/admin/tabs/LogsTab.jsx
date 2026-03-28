@@ -313,7 +313,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
         return Object.values(groups).sort((a, b) => {
             if (!a.classTime) return 1;
             if (!b.classTime) return -1;
-            return b.classTime.localeCompare(a.classTime);
+            return String(b.classTime || '').localeCompare(String(a.classTime || ''));
         });
     })();
 

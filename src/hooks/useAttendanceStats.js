@@ -58,7 +58,7 @@ export const useAttendanceStats = (attendanceLogs = [], memberId = null) => {
             .sort((a, b) => {
                 const timeA = a.timestamp || '';
                 const timeB = b.timestamp || '';
-                return timeB.localeCompare(timeA);
+                return String(timeB || '').localeCompare(String(timeA || ''));
             })
             .slice(0, 10);
 
@@ -68,7 +68,7 @@ export const useAttendanceStats = (attendanceLogs = [], memberId = null) => {
             const sortedLogs = [...logs].sort((a, b) => {
                 const timeA = a.timestamp || '';
                 const timeB = b.timestamp || '';
-                return timeB.localeCompare(timeA);
+                return String(timeB || '').localeCompare(String(timeA || ''));
             });
 
             const uniqueDates = [...new Set(
