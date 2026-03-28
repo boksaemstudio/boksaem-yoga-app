@@ -53,11 +53,12 @@
         .trust-strip span { font-size: 0.85rem; color: rgba(255,255,255,0.5); font-weight: 500; letter-spacing: 0.05em; }
         .feature-card-new {
             background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 24px; padding: 40px; transition: all 0.4s;
+            border-radius: 20px; padding: clamp(24px, 4vw, 40px); transition: all 0.4s;
+            display: flex; flex-direction: column;
         }
         .feature-card-new:hover {
-            border-color: rgba(212,175,55,0.3);
-            box-shadow: 0 20px 60px rgba(212,175,55,0.08);
+            border-color: rgba(212,175,55,0.4);
+            box-shadow: 0 16px 40px rgba(212,175,55,0.12);
             transform: translateY(-4px);
         }
         .feature-card-new img {
@@ -66,9 +67,9 @@
         }
         .demo-card-enhanced {
             background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-            border: 1px solid rgba(255,255,255,0.08); border-radius: 24px;
-            padding: 40px 30px; text-align: center; transition: all 0.4s;
-            position: relative; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.08); border-radius: 20px;
+            padding: clamp(24px, 4vw, 40px) 24px; text-align: center; transition: all 0.4s;
+            position: relative; overflow: hidden; display: flex; flex-direction: column;
         }
         .demo-card-enhanced::before {
             content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
@@ -154,11 +155,11 @@
             </div>
             <h1 class="gradient-text" style="line-height: 1.3;">AI가 스튜디오 운영을<br>도와드립니다</h1>
             <p>
-                <strong style="color:rgba(255,255,255,0.9); font-size:1.2rem; display:block; margin-top:20px; font-weight: 500;">
-                    원장님의 예약, 출석, 회원, 수강권, 매출, 수업, 강사 모든 관리업무를 도와드려요
+                <strong style="color:rgba(255,255,255,0.9); font-size:clamp(1.1rem, 2vw, 1.25rem); display:block; margin-top:20px; font-weight: 500;">
+                    예약, 출석, 수강권 관리, 회원 관리, 매출 확인까지 한 곳에서.
                 </strong>
-                <strong style="color:#d4af37; font-size:1.3rem; display:block; margin-top:12px;">
-                    연 10만 원 / 초기 세팅 지원 / 바로 체험 가능
+                <strong style="color:#d4af37; font-size:clamp(1.1rem, 2vw, 1.25rem); display:block; margin-top:12px; font-weight: 600; letter-spacing: -0.2px;">
+                    초기 시스템 무상 지원 · 단 하나의 완벽한 프리미엄 플랜
                 </strong>
             </p>
         </div>
@@ -166,9 +167,9 @@
 
 
     <!-- 4. 핵심 기능 Section -->
-    <section class="features" id="ai-features" style="padding: 100px 0; background: linear-gradient(rgba(10,10,15,0.75), rgba(10,10,15,0.85)), url('assets/feature_yoga_bg.png') center/cover no-repeat fixed;">
+    <section class="features" id="ai-features" style="padding: clamp(60px, 8vw, 100px) 0; background: linear-gradient(rgba(10,10,15,0.75), rgba(10,10,15,0.85)), url('assets/feature_yoga_bg.png') center/cover no-repeat fixed;">
         <div class="container">
-            <h2 style="text-align:center; margin-bottom:40px;"><span class="gradient-text">핵심 기능</span></h2>
+            <h2 style="text-align:center; margin-bottom:clamp(30px, 5vw, 40px);"><span class="gradient-text">핵심 기능</span></h2>
 
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
 
@@ -228,10 +229,10 @@
     </section>
 
     <!-- 5. 직접 체험 데모 섹션 -->
-    <section class="features" id="live-demo" style="padding: 100px 0; background: linear-gradient(rgba(10,10,15,0.8), rgba(10,10,15,0.9)), url('assets/feature_pilates_bg.png') center/cover no-repeat fixed;">
+    <section class="features" id="live-demo" style="padding: clamp(60px, 8vw, 100px) 0; background: linear-gradient(rgba(10,10,15,0.8), rgba(10,10,15,0.9)), url('assets/feature_pilates_bg.png') center/cover no-repeat fixed;">
         <div class="container">
-            <h2 style="text-align:center;"><span class="gradient-text">직접 보면 더 빠르게 이해됩니다</span></h2>
-            <p class="section-desc">각 앱을 직접 체험해보세요.</p>
+            <h2 style="text-align:center; margin-bottom: 15px;"><span class="gradient-text">직접 보면 더 빠르게 이해됩니다</span></h2>
+            <p class="section-desc" style="margin-bottom: clamp(30px, 5vw, 40px);">각 앱을 직접 체험해보세요.</p>
 
             <div class="demo-grid">
 
@@ -292,9 +293,9 @@
     </section>
 
     <!-- 6. 가격 Section -->
-    <section class="pricing-section-bg" id="pricing" style="padding: 100px 0; background: linear-gradient(rgba(10,10,12,0.75), rgba(10,10,12,0.85)), url('assets/feature_ballet_bg.png') center/cover no-repeat fixed;">
+    <section class="pricing-section-bg" id="pricing" style="padding: clamp(60px, 8vw, 100px) 0; background: linear-gradient(rgba(10,10,12,0.75), rgba(10,10,12,0.85)), url('assets/feature_ballet_bg.png') center/cover no-repeat fixed;">
         <div class="container" style="position: relative; z-index: 1;">
-            <h2 style="text-align:center;">합리적인 <span class="gradient-text">단일 플랜</span></h2>
+            <h2 style="text-align:center; margin-bottom: clamp(30px, 5vw, 40px);">합리적인 <span class="gradient-text">프리미엄 플랜</span></h2>
             
             <div class="single-plan-card">
                 <div style="font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">All-in-One Plan</div>
