@@ -39,7 +39,7 @@ import FaceRegistrationModal from '../components/checkin/FaceRegistrationModal';
 
 const CheckInPage = () => {
     const { config } = useStudioConfig();
-    const logoWide = config.ASSETS?.LOGO?.WIDE || '/assets/logo_wide.webp';
+    const logoWide = config.ASSETS?.LOGO?.WIDE || '/assets/passflow_logo.png';
     const rys200Logo = config.ASSETS?.LOGO?.RYS200 || '/assets/RYS200.webp';
     const branches = config.BRANCHES || [];
     const faceRecognitionEnabled = config.POLICIES?.FACE_RECOGNITION_ENABLED && config.POLICIES?.SHOW_CAMERA_PREVIEW;
@@ -93,7 +93,8 @@ const CheckInPage = () => {
     const pwaContext = usePWA();
     const { checkConnection } = useNetworkMonitor();
     const { speak } = useTTS();
-    const { videoRef, canvasRef, capturePhoto, uploadPhoto } = useAttendanceCamera(true);
+    const photoEnabled = config.POLICIES?.PHOTO_ENABLED === true || faceRecognitionEnabled === true;
+    const { videoRef, canvasRef, capturePhoto, uploadPhoto } = useAttendanceCamera(photoEnabled);
 
     const {
         faceModelsLoaded, isScanning, faceVideoRef,

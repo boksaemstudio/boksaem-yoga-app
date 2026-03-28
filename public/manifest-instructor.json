@@ -22,7 +22,7 @@
             "purpose": "any"
         },
         {
-            "src": "/복샘요가로고원형whiteBG.png",
+            "src": "/logo_circle.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"

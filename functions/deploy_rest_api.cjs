@@ -186,7 +186,7 @@ async function deploySite(siteId) {
     console.log('🎉 전체 완료!');
     console.log('🔗 https://boksaem-yoga.web.app');
     console.log('🔗 https://passflow-demo-0324.web.app');
-    console.log('🔗 https://ssangmun-yoga-0324.web.app');
+    console.log('🔗 https://passflow-demo-0324.web.app');
     console.log('═══════════════════════════════════════');
     process.exit(0);
 })().catch(e => { console.error('❌', e.message); process.exit(1); });

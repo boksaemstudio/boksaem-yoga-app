@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useStudioConfig } from '../contexts/StudioContext';
 import { storageService } from '../services/storage';
 import { logger } from '../utils/logger';
+import { auth } from '../firebase';
+
 const LoginPage = () => {
     const { config } = useStudioConfig();
     const [email, setEmail] = useState('');
@@ -22,6 +24,15 @@ const LoginPage = () => {
             const result = await storageService.loginAdmin(email.trim(), password.trim());
 
             if (result.success) {
+                try {
+                    const tokenResult = await auth.currentUser.getIdTokenResult();
+                    if (tokenResult.claims.role === 'superadmin') {
+                        navigate('/super-admin');
+                        return;
+                    }
+                } catch (e) {
+                    console.error('[LoginPage] Claims check failed:', e);
+                }
                 navigate('/admin');
             } else {
                 setError(result.message);

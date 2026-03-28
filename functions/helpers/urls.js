@@ -5,12 +5,12 @@
  * @module helpers/urls
  */
 
-const STUDIO_ID = process.env.STUDIO_ID || 'boksaem-yoga';
+const STUDIO_ID = process.env.STUDIO_ID || 'passflow-0324';
 
 /**
  * 스튜디오 기본 URL 반환
  * 환경변수 STUDIO_HOST가 있으면 사용, 없으면 STUDIO_ID 기반 생성
- * @returns {string} 예: 'https://boksaem-yoga.web.app'
+ * @returns {string} 예: 'https://passflow-0324.web.app'
  */
 const getStudioBaseUrl = () => {
     return process.env.STUDIO_HOST || `https://${STUDIO_ID}.web.app`;

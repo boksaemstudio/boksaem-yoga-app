@@ -63,7 +63,50 @@
       ]
     },
     {
-      "site": "passflow-demo-0324",
+      "site": "passflow-0324",
+      "public": "dist",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "/",
+          "destination": "/home.html"
+        },
+        {
+          "source": "/privacy",
+          "destination": "/privacy.html"
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        },
+        {
+          "source": "sw.js",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "site": "ssangmun-yoga-0324",
       "public": "dist",
       "ignore": [
         "firebase.json",
@@ -98,7 +141,7 @@
       ]
     },
     {
-      "site": "ssangmun-yoga-0324",
+      "site": "passflow-demo-0324",
       "public": "dist",
       "ignore": [
         "firebase.json",

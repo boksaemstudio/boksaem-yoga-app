@@ -32,8 +32,26 @@ function getRandomDate(start, end) {
     return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 }
 
+async function deleteCollection(collectionRef) {
+    const batchSize = 100;
+    while (true) {
+        const snapshot = await collectionRef.limit(batchSize).get();
+        if (snapshot.empty) break;
+        const batch = db.batch();
+        snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+        await batch.commit();
+    }
+}
+
 async function seedData() {
     console.log(`🌱 Seeding data for tenant: ${STUDIO_ID}`);
+
+    console.log('Clearing old demo data...');
+    const collections = ['members', 'daily_classes', 'attendance', 'sales', 'instructors'];
+    for (const coll of collections) {
+        await deleteCollection(tenantDb.collection(coll));
+    }
+    console.log('✅ Old data cleared');
 
     // 1. Studio Configuration
     const configData = {

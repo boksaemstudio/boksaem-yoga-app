@@ -238,3 +238,21 @@ exports.sendScheduledMessages = onSchedule({
         console.error("Scheduled message processing failed:", error);
     }
 });
+
+/**
+ * 데모 요가원 자동화 (KST 00:05 실행)
+ * 살아있는 데모 사이트 유지를 위해 매일 자정 직후 가짜 데이터를 리필합니다.
+ */
+exports.refreshDemoDataDaily = onSchedule({
+    schedule: "5 0 * * *",
+    timeZone: "Asia/Seoul",
+    region: "asia-northeast3"
+}, async (event) => {
+    try {
+        console.log(`[Scheduled] Refreshing demo site data at ${new Date().toISOString()}`);
+        const { refreshDemoData } = require('../helpers/demoSeeder');
+        await refreshDemoData();
+    } catch (e) {
+        console.error("[Scheduled] Demo data refresh failed:", e);
+    }
+});

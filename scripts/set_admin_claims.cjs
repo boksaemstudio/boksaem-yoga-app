@@ -22,7 +22,7 @@ admin.initializeApp({
 // ══════════════════════════════════════════════════════
 const ADMIN_LIST = [
     // 슈퍼어드민 (모든 업장 접근 가능 + /super-admin 접근)
-    { email: "biksoon@daum.net", role: "superadmin" },
+    { email: "boksoon@daum.net", role: "superadmin" },
 
     // 일반 관리자 (특정 업장만 접근 가능)
     // { email: "admin@ssangmun.kr", role: "admin", studioId: "ssangmun-yoga" },

@@ -11,7 +11,7 @@ export const STUDIO_CONFIG = {
         LOGO_TEXT: "YOGA",
         SLOGAN: "나를 만나는 고요한 시간",
         DESCRIPTION: "요가와 함께하는 건강한 일상",
-        APP_VERSION: "2026.03.25 22:40",
+        APP_VERSION: "2026.03.28 12:51",
         FAVICON: "/favicon.ico",
     },
 
@@ -43,14 +43,15 @@ export const STUDIO_CONFIG = {
             allowCarryOver: false,       // 미사용 주간 크레딧 이월 여부
             weeklyLimitSource: 'plan'    // 'plan' = 요금제 기준, 'member' = 회원별 수동
         },
+        PHOTO_ENABLED: false,            // 배경 무음 촬영 모드 (기본 OFF)
         SHOW_CAMERA_PREVIEW: false       // 키오스크 카메라 프리뷰 (기본 OFF)
     },
 
-    // 3. Asset Nexus (이미지 및 자원 매핑) — 범용 기본 경로
+    // 3. Asset Nexus (이미지 및 자원 매핑) — SaaS 중립적 기본 경로
     ASSETS: {
         LOGO: {
-            WIDE: '/assets/logo_wide.webp',
-            SQUARE: '/assets/logo_square.webp',
+            WIDE: '/assets/passflow_logo.png',
+            SQUARE: '/assets/passflow_logo.png',
             RYS200: '/assets/RYS200.webp',
         },
         MEMBER_BG: '/assets/default_member_bg.webp',

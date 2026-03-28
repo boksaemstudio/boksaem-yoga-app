@@ -38,7 +38,7 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats, viewMode })
             </div>
 
             {/* Total Month Summary */}
-            <CollapsibleCard id="revenue-summary" title={`${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월 총 매출 요약`} defaultOpen={true}>
+            <CollapsibleCard id="revenue-summary" title={`${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월 총 매출 요약`} titleExtra={`${formatCurrency(monthlyStats.totalRevenue)}원`} defaultOpen={true}>
                 <div className="dashboard-card revenue-summary-card" style={{ marginTop: '0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                         <div>

@@ -176,7 +176,7 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
     };
 
     const handleDeleteSale = async (salesId, itemName) => {
-        if (!confirm(`"${itemName}" 결제 내역을 삭제하시겠습니까?\n\n⚠️ 삭제된 내역은 복구할 수 없습니다.`)) return;
+        if (!confirm(`"${itemName}" 결제 내역을 삭제하시겠습니까?\n\n삭제된 내역은 휴지통에서 복원할 수 있습니다.`)) return;
         try {
             await storageService.deleteSalesRecord(salesId);
             setHistory(prev => prev.filter(h => h.id !== salesId));

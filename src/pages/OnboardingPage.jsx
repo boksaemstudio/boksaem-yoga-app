@@ -1,28 +1,41 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Buildings, EnvelopeSimple, Crown, CheckCircle, ShieldCheck, ArrowRight, ArrowLeft, Spinner } from '@phosphor-icons/react';
+import { Buildings, EnvelopeSimple, Crown, CheckCircle, ShieldCheck, ArrowRight, ArrowLeft, Spinner, Upload, MagicWand, Image as ImageIcon, CalendarBlank, CurrencyKrw } from '@phosphor-icons/react';
 import { studioRegistryService } from '../services/studioRegistryService';
 
 const OnboardingPage = () => {
     const navigate = useNavigate();
-    const [step, setStep] = useState(0); // 0: Landing, 1: Name, 2: Email, 3: Plan, 4: Success
+    const [step, setStep] = useState(0);
+    // 0: Landing, 1: Name, 2: Logo Option, 3: Email, 4: Plan, 5: Success
     const [formData, setFormData] = useState({
         name: '',
         nameEnglish: '',
         ownerEmail: '',
-        plan: 'basic'
+        plan: 'basic',
+        logoOption: 'ai', // 'ai' | 'upload' | 'later'
+        logoFile: null,
+        logoPreviewUrl: null
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isGeneratingLogo, setIsGeneratingLogo] = useState(false);
 
-    const handleNext = () => setStep(s => Math.min(s + 1, 4));
+    const handleNext = () => setStep(s => Math.min(s + 1, 5));
     const handlePrev = () => setStep(s => Math.max(s - 1, 0));
+
+    const handleLogoUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+            setFormData({ ...formData, logoFile: file, logoPreviewUrl: url, logoOption: 'upload' });
+        }
+    };
 
     const handleSubmit = async () => {
         setIsSubmitting(true);
         const result = await studioRegistryService.requestOnboarding(formData);
         setIsSubmitting(false);
         if (result.success) {
-            setStep(4);
+            setStep(5);
         } else {
             alert('신청 중 오류가 발생했습니다: ' + result.message);
         }
@@ -99,6 +112,34 @@ const OnboardingPage = () => {
         marginBottom: '24px'
     };
 
+    const optionCardStyle = (isSelected) => ({
+        padding: '20px',
+        border: isSelected ? '2px solid #60a5fa' : '2px solid rgba(255,255,255,0.1)',
+        borderRadius: '16px',
+        cursor: 'pointer',
+        background: isSelected ? 'rgba(96, 165, 250, 0.1)' : 'rgba(0,0,0,0.2)',
+        transition: 'all 0.2s'
+    });
+
+    // Step indicator
+    const StepIndicator = () => {
+        const totalSteps = 4; // Name, Logo, Email, Plan
+        const currentIdx = step - 1; // step 0 is landing
+        if (step === 0 || step === 5) return null;
+        return (
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '32px' }}>
+                {Array.from({ length: totalSteps }).map((_, i) => (
+                    <div key={i} style={{
+                        width: i === currentIdx ? '32px' : '8px', height: '8px',
+                        borderRadius: '4px',
+                        background: i <= currentIdx ? 'linear-gradient(135deg, #3b82f6, #8b5cf6)' : 'rgba(255,255,255,0.15)',
+                        transition: 'all 0.3s'
+                    }} />
+                ))}
+            </div>
+        );
+    };
+
     // 랜딩 뷰
     if (step === 0) {
         return (
@@ -110,7 +151,7 @@ const OnboardingPage = () => {
                         </div>
                         <h1 style={{ fontSize: '2rem', margin: '0 0 12px 0', fontWeight: '800' }}>패스플로우 (PassFlow)</h1>
                         <p style={{ color: '#94a3b8', fontSize: '1.1rem', margin: 0, lineHeight: '1.5' }}>
-                            원장님을 위한 완벽한 학원 관리 플랫폼,<br/>지금 바로 무료로 시작해보세요.
+                            원장님을 위한 완벽한 스튜디오 관리 플랫폼,<br/>지금 바로 무료로 시작해보세요.
                         </p>
                     </div>
 
@@ -118,8 +159,8 @@ const OnboardingPage = () => {
                         <div style={{ display: 'flex', gap: '16px', background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px' }}>
                             <Buildings size={32} color="#60a5fa" weight="duotone" />
                             <div>
-                                <h3 style={{ margin: '0 0 4px 0', fontSize: '1rem' }}>안전한 전용 관제탑</h3>
-                                <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8' }}>타 학원과 완벽히 분리된 원장님만의 관리자 화면을 제공합니다.</p>
+                                <h3 style={{ margin: '0 0 4px 0', fontSize: '1rem' }}>쉽고 편한 통합 관리</h3>
+                                <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8' }}>복잡한 회원 관리부터 출석, 수강권, 매출까지 하나의 화면에서 해결하세요.</p>
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: '16px', background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px' }}>
@@ -142,14 +183,15 @@ const OnboardingPage = () => {
         );
     }
 
-    // 이름 입력
+    // Step 1: 이름 입력
     if (step === 1) {
         return (
             <div style={containerStyle}>
                 <div style={cardStyle}>
                     <button style={navButtonStyle} onClick={handlePrev}><ArrowLeft size={16} /> 이전</button>
-                    <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>우리 학원의 이름은 무엇인가요?</h2>
-                    <p style={{ color: '#94a3b8', marginBottom: '32px' }}>회원들에게 보여질 요가원/필라테스 학원의 이름입니다.</p>
+                    <StepIndicator />
+                    <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>우리 스튜디오의 이름은 무엇인가요?</h2>
+                    <p style={{ color: '#94a3b8', marginBottom: '32px' }}>회원들에게 보여질 요가원/필라테스 스튜디오의 이름입니다.</p>
 
                     <input 
                         style={inputStyle}
@@ -170,12 +212,106 @@ const OnboardingPage = () => {
         );
     }
 
-    // 이메일 입력
+    // Step 2: 로고 옵션 (AI 생성 / 업로드 / 나중에)
     if (step === 2) {
         return (
             <div style={containerStyle}>
                 <div style={cardStyle}>
                     <button style={navButtonStyle} onClick={handlePrev}><ArrowLeft size={16} /> 이전</button>
+                    <StepIndicator />
+                    <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>
+                        <span style={{ color: '#60a5fa' }}>{formData.name}</span>의 로고
+                    </h2>
+                    <p style={{ color: '#94a3b8', marginBottom: '32px' }}>로고가 없으시면 AI가 스튜디오 이름에 맞는 로고를 만들어 드립니다.</p>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px' }}>
+                        {/* AI 생성 옵션 */}
+                        <div 
+                            onClick={() => setFormData({ ...formData, logoOption: 'ai' })}
+                            style={optionCardStyle(formData.logoOption === 'ai')}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                <MagicWand size={28} color={formData.logoOption === 'ai' ? '#60a5fa' : '#94a3b8'} weight="duotone" />
+                                <div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: '700', color: formData.logoOption === 'ai' ? '#60a5fa' : 'white' }}>AI 로고 자동 생성</div>
+                                    <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>"{formData.name}" 이름에 맞는 로고를 AI가 만들어 드립니다</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 직접 업로드 옵션 */}
+                        <div 
+                            onClick={() => document.getElementById('logo-upload-input')?.click()}
+                            style={optionCardStyle(formData.logoOption === 'upload')}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                <Upload size={28} color={formData.logoOption === 'upload' ? '#60a5fa' : '#94a3b8'} weight="duotone" />
+                                <div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: '700', color: formData.logoOption === 'upload' ? '#60a5fa' : 'white' }}>내 로고 업로드</div>
+                                    <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>이미 로고가 있다면 이미지 파일을 올려주세요</div>
+                                </div>
+                            </div>
+                            {formData.logoPreviewUrl && (
+                                <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'center' }}>
+                                    <img src={formData.logoPreviewUrl} alt="로고 미리보기" style={{ maxHeight: '60px', borderRadius: '8px', filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.3))' }} />
+                                </div>
+                            )}
+                            <input
+                                id="logo-upload-input"
+                                type="file"
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                onChange={handleLogoUpload}
+                            />
+                        </div>
+
+                        {/* 나중에 옵션 */}
+                        <div 
+                            onClick={() => setFormData({ ...formData, logoOption: 'later' })}
+                            style={optionCardStyle(formData.logoOption === 'later')}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                <ImageIcon size={28} color={formData.logoOption === 'later' ? '#60a5fa' : '#94a3b8'} weight="duotone" />
+                                <div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: '700', color: formData.logoOption === 'later' ? '#60a5fa' : 'white' }}>나중에 설정하기</div>
+                                    <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>설정 후 관리자 화면에서 변경 가능합니다</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 시간표·가격표 안내 */}
+                    <div style={{ 
+                        padding: '16px 20px', borderRadius: '14px',
+                        background: 'rgba(251, 191, 36, 0.08)', border: '1px solid rgba(251, 191, 36, 0.15)',
+                        marginBottom: '8px'
+                    }}>
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                            <CalendarBlank size={22} color="#fbbf24" weight="duotone" style={{ flexShrink: 0, marginTop: '2px' }} />
+                            <div>
+                                <div style={{ fontSize: '0.95rem', color: '#fbbf24', fontWeight: '600', marginBottom: '4px' }}>시간표 · 가격표</div>
+                                <div style={{ fontSize: '0.83rem', color: '#94a3b8', lineHeight: '1.5' }}>
+                                    초기 세팅 시 담당자가 함께 설정해드립니다.<br/>관리자 화면에서 직접 수정도 가능합니다.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button style={buttonStyle} onClick={handleNext}>
+                        다음 <ArrowRight size={20} weight="bold" />
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // Step 3: 이메일 입력
+    if (step === 3) {
+        return (
+            <div style={containerStyle}>
+                <div style={cardStyle}>
+                    <button style={navButtonStyle} onClick={handlePrev}><ArrowLeft size={16} /> 이전</button>
+                    <StepIndicator />
                     <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>원장님의 이메일을 알려주세요</h2>
                     <p style={{ color: '#94a3b8', marginBottom: '32px' }}>관리자 계정을 만들어 드리기 위해 필요해요.</p>
 
@@ -199,12 +335,13 @@ const OnboardingPage = () => {
         );
     }
 
-    // 요금제(형태) 선택 및 완료
-    if (step === 3) {
+    // Step 4: 요금제 선택 및 완료
+    if (step === 4) {
         return (
             <div style={containerStyle}>
                 <div style={cardStyle}>
                     <button style={navButtonStyle} onClick={handlePrev}><ArrowLeft size={16} /> 이전</button>
+                    <StepIndicator />
                     <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>어떤 형태로 운영하실 계획인가요?</h2>
                     <p style={{ color: '#94a3b8', marginBottom: '32px' }}>앱 설정의 뼈대를 만들기 위한 질문입니다.</p>
 
@@ -217,14 +354,7 @@ const OnboardingPage = () => {
                             <div 
                                 key={p.id}
                                 onClick={() => setFormData({ ...formData, plan: p.id })}
-                                style={{ 
-                                    padding: '20px', 
-                                    border: formData.plan === p.id ? '2px solid #60a5fa' : '2px solid rgba(255,255,255,0.1)', 
-                                    borderRadius: '16px', 
-                                    cursor: 'pointer',
-                                    background: formData.plan === p.id ? 'rgba(96, 165, 250, 0.1)' : 'rgba(0,0,0,0.2)',
-                                    transition: 'all 0.2s'
-                                }}
+                                style={optionCardStyle(formData.plan === p.id)}
                             >
                                 <div style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '4px', color: formData.plan === p.id ? '#60a5fa' : 'white' }}>{p.title}</div>
                                 <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>{p.desc}</div>
@@ -244,8 +374,8 @@ const OnboardingPage = () => {
         );
     }
 
-    // 완료 뷰
-    if (step === 4) {
+    // Step 5: 완료 뷰
+    if (step === 5) {
         return (
             <div style={containerStyle}>
                 <div style={cardStyle}>
@@ -259,6 +389,18 @@ const OnboardingPage = () => {
                             <strong style={{ color: 'white' }}>{formData.ownerEmail}</strong> 주소로<br/>
                             초기 비밀번호와 접속 링크를 보내드립니다.
                         </p>
+
+                        {formData.logoOption === 'ai' && (
+                            <div style={{ 
+                                padding: '16px', borderRadius: '14px', 
+                                background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.15)',
+                                marginBottom: '24px', fontSize: '0.9rem', color: '#94a3b8', lineHeight: '1.5'
+                            }}>
+                                <MagicWand size={20} color="#60a5fa" style={{ verticalAlign: 'middle', marginRight: '8px' }} />
+                                AI 로고는 세팅 과정에서 생성되어 적용됩니다.
+                            </div>
+                        )}
+
                         <button style={{ ...buttonStyle, background: 'rgba(255,255,255,0.1)' }} onClick={() => navigate('/')}>
                             홈으로 돌아가기
                         </button>

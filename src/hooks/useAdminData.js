@@ -79,15 +79,27 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
             const currentHour = getKSTHour();
             
-            // [NEW] Time-aware context for AI briefing
-            const getTimeContext = (hour) => {
-                if (hour < 9) return { period: '수업 전 (아침)', guidance: '아직 수업이 시작되지 않은 이른 아침입니다. 오늘의 매출이나 출석이 0인 것은 당연하므로 절대 언급하지 마세요. 대신 어제의 성과를 간략히 요약하고, 오늘 예정된 수업과 주요 일정을 안내해주세요. 긍정적이고 활기찬 톤으로 하루를 시작할 수 있게 해주세요.' };
-                if (hour < 14) return { period: '오전 수업 중', guidance: '오전 수업이 진행 중입니다. 현재까지의 출석 현황과 오후 예정 수업을 분석해주세요. 매출이 적더라도 아직 오전이므로 부정적으로 언급하지 마세요.' };
+            // [FIX] 시간표에서 첫 수업 시작 시간 동적 추출 (하드코딩 제거)
+            const getFirstClassHour = (classes) => {
+                if (!classes || classes.length === 0) return 10; // 시간표 없을 때 기본값
+                const hours = classes
+                    .map(c => c.classTime)
+                    .filter(Boolean)
+                    .map(t => parseInt(t.split(':')[0], 10))
+                    .filter(h => !isNaN(h));
+                return hours.length > 0 ? Math.min(...hours) : 10;
+            };
+            const firstClassHour = getFirstClassHour(currentTodayClasses);
+
+            // [NEW] Time-aware context for AI briefing (시간표 기반 동적 판단)
+            const getTimeContext = (hour, classStartHour) => {
+                if (hour < classStartHour) return { period: '수업 전 (아침)', guidance: `아직 수업이 시작되지 않은 아침입니다(오늘 첫 수업은 ${classStartHour}시부터 시작). 오늘의 매출이나 출석이 0인 것은 당연하므로 절대 언급하지 마세요. 대신 어제의 성과를 간략히 요약하고, 오늘 예정된 수업과 주요 일정을 안내해주세요. 긍정적이고 활기찬 톤으로 하루를 시작할 수 있게 해주세요.` };
+                if (hour < 14) return { period: '오전 수업 중', guidance: `오전 수업이 진행 중입니다(오늘 첫 수업 ${classStartHour}시). 현재까지의 출석 현황과 오후 예정 수업을 분석해주세요. 매출이 적더라도 아직 오전이므로 부정적으로 언급하지 마세요.` };
                 if (hour < 20) return { period: '오후 수업 중', guidance: '오후 피크 시간대입니다. 현재까지의 실시간 출석 현황, 남은 수업, 오늘의 트렌드를 분석해주세요.' };
                 return { period: '마감 후 (저녁)', guidance: '오늘의 수업이 마무리되었습니다. 하루 전체 성과(출석, 매출, 신규 등록 등)를 종합 리포트 형태로 정리해주세요.' };
             };
 
-            const timeCtx = getTimeContext(currentHour);
+            const timeCtx = getTimeContext(currentHour, firstClassHour);
 
             const statsData = {
                 // ── 기본 현황 ──
@@ -163,6 +175,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
                 // ── 시간대 컨텍스트 ──
                 currentHour,
+                firstClassHour,
                 timeContext: timeCtx.period,
                 timeGuidance: timeCtx.guidance,
 

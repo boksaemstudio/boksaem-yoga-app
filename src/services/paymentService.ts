@@ -36,7 +36,9 @@ export const paymentService = {
             const q = query(tenantDb.collection('sales'), orderBy("timestamp", "desc"), limit(500));
             salesListenerUnsubscribe = onSnapshot(q, (snapshot) => {
                 salesReconnectAttempts = 0;
-                const newSales: SalesRecord[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SalesRecord));
+                const newSales: SalesRecord[] = snapshot.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() } as SalesRecord))
+                    .filter(s => !s.deletedAt);
                 if (JSON.stringify(cachedSales) !== JSON.stringify(newSales)) { cachedSales = newSales; notifyCallback(); }
             }, (error) => {
                 console.error('[paymentService] Sales stream broken:', error);
@@ -145,7 +147,9 @@ export const paymentService = {
         try {
             const q = query(tenantDb.collection('sales'), where("memberId", "==", memberId));
             const snapshot = await getDocs(q);
-            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SalesRecord));
+            return snapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() } as SalesRecord))
+                .filter(s => !s.deletedAt);
         } catch (e) {
             console.warn("[paymentService] History fallback failed:", e);
             return [];
@@ -157,7 +161,9 @@ export const paymentService = {
         try {
             const q = query(tenantDb.collection('sales'), orderBy("timestamp", "desc"));
             const snapshot = await getDocs(q);
-            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SalesRecord));
+            return snapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() } as SalesRecord))
+                .filter(s => !s.deletedAt);
         } catch (e) {
             console.warn("[paymentService] getAllSales fallback failed:", e);
             return [];

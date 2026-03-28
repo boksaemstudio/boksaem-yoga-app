@@ -198,9 +198,6 @@ const SuperAdminPage = () => {
                     <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '700' }}>슈퍼 어드민</h1>
                     <span style={{ fontSize: '0.8rem', padding: '4px 10px', borderRadius: '20px', background: 'rgba(212, 175, 55, 0.15)', color: '#D4AF37', fontWeight: '600' }}>플랫폼 관리</span>
                 </div>
-                <button onClick={() => window.location.href = '/admin'} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 20px', background: 'rgba(255,255,255,0.08)', color: '#ccc', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
-                    <Gear size={18} /> 어드민 대시보드
-                </button>
             </div>
 
             {/* Section Tabs */}

@@ -288,6 +288,7 @@ export const useMemberProfile = (language, t) => {
 
     // ─── Initial Load ───
     useEffect(() => {
+        const isDemoSite = window.location.hostname.includes('passflow-demo-0324');
         const storedMember = safeLocalStorage.getItem('member');
         if (storedMember) {
             try {
@@ -301,6 +302,35 @@ export const useMemberProfile = (language, t) => {
             } catch {
                 setLoading(false);
             }
+        } else if (isDemoSite) {
+            // [DEMO] 데모 사이트: 로그인 없이 첫 번째 회원으로 자동 로그인
+            const autoLoginDemo = async () => {
+                try {
+                    await storageService.loadAllMembers(true);
+                    const members = storageService.getMembers();
+                    if (members && members.length > 0) {
+                        const demoMember = members[0];
+                        const memberWithDisplay = {
+                            ...demoMember,
+                            displayName: demoMember.displayName || demoMember.name
+                        };
+                        safeLocalStorage.setItem('member', JSON.stringify(memberWithDisplay));
+                        setMember(memberWithDisplay);
+                        loadMemberData(demoMember.id);
+                    } else {
+                        setLoading(false);
+                    }
+                } catch (e) {
+                    console.error('[Demo] Auto-login failed:', e);
+                    setLoading(false);
+                }
+            };
+            // 익명 인증 후 데이터 로드
+            import('firebase/auth').then(({ signInAnonymously }) => {
+                signInAnonymously(auth)
+                    .then(() => autoLoginDemo())
+                    .catch(() => autoLoginDemo());
+            }).catch(() => autoLoginDemo());
         } else {
             setLoading(false);
         }

@@ -7,9 +7,19 @@
  */
 
 const STUDIO_HOSTS = {
+    'passflow-0324': [
+        'https://passflow-0324.web.app',
+        'https://passflow-0324.firebaseapp.com',
+        'https://passflow-landing.web.app',
+        'https://passflow-landing.firebaseapp.com'
+    ],
     'boksaem-yoga': [
         'https://boksaem-yoga.web.app',
         'https://boksaem-yoga.firebaseapp.com'
+    ],
+    'ssangmun-yoga': [
+        'https://ssangmun-yoga-0324.web.app',
+        'https://ssangmun-yoga-0324.firebaseapp.com'
     ],
     // 새 스튜디오 추가 시 여기에 추가:
     // 'new-studio': ['https://new-studio.web.app', 'https://new-studio.firebaseapp.com'],

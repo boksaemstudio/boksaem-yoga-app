@@ -200,7 +200,7 @@ const AdminPriceManager = () => {
                     <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
                         <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>i</div>
                         <div className="tooltip-text" style={{ width: '280px', left: 'auto', right: 0, transform: 'translateX(0)', textAlign: 'left', zIndex: 10 }}>
-                            <strong>데이터 초기화란?</strong><br/>기존에 추가/수정한 가격표를 지우고, 패스플로우 제공 <strong>표준 가격표 템플릿(심화, 일반, 토요하타, 키즈플라잉)</strong>으로 되돌립니다.<br/><span style={{fontSize: '0.85em', color: '#ff6b6b'}}>* 예: 일반 1회권 25,000원, 심화 1회권 35,000원 등 복샘요가 평균 시세 기준</span>
+                            <strong>데이터 초기화란?</strong><br/>기존에 추가/수정한 가격표를 지우고, 패스플로우 제공 <strong>표준 가격표 템플릿(심화, 일반, 토요하타, 키즈플라잉)</strong>으로 되돌립니다.<br/><span style={{fontSize: '0.85em', color: '#ff6b6b'}}>* 예: 일반 1회권 25,000원, 심화 1회권 35,000원 등 스튜디오 평균 시세 기준</span>
                         </div>
                     </div>
                     <button

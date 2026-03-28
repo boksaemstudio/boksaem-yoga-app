@@ -169,13 +169,22 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
     const finalEndDate = isTbd ? 'TBD' : customEndDate;
 
     const handleRenew = async () => {
-        if (isSubmitting) return;
+        if (isSubmitting || isSubmittingRef.current) return;
+
+        // [FIX] 중복 등록 방지: 동일 memberId + 날짜 + 금액 조합으로 5초 내 재시도 차단
+        const idempotencyKey = `reg_${member.id}_${new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })}_${price}`;
+        const lastSubmit = sessionStorage.getItem(idempotencyKey);
+        if (lastSubmit && (Date.now() - parseInt(lastSubmit)) < 5000) {
+            console.warn('[RegistrationTab] Duplicate submission blocked');
+            return;
+        }
         
         let confirmMsg = `${calculatedProductName}\n금액: ${price.toLocaleString()}원\n\n등록하시겠습니까?`;
         if (!confirm(confirmMsg)) return;
 
         isSubmittingRef.current = true;
         setIsSubmitting(true);
+        sessionStorage.setItem(idempotencyKey, String(Date.now()));
         try {
             const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 
@@ -235,7 +244,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                 const msgLines = [
                     `${member.name} 회원님, 수강권 등록/연장이 확정되었습니다.`,
                     '',
-                    `• 등록 항목: ${pricingConfig[membershipType]?.label || membershipType} - ${option.label}`,
+                    `• 등록 항목: ${calculatedProductName}`,
                     `• 등록 상태: ${isAdvance ? '🗓️ 기존 만료 후 적용 (선등록)' : '✅ 진행 중'}`,
                     `• 잔여 횟수: ${customCredits >= 999 ? '무제한 횟수' : customCredits + '회'}`,
                     `• 이용 기간: ${finalStartDate === 'TBD' ? '첫 출석 시 확정' : finalStartDate} ~ ${finalEndDate === 'TBD' ? '첫 출석 시 확정' : finalEndDate}`,
@@ -249,7 +258,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
             }
         } catch (err) {
             console.error('Registration error:', err);
-            alert('등록 중 오류가 발생했습니다.');
+            alert(`등록 중 오류가 발생했습니다.\n상세: ${err.message || '알 수 없는 오류'}`);
         } finally {
             setIsSubmitting(false);
             isSubmittingRef.current = false;

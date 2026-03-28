@@ -2,5 +2,17 @@
   "projects": {
     "default": "boksaem-yoga"
   },
+  "targets": {
+    "boksaem-yoga": {
+      "hosting": {
+        "passflow-0324": [
+          "passflow-0324"
+        ],
+        "passflow-demo-0324": [
+          "passflow-demo-0324"
+        ]
+      }
+    }
+  },
   "etags": {}
 }

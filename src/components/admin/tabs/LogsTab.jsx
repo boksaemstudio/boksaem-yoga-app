@@ -424,7 +424,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
 
             {/* ─── Attendance Trend Analytics ─── */}
             {viewMode !== 'compact' && (
-                <CollapsibleCard id="logs-trend" title="📈 출석 추세 분석" defaultOpen={true}>
+                <CollapsibleCard id="logs-trend" title="📈 출석 추세 분석" defaultOpen={false}>
                     <AttendanceTrendChart selectedDate={selectedDate} members={members} />
                 </CollapsibleCard>
             )}
@@ -444,7 +444,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
 
             {/* ─── Class Summary Cards ─── */}
             {!loadingHistorical && classCards.length > 0 && (
-                <CollapsibleCard id="logs-class-summary" title={`📊 ${isToday ? '오늘' : formatDisplayDate(selectedDate)} 수업별 출석 요약`} titleExtra={`${classCards.length}개 수업`} defaultOpen={true}>
+                <CollapsibleCard id="logs-class-summary" title={`📊 ${isToday ? '오늘' : formatDisplayDate(selectedDate)} 수업별 출석 요약`} titleExtra={`${classCards.length}개 수업`} defaultOpen={false}>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
                         {classCards.map((cls, idx) => {
                             const key = `${cls.className}-${cls.instructor}-${cls.branchId}-${cls.classTime || 'no-time'}`;
@@ -603,7 +603,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
 
             {/* ─── Activity Log List ─── */}
             {!loadingHistorical && (
-                <CollapsibleCard id="logs-activity" title={isToday ? '오늘 활동 로그' : `${formatDisplayDate(selectedDate)} 활동 로그`} titleExtra={`${activeLogs.length}건`} defaultOpen={true}>
+                <CollapsibleCard id="logs-activity" title={isToday ? '오늘 활동 로그' : `${formatDisplayDate(selectedDate)} 활동 로그`} titleExtra={`${activeLogs.length}건`} defaultOpen={false}>
                         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '10px' }}>
                             {selectedClassKey && (
                                 <button

@@ -18,19 +18,23 @@ export const isMemberActive = (m: Member): boolean => {
 };
 
 export const isMemberExpiring = (m: Member): boolean => {
-    const credits = Number(m.credits || 0);
-    const hasNoCredits = credits <= 2;
+    // 이미 만료된 회원은 '만료 예정(위험)'이 아니라 '만료' 상태이므로 제외
+    if (!isMemberActive(m)) return false;
 
-    if (!m.endDate) return hasNoCredits;
+    const credits = Number(m.credits || 0);
+    const hasLowCredits = credits <= 2;
+
+    if (!m.endDate) return hasLowCredits;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const end = new Date(m.endDate);
     const diffDays = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-    const isExpiringSoon = diffDays <= 7 && diffDays >= -30;
+    // 오늘부터 향후 7일 이내 만료 (이미 지난 날짜 제외)
+    const isExpiringSoon = diffDays <= 7 && diffDays >= 0;
 
-    return isExpiringSoon || hasNoCredits;
+    return isExpiringSoon || hasLowCredits;
 };
 
 export const getDormantSegments = (targetMembers: Member[]): Record<string, Member[]> => {

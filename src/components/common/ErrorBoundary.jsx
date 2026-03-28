@@ -10,9 +10,10 @@ class ErrorBoundary extends Component {
         // Chunk Load Error: Reload the page automatically once if a new deployment happened
         if (error?.message?.includes('Failed to fetch dynamically imported module') ||
             error?.message?.includes('Importing a module script failed')) {
-            const isReloaded = sessionStorage.getItem('chunk_reload');
-            if (!isReloaded) {
-                sessionStorage.setItem('chunk_reload', 'true');
+            const lastReload = parseInt(sessionStorage.getItem('chunk_reload_time') || '0', 10);
+            const now = Date.now();
+            if (now - lastReload > 10000) { // 10초 이내에 재시도된 적이 없으면 자동 새로고침
+                sessionStorage.setItem('chunk_reload_time', now.toString());
                 window.location.reload();
                 return { hasError: false };
             }
@@ -22,7 +23,7 @@ class ErrorBoundary extends Component {
 
     componentDidCatch(error, errorInfo) {
         if (!error?.message?.includes('Failed to fetch dynamically imported module')) {
-            sessionStorage.removeItem('chunk_reload');
+            sessionStorage.removeItem('chunk_reload_time');
         }
         console.error("Uncaught error caught by ErrorBoundary:", error, errorInfo);
         this.setState({ error, errorInfo });
@@ -67,7 +68,7 @@ class ErrorBoundary extends Component {
                         <p style={{ color: 'var(--text-secondary)', marginBottom: '30px', maxWidth: '400px', lineHeight: '1.5' }}>
                             새로운 기능이 배포되어 최신 버전을 불러와야 합니다.<br />아래 버튼을 눌러 앱을 재시작해주세요.
                         </p>
-                        <button onClick={() => { sessionStorage.setItem('chunk_reload', 'true'); window.location.reload(); }} className="eb-btn-primary" style={{ padding: '12px 24px', fontSize: '1rem' }}>
+                        <button onClick={() => { sessionStorage.setItem('chunk_reload_time', Date.now().toString()); window.location.reload(); }} className="eb-btn-primary" style={{ padding: '12px 24px', fontSize: '1rem' }}>
                             앱 재시작 (F5)
                         </button>
                     </div>

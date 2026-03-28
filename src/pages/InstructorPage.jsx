@@ -59,6 +59,14 @@ const InstructorPage = () => {
                 const insts = await storageService.getInstructors();
                 if (insts && insts.length > 0) {
                     setInstructors(insts);
+                    
+                    // [DEMO] 데모 사이트 첫 진입 시 실제 등록된 첫 번째 강사로 자동 로그인 (근본적 해결)
+                    const isDemoSite = window.location.hostname.includes('passflow-demo');
+                    if (isDemoSite && !localStorage.getItem('instructorName') && !sessionStorage.getItem('demoLogout')) {
+                        const firstInst = typeof insts[0] === 'string' ? insts[0] : insts[0].name;
+                        localStorage.setItem('instructorName', firstInst);
+                        setInstructorName(firstInst);
+                    }
                 }
             } catch (e) {
                 console.error('Failed to load instructors:', e);
@@ -306,10 +314,13 @@ const InstructorPage = () => {
     }, [instructorName, hour, todayStr]); // [FIX] attendance.length, attendanceLoading 제거
 
     const handleLogout = () => {
-        localStorage.removeItem('instructorName');
-        setInstructorName('');
-        setAiGreeting('');
-        setAttendance([]);
+        if (window.confirm('로그아웃 하시겠습니까?')) {
+            localStorage.removeItem('instructorName');
+            sessionStorage.setItem('demoLogout', 'true'); // 로그아웃 시 다시 자동 로그인 방지
+            setInstructorName('');
+            setAiGreeting('');
+            setAttendance([]);
+        }
     };
 
     const handlePushToggle = async () => {

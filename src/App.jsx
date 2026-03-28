@@ -102,7 +102,14 @@ const RequireAdmin = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // [DEMO] 데모사이트는 로그인 없이 접근 가능
+    // [MAIN PORTAL] 메인 도메인(passflow-0324)에서는 일반 /admin 대시보드 접근 원천 차단
+    const isMainDomain = window.location.hostname === 'passflow-0324.web.app';
+    if (isMainDomain) {
+      window.location.href = '/home.html';
+      return;
+    }
+
+    // [DEMO] 데모사이트는 로그인 없이 접근 가능 (정확히 'passflow-demo-0324'만 매칭해야 함)
     const isDemoSite = window.location.hostname.includes('passflow-demo-0324');
     
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -159,8 +166,8 @@ const RequireAdmin = ({ children }) => {
 
   if (!checked) return <div className="auth-checking">권한 확인 중...</div>;
   if (!allowed) {
-    // [DEMO] 접근 거부 시에도 데모 사이트면 캐시 지우고 자동 새로고침
-    const isDemoFallback = window.location.hostname.includes('passflow-demo-0324');
+    // [DEMO] 접근 거부 시에도 데모 사이트면 (혹은 데모 스튜디오면) 캐시 지우고 자동 새로고침
+    const isDemoFallback = window.location.hostname.includes('passflow-demo') || localStorage.getItem('lastStudioId') === 'demo-yoga';
     if (isDemoFallback) {
       const reloadKey = 'demo-cache-cleared';
       if (!sessionStorage.getItem(reloadKey)) {
@@ -213,9 +220,24 @@ const RequireSuperAdmin = ({ children }) => {
         const role = tokenResult.claims.role;
         
         // [SECURITY] claims 미설정 사용자 → 슈퍼어드민 접근 완전 차단
+        // 익명 로그인이면 슈퍼어드민일 수 없으므로 로그인 페이지로 보내기
+        if (user.isAnonymous) {
+          navigate('/login', { replace: true }); return;
+        }
+
+        // [SECURITY] claims 미설정 사용자 → 슈퍼어드민 접근 완전 차단
         if (!role) {
           console.warn('[Auth] ❌ No superadmin claims for', user.email, '- ACCESS DENIED');
           setAllowed(false); setChecked(true); return;
+        }
+
+        // [SaaS Decoupling] boksaem-yoga 자체 도메인에서는 슈퍼어드민 페이지 접근 차단
+        const host = window.location.hostname;
+        if (host.includes('boksaem-yoga')) {
+            console.warn('[Security] ❌ 슈퍼어드민 권한이 있으나, 이 도메인(boksaem-yoga)에서는 접근할 수 없습니다.');
+            setAllowed(false); 
+            setChecked(true); 
+            return;
         }
 
         setAllowed(role === 'superadmin');
@@ -234,11 +256,26 @@ const RequireSuperAdmin = ({ children }) => {
       <div style={{ textAlign: 'center', padding: '40px' }}>
         <h2 style={{ color: '#EF4444', marginBottom: '16px' }}>👑 슈퍼어드민 전용</h2>
         <p style={{ color: '#888' }}>이 페이지는 플랫폼 관리자만 접근할 수 있습니다.</p>
-        <button onClick={() => navigate('/admin')} style={{ marginTop: '20px', padding: '10px 20px', background: '#3B82F6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>관리자 대시보드로</button>
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px' }}>
+          <button onClick={() => { auth.signOut().then(() => navigate('/login')); }} style={{ padding: '10px 20px', background: '#3B82F6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>관리자 계정 로그인</button>
+          <button onClick={() => { auth.signOut().then(() => window.location.href = '/'); }} style={{ padding: '10px 20px', background: '#333', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>홈으로 이동</button>
+        </div>
       </div>
     </div>
   );
   return children;
+};
+
+// --- ROOT ROUTE GUARD (도메인에 따라 랜딩페이지 vs 출석키오스크 분기) ---
+const RootRoute = () => {
+  const isMainDomain = window.location.hostname === 'passflow-0324.web.app';
+  if (isMainDomain) {
+    // 메인 도메인에서는 React 앱의 출석체크가 아닌, 정적 랜딩페이지(home.html)를 띄워줍니다.
+    // PWA Service Worker가 '/'를 가로챘더라도 여기서 강제로 home.html로 브라우저를 이동시킵니다.
+    window.location.href = '/home.html';
+    return null;
+  }
+  return <CheckInPage />;
 };
 
 function App() {
@@ -277,7 +314,7 @@ function App() {
             <div className="app">
               <NotificationListener />
               <Routes>
-                <Route path="/" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><CheckInPage /></Suspense></ErrorBoundary>} />
+                <Route path="/" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><RootRoute /></Suspense></ErrorBoundary>} />
                 <Route path="/admin" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><RequireAdmin><AdminDashboard /></RequireAdmin></Suspense></ErrorBoundary>} />
                 <Route path="/member" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><MemberProfile /></Suspense></ErrorBoundary>} />
                 <Route path="/login" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><LoginPage /></Suspense></ErrorBoundary>} />
@@ -286,6 +323,7 @@ function App() {
                 <Route path="/meditation" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><MeditationPage /></Suspense></ErrorBoundary>} />
                 <Route path="/super-admin" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><RequireSuperAdmin><SuperAdminPage /></RequireSuperAdmin></Suspense></ErrorBoundary>} />
                 <Route path="/privacy" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><PrivacyPolicyPage /></Suspense></ErrorBoundary>} />
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
               <NetworkStatus />
               <ReloadPrompt />

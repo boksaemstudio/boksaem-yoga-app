@@ -331,6 +331,76 @@ const TrashTab = () => {
                     </div>
                 </div>
             )}
+
+            {/* Deleted Sales */}
+            {filteredSales.length > 0 && (
+                <div className="dashboard-card">
+                    <h3 className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                        <CurrencyKrw size={18} weight="fill" style={{ color: '#d4af37' }} />
+                        삭제된 매출 ({deletedSales.length}건)
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {filteredSales.map(sale => (
+                            <div key={sale.id} style={{
+                                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                padding: '12px 16px', borderRadius: '10px',
+                                background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)',
+                                transition: 'background 0.15s'
+                            }}>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                        <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                                            {sale.memberName || '회원'}
+                                        </span>
+                                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', background: 'rgba(212,175,55,0.1)', padding: '2px 6px', borderRadius: '4px' }}>
+                                            {sale.planLabel || sale.type || '회원권'}
+                                        </span>
+                                        <span style={{ fontSize: '0.9rem', color: '#d4af37', fontWeight: 'bold' }}>
+                                            {formatAmount(sale.amount)}
+                                        </span>
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                        결제일: {formatDate(sale.date || sale.timestamp)} · 삭제: {formatDate(sale.deletedAt)}
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button
+                                        onClick={() => handleRestoreSales(sale.id)}
+                                        disabled={restoringId === sale.id}
+                                        style={{
+                                            padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(var(--primary-rgb),0.3)',
+                                            background: 'rgba(var(--primary-rgb),0.08)', color: 'var(--primary-gold)',
+                                            fontSize: '0.75rem', cursor: restoringId === sale.id ? 'wait' : 'pointer',
+                                            display: 'flex', alignItems: 'center', gap: '4px',
+                                            opacity: restoringId === sale.id ? 0.5 : 1,
+                                            transition: 'all 0.2s', whiteSpace: 'nowrap'
+                                        }}
+                                    >
+                                        {restoringId === sale.id ? <Spinner size={12} className="spin" /> : <ArrowCounterClockwise size={12} />}
+                                        복원
+                                    </button>
+                                    <button
+                                        onClick={() => handlePermanentDeleteSales(sale.id)}
+                                        disabled={restoringId === sale.id}
+                                        style={{
+                                            padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)',
+                                            background: 'transparent', color: 'var(--text-muted)',
+                                            fontSize: '0.75rem', cursor: restoringId === sale.id ? 'wait' : 'pointer',
+                                            display: 'flex', alignItems: 'center', gap: '4px',
+                                            opacity: restoringId === sale.id ? 0.5 : 1,
+                                            transition: 'all 0.2s', whiteSpace: 'nowrap'
+                                        }}
+                                        onMouseOver={(e) => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.5)'; }}
+                                        onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                                    >
+                                        완전 삭제
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

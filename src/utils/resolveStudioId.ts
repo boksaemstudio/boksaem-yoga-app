@@ -34,7 +34,7 @@ export const resolveStudioId = (): string => {
     }
 
     // 3-1. 데모앱 (리허설 + 고객 시연)
-    if (host.includes('passflow-demo-0324.web.app') || host.includes('passflow-demo-0324.firebaseapp.com')) {
+    if (host.includes('passflow-demo') || host.includes('demo.passflow')) {
         _cachedStudioId = 'demo-yoga';
         return _cachedStudioId;
     }

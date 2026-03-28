@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback, memo } from 'react';
 import CollapsibleCard from '../CollapsibleCard';
-import { BellRinging, Check, Info, Plus, NotePencil, PaperPlaneTilt, UserFocus } from '@phosphor-icons/react';
+import { BellRinging, Check, Info, Plus, NotePencil, PaperPlaneTilt, UserFocus, CaretDown, CaretUp } from '@phosphor-icons/react';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 import ChurnReportPanel, { getChurnRisk } from '../ChurnReportPanel';
 import { getChurnAnalysis } from '../../../services/aiService';
@@ -44,6 +44,40 @@ const MembersTab = ({
     const [churnAiMessage, setChurnAiMessage] = useState(null);
     const [churnAiLoading, setChurnAiLoading] = useState(false);
     const churnAiCalledRef = useRef(false);
+
+    // [New] Collapse State for Cards
+    const [expandedCards, setExpandedCards] = useState(() => {
+        try {
+            const stored = JSON.parse(localStorage.getItem('memberCardsCollapseState') || '{}');
+            return {
+                reg: stored.reg ?? false,
+                churn: stored.churn ?? false,
+                push: stored.push ?? false
+            };
+        } catch {
+            return { reg: false, churn: false, push: false };
+        }
+    });
+
+    useEffect(() => {
+        setExpandedCards(prev => {
+            const next = { ...prev };
+            let changed = false;
+            if (next.reg === undefined) { next.reg = false; changed = true; }
+            if (next.churn === undefined) { next.churn = false; changed = true; }
+            if (next.push === undefined) { next.push = false; changed = true; }
+            return changed ? next : prev;
+        });
+    }, []);
+
+    const toggleCard = (e, key) => {
+        e.stopPropagation();
+        setExpandedCards(prev => {
+            const next = { ...prev, [key]: !prev[key] };
+            localStorage.setItem('memberCardsCollapseState', JSON.stringify(next));
+            return next;
+        });
+    };
 
     // [FIX] 자정 넘김 시 날짜 자동 갱신 — dateKey가 변경되면 todayKstStr/todayStartMs도 재계산
     const [dateKey, setDateKey] = useState(() => new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }));
@@ -149,23 +183,45 @@ const MembersTab = ({
                 </div>
                 <div className={`dashboard-card interactive ${filterType === 'registration' ? 'highlight' : ''}`}
                     onClick={() => handleToggleFilter('registration')}>
-                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        오늘 전체 등록
-                        <div className="tooltip-container" onClick={e => e.stopPropagation()}>
-                            <Info size={14} style={{ opacity: 0.7 }} />
-                            <span className="tooltip-text">
-                                오늘 새로 등록하거나<br />수강권을 재결제한 회원
-                            </span>
+                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            오늘 전체 등록
+                            <div className="tooltip-container" onClick={e => e.stopPropagation()}>
+                                <Info size={14} style={{ opacity: 0.7 }} />
+                                <span className="tooltip-text">
+                                    오늘 새로 등록하거나<br />수강권을 재결제한 회원
+                                </span>
+                            </div>
                         </div>
+                        <button
+                            onClick={(e) => toggleCard(e, 'reg')}
+                            style={{
+                                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                                borderRadius: '6px', padding: '3px 8px', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', gap: '3px',
+                                color: 'var(--text-secondary)', fontSize: '0.7rem', fontWeight: '600',
+                                transition: 'all 0.2s', flexShrink: 0
+                            }}
+                        >
+                            {expandedCards.reg ? <><CaretUp size={12} weight="bold" /> 접기</> : <><CaretDown size={12} weight="bold" /> 펼치기</>}
+                        </button>
                     </div>
                     <div className="card-value success" style={{ fontSize: '1.8rem' }}>
                         {summary.todayRegistration}명
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#86efac', display: 'flex', gap: '8px', marginTop: '4px', fontWeight: 'bold' }}>
-                        <span>신규 {summary.todayNewCount || 0}</span>
-                        <span style={{ opacity: 0.4 }}>|</span>
-                        <span>재등록 {summary.todayReRegCount || 0}</span>
-                    </div>
+
+                    <div style={{
+                        maxHeight: expandedCards.reg ? '500px' : '0px',
+                        opacity: expandedCards.reg ? 1 : 0,
+                        overflow: 'hidden',
+                        transition: expandedCards.reg ? 'max-height 0.4s ease-in, opacity 0.3s ease-in 0.1s' : 'max-height 0.3s ease-out, opacity 0.15s ease-out',
+                        marginTop: expandedCards.reg ? '4px' : '0px'
+                    }}>
+                        <div style={{ fontSize: '0.85rem', color: '#86efac', display: 'flex', gap: '8px', fontWeight: 'bold' }}>
+                            <span>신규 {summary.todayNewCount || 0}</span>
+                            <span style={{ opacity: 0.4 }}>|</span>
+                            <span>재등록 {summary.todayReRegCount || 0}</span>
+                        </div>
 
                     {/* 재등록률 */}
                     <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
@@ -192,24 +248,39 @@ const MembersTab = ({
                             <span>최근3개월 {summary.recentReRegRate || 0}% ({summary.recentReRegisteredCount || 0}/{summary.recentExpiredCount || 0})</span>
                         </div>
                     </div>
+                 </div>
                 </div>
                 {/* AI 이탈예측 카드 (만료/잠든 카드 통합) */}
                 <div className={`dashboard-card interactive ${filterType === 'churn' ? 'highlight' : ''}`}
                     onClick={() => handleToggleFilter('churn')}
                     style={{ transition: 'all 0.3s ease', border: '1px solid rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.03)' }}>
-                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        🧠 AI 이탈 예측
-                        <div className="tooltip-container" onClick={e => e.stopPropagation()}>
-                            <Info size={14} style={{ opacity: 0.7 }} />
-                            <span className="tooltip-text" style={{ width: '260px' }}>
-                                <strong>AI 이탈 예측이란?</strong><br />
-                                활성 회원 중 최근 출석이 없는<br />회원을 위험도별로 분류합니다.<br /><br />
-                                <strong>⚠ 위험</strong>: 30일+ 미출석 또는<br />잔여 1회 이하 + 14일+ 미출석<br />
-                                <strong>🔶 주의</strong>: 21~29일 미출석<br />
-                                <strong>💤 관찰</strong>: 14~20일 미출석<br /><br />
-                                카드를 터치하면 상세 목록과<br />맞춤 안부 메시지 전송 기능을<br />사용할 수 있습니다.
-                            </span>
+                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            🧠 AI 이탈 예측
+                            <div className="tooltip-container" onClick={e => e.stopPropagation()}>
+                                <Info size={14} style={{ opacity: 0.7 }} />
+                                <span className="tooltip-text" style={{ width: '260px' }}>
+                                    <strong>AI 이탈 예측이란?</strong><br />
+                                    활성 회원 중 최근 출석이 없는<br />회원을 위험도별로 분류합니다.<br /><br />
+                                    <strong>⚠ 위험</strong>: 30일+ 미출석 또는<br />잔여 1회 이하 + 14일+ 미출석<br />
+                                    <strong>🔶 주의</strong>: 21~29일 미출석<br />
+                                    <strong>💤 관찰</strong>: 14~20일 미출석<br /><br />
+                                    카드를 터치하면 상세 목록과<br />맞춤 안부 메시지 전송 기능을<br />사용할 수 있습니다.
+                                </span>
+                            </div>
                         </div>
+                        <button
+                            onClick={(e) => toggleCard(e, 'churn')}
+                            style={{
+                                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                                borderRadius: '6px', padding: '3px 8px', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', gap: '3px',
+                                color: 'var(--text-secondary)', fontSize: '0.7rem', fontWeight: '600',
+                                transition: 'all 0.2s', flexShrink: 0
+                            }}
+                        >
+                            {expandedCards.churn ? <><CaretUp size={12} weight="bold" /> 접기</> : <><CaretDown size={12} weight="bold" /> 펼치기</>}
+                        </button>
                     </div>
                     {(() => {
                         let criticalCount = 0, highCount = 0, mediumCount = 0;
@@ -257,38 +328,46 @@ const MembersTab = ({
                         return (
                             <>
                                 <div className="card-value error">{totalCount}명</div>
-                                <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
-                                    <span style={{ fontSize: '0.8rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(239,68,68,0.15)', color: '#EF4444', fontWeight: '700' }}>
-                                        ⚠ 위험 {criticalCount}
-                                    </span>
-                                    <span style={{ fontSize: '0.8rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(245,158,11,0.15)', color: '#F59E0B', fontWeight: '700' }}>
-                                        🔶 주의 {highCount}
-                                    </span>
-                                    <span style={{ fontSize: '0.8rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(96,165,250,0.15)', color: '#60A5FA', fontWeight: '700' }}>
-                                        💤 관찰 {mediumCount}
-                                    </span>
-                                </div>
                                 <div style={{
-                                    marginTop: '10px', padding: '8px 10px', borderRadius: '8px',
-                                    background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.1)',
-                                    fontSize: '0.78rem', color: '#d4d4d8', lineHeight: '1.5',
-                                    minHeight: '20px'
+                                    maxHeight: expandedCards.churn ? '500px' : '0px',
+                                    opacity: expandedCards.churn ? 1 : 0,
+                                    overflow: 'hidden',
+                                    transition: expandedCards.churn ? 'max-height 0.4s ease-in, opacity 0.3s ease-in 0.1s' : 'max-height 0.3s ease-out, opacity 0.15s ease-out',
+                                    marginTop: expandedCards.churn ? '6px' : '0px'
                                 }}>
-                                    {churnAiLoading ? (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <svg width="20" height="20" viewBox="0 0 24 24" style={{ animation: 'spin 2s ease-in-out infinite' }}>
-                                                <circle cx="12" cy="12" r="10" fill="none" stroke="rgba(168,85,247,0.3)" strokeWidth="2" />
-                                                <path d="M12 2 a10 10 0 0 1 10 10" fill="none" stroke="#A855F7" strokeWidth="2" strokeLinecap="round" />
-                                            </svg>
-                                            <span style={{ color: '#A855F7', fontSize: '0.78rem' }}>AI가 회원 데이터를 분석하고 있습니다...</span>
-                                        </div>
-                                    ) : churnAiMessage ? (
-                                        <span>{churnAiMessage}</span>
-                                    ) : totalCount === 0 ? (
-                                        <span>✨ 모든 회원이 꾸준히 출석 중입니다.</span>
-                                    ) : (
-                                        <span>📊 이탈 위험 회원 {totalCount}명 감지됨</span>
-                                    )}
+                                    <div style={{ display: 'flex', gap: '6px' }}>
+                                        <span style={{ fontSize: '0.8rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(239,68,68,0.15)', color: '#EF4444', fontWeight: '700' }}>
+                                            ⚠ 위험 {criticalCount}
+                                        </span>
+                                        <span style={{ fontSize: '0.8rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(245,158,11,0.15)', color: '#F59E0B', fontWeight: '700' }}>
+                                            🔶 주의 {highCount}
+                                        </span>
+                                        <span style={{ fontSize: '0.8rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(96,165,250,0.15)', color: '#60A5FA', fontWeight: '700' }}>
+                                            💤 관찰 {mediumCount}
+                                        </span>
+                                    </div>
+                                    <div style={{
+                                        marginTop: '10px', padding: '8px 10px', borderRadius: '8px',
+                                        background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.1)',
+                                        fontSize: '0.78rem', color: '#d4d4d8', lineHeight: '1.5',
+                                        minHeight: '20px'
+                                    }}>
+                                        {churnAiLoading ? (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <svg width="20" height="20" viewBox="0 0 24 24" style={{ animation: 'spin 2s ease-in-out infinite' }}>
+                                                    <circle cx="12" cy="12" r="10" fill="none" stroke="rgba(168,85,247,0.3)" strokeWidth="2" />
+                                                    <path d="M12 2 a10 10 0 0 1 10 10" fill="none" stroke="#A855F7" strokeWidth="2" strokeLinecap="round" />
+                                                </svg>
+                                                <span style={{ color: '#A855F7', fontSize: '0.78rem' }}>AI가 회원 데이터를 분석하고 있습니다...</span>
+                                            </div>
+                                        ) : churnAiMessage ? (
+                                            <span>{churnAiMessage}</span>
+                                        ) : totalCount === 0 ? (
+                                            <span>✨ 모든 회원이 꾸준히 출석 중입니다.</span>
+                                        ) : (
+                                            <span>📊 이탈 위험 회원 {totalCount}명 감지됨</span>
+                                        )}
+                                    </div>
                                 </div>
                             </>
                         );
@@ -297,14 +376,28 @@ const MembersTab = ({
                 {/* [NEW] App Usage & Push Stats (Redesigned) */}
                 <div className={`dashboard-card interactive ${filterType === 'installed' ? 'highlight' : ''}`}
                     onClick={() => handleToggleFilter('installed')}>
-                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <BellRinging size={16} weight="fill" /> 알림 수신 가능
-                        <div className="tooltip-container">
-                            <Info size={14} style={{ opacity: 0.7 }} />
-                            <span className="tooltip-text">
-                                앱 설치 + 알림 켜짐 상태로<br />메시지를 받을 수 있는 인원
-                            </span>
+                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <BellRinging size={16} weight="fill" /> 알림 수신 가능
+                            <div className="tooltip-container">
+                                <Info size={14} style={{ opacity: 0.7 }} />
+                                <span className="tooltip-text">
+                                    앱 설치 + 알림 켜짐 상태로<br />메시지를 받을 수 있는 인원
+                                </span>
+                            </div>
                         </div>
+                        <button
+                            onClick={(e) => toggleCard(e, 'push')}
+                            style={{
+                                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                                borderRadius: '6px', padding: '3px 8px', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', gap: '3px',
+                                color: 'var(--text-secondary)', fontSize: '0.7rem', fontWeight: '600',
+                                transition: 'all 0.2s', flexShrink: 0
+                            }}
+                        >
+                            {expandedCards.push ? <><CaretUp size={12} weight="bold" /> 접기</> : <><CaretDown size={12} weight="bold" /> 펼치기</>}
+                        </button>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', marginTop: '4px' }}>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
@@ -321,10 +414,17 @@ const MembersTab = ({
                                 {summary.instructorPushCount || 0}명
                             </div>
                         </div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '8px', paddingTop: '6px', borderTop: `1px solid rgba(255,255,255,0.1)` }}>
-                            <span style={{ color: '#93C5FD', fontSize: '0.85rem' }}>앱 설치 회원 {summary.installedCount}명 ({summary.installRatio}%)</span>
-                            <span style={{ margin: '0 4px', opacity: 0.3 }}>|</span>
-                             오늘 +{summary.todayInstalledCount}
+                        <div style={{
+                            maxHeight: expandedCards.push ? '500px' : '0px',
+                            opacity: expandedCards.push ? 1 : 0,
+                            overflow: 'hidden',
+                            transition: expandedCards.push ? 'max-height 0.4s ease-in, opacity 0.3s ease-in 0.1s' : 'max-height 0.3s ease-out, opacity 0.15s ease-out',
+                        }}>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '8px', paddingTop: '6px', borderTop: `1px solid rgba(255,255,255,0.1)` }}>
+                                <span style={{ color: '#93C5FD', fontSize: '0.85rem' }}>앱 설치 회원 {summary.installedCount}명 ({summary.installRatio}%)</span>
+                                <span style={{ margin: '0 4px', opacity: 0.3 }}>|</span>
+                                 오늘 +{summary.todayInstalledCount}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -363,7 +463,7 @@ const MembersTab = ({
                         id="members-revenue"
                         title={`💰 ${month}월 매출 현황`}
                         titleExtra={`${summary.monthlyRevenue.toLocaleString()}원`}
-                        defaultOpen={viewMode !== 'compact'}
+                        defaultOpen={false}
                         className="interactive animated-show"
                         style={{ marginBottom: '24px', cursor: 'pointer' }}
                         onClick={() => setActiveTab('revenue')}
@@ -409,11 +509,11 @@ const MembersTab = ({
                     id="members-rereg-trend"
                     title="📊 월별 재등록 추이 (최근 6개월)"
                     titleExtra={`재등록률 ${summary.reRegistrationRate || 0}%`}
-                    defaultOpen={viewMode !== 'compact'}
+                    defaultOpen={false}
                     className="animated-show"
                     style={{ marginBottom: '24px', overflow: 'visible' }}
                 >
-                    <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: '120px', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: '140px', marginBottom: '10px', paddingTop: '20px' }}>
                         {summary.monthlyReRegTrend.map((m, i) => {
                             const maxTotal = Math.max(...summary.monthlyReRegTrend.map(t => t.total), 1);
                             const hasData = m.total > 0;

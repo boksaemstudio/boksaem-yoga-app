@@ -80,6 +80,7 @@ exports.generatePageExperienceV2 = onCall({
                     - Branch Context: ${actualBranch === 'all' ? '전체 지점 종합 분석' : branchInfo + ' 단독 분석'}
                     - Top Classes: ${JSON.stringify(statsData.topClasses || [])}
                     - Current Time: ${statsData.currentHour || 'unknown'}시 (${statsData.timeContext || 'unknown'})
+                    - First Class Today: ${statsData.firstClassHour || 10}시
                     
                     ⚠️ CRITICAL TIME-AWARE INSTRUCTION:
                     ${statsData.timeGuidance || 'Provide a balanced analysis based on current data.'}
@@ -91,11 +92,13 @@ exports.generatePageExperienceV2 = onCall({
                     - If Active Members is ${statsData.activeCount || 0}, you must NOT claim a different number is expiring.
                     
                     Your Mission:
-                    1. Provide a professional, encouraging, yet critically analytical briefing (2-3 sentences).
+                    1. Provide a professional, encouraging, yet critically analytical briefing (3-5 sentences, must complete all sentences fully).
                     2. Focus on actionable insights appropriate for the current time of day.
                     3. Focus on "Revenue Intelligence": Mention the New vs Re-registration ratio if significant.
                     4. ${expiringLine ? 'Suggest a specific action for the expiring members mentioned above.' : 'Do NOT mention expiring members since there are none.'}
                     5. NEVER state obvious facts like "today's revenue is 0" in the morning before classes start.
+                    6. Today's first class starts at ${statsData.firstClassHour || 10}:00 AM. Use this as the reference for class start time. NEVER guess or assume a different time.
+                    7. You MUST complete every sentence fully. Do NOT leave any sentence unfinished or cut off.
                     
                     Format: { "message": "...", "bgTheme": "sophisticated" }
                     Tone: Expert, Insightful, Visionary. NEVER use the word "undefined" in your response.

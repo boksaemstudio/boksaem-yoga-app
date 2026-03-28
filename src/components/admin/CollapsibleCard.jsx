@@ -34,8 +34,12 @@ const CollapsibleCard = ({
     style = {},
     onClick
 }) => {
+    // [DEMO] 데모 사이트에서는 모든 카드를 펼침 상태로 기본 설정
+    const isDemoSite = typeof window !== 'undefined' && window.location.hostname.includes('demo');
+    const effectiveDefaultOpen = isDemoSite ? true : defaultOpen;
+
     const stored = getStoredState();
-    const initialOpen = stored[id] !== undefined ? stored[id] : defaultOpen;
+    const initialOpen = stored[id] !== undefined ? stored[id] : effectiveDefaultOpen;
     const [isOpen, setIsOpen] = useState(initialOpen);
     const contentRef = useRef(null);
 
@@ -43,9 +47,9 @@ const CollapsibleCard = ({
     useEffect(() => {
         const s = getStoredState();
         if (s[id] === undefined) {
-            setIsOpen(defaultOpen);
+            setIsOpen(effectiveDefaultOpen);
         }
-    }, [defaultOpen, id]);
+    }, [effectiveDefaultOpen, id]);
 
     const handleToggle = (e) => {
         e.stopPropagation();

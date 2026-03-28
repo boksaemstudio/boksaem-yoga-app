@@ -68,7 +68,12 @@ export const attendanceService = {
             if (attendanceListenerUnsubscribe) attendanceListenerUnsubscribe();
             attendanceListenerUnsubscribe = onSnapshot(
                 query(tenantDb.collection('attendance'), orderBy("timestamp", "desc"), firestoreLimit(500)),
-                (snapshot) => { cachedAttendance = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as AttendanceLog)); notifyCallback(); },
+                (snapshot) => { 
+                    cachedAttendance = snapshot.docs
+                        .map(d => ({ id: d.id, ...d.data() } as AttendanceLog))
+                        .filter(r => !(r as Record<string, unknown>).deletedAt);
+                    notifyCallback(); 
+                },
                 (error) => console.warn(`[attendanceService] Listener error:`, error)
             );
             return attendanceListenerUnsubscribe;
