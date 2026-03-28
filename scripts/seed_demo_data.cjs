@@ -54,8 +54,10 @@ async function seedData() {
     const nextM = `${globalToday.getFullYear()}-${String(globalToday.getMonth() + 2).padStart(2, '0')}`;
     
     // Default branch for the generic demo app
-    configData.branches = [
-        { id: 'main', name: '본점' }
+    // ⚠️ 중요: 앱 코드(studioConfig.js + StudioContext.jsx deepMerge)는 
+    // 대문자 BRANCHES를 사용함. 반드시 대문자 키로 저장해야 함.
+    configData.BRANCHES = [
+        { id: 'main', name: '본점', color: 'var(--primary-theme-color)' }
     ];
     
     const genericImgUrl = 'https://passflow-0324.web.app/assets/demo_schedule.png';
@@ -70,7 +72,11 @@ async function seedData() {
     };
 
     await tenantDb.set(configData, { merge: true });
-    console.log('✅ 1. Config seeded');
+    // 소문자 'branches' 찌꺼기 필드 완전 삭제 (대소문자 키 불일치 방지)
+    await tenantDb.update({
+        branches: admin.firestore.FieldValue.delete()
+    });
+    console.log('✅ 1. Config seeded (BRANCHES uppercase, branches purged)');
 
     let currentBatch = db.batch(); let batchCount = 0;
     const commitBatch = async () => { if (batchCount > 0) { await currentBatch.commit(); currentBatch = db.batch(); batchCount = 0; } };
@@ -186,7 +192,8 @@ async function seedSsangmun() {
     
     const ssConfig = {
         studioName: '쌍문 요가',
-        branches: [{ id: 'main', name: '본점' }],
+        // ⚠️ 대문자 BRANCHES — 앱 코드와 일치
+        BRANCHES: [{ id: 'main', name: '본점', color: 'var(--primary-theme-color)' }],
         scheduleImages: {
             [`main_${currM}`]: genericImgUrl,
             [`main_${nextM}`]: genericImgUrl,
@@ -197,7 +204,11 @@ async function seedSsangmun() {
         }
     };
     await tenantDb.set(ssConfig, { merge: true });
-    console.log('✅ ssangmun-yoga config seeded');
+    // 소문자 'branches' 찌꺼기 필드 완전 삭제
+    await tenantDb.update({
+        branches: admin.firestore.FieldValue.delete()
+    });
+    console.log('✅ ssangmun-yoga config seeded (BRANCHES uppercase, branches purged)');
 }
 
 seedData().then(() => seedSsangmun()).catch(console.error).finally(() => process.exit(0));

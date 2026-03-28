@@ -17,13 +17,15 @@ async function fixDemo() {
     console.log(`Fixing images and branches for ${STUDIO_ID}...`);
     
     // 0. Update Branches strictly to 1 Main Branch (본점)
+    // ⚠️ 대문자 BRANCHES — 앱 코드와 일치
     await db.collection('studios').doc(STUDIO_ID).update({
-        branches: [
-            { id: 'main', name: '본점' }
+        BRANCHES: [
+            { id: 'main', name: '본점', color: 'var(--primary-theme-color)' }
         ],
+        branches: admin.firestore.FieldValue.delete(),
         updatedAt: new Date().toISOString()
     });
-    console.log('✅ Branches updated to [본점]');
+    console.log('✅ BRANCHES updated to [본점], lowercase branches purged');
 
     // 1. Update Pricing Images (Using relative paths pointing to public/assets/)
     // 월/주간 시간표를 둘 다 채우라고 하셨으니, subUrl(심화/일반)에도 꽉 채워넣습니다.

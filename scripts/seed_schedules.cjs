@@ -139,10 +139,15 @@ async function seedSchedule(tenantId) {
     await storeMonthData(nextMonthYear, nextMonth, nextMonthClasses);
 
     // 4. 지점 정보를 완전히 'main' 만 남게 강제 덮어쓰기!
+    // ⚠️ 대문자 BRANCHES — 앱 코드(studioConfig.js)의 키와 일치시킴
     const configData = {
-        branches: [{ id: 'main', name: '본점', color: '#d4af37' }]
+        BRANCHES: [{ id: 'main', name: '본점', color: 'var(--primary-theme-color)' }]
     };
     await tenantDb.set(configData, { merge: true });
+    // 소문자 'branches' 찌꺼기 완전 삭제
+    await tenantDb.update({
+        branches: admin.firestore.FieldValue.delete()
+    });
     
     console.log(`✅ Schedule Seeding Complete for ${tenantId}`);
 }
