@@ -249,7 +249,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                     `• 잔여 횟수: ${customCredits >= 999 ? '무제한 횟수' : customCredits + '회'}`,
                     `• 이용 기간: ${finalStartDate === 'TBD' ? '첫 출석 시 확정' : finalStartDate} ~ ${finalEndDate === 'TBD' ? '첫 출석 시 확정' : finalEndDate}`,
                     '',
-                    '패스플로우와 함께 오늘도 건강한 하루 보내세요! 🙏'
+                    '오늘도 건강한 하루 보내세요! 🙏'
                 ];
                 setPrefillMessage(msgLines.join('\n'));
                 setTimeout(() => setActiveTab('messages'), 300);
@@ -452,11 +452,11 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                         </div>
                     )}
 
-                    {/* 마감일(종료일) 수정 */}
+                    {/* 마감일(종료일) 입력 파트 */}
                     {startDateMode !== 'tbd' && (
                         <div style={{ marginTop: '4px' }}>
                             <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-                                <span>마감일(종료일) 수정</span>
+                                <span>마감일(종료일)</span>
                             </label>
                             <input
                                 type="date"
@@ -471,14 +471,13 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                     {startDateMode === 'tbd' && (
                         <div style={{ marginTop: '4px' }}>
                             <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-                                <span>마감일(종료일) 수정</span>
-                                <span style={{ color: 'var(--primary-gold)' }}>*첫 출석 시 조정됨</span>
+                                <span>마감일(종료일)</span>
                             </label>
                             <input
-                                type="date"
+                                type="text"
                                 className="form-input"
-                                style={{ width: '100%', cursor: 'not-allowed', opacity: 0.6 }}
-                                value=""
+                                style={{ width: '100%', cursor: 'not-allowed', color: 'var(--primary-gold)', fontWeight: 'bold', textAlign: 'center', background: 'rgba(255,255,255,0.05)' }}
+                                value="첫 출석 시 자동 확정 (선등록)"
                                 disabled
                             />
                         </div>

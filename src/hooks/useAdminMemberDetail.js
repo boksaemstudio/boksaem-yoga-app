@@ -57,7 +57,7 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, { onUpdateMe
         if (!member?.id || member?.role === 'instructor') return;
         const q = query(tenantDb.collection('attendance'), where('memberId', '==', member.id), orderBy('timestamp', 'desc'), firestoreLimit(logLimit));
         const unsubAt = onSnapshot(q, (snap) => {
-            const history = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const history = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(r => !r.deletedAt);
             setMemberLogs(history);
             if (member.endDate === 'TBD' && history.length > 0) {
                 const sorted = [...history].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));

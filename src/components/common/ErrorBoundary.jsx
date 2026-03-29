@@ -7,17 +7,7 @@ class ErrorBoundary extends Component {
     }
 
     static getDerivedStateFromError(error) {
-        // Chunk Load Error: Reload the page automatically once if a new deployment happened
-        if (error?.message?.includes('Failed to fetch dynamically imported module') ||
-            error?.message?.includes('Importing a module script failed')) {
-            const lastReload = parseInt(sessionStorage.getItem('chunk_reload_time') || '0', 10);
-            const now = Date.now();
-            if (now - lastReload > 10000) { // 10초 이내에 재시도된 적이 없으면 자동 새로고침
-                sessionStorage.setItem('chunk_reload_time', now.toString());
-                window.location.reload();
-                return { hasError: false };
-            }
-        }
+        // Chunk Load Error: Return error state to render fallback UI where user can manually reload
         return { hasError: true, error };
     }
 

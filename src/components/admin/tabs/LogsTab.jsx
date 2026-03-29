@@ -283,14 +283,16 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
             const canonicalClassName = info?.className || log.className || '일반';
             const canonicalInstructor = info?.instructor || log.instructor || '선생님';
 
-            const key = `${canonicalClassName}-${canonicalInstructor}-${log.branchId}-${classTime}`;
+            const key = canonicalClassName === '자율수련'
+                ? `${canonicalClassName}-${log.branchId}`
+                : `${canonicalClassName}-${canonicalInstructor}-${log.branchId}-${classTime}`;
             
             if (!groups[key]) {
                 groups[key] = {
                     className: canonicalClassName,
-                    instructor: canonicalInstructor,
+                    instructor: canonicalClassName === '자율수련' ? '회원' : canonicalInstructor,
                     branchId: log.branchId,
-                    classTime: classTime,
+                    classTime: canonicalClassName === '자율수련' ? '' : classTime,
                     count: 0,
                     deniedCount: 0,
                     memberNames: [] 
@@ -318,7 +320,9 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
     })();
 
     const handleClassClick = (cls) => {
-        const key = `${cls.className}-${cls.instructor}-${cls.branchId}-${cls.classTime || 'no-time'}`;
+        const key = cls.className === '자율수련'
+            ? `${cls.className}-${cls.branchId}`
+            : `${cls.className}-${cls.instructor}-${cls.branchId}-${cls.classTime || 'no-time'}`;
         // [UX] Toggle selection: if already selected, deselect (show all)
         setSelectedClassKey(prev => prev === key ? null : key);
         setCurrentLogPage(1);
@@ -447,7 +451,9 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                 <CollapsibleCard id="logs-class-summary" title={`📊 ${isToday ? '오늘' : formatDisplayDate(selectedDate)} 수업별 출석 요약`} titleExtra={`${classCards.length}개 수업`} defaultOpen={false}>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
                         {classCards.map((cls, idx) => {
-                            const key = `${cls.className}-${cls.instructor}-${cls.branchId}-${cls.classTime || 'no-time'}`;
+                            const key = cls.className === '자율수련'
+                                ? `${cls.className}-${cls.branchId}`
+                                : `${cls.className}-${cls.instructor}-${cls.branchId}-${cls.classTime || 'no-time'}`;
                             const isSelected = selectedClassKey === key;
                             return (
                                 <React.Fragment key={key}>
@@ -657,7 +663,12 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                     const classTime = info?.startTime || '00:00';
                                     const canonicalClassName = info?.className || l.className || '일반';
                                     const canonicalInstructor = info?.instructor || l.instructor || '선생님';
-                                    return `${canonicalClassName}-${canonicalInstructor}-${l.branchId}-${classTime}` === selectedClassKey;
+                                    
+                                    const logKey = canonicalClassName === '자율수련'
+                                        ? `${canonicalClassName}-${l.branchId}`
+                                        : `${canonicalClassName}-${canonicalInstructor}-${l.branchId}-${classTime}`;
+                                    
+                                    return logKey === selectedClassKey;
                                 })
                                 : activeLogs
                             ).filter(l => {

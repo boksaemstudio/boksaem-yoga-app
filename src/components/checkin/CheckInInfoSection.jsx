@@ -23,8 +23,19 @@ const CheckInInfoSection = memo(({
     const videoRef = useRef(null);
     const streamRef = useRef(null);
 
+    // Kiosk settings를 가져와서 근접 자동 복귀가 켜져있는지 확인
+    const [isProximityEnabled, setIsProximityEnabled] = React.useState(false);
     useEffect(() => {
-        if (!showCamera) return;
+        import('../../services/storage').then(({ storageService }) => {
+            storageService.getKioskSettings(config.IDENTITY?.BRANCH_ID).then(settings => {
+                if(settings && settings.proximityReturn) setIsProximityEnabled(true);
+            });
+        });
+    }, [config.IDENTITY?.BRANCH_ID]);
+
+    useEffect(() => {
+        // 프리뷰를 켜거나, 근접 감지가 켜져있거나, 얼굴 스캔이 켜져있으면 카메라를 가동합니다.
+        if (!showCamera && !isProximityEnabled && !faceRecognitionEnabled) return;
         let cancelled = false;
 
         const startCamera = async () => {

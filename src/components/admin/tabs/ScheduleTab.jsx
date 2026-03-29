@@ -85,7 +85,7 @@ const ScheduleTab = ({ images, optimisticImages, handleImageUpload }) => {
                             const nextMonth = (nextDate.getMonth() + 1).toString().padStart(2, '0');
                             const curKey = `timetable_${branch.id}_${curYear}-${curMonth}`;
                             const nextKey = `timetable_${branch.id}_${nextYear}-${nextMonth}`;
-                            const curImage = images[curKey] || images[`timetable_${branch.id}`] || config.ASSETS?.LOGO?.WIDE;
+                            const curImage = images[curKey] || images[`timetable_${branch.id}`];
                             const nextImage = images[nextKey];
 
                             return (

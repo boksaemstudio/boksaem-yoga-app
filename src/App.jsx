@@ -279,8 +279,7 @@ const RootRoute = () => {
 // [FIX] Force hard reload to break Service Worker hijacking for static HTML files
 const HardReload = ({ target }) => {
   useEffect(() => {
-    // We append a timestamp to completely evade any existing SW caches
-    window.location.href = target + '?v=' + new Date().getTime();
+    window.location.replace(target);
   }, [target]);
   return <div className="auth-checking">Redirecting...</div>;
 };

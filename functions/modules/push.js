@@ -129,26 +129,25 @@ exports.sendPushOnMessageV2 = onDocumentCreated({
         // push_only 모드에서는 smsStatus 필드 자체를 저장하지 않음
         await event.data.ref.update(updateData);
 
-        // Write to push_history
+        // Write to push_history (ALWAYS log even if failed, per user request)
         const overallSuccess = (pushResult?.sent) || (smsResult?.sent);
-        if (overallSuccess) {
-            const memberDoc = await tdb.collection('members').doc(memberId).get();
-            const memberName = memberDoc.exists ? memberDoc.data().name : 'Unknown';
-            
-            await tdb.collection('push_history').add({
-                type: 'individual',
-                title: `${studioName} 메시지`,
-                body: content,
-                status: 'sent',
-                sendMode,
-                successCount: pushResult?.successCount || 0,
-                failureCount: pushResult?.failureCount || 0,
-                smsResult: smsResult?.sent || false,
-                createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                targetMemberId: memberId,
-                memberName: memberName
-            });
-        }
+        const memberDoc = await tdb.collection('members').doc(memberId).get();
+        const memberName = memberDoc.exists ? memberDoc.data().name : 'Unknown';
+        
+        await tdb.collection('push_history').add({
+            type: 'individual',
+            title: `${studioName} 메시지`,
+            body: content,
+            status: overallSuccess ? 'sent' : 'failed',
+            error: overallSuccess ? null : (smsResult?.error || pushResult?.error || "All attempts failed"),
+            sendMode,
+            successCount: pushResult?.successCount || 0,
+            failureCount: pushResult?.failureCount || (pushResult?.sent === false ? 1 : 0),
+            smsResult: smsResult?.sent || false,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            targetMemberId: memberId,
+            memberName: memberName
+        });
 
     } catch (error) {
         console.error("Error sending push:", error);

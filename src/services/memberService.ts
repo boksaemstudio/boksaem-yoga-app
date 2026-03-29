@@ -31,6 +31,8 @@ export interface Member {
         credits?: number;
         startDate?: string;
         endDate?: string;
+        durationMonths?: number;
+        price?: number;
     } | null;
     createdAt?: string;
     updatedAt?: string;
@@ -172,10 +174,27 @@ export const memberService = {
 
     async updateMember(memberId: string, data: Partial<Member>): Promise<{ success: boolean; error?: string }> {
         try {
-            await updateDoc(tenantDb.doc('members', memberId), { ...data, updatedAt: new Date().toISOString() });
+            // [ROOT FIX] Firestore silently drops fields with undefined values.
+            // This caused upcomingMembership to be lost if any nested field was undefined.
+            const sanitized = this._stripUndefined({ ...data, updatedAt: new Date().toISOString() });
+            await updateDoc(tenantDb.doc('members', memberId), sanitized);
             this.triggerKioskSync();
             return { success: true };
         } catch (e) { console.error('Update member failed:', e); return { success: false, error: (e as Error).message }; }
+    },
+
+    /** Recursively strip undefined values from an object before Firestore write */
+    _stripUndefined(obj: Record<string, unknown>): Record<string, unknown> {
+        const result: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(obj)) {
+            if (value === undefined) continue;
+            if (value !== null && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
+                result[key] = this._stripUndefined(value as Record<string, unknown>);
+            } else {
+                result[key] = value;
+            }
+        }
+        return result;
     },
 
     async updateFaceDescriptor(memberId: string, descriptor: Float32Array | null): Promise<{ success: boolean; error?: string }> {
@@ -190,8 +209,22 @@ export const memberService = {
             try {
                 const bioSnap = await getDoc(bioRef);
                 if (bioSnap.exists()) {
-                    const data = bioSnap.data() as { descriptors?: number[][]; descriptor?: number[] };
-                    existingDescriptors = data.descriptors || (data.descriptor ? [data.descriptor] : []);
+                    const data = bioSnap.data() as { descriptors?: unknown[]; descriptor?: number[] };
+                    const rawDescriptors = data.descriptors || (data.descriptor ? [data.descriptor] : []);
+                    
+                    // [CRITICAL FIX] Firestore에서 가져온 데이터가 중첩 배열일 수 있음
+                    // 각 디스크립터가 flat number[]인지 검증하고, 아니면 flatten 처리
+                    existingDescriptors = rawDescriptors
+                        .map((d: any) => {
+                            if (d !== null && typeof d === 'object' && Array.isArray(d.vector)) return d.vector as number[];
+                            if (!Array.isArray(d)) return null;
+                            // 이미 flat number[] 인 경우
+                            if (d.length > 0 && typeof d[0] === 'number') return d as number[];
+                            // 중첩 배열 [[number]] 인 경우 → flat
+                            if (d.length > 0 && Array.isArray(d[0])) return (d as number[][]).flat() as number[];
+                            return null;
+                        })
+                        .filter((d): d is number[] => d !== null && d.length > 0);
                 }
             } catch { /* 첫 등록 시 무시 */ }
 
@@ -219,11 +252,30 @@ export const memberService = {
                 console.log(`[memberService] Face descriptor accumulated: ${updatedDescriptors.length}/${MAX_DESCRIPTORS}`);
             }
 
+            // [근본 수정] Firestore 저장 전 데이터 무결성 검증
+            // Firestore는 nested arrays를 지원하지 않으므로, 저장 직전에 반드시 검증
+            const sanitizeDescriptor = (d: unknown): number[] | null => {
+                if (!Array.isArray(d) || d.length === 0) return null;
+                if (typeof d[0] === 'number') return d as number[];           // 정상: [0.1, 0.2, ...]
+                if (Array.isArray(d[0])) return (d as number[][]).flat();     // 중첩: [[0.1, 0.2, ...]] → flatten
+                return null;
+            };
+
+            const safeDescriptor = sanitizeDescriptor(descriptorArray);
+            const safeDescriptors = updatedDescriptors
+                .map(sanitizeDescriptor)
+                .filter((d): d is number[] => d !== null);
+
+            if (!safeDescriptor || safeDescriptors.length === 0) {
+                console.error('[memberService] Descriptor validation failed — aborting save');
+                return { success: false, error: 'descriptor_validation_failed' };
+            }
+
             await setDoc(bioRef, {
                 memberId,
-                descriptor: descriptorArray,              // 최신값 (하위호환)
-                descriptors: updatedDescriptors,           // 다중 디스크립터 배열
-                descriptorCount: updatedDescriptors.length,
+                descriptor: safeDescriptor,               // 최신값 (하위호환) — 반드시 flat number[]
+                descriptors: safeDescriptors.map(d => ({ vector: d })), // 배열 안의 Object 구조로 변환하여 Firestore 중첩 배열 에러 원천 차단
+                descriptorCount: safeDescriptors.length,
                 updatedAt: new Date().toISOString()
             });
             await updateDoc(tenantDb.doc('members', memberId), { hasFaceDescriptor: true, faceUpdatedAt: new Date().toISOString() });

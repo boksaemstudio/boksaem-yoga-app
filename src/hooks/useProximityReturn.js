@@ -47,7 +47,7 @@ export function useProximityReturn({ enabled, isNoticeVisible, videoRef, onPerso
                     }
                 }
 
-                // 2초 간격으로 얼굴 감지
+                // 1초 간격으로 얼굴 감지 (더 빠른 반응)
                 intervalRef.current = setInterval(async () => {
                     if (cooldownRef.current) return;
 
@@ -57,20 +57,20 @@ export function useProximityReturn({ enabled, isNoticeVisible, videoRef, onPerso
                     try {
                         const detection = await faceapi.detectSingleFace(
                             video,
-                            new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.3 })
+                            new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.2 })
                         );
 
                         if (detection) {
-                            // 쿨다운: 감지 후 5초간 중복 감지 방지
+                            // 쿨다운 (다시 공지가 뜨고 나서 바로 또 울리는 것 방지)
                             cooldownRef.current = true;
-                            setTimeout(() => { cooldownRef.current = false; }, 5000);
+                            setTimeout(() => { cooldownRef.current = false; }, 10000);
 
                             onPersonDetected?.();
                         }
                     } catch (e) {
-                        // 감지 실패는 조용히 무시
+                        // 감지 실패 무시
                     }
-                }, 2000);
+                }, 1000);
             } catch (e) {
                 console.warn('[Proximity] Initialization failed:', e);
             }

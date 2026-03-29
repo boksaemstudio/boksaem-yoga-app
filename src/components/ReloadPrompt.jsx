@@ -75,8 +75,18 @@ function ReloadPrompt() {
   useEffect(() => {
     if (!isAlwaysOn || !('serviceWorker' in navigator)) return;
 
+    // [FIX] 중국 OS 태블릿: 첫 로드 시 controller 교체 이벤트가 즉시 발생하여 리로드 루프
+    // → 페이지 로드 후 60초 이내 controllerchange는 무시
+    const pageLoadedAt = Date.now();
+    const GRACE_PERIOD_MS = 60_000;
+
     // autoUpdate 모드에서 실제 SW 교체 감지
     const onControllerChange = () => {
+      const elapsed = Date.now() - pageLoadedAt;
+      if (elapsed < GRACE_PERIOD_MS) {
+        console.log(`[SW] Controller changed within grace period (${Math.round(elapsed/1000)}s) — ignoring`);
+        return;
+      }
       console.log('[SW] Controller changed — new SW active');
       startIdleReloadLoop();
     };

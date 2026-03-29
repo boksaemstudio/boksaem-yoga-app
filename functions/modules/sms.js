@@ -243,6 +243,7 @@ exports.sendMessageOnApproval = onDocumentUpdated({
             status: 'sent',
             targetCount: phoneNumbers.length,
             sentAt: admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(), // Added for compatibility with PushHistory queries
             method: '문자',
             provider: 'aligo'
         });
@@ -256,6 +257,21 @@ exports.sendMessageOnApproval = onDocumentUpdated({
                 failedAt: new Date().toISOString()
             }
         });
+        
+        // Add failure log to push_history
+        await tdb.collection('push_history').add({
+            type: 'sms_msg',
+            title: title || '문자 발송 실패',
+            body: content || '',
+            status: 'failed',
+            targetCount: newData?.targetMemberIds?.length || 0,
+            sentAt: admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            method: '문자',
+            provider: 'aligo',
+            error: error.message
+        });
+
         await logAIError('Aligo_Send_Failed', error);
     }
 });
@@ -335,6 +351,21 @@ exports.sendSolapiOnMessageV2 = onDocumentCreated({
             }
         });
 
+        // Add to push_history so it appears in the Notification History tab
+        await tdb.collection('push_history').add({
+            type: 'sms_msg',
+            title: title,
+            body: content,
+            status: 'sent',
+            targetCount: 1,
+            targetMemberId: memberId,
+            targetMemberName: memberData.name || '알 수 없음', // or memberData.name if available
+            sentAt: admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            method: '문자',
+            provider: 'aligo'
+        });
+
     } catch (error) {
         console.error("[Aligo] Individual Send Error:", error);
         await event.data.ref.update({
@@ -343,6 +374,26 @@ exports.sendSolapiOnMessageV2 = onDocumentCreated({
                 error: error.message,
                 failedAt: new Date().toISOString()
             }
+        });
+
+        // Add failure log to push_history
+        const tdbRef = typeof tdb !== 'undefined' && tdb ? tdb : tenantDb();
+        const fallbackTitle = typeof title !== 'undefined' ? title : '문자 발송 실패';
+        const fallbackMemberName = typeof memberData !== 'undefined' && memberData ? memberData.name : '알 수 없음';
+        
+        await tdbRef.collection('push_history').add({
+            type: 'sms_msg',
+            title: fallbackTitle || '문자 발송 실패',
+            body: content || '',
+            status: 'failed',
+            targetCount: 1,
+            targetMemberId: memberId || null,
+            targetMemberName: fallbackMemberName || '알 수 없음',
+            sentAt: admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            method: '문자',
+            provider: 'aligo',
+            error: error.message
         });
     }
 });

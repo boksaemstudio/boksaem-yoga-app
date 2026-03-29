@@ -85,7 +85,7 @@ const CheckInPage = () => {
     const timerRef = useRef(null);
     const duplicateAutoCloseRef = useRef(null);
     const recentCheckInsRef = useRef([]);
-    const autoUpdateRef = useRef({ pin, message, loading, showSelectionModal, showDuplicateConfirm });
+    const autoUpdateRef = useRef({ isIdle: true, pin: '' });
     const pinRef = useRef(pin);
     const warmupTriggered = useRef(false);
 
@@ -102,6 +102,7 @@ const CheckInPage = () => {
     } = useFacialRecognition({
         enabled: faceRecognitionEnabled,
         autoUpdateRef,
+        attendanceVideoRef: videoRef, // 사진 캡처용 카메라 공유
         proceedWithCheckIn: useCallback((pin, isDup, memberId, task) => {
             proceedWithCheckIn(pin, isDup, memberId, task);
         }, []),
@@ -138,9 +139,13 @@ const CheckInPage = () => {
 
     // ── Effects ──
     useEffect(() => { 
-        autoUpdateRef.current = { pin, message, loading, showSelectionModal, showDuplicateConfirm }; 
+        // [근본 수정] 키오스크가 유휴 상태인지 하나의 boolean으로 통합 판단
+        // 어떤 모달/오버레이/로딩이든 하나라도 활성이면 isIdle = false
+        const isIdle = !message && !loading && !showSelectionModal && !showDuplicateConfirm 
+            && !showFaceRegModal && !showInstructorQR && !showKioskInstallGuide;
+        autoUpdateRef.current = { isIdle, pin };
         pinRef.current = pin;
-    }, [pin, message, loading, showSelectionModal, showDuplicateConfirm]);
+    }, [pin, message, loading, showSelectionModal, showDuplicateConfirm, showFaceRegModal, showInstructorQR, showKioskInstallGuide]);
     
     useEffect(() => {
         const init = async () => {
@@ -164,6 +169,11 @@ const CheckInPage = () => {
 
         return () => { unsubClasses(); window.removeEventListener('resize', vh); };
     }, []);
+
+    // [PWA] 키오스크 앱 홈화면 설치 유도 자동 팝업 - 제거 (터치 안해도 갑자기 뜨는 버그 원인)
+    useEffect(() => {
+        // 자동 팝업을 제거하여 화면을 방해하지 않도록 함 (QR 코드 클릭 시에만 수동으로 뜸)
+    }, [isReady, pwaContext.isStandalone]);
 
     useEffect(() => { setBgImage(getBgForPeriod(period)); }, [period]);
 
@@ -429,7 +439,7 @@ const CheckInPage = () => {
                 <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' }} />
             </div>
 
-            <TopBar weather={weather} currentBranch={currentBranch} branches={branches} handleBranchChange={c => { setCurrentBranch(c); storageService.setKioskBranch(c); }} toggleFullscreen={() => { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }} language="ko" onInstructorClick={() => setShowInstructorQR(true)} />
+            <TopBar weather={weather} currentBranch={currentBranch} branches={branches} handleBranchChange={c => { setCurrentBranch(c); storageService.setKioskBranch(c); }} toggleFullscreen={() => { try { const el = document.documentElement; const isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement; if (!isFs) { (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || (() => {})).call(el); } else { (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || (() => {})).call(document); } } catch(e) { console.warn('[Fullscreen] Not supported:', e.message); } }} language="ko" onInstructorClick={() => setShowInstructorQR(true)} />
 
             <div className="checkin-content" style={{ zIndex: 5, flex: 1, display: 'flex', gap: '2vh', padding: '3vh 3vw 5vh', width: '100%', alignItems: 'stretch', overflow: 'hidden' }}>
                 <CheckInInfoSection pin={pin} loading={loading} aiExperience={aiExperience} aiEnhancedMsg={aiEnhancedMsg} aiLoading={aiLoading} rys200Logo={rys200Logo} logoWide={logoWide} qrCodeUrl={qrCodeUrl} handleQRInteraction={() => setShowKioskInstallGuide(true)} onCameraTouch={() => setShowFaceRegModal(true)} faceRecognitionEnabled={faceRecognitionEnabled} isScanning={isScanning} cameraVideoRef={faceVideoRef} />

@@ -189,7 +189,7 @@ export function useMemberData({ t, language, setLoginFormValue, setLoginForm }) 
       firestoreLimit(logLimit)
     );
     const unsubAttendance = onSnapshot(q, (snap) => {
-      setLogs(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setLogs(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(r => !r.deletedAt));
     });
 
     return () => { unsubMember(); unsubAttendance(); };

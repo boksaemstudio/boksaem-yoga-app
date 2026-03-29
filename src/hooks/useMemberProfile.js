@@ -235,7 +235,7 @@ export const useMemberProfile = (language, t) => {
             firestoreLimit(logLimit)
         );
         const unsubAttendance = onSnapshot(q, (snap) => {
-            const history = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const history = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(r => !r.deletedAt);
             setLogs(history);
         });
 
@@ -288,7 +288,7 @@ export const useMemberProfile = (language, t) => {
 
     // ─── Initial Load ───
     useEffect(() => {
-        const isDemoSite = window.location.hostname.includes('passflow-demo-0324');
+        const isDemoSite = window.location.hostname.includes('passflow-demo') && !sessionStorage.getItem('demoLogout');
         const storedMember = safeLocalStorage.getItem('member');
         if (storedMember) {
             try {
@@ -398,6 +398,7 @@ export const useMemberProfile = (language, t) => {
 
     const handleLogout = () => {
         safeLocalStorage.removeItem('member');
+        sessionStorage.setItem('demoLogout', 'true');
         setMember(null);
     };
 

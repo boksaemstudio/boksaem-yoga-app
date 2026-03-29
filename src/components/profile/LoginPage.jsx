@@ -90,6 +90,26 @@ const LoginPage = ({ config, t, onLogin, loading }) => {
                     </div>
                     {error && <p style={{ color: 'var(--accent-error)', fontSize: '0.9rem', marginBottom: '10px' }}>{error}</p>}
                     <button type="submit" disabled={loading} style={{ ...authButtonStyle, marginTop: '10px' }}>{t('checkRecordBtn')}</button>
+                    
+                    {/* SaaS Demo Quick Login Button */}
+                    {typeof window !== 'undefined' && window.location.hostname.includes('passflow-demo') && (
+                        <button type="button" onClick={(e) => {
+                            e.preventDefault();
+                            setName("김방문");
+                            setPhone("1234");
+                            setTimeout(() => {
+                                onLogin("김방문", "1234");
+                            }, 100);
+                        }} disabled={loading} style={{ 
+                            ...authButtonStyle, 
+                            marginTop: '0px', 
+                            background: 'rgba(212, 175, 55, 0.15)',
+                            border: '1px solid rgba(212, 175, 55, 0.4)',
+                            color: 'var(--primary-gold)'
+                        }}>
+                            🚀 데모 계정 간편 시작
+                        </button>
+                    )}
                 </form>
                 <p style={{ marginTop: '30px', fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
                     {t('loginFooter')}

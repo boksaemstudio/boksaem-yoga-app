@@ -105,7 +105,11 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
                         <PaperPlaneTilt weight="fill" color="var(--primary-gold)" />
                         단체 메시지 전송
                     </h3>
-                    <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#a1a1aa', cursor: 'pointer' }}>
+                    <button 
+                        onClick={onClose} 
+                        disabled={sending}
+                        style={{ background: 'none', border: 'none', color: '#a1a1aa', cursor: sending ? 'wait' : 'pointer', opacity: sending ? 0.3 : 1 }}
+                    >
                         <X size={24} />
                     </button>
                 </div>

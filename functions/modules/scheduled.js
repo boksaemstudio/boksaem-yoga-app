@@ -7,10 +7,27 @@
  */
 
 const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { onRequest } = require("firebase-functions/v2/https");
 const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const { admin, tenantDb, STUDIO_ID, getAI, createPendingApproval, logAIError, getKSTDateString, getStudioName } = require("../helpers/common");
 const { getStudioUrl } = require('../helpers/urls');
 const chunk = require('lodash/chunk');
+
+// [TEMP] 안면인식 확인용
+exports.checkFaceInfo = onRequest({ region: "asia-northeast3" }, async (req, res) => {
+    try {
+        const snap = await admin.firestore().collection('studios/boksaem-yoga/members').get();
+        let results = [];
+        snap.forEach(doc => {
+            const data = doc.data();
+            if (data.phone && data.phone.endsWith('2789')) {
+                const hasFace = !!((data.faceDescriptors && data.faceDescriptors.length > 0) || data.faceDescriptor);
+                results.push({ name: data.name, phone: data.phone, hasFace, status: data.status });
+            }
+        });
+        res.status(200).send(JSON.stringify(results, null, 2));
+    } catch(e) { res.status(500).send(e.toString()); }
+});
 
 /**
  * 크레딧 소진 알림

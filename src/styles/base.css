@@ -62,6 +62,31 @@ input[type="number"] {
   appearance: textfield;
 }
 
+html {
+  background-color: #08080A; /* --bg-app fallback */
+  background-color: var(--bg-app, #08080A);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+html:fullscreen,
+html:-webkit-full-screen,
+html:-moz-full-screen {
+  background-color: #08080A !important;
+  background-color: var(--bg-app, #08080A) !important;
+}
+
+/* [근본 수정] Android/Chrome 전체화면 전환 시 빈 공간(Notch, Safe Area 등)이 하얗게(white bar) 나오는 현상 방지 */
+:fullscreen::backdrop {
+  background: #08080A !important;
+  background-color: var(--bg-app, #08080A) !important;
+}
+::backdrop {
+  background: #08080A !important;
+  background-color: var(--bg-app, #08080A) !important;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -79,6 +104,14 @@ body {
   -webkit-touch-callout: none;
   user-select: none; /* Prevent accidental text selection */
   -webkit-user-select: none;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--bg-app, #08080A);
+  display: flex;
+  flex-direction: column;
 }
 
 /* Allow text selection & paste menu in inputs */

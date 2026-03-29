@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudioConfig } from '../contexts/StudioContext';
 import { storageService } from '../services/storage';
@@ -15,13 +15,16 @@ const LoginPage = () => {
 
     const logoUrl = config.ASSETS?.LOGO?.WIDE;
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
+    const handleLogin = async (e, overrideEmail, overridePassword) => {
+        if (e) e.preventDefault();
         setError('');
         setLoading(true);
 
+        const targetEmail = overrideEmail || email.trim();
+        const targetPass = overridePassword || password;
+
         try {
-            const result = await storageService.loginAdmin(email.trim(), password.trim());
+            const result = await storageService.loginAdmin(targetEmail, targetPass);
 
             if (result.success) {
                 try {
@@ -37,15 +40,28 @@ const LoginPage = () => {
             } else {
                 setError(result.message);
                 setLoading(false);
-                logger.error('Login Failed', result.message, { email: email.trim() });
+                logger.error('Login Failed', result.message, { email: targetEmail });
             }
         } catch (err) {
             console.error('[LoginPage] Login error:', err);
             setError('로그인 처리 중 오류가 발생했습니다.');
             setLoading(false);
-            logger.error('Login Error', err.message, { email: email.trim() });
+            logger.error('Login Error', err.message, { email: targetEmail });
         }
     };
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.location.hostname.includes('passflow-demo')) {
+            if (!sessionStorage.getItem('demoAdminLogout') && !window.demoAdminLoginTriggered) {
+                window.demoAdminLoginTriggered = true;
+                setEmail('demo@passflow.kr');
+                setPassword('passflowdemo!');
+                setTimeout(() => {
+                    handleLogin(null, 'demo@passflow.kr', 'passflowdemo!');
+                }, 100);
+            }
+        }
+    }, []);
 
     const primaryColor = config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)';
     const studioName = config.IDENTITY?.NAME || 'Studio';
@@ -174,6 +190,39 @@ const LoginPage = () => {
                     >
                         {loading ? '인증 중...' : '접속하기'}
                     </button>
+                    
+                    {/* SaaS Admin Demo Quick Login Button */}
+                    {typeof window !== 'undefined' && window.location.hostname.includes('passflow-demo') && (
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setEmail('demo@passflow.kr');
+                                setPassword('passflowdemo!');
+                                setTimeout(() => {
+                                    // Trigger form submission manually or via state change
+                                    const mockEvent = { preventDefault: () => {} };
+                                    handleLogin(mockEvent);
+                                }, 100);
+                            }}
+                            disabled={loading}
+                            style={{
+                                width: '100%',
+                                padding: '16px',
+                                borderRadius: '12px',
+                                border: '1px solid rgba(212, 175, 55, 0.4)',
+                                backgroundColor: 'rgba(212, 175, 55, 0.15)',
+                                color: 'var(--primary-gold)',
+                                fontSize: '1rem',
+                                fontWeight: 'bold',
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                                marginTop: '4px',
+                                transition: 'transform 0.2s',
+                            }}
+                        >
+                            🚀 관리자 데모 자동 로그인
+                        </button>
+                    )}
                 </form>
             </div>
             <p style={{ position: 'relative', zIndex: 10, marginTop: '30px', color: 'rgba(255,255,255,0.3)', fontSize: '0.8rem' }}>

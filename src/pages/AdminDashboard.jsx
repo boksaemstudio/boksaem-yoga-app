@@ -200,6 +200,7 @@ const AdminDashboard = () => {
     const handleLogout = async () => {
         const isAgentMode = window.__AGENT_ADMIN_MODE__ === true;
         if (isAgentMode || confirm('관리자 모드를 종료하시겠습니까?')) {
+            sessionStorage.setItem('demoAdminLogout', 'true');
             await storageService.logoutAdmin();
             navigate('/login');
         }

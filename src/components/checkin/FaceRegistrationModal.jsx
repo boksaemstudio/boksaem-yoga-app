@@ -13,6 +13,7 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef: externalVideoRef, mo
     const [step, setStep] = useState(1); // 1: intro, 2: pin, 3: capture, 4: done
     const [pin, setPin] = useState('');
     const [matchedMember, setMatchedMember] = useState(null);
+    const [matchedMembersList, setMatchedMembersList] = useState([]);
     const [countdown, setCountdown] = useState(3);
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
@@ -42,6 +43,7 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef: externalVideoRef, mo
             setStep(1);
             setPin('');
             setMatchedMember(null);
+            setMatchedMembersList([]);
             setCountdown(3);
             setError('');
             setSaving(false);
@@ -135,12 +137,12 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef: externalVideoRef, mo
                 return;
             }
             if (members.length > 1) {
-                const active = members.find(m => m.status === 'active') || members[0];
-                setMatchedMember(active);
+                setMatchedMembersList(members);
+                setStep(2.5); // 선택 단계로 이동
             } else {
                 setMatchedMember(members[0]);
+                setStep(3); // → useEffect가 initCamera 호출
             }
-            setStep(3); // → useEffect가 initCamera 호출
         } catch (e) {
             setError('회원 조회 중 문제가 생겼어요. 다시 시도해주세요.');
         }
@@ -371,6 +373,43 @@ const FaceRegistrationModal = ({ isOpen, onClose, videoRef: externalVideoRef, mo
                             marginTop: '12px', background: 'none', border: 'none',
                             color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', cursor: 'pointer'
                         }}>취소</button>
+                    </div>
+                )}
+
+                {/* Step 2.5: 멤버 선택 (동명이인/동일번호) */}
+                {step === 2.5 && (
+                    <div style={{ animation: 'slideUp 0.4s ease-out' }}>
+                        <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>👥</div>
+                        <h2 style={{ fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '8px' }}>
+                            어느 분이신가요?
+                        </h2>
+                        <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.6)', marginBottom: '24px' }}>
+                            입력하신 번호와 일치하는 회원이 여러 명 있어요
+                        </p>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto', marginBottom: '20px' }}>
+                            {matchedMembersList.map(m => (
+                                <button
+                                    key={m.id}
+                                    onClick={() => {
+                                        setMatchedMember(m);
+                                        setStep(3); // → useEffect가 initCamera 호출
+                                    }}
+                                    style={{
+                                        padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.06)', 
+                                        border: '1px solid rgba(255,255,255,0.1)', color: 'white', fontSize: '1.1rem',
+                                        cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                    }}
+                                >
+                                    <span style={{ fontWeight: 'bold' }}>{m.name}</span>
+                                    <span style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)' }}>상태: {m.status === 'active' ? '활성' : m.status}</span>
+                                </button>
+                            ))}
+                        </div>
+
+                        <button onClick={() => { setStep(2); setPin(''); }} style={{
+                            background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', cursor: 'pointer'
+                        }}>뒤로 가기</button>
                     </div>
                 )}
 

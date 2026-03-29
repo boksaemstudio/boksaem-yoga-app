@@ -342,14 +342,16 @@ export const calculateDerivedData = (
         const canonicalClassName = info?.className || log.className || '일반';
         const canonicalInstructor = info?.instructor || log.instructor || '선생님';
 
-        const key = `${canonicalClassName}-${canonicalInstructor}-${log.branchId}-${classTime}`;
+        const key = canonicalClassName === '자율수련'
+            ? `${canonicalClassName}-${log.branchId}`
+            : `${canonicalClassName}-${canonicalInstructor}-${log.branchId}-${classTime}`;
         
         if (!classGroups[key]) {
             classGroups[key] = {
                 className: canonicalClassName,
-                instructor: canonicalInstructor,
+                instructor: canonicalClassName === '자율수련' ? '회원' : canonicalInstructor,
                 branchId: log.branchId,
-                classTime: classTime,
+                classTime: canonicalClassName === '자율수련' ? '' : classTime,
                 count: 0,
                 deniedCount: 0,
                 memberNames: [] as string[]
