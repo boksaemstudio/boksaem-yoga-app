@@ -288,8 +288,31 @@ export const useMemberProfile = (language, t) => {
 
     // ─── Initial Load ───
     useEffect(() => {
-        const isDemoSite = window.location.hostname.includes('passflow-demo') && !sessionStorage.getItem('demoLogout');
+        const isDemoSite = (window.location.hostname.includes('passflow-demo') || localStorage.getItem('lastStudioId') === 'demo-yoga') && !sessionStorage.getItem('demoLogout');
         const storedMember = safeLocalStorage.getItem('member');
+
+        const autoLoginDemo = async () => {
+            try {
+                await storageService.loadAllMembers(true);
+                const members = storageService.getMembers();
+                if (members && members.length > 0) {
+                    const demoMember = members[0];
+                    const memberWithDisplay = {
+                        ...demoMember,
+                        displayName: demoMember.displayName || demoMember.name
+                    };
+                    safeLocalStorage.setItem('member', JSON.stringify(memberWithDisplay));
+                    setMember(memberWithDisplay);
+                    loadMemberData(demoMember.id);
+                } else {
+                    setLoading(false);
+                }
+            } catch (e) {
+                console.error('[Demo] Auto-login failed:', e);
+                setLoading(false);
+            }
+        };
+
         if (storedMember) {
             try {
                 const m = JSON.parse(storedMember);
@@ -298,34 +321,25 @@ export const useMemberProfile = (language, t) => {
                     const nameForCache = cachedGreeting._cachedForName || '';
                     if (!nameForCache || nameForCache === m.name) setAiExperience(cachedGreeting);
                 }
-                loadMemberData(m.id);
+                loadMemberData(m.id).then((success) => {
+                    // 저장된 멤버가 현재 스튜디오(데모 포함) DB에 없어서 실패한 경우 자동 로그인 폴백
+                    if (!success && isDemoSite) {
+                        import('firebase/auth').then(({ signInAnonymously }) => {
+                            signInAnonymously(auth).then(() => autoLoginDemo()).catch(() => autoLoginDemo());
+                        }).catch(() => autoLoginDemo());
+                    }
+                });
             } catch {
-                setLoading(false);
+                if (isDemoSite) {
+                    import('firebase/auth').then(({ signInAnonymously }) => {
+                        signInAnonymously(auth).then(() => autoLoginDemo()).catch(() => autoLoginDemo());
+                    }).catch(() => autoLoginDemo());
+                } else {
+                    setLoading(false);
+                }
             }
         } else if (isDemoSite) {
             // [DEMO] 데모 사이트: 로그인 없이 첫 번째 회원으로 자동 로그인
-            const autoLoginDemo = async () => {
-                try {
-                    await storageService.loadAllMembers(true);
-                    const members = storageService.getMembers();
-                    if (members && members.length > 0) {
-                        const demoMember = members[0];
-                        const memberWithDisplay = {
-                            ...demoMember,
-                            displayName: demoMember.displayName || demoMember.name
-                        };
-                        safeLocalStorage.setItem('member', JSON.stringify(memberWithDisplay));
-                        setMember(memberWithDisplay);
-                        loadMemberData(demoMember.id);
-                    } else {
-                        setLoading(false);
-                    }
-                } catch (e) {
-                    console.error('[Demo] Auto-login failed:', e);
-                    setLoading(false);
-                }
-            };
-            // 익명 인증 후 데이터 로드
             import('firebase/auth').then(({ signInAnonymously }) => {
                 signInAnonymously(auth)
                     .then(() => autoLoginDemo())

@@ -11,50 +11,58 @@ export const resolveStudioId = (): string => {
 
     const host: string = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
     const params = new URLSearchParams(window.location.search);
+    let targetStudioId = 'boksaem-yoga'; // default
 
-    // 1. 최고 우선순위: URL 파라미터 강제 주입 (테스트용: ?studio=blue-yoga)
+    // 1. 최고 우선순위: URL 파라미터 강제 주입
     const urlStudioId = params.get('studio');
+    
     if (urlStudioId) {
-        localStorage.setItem('lastStudioId', urlStudioId);
-        _cachedStudioId = urlStudioId;
-        return _cachedStudioId;
-    }
-
+        targetStudioId = urlStudioId;
+    } 
     // 2. 개발 환경 로컬호스트
-    if (host === 'localhost' || host === '127.0.0.1') {
-        const localId: string = import.meta.env.VITE_LOCAL_STUDIO_ID || localStorage.getItem('lastStudioId') || 'boksaem-yoga';
-        _cachedStudioId = localId === 'default' ? 'boksaem-yoga' : localId;
-        return _cachedStudioId;
-    }
-    
+    else if (host === 'localhost' || host === '127.0.0.1') {
+        // @ts-ignore
+        const localId: string = import.meta.env?.VITE_LOCAL_STUDIO_ID || localStorage.getItem('lastStudioId') || 'boksaem-yoga';
+        targetStudioId = localId === 'default' ? 'boksaem-yoga' : localId;
+    } 
     // 3. 복샘요가 기본 배포 도메인
-    if (host.includes('boksaem-yoga.web.app') || host.includes('boksaem-yoga.firebaseapp.com')) {
-        _cachedStudioId = 'boksaem-yoga';
-        return _cachedStudioId;
-    }
-
+    else if (host.includes('boksaem-yoga.web.app') || host.includes('boksaem-yoga.firebaseapp.com')) {
+        targetStudioId = 'boksaem-yoga';
+    } 
     // 3-1. 데모앱 (리허설 + 고객 시연)
-    if (host.includes('passflow-demo') || host.includes('demo.passflow')) {
-        _cachedStudioId = 'demo-yoga';
-        return _cachedStudioId;
-    }
-
+    else if (host.includes('passflow-demo') || host.includes('demo.passflow')) {
+        targetStudioId = 'demo-yoga';
+    } 
     // 3-2. 쌍문요가
-    if (host.includes('ssangmun-yoga-0324.web.app') || host.includes('ssangmun-yoga-0324.firebaseapp.com')) {
-        _cachedStudioId = 'ssangmun-yoga';
-        return _cachedStudioId;
+    else if (host.includes('ssangmun-yoga-0324.web.app') || host.includes('ssangmun-yoga-0324.firebaseapp.com')) {
+        targetStudioId = 'ssangmun-yoga';
+    } 
+    // 4. 서브도메인 파싱
+    else {
+        const parts: string[] = host.split('.');
+        if (parts.length >= 3 && parts[0] !== 'www') {
+            targetStudioId = parts[0];
+        } else {
+            // 5. 알 수 없는 도메인 → 캐시된 ID 또는 기본값
+            targetStudioId = localStorage.getItem('lastStudioId') || 'boksaem-yoga';
+        }
     }
 
-
-// 4. 서브도메인 파싱 (namaste.boksaem.app -> namaste)
-    const parts: string[] = host.split('.');
-    if (parts.length >= 3 && parts[0] !== 'www') {
-        _cachedStudioId = parts[0];
-        return _cachedStudioId;
+    // [AUTO-HEALER] 로컬 테스트 등 동일 도메인에서 스튜디오(Tenant)가 변경된 경우 캐시 초기화
+    // 이전 스튜디오 컨텍스트의 데이터(member, instructor 등)가 새 스튜디오 DB에 없어 에러나는 고질적 버그 방지
+    const previousStudioId = localStorage.getItem('lastStudioId');
+    if (previousStudioId && previousStudioId !== targetStudioId) {
+        console.warn(`[SaaS Context Auto-Heal] Studio changed from ${previousStudioId} to ${targetStudioId}. Wiping stale caches.`);
+        localStorage.removeItem('member');
+        localStorage.removeItem('instructorName');
+        localStorage.removeItem('kiosk_member_cache');
+        localStorage.removeItem('member_mbti');
+        sessionStorage.removeItem('demoLogout');
     }
+
+    _cachedStudioId = targetStudioId;
+    localStorage.setItem('lastStudioId', targetStudioId);
     
-    // 5. 알 수 없는 도메인 → 캐시된 ID 또는 기본값
-    _cachedStudioId = localStorage.getItem('lastStudioId') || 'boksaem-yoga';
     return _cachedStudioId;
 };
 

@@ -6,6 +6,7 @@ import { db, functions } from '../firebase';
 import { doc, query, where, getDocs, getDoc, addDoc, updateDoc, setDoc, deleteDoc, onSnapshot, Unsubscribe, orderBy, deleteField } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { tenantDb } from '../utils/tenantDb';
+import { safeLocalStorage } from '../utils/safeLocalStorage';
 
 // ── Types ──
 export interface Member {
@@ -69,7 +70,7 @@ export const memberService = {
 
     setupMemberListener(): Unsubscribe | null {
         // Load from LocalStorage for immediate UI response (Optimistic)
-        const stored = localStorage.getItem('kiosk_member_cache');
+        const stored = safeLocalStorage.getItem('kiosk_member_cache');
         if (stored && cachedMembers.length === 0) {
             try { cachedMembers = JSON.parse(stored); this._buildPhoneLast4Index(); }
             catch { console.warn('[memberService] Local cache corrupt'); }
@@ -80,7 +81,7 @@ export const memberService = {
             memberListenerUnsubscribe = onSnapshot(tenantDb.collection('members'), (snapshot) => {
                 const members: Member[] = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Member)).filter(m => !(m as Record<string, unknown>).deletedAt);
                 cachedMembers = members;
-                try { localStorage.setItem('kiosk_member_cache', JSON.stringify(cachedMembers)); }
+                try { safeLocalStorage.setItem('kiosk_member_cache', JSON.stringify(cachedMembers)); }
                 catch { console.warn('[memberService] Cache persistence failed'); }
                 this._buildPhoneLast4Index();
                 notifyCallback();
@@ -97,7 +98,7 @@ export const memberService = {
             console.time('[memberService] Force Fetch Members');
             const snapshot = await getDocs(tenantDb.collection('members'));
             cachedMembers = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Member)).filter(m => !(m as Record<string, unknown>).deletedAt);
-            try { localStorage.setItem('kiosk_member_cache', JSON.stringify(cachedMembers)); }
+            try { safeLocalStorage.setItem('kiosk_member_cache', JSON.stringify(cachedMembers)); }
             catch { console.warn('[memberService] Local cache save failed (Storage full?)'); }
             this._buildPhoneLast4Index();
             console.timeEnd('[memberService] Force Fetch Members');
@@ -299,7 +300,7 @@ export const memberService = {
             const newMembers = [...cachedMembers];
             newMembers[idx] = { ...newMembers[idx], ...updates };
             cachedMembers = newMembers;
-            try { localStorage.setItem('kiosk_member_cache', JSON.stringify(cachedMembers)); }
+            try { safeLocalStorage.setItem('kiosk_member_cache', JSON.stringify(cachedMembers)); }
             catch { console.warn('[memberService] Cache persistence failed (Storage full?)'); }
             notifyCallback();
             this._buildPhoneLast4Index();
@@ -342,8 +343,8 @@ export const memberService = {
         catch { return null; }
     },
 
-    _safeGetItem(key: string): string | null { try { return localStorage.getItem(key); } catch { return null; } },
-    _safeSetItem(key: string, value: string): void { try { localStorage.setItem(key, value); } catch { /* ignore */ } },
+    _safeGetItem(key: string): string | null { return safeLocalStorage.getItem(key); },
+    _safeSetItem(key: string, value: string): void { safeLocalStorage.setItem(key, value); },
 
     getGreetingCache(memberId: string): Record<string, unknown> | null {
         const cached = this._safeGetItem(`greeting_${memberId}`);
