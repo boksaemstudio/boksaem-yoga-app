@@ -84,7 +84,7 @@ exports.onAttendanceCreated = onDocumentCreated({
             const instructorName = attendance.instructor;
             const allSentTokens = new Set();
             if (instructorName) {
-                const { tokens, tokenSources } = await getAllFCMTokens(null, { role: 'instructor', instructorName });
+                const { tokens } = await getAllFCMTokens(null, { role: 'instructor', instructorName });
                 if (tokens.length > 0) {
                     console.log(`[Instructor Push] Sending to ${tokens.length} tokens for "${instructorName}"`);
                     for (const token of tokens) {
@@ -105,11 +105,19 @@ exports.onAttendanceCreated = onDocumentCreated({
                             }
                         }
                     }
+                } else {
+                    console.warn(`[Attendance] ⚠️ 강사("${instructorName}")의 활성 푸시 토큰(로그인 기기)이 없어 강사 푸시 스킵됨!`);
                 }
+            } else {
+                console.warn(`[Attendance] 🚨 수업에 배정된 담당 강사 이름이 없습니다! 강사 푸시 원천 차단됨! 로그 확인 요망.`);
             }
 
             // [2] 관리자(원장)에게도 항상 푸시 — 강사에게 이미 보낸 토큰은 중복 전송 방지
             const { tokens: adminTokens } = await getAllFCMTokens(null, { role: 'admin' });
+            if (adminTokens.length === 0) {
+                console.warn(`[Attendance] 🚨 활성화된 원장(admin) 푸시 토큰이 없어 원장님께 비상 푸시를 발송하지 못했습니다!!`);
+            }
+            
             const newAdminTokens = adminTokens.filter(t => !allSentTokens.has(t));
             if (newAdminTokens.length > 0) {
                 console.log(`[Admin Push] Sending attendance push to ${newAdminTokens.length} admin tokens`);

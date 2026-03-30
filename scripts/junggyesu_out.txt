@@ -1,0 +1,262 @@
+Total docs: 29
+ID: 0MD9NGw9D3mH6h3Boq3E
+timestamp type: string
+timestamp raw: "2026-03-07T00:35:21.991Z"
+date: 2026-03-07
+className: 하타
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: 2zePjcWPvna2FVK7jl0C
+timestamp type: string
+timestamp raw: "2026-02-21T02:11:29.020Z"
+date: 2026-02-21
+className: 아쉬탕가-led
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: 4b1y0Nrdy3PFvzvKmBEV
+timestamp type: string
+timestamp raw: "2026-02-20T00:42:17.641Z"
+date: 2026-02-20
+className: 하타
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: 5du9YcQqrk0mYGrP3vzx
+timestamp type: FirestoreTimestamp
+timestamp(converted): 2026-03-30T00:40:04.000Z
+date: 2026-03-30
+className: 하타
+branchId: main
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: 6xTpC1zl23Wee5B5QgS1
+timestamp type: string
+timestamp raw: "2026-03-14T02:06:31.122Z"
+date: 2026-03-14
+className: 아쉬탕가-led
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: 7FDJDYrEyofPcukpPfZM
+timestamp type: string
+timestamp raw: "2026-02-23T00:33:25.635Z"
+date: 2026-02-23
+className: 하타
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: 8JubfZvT12w3qJyqq3Rw
+timestamp type: string
+timestamp raw: "2026-02-25T00:46:08.902Z"
+date: 2026-02-25
+className: 하타+인
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: 8l8pmPokrRDJvAEkl2hk
+timestamp type: string
+timestamp raw: "2026-02-27T00:56:53.324Z"
+date: 2026-02-27
+className: 하타
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: 9VyPzBmJOIDUjgXYQlwN
+timestamp type: string
+timestamp raw: "2026-03-04T00:40:06.041Z"
+date: 2026-03-04
+className: 하타+인
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: G5MzfWSYjC7KzaEWVOLe
+timestamp type: string
+timestamp raw: "2026-03-11T00:46:16.732Z"
+date: 2026-03-11
+className: 하타+인
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: KXFJZhFTD93pDsB9P5oF
+timestamp type: string
+timestamp raw: "2026-02-16T00:47:36.754Z"
+date: 2026-02-16
+className: 하타
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: LJK06wbp041YFqRxd0wx
+timestamp type: string
+timestamp raw: "2026-02-24T00:50:45.253Z"
+date: 2026-02-24
+className: 아쉬탕가
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: NKv0WSBZ2HL8ogu142As
+timestamp type: string
+timestamp raw: "2026-03-02T00:25:06.067Z"
+date: 2026-03-02
+className: 하타
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: OhyZpapr7Bt7SkV6Jzx5
+timestamp type: string
+timestamp raw: "2026-03-28T00:46:32.539Z"
+date: 2026-03-28
+className: 하타
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: OxInhoDKoTKfieAxeGyH
+timestamp type: string
+timestamp raw: "2026-03-23T00:44:14.774Z"
+date: 2026-03-23
+className: 하타
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: QX6BkEheWI0ZJzS2Bzka
+timestamp type: string
+timestamp raw: "2026-03-19T00:35:48.054Z"
+date: 2026-03-19
+className: 하타
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: QpjvaY7O3zoO6Z9ZdCak
+timestamp type: string
+timestamp raw: "2026-03-09T00:31:09.865Z"
+date: 2026-03-09
+className: 하타
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: QtVWyevSTYBRZo92x6An
+timestamp type: string
+timestamp raw: "2026-03-27T00:46:15.798Z"
+date: 2026-03-27
+className: 하타
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: b5AyXGbJknGkjrEv1mHe
+timestamp type: string
+timestamp raw: "2026-03-24T00:37:58.935Z"
+date: 2026-03-24
+className: 아쉬탕가
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: jlLHVTobXPslhtmMY7U9
+timestamp type: string
+timestamp raw: "2026-03-20T00:44:20.317Z"
+date: 2026-03-20
+className: 하타
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: kalj3YYn7cA9X0qF1MCD
+timestamp type: string
+timestamp raw: "2026-03-21T00:35:53.451Z"
+date: 2026-03-21
+className: 하타
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: rk7Cqhravn84MdOh0kmt
+timestamp type: string
+timestamp raw: "2026-03-26T00:44:35.073Z"
+date: 2026-03-26
+className: 하타
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: tlnyZNBZjFqIu0jeyNYj
+timestamp type: string
+timestamp raw: "2026-03-06T00:39:57.965Z"
+date: 2026-03-06
+className: 하타
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: tr58ZTzs0EpSbyggBeKv
+timestamp type: string
+timestamp raw: "2026-03-16T00:26:32.833Z"
+date: 2026-03-16
+className: 하타
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: txixRpsOvjBXFDig3hBa
+timestamp type: string
+timestamp raw: "2026-03-10T00:42:12.079Z"
+date: 2026-03-10
+className: 아쉬탕가
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: wiGt3umvlDk1nB3Wby4C
+timestamp type: string
+timestamp raw: "2026-03-03T00:35:44.765Z"
+date: 2026-03-03
+className: 아쉬탕가
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: x9eBRb5awkMTZ4cmHIru
+timestamp type: string
+timestamp raw: "2026-03-18T00:46:24.355Z"
+date: 2026-03-18
+className: 하타+인
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: xeqQ3wSG2pxPvRnic1TB
+timestamp type: string
+timestamp raw: "2026-02-28T02:05:06.622Z"
+date: 2026-02-28
+className: 아쉬탕가-led
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---
+ID: yGSq3aR8ARSLqlavePq0
+timestamp type: string
+timestamp raw: "2026-03-17T00:30:54.175Z"
+date: 2026-03-17
+className: 아쉬탕가
+branchId: gwangheungchang
+status: valid
+memberId: 8BMTpU3Ehrz4jkd0lZce
+---

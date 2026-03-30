@@ -17,7 +17,7 @@ exports.checkInMemberV2Call = onCall({
         return { success: true, message: 'pong', timestamp: Date.now() };
     }
 
-    const { memberId, branchId, classTitle, instructor, classTime, force, eventId } = request.data;
+    const { memberId, branchId, classTitle, instructor, classTime, force, eventId, source } = request.data;
     const tdb = tenantDb();
 
     console.log(`[Attendance] Check-in request for ${memberId} in ${branchId}. Force: ${force}, EventId: ${eventId}`);
@@ -30,6 +30,24 @@ exports.checkInMemberV2Call = onCall({
         return await tdb.raw().runTransaction(async (transaction) => {
             const today = getKSTDateString(new Date());
             const now = new Date();
+
+            // ━━━━ 0. 서버단 안면인식 차단 (프론트만 믿지 않음) ━━━━
+            if (source === 'facial') {
+                const configDocForFace = await transaction.get(tdb.collection('config').doc('settings'));
+                const studioConfig = configDocForFace.exists ? configDocForFace.data() : {};
+                
+                // Firestore의 POLICIES도 체크 (studio 문서 레벨)
+                const studioDocForFace = await transaction.get(tdb.raw().collection('studios').doc(tdb._studioId || 'boksaem-yoga'));
+                const studioData = studioDocForFace.exists ? studioDocForFace.data() : {};
+                
+                const faceEnabledConfig = studioConfig.POLICIES?.FACE_RECOGNITION_ENABLED === true;
+                const faceEnabledStudio = studioData.POLICIES?.FACE_RECOGNITION_ENABLED === true;
+                
+                if (!faceEnabledConfig && !faceEnabledStudio) {
+                    console.log(`[Attendance] ❌ BLOCKED: 안면인식 출석 요청 거부 (서버단 정책: OFF). memberId=${memberId}`);
+                    throw new HttpsError('permission-denied', '안면인식 출석이 비활성화되어 있습니다. 키패드를 사용해주세요.');
+                }
+            }
 
             // ━━━━ 1. Duplicate Check (UUID Idempotency) ━━━━
             if (!force && eventId) {
@@ -78,12 +96,18 @@ exports.checkInMemberV2Call = onCall({
                     
                     if (schedSnap.exists) {
                         const classes = (schedSnap.data().classes || []).filter(c => c.status !== 'cancelled');
-                        const matchedCls = classes.find(cls => {
+                        let bestMatch = null;
+                        let smallestDiff = Infinity;
+                        for (const cls of classes) {
                              const [h, m] = cls.time.split(':').map(Number);
                              const start = h * 60 + m;
-                             const end = start + (cls.duration || 60);
-                             return currentMin >= start - 60 && currentMin <= end + 30;
-                        });
+                             const diff = Math.abs(currentMin - start);
+                             if (diff < smallestDiff) {
+                                 smallestDiff = diff;
+                                 bestMatch = cls;
+                             }
+                        }
+                        const matchedCls = bestMatch;
 
                         if (matchedCls) {
                              finalClassTitle = matchedCls.title || matchedCls.className || classTitle;
@@ -162,7 +186,8 @@ exports.checkInMemberV2Call = onCall({
                 dateStr: today,
                 timestampISO: now.toISOString(),
                 type: 'checkin',
-                eventId
+                eventId,
+                source: source || 'pin'
             }, {
                 skipCreditDeduction: false,
                 skipValidation: false

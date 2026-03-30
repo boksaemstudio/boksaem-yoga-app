@@ -60,19 +60,41 @@ export const hslToHex = (h: number, s: number, l: number): string => {
 
 /**
  * Determines the color tag for a class based on its title.
+ * Colors are synchronized with Firestore SCHEDULE_LEGEND.
+ * ⚠️ Order matters: more specific keywords (토요하타) must precede generic ones (하타).
  */
 export const getTagColor = (title: string = '', _dateStr: string = '', _instructor: string = ''): TagColor => {
     const lowerTitle = title.toLowerCase();
     
+    // ── 하타인텐시브/별도등록 (보라) — must precede 하타 ──
+    if (lowerTitle.includes('하타인텐시브') || lowerTitle.includes('별도')) {
+        return { bg: 'rgba(224, 86, 253, 0.15)', text: 'rgba(224, 86, 253, 0.9)', border: 'rgba(224, 86, 253, 0.4)' };
+    }
+    // ── 하타 (파랑) ──
     if (lowerTitle.includes('하타') || lowerTitle.includes('hatha')) {
         return { bg: 'rgba(59, 130, 246, 0.15)', text: '#60A5FA', border: 'rgba(59, 130, 246, 0.3)' };
     }
+    // ── 빈야사 (초록) ──
     if (lowerTitle.includes('빈야사') || lowerTitle.includes('vinyasa')) {
         return { bg: 'rgba(16, 185, 129, 0.15)', text: '#34D399', border: 'rgba(16, 185, 129, 0.3)' };
     }
+    // ── 심화/플라잉/키즈플라잉/로우플라잉 (주황) — 플라잉 계열 통합 ──
+    if (lowerTitle.includes('플라잉') || lowerTitle.includes('flying') || lowerTitle.includes('심화')) {
+        return { bg: 'rgba(255, 190, 118, 0.2)', text: 'rgba(255, 190, 118, 1)', border: 'rgba(255, 190, 118, 0.5)' };
+    }
+    // ── 키즈 단독 (노랑) — 키즈플라잉은 위에서 이미 처리됨 ──
+    if (lowerTitle.includes('키즈') || lowerTitle.includes('kids')) {
+        return { bg: 'rgba(234, 179, 8, 0.2)', text: '#EAB308', border: 'rgba(234, 179, 8, 0.4)' };
+    }
+    // ── 임산부 (민트) ──
+    if (lowerTitle.includes('임산부') || lowerTitle.includes('maternity')) {
+        return { bg: 'rgba(196, 252, 239, 0.15)', text: 'rgba(129, 236, 236, 1)', border: 'rgba(129, 236, 236, 0.4)' };
+    }
+    // ── 특별 (골드) ──
     if (lowerTitle.includes('특별') || lowerTitle.includes('special')) {
         return { bg: 'rgba(var(--primary-rgb), 0.15)', text: 'var(--primary-gold)', border: 'rgba(var(--primary-rgb), 0.3)' };
     }
 
-    return { bg: 'rgba(156, 163, 175, 0.1)', text: '#9CA3AF', border: 'rgba(156, 163, 175, 0.2)' };
+    // ── 일반/기본 (흰색 계열) ──
+    return { bg: 'rgba(255, 255, 255, 0.06)', text: '#E5E7EB', border: 'rgba(255, 255, 255, 0.15)' };
 };

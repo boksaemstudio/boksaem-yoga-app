@@ -4,7 +4,17 @@ import { storageService } from '../services/storage';
 import { useStudioConfig } from '../contexts/StudioContext';
 
 const ScheduleClassEditor = ({ cls, idx, dayClasses, setDayClasses, instructors, classTypes, classLevels }) => {
-    const editorInputStyle = { ...inputStyle, fontSize: '0.85rem', padding: '6px' };
+    const selectStyle = { 
+        // fallback generic styles
+        fontSize: '0.9rem', 
+        padding: '8px 10px',
+        borderRadius: '8px',
+        border: '1px solid var(--border-color)',
+        backgroundColor: 'var(--bg-surface, #1e1e1e)',
+        color: 'var(--text-primary, #ffffff)',
+        appearance: 'auto',
+        WebkitAppearance: 'auto',
+    };
     
     // Parse time into hour and minute
     const [hour, minute] = (cls.time || '10:00').split(':');
@@ -25,99 +35,103 @@ const ScheduleClassEditor = ({ cls, idx, dayClasses, setDayClasses, instructors,
     const minutes = ['00', '10', '20', '30', '40', '50'];
 
     return (
-        <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', alignItems: 'center', backgroundColor: 'var(--bg-input)', padding: '8px', borderRadius: '8px', minWidth: '550px', flexWrap: 'wrap' }}>
-            {/* Time Selection: Hour + Minute dropdowns */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px', backgroundColor: 'var(--bg-input)', padding: '12px', borderRadius: '10px', width: '100%' }}>
+            {/* Row 1: Time + Class Title */}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
+                    <select
+                        value={hour}
+                        onChange={(e) => updateTime(e.target.value, minute)}
+                        style={{ ...selectStyle, width: '75px', textAlign: 'center', fontWeight: '700' }}
+                    >
+                        {hours.map(h => (
+                            <option key={h} value={h}>{h}시</option>
+                        ))}
+                    </select>
+                    <span style={{ color: 'var(--text-secondary)', fontWeight: 'bold', margin: '0 1px' }}>:</span>
+                    <select
+                        value={minute}
+                        onChange={(e) => updateTime(hour, e.target.value)}
+                        style={{ ...selectStyle, width: '75px', textAlign: 'center', fontWeight: '700' }}
+                    >
+                        {minutes.map(m => (
+                            <option key={m} value={m}>{m}분</option>
+                        ))}
+                    </select>
+                </div>
                 <select
-                    value={hour}
-                    onChange={(e) => updateTime(e.target.value, minute)}
-                    style={{ ...editorInputStyle, width: '60px', textAlign: 'center', fontWeight: '600' }}
+                    value={cls.title}
+                    onChange={(e) => {
+                        const newClasses = [...dayClasses];
+                        newClasses[idx].title = e.target.value;
+                        setDayClasses(newClasses);
+                    }}
+                    style={{ ...selectStyle, flex: 1, minWidth: '120px', fontWeight: '600' }}
                 >
-                    {hours.map(h => (
-                        <option key={h} value={h}>{h}시</option>
-                    ))}
-                </select>
-                <span style={{ color: 'var(--text-secondary)', fontWeight: 'bold' }}>:</span>
-                <select
-                    value={minute}
-                    onChange={(e) => updateTime(hour, e.target.value)}
-                    style={{ ...editorInputStyle, width: '60px', textAlign: 'center', fontWeight: '600' }}
-                >
-                    {minutes.map(m => (
-                        <option key={m} value={m}>{m}분</option>
+                    {classTypes.map(ct => (
+                        <option key={ct} value={ct}>{ct}</option>
                     ))}
                 </select>
             </div>
-            <select
-                value={cls.title}
-                onChange={(e) => {
-                    const newClasses = [...dayClasses];
-                    newClasses[idx].title = e.target.value;
-                    setDayClasses(newClasses);
-                }}
-                style={{ ...editorInputStyle, flex: 2, minWidth: '100px' }}
-            >
-                {classTypes.map(ct => (
-                    <option key={ct} value={ct}>{ct}</option>
-                ))}
-            </select>
-            <select
-                value={cls.instructor || ''}
-                onChange={(e) => {
-                    const newClasses = [...dayClasses];
-                    newClasses[idx].instructor = e.target.value;
-                    setDayClasses(newClasses);
-                }}
-                style={{ ...editorInputStyle, width: '85px' }}
-            >
-                <option value="">선생님</option>
-                {/* [UX Fix] Show current value even if not in list */}
-                {cls.instructor && !instructors.some(i => (typeof i === 'string' ? i : i.name) === cls.instructor) && (
-                    <option value={cls.instructor}>미등록</option>
-                )}
-                {instructors.map(inst => {
-                    const name = typeof inst === 'string' ? inst : inst.name;
-                    return <option key={name} value={name}>{name}</option>;
-                })}
-            </select>
-            {classLevels?.length > 0 && (
+            {/* Row 2: Instructor + Level + Status + Delete */}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <select
-                    value={String(cls.level ?? '')}
+                    value={cls.instructor || ''}
                     onChange={(e) => {
                         const newClasses = [...dayClasses];
-                        newClasses[idx].level = e.target.value;
+                        newClasses[idx].instructor = e.target.value;
                         setDayClasses(newClasses);
                     }}
-                    style={{ ...editorInputStyle, width: '70px' }}
+                    style={{ ...selectStyle, flex: 1, minWidth: '100px' }}
                 >
-                    <option value="">레벨</option>
-                    {classLevels?.map(level => (
-                        <option key={level} value={level}>Lv.{level}</option>
-                    ))}
+                    <option value="">선생님</option>
+                    {cls.instructor && !instructors.some(i => (typeof i === 'string' ? i : i.name) === cls.instructor) && (
+                        <option value={cls.instructor}>미등록</option>
+                    )}
+                    {instructors.map(inst => {
+                        const name = typeof inst === 'string' ? inst : inst.name;
+                        return <option key={name} value={name}>{name}</option>;
+                    })}
                 </select>
-            )}
-            <select
-                value={cls.status}
-                onChange={(e) => {
-                    const newClasses = [...dayClasses];
-                    newClasses[idx].status = e.target.value;
-                    setDayClasses(newClasses);
-                }}
-                style={{ ...editorInputStyle, width: '70px' }}
-            >
-                <option value="normal">정상</option>
-                <option value="cancelled">휴강</option>
-                <option value="changed">변경</option>
-            </select>
-            <button
-                onClick={() => {
-                    const newClasses = dayClasses.filter((_, i) => i !== idx);
-                    setDayClasses(newClasses);
-                }}
-                style={{ background: 'rgba(255,71,87,0.2)', border: '1px solid rgba(255,71,87,0.4)', borderRadius: '6px', color: '#ff6b6b', cursor: 'pointer', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-                <X size={16} weight="bold" />
-            </button>
+                {classLevels?.length > 0 && (
+                    <select
+                        value={String(cls.level ?? '')}
+                        onChange={(e) => {
+                            const newClasses = [...dayClasses];
+                            newClasses[idx].level = e.target.value;
+                            setDayClasses(newClasses);
+                        }}
+                        style={{ ...selectStyle, width: '90px', flexShrink: 0 }}
+                    >
+                        <option value="">레벨</option>
+                        {classLevels?.map(level => (
+                            <option key={level} value={level}>Lv.{level}</option>
+                        ))}
+                    </select>
+                )}
+                <select
+                    value={cls.status}
+                    onChange={(e) => {
+                        const newClasses = [...dayClasses];
+                        newClasses[idx].status = e.target.value;
+                        setDayClasses(newClasses);
+                    }}
+                    style={{ ...selectStyle, width: '80px', flexShrink: 0 }}
+                >
+                    <option value="normal">정상</option>
+                    <option value="cancelled">휴강</option>
+                    <option value="changed">변경</option>
+                </select>
+                <button
+                    onClick={() => {
+                        const newClasses = dayClasses.filter((_, i) => i !== idx);
+                        setDayClasses(newClasses);
+                    }}
+                    style={{ background: 'rgba(255,71,87,0.2)', border: '1px solid rgba(255,71,87,0.4)', borderRadius: '6px', color: '#ff6b6b', cursor: 'pointer', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                >
+                    <X size={16} weight="bold" />
+                </button>
+            </div>
         </div>
     );
 };

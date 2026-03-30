@@ -137,13 +137,9 @@ const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, is
     };
 
     const isExpiredLog = (log) => {
-        // [FIX] Check for explicit denied status OR date expiration
-        if (log.status === 'denied') return true;
-        
-        if (!member.endDate) return false;
-        const logTime = new Date(log.timestamp).getTime();
-        const endTime = new Date(member.endDate + 'T23:59:59').getTime();
-        return logTime > endTime;
+        // [FIX] 강제로 시간이나 기간을 계산하여 UI에서 결과를 변조하지 않습니다.
+        // 오직 데이터베이스에 명확히 명시된 상태(출석거부)만을 기준으로 렌더링합니다.
+        return log.status === 'denied';
     };
 
     const validLogs = logs.filter(log => !isExpiredLog(log));

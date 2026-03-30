@@ -47,13 +47,15 @@ export function useFacialRecognition({ enabled, autoUpdateRef, proceedWithCheckI
         return () => clearInterval(refreshInterval);
     }, [enabled, faceModelsLoaded]);
 
-    // 실시간 스캔 루프 (2초마다)
+    // ── 연속 매칭 상태 추적 (최소 3회 연속 동일인 확인 필수) ──
+    const consecutiveMatchRef = useRef({ memberId: null, count: 0, lastDescriptor: null });
+
+    // 실시간 스캔 루프 (2초마다) — 3회 연속 매칭 필수
     useEffect(() => {
         if (!enabled || !faceModelsLoaded) return;
 
         const scanForFace = async () => {
             const state = autoUpdateRef.current;
-            // [근본 수정] CheckInPage에서 모든 blocking 상태를 종합 판단한 isIdle 하나로 체크
             if (!state.isIdle) return;
             if (state.pin?.length > 0) return;
             if (Date.now() - lastAutoCheckInRef.current < 15000) return;
@@ -66,25 +68,38 @@ export function useFacialRecognition({ enabled, autoUpdateRef, proceedWithCheckI
                 setIsScanning(true);
                 const descriptor = await extractFaceDescriptor(video, true);
                 setIsScanning(false);
-                if (!descriptor) return;
+                if (!descriptor) {
+                    // 얼굴 미감지 → 연속 카운트 초기화
+                    consecutiveMatchRef.current = { memberId: null, count: 0, lastDescriptor: null };
+                    return;
+                }
+
+                // ── 안정성 검증: 이전 프레임 디스크립터와 비교 ──
+                // 디스크립터 변동이 크면 = 얼굴이 움직이고 있음 → 무시
+                const prevDesc = consecutiveMatchRef.current.lastDescriptor;
+                if (prevDesc) {
+                    const frameDrift = euclideanDistance(descriptor, prevDesc);
+                    if (frameDrift > 0.25) {
+                        // 프레임 간 변동이 크면 얼굴이 움직이는 중 → 초기화
+                        consecutiveMatchRef.current = { memberId: null, count: 0, lastDescriptor: descriptor };
+                        return;
+                    }
+                }
 
                 let bestMatch = null;
                 let bestDistance = Infinity;
                 let secondBestDistance = Infinity;
 
-                // [HARDENED] 임계값 0.42 (엄격 모드 — 오인식 근절)
                 const MATCH_THRESHOLD = 0.42;
 
                 for (const bio of biometricsCache.current) {
                     if (!bio.descriptor) continue;
-                    // [FIX] Array/Object 양쪽 안전 파싱
                     let storedDesc;
                     if (bio.descriptor instanceof Float32Array) {
                         storedDesc = bio.descriptor;
                     } else if (Array.isArray(bio.descriptor)) {
                         storedDesc = new Float32Array(bio.descriptor);
                     } else if (typeof bio.descriptor === 'object') {
-                        // Firestore가 Map으로 반환할 수 있음 (key: '0','1','2'...)
                         const keys = Object.keys(bio.descriptor).sort((a,b) => Number(a) - Number(b));
                         storedDesc = new Float32Array(keys.map(k => bio.descriptor[k]));
                     } else {
@@ -101,38 +116,52 @@ export function useFacialRecognition({ enabled, autoUpdateRef, proceedWithCheckI
                     }
                 }
 
-                // [HARDENED] 3중 안전장치 (gap 스킵 조건 완전 제거)
-                // 1) 거리가 0.42 이하여야 함
-                // 2) 2nd best와의 갭이 0.08 이상이어야 함 (등록 인원 수에 관계없이 필수)
-                // 3) best 거리가 0.32 이하면 갭 조건 완화 (극도로 확실한 일치만)
                 const gap = secondBestDistance - bestDistance;
                 const isConfidentMatch = bestDistance <= MATCH_THRESHOLD && (
-                    gap >= 0.08 ||                    // 2등과 충분히 차이남 (필수)
-                    bestDistance <= 0.32              // 극도로 확실한 일치만 갭 면제
+                    gap >= 0.08 || bestDistance <= 0.32
                 );
 
                 if (bestMatch && isConfidentMatch) {
-                    console.log(`[FACIAL] ✅ Match: ${bestMatch.memberId} (dist=${bestDistance.toFixed(3)}, gap=${gap.toFixed(3)})`);
-                    lastAutoCheckInRef.current = Date.now();
-                    lastDescriptorRef.current = descriptor;
+                    const prev = consecutiveMatchRef.current;
+                    if (prev.memberId === bestMatch.memberId) {
+                        // ── 연속 카운트 누적 ──
+                        const newCount = prev.count + 1;
+                        consecutiveMatchRef.current = { memberId: bestMatch.memberId, count: newCount, lastDescriptor: descriptor };
+                        
+                        console.log(`[FACIAL] Consecutive match #${newCount}: ${bestMatch.memberId} (dist=${bestDistance.toFixed(3)}, gap=${gap.toFixed(3)})`);
+                        
+                        // ── 3회 연속 확인 완료 → 출석 처리 ──
+                        if (newCount >= 3) {
+                            console.log(`[FACIAL] ✅ CONFIRMED (3 consecutive): ${bestMatch.memberId}`);
+                            consecutiveMatchRef.current = { memberId: null, count: 0, lastDescriptor: null };
+                            lastAutoCheckInRef.current = Date.now();
+                            lastDescriptorRef.current = descriptor;
 
-                    // [근본 수정] 출석 전 사진 캡처를 위해 attendanceVideoRef에도 스트림 공유
-                    if (attendanceVideoRef?.current && faceVideoRef.current?.srcObject) {
-                        try {
-                            if (!attendanceVideoRef.current.srcObject || 
-                                attendanceVideoRef.current.srcObject !== faceVideoRef.current.srcObject) {
-                                attendanceVideoRef.current.srcObject = faceVideoRef.current.srcObject;
-                                await attendanceVideoRef.current.play().catch(() => {});
+                            if (attendanceVideoRef?.current && faceVideoRef.current?.srcObject) {
+                                try {
+                                    if (!attendanceVideoRef.current.srcObject || 
+                                        attendanceVideoRef.current.srcObject !== faceVideoRef.current.srcObject) {
+                                        attendanceVideoRef.current.srcObject = faceVideoRef.current.srcObject;
+                                        await attendanceVideoRef.current.play().catch(() => {});
+                                    }
+                                } catch (e) {
+                                    console.warn('[FACIAL] Could not share stream:', e);
+                                }
                             }
-                        } catch (e) {
-                            console.warn('[FACIAL] Could not share stream to attendance camera:', e);
-                        }
-                    }
 
-                    proceedWithCheckIn(null, false, bestMatch.memberId, null);
-                } else if (bestMatch && bestDistance <= 0.50) {
-                    // 0.42 ~ 0.50 구간: 로그만 남기고 무시 (이전에 오인식 되던 구간)
-                    console.log(`[FACIAL] ⚠️ Weak match ignored: ${bestMatch.memberId} (dist=${bestDistance.toFixed(3)}, gap=${gap.toFixed(3)}) — below confidence`);
+                            proceedWithCheckIn(null, false, bestMatch.memberId, null);
+                        }
+                    } else {
+                        // ── 다른 사람으로 바뀜 → 카운트 리셋 ──
+                        consecutiveMatchRef.current = { memberId: bestMatch.memberId, count: 1, lastDescriptor: descriptor };
+                        console.log(`[FACIAL] New candidate: ${bestMatch.memberId} (dist=${bestDistance.toFixed(3)}) — need 2 more`);
+                    }
+                } else {
+                    // 매칭 실패 → 초기화
+                    consecutiveMatchRef.current = { memberId: null, count: 0, lastDescriptor: descriptor };
+                    if (bestMatch && bestDistance <= 0.50) {
+                        console.log(`[FACIAL] ⚠️ Weak match ignored: ${bestMatch.memberId} (dist=${bestDistance.toFixed(3)})`);
+                    }
                 }
             } catch (e) {
                 setIsScanning(false);

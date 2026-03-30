@@ -340,7 +340,8 @@ const CheckInPage = () => {
             }
 
             const safeUUID = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'id_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-            const res = await storageService.checkInById(targetMemberId, currentBranch, isDup, safeUUID(), isFacialMatch);
+            const source = (memberIdToForce && !p) ? 'facial' : 'pin';
+            const res = await storageService.checkInById(targetMemberId, currentBranch, isDup, safeUUID(), isFacialMatch, source);
             if (res.success) {
                 setIsOnline(!res.isOffline);
                 if (res.attendanceStatus === 'denied') {

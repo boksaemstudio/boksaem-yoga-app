@@ -156,14 +156,14 @@ async function refreshDemoData() {
         }, { merge: true });
         
         currentBatch.set(db.doc(`studios/demo-yoga/images/timetable_main_${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`), {
-            url: 'https://passflow-0324.web.app/assets/hero_bg_ai.png',
+            url: 'https://passflow-0324.web.app/assets/timetable_1.webp',
             updatedAt: new Date().toISOString()
         }, { merge: true });
 
         // 다음 달 시간표
         const nextDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
         currentBatch.set(db.doc(`studios/demo-yoga/images/timetable_main_${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}`), {
-            url: 'https://passflow-0324.web.app/assets/hero_bg_ai.png',
+            url: 'https://passflow-0324.web.app/assets/timetable_2.webp',
             updatedAt: new Date().toISOString()
         }, { merge: true });
 

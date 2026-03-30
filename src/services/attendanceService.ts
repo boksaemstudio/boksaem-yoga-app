@@ -147,7 +147,24 @@ export const attendanceService = {
                 const wasValid = lowerStatus === 'valid' || lowerStatus === 'success' || (!logData.status && !logData.denialReason);
                 if (restoreCredit && logData.memberId && wasValid && (logData.type === 'checkin' || logData.type === 'manual' || !logData.type || logData.type === 'attendance')) {
                     const creditsToRestore = logData.sessionCount || 1;
-                    batch.update(tenantDb.doc('members', logData.memberId), { credits: increment(creditsToRestore), attendanceCount: increment(-creditsToRestore) });
+                    const { deleteField } = await import('firebase/firestore');
+                    
+                    const updates: Record<string, unknown> = {
+                        credits: increment(creditsToRestore), 
+                        attendanceCount: increment(-creditsToRestore)
+                    };
+
+                    if (logData.stateChanges) {
+                        const prev = logData.stateChanges as Record<string, unknown>;
+                        // 강제 롤백 (activation or TBD 해소를 되돌림)
+                        updates.credits = prev.credits !== undefined ? prev.credits : increment(creditsToRestore);
+                        updates.membershipType = prev.membershipType === null ? deleteField() : prev.membershipType;
+                        updates.startDate = prev.startDate === null ? deleteField() : prev.startDate;
+                        updates.endDate = prev.endDate === null ? deleteField() : prev.endDate;
+                        updates.upcomingMembership = prev.upcomingMembership === null ? deleteField() : prev.upcomingMembership;
+                    }
+
+                    batch.update(tenantDb.doc('members', logData.memberId), updates);
                 }
             }
             // Soft Delete: 실제 삭제 대신 deletedAt 필드 설정 (복원 가능)
@@ -229,7 +246,7 @@ export const attendanceService = {
         return { successCount, remainingCount: remainingQueue.length };
     },
 
-    async checkInById(memberId: string, branchId: string, force = false, eventId: string | null = null, facialMatched = false): Promise<CheckInResult> {
+    async checkInById(memberId: string, branchId: string, force = false, eventId: string | null = null, facialMatched = false, source: string = 'pin'): Promise<CheckInResult> {
         try {
             const checkInMember = httpsCallable(functions, 'checkInMemberV2Call');
             const currentClassInfo = await deps.getCurrentClass(branchId);
@@ -240,7 +257,7 @@ export const attendanceService = {
             for (let attempt = 1; attempt <= 2; attempt++) {
                 try {
                     const response = await withTimeout(
-                        checkInMember({ memberId, branchId, classTitle, instructor, classTime: currentClassInfo?.time || null, force, eventId: eventId || safeUUID(), facialMatched }),
+                        checkInMember({ memberId, branchId, classTitle, instructor, classTime: currentClassInfo?.time || null, force, eventId: eventId || safeUUID(), facialMatched, source }),
                         12000, 'timeout'
                     );
                     const data = response.data as Record<string, unknown>;
@@ -284,7 +301,7 @@ export const attendanceService = {
 
             const pendingData: Record<string, unknown> = {
                 memberId, branchId, classTitle, instructor, classTime: currentClassInfo?.time || null,
-                date: today, timestamp: now, status: 'pending-offline', eventId: eventId || safeUUID(), facialMatched,
+                date: today, timestamp: now, status: 'pending-offline', eventId: eventId || safeUUID(), facialMatched, source,
                 activatedUpcomingMembership: member && member.startDate === today ? { membershipType: member.membershipType, startDate: member.startDate, endDate: member.endDate, credits: member.credits } : null
             };
 

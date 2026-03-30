@@ -155,7 +155,7 @@ export const storageService = {
     getAttendanceByMemberId(memberId: string) { return attendanceService.getAttendanceByMemberId(memberId); },
     getAttendanceByDate(dateStr: string, branchId: string | null = null) { return attendanceService.getAttendanceByDate(dateStr, branchId); },
     subscribeAttendance(dateStr: string, branchId: string | null = null, callback: (records: AttendanceLog[]) => void) { return attendanceService.subscribeAttendance(dateStr, branchId, callback); },
-    checkInById(memberId: string, branchId: string, force = false) { return attendanceService.checkInById(memberId, branchId, force); },
+    checkInById(memberId: string, branchId: string, force = false, eventId?: string, facialMatched?: boolean, source: string = 'pin') { return attendanceService.checkInById(memberId, branchId, force, eventId, facialMatched, source); },
     deleteAttendance(logId: string, restoreCredit?: boolean) { return attendanceService.deleteAttendance(logId, restoreCredit); },
     restoreAttendance(logId: string) { return attendanceService.restoreAttendance(logId); },
     clearAllAttendance() { return attendanceService.clearAllAttendance(); },

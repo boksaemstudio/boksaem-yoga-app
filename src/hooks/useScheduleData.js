@@ -166,6 +166,14 @@ export function useScheduleData(branchId, config) {
 
     const saveDayClasses = async (selectedDate, dayClasses, applyToAll = false) => {
         if (!selectedDate) return false;
+        
+        // ── 시간순 정렬 (HH:MM 기준) ──
+        dayClasses.sort((a, b) => {
+            const timeA = a.time || '00:00';
+            const timeB = b.time || '00:00';
+            return timeA.localeCompare(timeB);
+        });
+
         setLoading(true);
         try {
             let shouldUpdatePastAttendance = false;

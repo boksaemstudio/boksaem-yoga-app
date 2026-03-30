@@ -1,0 +1,43 @@
+=== 오늘(3/30) 전체 출석기록 완전 감사(삭제 포함) ===
+총 문서 수: 21
+
+========================================
+--- 현재 살아있는(표시되는) 출석 기록 ---
+========================================
+1. 2026-03-30T00:40:21.036Z | 박송자 | 하타 | status:valid | type:checkin | method:
+2. 2026-03-30T00:42:38.370Z | 조현진ttc9기 | 하타 | status:valid | type:checkin | method:
+3. 2026-03-30T00:50:47.531Z | 신오성 | 하타 | status:valid | type:checkin | method:
+4. 2026-03-30T00:52:27.173Z | 손지예 | 하타 | status:valid | type:checkin | method:
+5. 2026-03-30T00:52:46.497Z | 송승영 | 하타 | status:valid | type:checkin | method:
+6. 2026-03-30T00:54:42.368Z | 김상희 | 하타 | status:valid | type:checkin | method:
+7. 2026-03-30T00:54:52.849Z | 박혜영 | 하타 | status:valid | type:checkin | method:
+8. 2026-03-30T00:55:48.890Z | 성예린ttc9기 | 하타 | status:valid | type:checkin | method:
+9. 2026-03-30T00:57:19.534Z | 이은영 | 하타 | status:valid | type:checkin | method:
+10. 2026-03-30T00:58:25.019Z | 박문선 | 하타 | status:valid | type:checkin | method:
+11. 2026-03-30T03:27:16.804Z | 주민정 | 자율수련 | status:valid | type:checkin | method:
+12. 2026-03-30T03:38:53.553Z | 윤세희 | 마이솔 | status:valid | type:checkin | method:
+13. 2026-03-30T03:39:05.221Z | 임수아 | 마이솔 | status:valid | type:checkin | method:
+14. 2026-03-30T03:52:29.213Z | 노효원ttc2기 | 마이솔 | status:valid | type:checkin | method:
+15. 2026-03-30T03:59:13.748Z | 홍서빈 | 마이솔 | status:valid | type:checkin | method:
+16. 2026-03-30T04:08:55.026Z | 이수연 | 마이솔 | status:valid | type:checkin | method:
+17. 2026-03-30T04:30:00.000Z | 주민정 | 마이솔 | status:valid | type:manual | method:
+18. 2026-03-30T04:48:14.625Z | 정다솔 | 마이솔 | status:valid | type:checkin | method:
+19. 2026-03-30T04:48:56.247Z | 박미진 | 마이솔 | status:valid | type:checkin | method:
+20. 2026-03-30T04:59:56.904Z | 최재민 | 마이솔 | status:valid | type:checkin | method:
+21. 2026-03-30T09:39:26.649Z | 박주원 | 출석 거부 (기간 만료) | status:denied | type:checkin | method:
+
+========================================
+--- 삭제된(deletedAt 표시된) 출석 기록 ---
+========================================
+
+========================================
+요약:
+살아있는 기록: 21건
+삭제된 기록: 0건
+총 문서: 21건
+
+--- KST 18시(오후6시) 이후 살아있는 기록 ---
+2026-03-30T09:39:26.649Z | 박주원 | 출석 거부 (기간 만료)
+
+--- KST 18시(오후6시) 이후 삭제된 기록 ---
+없음!

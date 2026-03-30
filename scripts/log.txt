@@ -1,0 +1,12 @@
+Updated member to legacy CRM state (0 credits, end 2026-04-01)
+Found attendance: 2026-03-30T00:40:21.036Z valid
+Found attendance: 2026-03-27T00:43:55.266Z valid
+Found attendance: 2026-03-23T00:40:58.266Z valid
+Found attendance: 2026-03-20T00:40:45.331Z valid
+Found attendance: 2026-03-16T00:40:31.621Z valid
+Found attendance: 2026-03-13T00:40:43.743Z valid
+Found attendance: 2026-03-11T00:40:42.431Z valid
+Found attendance: 2026-03-09T00:40:23.659Z valid
+Found attendance: 2026-03-04T00:58:27.965Z valid
+Found attendance: 2026-02-27T00:42:24.889Z valid
+Deleted rogue evening logs: 0

@@ -32,12 +32,12 @@ async function run() {
         // Or better: Let's create `const timetableUrl = 'https://passflow-0324.web.app/assets/passflow_ai_logo_transparent_final.png'` for now just to populate it, so it doesn't look empty.
         
         batch.set(db.doc('studios/demo-yoga/images/timetable_main_2026-03'), {
-            url: 'https://passflow-0324.web.app/assets/hero_bg_ai.png',
+            url: 'https://passflow-0324.web.app/assets/timetable_1.webp',
             updatedAt: new Date().toISOString()
         }, { merge: true });
 
         batch.set(db.doc('studios/demo-yoga/images/timetable_main_2026-04'), {
-            url: 'https://passflow-0324.web.app/assets/hero_bg_ai.png',
+            url: 'https://passflow-0324.web.app/assets/timetable_2.webp',
             updatedAt: new Date().toISOString()
         }, { merge: true });
 

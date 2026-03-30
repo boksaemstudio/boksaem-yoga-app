@@ -172,7 +172,7 @@ function processTBDResolution(memberData, memberId, dateStr) {
  * @returns {Object} 출석 처리 결과
  */
 async function processAttendanceCore(transaction, params, options = {}) {
-    const { memberId, branchId, className, instructor, classTime, dateStr, timestampISO, type, eventId } = params;
+    const { memberId, branchId, className, instructor, classTime, dateStr, timestampISO, type, eventId, source } = params;
     const { skipCreditDeduction = false, skipValidation = false, preActivatedUpcoming = null } = options;
     const tdb = tenantDb();
 
@@ -183,6 +183,15 @@ async function processAttendanceCore(transaction, params, options = {}) {
         return { success: false, status: 'error', message: '회원을 찾을 수 없습니다.' };
     }
     const memberData = memberSnap.data();
+
+    // ━━━━ PRE-STATE BACKUP (For Rollback on Delete) ━━━━
+    const preAttendanceState = {
+        credits: memberData.credits || 0,
+        membershipType: memberData.membershipType || null,
+        startDate: memberData.startDate || null,
+        endDate: memberData.endDate || null,
+        upcomingMembership: memberData.upcomingMembership || null
+    };
 
     // ━━━━ 2. 홀딩 해제 ━━━━
     const { holdReleased, holdUpdates } = processHoldRelease(memberData, dateStr, timestampISO);
@@ -290,9 +299,15 @@ async function processAttendanceCore(transaction, params, options = {}) {
         credits: newCredits,
         startDate: memberData.startDate,
         endDate: memberData.endDate,
-        cumulativeCount: newCount
+        cumulativeCount: newCount,
+        source: source || type || 'unknown'
     };
     if (denialReason) attendanceData.denialReason = denialReason;
+
+    // ━━━━ PRE-STATE BACKUP ATTACHMENT ━━━━
+    if (activated || tbdResult?.resolved) {
+        attendanceData.stateChanges = preAttendanceState;
+    }
 
     const attRef = tdb.collection('attendance').doc();
     transaction.set(attRef, attendanceData);
