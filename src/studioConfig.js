@@ -11,7 +11,7 @@ export const STUDIO_CONFIG = {
         LOGO_TEXT: "YOGA",
         SLOGAN: "나를 만나는 고요한 시간",
         DESCRIPTION: "요가와 함께하는 건강한 일상",
-        APP_VERSION: "2026.03.29 22:43",
+        APP_VERSION: "2026.03.30 21:38",
         FAVICON: "/favicon.ico",
     },
 
@@ -99,7 +99,7 @@ export const STUDIO_CONFIG = {
 
     // 6. 지점 설정 — 기본 1개 지점
     BRANCHES: [
-        { id: 'main', name: '본점', color: 'var(--primary-theme-color)' },
+        { id: 'main', name: '본점', isMain: true }
     ],
 
     // 7. 브랜딩 및 테마

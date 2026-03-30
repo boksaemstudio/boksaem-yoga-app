@@ -19,11 +19,11 @@ async function nukeCollection(colPath) {
         }
     }
     if (count > 0) await batch.commit();
-    console.log('✅ Nuked', colPath);
+    console.log('??Nuked', colPath);
 }
 
 async function nuke() {
-    console.log('☢️ SECURING DEMO ENVIRONMENT... NUKING REPLICA DATA.');
+    console.log('??�� SECURING DEMO ENVIRONMENT... NUKING REPLICA DATA.');
     await nukeCollection('studios/demo-yoga/members');
     await nukeCollection('studios/demo-yoga/attendance');
     await nukeCollection('studios/demo-yoga/sales');
@@ -37,17 +37,17 @@ async function nuke() {
     
     // Reset basic config to completely neutral SaaS branding
     await db.doc('studios/demo-yoga').set({
-        name: 'PassFlow Yoga Studio',
+        name: 'PassFlow Ai Yoga Studio',
         ownerEmail: 'demo@passflow.app',
         plan: 'pro',
         status: 'active',
         settings: {
-            IDENTITY: { NAME: 'ZenFlow Demo Studio', SLOGAN: '최고의 요가 스튜디오 관리 시스템' },
-            BRANCHES: [{id: 'A', name: '강남점'}, {id: 'B', name: '홍대점'}]
+            IDENTITY: { NAME: 'ZenFlow Demo Studio', SLOGAN: '최고???��? ?�튜?�오 관�??�스?? },
+            BRANCHES: [{id: 'A', name: '강남??}, {id: 'B', name: '?��???}]
         }
     });
 
-    console.log('✅ ALL DEMO DATA COMPLETELY WIPED AND SECURED.');
+    console.log('??ALL DEMO DATA COMPLETELY WIPED AND SECURED.');
     process.exit(0);
 }
 nuke();

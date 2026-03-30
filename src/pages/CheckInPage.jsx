@@ -42,7 +42,8 @@ const CheckInPage = () => {
     const logoWide = config.ASSETS?.LOGO?.WIDE || '/assets/passflow_logo.png';
     const rys200Logo = config.ASSETS?.LOGO?.RYS200 || '/assets/RYS200.webp';
     const branches = config.BRANCHES || [];
-    const faceRecognitionEnabled = config.POLICIES?.FACE_RECOGNITION_ENABLED && config.POLICIES?.SHOW_CAMERA_PREVIEW;
+    // [FIX] FACE_RECOGNITION_ENABLED만으로 얼굴 인식 활성화 (SHOW_CAMERA_PREVIEW는 프리뷰 표시만 제어)
+    const faceRecognitionEnabled = config.POLICIES?.FACE_RECOGNITION_ENABLED === true;
 
     const getBgForPeriod = (p) => {
         const bgKey = p.toUpperCase();

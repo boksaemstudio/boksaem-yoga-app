@@ -239,7 +239,7 @@ async function processAttendanceCore(transaction, params, options = {}) {
         }
     }
 
-    // ━━━━ 6. 스트릭 & 세션 수 ━━━━
+    // ━━━━ 6. 스트릭 & 세션 수 & 디바운스(중복 방어막) ━━━━
     const currentCount = memberData.attendanceCount || 0;
     const recentSnap = await transaction.get(
         tdb.collection('attendance')
@@ -248,6 +248,18 @@ async function processAttendanceCore(transaction, params, options = {}) {
             .limit(30)
     );
     const records = recentSnap.docs.map(d => d.data()).filter(r => r.status === 'valid');
+
+    // 디바운스 방어막 (5분 이내 중복 출석 전면 차단)
+    if (records.length > 0 && records[0].timestamp) {
+        const lastTime = new Date(records[0].timestamp);
+        const nowTime = new Date(timestampISO);
+        const diffMinutes = (nowTime - lastTime) / (1000 * 60);
+        if (diffMinutes < 5) {
+            console.log(`[CoreLogic] BLOCKED duplicate attendance for ${memberId} within ${diffMinutes.toFixed(1)} mins.`);
+            return { success: false, status: 'error', message: '너무 빠른 중복 출석입니다. (5분 제한)' };
+        }
+    }
+
     let streak = calculateStreak(records, dateStr);
     if (!Number.isFinite(streak)) streak = 1;
 

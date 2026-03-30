@@ -132,7 +132,9 @@ exports.sendDailyAdminReportV2 = onSchedule({
 exports.sendScheduledMessages = onSchedule({
     schedule: "*/10 * * * *",
     timeZone: "Asia/Seoul",
-    region: "asia-northeast3"
+    region: "asia-northeast3",
+    vpcConnector: "passflow-vpc",
+    vpcConnectorEgressSettings: "ALL_TRAFFIC"
 }, async (event) => {
     const tdb = tenantDb();
     const now = new Date();
@@ -153,11 +155,11 @@ exports.sendScheduledMessages = onSchedule({
 
         console.log(`[Scheduled] Found ${snapshot.size} messages to send.`);
 
-        // [FIX] 솔라피→알리고 전환: sms.js 모듈의 sendSMS 사용
+        // [FIX] 알리고→뿌리오 전환: sms.js 모듈의 sendSMS 사용
         const { sendSMS } = require('./sms');
-        const aligoKey = process.env.ALIGO_API_KEY;
-        const aligoUserId = process.env.ALIGO_USER_ID;
-        const hasAligo = !!(aligoKey && aligoUserId);
+        const ppurioAccount = process.env.PPURIO_ACCOUNT;
+        const ppurioPassword = process.env.PPURIO_PASSWORD;
+        const hasPpurio = !!(ppurioAccount && ppurioPassword);
 
         const docsToProcess = snapshot.docs;
         const results = [];
@@ -196,7 +198,7 @@ exports.sendScheduledMessages = onSchedule({
             const msgSendMode = msg.sendMode || 'push_first';
             const shouldSendSMS = msgSendMode === 'sms_only' || (msgSendMode === 'push_first' && !pushSuccess);
             
-            if (hasAligo && shouldSendSMS) {
+            if (hasPpurio && shouldSendSMS) {
                 try {
                     const memberDoc = await tdb.collection('members').doc(memberId).get();
                     if (memberDoc.exists) {
@@ -207,7 +209,7 @@ exports.sendScheduledMessages = onSchedule({
                         }
                     }
                 } catch (e) {
-                    console.error(`[Scheduled] Aligo SMS failed for ${doc.id}:`, e);
+                    console.error(`[Scheduled] Ppurio SMS failed for ${doc.id}:`, e);
                 }
             }
 

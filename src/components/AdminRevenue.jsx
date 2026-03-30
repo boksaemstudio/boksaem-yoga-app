@@ -39,13 +39,13 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats, viewMode })
 
             {/* Total Month Summary */}
             <CollapsibleCard id="revenue-summary" title={`${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월 총 매출 요약`} titleExtra={`${formatCurrency(monthlyStats.totalRevenue)}원`} defaultOpen={true}>
-                <div className="dashboard-card revenue-summary-card" style={{ marginTop: '0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                        <div>
+                <div className="dashboard-card revenue-summary-card" style={{ marginTop: '0', overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                        <div style={{ flex: '1 1 auto', minWidth: '240px' }}>
                             <div className="revenue-summary-title">
                                 이번 달 누적 매출
                             </div>
-                            <div className="revenue-summary-amount">
+                            <div className="revenue-summary-amount" style={{ wordBreak: 'break-all', whiteSpace: 'normal', lineHeight: '1.2' }}>
                                 {formatCurrency(monthlyStats.totalRevenue)}원
                             </div>
                             <div className="revenue-summary-details">
@@ -136,7 +136,8 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats, viewMode })
                                     wrapperStyle={{ maxWidth: '180px', fontSize: '0.75rem', zIndex: 10, pointerEvents: 'none' }}
                                     contentStyle={{ 
                                         backgroundColor: '#18181b', 
-                                        borderColor: '#3f3f46', 
+                                        borderColor: 'rgba(255, 255, 255, 0.5)', 
+                                        borderWidth: '1.5px',
                                         borderRadius: '8px',
                                         color: '#fff',
                                         padding: '8px 10px',
@@ -365,7 +366,8 @@ const StraightLineChart = ({ data, branches, showBranches }) => {
                         wrapperStyle={{ maxWidth: '160px', fontSize: '0.72rem', zIndex: 10, pointerEvents: 'none' }}
                         contentStyle={{ 
                             backgroundColor: '#18181b', 
-                            borderColor: '#3f3f46', 
+                            borderColor: 'rgba(255, 255, 255, 0.5)', 
+                            borderWidth: '1.5px',
                             borderRadius: '8px',
                             color: '#fff',
                             padding: '6px 8px',

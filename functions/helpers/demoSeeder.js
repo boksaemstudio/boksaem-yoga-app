@@ -1,137 +1,92 @@
-const { admin } = require('./common');
-
-async function deleteCollection(db, collectionRef) {
-    const batchSize = 100;
-    while (true) {
-        const snapshot = await collectionRef.limit(batchSize).get();
-        if (snapshot.empty) break;
-        const batch = db.batch();
-        snapshot.docs.forEach((doc) => batch.delete(doc.ref));
-        await batch.commit();
-    }
-}
-
-const FIRST_NAMES = ['김','이','박','최','정','강','조','윤','장','임','한','오','서','신','권','황','안','송','전','홍'];
-const LAST_NAMES = ['민준','서준','도윤','예준','시우','하준','지호','주원','지훈','준우','서연','서윤','지우','서현','하은','하윤','민서','지유','윤서','지민','수아','지아'];
-
-function getRandomName() {
-    const first = FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)];
-    const last = LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)];
-    return first + last;
-}
-
-function getRandomDate(start, end) {
-    return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-}
+const admin = require('firebase-admin');
 
 async function refreshDemoData() {
     const db = admin.firestore();
-    const STUDIO_ID = 'demo-yoga';
-    const tenantDb = db.collection('studios').doc(STUDIO_ID);
+    const tenantDb = db.doc('studios/demo-yoga');
 
-    console.log(`🌱 Refreshing demo data for tenant: ${STUDIO_ID}`);
+    console.log('🔄 [슈퍼 시더 실행] 데모 사이트용 (passflow-demo-0324) 최상급 리얼 데이터 시딩을 시작합니다...');
 
-    // 1. Wipe Old Data
-    const collections = ['members', 'classes', 'daily_classes', 'attendance', 'sales', 'instructors', 'board_notices', 'notification_logs', 'pricing'];
-    for (const coll of collections) {
-        await deleteCollection(db, tenantDb.collection(coll));
+    const collections = [
+        'members', 'attendance', 'sales', 'board_notices',
+        'instructors', 'daily_classes', 'notification_logs', 'pricing'
+    ];
+
+    // 1. 기존 데이터 초기화 (Batch Delete)
+    async function deleteCollection(collectionPath, batchSize = 100) {
+        const collectionRef = tenantDb.collection(collectionPath);
+        const query = collectionRef.orderBy('__name__').limit(batchSize);
+
+        return new Promise((resolve, reject) => {
+            deleteQueryBatch(query, resolve).catch(reject);
+        });
     }
 
-    // 2. Studio Configuration
-    const configData = {
-        name: '패스플로우 데모 플랫폼',
-        ownerEmail: 'demo@passflow.kr',
-        plan: 'pro',
-        status: 'active',
-        settings: {
-            IDENTITY: {
-                NAME: '패스플로우 데모',
-                NAME_ENGLISH: 'PassFlow Studio Demo',
-                LOGO_TEXT: 'PassFlow',
-                SLOGAN: '최고의 관리를 경험해보세요'
-            },
-            THEME: { PRIMARY_COLOR: '#d4af37', SKELETON_COLOR: '#1a1a1a' },
-            ASSETS: {
-                LOGO: {
-                    SQUARE: '/assets/passflow_logo.png',
-                    WIDE: '/assets/passflow_logo.png'
-                },
-                MEMBER_BG: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1200&auto=format&fit=crop',
-                SCHEDULE_IMAGES: {
-                    'main': 'https://firebasestorage.googleapis.com/v0/b/passflow-0324.appspot.com/o/system_assets%2Fdemo_schedule.jpg?alt=media&token=487d7f95-bb04-4504-bd4b-01a2384a28f8'
-                },
-                PRICING_IMAGES: [
-                    'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?q=80&w=1200&auto=format&fit=crop'
-                ]
-            },
-            MEMBERSHIP: {
-                TYPES: { 'yoga_basic': '요가 기본반', 'pilates_equipment': '기구 필라테스', 'flying_yoga': '플라잉 요가', 'unlimited': '무제한 패스' }
-            },
-            BRANCHES: [
-                { id: 'main', name: '본점', color: '#d4af37' },
-                { id: 'branch2', name: '강남점', color: '#8B5CF6' }
-            ],
-            POLICIES: { ENABLE_EXPIRATION_BLOCK: true, ENABLE_NEGATIVE_CREDITS: false },
-            INSTRUCTORS: ['김지수 원장', '박사라 강사', '이보미 강사']
-        },
-        updatedAt: new Date().toISOString()
-    };
-    await tenantDb.set(configData, { merge: true });
+    async function deleteQueryBatch(query, resolve) {
+        const snapshot = await query.get();
+        const batchSize = snapshot.size;
+        if (batchSize === 0) {
+            resolve();
+            return;
+        }
+        const batch = db.batch();
+        snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+        await batch.commit();
+        process.nextTick(() => deleteQueryBatch(query, resolve));
+    }
 
-    let currentBatch = db.batch();
+    for (const coll of collections) {
+        await deleteCollection(coll);
+    }
+    console.log('✅ 기존 데이터 초기화 완료.');
+
+    const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+    const today = new Date(); // 로컬 시각 기준 (스크립트 실행)
+    const threeMonthsAgo = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
+
     let batchCount = 0;
+    let currentBatch = db.batch();
 
-    const commitBatch = async () => {
-        if (batchCount > 0) {
+    async function addOp(opFunc) {
+        opFunc();
+        batchCount++;
+        if (batchCount === 400) {
             await currentBatch.commit();
             currentBatch = db.batch();
             batchCount = 0;
+            console.log('...배치 처리 중...');
         }
-    };
-    const addOp = async (opFunc) => {
-        opFunc();
-        batchCount++;
-        if (batchCount >= 400) await commitBatch();
-    };
+    }
 
-    const today = new Date();
-    const todayStr = today.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-    const threeMonthsAgo = new Date(today); threeMonthsAgo.setMonth(today.getMonth() - 3);
+    async function commitBatch() {
+        if (batchCount > 0) {
+            await currentBatch.commit();
+        }
+    }
 
-    // 3. Notices & Board
-    const notices = [
-        { title: `[필독] ${today.getMonth()+1}월 수강 스케줄 안내`, content: `안녕하세요. 이번 달 수강 스케줄이 확정되었습니다.\n\n앱에서 바로 예약 가능합니다.`, type: 'notice', isImportant: true },
-        { title: '봄맞이 요가 특강 프로모션', content: '선착순 10명 한정으로 요가 심화 특강이 열립니다.', type: 'event', isImportant: false },
-        { title: '원내 코로나 방역 지침 안내', content: '마스크 착용 등을 준수해주시기 바랍니다.', type: 'notice', isImportant: false }
+    const getRandomDate = (start, end) => new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+    
+    // 2. 강사 데이터 (요가/필라테스 리얼리티)
+    const instructors = [
+        { id: 'ins-master', name: '김보람 원장', phone: '010-1111-1111', role: '원장' },
+        { id: 'ins-01', name: '박태민 수석강사', phone: '010-2222-2222', role: '전임강사' },
+        { id: 'ins-02', name: '이수아 강사', phone: '010-3333-3333', role: '오전전담' },
+        { id: 'ins-03', name: '정다은 강사 (필라테스)', phone: '010-4444-4444', role: '파트타임' }
     ];
-    for (const notice of notices) {
-        const id = tenantDb.collection('board_notices').doc().id;
-        await addOp(() => currentBatch.set(tenantDb.collection('board_notices').doc(id), {
-            id, ...notice,
-            author: '김지수 원장', createdAt: new Date(today.getTime() - Math.random()*86400000*3).toISOString()
+    for (const ins of instructors) {
+        await addOp(() => currentBatch.set(tenantDb.collection('instructors').doc(ins.id), {
+            ...ins, profileImageUrl: '', status: 'active', createdAt: new Date().toISOString()
         }));
     }
 
-    // 4. Notifications History
-    const notifications = [
-        { title: '결제 완료', message: '박민준님의 요가 기본반 30회권 결제가 완료되었습니다.', type: 'payment', link: '/admin?tab=revenue' },
-        { title: '출석 확인', message: '이서현님이 자동 얼굴 인식으로 출석했습니다.', type: 'attendance', link: '/admin?tab=attendance' },
-        { title: '예약 알림', message: '김지민님이 내일 저녁 하타요가 수업을 예약했습니다.', type: 'booking', link: '/admin?tab=members' }
-    ];
-    for (const noti of notifications) {
-        const id = tenantDb.collection('notification_logs').doc().id;
-        await addOp(() => currentBatch.set(tenantDb.collection('notification_logs').doc(id), {
-            id, ...noti,
-            isRead: false,
-            createdAt: new Date(today.getTime() - Math.random()*86400000).toISOString()
-        }));
-    }
+    console.log('✅ 강사 시딩 완료.');
 
-    // 5. Pricing
+    // 3. 가격표 (매우 구체적, 월간/주수 별 정액, 횟수권)
     const prices = [
-        { name: '1개월 무제한권', category: 'yoga', price: 150000, validDays: 30, useCount: 999 },
-        { name: '3개월 30회권', category: 'pilates', price: 390000, validDays: 90, useCount: 30 },
-        { name: '1일 체험권', category: 'yoga', price: 30000, validDays: 7, useCount: 1 }
+        { name: '요가 1개월 무제한권', category: 'yoga', price: 150000, validDays: 30, useCount: 999 },
+        { name: '요가 3개월 주3회권 (36회)', category: 'yoga', price: 380000, validDays: 90, useCount: 36 },
+        { name: '기구필라테스 주3회 12주 (36회)', category: 'pilates', price: 680000, validDays: 90, useCount: 36 },
+        { name: '바디프로필 1:1 PT 10회권', category: 'pt', price: 770000, validDays: 90, useCount: 10 },
+        { name: '요가 지도자 과정 (TTC 200h)', category: 'special', price: 2500000, validDays: 180, useCount: 1 }
     ];
     for (const p of prices) {
         const id = tenantDb.collection('pricing').doc().id;
@@ -140,121 +95,259 @@ async function refreshDemoData() {
         }));
     }
 
-    // 6. Instructors
-    const instructors = [
-        { id: 'ins-1234', name: '김지수 원장', phone: '010-1111-1111', role: '원장' }, // 데모 로그인용!
-        { id: 'ins-5678', name: '박사라 강사', phone: '010-2222-2222', role: '전임강사' },
-        { id: 'ins-9012', name: '이보미 강사', phone: '010-3333-3333', role: '파트타임' }
-    ];
-    for (const ins of instructors) {
-        await addOp(() => currentBatch.set(tenantDb.collection('instructors').doc(ins.id), {
-            ...ins, profileImageUrl: '', status: 'active', createdAt: new Date().toISOString()
-        }));
-    }
+    console.log('✅ 가격표 시딩 완료.');
 
-    // 7. Members
+    // 4. 회원 데이터 (그룹별 다채롭게 150명 생성)
+    const firstNames = ['김', '이', '박', '최', '정', '강', '조', '윤', '장', '임', '한', '오', '서', '신', '권'];
+    const lastNames = ['민준', '서준', '도윤', '예준', '시우', '하준', '지호', '지훈', '서연', '서윤', '지우', '서현', '하은', '하윤', '민서', '지민', '희은', '태희', '연아', '수진', '지영'];
+    const getRandomName = () => firstNames[Math.floor(Math.random() * firstNames.length)] + lastNames[Math.floor(Math.random() * lastNames.length)];
+
     const memberIds = [];
-    for (let i = 0; i < 50; i++) {
-        const isDemo = i === 0; 
+    const membersDataMap = {}; // [FIX] To populate attendance logs correctly
+    for (let i = 0; i < 150; i++) {
+        const isDemo = i === 0;
         const id = isDemo ? 'demo-member' : tenantDb.collection('members').doc().id;
         memberIds.push(id);
-        const name = isDemo ? '우수회원 (데모)' : getRandomName();
-        // 데모계정 비번(핀번호)는 0000
-        const phone = isDemo ? '010-0000-0000' : `010-0000-${String(1000+i).padStart(4, '0')}`;
-        const type = Math.random() > 0.6 ? 'yoga_basic' : Math.random() > 0.5 ? 'pilates_equipment' : 'unlimited';
-        const isUnlimited = type === 'unlimited';
-        const credits = isUnlimited ? 999 : Math.floor(Math.random() * 30) + 1; // 1~30
+        const name = isDemo ? '최우수회원 (데모)' : getRandomName();
+        const phone = isDemo ? '010-0000-0000' : `010-${String(Math.floor(Math.random() * 8999) + 1000)}-${String(Math.floor(Math.random() * 8999) + 1000)}`;
+        membersDataMap[id] = { name, phone, profileImageUrl: null };
         
+        const type = Math.random() > 0.4 ? 'yoga_unlimited' : 'pilates_count';
+        const isUnlimited = type === 'yoga_unlimited';
+        let credits = 0;
+        
+        // 활동/휴면 비율 분배: 80% 활성, 20% 만료/소진
+        let lastAttendanceStr = null;
+        let lastPaymentStr = null;
+        if (Math.random() > 0.2) {
+            credits = isUnlimited ? 999 : Math.floor(Math.random() * 20) + 5;
+            lastAttendanceStr = getRandomDate(new Date(today.getTime() - 7*86400000), today).toISOString();
+            lastPaymentStr = getRandomDate(new Date(today.getTime() - 30*86400000), today).toISOString();
+        } else {
+            credits = Math.floor(Math.random() * 2); 
+            lastAttendanceStr = getRandomDate(threeMonthsAgo, new Date(today.getTime() - 30*86400000)).toISOString();
+            lastPaymentStr = getRandomDate(threeMonthsAgo, new Date(today.getTime() - 90*86400000)).toISOString();
+        }
+
+        const regDate = getRandomDate(threeMonthsAgo, new Date()).toLocaleDateString('sv-SE', {timeZone: 'Asia/Seoul'});
+
         await addOp(() => {
             currentBatch.set(tenantDb.collection('members').doc(id), {
-                id, name, phone, membershipType: type, credits, 
-                originalCredits: isUnlimited ? 999 : (credits > 10 ? 30 : 10),
-                regDate: getRandomDate(threeMonthsAgo, new Date()).toISOString().split('T')[0],
-                hasFaceDescriptor: Math.random() > 0.2, 
-                status: 'active', createdAt: new Date().toISOString(), branchId: 'main'
+                id, name, phone, membershipType: type, credits,
+                originalCredits: isUnlimited ? 999 : 36,
+                regDate,
+                hasFaceDescriptor: Math.random() > 0.15, // 85% 안면 정보 보유
+                status: credits > 0 ? 'active' : 'expired',
+                createdAt: new Date(new Date(regDate).getTime() - 86400000).toISOString(),
+                branchId: 'main',
+                lastAttendance: lastAttendanceStr,
+                lastPaymentDate: lastPaymentStr
             });
         });
     }
 
-    // 8. Classes & Attendance
-    const classNames = ['모닝 빈야사', '기구 필라테스 종합', '플라잉 요가', '저녁 하타요가', '파워 요가'];
-    const classTimes = ['07:00', '10:00', '14:00', '19:00', '21:00'];
-    
-    for (let d = -15; d <= 7; d++) {
-        const date = new Date(today); date.setDate(today.getDate() + d);
-        const dateStr = date.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+    console.log('✅ 회원 시딩 완료.');
+
+    // 4.5. 기타 필수 데모 자산 (로고, 시간표 이미지, 휴지통 예시)
+    await addOp(() => {
+        currentBatch.set(db.doc('studios/demo-yoga/images/logo'), {
+            url: 'https://passflow-0324.web.app/assets/passflow_ai_logo_transparent_final.png',
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
         
-        for (let i = 0; i < 3; i++) {
-            const classId = tenantDb.collection('daily_classes').doc().id;
-            const time = classTimes[i % classTimes.length];
-            const attendeesCount = Math.floor(Math.random() * 10) + 2; 
-            const attendees = [...memberIds].sort(() => 0.5 - Math.random()).slice(0, attendeesCount);
-            
-            // 데모계정 예약 무조건 할당
-            if (d >= 0 && i === 1 && !attendees.includes('demo-member')) {
-                attendees.push('demo-member');
-            }
+        currentBatch.set(db.doc(`studios/demo-yoga/images/timetable_main_${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`), {
+            url: 'https://passflow-0324.web.app/assets/hero_bg_ai.png',
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
 
-            const instructorName = instructors[Math.floor(Math.random() * instructors.length)].name;
+        // 다음 달 시간표
+        const nextDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+        currentBatch.set(db.doc(`studios/demo-yoga/images/timetable_main_${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}`), {
+            url: 'https://passflow-0324.web.app/assets/hero_bg_ai.png',
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
 
-            await addOp(() => {
-                currentBatch.set(tenantDb.collection('daily_classes').doc(classId), {
-                    id: classId, date: dateStr, time, 
-                    name: classNames[Math.floor(Math.random() * classNames.length)],
-                    instructor: instructorName, 
-                    capacity: 20, attendees, branchId: 'main',
-                    createdAt: new Date().toISOString()
-                });
-            });
-            
-            if (d < 0 || (d === 0 && parseInt(time.split(':')[0]) <= today.getHours())) {
-                for (const memberId of attendees) {
-                    if (Math.random() > 0.8) continue; // No-show
-                    const logId = tenantDb.collection('attendance').doc().id;
-                    const timestamp = new Date(`${dateStr}T${time}:00+09:00`);
-                    timestamp.setMinutes(timestamp.getMinutes() - Math.floor(Math.random() * 15));
-                    
-                    await addOp(() => {
-                        currentBatch.set(tenantDb.collection('attendance').doc(logId), {
-                            id: logId, memberId,
-                            timestamp: admin.firestore.Timestamp.fromDate(timestamp),
-                            className: classNames[Math.floor(Math.random() * classNames.length)],
-                            instructor: instructorName, status: 'approved', branchId: 'main'
-                        });
-                    });
-                }
-            }
-        }
+        // 휴지통
+        currentBatch.set(tenantDb.collection('trash').doc('trash_member_demo'), {
+            type: 'member',
+            originalId: 'trash_member_demo',
+            deletedAt: new Date().toISOString(),
+            data: { name: '이수진 (휴지통 예시)', phone: '010-9988-7766' },
+            deletedBy: 'admin@passflow.kr'
+        });
+        currentBatch.set(tenantDb.collection('trash').doc('trash_att_demo'), {
+            type: 'attendance',
+            originalId: 'trash_att_demo',
+            deletedAt: new Date().toISOString(),
+            data: { memberName: '김민준', className: '아쉬탕가 베이직', date: todayKST },
+            deletedBy: 'admin@passflow.kr'
+        });
+    });
+    console.log('✅ 추가 데모 자산 시딩 완료.');
+
+    // 5. 공지사항 및 히스토리
+    const notices = [
+        { title: '[필독] 회원 안면 데이터 관리 시스템 변경 안내', content: 'PassFlow Ai 서버 이중화 완료로 더욱 정교한 인증과 데이터 보안이 가능해졌습니다.', type: 'notice', isImportant: true },
+        { title: '4월 요가/필라테스 그룹 레슨 시간표 개편 확정', content: '오전 7시 아쉬탕가 클래스가 주 5회로 확대 편성됩니다. 어플에서 신규 시간표를 확인하세요.', type: 'event', isImportant: false },
+        { title: '스튜디오 대청소로 인한 일주 휴관 안내', content: '방역 및 프리미엄 소독 완료. 최상의 센터 컨디션을 약속드립니다.', type: 'notice', isImportant: false }
+    ];
+    for (const notice of notices) {
+        const id = tenantDb.collection('board_notices').doc().id;
+        await addOp(() => currentBatch.set(tenantDb.collection('board_notices').doc(id), {
+            id, ...notice,
+            author: '김보람 원장', createdAt: new Date(today.getTime() - Math.random()*86400000*5).toISOString()
+        }));
     }
 
-    // 9. Sales Data (Graphs)
+    console.log('✅ 공지사항 시딩 완료.');
+
+    // 6. 매출 데이터 (그래프 극대화를 위해 최근 4달간 120건 생성)
     for (let m = 0; m < 4; m++) {
-        for (let i = 0; i < 15; i++) {
+        for (let i = 0; i < 30; i++) {
             const saleId = tenantDb.collection('sales').doc().id;
             const saleDate = new Date(today);
             saleDate.setMonth(today.getMonth() - m);
             saleDate.setDate(Math.floor(Math.random() * 28) + 1);
+            
+            const priceItem = prices[Math.floor(Math.random() * prices.length)];
             
             await addOp(() => {
                 currentBatch.set(tenantDb.collection('sales').doc(saleId), {
                     id: saleId,
                     date: saleDate.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }),
                     timestamp: saleDate.toISOString(),
-                    itemType: Math.random() > 0.7 ? 'yoga_basic' : 'unlimited',
-                    itemName: '수강권 결제',
+                    itemType: priceItem.category,
+                    itemName: priceItem.name,
                     memberName: getRandomName(),
                     memberId: memberIds[Math.floor(Math.random() * memberIds.length)],
-                    paymentMethod: Math.random() > 0.5 ? 'card' : 'cash',
-                    amount: (Math.floor(Math.random() * 5) + 10) * 10000, 
+                    paymentMethod: Math.random() > 0.4 ? 'card' : 'cash',
+                    amount: priceItem.price * (Math.random() > 0.9 ? 0.8 : 1), // 할인 로직
                     status: 'completed', branchId: 'main',
-                    createdAt: new Date().toISOString()
+                    createdAt: saleDate.toISOString()
                 });
             });
         }
     }
 
+    console.log('✅ 매출 통계 데이터 시딩 완료.');
+
+    // 7. 실시간 출석 및 매일 시간표 (28일 전 ~ 7일 후 클래스 스케줄 생성)
+    const scheduleTemplate = [
+        { time: '07:00', names: ['아쉬탕가 풀프라이머리', '리포머 코어포커스'] },
+        { time: '10:00', names: ['하타 인텐시브', '빈야사 플로우'] },
+        { time: '12:00', names: ['인양 테라피'], ins: '이수아 강사' }, 
+        { time: '18:30', names: ['캐딜락&바렐 그룹', '빈야사 플로우'] },
+        { time: '19:30', names: ['플라잉 베이직', '아쉬탕가 풀프라이머리'] },
+        { time: '20:30', names: ['리포머 코어포커스', '프라이빗 1:1 레슨'] }
+    ];
+
+    let attendanceCount = 0;
+
+    for (let d = -28; d <= 7; d++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + d);
+        const dateStr = date.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+        const isPast = d < 0;
+        const isToday = d === 0;
+
+        const dailyClasses = [];
+
+        for (const slot of scheduleTemplate) {
+            const time = slot.time;
+            const className = slot.names[Math.floor(Math.random() * slot.names.length)];
+            const insName = slot.ins || instructors[Math.floor(Math.random() * instructors.length)].name;
+            
+            // 피크타임일 수록 예약자가 많음 (저녁)
+            let maxCount = (time.startsWith('18') || time.startsWith('19') || time.startsWith('20')) ? 16 : 8;
+            const attendeesCount = Math.floor(Math.random() * 5) + maxCount - 4; 
+            
+            // 7.1 수강/예약 멤버 할당
+            const attendees = [...memberIds].sort(() => 0.5 - Math.random()).slice(0, attendeesCount);
+
+            if (isToday && !attendees.includes('demo-member')) {
+                attendees.push('demo-member'); // 데모 멤버는 오늘 모든 수업에 억지로 넣어둠 (확인하기 쉽게)
+            }
+
+            dailyClasses.push({
+                time, title: className,
+                instructor: insName,
+                status: 'normal',
+                capacity: 20, attendees,
+                duration: 60, level: ''
+            });
+
+            // 7.2 과거/당일 출석 데이터 기록 시딩 (밑에서 계속 활용하기 위해 class 정보 전달)
+            slot.currentAttendees = attendees;
+        }
+
+        const dateId = `main_${dateStr}`;
+        await addOp(() => {
+            currentBatch.set(tenantDb.collection('daily_classes').doc(dateId), {
+                branchId: 'main',
+                date: dateStr,
+                classes: dailyClasses,
+                updatedAt: new Date().toISOString()
+            });
+        });
+
+        const [y, m, dNum] = dateStr.split('-');
+        const metaDocId = `main_${parseInt(y)}_${parseInt(m)}`;
+        await addOp(() => {
+            currentBatch.set(tenantDb.collection('monthly_schedules').doc(metaDocId), {
+                branchId: 'main',
+                year: parseInt(y),
+                month: parseInt(m),
+                isSaved: true
+            }, { merge: true });
+        });
+
+        for (const slot of scheduleTemplate) {
+            const time = slot.time;
+            const attendees = slot.currentAttendees || [];
+
+
+            // 7.2 과거/당일 출석 데이터 기록 시딩
+            const slotHour = parseInt(time.split(':')[0], 10);
+            const currentHour = today.getHours();
+            
+            // 이미 지난 시간이면 출석 기록에 넣기
+            if (isPast || (isToday && slotHour <= currentHour)) {
+                for (const memberId of attendees) {
+                    if (Math.random() > 0.85) continue; // 15% No-show
+                    
+                    const logId = tenantDb.collection('attendance').doc().id;
+                    const timestampObj = new Date(`${dateStr}T${time}:00+09:00`);
+                    // 출석 시간 리얼하게 클래스 시작 -15분 ~ +2분 사이
+                    timestampObj.setMinutes(timestampObj.getMinutes() - Math.floor(Math.random() * 15) + 2);
+
+                    await addOp(() => {
+                        const mData = membersDataMap[memberId] || { name: '데모 회원', phone: '010-0000-0000', profileImageUrl: null };
+                        currentBatch.set(tenantDb.collection('attendance').doc(logId), {
+                            id: logId, memberId,
+                            memberName: mData.name,
+                            memberPhone: mData.phone,
+                            profileImageUrl: mData.profileImageUrl,
+                            // [CRITICAL FIX] ISO string for timestamps identical to production behavior!
+                            timestamp: timestampObj.toISOString(),
+                            date: dateStr, 
+                            className: className,
+                            classTime: time, // Added classTime for grouping
+                            instructor: insName, 
+                            status: Math.random() > 0.95 ? 'denied' : 'approved',
+                            denialReason: '사유 없음',
+                            branchId: 'main'
+                        });
+                    });
+                    attendanceCount++;
+                }
+            }
+        }
+    }
+
+    console.log(`✅ 시간표 및 출석 시딩 완료 (${attendanceCount}건의 출석 로그 생성).`);
+
     await commitBatch();
-    console.log('🎉 Super-realistic seeding successfully completed for passflow-demo!');
+    console.log('🎉 완벽하게 현실적이고 차트가 꽉차는 슈퍼 데모 데이터 셋업이 완료되었습니다. (passflow-demo-0324)');
 }
 
 module.exports = { refreshDemoData };

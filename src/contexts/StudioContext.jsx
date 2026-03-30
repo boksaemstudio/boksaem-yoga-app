@@ -111,10 +111,11 @@ export const StudioProvider = ({ children }) => {
                 if (window.location.hostname.includes('passflow-0324') || window.location.hostname.includes('demo') || studioId === 'demo-yoga') {
                     if (!merged.ASSETS) merged.ASSETS = {};
                     if (!merged.ASSETS.LOGO) merged.ASSETS.LOGO = {};
-                    merged.ASSETS.LOGO.WIDE = '/assets/passflow_logo.png';
-                    merged.ASSETS.LOGO.SQUARE = '/assets/passflow_logo.png';
+                    merged.ASSETS.LOGO.WIDE = '/assets/passflow_ai_logo_transparent_final.png';
+                    merged.ASSETS.LOGO.SQUARE = '/assets/passflow_ai_logo_transparent_final.png';
                     if (!merged.IDENTITY) merged.IDENTITY = {};
-                    merged.IDENTITY.NAME = 'PassFlow 데모 플랫폼';
+                    merged.IDENTITY.NAME = 'PassFlow Ai 데모 플랫폼';
+                    merged.IDENTITY.LOGO_URL = '/assets/passflow_ai_logo_transparent_final.png';
                 }
 
                 setConfig(merged);

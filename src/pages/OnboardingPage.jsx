@@ -149,7 +149,7 @@ const OnboardingPage = () => {
                         <div style={{ width: '80px', height: '80px', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
                             <Crown size={40} color="white" weight="fill" />
                         </div>
-                        <h1 style={{ fontSize: '2rem', margin: '0 0 12px 0', fontWeight: '800' }}>패스플로우 (PassFlow)</h1>
+                        <h1 style={{ fontSize: '2rem', margin: '0 0 12px 0', fontWeight: '800' }}>패스플로우 Ai (PassFlow Ai)</h1>
                         <p style={{ color: '#94a3b8', fontSize: '1.1rem', margin: 0, lineHeight: '1.5' }}>
                             원장님을 위한 완벽한 스튜디오 관리 플랫폼,<br/>지금 바로 무료로 시작해보세요.
                         </p>

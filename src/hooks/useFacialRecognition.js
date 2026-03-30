@@ -21,10 +21,11 @@ export function useFacialRecognition({ enabled, autoUpdateRef, proceedWithCheckI
     const lastDescriptorRef = useRef(null);
     const activeTaskIdRef = useRef(0);
 
-    // 모델 로드
+    // 모델 로드 — enabled=true일 때만 (안면인식 OFF면 모델 자체를 로드하지 않음)
     useEffect(() => {
+        if (!enabled) return;
         loadFacialModels().then(() => setFaceModelsLoaded(true));
-    }, []);
+    }, [enabled]);
 
     // 생체 캐시 프리로드
     useEffect(() => {
@@ -71,12 +72,24 @@ export function useFacialRecognition({ enabled, autoUpdateRef, proceedWithCheckI
                 let bestDistance = Infinity;
                 let secondBestDistance = Infinity;
 
-                // [근본 수정] 임계값 0.42로 대폭 강화 (0.5에서 하향)
+                // [HARDENED] 임계값 0.42 (엄격 모드 — 오인식 근절)
                 const MATCH_THRESHOLD = 0.42;
 
                 for (const bio of biometricsCache.current) {
                     if (!bio.descriptor) continue;
-                    const storedDesc = new Float32Array(Object.values(bio.descriptor));
+                    // [FIX] Array/Object 양쪽 안전 파싱
+                    let storedDesc;
+                    if (bio.descriptor instanceof Float32Array) {
+                        storedDesc = bio.descriptor;
+                    } else if (Array.isArray(bio.descriptor)) {
+                        storedDesc = new Float32Array(bio.descriptor);
+                    } else if (typeof bio.descriptor === 'object') {
+                        // Firestore가 Map으로 반환할 수 있음 (key: '0','1','2'...)
+                        const keys = Object.keys(bio.descriptor).sort((a,b) => Number(a) - Number(b));
+                        storedDesc = new Float32Array(keys.map(k => bio.descriptor[k]));
+                    } else {
+                        continue;
+                    }
                     const distance = euclideanDistance(descriptor, storedDesc);
                     
                     if (distance < bestDistance) {
@@ -88,15 +101,14 @@ export function useFacialRecognition({ enabled, autoUpdateRef, proceedWithCheckI
                     }
                 }
 
-                // [근본 수정] 3중 안전장치:
+                // [HARDENED] 3중 안전장치 (gap 스킵 조건 완전 제거)
                 // 1) 거리가 0.42 이하여야 함
-                // 2) 2nd best와의 갭이 0.08 이상이어야 함 (확실한 구별)
-                // 3) best 거리가 0.35 이하면 갭 조건 완화 (매우 확실한 일치)
+                // 2) 2nd best와의 갭이 0.08 이상이어야 함 (등록 인원 수에 관계없이 필수)
+                // 3) best 거리가 0.32 이하면 갭 조건 완화 (극도로 확실한 일치만)
                 const gap = secondBestDistance - bestDistance;
                 const isConfidentMatch = bestDistance <= MATCH_THRESHOLD && (
-                    gap >= 0.08 ||                    // 2등과 충분히 차이남
-                    bestDistance <= 0.35 ||            // 매우 확실한 일치
-                    biometricsCache.current.length <= 3 // 등록 인원이 적으면 갭 검증 스킵
+                    gap >= 0.08 ||                    // 2등과 충분히 차이남 (필수)
+                    bestDistance <= 0.32              // 극도로 확실한 일치만 갭 면제
                 );
 
                 if (bestMatch && isConfidentMatch) {

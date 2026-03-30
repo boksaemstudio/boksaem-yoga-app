@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PassFlow - AI 스튜디오 관리 플랫폼</title>
-    <meta name="description" content="수강권 관리, 회원 관리, 매출 확인까지 한 곳에서. 연 10만 원 리얼 가성비 AI 스튜디오 관리 플랫폼입니다.">
+    <title>PassFlow Ai - 요가·필라테스 스튜디오 스마트 관리 솔루션</title>
+    <meta name="description" content="패스플로우 Ai는 무인 출석부터 스튜디오 운영까지 인공지능이 매끄럽게 알아서 돕는 솔루션입니다.">
     <meta name="keywords" content="요가 회원관리, 필라테스 관리 프로그램, 요가원 예약관리, 필라테스 출석체크, AI 회원관리, 스튜디오 관리 앱, 안면인식 출석">
-    <meta property="og:title" content="패스플로우 - AI가 스튜디오 운영을 도와드립니다">
+    <meta property="og:title" content="패스플로우 Ai - 무인 출석부터 스튜디오 운영까지 인공지능이 돕습니다">
     <meta property="og:description" content="연 10만 원. 출석부터 경영 관리까지. AI가 반복 업무를 줄여드립니다.">
-    <meta property="og:image" content="/assets/passflow_logo.png">
+    <meta property="og:image" content="/assets/passflow_ai_logo_transparent_final.png">
     <meta property="og:type" content="website">
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/logo_circle_white.webp">
@@ -126,21 +126,17 @@
 
     <!-- 1. Navigation -->
     <nav class="navbar glass">
-        <div class="logo">
-            <svg class="logo-icon" width="28" height="28" viewBox="0 0 28 28" fill="none">
-                <path d="M4 20C8 20 10 8 14 8S20 20 24 20" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-                <path d="M4 14C8 14 10 8 14 8S20 14 24 14" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.4"/>
-                <defs><linearGradient id="logoGrad" x1="0" y1="0" x2="28" y2="0"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#d4af37"/></linearGradient></defs>
-            </svg>
-            <span class="logo-pass">Pass</span><span class="logo-flow">Flow</span>
+        <a href="home.html" class="logo" style="text-decoration:none; display: flex; align-items: center; gap: 8px;">
+            <img src="/assets/passflow_ai_logo_transparent_final.png" alt="PassFlow Logo" style="height: 28px; width: auto;" />
+            <span style="font-weight: 800; font-size: 1.25rem; color: #fff; letter-spacing: -0.5px;">PassFlow Ai</span>
+        </a>
+        <div class="nav-links" id="navLinks">
+            <a href="home.html#live-demo" style="color:#d4af37; font-weight:600;">데모</a>
+            <a href="features.html">상세기능</a>
+            <a href="home.html#pricing">가격</a>
+            <a href="home.html#contact">문의</a>
         </div>
-        <div class="nav-links">
-            <a href="#live-demo" style="color:#d4af37; font-weight:600;">데모</a>
-            <a href="#ai-features">기능</a>
-            <a href="#pricing">가격</a>
-            <a href="#contact">문의</a>
-        </div>
-        <button class="nav-hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
+        <button class="nav-hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
     </nav>
 
     <!-- 2. Hero Section -->
@@ -150,9 +146,9 @@
         <div class="hero-content" style="position: relative; z-index: 2;">
             <div style="display:inline-flex; align-items:center; gap:8px; padding:8px 20px; border-radius:30px; background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.25); margin-bottom:30px; font-size:0.9rem; color:#d4af37;">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="3" fill="#d4af37"/><circle cx="8" cy="8" r="6" stroke="#d4af37" stroke-width="1" opacity="0.4"/></svg>
-                AI 기반 스튜디오 관리 플랫폼
+                PassFlow Ai 기반 스튜디오 관리 플랫폼
             </div>
-            <h1 class="gradient-text" style="line-height: 1.3;">AI가 스튜디오 운영을<br>도와드립니다</h1>
+            <h1 class="gradient-text" style="line-height: 1.3;">PassFlow Ai 가 스튜디오 운영을<br>도와드립니다</h1>
             <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 24px; max-width: 760px; margin-left: auto; margin-right: auto;">
                 <h2 style="color:rgba(255,255,255,0.95); font-size:clamp(1.15rem, 2.5vw, 1.35rem); font-weight: 500; line-height: 1.5; margin: 0; letter-spacing: -0.3px;">
                     회원 출석, 수강권 차감, 예약 관리, 매출 확인까지<br class="mobile-only">
@@ -369,7 +365,7 @@
     <footer class="footer" id="contact" style="padding: 20px 0 25px; text-align: center;">
         <div class="container">
             <div class="footer-bottom" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-                <p>&copy; 2026 PassFlow. AI가 운영을 돕는 스튜디오 관리 플랫폼.</p>
+                <p>&copy; 2026 PassFlow Ai. 요가·필라테스 스튜디오의 모든 운영을 물 흐르듯 쉽게 만들어주는 AI 기반 스마트 플랫폼.</p>
                 <p style="margin-top:8px;"><a href="https://passflow-0324.web.app/privacy" target="_blank" rel="noopener noreferrer" style="color:rgba(255,255,255,0.25); text-decoration:none; font-size:0.75rem;">개인정보처리방침</a></p>
             </div>
         </div>

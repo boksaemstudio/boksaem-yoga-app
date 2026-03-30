@@ -549,25 +549,16 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                             { id: 'card', label: '카드' },
                             { id: 'cash', label: '현금' },
                             { id: 'transfer', label: '이체' }
-                        ].map(p => {
-                            const pricingInfo = pricingConfig[newMember.membershipType];
-                            const selectedOpt = pricingInfo?.options?.find(o => o.id === newMember.selectedOption);
-                            const isSubscription = selectedOpt?.type === 'subscription';
-                            const showCash = p.id === 'card' || (isSubscription && newMember.duration >= 3) || !isSubscription;
-
-                            if (!showCash) return null;
-
-                            return (
-                                <button
-                                    key={p.id}
-                                    className={`action-btn ${newMember.paymentMethod === p.id ? 'primary' : ''}`}
-                                    style={{ flex: 1, padding: '14px 0', fontSize: '1rem', fontWeight: 'bold' }}
-                                    onClick={() => setNewMember({ ...newMember, paymentMethod: p.id })}
-                                >
-                                    {p.label}
-                                </button>
-                            );
-                        })}
+                        ].map(p => (
+                            <button
+                                key={p.id}
+                                className={`action-btn ${newMember.paymentMethod === p.id ? 'primary' : ''}`}
+                                style={{ flex: 1, padding: '14px 0', fontSize: '1rem', fontWeight: 'bold' }}
+                                onClick={() => setNewMember({ ...newMember, paymentMethod: p.id })}
+                            >
+                                {p.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
 

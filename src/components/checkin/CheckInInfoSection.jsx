@@ -18,7 +18,7 @@ const CheckInInfoSection = memo(({
 }) => {
     const { config } = useStudioConfig();
     const studioName = config.IDENTITY?.NAME || 'Studio';
-    const showCamera = config.POLICIES?.SHOW_CAMERA_PREVIEW || false;
+    const showCamera = config.POLICIES?.SHOW_CAMERA_PREVIEW !== false && (config.POLICIES?.SHOW_CAMERA_PREVIEW === true || faceRecognitionEnabled);
     const cameraSize = config.POLICIES?.CAMERA_SIZE || 'large';
     const videoRef = useRef(null);
     const streamRef = useRef(null);
@@ -38,43 +38,97 @@ const CheckInInfoSection = memo(({
         if (!showCamera && !isProximityEnabled && !faceRecognitionEnabled) return;
         let cancelled = false;
 
+        const applyStream = (stream) => {
+            streamRef.current = stream;
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+                videoRef.current.play().catch(() => {});
+            }
+            if (cameraVideoRef?.current) {
+                cameraVideoRef.current.srcObject = stream;
+                cameraVideoRef.current.play().catch(() => {});
+            }
+            // [FIX] track.onended — 스트림 죽으면 자동 복구
+            stream.getVideoTracks().forEach(track => {
+                track.onended = () => {
+                    console.warn('[Camera Preview] ⚠️ Track ended! Auto-recovering...');
+                    streamRef.current = null;
+                    if (!cancelled) setTimeout(() => startCamera(), 2000);
+                };
+            });
+        };
+
         const startCamera = async () => {
+            // 기존 스트림 정리
+            if (streamRef.current) {
+                try { streamRef.current.getTracks().forEach(t => t.stop()); } catch(e) {}
+                streamRef.current = null;
+            }
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
                 });
                 if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
-                streamRef.current = stream;
-                if (videoRef.current) {
-                    videoRef.current.srcObject = stream;
-                }
-                if (cameraVideoRef?.current) {
-                    cameraVideoRef.current.srcObject = stream;
-                    cameraVideoRef.current.play().catch(() => {});
-                }
+                applyStream(stream);
+                console.log('[Camera Preview] ✅ Camera started');
             } catch (e) {
                 console.log('[Camera Preview] 카메라 접근 불가:', e.message);
             }
         };
 
+        const isStreamAlive = () => {
+            if (!streamRef.current) return false;
+            const tracks = streamRef.current.getVideoTracks();
+            return tracks.length > 0 && tracks.some(t => t.readyState === 'live');
+        };
+
+        // [FIX] visibilitychange — 절전 복귀 시 카메라 복구
+        const handleVisibility = () => {
+            if (document.visibilityState === 'visible' && !cancelled) {
+                setTimeout(() => {
+                    if (cancelled) return;
+                    if (!isStreamAlive()) {
+                        console.warn('[Camera Preview] ⚠️ Stream dead after wake. Recovering...');
+                        startCamera();
+                    } else if (videoRef.current?.paused) {
+                        videoRef.current.play().catch(() => {});
+                    }
+                }, 1000);
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibility);
+
+        // [FIX] 2분 heartbeat — 스트림 건강 체크
+        const heartbeat = setInterval(() => {
+            if (cancelled || document.visibilityState !== 'visible') return;
+            if (!isStreamAlive()) {
+                console.warn('[Camera Preview] ⚠️ Heartbeat: stream dead. Recovering...');
+                startCamera();
+            } else if (videoRef.current?.paused) {
+                videoRef.current.play().catch(() => {});
+            }
+        }, 2 * 60 * 1000);
+
         startCamera();
         return () => {
             cancelled = true;
+            document.removeEventListener('visibilitychange', handleVisibility);
+            clearInterval(heartbeat);
             if (streamRef.current) {
                 streamRef.current.getTracks().forEach(t => t.stop());
                 streamRef.current = null;
             }
         };
-    }, [showCamera, cameraSize]);
+    }, [showCamera, cameraSize, faceRecognitionEnabled, isProximityEnabled]);
 
     const isIdle = pin.length === 0 && !loading;
 
     return (
         <div className="checkin-info-section">
-            <header className="info-header" style={{ marginBottom: 'clamp(5px, 1vh, 15px)', flexShrink: 0 }}>
+            <header className="info-header" style={{ marginBottom: 'clamp(10px, 2vh, 25px)', flexShrink: 0 }}>
                 <div className="logo-container" style={{ display: 'flex', alignItems: 'center', gap: '35px', justifyContent: 'center' }}>
                     {typeof window !== 'undefined' && window.location.hostname.includes('passflow') ? (
-                        <h1 style={{ color: 'white', fontSize: 'clamp(2.5rem, 6vh, 4rem)', margin: 0, fontWeight: 900, fontStyle: 'italic', letterSpacing: '-1px' }}>Pass<span style={{ color: 'var(--primary-gold)' }}>Flow</span></h1>
+                        <h1 style={{ color: 'white', fontSize: 'clamp(2.5rem, 6vh, 4rem)', margin: 0, fontWeight: 900, fontStyle: 'italic', letterSpacing: '-1px' }}>Pass<span style={{ color: 'var(--primary-gold)' }}>Flow Ai</span></h1>
                     ) : (
                         <>
                             <img src={rys200Logo} alt="RYS200" style={{ height: 'clamp(40px, 8vh, 80px)', width: 'auto', filter: 'brightness(0) invert(1)', opacity: 0.8 }} />
@@ -101,14 +155,14 @@ const CheckInInfoSection = memo(({
                 </div>
             )}
 
-            <div className="info-body">
+            <div className="info-body" style={{ justifyContent: 'center', alignItems: 'center' }}>
                 {/* ━━━ Large 카메라 프리뷰 (info-body 내부 — 로고와 AI메시지 사이 중앙) ━━━ */}
                 {showCamera && cameraSize === 'large' && isIdle && (
                     <div style={{
                         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                         gap: '6px',
-                        flex: 1,
-                        minHeight: 0,
+                        flex: '0 0 auto',
+                        marginBottom: 'clamp(8px, 1.5vh, 16px)',
                     }}>
                         <div style={{
                             width: 'clamp(112px, 19.5vw, 225px)',
@@ -125,7 +179,13 @@ const CheckInInfoSection = memo(({
                             onClick={onCameraTouch}
                         >
                             <video
-                                ref={videoRef}
+                                ref={(el) => {
+                                    videoRef.current = el;
+                                    if (el && streamRef.current && !el.srcObject) {
+                                        el.srcObject = streamRef.current;
+                                        el.play().catch(() => {});
+                                    }
+                                }}
                                 autoPlay
                                 playsInline
                                 muted
@@ -170,7 +230,7 @@ const CheckInInfoSection = memo(({
                     </div>
                 )}
 
-                <div className="message-container">
+                <div className="message-container" style={{ flex: '0 0 auto' }}>
                     <div className={`instruction-text ${loading ? 'loading' : ''}`}>
                         {aiExperience ? (
                             <div>
@@ -320,7 +380,7 @@ const CheckInInfoSection = memo(({
                     </div>
                     <div className="qr-text" style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'center', marginTop: '-5px' }}>
                         <h3 style={{ fontSize: 'clamp(1.15rem, 2.5vh, 1.9rem)', color: 'var(--primary-gold)', marginBottom: 'clamp(4px, 1vh, 16px)', fontWeight: 900, lineHeight: 1 }}>
-                            {typeof window !== 'undefined' && window.location.hostname.includes('passflow') ? '내 PassFlow' : `내 ${studioName}`}
+                            {typeof window !== 'undefined' && window.location.hostname.includes('passflow') ? '내 PassFlow Ai' : `내 ${studioName}`}
                         </h3>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 'clamp(2px, 0.5vh, 5px)' }}>
                             <li style={{ fontSize: 'clamp(1.0rem, 2vh, 1.2rem)', color: 'rgba(255, 255, 255, 0.95)', display: 'flex', alignItems: 'center', gap: '8px', lineHeight: 1.1 }}>✓ 잔여 횟수 확인</li>
