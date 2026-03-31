@@ -55,7 +55,15 @@ const CheckInPage = () => {
     const [message, setMessage] = useState(null);
     const [loading, setLoading] = useState(false);
     const [isReady, setIsReady] = useState(false);
-    const [currentBranch, setCurrentBranch] = useState(() => storageService.getKioskBranch());
+    const [currentBranch, setCurrentBranch] = useState(() => {
+        const saved = storageService.getKioskBranch();
+        if (saved) return saved;
+        if (branches.length === 1) {
+            storageService.setKioskBranch(branches[0].id);
+            return branches[0].id;
+        }
+        return null;
+    });
     const [duplicateMembers, setDuplicateMembers] = useState([]);
     const [showSelectionModal, setShowSelectionModal] = useState(false);
     const [weather, setWeather] = useState(null);
@@ -95,7 +103,7 @@ const CheckInPage = () => {
     const { checkConnection } = useNetworkMonitor();
     const { speak } = useTTS();
     const photoEnabled = config.POLICIES?.PHOTO_ENABLED === true || faceRecognitionEnabled === true;
-    const { videoRef, canvasRef, capturePhoto, uploadPhoto } = useAttendanceCamera(photoEnabled);
+    const { videoRef, canvasRef, capturePhoto, uploadPhoto, stream: cameraStream } = useAttendanceCamera(photoEnabled);
 
     const {
         faceModelsLoaded, isScanning, faceVideoRef,
@@ -444,7 +452,7 @@ const CheckInPage = () => {
             <TopBar weather={weather} currentBranch={currentBranch} branches={branches} handleBranchChange={c => { setCurrentBranch(c); storageService.setKioskBranch(c); }} toggleFullscreen={() => { try { const el = document.documentElement; const isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement; if (!isFs) { (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || (() => {})).call(el); } else { (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || (() => {})).call(document); } } catch(e) { console.warn('[Fullscreen] Not supported:', e.message); } }} language="ko" onInstructorClick={() => setShowInstructorQR(true)} />
 
             <div className="checkin-content" style={{ zIndex: 5, flex: 1, display: 'flex', gap: '2vh', padding: '3vh 3vw 5vh', width: '100%', alignItems: 'stretch', overflow: 'hidden' }}>
-                <CheckInInfoSection pin={pin} loading={loading} aiExperience={aiExperience} aiEnhancedMsg={aiEnhancedMsg} aiLoading={aiLoading} rys200Logo={rys200Logo} logoWide={logoWide} qrCodeUrl={qrCodeUrl} handleQRInteraction={() => setShowKioskInstallGuide(true)} onCameraTouch={() => setShowFaceRegModal(true)} faceRecognitionEnabled={faceRecognitionEnabled} isScanning={isScanning} cameraVideoRef={faceVideoRef} />
+                <CheckInInfoSection pin={pin} loading={loading} aiExperience={aiExperience} aiEnhancedMsg={aiEnhancedMsg} aiLoading={aiLoading} rys200Logo={rys200Logo} logoWide={logoWide} qrCodeUrl={qrCodeUrl} handleQRInteraction={() => setShowKioskInstallGuide(true)} onCameraTouch={() => setShowFaceRegModal(true)} faceRecognitionEnabled={faceRecognitionEnabled} isScanning={isScanning} cameraVideoRef={faceVideoRef} cameraStream={cameraStream} />
                 <CheckInKeypadSection pin={pin} loading={loading} isReady={isReady} loadingMessage={loadingMessage} keypadLocked={keypadLocked} showSelectionModal={showSelectionModal} message={message} handleKeyPress={handleKeyPress} handleClear={handleClear} handleSubmit={handleSubmit} />
             </div>
 

@@ -63,7 +63,7 @@
       ]
     },
     {
-      "site": "passflow-0324",
+      "site": "passflow",
       "public": "dist",
       "ignore": [
         "firebase.json",
@@ -106,7 +106,7 @@
       ]
     },
     {
-      "site": "ssangmun-yoga-0324",
+      "site": "ssangmun-yoga-0",
       "public": "dist",
       "ignore": [
         "firebase.json",
@@ -141,7 +141,7 @@
       ]
     },
     {
-      "site": "passflow-demo-0324",
+      "site": "passflow-demo",
       "public": "dist",
       "ignore": [
         "firebase.json",

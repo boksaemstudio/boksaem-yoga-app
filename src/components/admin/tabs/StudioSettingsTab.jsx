@@ -3,6 +3,9 @@ import { useStudioConfig } from '../../../contexts/StudioContext';
 import { Gear, MapPin, FloppyDisk, ArrowsClockwise, Robot, Image as ImageIcon, Globe } from '@phosphor-icons/react';
 import { storage } from '../../../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { tenantStoragePath } from '../../../utils/tenantStorage';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../../../firebase';
 import { getCurrentStudioId } from '../../../utils/resolveStudioId';
 
 const StudioSettingsTab = () => {
@@ -34,6 +37,19 @@ const StudioSettingsTab = () => {
             // Firestore는 undefined 값을 거부 — JSON 순환으로 정리
             const cleanConfig = JSON.parse(JSON.stringify(localConfig));
             await updateConfig(cleanConfig);
+            
+            // [Registry 동기화] 슈퍼어드민 화면 관제탑에 로고 즉시 보고
+            if (cleanConfig.IDENTITY?.LOGO_URL) {
+                try {
+                    const sid = getCurrentStudioId();
+                    await updateDoc(doc(db, 'platform/registry/studios', sid), { 
+                        logoUrl: cleanConfig.IDENTITY.LOGO_URL 
+                    });
+                } catch(e) {
+                    console.log('Registry sync skipped', e);
+                }
+            }
+            
             alert('설정이 저장되었습니다.');
         } catch (error) {
             console.error('Failed to save config:', error);
@@ -169,7 +185,7 @@ const StudioSettingsTab = () => {
                                 if (file.size > 2 * 1024 * 1024) { alert('파일 크기는 2MB 이하여야 합니다.'); return; }
                                 setLogoUploading(true);
                                 try {
-                                    const logoRef = ref(storage, `studio/logo_${Date.now()}.${file.name.split('.').pop()}`);
+                                    const logoRef = ref(storage, tenantStoragePath(`logo_${Date.now()}.${file.name.split('.').pop()}`));
                                     await uploadBytes(logoRef, file, { contentType: file.type });
                                     const url = await getDownloadURL(logoRef);
                                     handleChange('IDENTITY.LOGO_URL', url);
@@ -623,48 +639,50 @@ const StudioSettingsTab = () => {
                 </div>
             </div>
 
-            {/* ─── 3. 지점 관리 ─── */}
-            <div className="dashboard-card">
-                <h3 className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                    <MapPin size={20} weight="fill" color="var(--primary-theme-color)" /> 지점 관리
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {localConfig.BRANCHES?.map((branch, index) => (
-                        <div key={branch.id} style={{ display: 'flex', gap: '12px', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                            <div style={{ flex: 1 }}>
-                                <input 
-                                    type="text" 
-                                    className="styled-input sm" 
-                                    style={{ background: 'none', border: 'none', fontWeight: 'bold', padding: '4px 0', color: 'var(--text-primary)' }}
-                                    value={branch.name} 
-                                    onChange={(e) => {
-                                        const newBranches = [...localConfig.BRANCHES];
-                                        newBranches[index].name = e.target.value;
-                                        handleChange('BRANCHES', newBranches);
-                                    }}
-                                />
+            {/* ─── 3. 지점 관리 (다중 지점일 때만 노출) ─── */}
+            {(localConfig.BRANCHES?.length > 1) && (
+                <div className="dashboard-card">
+                    <h3 className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+                        <MapPin size={20} weight="fill" color="var(--primary-theme-color)" /> 지점 관리
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {localConfig.BRANCHES?.map((branch, index) => (
+                            <div key={branch.id} style={{ display: 'flex', gap: '12px', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                                <div style={{ flex: 1 }}>
+                                    <input 
+                                        type="text" 
+                                        className="styled-input sm" 
+                                        style={{ background: 'none', border: 'none', fontWeight: 'bold', padding: '4px 0', color: 'var(--text-primary)' }}
+                                        value={branch.name} 
+                                        onChange={(e) => {
+                                            const newBranches = [...localConfig.BRANCHES];
+                                            newBranches[index].name = e.target.value;
+                                            handleChange('BRANCHES', newBranches);
+                                        }}
+                                    />
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                    <button 
-                        className="action-btn sm" 
-                        style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', border: '1px dashed var(--border-color)' }}
-                        onClick={() => {
-                            const name = prompt('새 지점 이름을 입력하세요:');
-                            if (name) {
-                                // 자동 ID 생성: 한글→영문 변환 또는 타임스탬프 기반
-                                const id = name.replace(/[^a-zA-Z0-9가-힣]/g, '').toLowerCase() || `branch_${Date.now()}`;
-                                const autoId = id.replace(/[가-힣]+/g, () => `branch_${Date.now()}`);
-                                const finalId = /^[a-z]/.test(autoId) ? autoId : `branch_${Date.now()}`;
-                                const newBranches = [...(localConfig.BRANCHES || []), { id: finalId, name, color: 'var(--primary-gold)' }];
-                                handleChange('BRANCHES', newBranches);
-                            }
-                        }}
-                    >
-                        + 지점 추가
-                    </button>
+                        ))}
+                        <button 
+                            className="action-btn sm" 
+                            style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', border: '1px dashed var(--border-color)' }}
+                            onClick={() => {
+                                const name = prompt('새 지점 이름을 입력하세요:');
+                                if (name) {
+                                    // 자동 ID 생성
+                                    const id = name.replace(/[^a-zA-Z0-9가-힣]/g, '').toLowerCase() || `branch_${Date.now()}`;
+                                    const autoId = id.replace(/[가-힣]+/g, () => `branch_${Date.now()}`);
+                                    const finalId = /^[a-z]/.test(autoId) ? autoId : `branch_${Date.now()}`;
+                                    const newBranches = [...(localConfig.BRANCHES || []), { id: finalId, name, color: 'var(--primary-gold)' }];
+                                    handleChange('BRANCHES', newBranches);
+                                }
+                            }}
+                        >
+                            + 지점 추가
+                        </button>
+                    </div>
                 </div>
-            </div>
+            )}
             
 
 

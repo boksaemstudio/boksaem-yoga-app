@@ -2,51 +2,96 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // ========================================
-    // 📢 Notices - 공지사항 이미지
-    // Authenticators with admin token can upload, anyone can read
-    // ========================================
-    match /notices/{fileName} {
-      allow read: if true;
-      allow write: if request.auth != null
-                   && request.auth.token.admin == true
-                   && request.resource.size < 10 * 1024 * 1024; // Max 10MB
-    }
-
-    // ========================================
-    // 📺 Kiosk Notices - 키오스크 공지 이미지/영상
-    // Admin can upload (max 50MB), anyone can read (kiosk anonymous access)
-    // ========================================
-    match /kiosk_notices/{allPaths=**} {
-      allow read: if true;
-      // [FIX] create/update와 delete 분리 — 삭제 시 request.resource가 없어서 size 체크 불가
-      allow create, update: if request.auth != null
-                   && request.resource.size < 50 * 1024 * 1024; // Max 50MB
-      allow delete: if request.auth != null;
-    }
-
     // Helper: Check if authenticated
     function isAuth() {
       return request.auth != null;
     }
 
-    // Helper: Check if admin
+    // Helper: Admin Check
     function isAdmin() {
       return isAuth() && request.auth.token.admin == true;
     }
 
-    // ========================================
-    // 📸 Attendance Photos - 출석 확인 사진
-    // Kiosk clients without auth can upload, authenticated admins/instructors can read
-    // ========================================
-    match /attendance-photos/{allPaths=**} {
-      allow read: if isAuth() && (request.auth.token.admin == true || request.auth.token.instructor == true);
-      allow write: if request.resource.size < 5 * 1024 * 1024; // Removed isAuth() requirement for Kiosks
+    // ====================================================
+    // 🏢 SaaS Tenant-Isolated Paths (NEW)
+    // ====================================================
+    // 모든 학원 데이터는 이제 studios/{studioId}/ 하위로 격리됩니다.
+    match /studios/{studioId} {
+
+      // 1. 키오스크 공지사항 (kiosk_notices)
+      // 읽기: 퍼블릭 허용 (키오스크 앱은 비로그인 상태일 수 있음)
+      // 쓰기: 관리자/로그인유저만 (최대 50MB 영상)
+      match /kiosk_notices/{allPaths=**} {
+        allow read: if true;
+        allow create, update: if isAuth() && request.resource.size < 50 * 1024 * 1024;
+        allow delete: if isAuth();
+      }
+
+      // 2. 일반 공지사항 및 이벤트 배너 (notices)
+      // 읽기: 퍼블릭 허용
+      // 쓰기: 관리자/로그인유저만 (최대 10MB)
+      match /notices/{allPaths=**} {
+        allow read: if true;
+        allow write: if isAuth() && request.resource.size < 10 * 1024 * 1024;
+      }
+
+      // 3. 출석 사진 (attendance-photos)
+      // 쓰기: 퍼블릭 허용 (키오스크 앱에서 사진은 비로그인 캡쳐일 수 있음)
+      // 읽기: 강사/관리자 등 로그인 사용자만 판독 가능
+      match /attendance-photos/{allPaths=**} {
+        allow read: if isAuth(); 
+        allow write: if request.resource.size < 5 * 1024 * 1024; // 최대 5MB
+      }
+
+      // 4. 스튜디오 로고 및 기타 파일 (studios/{studioId} 바로 아래 또는 기타 폴더)
+      match /{allPaths=**} {
+        // 로고 파일 보호를 위해 기본적인 읽기는 열어두고, 쓰기는 로그인 유저만
+        allow read: if true;
+        allow write: if isAuth() && request.resource.size < 10 * 1024 * 1024;
+      }
     }
 
-    // ========================================
-    // 🛡️ Default - 기본 거부
-    // ========================================
+
+    // ====================================================
+    // 🏛️ LEGACY Backward Compatibility (READ/DELETE-ONLY)
+    // ====================================================
+    // 신규 업로드는 전면 차단되지만, 기존 엑스박스 방지를 위해 읽기와 삭제 권한만 보존
+
+    match /notices/{allPaths=**} {
+      allow read: if true;
+      allow delete: if isAuth();
+      allow create, update: if false; // 과거 폴더 업로드 금지
+    }
+
+    match /kiosk_notices/{allPaths=**} {
+      allow read: if true;
+      allow delete: if isAuth();
+      allow create, update: if false; // 과거 폴더 업로드 금지
+    }
+
+    match /attendance-photos/{allPaths=**} {
+      allow read: if isAuth(); 
+      allow delete: if isAuth();
+      allow create, update: if false; // 과거 폴더 업로드 금지
+    }
+
+    match /studio/{allPaths=**} {
+      allow read: if true;
+      allow delete: if isAuth();
+      allow create, update: if false; // 과거 폴더 업로드 금지
+    }
+
+    // ====================================================
+    // 🌍 PLATFORM LEVEL (SUPER ADMIN / ONBOARDING)
+    // ====================================================
+    match /platform/{allPaths=**} {
+      allow read: if true;
+      allow write: if true; // 튜토리얼 / 사업자등록증 등 오픈
+    }
+
+    // ====================================================
+    // 🛡️ DEFAULT (GLOBAL BLOCK)
+    // ====================================================
     match /{allPaths=**} {
       allow read: if request.auth != null;
       allow write: if false;

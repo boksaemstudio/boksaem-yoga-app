@@ -214,7 +214,7 @@ const PushHistoryTab = ({ onSelectMember, setActiveTab, pendingApprovals = [], o
                         if (item.type === 'campaign') label = '앱 푸시 (단체)';
                         else if (item.type === 'notice') label = '공지 알림';
                         else if (item.type === 'individual') label = `앱 푸시 (${item.memberName || item.targetMemberName || '알 수 없음'})`;
-                        else if (item.type === 'sms_msg' || item.method === '문자') label = '문자 발송 (알리고)';
+                        else if (item.type === 'sms_msg' || item.method === '문자') label = '문자 발송';
                         
                         const isSms = item.type === 'sms_msg' || item.method === '문자';
                         
@@ -291,7 +291,7 @@ const PushHistoryTab = ({ onSelectMember, setActiveTab, pendingApprovals = [], o
                                     {item.body || item.content}
                                     {item.status === 'failed' && (
                                         <div style={{ marginTop: '8px', fontSize: '0.75rem', color: '#EF4444', fontWeight: 'bold' }}>
-                                            원인: {item.error || '알리고 IP 미등록 등'}
+                                            원인: {item.error || '뿌리오 연동 설정 등'}
                                         </div>
                                     )}
                                 </div>

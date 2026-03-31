@@ -32,6 +32,7 @@ export interface RegisterStudioInput {
     ownerEmail: string;
     plan?: 'free' | 'basic' | 'pro';
     logoUrl?: string;
+    scheduleUrls?: string[];
 }
 
 // ── Constants ──
@@ -75,7 +76,7 @@ export const studioRegistryService = {
             }
 
             // 2. 레지스트리에 등록
-            const registryData: Omit<StudioInfo, 'id'> = {
+            const registryData: any = {
                 name,
                 nameEnglish: nameEnglish || name,
                 domain: domain || '',
@@ -85,6 +86,9 @@ export const studioRegistryService = {
                 createdAt: new Date().toISOString(),
                 memberCount: 0,
             };
+            if (logoUrl) registryData.logoUrl = logoUrl;
+            if (input.scheduleUrls) registryData.scheduleUrls = input.scheduleUrls;
+            
             await setDoc(doc(db, REGISTRY_PATH, studioId), registryData);
 
             // 3. 스튜디오 설정 자동 시딩 (기본 템플릿 기반)
@@ -97,6 +101,13 @@ export const studioRegistryService = {
                     LOGO_TEXT: name.substring(0, 4).toUpperCase(),
                     ...(logoUrl && { LOGO_URL: logoUrl })
                 },
+                ASSETS: {
+                    ...STUDIO_CONFIG.ASSETS,
+                    LOGO: {
+                        ...STUDIO_CONFIG.ASSETS?.LOGO,
+                        ...(logoUrl && { WIDE: logoUrl, SQUARE: logoUrl })
+                    }
+                }
             };
             await setDoc(doc(db, 'studios', studioId), seedConfig);
 
@@ -176,7 +187,8 @@ export const studioRegistryService = {
                 name,
                 ownerEmail,
                 plan: pendingData.plan || 'basic',
-                logoUrl: pendingData.logoUrl
+                logoUrl: pendingData.logoUrl,
+                scheduleUrls: pendingData.scheduleUrls || []
             });
 
             if (!regResult.success) {

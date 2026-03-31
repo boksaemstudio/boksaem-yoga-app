@@ -9,6 +9,13 @@ const MessageModal = ({ isOpen, onClose, member }) => {
 
     const handleSendMessage = async () => {
         if (!messageText) return;
+        
+        const isDemoSite = window.location.hostname.includes('passflow-demo') || localStorage.getItem('lastStudioId') === 'demo-yoga';
+        if (isDemoSite) {
+            alert('데모 환경에서는 메시지 발송 기능이 제한되어 있습니다.');
+            return;
+        }
+
         try {
             await storageService.addMessage(member.id, messageText);
             alert(`${member.name}님에게 메시지를 전송했습니다.`);

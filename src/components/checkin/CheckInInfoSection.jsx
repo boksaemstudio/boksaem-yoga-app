@@ -14,7 +14,8 @@ const CheckInInfoSection = memo(({
     onCameraTouch,
     faceRecognitionEnabled,
     isScanning,
-    cameraVideoRef
+    cameraVideoRef,
+    cameraStream
 }) => {
     const { config } = useStudioConfig();
     const studioName = config.IDENTITY?.NAME || 'Studio';
@@ -34,92 +35,23 @@ const CheckInInfoSection = memo(({
     }, [config.IDENTITY?.BRANCH_ID]);
 
     useEffect(() => {
-        // 프리뷰를 켜거나, 근접 감지가 켜져있거나, 얼굴 스캔이 켜져있으면 카메라를 가동합니다.
+        // 프리뷰를 켜거나, 근접 감지가 켜져있거나, 얼굴 스캔이 켜져있으면 카메라가 필요함.
         if (!showCamera && !isProximityEnabled && !faceRecognitionEnabled) return;
-        let cancelled = false;
+        if (!cameraStream) return;
 
-        const applyStream = (stream) => {
-            streamRef.current = stream;
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-                videoRef.current.play().catch(() => {});
-            }
-            if (cameraVideoRef?.current) {
-                cameraVideoRef.current.srcObject = stream;
-                cameraVideoRef.current.play().catch(() => {});
-            }
-            // [FIX] track.onended — 스트림 죽으면 자동 복구
-            stream.getVideoTracks().forEach(track => {
-                track.onended = () => {
-                    console.warn('[Camera Preview] ⚠️ Track ended! Auto-recovering...');
-                    streamRef.current = null;
-                    if (!cancelled) setTimeout(() => startCamera(), 2000);
-                };
-            });
-        };
-
-        const startCamera = async () => {
-            // 기존 스트림 정리
-            if (streamRef.current) {
-                try { streamRef.current.getTracks().forEach(t => t.stop()); } catch(e) {}
-                streamRef.current = null;
-            }
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
-                });
-                if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
-                applyStream(stream);
-                console.log('[Camera Preview] ✅ Camera started');
-            } catch (e) {
-                console.log('[Camera Preview] 카메라 접근 불가:', e.message);
-            }
-        };
-
-        const isStreamAlive = () => {
-            if (!streamRef.current) return false;
-            const tracks = streamRef.current.getVideoTracks();
-            return tracks.length > 0 && tracks.some(t => t.readyState === 'live');
-        };
-
-        // [FIX] visibilitychange — 절전 복귀 시 카메라 복구
-        const handleVisibility = () => {
-            if (document.visibilityState === 'visible' && !cancelled) {
-                setTimeout(() => {
-                    if (cancelled) return;
-                    if (!isStreamAlive()) {
-                        console.warn('[Camera Preview] ⚠️ Stream dead after wake. Recovering...');
-                        startCamera();
-                    } else if (videoRef.current?.paused) {
-                        videoRef.current.play().catch(() => {});
-                    }
-                }, 1000);
-            }
-        };
-        document.addEventListener('visibilitychange', handleVisibility);
-
-        // [FIX] 2분 heartbeat — 스트림 건강 체크
-        const heartbeat = setInterval(() => {
-            if (cancelled || document.visibilityState !== 'visible') return;
-            if (!isStreamAlive()) {
-                console.warn('[Camera Preview] ⚠️ Heartbeat: stream dead. Recovering...');
-                startCamera();
-            } else if (videoRef.current?.paused) {
-                videoRef.current.play().catch(() => {});
-            }
-        }, 2 * 60 * 1000);
-
-        startCamera();
-        return () => {
-            cancelled = true;
-            document.removeEventListener('visibilitychange', handleVisibility);
-            clearInterval(heartbeat);
-            if (streamRef.current) {
-                streamRef.current.getTracks().forEach(t => t.stop());
-                streamRef.current = null;
-            }
-        };
-    }, [showCamera, cameraSize, faceRecognitionEnabled, isProximityEnabled]);
+        // Parent가 넘겨준 stream을 그대로 사용
+        streamRef.current = cameraStream;
+        
+        if (videoRef.current && videoRef.current.srcObject !== cameraStream) {
+            videoRef.current.srcObject = cameraStream;
+            videoRef.current.play().catch(() => {});
+        }
+        if (cameraVideoRef?.current && cameraVideoRef.current.srcObject !== cameraStream) {
+            cameraVideoRef.current.srcObject = cameraStream;
+            cameraVideoRef.current.play().catch(() => {});
+        }
+        
+    }, [cameraStream, showCamera, cameraSize, faceRecognitionEnabled, isProximityEnabled, cameraVideoRef]);
 
     const isIdle = pin.length === 0 && !loading;
 

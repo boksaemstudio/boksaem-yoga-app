@@ -274,33 +274,35 @@ const InstructorSchedule = ({ instructorName }) => {
                 👇 날짜를 터치하면 상세 시간표를 확인할 수 있어요
             </div>
 
-            {/* Branch Legend */}
-            <div style={{ 
-                marginBottom: '20px', 
-                background: 'rgba(255, 255, 255, 0.05)',
-                padding: '16px',
-                borderRadius: '12px',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
-            }}>
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '10px', textAlign: 'center' }}>
-                    📅 지점별 일정 확인
+            {/* Branch Legend (다중 지점일 때만 노출) */}
+            {branches.length > 1 && (
+                <div style={{ 
+                    marginBottom: '20px', 
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    padding: '16px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                }}>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '10px', textAlign: 'center' }}>
+                        📅 지점별 일정 확인
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', flexWrap: 'wrap' }}>
+                        {branches.map(b => (
+                            <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ 
+                                    width: '24px', 
+                                    height: '24px', 
+                                    borderRadius: '6px', 
+                                    background: 'transparent',
+                                    border: `3px solid ${b.color}`,
+                                    boxShadow: `0 0 10px ${b.color}33`
+                                }} />
+                                <span style={{ color: 'white', fontSize: '1rem', fontWeight: 'bold' }}>{b.name}</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', flexWrap: 'wrap' }}>
-                    {branches.map(b => (
-                        <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <div style={{ 
-                                width: '24px', 
-                                height: '24px', 
-                                borderRadius: '6px', 
-                                background: 'transparent',
-                                border: `3px solid ${b.color}`,
-                                boxShadow: `0 0 10px ${b.color}33`
-                            }} />
-                            <span style={{ color: 'white', fontSize: '1rem', fontWeight: 'bold' }}>{b.name}</span>
-                        </div>
-                    ))}
-                </div>
-            </div>
+            )}
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', marginBottom: '0' }}>
                 {dayNames.map(day => (
@@ -358,16 +360,18 @@ const InstructorSchedule = ({ instructorName }) => {
                                                     휴강
                                                 </div>
                                             )}
-                                            <div style={{ 
-                                                fontSize: '0.75rem', 
-                                                color: cls.branchColor, 
-                                                fontWeight: 'bold', 
-                                                border: `1px solid ${cls.branchColor}`, 
-                                                padding: '2px 6px', 
-                                                borderRadius: '4px' 
-                                            }}>
-                                                {cls.branchName}
-                                            </div>
+                                            {branches.length > 1 && (
+                                                <div style={{ 
+                                                    fontSize: '0.75rem', 
+                                                    color: cls.branchColor, 
+                                                    fontWeight: 'bold', 
+                                                    border: `1px solid ${cls.branchColor}`, 
+                                                    padding: '2px 6px', 
+                                                    borderRadius: '4px' 
+                                                }}>
+                                                    {cls.branchName}
+                                                </div>
+                                            )}
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                                             <span style={{ fontWeight: 'bold', fontSize: '1.1rem', textDecoration: isCancelled ? 'line-through' : 'none' }}>{cls.time}</span>

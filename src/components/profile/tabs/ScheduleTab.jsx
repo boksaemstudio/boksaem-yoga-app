@@ -47,26 +47,29 @@ const ScheduleTab = ({
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '25px' }}>
-                    {(config.BRANCHES || []).map(b => (
-                        <button
-                            key={b.id}
-                            onClick={() => setScheduleBranch(b.id)}
-                            style={{
-                                flex: 1,
-                                padding: '12px',
-                                borderRadius: '12px',
-                                fontWeight: 'bold',
-                                border: scheduleBranch === b.id ? 'none' : '1px solid rgba(255,255,255,0.1)',
-                                background: scheduleBranch === b.id ? 'var(--primary-gold)' : 'rgba(255,255,255,0.03)',
-                                color: scheduleBranch === b.id ? 'black' : 'rgba(255,255,255,0.6)',
-                                fontSize: '0.9rem',
-                                transition: 'all 0.3s ease',
-                                boxShadow: scheduleBranch === b.id ? '0 4px 15px rgba(var(--primary-rgb), 0.3)' : 'none'
-                            }}
-                        >
-                            {b.name}
-                        </button>
-                    ))}
+                    {(config.BRANCHES || []).map((b, i) => {
+                        const isSelected = scheduleBranch === b.id || (!scheduleBranch && i === 0);
+                        return (
+                            <button
+                                key={b.id}
+                                onClick={() => setScheduleBranch(b.id)}
+                                style={{
+                                    flex: 1,
+                                    padding: '12px',
+                                    borderRadius: '12px',
+                                    fontWeight: 'bold',
+                                    border: isSelected ? 'none' : '1px solid rgba(255,255,255,0.1)',
+                                    background: isSelected ? 'var(--primary-gold)' : 'rgba(255,255,255,0.03)',
+                                    color: isSelected ? 'black' : 'rgba(255,255,255,0.6)',
+                                    fontSize: '0.9rem',
+                                    transition: 'all 0.3s ease',
+                                    boxShadow: isSelected ? '0 4px 15px rgba(var(--primary-rgb), 0.3)' : 'none'
+                                }}
+                            >
+                                {b.name}
+                            </button>
+                        );
+                    })}
                 </div>
                 {scheduleView === 'calendar' ? (
                     <MemberScheduleCalendar branchId={scheduleBranch || config.BRANCHES?.[0]?.id} attendanceLogs={validLogs} memberId={member?.id} memberName={member?.name} />

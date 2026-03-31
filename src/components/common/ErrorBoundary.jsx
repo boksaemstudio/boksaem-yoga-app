@@ -58,11 +58,25 @@ class ErrorBoundary extends Component {
                         <p style={{ color: 'var(--text-secondary)', marginBottom: '30px', maxWidth: '400px', lineHeight: '1.5' }}>
                             새로운 기능이 배포되어 최신 버전을 불러와야 합니다.<br />아래 버튼을 눌러 앱을 재시작해주세요.
                         </p>
-                        <button onClick={() => { 
-                            sessionStorage.setItem('chunk_reload_time', Date.now().toString()); 
+                        <button onClick={async () => {
+                            sessionStorage.setItem('chunk_reload_time', Date.now().toString());
+                            try {
+                                if ('serviceWorker' in navigator) {
+                                    const registrations = await navigator.serviceWorker.getRegistrations();
+                                    for (const reg of registrations) {
+                                        await reg.unregister();
+                                    }
+                                }
+                                if ('caches' in window) {
+                                    const keys = await caches.keys();
+                                    await Promise.all(keys.map(key => caches.delete(key)));
+                                }
+                            } catch (e) {
+                                console.error('Cache clear failed', e);
+                            }
                             const currentUrl = new URL(window.location.href);
                             currentUrl.searchParams.set('t', Date.now().toString());
-                            window.location.href = currentUrl.toString(); 
+                            window.location.href = currentUrl.toString();
                         }} className="eb-btn-primary" style={{ padding: '12px 24px', fontSize: '1rem' }}>
                             앱 재시작 (업데이트 적용)
                         </button>

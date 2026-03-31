@@ -34,46 +34,50 @@ const ScheduleTab = ({ images, optimisticImages, handleImageUpload }) => {
                         const bgTint = `${getBranchColor(branch.id)}0D`;
 
                         return (
-                            <div key={branch.id} className="dashboard-card" style={{ 
+                            <div key={branch.id} className={branches.length > 1 ? "dashboard-card" : ""} style={{ 
                                 position: 'relative',
-                                border: `1px solid ${getBranchColor(branch.id)}4D`,
-                                background: `linear-gradient(180deg, ${bgTint} 0%, rgba(20, 20, 25, 0.5) 100%)`
+                                ...(branches.length > 1 ? {
+                                    border: `1px solid ${getBranchColor(branch.id)}4D`,
+                                    background: `linear-gradient(180deg, ${bgTint} 0%, rgba(20, 20, 25, 0.5) 100%)`
+                                } : {})
                             }}>
-                                <div style={{ 
-                                    display: 'flex', 
-                                    justifyContent: 'space-between', 
-                                    alignItems: 'center', 
-                                    marginBottom: '20px',
-                                    borderBottom: `1px solid ${getBranchColor(branch.id)}1A`,
-                                    paddingBottom: '10px'
-                                }}>
-                                    <h3 style={{ 
-                                        fontSize: '1.8rem', 
-                                        fontWeight: '800', 
-                                        color: themeColor,
-                                        textShadow: `0 0 10px ${getBranchColor(branch.id)}4D`
+                                {branches.length > 1 && (
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        justifyContent: 'space-between', 
+                                        alignItems: 'center', 
+                                        marginBottom: '20px',
+                                        borderBottom: `1px solid ${getBranchColor(branch.id)}1A`,
+                                        paddingBottom: '10px'
                                     }}>
-                                        {branch.name}
-                                    </h3>
-                                    <div style={{
-                                        padding: '4px 12px',
-                                        borderRadius: '20px',
-                                        background: `${getBranchColor(branch.id)}1A`,
-                                        border: `1px solid ${getBranchColor(branch.id)}33`,
-                                        color: themeColor,
-                                        fontSize: '0.8rem',
-                                        fontWeight: 'bold'
-                                    }}>
-                                        {isPrimary ? '본점' : '지점'}
+                                        <h3 style={{ 
+                                            fontSize: '1.8rem', 
+                                            fontWeight: '800', 
+                                            color: themeColor,
+                                            textShadow: `0 0 10px ${getBranchColor(branch.id)}4D`
+                                        }}>
+                                            {branch.name}
+                                        </h3>
+                                        <div style={{
+                                            padding: '4px 12px',
+                                            borderRadius: '20px',
+                                            background: `${getBranchColor(branch.id)}1A`,
+                                            border: `1px solid ${getBranchColor(branch.id)}33`,
+                                            color: themeColor,
+                                            fontSize: '0.8rem',
+                                            fontWeight: 'bold'
+                                        }}>
+                                            {isPrimary ? '본점' : '지점'}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                                 <AdminScheduleManager branchId={branch.id} />
                             </div>
                         );
                     })}
                 </div>
             ) : (
-                <div className="dashboard-card">
+                <div className={branches.length > 1 ? "dashboard-card" : ""} style={{ ...(branches.length <= 1 ? { padding: 0 } : {}) }}>
                     <h3 className="card-label" style={{ marginBottom: '20px' }}>주간 시간표 (이미지)</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
                         {branches.map(branch => {
@@ -89,8 +93,8 @@ const ScheduleTab = ({ images, optimisticImages, handleImageUpload }) => {
                             const nextImage = images[nextKey];
 
                             return (
-                                <div key={branch.id} style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                                    <h3 style={{ fontSize: '1.6rem', fontWeight: '800', marginBottom: '20px' }}>{branch.name}</h3>
+                                <div key={branch.id} style={{ background: branches.length > 1 ? 'rgba(255,255,255,0.02)' : 'transparent', padding: branches.length > 1 ? '20px' : '0', borderRadius: '12px', border: branches.length > 1 ? '1px solid var(--border-color)' : 'none' }}>
+                                    {branches.length > 1 && <h3 style={{ fontSize: '1.6rem', fontWeight: '800', marginBottom: '20px' }}>{branch.name}</h3>}
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                             <h4 style={{ margin: 0, color: 'var(--primary-gold)' }}>{curMonth}월 (현재)</h4>

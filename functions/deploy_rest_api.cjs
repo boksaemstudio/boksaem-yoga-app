@@ -18,7 +18,7 @@ if (!admin.apps.length) admin.initializeApp({ credential: admin.credential.cert(
 
 const ROOT = path.join(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
-const SITES = ['passflow-demo-0324', 'ssangmun-yoga-0324', 'passflowai'];
+const SITES = ['passflowai', 'ssangmun-yoga-0', 'passflowai'];
 
 let _token = null;
 async function getToken() {
@@ -185,8 +185,8 @@ async function deploySite(siteId) {
     console.log('\n═══════════════════════════════════════');
     console.log('🎉 전체 완료!');
     console.log('🔗 https://boksaem-yoga.web.app');
-    console.log('🔗 https://passflow-demo-0324.web.app');
-    console.log('🔗 https://passflow-demo-0324.web.app');
+    console.log('🔗 https://passflowai.web.app');
+    console.log('🔗 https://passflowai.web.app');
     console.log('═══════════════════════════════════════');
     process.exit(0);
 })().catch(e => { console.error('❌', e.message); process.exit(1); });

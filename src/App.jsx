@@ -103,8 +103,8 @@ const RequireAdmin = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // [DEMO] 데모사이트는 로그인 없이 접근 가능 (정확히 'passflow-demo-0324'만 매칭해야 함)
-    const isDemoSite = window.location.hostname.includes('passflow-demo-0324');
+    // [DEMO] 데모사이트는 로그인 없이 접근 가능 (정확히 'passflowai' 또는 'passflowai' 매칭)
+    const isDemoSite = window.location.hostname.includes('passflow-demo') || window.location.hostname.includes('passflowai');
     
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -262,7 +262,7 @@ const RequireSuperAdmin = ({ children }) => {
 
 // --- ROOT ROUTE GUARD (도메인에 따라 랜딩페이지 vs 출석키오스크 분기) ---
 const RootRoute = () => {
-  const isMainDomain = window.location.hostname === 'passflow-0324.web.app';
+  const isMainDomain = window.location.hostname === 'passflowai.web.app';
   if (isMainDomain) {
     if (window.location.pathname === '/') window.location.href = '/home.html';
     return null;
@@ -315,6 +315,7 @@ function App() {
               <NotificationListener />
               <Routes>
                 <Route path="/" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><RootRoute /></Suspense></ErrorBoundary>} />
+                <Route path="/kiosk" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><CheckInPage /></Suspense></ErrorBoundary>} />
                 <Route path="/admin" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><RequireAdmin><AdminDashboard /></RequireAdmin></Suspense></ErrorBoundary>} />
                 <Route path="/member" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><MemberProfile /></Suspense></ErrorBoundary>} />
                 <Route path="/login" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><LoginPage /></Suspense></ErrorBoundary>} />

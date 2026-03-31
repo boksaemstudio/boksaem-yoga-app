@@ -4,6 +4,7 @@ import { Image, ToggleLeft, ToggleRight, Info, VideoCamera, FilmSlate, Trash, Ch
 import { useStudioConfig } from '../../../contexts/StudioContext';
 import { ref, uploadBytes, getDownloadURL, listAll, deleteObject, getMetadata } from 'firebase/storage';
 import { storage } from '../../../firebase';
+import { tenantStoragePath } from '../../../utils/tenantStorage';
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024;
@@ -27,28 +28,42 @@ const KioskSettingsTab = () => {
             const data = await storageService.getKioskSettings(selectedBranch);
             setSettings(data);
             
-            // 2. Storage에서 모든 미디어 파일 로드
+            // 2. Storage에서 모든 미디어 파일 로드 (테넌트 격리 경로 + 레거시 fallback)
             try {
-                const folderRef = ref(storage, `kiosk_notices/${selectedBranch}`);
-                const list = await listAll(folderRef);
-                const items = await Promise.all(list.items.map(async (item) => {
-                    const url = await getDownloadURL(item);
-                    let meta = {};
-                    try { meta = await getMetadata(item); } catch (e) { /* ignore */ }
-                    const isVideo = item.name.match(/\.(mp4|webm|mov)$/i) || meta.contentType?.startsWith('video');
-                    return {
-                        name: item.name,
-                        url,
-                        type: isVideo ? 'video' : 'image',
-                        size: meta.size || 0,
-                        createdAt: meta.timeCreated || '',
-                        fullPath: item.fullPath,
-                        isActive: url === data.imageUrl
-                    };
-                }));
-                // 최신순 정렬
-                items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                setGallery(items);
+                const tenantFolder = ref(storage, tenantStoragePath(`kiosk_notices/${selectedBranch}`));
+                const legacyFolder = ref(storage, `kiosk_notices/${selectedBranch}`);
+
+                const parseItems = async (listResult) => {
+                    return Promise.all(listResult.items.map(async (item) => {
+                        const url = await getDownloadURL(item);
+                        let meta = {};
+                        try { meta = await getMetadata(item); } catch (e) { /* ignore */ }
+                        const isVideo = item.name.match(/\.(mp4|webm|mov)$/i) || meta.contentType?.startsWith('video');
+                        return {
+                            name: item.name,
+                            url,
+                            type: isVideo ? 'video' : 'image',
+                            size: meta.size || 0,
+                            createdAt: meta.timeCreated || '',
+                            fullPath: item.fullPath,
+                            isActive: url === data.imageUrl
+                        };
+                    }));
+                };
+
+                // 새 경로 먼저, 구 경로 fallback (중복 제거: fullPath 기준)
+                const tenantList = await listAll(tenantFolder).catch(() => ({ items: [] }));
+                const tenantItems = await parseItems(tenantList);
+                const legacyList = await listAll(legacyFolder).catch(() => ({ items: [] }));
+                const legacyItems = await parseItems(legacyList);
+
+                const seenPaths = new Set(tenantItems.map(i => i.name));
+                const mergedItems = [
+                    ...tenantItems,
+                    ...legacyItems.filter(i => !seenPaths.has(i.name))
+                ];
+                mergedItems.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                setGallery(mergedItems);
             } catch (e) {
                 setGallery([]);
             }
@@ -72,7 +87,7 @@ const KioskSettingsTab = () => {
             const ext = file.name.split('.').pop().toLowerCase();
             const ts = Date.now();
             const fileName = `${type}_${ts}.${ext}`;
-            const storageRef = ref(storage, `kiosk_notices/${selectedBranch}/${fileName}`);
+            const storageRef = ref(storage, tenantStoragePath(`kiosk_notices/${selectedBranch}/${fileName}`));
 
             setUploadProgress(`업로드 중... (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
             await uploadBytes(storageRef, file);
@@ -92,7 +107,7 @@ const KioskSettingsTab = () => {
             setGallery(prev => [{
                 name: fileName, url: downloadUrl, type, size: file.size,
                 createdAt: meta.timeCreated || new Date().toISOString(),
-                fullPath: `kiosk_notices/${selectedBranch}/${fileName}`,
+                fullPath: storageRef.fullPath,
                 isActive: true
             }, ...prev.map(g => ({ ...g, isActive: false }))]);
 
@@ -189,19 +204,21 @@ const KioskSettingsTab = () => {
                 </div>
             </div>
 
-            {/* Branch Selector */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
-                {[{ id: 'all', label: '전체' }, ...branches.map(b => ({ id: b.id, label: b.name.replace('점', '') }))].map(branch => (
-                    <button key={branch.id} onClick={() => setSelectedBranch(branch.id)} style={{
-                        flex: 1, padding: '12px',
-                        background: selectedBranch === branch.id ? 'var(--primary-gold)' : 'rgba(255,255,255,0.05)',
-                        color: selectedBranch === branch.id ? 'black' : 'var(--text-secondary)',
-                        border: `1px solid ${selectedBranch === branch.id ? 'var(--primary-gold)' : 'var(--border-color)'}`,
-                        borderRadius: '8px', fontWeight: selectedBranch === branch.id ? 'bold' : 'normal',
-                        cursor: 'pointer', transition: 'all 0.2s'
-                    }}>{branch.label}</button>
-                ))}
-            </div>
+            {/* Branch Selector (다중 지점일 때만 노출) */}
+            {branches.length > 1 && (
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+                    {[{ id: 'all', label: '전체' }, ...branches.map(b => ({ id: b.id, label: b.name.replace('점', '') }))].map(branch => (
+                        <button key={branch.id} onClick={() => setSelectedBranch(branch.id)} style={{
+                            flex: 1, padding: '12px',
+                            background: selectedBranch === branch.id ? 'var(--primary-gold)' : 'rgba(255,255,255,0.05)',
+                            color: selectedBranch === branch.id ? 'black' : 'var(--text-secondary)',
+                            border: `1px solid ${selectedBranch === branch.id ? 'var(--primary-gold)' : 'var(--border-color)'}`,
+                            borderRadius: '8px', fontWeight: selectedBranch === branch.id ? 'bold' : 'normal',
+                            cursor: 'pointer', transition: 'all 0.2s'
+                        }}>{branch.label}</button>
+                    ))}
+                </div>
+            )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 

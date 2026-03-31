@@ -652,17 +652,19 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                 </button>
                             )}
                             
-                            {/* Branch Filter */}
-                            <select 
-                                value={localBranch}
-                                onChange={(e) => setLocalBranch(e.target.value)}
-                                className="filter-select"
-                            >
-                                <option value="all">전체 지점</option>
-                                {(config.BRANCHES || []).map(b => (
-                                    <option key={b.id} value={b.id}>{b.name}</option>
-                                ))}
-                            </select>
+                            {/* Branch Filter (다중 지점일 때만 노출) */}
+                            {branches.length > 1 && (
+                                <select 
+                                    value={localBranch}
+                                    onChange={(e) => setLocalBranch(e.target.value)}
+                                    className="filter-select"
+                                >
+                                    <option value="all">전체 지점</option>
+                                    {(config.BRANCHES || []).map(b => (
+                                        <option key={b.id} value={b.id}>{b.name}</option>
+                                    ))}
+                                </select>
+                            )}
 
                             {/* Name Search */}
                             <div style={{ position: 'relative' }}>

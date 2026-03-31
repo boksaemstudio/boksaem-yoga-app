@@ -5,6 +5,7 @@
 import { functions, storage } from "../firebase";
 import { addDoc, deleteDoc, getDocs, query, orderBy } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { tenantStoragePath } from '../utils/tenantStorage';
 import { httpsCallable } from "firebase/functions";
 import { tenantDb } from '../utils/tenantDb';
 
@@ -35,7 +36,7 @@ export const addNotice = async (title: string, content: string, images: string[]
                     try {
                         const res = await fetch(imgData);
                         const blob = await res.blob();
-                        const storageRef = ref(storage, `notices/${Date.now()}_${index}.webp`);
+                        const storageRef = ref(storage, tenantStoragePath(`notices/${Date.now()}_${index}.webp`));
                         const uploadPromise = uploadBytes(storageRef, blob);
                         const timeoutPromise = new Promise<never>((_, reject) => setTimeout(() => reject(new Error('STORAGE_TIMEOUT')), 15000));
                         await Promise.race([uploadPromise, timeoutPromise]);

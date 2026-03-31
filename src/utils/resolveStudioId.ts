@@ -30,11 +30,11 @@ export const resolveStudioId = (): string => {
         targetStudioId = 'boksaem-yoga';
     } 
     // 3-1. 데모앱 (리허설 + 고객 시연)
-    else if (host.includes('passflow-demo') || host.includes('demo.passflow')) {
+    else if (host.includes('passflow-demo') || host.includes('demo.passflow') || host.includes('passflowai')) {
         targetStudioId = 'demo-yoga';
     } 
     // 3-2. 쌍문요가
-    else if (host.includes('ssangmun-yoga-0324.web.app') || host.includes('ssangmun-yoga-0324.firebaseapp.com')) {
+    else if (host.includes('ssangmun-yoga-0.web.app') || host.includes('ssangmun-yoga-0.firebaseapp.com')) {
         targetStudioId = 'ssangmun-yoga';
     } 
     // 4. 서브도메인 파싱

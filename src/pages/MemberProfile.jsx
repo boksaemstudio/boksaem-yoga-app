@@ -158,7 +158,7 @@ const MemberProfile = () => {
 
     // ─── PWA ───
     const pwaCtx = useContext(PWAContext) || {};
-    const { deferredPrompt, installApp, deviceOS } = pwaCtx;
+    const { deferredPrompt, installApp, deviceOS, isDemo } = pwaCtx;
     const isPwaStandalone = pwaCtx.isStandalone;
 
     // ─── Push Toggle Wrapper ───
@@ -436,7 +436,7 @@ const MemberProfile = () => {
                                 </div>
 
                                 {/* PWA Install Guide */}
-                                {!isPwaStandalone && (deferredPrompt || deviceOS === 'ios') && (
+                                {!isDemo && !isPwaStandalone && (deferredPrompt || deviceOS === 'ios') && (
                                     <div className="glass-panel" style={{
                                         padding: '20px 25px',
                                         background: deviceOS === 'ios' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(var(--primary-rgb), 0.1)',

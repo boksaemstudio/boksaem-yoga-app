@@ -47,6 +47,12 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
             return;
         }
 
+        const isDemoSite = window.location.hostname.includes('passflow-demo') || localStorage.getItem('lastStudioId') === 'demo-yoga';
+        if (isDemoSite) {
+            alert('데모 환경에서는 메시지 발송 기능이 제한되어 있습니다.');
+            return;
+        }
+
         const modeLabel = SEND_MODES.find(m => m.id === sendMode)?.label || sendMode;
         const costText = sendMode === 'push_only' ? '무료' : `약 ${costInfo.totalCost.toLocaleString()}원`;
         if (!confirm(`${memberCount}명에게 ${modeLabel} 방식으로 전송하시겠습니까?\n예상 비용: ${costText}`)) {

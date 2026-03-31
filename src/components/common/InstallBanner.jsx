@@ -4,7 +4,7 @@ import { DownloadSimple } from '@phosphor-icons/react';
 import { useLanguage } from '../../hooks/useLanguage';
 
 const InstallBanner = ({ onManualInstallClick }) => {
-    const { isStandalone, deviceOS, installApp } = useContext(PWAContext) || {};
+    const { isStandalone, deviceOS, installApp, isDemo } = useContext(PWAContext) || {};
     const { t } = useLanguage();
     const [isVisible, setIsVisible] = useState(false);
     const [dismissed, setDismissed] = useState(false);
@@ -23,7 +23,7 @@ const InstallBanner = ({ onManualInstallClick }) => {
         }
     }, [isStandalone]);
 
-    if (!isVisible || isStandalone || dismissed) return null;
+    if (!isVisible || isStandalone || dismissed || isDemo) return null;
 
     const handleInstallClick = async () => {
         try {

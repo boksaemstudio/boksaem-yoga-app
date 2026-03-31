@@ -1,7 +1,8 @@
 // src/hooks/useAttendanceCamera.js
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { storage } from '../firebase';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { tenantStoragePath } from '../utils/tenantStorage';
 import { storageService } from '../services/storage';
 
 export const useAttendanceCamera = (PHOTO_ENABLED) => {
@@ -14,6 +15,7 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
     const capturePromisesRef = useRef([]);
     const isRecoveringRef = useRef(false);
     const recoveryCountRef = useRef(0);
+    const [stream, setStream] = useState(null);
 
     // [PHOTO] 카메라 초기화 (재사용 가능한 함수로 분리)
     const initCamera = useCallback(async (reason = 'initial') => {
@@ -34,24 +36,26 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
                 cameraStreamRef.current = null;
             }
 
-            const stream = await navigator.mediaDevices.getUserMedia({
+            const streamObj = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: 'user', width: { ideal: 800 }, height: { ideal: 600 } }
             });
             
-            cameraStreamRef.current = stream;
+            cameraStreamRef.current = streamObj;
+            setStream(streamObj);
             
             // [FIX] track.onended 이벤트 감시 — 스트림이 죽으면 자동 복구
-            stream.getVideoTracks().forEach(track => {
+            streamObj.getVideoTracks().forEach(track => {
                 track.onended = () => {
                     console.warn(`[PHOTO] ⚠️ Camera track ended unexpectedly! Reason: ${track.label}`);
                     cameraStreamRef.current = null;
+                    setStream(null);
                     // 짧은 딜레이 후 자동 복구 시도
                     setTimeout(() => initCamera('track_ended'), 2000);
                 };
             });
             
             if (videoRef.current) {
-                videoRef.current.srcObject = stream;
+                videoRef.current.srcObject = streamObj;
                 videoRef.current.setAttribute('autoplay', '');
                 videoRef.current.setAttribute('muted', '');
                 videoRef.current.setAttribute('playsinline', '');
@@ -132,6 +136,7 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
             if (cameraStreamRef.current) {
                 cameraStreamRef.current.getTracks().forEach(t => t.stop());
                 cameraStreamRef.current = null;
+                setStream(null);
             }
             if (videoRef.current) videoRef.current.srcObject = null;
         };
@@ -291,7 +296,7 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
         try {
             const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
             const fileName = `${attendanceId || Date.now()}.webp`;
-            const path = `attendance-photos/${today}/${fileName}`;
+            const path = tenantStoragePath(`attendance-photos/${today}/${fileName}`);
             const fileRef = storageRef(storage, path);
             
             await uploadBytes(fileRef, blob, { contentType: 'image/webp' });
@@ -324,6 +329,7 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
         videoRef,
         canvasRef,
         capturePhoto,
-        uploadPhoto
+        uploadPhoto,
+        stream
     };
 };

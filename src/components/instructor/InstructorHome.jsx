@@ -22,6 +22,13 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
     const [lightboxImage, setLightboxImage] = useState(null);
     const [deletingFaceMemberId, setDeletingFaceMemberId] = useState(null);
     
+    const isDemo = typeof window !== 'undefined' && (
+        window.location.hostname.includes('passflowai') || 
+        window.location.hostname.includes('demo') || 
+        config?.STUDIO_ID === 'demo' || 
+        config?.STUDIO_ID === 'demo-yoga'
+    );
+    
     const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 
     useEffect(() => {
@@ -44,6 +51,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
         // 1. Auto PWA Install Prompt
         const handleBeforeInstall = (e) => {
             e.preventDefault();
+            if (isDemo) return;
             setDeferredPrompt(e);
             
             // 만약 사용자가 숨김 처리하지 않았고, 단독 앱으로 실행중이 아니라면 자동으로 설치 프롬프트를 띄움
@@ -368,7 +376,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
                             (config.BRANCHES || []).map(branch => (
                                 renderAttendanceList(
                                     attendanceByBranch[branch.id] || [], 
-                                    branch.name, 
+                                    (config.BRANCHES?.length > 1 ? branch.name : '출석 현황'), 
                                     branch.color, 
                                     branch.id
                                 )
@@ -455,7 +463,7 @@ const InstructorHome = ({ instructorName, attendance, attendanceLoading, instruc
             </div>
 
             {/* PWA Install Guide */}
-            {!isStandalone && !hidePwaGuide && (
+            {!isDemo && !isStandalone && !hidePwaGuide && (
                 <div style={{ 
                     position: 'relative',
                     background: 'var(--bg-surface)', 

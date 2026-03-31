@@ -132,7 +132,20 @@ async function seedSchedule(tenantId) {
             dailyClasses: chunked,
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         });
-        console.log(`- Saved ${classes.length} classes for ${docId}`);
+        
+        // [FIX] Instructor/Kiosk App을 위한 daily_classes 개별 문서 저장
+        const dailyBatch = db.batch();
+        for (const [dateKey, dayClasses] of Object.entries(chunked)) {
+            const dailyDocId = `${branchId}_${dateKey}`;
+            const dailyRef = tenantDb.collection('daily_classes').doc(dailyDocId);
+            dailyBatch.set(dailyRef, {
+                classes: dayClasses,
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+        }
+        await dailyBatch.commit();
+        
+        console.log(`- Saved ${classes.length} classes for ${docId} and its daily_classes`);
     };
 
     await storeMonthData(currentYear, currentMonth, thisMonthClasses);

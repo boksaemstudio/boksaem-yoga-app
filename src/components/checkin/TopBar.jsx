@@ -27,9 +27,9 @@ const TopBar = memo(({ weather, currentBranch, branches, handleBranchChange, tog
             zIndex: 10,
             position: 'relative'
         }}>
-            {/* Left: Branch Selector */}
+            {/* Left: Branch Selector (다중 지점일 때만 노출) */}
             <div className="branch-selector" style={{ flex: 1, display: 'flex', gap: '10px' }}>
-                {branches.map(branch => (
+                {branches.length > 1 && branches.map(branch => (
                     <button
                         key={branch.id}
                         className={`branch-btn ${currentBranch === branch.id ? 'active' : ''}`}

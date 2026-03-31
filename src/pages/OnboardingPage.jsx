@@ -365,8 +365,14 @@ const OnboardingPage = () => {
                                     {formData.scheduleFiles && formData.scheduleFiles.length > 0 && (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
                                             {formData.scheduleFiles.map((f, idx) => (
-                                                <div key={idx} style={{ fontSize: '0.8rem', color: '#cbd5e1', background: 'rgba(0,0,0,0.2)', padding: '6px 12px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                    📁 {f.name}
+                                                <div key={idx} style={{ fontSize: '0.8rem', color: '#cbd5e1', background: 'rgba(0,0,0,0.2)', padding: '6px 12px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+                                                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📁 {f.name}</span>
+                                                    <button onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const newFiles = [...formData.scheduleFiles];
+                                                        newFiles.splice(idx, 1);
+                                                        setFormData({ ...formData, scheduleFiles: newFiles });
+                                                    }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 4px', fontWeight: 'bold' }}>✕</button>
                                                 </div>
                                             ))}
                                         </div>
@@ -379,11 +385,15 @@ const OnboardingPage = () => {
                                         accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
                                         style={{ display: 'none' }}
                                         onChange={(e) => {
-                                            const files = Array.from(e.target.files);
-                                            if (files.length > 4) {
-                                                alert('첨부파일은 최대 4개까지만 가능합니다. 처음 4개의 파일만 선택됩니다.');
+                                            const newFiles = Array.from(e.target.files);
+                                            const currentFiles = formData.scheduleFiles || [];
+                                            const combined = [...currentFiles, ...newFiles];
+                                            if (combined.length > 4) {
+                                                alert('첨부파일은 최대 4개까지만 가능합니다.');
                                             }
-                                            setFormData({ ...formData, scheduleFiles: files.slice(0, 4) });
+                                            setFormData({ ...formData, scheduleFiles: combined.slice(0, 4) });
+                                            // Reset input so the same file can be selected again if needed
+                                            e.target.value = '';
                                         }}
                                     />
                                 </div>

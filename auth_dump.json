@@ -1,0 +1,294 @@
+[
+  {
+    "uid": "0dFq7f1w0fXHvFzaiC8DrRe9N1n1"
+  },
+  {
+    "uid": "0tDoCQBT6RNaQCgsbcjfqvE1TGC3"
+  },
+  {
+    "uid": "0zEJYtPVC1fPIbcyWP5VR7uUxKV2"
+  },
+  {
+    "uid": "10SFBM64oLeppgR8WiPEhItvAMr2"
+  },
+  {
+    "uid": "1CUvqRHZ0GaGRdCmJ7xylWIKZ2K3"
+  },
+  {
+    "uid": "35nprG0JcNY4giKmNN40VlKyUCw1"
+  },
+  {
+    "uid": "3HilNS0umDdkwo8E19oXPntnrXG2"
+  },
+  {
+    "uid": "51EgZfAdntMhnzl1mDkZQ4IOseo2"
+  },
+  {
+    "uid": "57HMKopsm2RmoafibIqvtlff18V2"
+  },
+  {
+    "uid": "6I8u8MFuMcN3PojlZ5FDR9fj98o2"
+  },
+  {
+    "uid": "88HZsxPj6cOig9mFurvqwKbrIVr2"
+  },
+  {
+    "uid": "8sex2i9FdjSFnMWUwOhu4vxhK7a2"
+  },
+  {
+    "uid": "9WPNM1kM4xQLhZWBDOogZjK6JoO2"
+  },
+  {
+    "uid": "9x46lB5g39aYyO83pJBr9Ztokog1"
+  },
+  {
+    "uid": "BNr6wVSOjYfbkgsZGsKfVu8RYYH3"
+  },
+  {
+    "uid": "BS7DTTEHGQXFovms7LOjBVuAoN73"
+  },
+  {
+    "uid": "BZShfhulDbaboTdoQ6zQnnMwKTy2"
+  },
+  {
+    "uid": "BjUsGEkVAWdIQeyMenGYCh9PvP72"
+  },
+  {
+    "uid": "CoRTwz1KuyVR6Jwkks4VTcqDzO53"
+  },
+  {
+    "uid": "DNBAxipWdsTJ01VnJU1ejdGlKhO2"
+  },
+  {
+    "uid": "ETciZfokPgVjKaktn8dPOhWJSRu2"
+  },
+  {
+    "uid": "Eyp3nkAX5IQoSPLUloMImIqY9WP2"
+  },
+  {
+    "uid": "FNZWcVTn5cM2KxSCAM9T8nOpUtz2"
+  },
+  {
+    "uid": "FUtHYrdyybdrCt1WAawQkesIfeh2",
+    "email": "sdaemin@naver.com",
+    "name": "하늘위요가 원장님",
+    "claims": {
+      "role": "admin",
+      "studioId": "dddd"
+    }
+  },
+  {
+    "uid": "FywUWTznEChZi0g3aBexUgVu91m2"
+  },
+  {
+    "uid": "GSTlinLrPkhpDy6IDWQQMC4635B2"
+  },
+  {
+    "uid": "HIhgvBVtz6NTKA9nNsQehH6BFrx2"
+  },
+  {
+    "uid": "HNWfzQlFKkaXb5D0ow5M8vGefcQ2",
+    "email": "biksoon@daum.net",
+    "claims": {
+      "role": "superadmin"
+    }
+  },
+  {
+    "uid": "HbffynZ92LSJT5GlnDUtvKXsEPD3"
+  },
+  {
+    "uid": "I5FPYKSQjOV7IYaAe6xRm3IWRuE2"
+  },
+  {
+    "uid": "IJKZ257DM1Z5DnwUgQM43kWSV5H3"
+  },
+  {
+    "uid": "IuJVdGwO3yaC4CIjFcaSeE0uK8l2",
+    "email": "motionpt@gmail.com",
+    "name": "키보드워리어 원장님",
+    "claims": {
+      "role": "admin",
+      "studioId": "dg"
+    }
+  },
+  {
+    "uid": "K2EkVO7sDxP4P5f1BkqJbCPekha2"
+  },
+  {
+    "uid": "K5w5wOu1Q1OQuxhMQXyKO7JwoXW2"
+  },
+  {
+    "uid": "Kt0Tq6jJzzdUvUc1hlWmMhKnIYG2"
+  },
+  {
+    "uid": "McE5RMTDZBQRSAaHzhSKFPbaNnm2"
+  },
+  {
+    "uid": "NcymWEoFfqWq0u2lgwA75nW0zuz2"
+  },
+  {
+    "uid": "P2NrV18YSSVWUqwJU6AWxFRhfZy2"
+  },
+  {
+    "uid": "PjV3XzUYCscDZDX6YdLMO8dTx9m2"
+  },
+  {
+    "uid": "PzJlV3UxnXQ5Mw3mW4aZLdZd0IG2"
+  },
+  {
+    "uid": "QZp1rWh51pVVbwllMqp2BJMFQf12"
+  },
+  {
+    "uid": "R7Tt72LImgS2YjLzbGscEuaskzz2"
+  },
+  {
+    "uid": "RrK0IVKJXYVzr8LLrMczdZqLU8g2"
+  },
+  {
+    "uid": "SIxEtDoYBcdA2XTCOldJb8bxrfV2"
+  },
+  {
+    "uid": "SfCg3CzDG4Vy8ZXAimMv9CJt8as2"
+  },
+  {
+    "uid": "Sz6widURhEQt3cYbUUNXLKNl5h53"
+  },
+  {
+    "uid": "UBwrpOS52yTXB1HMljlG93D73Gw1"
+  },
+  {
+    "uid": "UEMusTTF1RTXiSMQAcGbUMo55g62"
+  },
+  {
+    "uid": "Unw01V4OjiWZfKBHU3KeXQoqLW73"
+  },
+  {
+    "uid": "VxTvR839wQYZYPn3H0qYLns2Bqw2"
+  },
+  {
+    "uid": "WEZMXVkdUoODBuJO9rXDlUDr3ve2"
+  },
+  {
+    "uid": "WmGPVyCoIwOs6U86fYsK6xlFbkg1"
+  },
+  {
+    "uid": "YYoSwydRTDMt8XUrJK9ZZEvopM92"
+  },
+  {
+    "uid": "YfJpJO1LU0T1Y6uOEhr6dXZzR8g2"
+  },
+  {
+    "uid": "ZliJhoMDaQd2yF5Qy4KAQbGBum02"
+  },
+  {
+    "uid": "Zy0yB6KUq1Xl197MDgeskGUCGjW2"
+  },
+  {
+    "uid": "a2we4frkICO5LsLQxG5QXaHW0cd2"
+  },
+  {
+    "uid": "aTTAsrIEkNXtauibskyvMeollZX2"
+  },
+  {
+    "uid": "c9KJ9vwBf2N3jwpLoAV5csXZGQu2"
+  },
+  {
+    "uid": "cbRCS2Ovpnapg2oJKj7APCc4BwS2"
+  },
+  {
+    "uid": "cooSHI86mOg9r1Cfx927J2XtAxt1"
+  },
+  {
+    "uid": "dLG3q1rrlON3aMDkgt0HWrzcAVA2"
+  },
+  {
+    "uid": "fj2E5OBy6BO36eGFqZn8797tPxu1"
+  },
+  {
+    "uid": "fs0wcO34BdZiyvHrlP4A4w4Owz62"
+  },
+  {
+    "uid": "gBPJVaP4cPMEvsSmuGtKBmzw59z2"
+  },
+  {
+    "uid": "i3Lj3tMlTzPQuKy4p915IMzUwx73"
+  },
+  {
+    "uid": "instructor_9477"
+  },
+  {
+    "uid": "ksEGRxTyIUeBmvfvL4tRxymwxRn1"
+  },
+  {
+    "uid": "l8uzsOv0WDfDI9aNJK7uOV3svTg2"
+  },
+  {
+    "uid": "lvfKKc9vV8WCI62guKKRln1Dg562"
+  },
+  {
+    "uid": "m73DYUfKKCfaY7jzHUz3BJZBubo2"
+  },
+  {
+    "uid": "member_Ho8KHAXH25HiKVKb9asl"
+  },
+  {
+    "uid": "member_LsxkEU3zPf6ePb1GIzpX"
+  },
+  {
+    "uid": "member_cvSJXIvkowFqfXP3ibm9"
+  },
+  {
+    "uid": "member_ssKsChLghzYc9UaD0nNb"
+  },
+  {
+    "uid": "member_tjw7X8ZBuqxKq6Q08jk1"
+  },
+  {
+    "uid": "n4UCkQf8iXYZ5i9a4aYSYMSeYWx1"
+  },
+  {
+    "uid": "nKGvXTDEd1ht4O2FBhXlY8e0GUe2"
+  },
+  {
+    "uid": "oA1kpxx49ndJgfjGgdANbNJRPCV2"
+  },
+  {
+    "uid": "ofbN549grqhfbBu1gDrHGXWAz1E3"
+  },
+  {
+    "uid": "pfoAGcL9wfWPxL9pnEmAHdoXp3Z2"
+  },
+  {
+    "uid": "qKRDshqgRuT77HXwzu4wY8quxPh2"
+  },
+  {
+    "uid": "qKuWzxBJ5GW8WLfWjd7RGK769tA2"
+  },
+  {
+    "uid": "qUaLfaA0AbU9WstIf2s17Po0GNf2"
+  },
+  {
+    "uid": "sMed4U2iAdOaXEfL9VMDl0pZ08d2"
+  },
+  {
+    "uid": "svi4m0lvJXQyJei82rEOXaLZacQ2"
+  },
+  {
+    "uid": "vR8L8Rct6eerW5HDcYMp745iggh2"
+  },
+  {
+    "uid": "wHpWpk8RSgVkRk2iYW9bHgcchv62"
+  },
+  {
+    "uid": "wSTyUKPVg4Z3P6zx2ACDfkWIl0j1"
+  },
+  {
+    "uid": "wZYpTDlbSZdhXFEWxBiLtp9rVOf1"
+  },
+  {
+    "uid": "zTq6KN8AoLZJd0nyTqb55e8ZFLH3"
+  },
+  {
+    "uid": "zrSfEoJiz6ZSHOKugYnbKz26ym42"
+  }
+]

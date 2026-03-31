@@ -142,6 +142,13 @@ const ChurnReportPanel = ({ dormantMembers, onSendMessage, onClose, sales }) => 
     // [NEW] 컨펌 후 전송
     const handleConfirmSend = async () => {
         if (!confirmTarget || !editMessage.trim()) return;
+        
+        const isDemoSite = window.location.hostname.includes('passflow-demo') || localStorage.getItem('lastStudioId') === 'demo-yoga';
+        if (isDemoSite) {
+            alert('데모 환경에서는 메시지 발송 기능이 제한되어 있습니다.');
+            return;
+        }
+
         const { member } = confirmTarget;
         
         setSendingId(member.id);
@@ -200,6 +207,12 @@ const ChurnReportPanel = ({ dormantMembers, onSendMessage, onClose, sales }) => 
 
     const handleBulkConfirmSend = async () => {
         if (!bulkConfirm || bulkMessages.length === 0) return;
+
+        const isDemoSite = window.location.hostname.includes('passflow-demo') || localStorage.getItem('lastStudioId') === 'demo-yoga';
+        if (isDemoSite) {
+            alert('데모 환경에서는 메시지 발송 기능이 제한되어 있습니다.');
+            return;
+        }
 
         for (const { member, message } of bulkMessages) {
             try {

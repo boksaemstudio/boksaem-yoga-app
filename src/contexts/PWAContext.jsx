@@ -13,6 +13,13 @@ export const PWAProvider = ({ children }) => {
     const [deviceOS, setDeviceOS] = useState('unknown');
     const [isStandalone, setIsStandalone] = useState(false);
 
+    const isDemo = typeof window !== 'undefined' && (
+        window.location.hostname.includes('passflowai') || 
+        window.location.hostname.includes('demo') || 
+        config?.STUDIO_ID === 'demo' || 
+        config?.STUDIO_ID === 'demo-yoga'
+    );
+
     useEffect(() => {
         // OS 감지
         const ua = navigator.userAgent.toLowerCase();
@@ -26,8 +33,11 @@ export const PWAProvider = ({ children }) => {
         };
         checkStandalone();
         const handleBeforeInstallPrompt = (e) => {
-
             e.preventDefault();
+            // 데모 환경에서는 설치 프롬프트를 노출하지 않음
+            if (isDemo) {
+                return;
+            }
             setDeferredPrompt(e);
         };
 
@@ -35,7 +45,6 @@ export const PWAProvider = ({ children }) => {
 
         // Check if already installed
         window.addEventListener('appinstalled', () => {
-
             setDeferredPrompt(null);
             setIsStandalone(true);
         });
@@ -113,7 +122,7 @@ export const PWAProvider = ({ children }) => {
     };
 
     return (
-        <PWAContext.Provider value={{ deferredPrompt, installApp, isStandalone, deviceOS }}>
+        <PWAContext.Provider value={{ deferredPrompt, installApp, isStandalone, deviceOS, isDemo }}>
             {children}
         </PWAContext.Provider>
     );

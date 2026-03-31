@@ -24,8 +24,8 @@ const AdminHeader = ({
     return (
         <header className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
             <div className="admin-title" style={{ gap: '8px', fontSize: '0.95rem', display: 'flex', alignItems: 'center' }}>
-                {config.ASSETS?.LOGO?.SQUARE && config.ASSETS.LOGO.SQUARE !== '/assets/passflow_logo.png' ? (
-                    <img src={config.ASSETS.LOGO.SQUARE} alt="로고" style={{ height: '22px', filter: 'invert(1) brightness(1.5) drop-shadow(0 0 8px rgba(var(--primary-rgb), 0.4))' }} />
+                {(config.ASSETS?.LOGO?.SQUARE && config.ASSETS.LOGO.SQUARE !== '/assets/passflow_logo.png') || config.IDENTITY?.LOGO_URL ? (
+                    <img src={config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.SQUARE} alt="로고" style={{ height: '22px', filter: 'invert(1) brightness(1.5) drop-shadow(0 0 8px rgba(var(--primary-rgb), 0.4))' }} />
                 ) : (
                     <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '4px', background: 'var(--primary-gold)', color: '#000', fontSize: '14px', fontWeight: '900', boxShadow: '0 0 8px rgba(var(--primary-rgb), 0.4)' }}>
                         {config.IDENTITY?.NAME?.[0] || 'S'}
@@ -132,7 +132,7 @@ const AdminHeader = ({
                     </div>
                 </div>
 
-                {(activeTab === 'members' || activeTab === 'revenue') && (
+                {(activeTab === 'members' || activeTab === 'revenue') && config.BRANCHES?.length > 1 && (
                     <select
                         className="styled-select"
                         value={currentBranch}

@@ -8,7 +8,7 @@ export function useMemberUI() {
     const [selectedNoticeId, setSelectedNoticeId] = useState(null);
     const [scheduleView, setScheduleView] = useState('calendar');
     const [scheduleMonth, setScheduleMonth] = useState('current');
-    const [scheduleBranch, setScheduleBranch] = useState('gwangheungchang');
+    const [scheduleBranch, setScheduleBranch] = useState(null); // gwangheungchang 대신 null로 초기화하여 config.BRANCHES 적용되게 함
     const [lightboxImage, setLightboxImage] = useState(null);
     const [greetingVisible, setGreetingVisible] = useState(true);
 

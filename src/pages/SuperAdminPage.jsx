@@ -25,6 +25,7 @@ const SuperAdminPage = () => {
     const [adding, setAdding] = useState(false);
     const [createdResetLink, setCreatedResetLink] = useState(null);
     const [copied, setCopied] = useState(false);
+    const [copiedStudioId, setCopiedStudioId] = useState(null);
 
     // 비밀번호 변경
     const [resetPasswordUid, setResetPasswordUid] = useState(null);
@@ -70,7 +71,7 @@ const SuperAdminPage = () => {
             // 구글 기본 영어 페이지를 우회하고, 우리가 새로 만든 한글 /auth/action 페이지로 강제 연결
             const matchParams = result.data.resetLink.match(/oobCode=([^&]+)/);
             const oobCode = matchParams ? matchParams[1] : '';
-            const cleanLink = `https://passflow-0324.web.app/auth/action?mode=resetPassword&oobCode=${oobCode}`;
+            const cleanLink = `https://passflowai.web.app/auth/action?mode=resetPassword&oobCode=${oobCode}`;
             
             setCreatedResetLink(cleanLink);
             
@@ -78,7 +79,7 @@ const SuperAdminPage = () => {
             try {
                 const { sendPasswordResetEmail } = await import('firebase/auth');
                 const actionCodeSettings = {
-                    url: 'https://passflow-0324.web.app/auth/action',
+                    url: 'https://passflowai.web.app/auth/action',
                     handleCodeInApp: false
                 };
                 await sendPasswordResetEmail(auth, addForm.email, actionCodeSettings);
@@ -98,6 +99,13 @@ const SuperAdminPage = () => {
         navigator.clipboard.writeText(createdResetLink);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleCopyStudioLink = (studio) => {
+        const link = `https://passflowai.web.app/admin?studio=${studio.id}`;
+        navigator.clipboard.writeText(link);
+        setCopiedStudioId(studio.id);
+        setTimeout(() => setCopiedStudioId(null), 2000);
     };
 
     const handleResetPassword = async () => {
@@ -155,7 +163,7 @@ const SuperAdminPage = () => {
                 // 구글 기본 영어 페이지를 우회하고, 우리가 새로 만든 한글 /auth/action 페이지로 강제 연결
                 const matchParams = adminResult.data.resetLink.match(/oobCode=([^&]+)/);
                 const oobCode = matchParams ? matchParams[1] : '';
-                const cleanLink = `https://passflow-0324.web.app/auth/action?mode=resetPassword&oobCode=${oobCode}`;
+                const cleanLink = `https://passflowai.web.app/auth/action?mode=resetPassword&oobCode=${oobCode}`;
                 
                 // 파이어베이스 기본 영어 이메일 템플릿 우회! 카톡 복사용 링크 팝업 제공 및 자동 메일 발송 병행
                 setCreatedResetLink(cleanLink);
@@ -164,7 +172,7 @@ const SuperAdminPage = () => {
                 try {
                     const { sendPasswordResetEmail } = await import('firebase/auth');
                     const actionCodeSettings = {
-                        url: 'https://passflow-0324.web.app/auth/action',
+                        url: 'https://passflowai.web.app/auth/action',
                         handleCodeInApp: false
                     };
                     await sendPasswordResetEmail(auth, pending.ownerEmail, actionCodeSettings);
@@ -202,6 +210,30 @@ const SuperAdminPage = () => {
         if (!window.confirm(`정말로 [${studio.name}]을 레지스트리에서 삭제하시겠습니까?\n\n(실제 데이터는 보존됩니다)`)) return;
         await studioRegistryService.deleteStudio(studio.id);
         loadStudios();
+    };
+
+    const handleUpdateDate = async (studio) => {
+        const currentDisplay = studio.createdAt ? new Date(studio.createdAt).toISOString().split('T')[0] : '';
+        const newDateStr = prompt(`[${studio.name}] 시작 날짜 수정\n\n새 시작 날짜를 입력하세요 (YYYY-MM-DD 형식):`, currentDisplay);
+        
+        if (newDateStr === null) return; // 취소
+        
+        const timestamp = new Date(newDateStr).getTime();
+        if (isNaN(timestamp)) {
+            alert('올바른 날짜 형식이 아닙니다. (예: 2026-03-31)');
+            return;
+        }
+
+        const isoString = new Date(newDateStr).toISOString();
+        if (window.confirm(`시작 날짜를 ${newDateStr} 로 변경하시겠습니까?`)) {
+            const success = await studioRegistryService.updateStudio(studio.id, { createdAt: isoString });
+            if (success) {
+                alert('날짜가 수정되었습니다.');
+                loadStudios();
+            } else {
+                alert('날짜 수정에 실패했습니다.');
+            }
+        }
     };
 
     const statusColors = { active: '#10B981', suspended: '#EF4444', trial: '#F59E0B' };
@@ -301,24 +333,56 @@ const SuperAdminPage = () => {
                                     return (
                                         <div key={studio.id} style={{ background: isCurrent ? 'rgba(212, 175, 55, 0.06)' : 'rgba(255,255,255,0.03)', border: isCurrent ? '2px solid rgba(212, 175, 55, 0.4)' : '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '20px', position: 'relative', cursor: 'pointer' }} onClick={() => handleSwitch(studio.id)} title={`클릭하면 이 화면 전체가 [${studio.name}]의 데이터로 탈바꿈합니다.`}>
                                             {isCurrent && <div style={{ position: 'absolute', top: '12px', right: '12px', fontSize: '0.7rem', padding: '3px 8px', borderRadius: '12px', background: '#D4AF37', color: '#000', fontWeight: '700' }}>현재 접속중</div>}
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
-                                                <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'linear-gradient(135deg, #3B82F6, #8B5CF6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '1rem', color: 'white', flexShrink: 0 }}>{studio.name?.substring(0, 1) || '?'}</div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
+                                                <div style={{ width: '52px', height: '52px', borderRadius: '12px', background: studio.logoUrl ? '#ffffff' : 'linear-gradient(135deg, #3B82F6, #8B5CF6)', boxShadow: studio.logoUrl ? '0 4px 12px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.1)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '1.2rem', color: 'white', flexShrink: 0, overflow: 'hidden', padding: studio.logoUrl ? '4px' : '0' }}>
+                                                    {studio.logoUrl ? <img src={studio.logoUrl} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt={`${studio.name} 로고`} /> : (studio.name?.substring(0, 1) || '?')}
+                                                </div>
                                                 <div style={{ minWidth: 0 }}>
-                                                    <div style={{ fontWeight: '700', fontSize: '1.05rem' }}>{studio.name}</div>
+                                                    <div style={{ fontWeight: '800', fontSize: '1.15rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.3px' }}>{studio.name}</div>
                                                     <div style={{ fontSize: '0.75rem', color: '#888' }}>{studio.id}</div>
                                                 </div>
                                             </div>
-                                            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                                            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
                                                 <span style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: '10px', background: `${statusColors[studio.status]}22`, color: statusColors[studio.status], fontWeight: '600' }}>{statusLabels[studio.status] || studio.status}</span>
                                                 <span style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: '10px', background: `${planColors[studio.plan]}22`, color: planColors[studio.plan], fontWeight: '600' }}>{planLabels[studio.plan] || studio.plan}</span>
+                                                
+                                                <div 
+                                                    onClick={(e) => { e.stopPropagation(); handleUpdateDate(studio); }}
+                                                    style={{ 
+                                                        marginLeft: 'auto', 
+                                                        fontSize: '0.7rem', 
+                                                        color: '#aaa', 
+                                                        background: 'rgba(255,255,255,0.05)', 
+                                                        padding: '3px 8px', 
+                                                        borderRadius: '6px', 
+                                                        cursor: 'pointer',
+                                                        border: '1px solid rgba(255,255,255,0.1)'
+                                                    }}
+                                                    title="클릭하여 시작(생성) 날짜를 수정합니다."
+                                                >
+                                                    🗓️ 시작일: {studio.createdAt ? new Date(studio.createdAt).toLocaleDateString('ko-KR') : '날짜 없음'}
+                                                </div>
                                             </div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: '#888' }}>
                                                 <span>{studio.ownerEmail}</span>
                                                 <div style={{ display: 'flex', gap: '4px' }} onClick={e => e.stopPropagation()}>
-                                                    <button onClick={() => handleSwitch(studio.id)} title={`[관제탑 전환] 이 버튼을 누르면 마치 내가 ${studio.name}의 원장님이 된 것처럼 대시보드가 통째로 이동합니다.`} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#3B82F6', padding: '4px' }}><ArrowSquareOut size={18} /></button>
+                                                    <button onClick={() => handleCopyStudioLink(studio)} title={`[링크 복사] 이 스튜디오 전용 관리자 접속 주소를 복사하여 원장님 카카오톡으로 전달하세요.`} style={{ background: 'none', border: 'none', cursor: 'pointer', color: copiedStudioId === studio.id ? '#10B981' : '#A78BFA', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                        {copiedStudioId === studio.id ? <Check size={18} /> : <Copy size={18} />}
+                                                    </button>
                                                     <button onClick={() => handleDelete(studio)} title={`[가입 해지] 이 요가원을 플랫폼 목록에서 아예 삭제합니다.`} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', padding: '4px' }}><Trash size={18} /></button>
                                                 </div>
                                             </div>
+                                            {(studio.scheduleUrls && studio.scheduleUrls.length > 0) ? (
+                                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px' }} onClick={e => e.stopPropagation()}>
+                                                    {studio.scheduleUrls.map((url, i) => (
+                                                        <a key={i} href={url} target="_blank" rel="noreferrer" style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#10B981', background: 'rgba(16,185,129,0.1)', padding: '4px 10px', borderRadius: '4px', textDecoration: 'none' }}>📦 가입 첨부파일 {i + 1} 다운로드</a>
+                                                    ))}
+                                                </div>
+                                            ) : (studio.scheduleUrl && (
+                                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px' }} onClick={e => e.stopPropagation()}>
+                                                    <a href={studio.scheduleUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#10B981', background: 'rgba(16,185,129,0.1)', padding: '4px 10px', borderRadius: '4px', textDecoration: 'none' }}>📦 가입 첨부파일 다운로드</a>
+                                                </div>
+                                            ))}
                                         </div>
                                     );
                                 })}

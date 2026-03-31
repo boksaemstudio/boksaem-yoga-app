@@ -12,14 +12,14 @@ const { onCall } = require("firebase-functions/v2/https");
 const { admin, tenantDb, STUDIO_ID, logAIError, getStudioName } = require("../helpers/common");
 
 // ─── Ppurio API Configuration ───
-const PPURIO_API_URL = "https://api.bizppurio.com/v3/message";
-const PPURIO_TOKEN_URL = "https://api.bizppurio.com/v1/token";
+const PPURIO_API_URL = "https://message.ppurio.com/v1/message";
+const PPURIO_TOKEN_URL = "https://message.ppurio.com/v1/token";
 
 function getPpurioConfig() {
     return {
-        account: process.env.PPURIO_ACCOUNT || "",
-        password: process.env.PPURIO_PASSWORD || "",
-        sender: process.env.PPURIO_SENDER || "01022232789"
+        account: (process.env.PPURIO_ACCOUNT || "").trim(),
+        password: (process.env.PPURIO_PASSWORD || "").trim(),
+        sender: (process.env.PPURIO_SENDER || "").trim() || "01022232789"
     };
 }
 
@@ -52,8 +52,9 @@ async function getPpurioToken() {
     }
 
     const data = await res.json();
-    if (data.accesstoken) {
-        cachedPpurioToken = data.accesstoken;
+    const tokenVal = data.accesstoken || data.token;
+    if (tokenVal) {
+        cachedPpurioToken = tokenVal;
         tokenExpiresAt = Date.now() + (20 * 60 * 60 * 1000); 
         return cachedPpurioToken;
     } else {
@@ -74,23 +75,16 @@ async function sendSMS(receiver, msg, title, msgType) {
 
     const payload = {
         account: config.account,
-        refkey: refkey,
-        type: type,
+        messageType: type === 'lms' ? 'LMS' : 'SMS',
         from: config.sender,
-        to: receiver,
-        content: {}
+        duplicateFlag: 'Y',
+        targetCount: 1,
+        targets: [
+            { to: receiver }
+        ],
+        content: msg,
+        refKey: refkey
     };
-
-    if (type === 'lms') {
-        payload.content.lms = {
-            subject: title || "PassFlow Ai 알림",
-            message: msg
-        };
-    } else {
-        payload.content.sms = {
-            message: msg
-        };
-    }
 
     const res = await fetch(PPURIO_API_URL, {
         method: "POST",
@@ -101,11 +95,16 @@ async function sendSMS(receiver, msg, title, msgType) {
         body: JSON.stringify(payload)
     });
 
+    if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`[Ppurio] Message Send Failed: HTTP ${res.status} ${errText}`);
+    }
+
     const data = await res.json();
     console.log(`[Ppurio] Send result:`, JSON.stringify(data));
 
     // Ppurio returns 1000 for success
-    if (data.code !== 1000) {
+    if (data.code && data.code !== 1000) {
         throw new Error(`[Ppurio] Send failed: ${data.description} (code: ${data.code})`);
     }
 
