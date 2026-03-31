@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Sparkle, UserFocus, Trash } from '@phosphor-icons/react';
+import { UserFocus, Trash } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 
 /**
@@ -10,7 +10,7 @@ import { storageService } from '../../../services/storage';
 const LogListItem = memo(({
     log, index, isToday, members, onMemberClick,
     onImageClick, getBranchName, getBranchColor, getBranchThemeColor,
-    summary
+    summary, sessionRank, totalSessions, isMultiAttMember
 }) => {
     const handleClick = () => {
         if (log.memberId && onMemberClick) {
@@ -81,26 +81,21 @@ const LogListItem = memo(({
                             ⛔ 출석거부 ({log.denialReason === 'expired' ? '기간만료' : '횟수소진'})
                         </span>
                     )}
-                    {(log.sessionCount > 1 || log.isMultiSession) && (
-                        <span className="status-badge status-badge--multi" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                            <Sparkle size={10} weight="fill" />
-                            {log.sessionCount || '2'}회차 Passion
+                    {isMultiAttMember && sessionRank && (
+                        <span style={{
+                            fontSize: '0.6rem', padding: '1px 5px', borderRadius: '3px',
+                            background: 'rgba(255,255,255,0.08)',
+                            color: 'rgba(255,255,255,0.5)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            fontWeight: '600', letterSpacing: '0.5px'
+                        }}>
+                            {sessionRank}회
                         </span>
                     )}
                     {log.facialMatched && (
                         <span className="status-badge status-badge--facial-match" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
                             <UserFocus size={10} weight="fill" />
                             안면 일치
-                        </span>
-                    )}
-                    {isToday && summary?.multiAttendedMemberIds?.includes(log.memberId) && (
-                        <span className="badge" style={{
-                            fontSize: '0.65rem', padding: '2px 6px',
-                            background: 'rgba(245, 158, 11, 0.25)', color: '#FBBF24',
-                            border: '1px solid rgba(245, 158, 11, 0.5)', fontWeight: 'bold',
-                            height: 'max-content'
-                        }}>
-                            오늘 {summary?.attendanceCountMap?.[log.memberId] || 2}회 출석 🔥
                         </span>
                     )}
                 </div>

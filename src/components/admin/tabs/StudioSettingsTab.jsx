@@ -3,6 +3,7 @@ import { useStudioConfig } from '../../../contexts/StudioContext';
 import { Gear, MapPin, FloppyDisk, ArrowsClockwise, Robot, Image as ImageIcon, Globe } from '@phosphor-icons/react';
 import { storage } from '../../../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getCurrentStudioId } from '../../../utils/resolveStudioId';
 
 const StudioSettingsTab = () => {
     const { config, updateConfig, refreshConfig, loading } = useStudioConfig();
@@ -684,7 +685,8 @@ const StudioSettingsTab = () => {
                         { label: '회원앱', path: '/member', icon: '📱', desc: '출석 & 수업 정보' },
                         { label: '출석체크앱', path: '/checkin', icon: '✅', desc: '키오스크/태블릿' },
                     ].map(app => {
-                        const fullUrl = `${window.location.origin}${app.path}`;
+                        const sid = getCurrentStudioId();
+                        const fullUrl = `${window.location.origin}${app.path}?studio=${sid}`;
                         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&format=png&data=${encodeURIComponent(fullUrl)}`;
                         return (
                             <div key={app.path} style={{

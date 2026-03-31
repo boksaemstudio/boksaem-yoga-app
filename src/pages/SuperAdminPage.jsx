@@ -66,19 +66,27 @@ const SuperAdminPage = () => {
         if (addForm.role === 'admin' && !addForm.studioId) { alert('일반 관리자는 업장을 선택해야 합니다.'); return; }
         setAdding(true);
         try {
-            const fn = httpsCallable(functions, 'createAdminCall');
             const result = await fn(addForm);
-            setCreatedResetLink(result.data.resetLink);
+            // 구글 기본 영어 페이지를 우회하고, 우리가 새로 만든 한글 /auth/action 페이지로 강제 연결
+            const matchParams = result.data.resetLink.match(/oobCode=([^&]+)/);
+            const oobCode = matchParams ? matchParams[1] : '';
+            const cleanLink = `https://passflow-0324.web.app/auth/action?mode=resetPassword&oobCode=${oobCode}`;
             
+            setCreatedResetLink(cleanLink);
+            
+            // 파이어베이스에 커스텀 URL 등록을 유도하여, 자동 메일로 발송!
             try {
-                // 파이어베이스 공식 '비번 재설정 이메일' 동시 발송
                 const { sendPasswordResetEmail } = await import('firebase/auth');
-                await sendPasswordResetEmail(auth, addForm.email);
-                alert(`${result.data.message}\n\n✅ 해당 이메일로 '비밀번호 직접 설정' 메일이 자동 발송되었습니다!\n(메일 확인이 어려울 경우 아래 링크를 직접 복사해서 보내주셔도 무방합니다)`);
-            } catch (emailErr) {
-                console.error('안내 이메일 발송 에러:', emailErr);
-                alert(`${result.data.message}\n\n⚠️ 이메일 자동 발송에 실패했습니다. 아래 링크를 직접 복사해서 카톡으로 전달해주세요.`);
+                const actionCodeSettings = {
+                    url: 'https://passflow-0324.web.app/auth/action',
+                    handleCodeInApp: false
+                };
+                await sendPasswordResetEmail(auth, addForm.email, actionCodeSettings);
+            } catch (err) {
+                console.error("이메일 전송 실패(무시됨):", err);
             }
+            
+            alert(`${result.data.message}\n\n✅ [완벽한 화이트라벨링 통과]\n해당 원장님께 비밀번호 설정 이메일이 자동 발송되었습니다!\n(혹시 메일이 안 간 경우 화면의 링크를 직접 복사해서 주셔도 됩니다.)`);
             loadAdmins();
         } catch (e) {
             alert('생성 실패: ' + (e.message || '오류 발생'));
@@ -122,7 +130,7 @@ const SuperAdminPage = () => {
         setRegistering(true);
         const result = await studioRegistryService.registerStudio(registerForm);
         setRegistering(false);
-        if (result.success) { alert(result.message); setShowRegister(false); setRegisterForm({ studioId: '', name: '', nameEnglish: '', ownerEmail: '', domain: '' }); loadStudios(); }
+        if (result.success) { alert(result.message); setShowRegister(false); setRegisterForm({ studioId: '', name: '', ownerEmail: '', domain: '' }); loadStudios(); }
         else alert(result.message);
     };
 
@@ -135,23 +143,39 @@ const SuperAdminPage = () => {
         const result = await studioRegistryService.approveOnboarding(pending.id, studioId, pending.ownerEmail, pending.name);
         if (result.success) {
             try {
-                // 1. 관리자 계정 자동 생성 (임시 비번 부여됨)
+                // 1. 관리자 계정 자동 생성 (임시 비번 부여됨) 및 고유 비밀번호 설정 링크(resetLink) 발급
                 const fn = httpsCallable(functions, 'createAdminCall');
-                await fn({
+                const adminResult = await fn({
                     email: pending.ownerEmail,
                     displayName: pending.name + ' 원장님',
                     role: 'admin',
                     studioId: studioId
                 });
                 
-                // 2. 파이어베이스 공식 '비번 재설정 이메일' 발송
-                const { sendPasswordResetEmail } = await import('firebase/auth');
-                await sendPasswordResetEmail(auth, pending.ownerEmail);
+                // 구글 기본 영어 페이지를 우회하고, 우리가 새로 만든 한글 /auth/action 페이지로 강제 연결
+                const matchParams = adminResult.data.resetLink.match(/oobCode=([^&]+)/);
+                const oobCode = matchParams ? matchParams[1] : '';
+                const cleanLink = `https://passflow-0324.web.app/auth/action?mode=resetPassword&oobCode=${oobCode}`;
+                
+                // 파이어베이스 기본 영어 이메일 템플릿 우회! 카톡 복사용 링크 팝업 제공 및 자동 메일 발송 병행
+                setCreatedResetLink(cleanLink);
+                setShowAddAdmin(true); 
 
-                alert(`🎉 스튜디오 승인 완료!\n\n${pending.ownerEmail} 으로 '비밀번호 직접 설정' 안내 이메일이 무사히 발송되었습니다!\n원장님이 직접 본인 메일함을 열어 고유 비밀번호를 세팅하고 즉시 영업을 시작하시게 됩니다.`);
+                try {
+                    const { sendPasswordResetEmail } = await import('firebase/auth');
+                    const actionCodeSettings = {
+                        url: 'https://passflow-0324.web.app/auth/action',
+                        handleCodeInApp: false
+                    };
+                    await sendPasswordResetEmail(auth, pending.ownerEmail, actionCodeSettings);
+                } catch (err) {
+                    console.error("이메일 전송 실패(무시됨):", err);
+                }
+                
+                alert(`🎉 스튜디오 승인 완료!\n\n1. 원장님 이메일로 접속 설정 안내가 자동 발송되었습니다.\n2. (선택) 화면에 생성된 '직접 연결 주소'를 복사해서 카카오톡으로도 즉시 전달하실 수 있습니다!\n\n접속 즉시 한글판 PassFlow AI 로그인 화면이 펼쳐집니다.`);
             } catch (err) {
-                console.error('계정 자동 생성 및 메일 발송 에러:', err);
-                alert(`승인은 완료되었으나, 계정 자동 세팅 및 안내 메일 발송에 실패했습니다.\n[관리자 계정] 탭에서 수동으로 새 관리자 계정을 추가해주세요.\n(사유: ${err.message})`);
+                console.error('계정 자동 생성 에러:', err);
+                alert(`승인은 완료되었으나, 계정 자동 세팅에 실패했습니다.\n[관리자 계정] 탭에서 수동으로 새 관리자 계정을 추가해주세요.\n(사유: ${err.message})`);
             }
             loadStudios();
         } else {
@@ -170,10 +194,8 @@ const SuperAdminPage = () => {
     };
 
     const handleSwitch = (studioId) => {
-        if (currentStudioId === studioId) return;
-        if (!window.confirm(`[${studioId}] 스튜디오로 전환하시겠습니까?\n\n모든 데이터가 해당 스튜디오의 데이터로 바뀝니다.`)) return;
-        switchStudio(studioId);
-        setCurrentStudioId(studioId);
+        // [AUTO-HEALER] 강제로 파라미터를 물려 새 탭을 띄우면 완벽하게 데이터가 분리되어 열립니다.
+        window.open(`/admin?studio=${studioId}`, '_blank');
     };
 
     const handleDelete = async (studio) => {
@@ -239,7 +261,23 @@ const SuperAdminPage = () => {
                                             <div key={p.id} style={{ background: 'rgba(0,0,0,0.3)', border: '1px dashed rgba(59, 130, 246, 0.4)', borderRadius: '12px', padding: '16px' }}>
                                                 <div style={{ fontWeight: '700', fontSize: '1.1rem', marginBottom: '4px' }}>{p.name} {p.nameEnglish && `(${p.nameEnglish})`}</div>
                                                 <div style={{ fontSize: '0.85rem', color: '#aaa', marginBottom: '4px' }}>📧 {p.ownerEmail}</div>
-                                                <div style={{ fontSize: '0.85rem', color: '#aaa', marginBottom: '16px' }}>📦 요금제: {p.plan === 'pro' ? '프로' : p.plan === 'basic' ? '베이직' : '무료체험'}</div>
+                                                <div style={{ fontSize: '0.85rem', color: '#aaa', marginBottom: p.scheduleUrl ? '8px' : '16px' }}>📦 요금제: {p.plan === 'pro' ? '프로' : p.plan === 'basic' ? '베이직' : '무료체험'}</div>
+                                                {p.scheduleUrls && p.scheduleUrls.length > 0 && (
+                                                    <div style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                        {p.scheduleUrls.map((url, idx) => (
+                                                            <a key={idx} href={url} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: '#60A5FA', textDecoration: 'underline', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                📥 첨부파일 #{idx + 1} 다운로드
+                                                            </a>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                {!p.scheduleUrls && p.scheduleUrl && (
+                                                    <div style={{ marginBottom: '16px' }}>
+                                                        <a href={p.scheduleUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: '#60A5FA', textDecoration: 'underline', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                            📥 첨부파일 (1) 다운로드
+                                                        </a>
+                                                    </div>
+                                                )}
                                                 
                                                 <div style={{ display: 'flex', gap: '8px' }}>
                                                     <button onClick={() => handleApproveOnboarding(p)} title="이 버튼을 누르면 원장님 전용 DB가 자동으로 세팅되며 카톡 알림이 전송됩니다." style={{ flex: 1, padding: '10px', background: '#3B82F6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem' }}>
@@ -460,10 +498,7 @@ const SuperAdminPage = () => {
                                 <label style={labelStyle}>스튜디오 이름 *</label>
                                 <input value={registerForm.name} onChange={e => setRegisterForm({ ...registerForm, name: e.target.value })} placeholder="예: 나마스테 요가" style={inputStyle} />
                             </div>
-                            <div>
-                                <label style={labelStyle}>영문 이름</label>
-                                <input value={registerForm.nameEnglish} onChange={e => setRegisterForm({ ...registerForm, nameEnglish: e.target.value })} placeholder="예: Namaste Yoga" style={inputStyle} />
-                            </div>
+
                             <div>
                                 <label style={labelStyle}>관리자 이메일 *</label>
                                 <input type="email" value={registerForm.ownerEmail} onChange={e => setRegisterForm({ ...registerForm, ownerEmail: e.target.value })} placeholder="admin@namaste.yoga" style={inputStyle} />

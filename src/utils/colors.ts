@@ -78,13 +78,13 @@ export const getTagColor = (title: string = '', _dateStr: string = '', _instruct
     if (lowerTitle.includes('빈야사') || lowerTitle.includes('vinyasa')) {
         return { bg: 'rgba(16, 185, 129, 0.15)', text: '#34D399', border: 'rgba(16, 185, 129, 0.3)' };
     }
-    // ── 심화/플라잉/키즈플라잉/로우플라잉 (주황) — 플라잉 계열 통합 ──
-    if (lowerTitle.includes('플라잉') || lowerTitle.includes('flying') || lowerTitle.includes('심화')) {
-        return { bg: 'rgba(255, 190, 118, 0.2)', text: 'rgba(255, 190, 118, 1)', border: 'rgba(255, 190, 118, 0.5)' };
-    }
-    // ── 키즈 단독 (노랑) — 키즈플라잉은 위에서 이미 처리됨 ──
+    // ── 키즈 단독 (노랑) — '키즈플라잉'도 키즈 색상으로 우선 적용됨 ──
     if (lowerTitle.includes('키즈') || lowerTitle.includes('kids')) {
         return { bg: 'rgba(234, 179, 8, 0.2)', text: '#EAB308', border: 'rgba(234, 179, 8, 0.4)' };
+    }
+    // ── 심화/플라잉/로우플라잉 (주황) ──
+    if (lowerTitle.includes('플라잉') || lowerTitle.includes('flying') || lowerTitle.includes('심화')) {
+        return { bg: 'rgba(255, 190, 118, 0.2)', text: 'rgba(255, 190, 118, 1)', border: 'rgba(255, 190, 118, 0.5)' };
     }
     // ── 임산부 (민트) ──
     if (lowerTitle.includes('임산부') || lowerTitle.includes('maternity')) {

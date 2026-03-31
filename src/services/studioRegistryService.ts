@@ -31,6 +31,7 @@ export interface RegisterStudioInput {
     domain?: string;
     ownerEmail: string;
     plan?: 'free' | 'basic' | 'pro';
+    logoUrl?: string;
 }
 
 // ── Constants ──
@@ -65,7 +66,7 @@ export const studioRegistryService = {
     /** 새 스튜디오 등록 + 초기 데이터 시딩 */
     async registerStudio(input: RegisterStudioInput): Promise<{ success: boolean; message: string }> {
         try {
-            const { studioId, name, nameEnglish, domain, ownerEmail, plan } = input;
+            const { studioId, name, nameEnglish, domain, ownerEmail, plan, logoUrl } = input;
 
             // 1. 중복 검사
             const existing = await this.getStudio(studioId);
@@ -94,6 +95,7 @@ export const studioRegistryService = {
                     NAME: name,
                     NAME_ENGLISH: nameEnglish || name,
                     LOGO_TEXT: name.substring(0, 4).toUpperCase(),
+                    ...(logoUrl && { LOGO_URL: logoUrl })
                 },
             };
             await setDoc(doc(db, 'studios', studioId), seedConfig);
@@ -166,12 +168,15 @@ export const studioRegistryService = {
             const pendingSnap = await getDoc(pendingRef);
             if (!pendingSnap.exists()) return { success: false, message: '신청서를 찾을 수 없습니다.' };
             
+            const pendingData = pendingSnap.data();
+
             // 1. 실제 스튜디오 등록 처리
             const regResult = await this.registerStudio({
                 studioId,
                 name,
                 ownerEmail,
-                plan: 'basic'
+                plan: pendingData.plan || 'basic',
+                logoUrl: pendingData.logoUrl
             });
 
             if (!regResult.success) {

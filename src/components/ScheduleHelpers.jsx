@@ -7,13 +7,15 @@ const ScheduleClassEditor = ({ cls, idx, dayClasses, setDayClasses, instructors,
     const selectStyle = { 
         // fallback generic styles
         fontSize: '0.9rem', 
-        padding: '8px 10px',
+        padding: '8px 30px 8px 8px', // right padding 30px for the custom caret
         borderRadius: '8px',
         border: '1px solid var(--border-color)',
         backgroundColor: 'var(--bg-surface, #1e1e1e)',
         color: 'var(--text-primary, #ffffff)',
-        appearance: 'auto',
-        WebkitAppearance: 'auto',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden'
+        // appearance: 'none' is handled globally by default, so we remove appearance: 'auto'
     };
     
     // Parse time into hour and minute
@@ -42,7 +44,7 @@ const ScheduleClassEditor = ({ cls, idx, dayClasses, setDayClasses, instructors,
                     <select
                         value={hour}
                         onChange={(e) => updateTime(e.target.value, minute)}
-                        style={{ ...selectStyle, width: '75px', textAlign: 'center', fontWeight: '700' }}
+                        style={{ ...selectStyle, width: '90px', paddingRight: '20px', fontWeight: '700' }}
                     >
                         {hours.map(h => (
                             <option key={h} value={h}>{h}시</option>
@@ -52,7 +54,7 @@ const ScheduleClassEditor = ({ cls, idx, dayClasses, setDayClasses, instructors,
                     <select
                         value={minute}
                         onChange={(e) => updateTime(hour, e.target.value)}
-                        style={{ ...selectStyle, width: '75px', textAlign: 'center', fontWeight: '700' }}
+                        style={{ ...selectStyle, width: '90px', paddingRight: '20px', fontWeight: '700' }}
                     >
                         {minutes.map(m => (
                             <option key={m} value={m}>{m}분</option>
@@ -66,7 +68,7 @@ const ScheduleClassEditor = ({ cls, idx, dayClasses, setDayClasses, instructors,
                         newClasses[idx].title = e.target.value;
                         setDayClasses(newClasses);
                     }}
-                    style={{ ...selectStyle, flex: 1, minWidth: '120px', fontWeight: '600' }}
+                    style={{ ...selectStyle, flex: 2, minWidth: '140px', fontWeight: '600' }}
                 >
                     {classTypes.map(ct => (
                         <option key={ct} value={ct}>{ct}</option>
@@ -82,7 +84,7 @@ const ScheduleClassEditor = ({ cls, idx, dayClasses, setDayClasses, instructors,
                         newClasses[idx].instructor = e.target.value;
                         setDayClasses(newClasses);
                     }}
-                    style={{ ...selectStyle, flex: 1, minWidth: '100px' }}
+                    style={{ ...selectStyle, flex: 1.5, minWidth: '100px' }}
                 >
                     <option value="">선생님</option>
                     {cls.instructor && !instructors.some(i => (typeof i === 'string' ? i : i.name) === cls.instructor) && (
@@ -101,7 +103,7 @@ const ScheduleClassEditor = ({ cls, idx, dayClasses, setDayClasses, instructors,
                             newClasses[idx].level = e.target.value;
                             setDayClasses(newClasses);
                         }}
-                        style={{ ...selectStyle, width: '90px', flexShrink: 0 }}
+                        style={{ ...selectStyle, flex: 1, minWidth: '85px' }}
                     >
                         <option value="">레벨</option>
                         {classLevels?.map(level => (
@@ -116,7 +118,7 @@ const ScheduleClassEditor = ({ cls, idx, dayClasses, setDayClasses, instructors,
                         newClasses[idx].status = e.target.value;
                         setDayClasses(newClasses);
                     }}
-                    style={{ ...selectStyle, width: '80px', flexShrink: 0 }}
+                    style={{ ...selectStyle, flex: 1, minWidth: '80px' }}
                 >
                     <option value="normal">정상</option>
                     <option value="cancelled">휴강</option>

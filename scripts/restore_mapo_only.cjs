@@ -7,7 +7,7 @@ const db = admin.firestore();
 const tenantId = 'boksaem-yoga';
 const tdb = db.collection('studios').doc(tenantId);
 
-const EXCLUDE_MEMBERS = new Set(['ssKsChLghzYc9UaD0nNb', 'wBGdzNiUifYs80Wzu4Ay', 'FXetUW5Mpi2dgAVulVPz', 'd5dOhmZNi8wTm7iCFPlB', 'demo-member']);
+const EXCLUDE_MEMBERS = new Set(['ssKsChLghzYc9UaD0nNb', 'wBGdzNiUifYs80Wzu4Ay', 'FXetUW5Mpi2dgAVulVPz', 'd5dOhmZNi8wTm7iCFPlB', 'demo-member', 'ayVth1VwZ8EmDq7UZmBH']);
 const EXCLUDE_NAMES = new Set(['송미호', '정계수']);
 
 async function run() {

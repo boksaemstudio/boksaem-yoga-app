@@ -25,6 +25,7 @@ const MeditationPage = lazy(() => import('./pages/MeditationPage'));
 const SuperAdminPage = lazy(() => import('./pages/SuperAdminPage'));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
+const AuthActionPage = lazy(() => import('./pages/AuthActionPage'));
 
 // Loading fallback
 const LoadingScreen = () => {
@@ -102,13 +103,6 @@ const RequireAdmin = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // [MAIN PORTAL] 메인 도메인(passflow-0324)에서는 일반 /admin 대시보드 접근 원천 차단
-    const isMainDomain = window.location.hostname === 'passflow-0324.web.app';
-    if (isMainDomain) {
-      window.location.href = '/home.html';
-      return;
-    }
-
     // [DEMO] 데모사이트는 로그인 없이 접근 가능 (정확히 'passflow-demo-0324'만 매칭해야 함)
     const isDemoSite = window.location.hostname.includes('passflow-demo-0324');
     
@@ -328,6 +322,7 @@ function App() {
                 <Route path="/instructor" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><InstructorPage /></Suspense></ErrorBoundary>} />
                 <Route path="/meditation" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><MeditationPage /></Suspense></ErrorBoundary>} />
                 <Route path="/super-admin" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><RequireSuperAdmin><SuperAdminPage /></RequireSuperAdmin></Suspense></ErrorBoundary>} />
+                <Route path="/auth/action" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><AuthActionPage /></Suspense></ErrorBoundary>} />
                 <Route path="/features.html" element={<HardReload target="/features.html" />} />
                 <Route path="/home.html" element={<HardReload target="/home.html" />} />
                 <Route path="*" element={<Navigate to="/" replace />} />

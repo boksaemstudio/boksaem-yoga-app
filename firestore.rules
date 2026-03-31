@@ -224,5 +224,12 @@ service cloud.firestore {
       allow read: if isAuth();
       allow write: if false; // Only Cloud Functions
     }
+
+    // ========================================
+    // 🌍 Platform Registry (SaaS Administration)
+    // ========================================
+    match /platform/{document=**} {
+      allow read, write: if isAuth();
+    }
   }
 }

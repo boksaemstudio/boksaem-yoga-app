@@ -273,6 +273,34 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
     })();
 
     // 수업별 요약 카드 생성 (오늘은 todayClasses prop, 과거는 활성 로그에서 집계)
+    // [FIX] 당일 memberId별 출석 횟수 계산 (다회 출석 자동 감지)
+    const { memberAttCountMap, memberSessionRankMap } = useMemo(() => {
+        const countMap = {};  // memberId -> total count
+        const rankMap = {};   // logId -> session rank (1회차, 2회차...)
+        const memberLogsByTime = {};  // memberId -> [{logId, timestamp}]
+
+        const logsToAnalyze = activeLogs.filter(l => l.status !== 'denied');
+        logsToAnalyze.forEach(log => {
+            if (!log.memberId) return;
+            countMap[log.memberId] = (countMap[log.memberId] || 0) + 1;
+            if (!memberLogsByTime[log.memberId]) memberLogsByTime[log.memberId] = [];
+            memberLogsByTime[log.memberId].push({ logId: log.id, timestamp: log.timestamp });
+        });
+
+        // 시간순 정렬 후 회차 부여
+        Object.entries(memberLogsByTime).forEach(([memberId, entries]) => {
+            if (entries.length < 2) return;
+            entries.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            entries.forEach((e, i) => { rankMap[e.logId] = i + 1; });
+        });
+
+        return { memberAttCountMap: countMap, memberSessionRankMap: rankMap };
+    }, [activeLogs]);
+
+    const multiAttMemberIds = useMemo(() => 
+        Object.entries(memberAttCountMap).filter(([, c]) => c >= 2).map(([id]) => id)
+    , [memberAttCountMap]);
+
     const classCards = (() => {
         if (isToday) return todayClasses;
         const groups = {};
@@ -301,9 +329,8 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
             if (log.status === 'denied') groups[key].deniedCount++;
             else {
                 groups[key].count++;
-                // If it's a historical log, we might not have easy access to multiAttendedMemberIds here,
-                // but we can at least show those tagged as multi-session in the log itself.
-                if (log.memberName && (log.sessionCount > 1 || log.isMultiSession)) {
+                // [FIX] 다회 출석 회원 자동 감지 (DB 필드 불필요)
+                if (log.memberName && log.memberId && multiAttMemberIds.includes(log.memberId)) {
                     if (!groups[key].memberNames.includes(log.memberName)) {
                         groups[key].memberNames.push(log.memberName);
                     }
@@ -704,6 +731,9 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                             getBranchColor={getBranchColor}
                                             getBranchThemeColor={getBranchThemeColor}
                                             summary={summary}
+                                            sessionRank={memberSessionRankMap[log.id]}
+                                            totalSessions={memberAttCountMap[log.memberId]}
+                                            isMultiAttMember={multiAttMemberIds.includes(log.memberId)}
                                         />
                                     ))}
                                     {totalLogPages > 1 && (

@@ -18,7 +18,7 @@ if (!admin.apps.length) admin.initializeApp({ credential: admin.credential.cert(
 
 const ROOT = path.join(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
-const SITES = ['passflow-demo-0324', 'ssangmun-yoga-0324'];
+const SITES = ['passflow-demo-0324', 'ssangmun-yoga-0324', 'passflowai'];
 
 let _token = null;
 async function getToken() {

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Buildings, EnvelopeSimple, Crown, CheckCircle, ShieldCheck, ArrowRight, ArrowLeft, Spinner, Upload, MagicWand, Image as ImageIcon, CalendarBlank, CurrencyKrw } from '@phosphor-icons/react';
+import { Buildings, EnvelopeSimple, Crown, CheckCircle, ShieldCheck, ArrowRight, ArrowLeft, Spinner, Upload, MagicWand, Image as ImageIcon, CalendarBlank, ArrowsClockwise } from '@phosphor-icons/react';
 import { studioRegistryService } from '../services/studioRegistryService';
+import { storage } from '../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const OnboardingPage = () => {
     const navigate = useNavigate();
@@ -14,10 +16,17 @@ const OnboardingPage = () => {
         plan: 'basic',
         logoOption: 'ai', // 'ai' | 'upload' | 'later'
         logoFile: null,
-        logoPreviewUrl: null
+        logoPreviewUrl: null,
+        scheduleFiles: []
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isGeneratingLogo, setIsGeneratingLogo] = useState(false);
+    const [aiColor, setAiColor] = useState('60a5fa');
+    
+    // AI 로고 새로고침 (랜덤 배경색)
+    const handleRegenerateAiLogo = (e) => {
+        if (e) e.stopPropagation();
+        setAiColor(Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'));
+    };
 
     const handleNext = () => setStep(s => Math.min(s + 1, 5));
     const handlePrev = () => setStep(s => Math.max(s - 1, 0));
@@ -32,7 +41,49 @@ const OnboardingPage = () => {
 
     const handleSubmit = async () => {
         setIsSubmitting(true);
-        const result = await studioRegistryService.requestOnboarding(formData);
+        let finalLogoUrl = null;
+
+        if (formData.logoOption === 'upload' && formData.logoFile) {
+            try {
+                const fileName = `onboarding_${Date.now()}_${formData.logoFile.name}`;
+                const logoRef = ref(storage, `platform/onboarding_logos/${fileName}`);
+                await uploadBytes(logoRef, formData.logoFile);
+                finalLogoUrl = await getDownloadURL(logoRef);
+            } catch (e) {
+                console.error("Logo upload failed", e);
+            }
+        } else if (formData.logoOption === 'ai') {
+            finalLogoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || '요가')}&background=${aiColor}&color=fff&size=512&rounded=true&font-size=0.4&bold=true`;
+        }
+
+        let finalScheduleUrls = [];
+        if (formData.scheduleFiles && formData.scheduleFiles.length > 0) {
+            for (let i = 0; i < formData.scheduleFiles.length; i++) {
+                const f = formData.scheduleFiles[i];
+                try {
+                    const fileName = `onboarding_${Date.now()}_schedule_${i}_${f.name}`;
+                    const scheduleRef = ref(storage, `platform/onboarding_schedules/${fileName}`);
+                    await uploadBytes(scheduleRef, f);
+                    const url = await getDownloadURL(scheduleRef);
+                    finalScheduleUrls.push(url);
+                } catch (e) {
+                    console.error("Schedule upload failed", e);
+                }
+            }
+        }
+
+        const submitData = { ...formData };
+        delete submitData.logoFile;
+        delete submitData.logoPreviewUrl;
+        delete submitData.scheduleFiles;
+        if (finalLogoUrl) {
+            submitData.logoUrl = finalLogoUrl;
+        }
+        if (finalScheduleUrls.length > 0) {
+            submitData.scheduleUrls = finalScheduleUrls;
+        }
+
+        const result = await studioRegistryService.requestOnboarding(submitData);
         setIsSubmitting(false);
         if (result.success) {
             setStep(5);
@@ -237,6 +288,16 @@ const OnboardingPage = () => {
                                     <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>"{formData.name}" 이름에 맞는 로고를 AI가 만들어 드립니다</div>
                                 </div>
                             </div>
+                            
+                            {/* AI 로고 미리보기 (선택된 경우만) */}
+                            {formData.logoOption === 'ai' && formData.name && (
+                                <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }} onClick={e => e.stopPropagation()}>
+                                    <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=${aiColor}&color=fff&size=256&rounded=true&font-size=0.4&bold=true`} alt="AI Logo Preview" style={{ width: '80px', height: '80px', borderRadius: '50%', filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.3))' }} />
+                                    <button onClick={handleRegenerateAiLogo} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '6px 16px', borderRadius: '20px', fontSize: '0.8rem', display: 'flex', gap: '6px', alignItems: 'center', cursor: 'pointer', transition: 'background 0.2s' }}>
+                                        <ArrowsClockwise size={16} /> 다른 색상 뽑기
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         {/* 직접 업로드 옵션 */}
@@ -280,7 +341,7 @@ const OnboardingPage = () => {
                         </div>
                     </div>
 
-                    {/* 시간표·가격표 안내 */}
+                    {/* 시간표·가격표 안내 및 첨부 */}
                     <div style={{ 
                         padding: '16px 20px', borderRadius: '14px',
                         background: 'rgba(251, 191, 36, 0.08)', border: '1px solid rgba(251, 191, 36, 0.15)',
@@ -288,10 +349,43 @@ const OnboardingPage = () => {
                     }}>
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                             <CalendarBlank size={22} color="#fbbf24" weight="duotone" style={{ flexShrink: 0, marginTop: '2px' }} />
-                            <div>
-                                <div style={{ fontSize: '0.95rem', color: '#fbbf24', fontWeight: '600', marginBottom: '4px' }}>시간표 · 가격표</div>
-                                <div style={{ fontSize: '0.83rem', color: '#94a3b8', lineHeight: '1.5' }}>
-                                    초기 세팅 시 담당자가 함께 설정해드립니다.<br/>관리자 화면에서 직접 수정도 가능합니다.
+                            <div style={{ width: '100%' }}>
+                                <div style={{ fontSize: '0.95rem', color: '#fbbf24', fontWeight: '600', marginBottom: '4px' }}>시간표 · 가격표 파일 첨부 (선택 사항)</div>
+                                <div style={{ fontSize: '0.83rem', color: '#94a3b8', lineHeight: '1.5', marginBottom: '12px' }}>
+                                    운용 중이신 시간표나 가격표(워드, 엑셀, PDF, 이미지 등)를 업로드해주시면 담당자가 확인하여 초기 세팅을 도와드립니다.
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    <button 
+                                        onClick={() => document.getElementById('schedule-upload-input')?.click()}
+                                        style={{ padding: '8px 16px', background: 'rgba(251, 191, 36, 0.15)', color: '#fbbf24', border: '1px dashed rgba(251, 191, 36, 0.4)', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}
+                                    >
+                                        + 파일 첨부하기 (최대 4개)
+                                    </button>
+                                    
+                                    {formData.scheduleFiles && formData.scheduleFiles.length > 0 && (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
+                                            {formData.scheduleFiles.map((f, idx) => (
+                                                <div key={idx} style={{ fontSize: '0.8rem', color: '#cbd5e1', background: 'rgba(0,0,0,0.2)', padding: '6px 12px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    📁 {f.name}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <input 
+                                        id="schedule-upload-input" 
+                                        type="file" 
+                                        multiple
+                                        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                                        style={{ display: 'none' }}
+                                        onChange={(e) => {
+                                            const files = Array.from(e.target.files);
+                                            if (files.length > 4) {
+                                                alert('첨부파일은 최대 4개까지만 가능합니다. 처음 4개의 파일만 선택됩니다.');
+                                            }
+                                            setFormData({ ...formData, scheduleFiles: files.slice(0, 4) });
+                                        }}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -394,10 +488,14 @@ const OnboardingPage = () => {
                             <div style={{ 
                                 padding: '16px', borderRadius: '14px', 
                                 background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.15)',
-                                marginBottom: '24px', fontSize: '0.9rem', color: '#94a3b8', lineHeight: '1.5'
+                                marginBottom: '24px', fontSize: '0.9rem', color: '#94a3b8', lineHeight: '1.5',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px'
                             }}>
-                                <MagicWand size={20} color="#60a5fa" style={{ verticalAlign: 'middle', marginRight: '8px' }} />
-                                AI 로고는 세팅 과정에서 생성되어 적용됩니다.
+                                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=${aiColor}&color=fff&size=128&rounded=true&font-size=0.4&bold=true`} alt="AI Logo Result" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
+                                <div style={{ textAlign: 'left' }}>
+                                    <strong style={{ color: '#60a5fa' }}>AI 로고 생성 완료!</strong><br/>
+                                    스튜디오 승인 시 이 로고가 자동 적용됩니다.
+                                </div>
                             </div>
                         )}
 
