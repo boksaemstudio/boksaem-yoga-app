@@ -15,7 +15,8 @@ const CheckInInfoSection = memo(({
     faceRecognitionEnabled,
     isScanning,
     cameraVideoRef,
-    cameraStream
+    cameraStream,
+    attendanceVideoRef
 }) => {
     const { config } = useStudioConfig();
     const studioName = config.IDENTITY?.NAME || 'Studio';
@@ -113,6 +114,7 @@ const CheckInInfoSection = memo(({
                             <video
                                 ref={(el) => {
                                     videoRef.current = el;
+                                    if (attendanceVideoRef) attendanceVideoRef.current = el;
                                     if (el && streamRef.current && !el.srcObject) {
                                         el.srcObject = streamRef.current;
                                         el.play().catch(() => {});
@@ -280,7 +282,10 @@ const CheckInInfoSection = memo(({
                             onClick={onCameraTouch}
                         >
                             <video
-                                ref={videoRef}
+                                ref={(el) => {
+                                    videoRef.current = el;
+                                    if (attendanceVideoRef) attendanceVideoRef.current = el;
+                                }}
                                 autoPlay playsInline muted
                                 style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }}
                             />

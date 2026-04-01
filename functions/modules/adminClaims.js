@@ -199,11 +199,46 @@ exports.resetAdminPasswordCall = onCall({
 
     try {
         await admin.auth().updateUser(uid, { password: newPassword });
+        // 비밀번호 변경 시 즉시 모든 접속 차단 (Refresh Token 만료 처리)
+        await admin.auth().revokeRefreshTokens(uid);
+        
         const user = await admin.auth().getUser(uid);
-        console.log(`[AdminClaims] Password reset for ${user.email}`);
-        return { success: true, message: `${user.email} 비밀번호 변경 완료` };
+        console.log(`[AdminClaims] Password reset and tokens revoked for ${user.email}`);
+        return { success: true, message: `${user.email} 비밀번호 변경 및 기존 접속 차단 완료` };
     } catch (e) {
         console.error("[AdminClaims] Password reset error:", e);
+        throw new HttpsError("internal", e.message);
+    }
+});
+
+/**
+ * 관리자 계정 삭제 (슈퍼어드민 전용)
+ */
+exports.deleteAdminCall = onCall({
+    region: "asia-northeast3",
+}, async (request) => {
+    if (!request.auth || request.auth.token.role !== "superadmin") {
+        throw new HttpsError("permission-denied", "슈퍼어드민만 관리자를 삭제할 수 있습니다.");
+    }
+
+    const { uid } = request.data;
+    if (!uid) {
+        throw new HttpsError("invalid-argument", "삭제할 관리자의 uid가 필요합니다.");
+    }
+
+    // 본인 계정 삭제 방지
+    if (request.auth.uid === uid) {
+         throw new HttpsError("invalid-argument", "본인의 계정은 삭제할 수 없습니다.");
+    }
+
+    try {
+        const userRecord = await admin.auth().getUser(uid);
+        // 사용자 완전히 삭제
+        await admin.auth().deleteUser(uid);
+        console.log(`[AdminClaims] Deleted admin: ${userRecord.email}`);
+        return { success: true, message: `${userRecord.email} 관리자 계정 완전 삭제 완료` };
+    } catch (e) {
+        console.error("[AdminClaims] Delete error:", e);
         throw new HttpsError("internal", e.message);
     }
 });

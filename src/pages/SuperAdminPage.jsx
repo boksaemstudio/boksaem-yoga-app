@@ -132,6 +132,20 @@ const SuperAdminPage = () => {
         } catch (e) { alert('권한 변경 실패: ' + e.message); }
     };
 
+    const handleDeleteAdmin = async (adminObj) => {
+        if (!window.confirm(`정말로 [${adminObj.email}] 관리자 계정을 완전히 삭제하시겠습니까?\n이 작업은 복구할 수 없으며 해당 관리자의 파이어베이스 접속이 즉각 차단됩니다.`)) return;
+        setAdminsLoading(true);
+        try {
+            const fn = httpsCallable(functions, 'deleteAdminCall');
+            const result = await fn({ uid: adminObj.uid });
+            alert(result.data.message);
+            loadAdmins();
+        } catch (e) {
+            alert('삭제 실패: ' + e.message);
+            setAdminsLoading(false);
+        }
+    };
+
     const handleRegister = async () => {
         if (!registerForm.studioId || !registerForm.name || !registerForm.ownerEmail) { alert('스튜디오 ID, 이름, 관리자 이메일은 필수입니다.'); return; }
         if (!/^[a-z0-9-]+$/.test(registerForm.studioId)) { alert('스튜디오 ID는 영문 소문자, 숫자, 하이픈만 가능합니다.'); return; }
@@ -446,6 +460,11 @@ const SuperAdminPage = () => {
                                                     const sid = prompt('담당 업장 ID:', a.studioId || '');
                                                     if (sid !== null) handleSetClaims(a.email, 'admin', sid);
                                                 }} style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#aaa', cursor: 'pointer', fontSize: '0.8rem' }}>업장 변경</button>
+                                            )}
+                                            {a.role !== 'superadmin' && (
+                                                <button onClick={() => handleDeleteAdmin(a)} style={{ padding: '6px 12px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '6px', color: '#EF4444', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    <Trash size={14} /> 삭제
+                                                </button>
                                             )}
                                         </div>
                                     </div>
