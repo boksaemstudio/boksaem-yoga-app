@@ -1,6 +1,4 @@
-import React from 'react';
-import { 
-    ClockCounterClockwise, PlusCircle, SignOut, ToggleLeft, ToggleRight
+import { PlusCircle, SignOut, ToggleLeft, ToggleRight
 } from '@phosphor-icons/react';
 
 const AdminHeader = ({
@@ -24,10 +22,10 @@ const AdminHeader = ({
     return (
         <header className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
             <div className="admin-title" style={{ gap: '8px', fontSize: '0.95rem', display: 'flex', alignItems: 'center' }}>
-                {(!config.IDENTITY?.LOGO_URL && (config.IDENTITY?.NAME?.includes('PassFlow') || config.ASSETS?.LOGO?.WIDE?.includes('passflow'))) ? (
+                {(config.IDENTITY?.NAME?.includes('PassFlow') || (typeof window !== 'undefined' && window.location.hostname.includes('passflow'))) ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <img src="/assets/passflow_square_logo.png" alt="Icon" style={{ height: '22px', borderRadius: '4px' }} />
-                        <img src="/assets/passflow_ai_logo_transparent_final.png" alt="PassFlow Logo" style={{ height: '24px', objectFit: 'contain' }} />
+                        <img src="/assets/passflow_square_logo.png" alt="Icon" style={{ height: '26px', borderRadius: '4px', boxShadow: '0 0 10px rgba(var(--primary-rgb), 0.3)' }} />
+                        <img src="/assets/passflow_ai_logo_transparent.png" alt="PassFlow Logo" style={{ height: '32px', objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }} />
                     </div>
                 ) : (
                     <>

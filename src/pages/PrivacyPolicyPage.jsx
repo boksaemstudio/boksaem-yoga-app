@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudioConfig } from '../contexts/StudioContext';
 import { CaretLeft } from '@phosphor-icons/react';

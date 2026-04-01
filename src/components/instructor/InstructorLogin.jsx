@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Lock, User, Warning, Spinner, Phone } from '@phosphor-icons/react';
+import { User, Phone } from '@phosphor-icons/react';
 import { useStudioConfig } from '../../contexts/StudioContext';
 import { storageService } from '../../services/storage';
 

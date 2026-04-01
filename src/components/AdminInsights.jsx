@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import CollapsibleCard from './admin/CollapsibleCard';
 
 const AdminInsights = ({ briefing }) => {

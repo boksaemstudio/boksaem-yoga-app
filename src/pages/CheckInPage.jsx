@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { signInAnonymously } from 'firebase/auth';
 import { auth } from '../firebase';
 import { storageService } from '../services/storage';
-import { getKSTHour, getDaysRemaining, safeParseDate } from '../utils/dates';
+import { getKSTHour, safeParseDate } from '../utils/dates';
 import { isMemberActive } from '../utils/adminCalculations';
 
 import { getStaticStandbyMessage } from '../utils/aiStandbyHelper';
@@ -25,9 +25,7 @@ import { useStudioConfig } from '../contexts/StudioContext';
 
 // Components (Ultra-Modular)
 import TopBar from '../components/checkin/TopBar';
-import { getHolidayName } from '../utils/holidays';
 import { subscribeMonthlyClasses } from '../services/scheduleService';
-import { STUDIO_CONFIG } from '../studioConfig';
 import CheckInInfoSection from '../components/checkin/CheckInInfoSection';
 import CheckInKeypadSection from '../components/checkin/CheckInKeypadSection';
 import MessageOverlay from '../components/checkin/MessageOverlay';

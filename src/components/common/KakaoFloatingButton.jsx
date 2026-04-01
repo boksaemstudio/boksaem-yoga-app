@@ -1,4 +1,3 @@
-import React from 'react';
 import { ChatCircleDots } from '@phosphor-icons/react';
 
 const KakaoFloatingButton = () => {

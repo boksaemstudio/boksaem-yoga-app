@@ -1,4 +1,3 @@
-import React from 'react';
 
 // [LUXURY] Glassmorphic Modal Component
 const CustomGlassModal = ({ message, isConfirm, onConfirm, onCancel }) => (

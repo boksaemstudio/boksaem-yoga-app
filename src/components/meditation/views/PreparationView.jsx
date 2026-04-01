@@ -1,4 +1,3 @@
-import React from 'react';
 import { ArrowLeft, SpeakerHigh } from '@phosphor-icons/react';
 import { MeditationDebugOverlay } from '../MeditationDebugOverlay';
 

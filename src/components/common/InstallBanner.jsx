@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { PWAContext } from '../../contexts/PWAContextDef';
 import { DownloadSimple } from '@phosphor-icons/react';
 import { useLanguage } from '../../hooks/useLanguage';

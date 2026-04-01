@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { UploadSimple, FileX, CheckCircle, Spinner, Robot, Table } from '@phosphor-icons/react';
 import { httpsCallable } from 'firebase/functions';
 import { collection, writeBatch, doc } from 'firebase/firestore';

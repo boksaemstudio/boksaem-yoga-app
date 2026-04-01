@@ -1,4 +1,3 @@
-import React from 'react';
 import { AILoadingIndicator } from './AILoadingIndicator';
 import { Microphone, LockKey, User } from '../../../components/CommonIcons';
 import { useStudioConfig } from '../../../contexts/StudioContext';

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { storageService } from '../../../services/storage';
-import { Image, ToggleLeft, ToggleRight, Info, VideoCamera, FilmSlate, Trash, CheckCircle, X } from '@phosphor-icons/react';
+import { Image, ToggleLeft, ToggleRight, Info, VideoCamera, FilmSlate, Trash, CheckCircle } from '@phosphor-icons/react';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 import { ref, uploadBytes, getDownloadURL, listAll, deleteObject, getMetadata } from 'firebase/storage';
 import { storage } from '../../../firebase';

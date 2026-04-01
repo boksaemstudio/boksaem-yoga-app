@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { extractFaceDescriptor, findBestMatch, loadFacialModels, euclideanDistance } from '../services/facialService';
 
 /**

@@ -1,4 +1,3 @@
-import React from 'react';
 import { MeditationDebugOverlay } from '../MeditationDebugOverlay';
 
 // Local Icons

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Buildings, Plus, ArrowSquareOut, Trash, Crown, X, Gear, UserCirclePlus, Lock, ShieldCheck, Eye, EyeSlash, Copy, Check } from '@phosphor-icons/react';
+import { Buildings, Plus, Trash, Crown, X, UserCirclePlus, Lock, ShieldCheck, Eye, EyeSlash, Copy, Check } from '@phosphor-icons/react';
 import { studioRegistryService } from '../services/studioRegistryService';
-import { switchStudio, getCurrentStudioId } from '../utils/resolveStudioId';
+import { getCurrentStudioId } from '../utils/resolveStudioId';
 import { useStudioConfig } from '../contexts/StudioContext';
 import { functions, auth } from '../firebase';
 import { httpsCallable } from 'firebase/functions';

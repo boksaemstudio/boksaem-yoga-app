@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { MeditationDebugOverlay } from '../MeditationDebugOverlay';
 import { AILoadingIndicator } from '../ui/AILoadingIndicator';
 import { SpeakerHigh } from '../../CommonIcons';

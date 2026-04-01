@@ -1,10 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
 import { useStudioStore } from '../stores/useStudioStore';
 import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { STUDIO_CONFIG as STATIC_CONFIG } from '../studioConfig';
-import { resolveStudioId, onStudioChange, getCurrentStudioId } from '../utils/resolveStudioId';
+import { resolveStudioId, onStudioChange } from '../utils/resolveStudioId';
 
 const StudioContext = createContext();
 
@@ -118,7 +118,7 @@ export const StudioProvider = ({ children }) => {
                 if (studioId === 'demo-yoga') {
                     if (!merged.ASSETS) merged.ASSETS = {};
                     if (!merged.ASSETS.LOGO) merged.ASSETS.LOGO = {};
-                    merged.ASSETS.LOGO.WIDE = '/assets/passflow_ai_logo_transparent_final.png';
+                    merged.ASSETS.LOGO.WIDE = '/assets/passflow_ai_logo_transparent.png';
                     merged.ASSETS.LOGO.SQUARE = '/assets/passflow_square_logo.png';
                     if (!merged.IDENTITY) merged.IDENTITY = {};
                     merged.IDENTITY.NAME = 'PassFlow Ai 데모';

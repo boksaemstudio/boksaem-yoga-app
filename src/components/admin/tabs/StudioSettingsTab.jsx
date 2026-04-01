@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useStudioConfig } from '../../../contexts/StudioContext';
-import { Gear, MapPin, FloppyDisk, ArrowsClockwise, Robot, Image as ImageIcon, Globe } from '@phosphor-icons/react';
+import { Gear, MapPin, FloppyDisk, ArrowsClockwise, Image as ImageIcon, Globe } from '@phosphor-icons/react';
 import { storage } from '../../../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { tenantStoragePath } from '../../../utils/tenantStorage';

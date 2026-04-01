@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Warning, PaperPlaneTilt, ArrowRight, UserMinus, Clock, X, PencilSimple, Check } from '@phosphor-icons/react';
+import { useState, useMemo, useRef } from 'react';
+import { Warning, PaperPlaneTilt, X, PencilSimple } from '@phosphor-icons/react';
 import { storageService } from '../../services/storage';
 import { getChurnAnalysis, generateChurnMessage } from '../../services/aiService';
 

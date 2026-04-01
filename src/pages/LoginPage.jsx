@@ -12,8 +12,7 @@ const LoginPage = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-
-    const logoUrl = config.ASSETS?.LOGO?.WIDE;
+    const logoUrl = config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.WIDE;
 
     const handleLogin = async (e, overrideEmail, overridePassword) => {
         if (e) e.preventDefault();

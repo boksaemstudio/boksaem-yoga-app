@@ -1,6 +1,5 @@
-import React, { useState, useEffect, memo } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { useStudioConfig } from '../../contexts/StudioContext';
-import { toKSTDateString, toKSTTimeString, getTodayKST, safeParseDate } from '../../utils/dates';
 import { CHECKIN_CONFIG } from '../../constants/CheckInConfig';
 
 const SelectionModal = memo(({ 

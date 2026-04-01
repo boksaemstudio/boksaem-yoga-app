@@ -1,4 +1,3 @@
-import React from 'react';
 import { AILoadingIndicator } from '../ui/AILoadingIndicator';
 import { MeditationDebugOverlay } from '../MeditationDebugOverlay';
 

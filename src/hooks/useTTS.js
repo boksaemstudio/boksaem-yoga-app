@@ -3,12 +3,10 @@ import { useCallback } from 'react';
 // [AUDIO] High-quality TTS assets
 import audioWelcome from '../assets/audio/welcome.mp3';
 import audioSuccess from '../assets/audio/success.mp3';
-import audioDuplicateSuccess from '../assets/audio/duplicate_success.mp3';
 import audioSuccessConsecutive from '../assets/audio/success_consecutive.mp3';
 import audioSuccessExtra from '../assets/audio/success_extra.mp3';
 import audioDenied from '../assets/audio/denied.mp3';
 import audioError from '../assets/audio/error.mp3';
-import audioLastSession from '../assets/audio/last_session.mp3';
 
 let currentAudio = null;
 let currentTimeout = null;

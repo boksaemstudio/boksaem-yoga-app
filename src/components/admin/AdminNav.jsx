@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
     Users, ClockCounterClockwise, Calendar, Tag, ChartBar, 
     Megaphone, BellRinging, Database, Desktop, Gear, CalendarCheck, Trash 

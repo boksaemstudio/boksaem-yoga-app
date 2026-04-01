@@ -1,4 +1,3 @@
-import React from 'react';
 import { X } from '../../../components/CommonIcons';
 
 export const VolumeControlPanel = ({

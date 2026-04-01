@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef, useCallback, memo } from 'react';
+import { useState, useMemo, useEffect, useRef, memo } from 'react';
 import CollapsibleCard from '../CollapsibleCard';
 import { BellRinging, Check, Info, Plus, NotePencil, PaperPlaneTilt, UserFocus, CaretDown, CaretUp } from '@phosphor-icons/react';
 import { useStudioConfig } from '../../../contexts/StudioContext';

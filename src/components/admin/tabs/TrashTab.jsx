@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { storageService } from '../../../services/storage';
 import { Trash, ArrowCounterClockwise, ClockCounterClockwise, CurrencyKrw, Users, Spinner } from '@phosphor-icons/react';
 

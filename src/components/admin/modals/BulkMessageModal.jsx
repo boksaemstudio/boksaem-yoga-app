@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { X, PaperPlaneTilt, Calendar, CurrencyKrw } from '@phosphor-icons/react';
+import { useState, useRef } from 'react';
+import { X, PaperPlaneTilt, Calendar } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 
 const SEND_MODES = [

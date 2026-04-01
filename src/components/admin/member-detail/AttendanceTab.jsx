@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect } from 'react';
-import { User, Phone, CalendarBlank, MapPin, Trash, CheckCircle, Warning, ClockCounterClockwise, Plus, X } from '@phosphor-icons/react';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 import { storageService } from '../../../services/storage';
 import CustomDatePicker from '../../common/CustomDatePicker';

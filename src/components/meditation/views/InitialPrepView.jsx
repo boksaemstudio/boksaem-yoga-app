@@ -1,4 +1,3 @@
-import React from 'react';
 import { MeditationDebugOverlay } from '../MeditationDebugOverlay';
 import { SpeakerHigh } from '../../CommonIcons';
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 import { X, Heartbeat, Brain, Sparkle } from '../../../components/CommonIcons';

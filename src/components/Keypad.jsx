@@ -1,4 +1,4 @@
-import { memo, useRef, useState, useCallback } from 'react';
+import { memo, useRef, useCallback } from 'react';
 import './Keypad.css';
 
 

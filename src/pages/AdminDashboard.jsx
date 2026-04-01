@@ -4,23 +4,11 @@ import { storageService } from '../services/storage';
 import { useStudioConfig } from '../contexts/StudioContext';
 import { useAdminData } from '../hooks/useAdminData';
 import { useNavigate } from 'react-router-dom';
-import { safeParseDate, toKSTDateString, toKSTTimeString, getTodayKST } from '../utils/dates';
-import {
-    Users, ClockCounterClockwise, PlusCircle,
-    Calendar, Megaphone, BellRinging,
-    Tag, SignOut, ChartBar,
-    Warning, Database, Desktop,
-    ChartPieSlice,
-    ShieldCheck,
-    Clock,
-    Gear,
-    PresentationChart, Kanban, ToggleLeft, ToggleRight, List, ChartLineUp
+import { safeParseDate, toKSTDateString, toKSTTimeString } from '../utils/dates';
+import { BellRinging
 } from '@phosphor-icons/react';
-import { query, orderBy, limit, onSnapshot } from 'firebase/firestore';
-import AdminScheduleManager from '../components/AdminScheduleManager';
 import AdminRevenue from '../components/AdminRevenue';
 import AdminPriceManager from '../components/AdminPriceManager';
-import { tenantDb } from '../utils/tenantDb';
 import AdminMemberDetailModal from '../components/AdminMemberDetailModal';
 import InstallGuideModal from '../components/admin/modals/InstallGuideModal';
 import NoticeModal from '../components/admin/modals/NoticeModal';
@@ -45,7 +33,6 @@ import BookingsTab from '../components/admin/tabs/BookingsTab';
 import TrashTab from '../components/admin/tabs/TrashTab';
 import OperationsGuideTab from '../components/admin/tabs/OperationsGuideTab';
 import AdminInsights from '../components/AdminInsights';
-import ChurnReportPanel from '../components/admin/ChurnReportPanel';
 import { usePWA }
 from '../hooks/usePWA';
 import ScheduleTab from '../components/admin/tabs/ScheduleTab';

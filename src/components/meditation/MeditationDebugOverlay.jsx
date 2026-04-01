@@ -1,4 +1,3 @@
-import React from 'react';
 
 // 🛠️ Meditation Debug Overlay Component
 export const MeditationDebugOverlay = ({ isVisible, ttsState, currentStep, audioLevels, currentText, aiLatency }) => {

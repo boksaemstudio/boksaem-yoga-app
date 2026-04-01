@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { extractFaceDescriptor, loadFacialModels } from '../../services/facialService';
 import { memberService } from '../../services/memberService';
 

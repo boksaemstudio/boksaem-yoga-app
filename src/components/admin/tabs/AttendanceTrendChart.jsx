@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, memo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { TrendUp, TrendDown, Equals, ChartLineUp, ChartBar, Fire, Users } from '@phosphor-icons/react';
 import {
     ResponsiveContainer, LineChart, Line, XAxis, YAxis,

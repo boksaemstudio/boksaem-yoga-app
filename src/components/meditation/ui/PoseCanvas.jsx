@@ -1,4 +1,3 @@
-import React from 'react';
 
 export const PoseCanvas = ({ videoRef, canvasRef }) => (
     <div style={{ position: 'absolute', inset: 0, zIndex: 1, opacity: 0.6 }}>

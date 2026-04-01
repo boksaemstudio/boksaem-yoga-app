@@ -64,8 +64,14 @@ const CheckInInfoSection = memo(({
                         <h1 style={{ color: 'white', fontSize: 'clamp(2.5rem, 6vh, 4rem)', margin: 0, fontWeight: 900, fontStyle: 'italic', letterSpacing: '-1px' }}>Pass<span style={{ color: 'var(--primary-gold)' }}>Flow Ai</span></h1>
                     ) : (
                         <>
-                            <img src={rys200Logo} alt="RYS200" style={{ height: 'clamp(40px, 8vh, 80px)', width: 'auto', filter: 'brightness(0) invert(1)', opacity: 0.8 }} />
-                            <img src={logoWide} alt="logo" style={{ height: 'clamp(38px, 8vh, 78px)', width: 'auto' }} />
+                            {config.IDENTITY?.NAME?.includes('복샘') || config.IDENTITY?.BRANCH_ID?.includes('boksaem') || (!config.IDENTITY?.LOGO_URL && !config.ASSETS?.LOGO?.SQUARE) ? (
+                                <>
+                                    <img src={rys200Logo} alt="RYS200" style={{ height: 'clamp(40px, 8vh, 80px)', width: 'auto', filter: 'brightness(0) invert(1)', opacity: 0.8 }} />
+                                    <img src={logoWide} alt="logo" style={{ height: 'clamp(38px, 8vh, 78px)', width: 'auto' }} />
+                                </>
+                            ) : (
+                                <img src={config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.SQUARE} alt="Workspace Logo" style={{ height: 'clamp(40px, 8vh, 80px)', width: 'auto', filter: config.IDENTITY?.LOGO_URL ? 'none' : 'brightness(0) invert(1)', opacity: config.IDENTITY?.LOGO_URL ? 1 : 0.8 }} />
+                            )}
                         </>
                     )}
                 </div>

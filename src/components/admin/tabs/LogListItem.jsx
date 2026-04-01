@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { UserFocus, Trash } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 

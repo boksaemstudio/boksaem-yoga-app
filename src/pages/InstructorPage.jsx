@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { CaretLeft, CaretRight, User, SignOut, DotsThreeVertical, List, X, House, Calendar, ChatCircleText, Table, UsersFour, ChartBar, Bell, BellSlash, SpinnerGap, CalendarBlank } from '@phosphor-icons/react';
+import { SignOut, House, Bell, BellSlash, SpinnerGap, CalendarBlank } from '@phosphor-icons/react';
 import { useStudioConfig } from '../contexts/StudioContext';
 import { storageService } from '../services/storage';
 import { getKSTHour, getKSTDayOfWeek } from '../utils/dates';

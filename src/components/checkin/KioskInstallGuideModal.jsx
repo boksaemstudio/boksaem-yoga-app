@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, Share, DotsThreeVertical, PlusSquare } from '@phosphor-icons/react';
 import { useStudioConfig } from '../../contexts/StudioContext';
 

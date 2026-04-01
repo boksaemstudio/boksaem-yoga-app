@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { getDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase';
 import { useStudioConfig } from '../contexts/StudioContext';
 import { PWAContext } from './PWAContextDef';
 

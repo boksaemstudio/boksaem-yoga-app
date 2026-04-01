@@ -9,7 +9,6 @@ import { BellRinging, BellSlash, Share, DownloadSimple } from '../components/Com
 import ProfileHeader from '../components/profile/ProfileHeader';
 import AISection from '../components/profile/AISection';
 import MembershipInfo from '../components/profile/MembershipInfo';
-import MemberSalesHistory from '../components/profile/MemberSalesHistory';
 import HomeYogaSection from '../components/profile/HomeYogaSection';
 import ScheduleTab from '../components/profile/tabs/ScheduleTab';
 import NoticeTab from '../components/profile/tabs/NoticeTab';

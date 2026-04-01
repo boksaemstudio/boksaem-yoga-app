@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback, memo } from 'react';
-import { ClockCounterClockwise, CaretLeft, CaretRight, CalendarBlank, TrendUp, UserFocus } from '@phosphor-icons/react';
+import { ClockCounterClockwise, CaretLeft, CaretRight, CalendarBlank, TrendUp } from '@phosphor-icons/react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, LabelList } from 'recharts';
-import { guessClassTime, guessClassInfo } from '../../../utils/classUtils';
+import { guessClassInfo } from '../../../utils/classUtils';
 import { storageService } from '../../../services/storage';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 import ImageLightbox from '../../common/ImageLightbox';

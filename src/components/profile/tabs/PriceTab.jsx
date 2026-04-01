@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import MemberSalesHistory from '../MemberSalesHistory';
 import { storageService } from '../../../services/storage';
 import { useLanguage } from '../../../hooks/useLanguage';

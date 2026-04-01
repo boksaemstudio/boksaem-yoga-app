@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { CalendarCheck, UserCircle, Clock, ArrowsClockwise, Users } from '@phosphor-icons/react';
+import { UserCircle } from '@phosphor-icons/react';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 import * as bookingService from '../../../services/bookingService';
 import { getTodayKST } from '../../../utils/dates';

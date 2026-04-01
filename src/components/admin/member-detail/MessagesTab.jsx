@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from 'react';
 import { storageService } from '../../../services/storage';
 import { onSnapshot, query, where, orderBy, limit as firestoreLimit, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { tenantDb } from '../../../utils/tenantDb';
-import { DeviceMobileSpeaker, PaperPlaneTilt, ChatText } from '@phosphor-icons/react';
 
 const SEND_MODES = [
     { id: 'push_only', label: '앱 푸시만', desc: '무료', icon: '📱', color: '#10b981' },

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { storageService } from '../../services/storage';
 import { getMonthlyClasses } from '../../services/scheduleService';
 import { isHoliday, getHolidayName } from '../../utils/holidays';

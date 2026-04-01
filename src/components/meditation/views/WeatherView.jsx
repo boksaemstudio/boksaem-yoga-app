@@ -1,4 +1,3 @@
-import React from 'react';
 import { MeditationDebugOverlay } from '../MeditationDebugOverlay';
 
 const ArrowLeft = ({ size = 24, color = "currentColor" }) => (

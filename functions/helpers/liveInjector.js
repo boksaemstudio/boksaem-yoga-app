@@ -30,7 +30,7 @@ async function injectLiveActivity() {
         const dailyDocRef = tenantDb.collection('daily_classes').doc(docId);
         const dailyDocSnap = await dailyDocRef.get();
         
-        if (dailyDocSnap.exists()) {
+        if (dailyDocSnap.exists) {
             const data = dailyDocSnap.data();
             let classesUpdated = false;
             

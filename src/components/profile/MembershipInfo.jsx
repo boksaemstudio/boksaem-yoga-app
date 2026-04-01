@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useStudioConfig } from '../../contexts/StudioContext';
 import { getMembershipLabel } from '../../utils/membershipLabels';
 import { toKSTDateString } from '../../utils/dates';
-import { Icons } from '../CommonIcons';
 import { functions } from '../../firebase';
 import { httpsCallable } from 'firebase/functions';
 
@@ -106,8 +105,10 @@ const MembershipInfo = ({ member, daysRemaining, logs = [], t }) => {
                     </span>
                 )}
                 <span style={{ background: 'rgba(255,255,255,0.1)', color: 'white', padding: '3px 10px', borderRadius: '5px', fontSize: '0.75rem' }}>{member.phone}</span>
-                {typeof window !== 'undefined' && window.location.hostname.includes('passflow') ? null : (
+                {config.IDENTITY?.NAME?.includes('복샘') || config.IDENTITY?.BRANCH_ID?.includes('boksaem') || (!config.IDENTITY?.LOGO_URL && !config.ASSETS?.LOGO?.SQUARE) ? (
                     <img src={config.ASSETS?.LOGO?.RYS200} alt="RYS200" style={{ height: '49px', width: 'auto', marginLeft: 'auto', filter: 'brightness(0) invert(1)' }} />
+                ) : (
+                    <img src={config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.SQUARE} alt="Workspace Logo" style={{ height: '49px', width: 'auto', marginLeft: 'auto', filter: config.IDENTITY?.LOGO_URL ? 'none' : 'brightness(0) invert(1)', objectFit: 'contain' }} />
                 )}
             </div>
             {/* [NEW] 안면인식 안심 문구 */}

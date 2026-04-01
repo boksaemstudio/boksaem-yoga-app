@@ -2,8 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../firebase';
-import { Icons } from '../components/CommonIcons';
-import { MEDITATION_MODES, INTERACTION_TYPES, DIAGNOSIS_OPTIONS, WEATHER_OPTIONS, SPECIALIST_QUESTIONS, AI_SESSION_MESSAGES, AMBIENT_SOUNDS, MEDITATION_INTENTIONS, MEDITATION_CATEGORIES } from '../constants/meditationConstants';
+import { MEDITATION_MODES, INTERACTION_TYPES, DIAGNOSIS_OPTIONS, WEATHER_OPTIONS, AMBIENT_SOUNDS, MEDITATION_INTENTIONS, MEDITATION_CATEGORIES } from '../constants/meditationConstants';
 
 // 🤖 AI Posture Analysis (MediaPipe) - Loaded Dynamically
 // import { Pose } from '@mediapipe/pose'; // REMOVED: Dynamic import used instead
@@ -13,9 +12,7 @@ import { MEDITATION_MODES, INTERACTION_TYPES, DIAGNOSIS_OPTIONS, WEATHER_OPTIONS
 import { useAudioAnalyzer } from '../hooks/useAudioAnalyzer';
 import { useMeditationAudio } from '../hooks/useMeditationAudio';
 import { useMeditationAI } from '../hooks/useMeditationAI';
-import { useTypewriter } from '../hooks/useTypewriter';
 import { useWeatherAwareness } from '../hooks/useWeatherAwareness';
-import { AILoadingIndicator } from '../components/meditation/ui/AILoadingIndicator';
 import { useStudioConfig } from '../contexts/StudioContext';
 
 // ✅ Typewriter Component for smooth text appearance
@@ -50,8 +47,6 @@ const TypewriterText = ({ text, speed = 40 }) => {
     return <span>{displayedText || '...'}</span>;
 };
 
-import { ChatDialog } from '../components/meditation/ui/ChatDialog';
-import { PoseCanvas } from '../components/meditation/ui/PoseCanvas';
 import { FeedbackView } from '../components/meditation/ui/FeedbackView';
 import { PreparationView } from '../components/meditation/views/PreparationView';
 import { InitialPrepView } from '../components/meditation/views/InitialPrepView';
@@ -60,13 +55,9 @@ import { DiagnosisChatView } from '../components/meditation/views/DiagnosisChatV
 import { WeatherView, DiagnosisManualView } from '../components/meditation/views/WeatherView';
 import { PrescriptionWizardView } from '../components/meditation/views/PrescriptionWizardView';
 import { ActiveSessionView } from '../components/meditation/views/ActiveSessionView';
-import { MeditationDebugOverlay } from '../components/meditation/MeditationDebugOverlay';
-import {
-    Play, Pause, X, Wind, SpeakerHigh, SpeakerSlash, Brain, Microphone, VideoCamera,
-    LockKey, Heartbeat, SmileySad, Lightning, Barbell, Sparkle, Sun, CloudRain,
-    CloudSnow, Cloud, User
+import { Wind, Brain, Microphone, VideoCamera, Heartbeat, SmileySad, Lightning, Barbell, Sparkle, Sun, CloudRain,
+    CloudSnow, Cloud
 } from '../components/CommonIcons';
-import { storageService } from '../services/storage';
 import { getKSTHour } from '../utils/dates';
 
 const ICON_MAP = {

@@ -1,6 +1,6 @@
 import { memo, useState, useEffect } from 'react';
 import { useNetworkStore } from '../../stores/useNetworkStore';
-import { WifiHigh, WifiSlash, CloudArrowUp } from '@phosphor-icons/react'; // [ICON] CloudArrowUp for sync
+import { CloudArrowUp } from '@phosphor-icons/react'; // [ICON] CloudArrowUp for sync
 import { getOfflineQueue } from '../../services/offlineStorage';
 
 const NetworkStatus = memo(() => {

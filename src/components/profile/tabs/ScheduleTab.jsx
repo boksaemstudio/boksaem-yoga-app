@@ -1,5 +1,3 @@
-import React from 'react';
-import * as Icons from '@phosphor-icons/react';
 import MemberScheduleCalendar from '../../MemberScheduleCalendar';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 

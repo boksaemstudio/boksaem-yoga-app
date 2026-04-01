@@ -63,7 +63,7 @@
   --radius-lg: 32px;
   --radius-full: 999px;
 
-  --font-main: "Pretendard", -apple-system, sans-serif;
+  --font-main: "Pretendard", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", sans-serif;
   --font-heading: "Outfit", "Pretendard", -apple-system, sans-serif;
   --transition: none;
   /* Completely disabled for immediate response */

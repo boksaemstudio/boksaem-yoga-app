@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Share, DotsThreeVertical, PlusSquare, ArrowDown } from '@phosphor-icons/react';
+import { useState } from 'react';
+import { X, Share, DotsThreeVertical, PlusSquare } from '@phosphor-icons/react';
 import { useLanguage } from '../hooks/useLanguage';
 
 const InstallGuideModal = ({ isOpen, onClose }) => {

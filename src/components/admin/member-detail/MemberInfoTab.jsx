@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Trash, PencilSimple, UserFocus, CaretDown, CaretUp } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 import { memberService } from '../../../services/memberService';

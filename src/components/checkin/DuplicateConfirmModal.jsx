@@ -1,4 +1,3 @@
-import React from 'react';
 import { useStudioConfig } from '../../contexts/StudioContext';
 
 const DuplicateConfirmModal = ({

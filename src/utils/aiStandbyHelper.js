@@ -1,6 +1,5 @@
 // src/utils/aiStandbyHelper.js
 import * as AIMessages from '../constants/aiMessages';
-import { getKSTHour } from './dates';
 
 /**
  * AI 스탠바이 응답을 위한 하드코딩 문구 선택 헬퍼 콜백 
