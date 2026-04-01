@@ -17,7 +17,7 @@ const tenants = [
         name: '쌍문요가',
         title: '쌍문요가 - 출석 관리 솔루션',
         ogDesc: '쌍문요가 출석·수련 기록 서비스',
-        ogImage: '/assets/passflow_square_logo.png'
+        ogImage: '/assets/demo_logo.png'
     },
     {
         siteId: 'passflowai',
