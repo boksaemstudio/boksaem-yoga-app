@@ -17,7 +17,7 @@ class AIService {
         // Base config for JSON model (Default fallback)
         this.jsonConfig = { 
             responseMimeType: "application/json", 
-            maxOutputTokens: 2500,
+            maxOutputTokens: 8192, // ✅ [EXPANDED] User requested PhD level capacity
             temperature: 0.85,
             topP: 0.95,
             topK: 40

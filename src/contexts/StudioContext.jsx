@@ -111,7 +111,7 @@ export const StudioProvider = ({ children }) => {
                     // [SaaS] 중립적 기본 로고 — 테넌트가 자체 로고 등록 전까지 표시
                     if (!merged.ASSETS.LOGO?.WIDE || merged.ASSETS.LOGO.WIDE === '/') merged.ASSETS.LOGO.WIDE = '/assets/passflow_logo.png';
                     if (!merged.ASSETS.LOGO?.RYS200 || merged.ASSETS.LOGO.RYS200 === '/') merged.ASSETS.LOGO.RYS200 = '/assets/RYS200.webp';
-                    if (!merged.ASSETS.LOGO?.SQUARE || merged.ASSETS.LOGO.SQUARE === '/') merged.ASSETS.LOGO.SQUARE = '/assets/passflow_logo.png';
+                    if (!merged.ASSETS.LOGO?.SQUARE || merged.ASSETS.LOGO.SQUARE === '/') merged.ASSETS.LOGO.SQUARE = '/assets/passflow_square_logo.png';
                 }
 
                 // [DEMO OVERRIDE] 원장님 요청: 데모 사이트는 무조건 PassFlow 로고 노출
@@ -119,10 +119,10 @@ export const StudioProvider = ({ children }) => {
                     if (!merged.ASSETS) merged.ASSETS = {};
                     if (!merged.ASSETS.LOGO) merged.ASSETS.LOGO = {};
                     merged.ASSETS.LOGO.WIDE = '/assets/passflow_ai_logo_transparent_final.png';
-                    merged.ASSETS.LOGO.SQUARE = '/assets/passflow_ai_logo_transparent_final.png';
+                    merged.ASSETS.LOGO.SQUARE = '/assets/passflow_square_logo.png';
                     if (!merged.IDENTITY) merged.IDENTITY = {};
-                    merged.IDENTITY.NAME = 'PassFlow Ai 데모 플랫폼';
-                    merged.IDENTITY.LOGO_URL = '/assets/passflow_ai_logo_transparent_final.png';
+                    merged.IDENTITY.NAME = 'PassFlow Ai 데모';
+                    merged.IDENTITY.LOGO_URL = '/assets/passflow_square_logo.png';
                 }
 
                 setConfig(merged);

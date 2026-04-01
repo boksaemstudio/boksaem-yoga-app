@@ -4,6 +4,7 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 import { storageService } from './services/storage';
 import NotificationListener from './components/common/NotificationListener';
 import { PWAProvider } from './contexts/PWAContext';
+import KakaoFloatingButton from './components/common/KakaoFloatingButton';
 
 import { StudioProvider } from './contexts/StudioContext';
 import NetworkStatus from './components/common/NetworkStatus';
@@ -330,6 +331,7 @@ function App() {
               </Routes>
               <NetworkStatus />
               <ReloadPrompt />
+              {(window.location.hostname.includes('passflowai') || window.location.hostname === 'localhost') && <KakaoFloatingButton />}
             </div>
           </PWAProvider>
       </StudioProvider>

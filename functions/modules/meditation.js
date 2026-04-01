@@ -283,8 +283,10 @@ JSON Output: { "message": "Transition message" }
                 };
                 
                 try {
-                    // [PERF] 메인 메시지 TTS 생성을 전환 메시지 AI 호출과 병렬로 처리 가능하도록 변경
-                    // 여기서는 일단 transResult를 얻어야 하므로 transResult AI 호출을 먼저 함
+                    // [PERF] 구글 AI Burst-Rate Limit(병목) 방지를 위한 순차 대기
+                    // 메인 응답 호출 직후 전환 메시지 호출 시 API 거부/타임아웃 현상 방지
+                    await new Promise(r => setTimeout(r, 800));
+                    
                     const transResult = await ai.generateExperience(transPrompt, transSchema);
                     if (transResult && transResult.message) {
                         // 전환 메시지용 오디오 생성 (나중에 Promise.all로 기다릴 수 있게 준비)

@@ -11,7 +11,7 @@ export const STUDIO_CONFIG = {
         LOGO_TEXT: "YOGA",
         SLOGAN: "나를 만나는 고요한 시간",
         DESCRIPTION: "요가와 함께하는 건강한 일상",
-        APP_VERSION: "2026.04.01 16:07",
+        APP_VERSION: "2026.04.01 21:45",
         FAVICON: "/favicon.ico",
     },
 
@@ -51,7 +51,7 @@ export const STUDIO_CONFIG = {
     ASSETS: {
         LOGO: {
             WIDE: '/assets/passflow_logo.png',
-            SQUARE: '/assets/passflow_logo.png',
+            SQUARE: '/assets/passflow_square_logo.png',
             RYS200: '/assets/RYS200.webp',
         },
         MEMBER_BG: '/assets/default_member_bg.webp',

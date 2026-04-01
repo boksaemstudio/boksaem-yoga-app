@@ -226,6 +226,25 @@ const OnboardingPage = () => {
                     <button style={buttonStyle} onClick={handleNext}>
                         시작하기 <ArrowRight size={20} weight="bold" />
                     </button>
+
+                    <a 
+                        href="http://pf.kakao.com/_zDxiMX/chat" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        style={{
+                            ...buttonStyle,
+                            background: '#FEE500',
+                            color: '#191919',
+                            marginTop: '12px',
+                            boxShadow: '0 4px 15px rgba(254, 229, 0, 0.2)'
+                        }}
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 3c-5.52 0-10 3.58-10 8 0 2.85 1.83 5.34 4.54 6.8-.3 1.14-1.14 4.28-1.17 4.41-.03.11.04.22.14.22.06 0 .13-.02.18-.06 1.48-1.07 5.17-3.71 5.4-3.87.3.04.6.06.91.06 5.52 0 10-3.58 10-8s-4.48-8-10-8z"/>
+                        </svg>
+                        카카오톡으로 1:1 도입 문의
+                    </a>
+
                     <button onClick={() => navigate('/')} style={{ ...navButtonStyle, justifyContent: 'center', width: '100%', marginTop: '20px', marginBottom: 0 }}>
                         메인으로 돌아가기
                     </button>

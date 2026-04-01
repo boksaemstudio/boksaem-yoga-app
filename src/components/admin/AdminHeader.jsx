@@ -24,16 +24,25 @@ const AdminHeader = ({
     return (
         <header className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
             <div className="admin-title" style={{ gap: '8px', fontSize: '0.95rem', display: 'flex', alignItems: 'center' }}>
-                {(config.ASSETS?.LOGO?.SQUARE && config.ASSETS.LOGO.SQUARE !== '/assets/passflow_logo.png') || config.IDENTITY?.LOGO_URL ? (
-                    <img src={config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.SQUARE} alt="로고" style={{ height: '22px', filter: 'invert(1) brightness(1.5) drop-shadow(0 0 8px rgba(var(--primary-rgb), 0.4))' }} />
-                ) : (
-                    <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '4px', background: 'var(--primary-gold)', color: '#000', fontSize: '14px', fontWeight: '900', boxShadow: '0 0 8px rgba(var(--primary-rgb), 0.4)' }}>
-                        {config.IDENTITY?.NAME?.[0] || 'S'}
+                {config.IDENTITY?.NAME?.includes('PassFlow') || config.ASSETS?.LOGO?.WIDE === '/assets/passflow_ai_logo_transparent_final.png' ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img src="/assets/passflow_square_logo.png" alt="Icon" style={{ height: '22px', borderRadius: '4px' }} />
+                        <img src="/assets/passflow_ai_logo_transparent_final.png" alt="PassFlow Logo" style={{ height: '24px', objectFit: 'contain' }} />
                     </div>
+                ) : (
+                    <>
+                        {(config.ASSETS?.LOGO?.SQUARE && config.ASSETS.LOGO.SQUARE !== '/assets/passflow_logo.png') || config.IDENTITY?.LOGO_URL ? (
+                            <img src={config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.SQUARE} alt="로고" style={{ height: '22px', filter: 'invert(1) brightness(1.5) drop-shadow(0 0 8px rgba(var(--primary-rgb), 0.4))' }} />
+                        ) : (
+                            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '4px', background: 'var(--primary-gold)', color: '#000', fontSize: '14px', fontWeight: '900', boxShadow: '0 0 8px rgba(var(--primary-rgb), 0.4)' }}>
+                                {config.IDENTITY?.NAME?.[0] || 'S'}
+                            </div>
+                        )}
+                        <span style={{ whiteSpace: 'nowrap', fontWeight: '800' }}>
+                            {config.IDENTITY?.NAME ? `${config.IDENTITY.NAME} 관리` : '관리'}
+                        </span>
+                    </>
                 )}
-                <span style={{ whiteSpace: 'nowrap', fontWeight: '800' }}>
-                    {config.IDENTITY?.NAME ? `${config.IDENTITY.NAME} 관리` : '관리'}
-                </span>
                 
                 <button onClick={handleInstallClick} style={{ marginLeft: '8px', background: 'rgba(var(--primary-rgb), 0.1)', border: '1px solid rgba(var(--primary-rgb), 0.3)', color: 'var(--primary-gold)', cursor: 'pointer', padding: '0 8px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: 'bold' }} title="홈 화면에 추가">
                     <PlusCircle size={16} weight="bold" />

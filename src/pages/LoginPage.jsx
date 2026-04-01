@@ -225,9 +225,55 @@ const LoginPage = () => {
                     )}
                 </form>
             </div>
-            <p style={{ position: 'relative', zIndex: 10, marginTop: '30px', color: 'rgba(255,255,255,0.3)', fontSize: '0.8rem' }}>
-                © {new Date().getFullYear()} {studioName}. All rights reserved.
-            </p>
+            {/* Business Information & Kakao Support Footer */}
+            <div style={{
+                position: 'relative',
+                zIndex: 10,
+                marginTop: '40px',
+                color: 'rgba(255,255,255,0.4)',
+                fontSize: '0.75rem',
+                textAlign: 'center',
+                lineHeight: '1.6',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '12px',
+                paddingBottom: '20px'
+            }}>
+                <a 
+                    href="http://pf.kakao.com/_zDxiMX/chat" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#FEE500',
+                        color: '#191919',
+                        padding: '10px 24px',
+                        borderRadius: '24px',
+                        textDecoration: 'none',
+                        fontWeight: '600',
+                        fontSize: '0.9rem',
+                        boxShadow: '0 4px 12px rgba(254, 229, 0, 0.2)',
+                        transition: 'transform 0.2s ease, opacity 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.03)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: '8px' }}>
+                        <path d="M12 3c-5.52 0-10 3.58-10 8 0 2.85 1.83 5.34 4.54 6.8-.3 1.14-1.14 4.28-1.17 4.41-.03.11.04.22.14.22.06 0 .13-.02.18-.06 1.48-1.07 5.17-3.71 5.4-3.87.3.04.6.06.91.06 5.52 0 10-3.58 10-8s-4.48-8-10-8z"/>
+                    </svg>
+                    카카오톡 고객센터 문의하기
+                </a>
+
+                <div style={{ marginTop: '8px', wordBreak: 'keep-all' }}>
+                    <p style={{ margin: '0' }}>상호명: 패스플로우 에이아이(Passflow AI) | 대표자: 김복순</p>
+                    <p style={{ margin: '0' }}>사업자등록번호: 789-66-00676</p>
+                    <p style={{ margin: '0' }}>주소: 서울특별시 마포구 서강로1길 61, 201호(창전동, 삼성코러스빌라)</p>
+                    <p style={{ margin: '8px 0 0 0', color: 'rgba(255,255,255,0.2)' }}>© {new Date().getFullYear()} PassFlow AI. All rights reserved.</p>
+                </div>
+            </div>
         </div>
     );
 };
