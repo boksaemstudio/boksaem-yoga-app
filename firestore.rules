@@ -33,7 +33,10 @@ service cloud.firestore {
     // 📋 Members - 회원 정보
     // ========================================
     match /members/{memberId} {
-      allow read, write: if isAuth();
+      allow read: if isAuth();
+      allow create: if isAuth() && (request.resource.data.credits >= 0 || !("credits" in request.resource.data));
+      allow update: if isAuth() && (request.resource.data.credits >= 0 || !("credits" in request.resource.data));
+      allow delete: if isAuth();
     }
 
     // ========================================
