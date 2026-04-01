@@ -5,14 +5,14 @@
   "targets": {
     "boksaem-yoga": {
       "hosting": {
-        "passflow-0324": [
-          "passflow-0324"
-        ],
-        "passflow-demo-0324": [
-          "passflow-demo-0324"
-        ],
         "passflowai": [
           "passflowai"
+        ],
+        "passflow-landing": [
+          "passflow-landing"
+        ],
+        "ssangmun-yoga-0": [
+          "ssangmun-yoga-0"
         ]
       }
     }

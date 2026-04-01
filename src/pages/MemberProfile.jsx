@@ -31,6 +31,7 @@ import ProfileSkeleton from '../components/profile/ProfileSkeleton';
 import LoginPage from '../components/profile/LoginPage';
 import { useMemberProfile } from '../hooks/useMemberProfile';
 import { useMemberUI } from '../hooks/useMemberUI';
+import { storageService } from '../services/storage';
 
 const MemberProfile = () => {
     const { config } = useStudioConfig();

@@ -1,4 +1,4 @@
-const admin = require('firebase-admin');
+﻿const admin = require('firebase-admin');
 const path = require('path');
 const fs = require('fs');
 
@@ -17,12 +17,12 @@ async function fixImagesForTenant(tenantId) {
     const imagesRef = db.collection('studios').doc(tenantId).collection('images');
     
     // The UI (AdminDashboard.jsx) looks for: images.price_table_1 and images.price_table_2
-    await imagesRef.doc('price_table_1').set({ url: 'https://passflow-0324.web.app/assets/demo_pricing.png' }, { merge: true });
-    await imagesRef.doc('price_table_2').set({ url: 'https://passflow-0324.web.app/assets/demo_pricing.png' }, { merge: true });
+    await imagesRef.doc('price_table_1').set({ url: 'https://passflowai.web.app/assets/demo_pricing.png' }, { merge: true });
+    await imagesRef.doc('price_table_2').set({ url: 'https://passflowai.web.app/assets/demo_pricing.png' }, { merge: true });
     
     // Also set schedule images just in case
-    await imagesRef.doc('timetable_1').set({ url: 'https://passflow-0324.web.app/assets/demo_schedule.png' }, { merge: true });
-    await imagesRef.doc('timetable_2').set({ url: 'https://passflow-0324.web.app/assets/demo_schedule.png' }, { merge: true });
+    await imagesRef.doc('timetable_1').set({ url: 'https://passflowai.web.app/assets/demo_schedule.png' }, { merge: true });
+    await imagesRef.doc('timetable_2').set({ url: 'https://passflowai.web.app/assets/demo_schedule.png' }, { merge: true });
     
     console.log(`Successfully updated images for ${tenantId}`);
 }

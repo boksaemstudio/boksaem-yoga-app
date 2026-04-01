@@ -117,11 +117,6 @@ const AdminDashboard = () => {
     // [Refactor] Use Custom Hook for Data & Logic
     const adminData = useAdminData(activeTab, 'all');
 
-    // [CRITICAL] Guard against early access before config/data is ready
-    if (!config || loading) {
-        return <div style={{ background: '#08080A', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-gold)' }}>Loading Admin Console...</div>;
-    }
-
     const {
         currentBranch, setCurrentBranch,
         members, sales, logs, notices, stats,
@@ -147,11 +142,12 @@ const AdminDashboard = () => {
     // [PWA] Removed auto-show install guide for Admin Dashboard to prevent repeated nagging in in-app browsers
 
     // Dynamic Pricing State & Real-time Sync
-    const [pricingConfig, setPricingConfig] = useState(config.PRICING || {});
-    const themeColor = config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)';
+    const [pricingConfig, setPricingConfig] = useState(config?.PRICING || {});
+    const themeColor = config?.THEME?.PRIMARY_COLOR || 'var(--primary-gold)';
     const themeContrastText = getContrastText(themeColor);
 
     useEffect(() => {
+        if (!config) return; // Guard: don't fetch pricing before config is ready
         const loadPricing = async () => {
             const data = await storageService.getPricing();
             if (data) setPricingConfig(data);
@@ -166,7 +162,7 @@ const AdminDashboard = () => {
         }, ['settings']);
 
         return () => unsubscribe();
-    }, []);
+    }, [config]);
 
     // [REFACTOR] Filters & Pagination Hook
     const {
@@ -183,6 +179,7 @@ const AdminDashboard = () => {
         selectExpiringMembers
     } = useAdminFilters();
 
+    // NOTE: Loading guard moved to JSX return below — all hooks must run first (Rules of Hooks)
     // 탭 변경 시 URL 업데이트
     const handleTabChange = (tabId) => {
         setActiveTab(tabId);
@@ -407,12 +404,18 @@ const AdminDashboard = () => {
         storageService.setBranch(branch);
     };
 
+    const handleImageCountChange = async (e) => {
+        const count = e.target.value;
+        setOptimisticImages(prev => ({ ...prev, pricing_image_count: count }));
+        try {
+            await storageService.updateImage('pricing_image_count', count);
+        } catch (err) {
+            console.error('Failed to update image count:', err);
+            alert('이미지 개수 변경에 실패했습니다.');
+        }
+    };
 
-
-
-
-
-    const handleImageUpload = (e, target) => {
+    const handleImageUpload = async (e, target) => {
         const file = e.target.files[0];
         if (!file) return;
 
@@ -561,6 +564,11 @@ const AdminDashboard = () => {
     };
 
     // --- RENDER ---
+    // [CRITICAL] Guard against early access before config/data is ready
+    if (!config || loading) {
+        return <div style={{ background: '#08080A', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-gold)' }}>Loading Admin Console...</div>;
+    }
+
     return (
         <div className="admin-container">
             <AdminHeader
@@ -664,24 +672,41 @@ const AdminDashboard = () => {
                         <AdminPriceManager />
                         <hr style={{ borderColor: 'rgba(255,255,255,0.05)', margin: '20px 0' }} />
                         <div className="dashboard-card">
-                            <h3 className="card-label" style={{ marginBottom: '20px' }}>가격표 개요 (이미지)</h3>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                <h3 className="card-label" style={{ margin: 0 }}>가격표 개요 (이미지)</h3>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>이미지 개수:</span>
+                                    <select 
+                                        value={optimisticImages.pricing_image_count || images.pricing_image_count || '2'}
+                                        onChange={handleImageCountChange}
+                                        style={{ background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '6px 12px', outline: 'none' }}
+                                    >
+                                        <option value="1">1장</option>
+                                        <option value="2">2장</option>
+                                        <option value="3">3장</option>
+                                    </select>
+                                </div>
+                            </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
-                                    <h3 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '15px', color:'rgba(255,255,255,0.7)' }}>기본 요금표 1</h3>
-                                    <img src={optimisticImages.price_table_1 || images.price_table_1 || ''} alt="가격표 1" style={{ width: '100%', borderRadius: '12px', marginBottom: '15px' }} />
-                                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                        <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'price_table_1')} style={{ display: 'none' }} id="up-price-1" />
-                                        <label htmlFor="up-price-1" className="action-btn sm" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', fontSize: '0.7rem', border: 'none', cursor: 'pointer' }}>가격표 변경</label>
-                                    </div>
-                                </div>
-                                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
-                                    <h3 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '15px', color:'rgba(255,255,255,0.7)' }}>추가 요금표 2</h3>
-                                    <img src={optimisticImages.price_table_2 || images.price_table_2 || ''} alt="가격표 2" style={{ width: '100%', borderRadius: '12px', marginBottom: '15px' }} />
-                                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                        <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'price_table_2')} style={{ display: 'none' }} id="up-price-2" />
-                                        <label htmlFor="up-price-2" className="action-btn sm" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', fontSize: '0.7rem', border: 'none', cursor: 'pointer' }}>가격표 변경</label>
-                                    </div>
-                                </div>
+                                {Array.from({ length: parseInt(optimisticImages.pricing_image_count || images.pricing_image_count || '2') }).map((_, i) => {
+                                    const index = i + 1;
+                                    const imgKey = `price_table_${index}`;
+                                    const imgSrc = optimisticImages[imgKey] || images[imgKey];
+                                    return (
+                                        <div key={imgKey} style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+                                            <h3 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '15px', color:'rgba(255,255,255,0.7)' }}>요금표 이미지 {index}</h3>
+                                            {imgSrc ? (
+                                                <img src={imgSrc} alt={`가격표 ${index}`} style={{ width: '100%', borderRadius: '12px', marginBottom: '15px' }} />
+                                            ) : (
+                                                <div style={{ width: '100%', padding: '40px 0', textAlign: 'center', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', marginBottom: '15px', color: '#666' }}>이미지가 등록되지 않았습니다</div>
+                                            )}
+                                            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                                <input type="file" accept="image/*" onChange={e => handleImageUpload(e, imgKey)} style={{ display: 'none' }} id={`up-price-${index}`} />
+                                                <label htmlFor={`up-price-${index}`} className="action-btn sm" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', fontSize: '0.7rem', border: 'none', cursor: 'pointer' }}>가격표 변경</label>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>

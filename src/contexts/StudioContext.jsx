@@ -30,6 +30,13 @@ export const StudioProvider = ({ children }) => {
         return unsub;
     }, []);
 
+    // [CACHE HEAL] 스튜디오(테넌트)가 변경될 때마다 메모리 캐시를 날림
+    useEffect(() => {
+        import('../services/configService').then(({ configService }) => {
+            configService.clearCache();
+        });
+    }, [studioId]);
+
     useEffect(() => {
         const studioDocRef = doc(db, 'studios', studioId);
 
@@ -108,7 +115,7 @@ export const StudioProvider = ({ children }) => {
                 }
 
                 // [DEMO OVERRIDE] 원장님 요청: 데모 사이트는 무조건 PassFlow 로고 노출
-                if (window.location.hostname.includes('passflow') || window.location.hostname.includes('demo') || studioId === 'demo-yoga') {
+                if (studioId === 'demo-yoga') {
                     if (!merged.ASSETS) merged.ASSETS = {};
                     if (!merged.ASSETS.LOGO) merged.ASSETS.LOGO = {};
                     merged.ASSETS.LOGO.WIDE = '/assets/passflow_ai_logo_transparent_final.png';

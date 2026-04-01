@@ -11,10 +11,11 @@ import { storageService } from '../services/storage';
  * @param {Object|null} options.message - 현재 메시지 상태
  * @param {boolean} options.showSelectionModal - 선택 모달 표시 여부
  * @param {boolean} options.showDuplicateConfirm - 중복 확인 모달 표시 여부
- * @returns {{ kioskSettings, kioskNoticeHidden, setKioskNoticeHidden }}
+ * @returns {{ kioskSettings, rawKioskSettings, kioskNoticeHidden, setKioskNoticeHidden }}
  */
 export function useKioskNotice({ isReady, currentBranch, message, showSelectionModal, showDuplicateConfirm }) {
     const [kioskSettings, setKioskSettings] = useState({ active: false, imageUrl: null });
+    const [rawKioskSettings, setRawKioskSettings] = useState({});
     const [kioskNoticeHidden, setKioskNoticeHidden] = useState(false);
 
     // 키오스크 공지 구독 (지점별 → 전체 fallback)
@@ -25,11 +26,17 @@ export function useKioskNotice({ isReady, currentBranch, message, showSelectionM
         let unsubscribeAll = null;
 
         unsubscribeBranch = storageService.subscribeToKioskSettings(currentBranch, (branchData) => {
+            if (branchData) setRawKioskSettings(branchData);
+            else setRawKioskSettings({});
+
             if (branchData && branchData.active && branchData.imageUrl) {
                 setKioskSettings(branchData);
                 setKioskNoticeHidden(false);
             } else {
                 unsubscribeAll = storageService.subscribeToKioskSettings('all', (allData) => {
+                    // Update raw settings from fallback if branch had no data
+                    setRawKioskSettings(prev => Object.keys(prev).length > 0 ? prev : (allData || {}));
+
                     if (allData && allData.active && allData.imageUrl) {
                         setKioskSettings(allData);
                         setKioskNoticeHidden(false);
@@ -71,5 +78,5 @@ export function useKioskNotice({ isReady, currentBranch, message, showSelectionM
         };
     }, [kioskSettings?.active, kioskNoticeHidden, message, showSelectionModal, showDuplicateConfirm]);
 
-    return { kioskSettings, kioskNoticeHidden, setKioskNoticeHidden };
+    return { kioskSettings, rawKioskSettings, kioskNoticeHidden, setKioskNoticeHidden };
 }

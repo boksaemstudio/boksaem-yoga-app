@@ -256,11 +256,19 @@ async function refreshDemoData() {
 
     // 6. 매출 데이터
     for (let m = 0; m < 4; m++) {
-        for (let i = 0; i < 30; i++) {
+        // [FIX] 이번 달(m=0)의 경우 오늘 날짜를 넘기지 않도록 제약 (미래 매출 방지)
+        let maxDays = 28;
+        if (m === 0) {
+            maxDays = today.getDate(); // 1일이면 1만 반환
+        }
+        // 당월 초반(1~5일)일 경우 데이터가 빈약해 지는 것을 방지하기 위해 최소 8건 보장
+        const runCount = m === 0 ? Math.max(8, Math.floor(30 * (maxDays / 28))) : 30;
+
+        for (let i = 0; i < runCount; i++) {
             const saleId = tenantDb.collection('sales').doc().id;
             const saleDate = new Date(today);
             saleDate.setMonth(today.getMonth() - m);
-            saleDate.setDate(Math.floor(Math.random() * 28) + 1);
+            saleDate.setDate(Math.floor(Math.random() * maxDays) + 1);
             
             const priceItem = prices[Math.floor(Math.random() * prices.length)];
             

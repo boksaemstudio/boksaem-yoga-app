@@ -29,6 +29,7 @@ let pendingImageWrites: Record<string, { base64: string; timestamp: number }> = 
 export const configService = {
   getImages(): Record<string, string> { return cachedImages; },
   setCachedImages(imgs: Record<string, string>): void { cachedImages = imgs; },
+  clearCache(): void { cachedImages = {}; pendingImageWrites = {}; },
 
   async fetchImages(): Promise<Record<string, string>> {
     if (Object.keys(cachedImages).length === 0) {

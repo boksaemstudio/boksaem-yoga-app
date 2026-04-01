@@ -445,6 +445,76 @@ const KioskSettingsTab = () => {
                         </button>
                     </div>
                 </div>
+
+                {/* ─── 키오스크 운영 시간 설정 ─── */}
+                <div style={{
+                    background: 'rgba(255,255,255,0.02)', padding: '20px 24px', borderRadius: '16px',
+                    border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '16px',
+                }}>
+                    <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)' }}>⏰ 키오스크 운영 시간 (자동 ON/OFF)</h4>
+
+                    {/* 운영 시간 자동화 토글 */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div>
+                            <div style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px' }}>
+                                자동 ON/OFF 스케줄 사용
+                            </div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                설정된 운영 시간 외에는 화면과 동작을 끄고 절전(대기) 모드 진입
+                            </div>
+                        </div>
+                        <button onClick={async () => {
+                            const newVal = !settings.autoOnOff;
+                            try {
+                                await storageService.updateKioskSettings(selectedBranch, { ...settings, autoOnOff: newVal });
+                                setSettings(prev => ({ ...prev, autoOnOff: newVal }));
+                            } catch (err) { alert('설정 변경 실패'); }
+                        }} style={{
+                            background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex',
+                            color: settings.autoOnOff ? '#10B981' : 'var(--text-tertiary)'
+                        }}>
+                            {settings.autoOnOff ? <ToggleRight size={44} weight="fill" /> : <ToggleLeft size={44} weight="regular" />}
+                        </button>
+                    </div>
+
+                    {/* 시간 입력 */}
+                    {settings.autoOnOff && (
+                        <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
+                            <div style={{ flex: 1 }}>
+                                <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>시작 시간 (켜짐)</label>
+                                <input 
+                                    type="time" 
+                                    value={settings.autoOnTime || '06:00'}
+                                    onChange={async (e) => {
+                                        const newVal = e.target.value;
+                                        setSettings(prev => ({ ...prev, autoOnTime: newVal }));
+                                        await storageService.updateKioskSettings(selectedBranch, { ...settings, autoOnTime: newVal });
+                                    }}
+                                    style={{
+                                        width: '100%', padding: '12px 16px', fontSize: '1.2rem', fontWeight: 'bold', fontFamily: 'var(--font-main)',
+                                        background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', borderRadius: '12px', color: 'var(--text-primary)'
+                                    }}
+                                />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>종료 시간 (꺼짐)</label>
+                                <input 
+                                    type="time" 
+                                    value={settings.autoOffTime || '23:00'}
+                                    onChange={async (e) => {
+                                        const newVal = e.target.value;
+                                        setSettings(prev => ({ ...prev, autoOffTime: newVal }));
+                                        await storageService.updateKioskSettings(selectedBranch, { ...settings, autoOffTime: newVal });
+                                    }}
+                                    style={{
+                                        width: '100%', padding: '12px 16px', fontSize: '1.2rem', fontWeight: 'bold', fontFamily: 'var(--font-main)',
+                                        background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', borderRadius: '12px', color: 'var(--text-primary)'
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

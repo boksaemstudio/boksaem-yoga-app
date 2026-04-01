@@ -153,7 +153,7 @@ const studioRef = db.doc(`studios/${STUDIO_ID}`);
     console.log(`📋 logs → attendance 복사: ${copiedCount}건`);
     console.log(`💰 매출 timestamp 패치: ${patchedCount}건`);
     console.log(`✅ attendance 필수 필드 패치: ${attPatchCount}건`);
-    console.log(`🔗 확인: https://passflow-demo-0324.web.app/admin`);
+    console.log(`🔗 확인: https://passflow-demo.web.app/admin`);
     console.log('═══════════════════════════════════════');
     
     process.exit(0);

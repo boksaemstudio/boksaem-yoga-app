@@ -1,4 +1,4 @@
-const admin = require('../functions/node_modules/firebase-admin');
+﻿const admin = require('../functions/node_modules/firebase-admin');
 const sa = require('../functions/service-account-key.json');
 
 if (!admin.apps.length) {
@@ -14,30 +14,30 @@ async function run() {
 
         // 1. Logo
         batch.set(db.doc('studios/demo-yoga/images/logo'), {
-            url: 'https://passflow-0324.web.app/assets/passflow_ai_logo_transparent_final.png',
+            url: 'https://passflowai.web.app/assets/passflow_ai_logo_transparent_final.png',
             updatedAt: new Date().toISOString()
         }, { merge: true });
 
         // Wait, images collection isn't a subcollection `files`. It's `studios/demo-yoga/images/ID` directly?
         // Let's do both to be safe. Actually, `tenantDb.collection('images').doc('logo')` is the standard.
         batch.set(db.doc('studios/demo-yoga/images/logo'), {
-            url: 'https://passflow-0324.web.app/assets/passflow_ai_logo_transparent_final.png',
+            url: 'https://passflowai.web.app/assets/passflow_ai_logo_transparent_final.png',
             updatedAt: new Date().toISOString()
         }, { merge: true });
 
         // 2. Weekly Schedules (03, 04)
-        const timetableUrl = 'https://passflow-0324.web.app/assets/schedule_dummy.png'; 
+        const timetableUrl = 'https://passflowai.web.app/assets/schedule_dummy.png'; 
         // Wait, I should use the one I generated or a generic placeholder. I'll use a placeholder or something nice.
         // Actually, there's `schedule_dummy.png`? No, let's just use `passflow_ai_logo_transparent_final.png` as fallback for now.
-        // Or better: Let's create `const timetableUrl = 'https://passflow-0324.web.app/assets/passflow_ai_logo_transparent_final.png'` for now just to populate it, so it doesn't look empty.
+        // Or better: Let's create `const timetableUrl = 'https://passflowai.web.app/assets/passflow_ai_logo_transparent_final.png'` for now just to populate it, so it doesn't look empty.
         
         batch.set(db.doc('studios/demo-yoga/images/timetable_main_2026-03'), {
-            url: 'https://passflow-0324.web.app/assets/timetable_1.webp',
+            url: 'https://passflowai.web.app/assets/timetable_1.webp',
             updatedAt: new Date().toISOString()
         }, { merge: true });
 
         batch.set(db.doc('studios/demo-yoga/images/timetable_main_2026-04'), {
-            url: 'https://passflow-0324.web.app/assets/timetable_2.webp',
+            url: 'https://passflowai.web.app/assets/timetable_2.webp',
             updatedAt: new Date().toISOString()
         }, { merge: true });
 

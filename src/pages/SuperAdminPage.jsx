@@ -3,7 +3,7 @@ import { Buildings, Plus, ArrowSquareOut, Trash, Crown, X, Gear, UserCirclePlus,
 import { studioRegistryService } from '../services/studioRegistryService';
 import { switchStudio, getCurrentStudioId } from '../utils/resolveStudioId';
 import { useStudioConfig } from '../contexts/StudioContext';
-import { functions } from '../firebase';
+import { functions, auth } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
 
 const SuperAdminPage = () => {
@@ -67,6 +67,7 @@ const SuperAdminPage = () => {
         if (addForm.role === 'admin' && !addForm.studioId) { alert('일반 관리자는 업장을 선택해야 합니다.'); return; }
         setAdding(true);
         try {
+            const fn = httpsCallable(functions, 'createAdminCall');
             const result = await fn(addForm);
             // 구글 기본 영어 페이지를 우회하고, 우리가 새로 만든 한글 /auth/action 페이지로 강제 연결
             const matchParams = result.data.resetLink.match(/oobCode=([^&]+)/);
@@ -215,9 +216,15 @@ const SuperAdminPage = () => {
         loadStudios();
     };
 
-    const handleSwitch = (studioId) => {
-        // [AUTO-HEALER] 강제로 파라미터를 물려 새 탭을 띄우면 완벽하게 데이터가 분리되어 열립니다.
-        window.open(`/admin?studio=${studioId}`, '_blank');
+    const handleSwitch = (studio) => {
+        // [AUTO-HEALER] 독립 도메인이 있는 경우 해당 도메인으로 브릿지 연결 (완벽한 격리)
+        if (studio.domain) {
+            let domainUrl = studio.domain.startsWith('http') ? studio.domain : `https://${studio.domain}`;
+            window.open(`${domainUrl}/admin`, '_blank');
+        } else {
+            // 없는 경우 기존처럼 파라미터 기반 라우팅
+            window.open(`/admin?studio=${studio.id}`, '_blank');
+        }
     };
 
     const handleDelete = async (studio) => {
@@ -345,7 +352,7 @@ const SuperAdminPage = () => {
                                 {studios.map(studio => {
                                     const isCurrent = studio.id === currentStudioId;
                                     return (
-                                        <div key={studio.id} style={{ background: isCurrent ? 'rgba(212, 175, 55, 0.06)' : 'rgba(255,255,255,0.03)', border: isCurrent ? '2px solid rgba(212, 175, 55, 0.4)' : '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '20px', position: 'relative', cursor: 'pointer' }} onClick={() => handleSwitch(studio.id)} title={`클릭하면 이 화면 전체가 [${studio.name}]의 데이터로 탈바꿈합니다.`}>
+                                        <div key={studio.id} style={{ background: isCurrent ? 'rgba(212, 175, 55, 0.06)' : 'rgba(255,255,255,0.03)', border: isCurrent ? '2px solid rgba(212, 175, 55, 0.4)' : '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '20px', position: 'relative', cursor: 'pointer' }} onClick={() => handleSwitch(studio)} title={`클릭하면 이 화면 전체가 [${studio.name}]의 데이터로 탈바꿈합니다.`}>
                                             {isCurrent && <div style={{ position: 'absolute', top: '12px', right: '12px', fontSize: '0.7rem', padding: '3px 8px', borderRadius: '12px', background: '#D4AF37', color: '#000', fontWeight: '700' }}>현재 접속중</div>}
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
                                                 <div style={{ width: '52px', height: '52px', borderRadius: '12px', background: studio.logoUrl ? '#ffffff' : 'linear-gradient(135deg, #3B82F6, #8B5CF6)', boxShadow: studio.logoUrl ? '0 4px 12px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.1)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '1.2rem', color: 'white', flexShrink: 0, overflow: 'hidden', padding: studio.logoUrl ? '4px' : '0' }}>

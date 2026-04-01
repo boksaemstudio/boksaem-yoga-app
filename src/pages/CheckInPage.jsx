@@ -39,6 +39,7 @@ import FaceRegistrationModal from '../components/checkin/FaceRegistrationModal';
 
 const CheckInPage = () => {
     const { config } = useStudioConfig();
+    const { speak } = useTTS();
     const logoWide = config.ASSETS?.LOGO?.WIDE || '/assets/passflow_logo.png';
     const rys200Logo = config.ASSETS?.LOGO?.RYS200 || '/assets/RYS200.webp';
     const branches = config.BRANCHES || [];
@@ -88,6 +89,7 @@ const CheckInPage = () => {
     });
     const [bgImage, setBgImage] = useState(null);
     const [monthlyClasses, setMonthlyClasses] = useState({});
+    const [isOperatingHours, setIsOperatingHours] = useState(true);
     const [isOnline, setIsOnline] = useState(true);
 
     // Refs
@@ -101,15 +103,50 @@ const CheckInPage = () => {
     // Custom Hooks
     const pwaContext = usePWA();
     const { checkConnection } = useNetworkMonitor();
-    const { speak } = useTTS();
-    const photoEnabled = config.POLICIES?.PHOTO_ENABLED === true || faceRecognitionEnabled === true;
+    const { kioskSettings, rawKioskSettings, kioskNoticeHidden, setKioskNoticeHidden } = useKioskNotice({
+        isReady, currentBranch, message, showSelectionModal, showDuplicateConfirm
+    });
+
+    // ── Kiosk Operating Hours (Auto Sleep/Wake) ──
+    useEffect(() => {
+        const checkOperatingHours = () => {
+            if (!rawKioskSettings?.autoOnOff) {
+                if (!isOperatingHours) setIsOperatingHours(true);
+                return;
+            }
+            const now = new Date();
+            // Create time string 'HH:mm' handling 24-hr layout properly
+            let h = now.getHours();
+            let m = now.getMinutes();
+            const currentString = `${h < 10 ? '0'+h : h}:${m < 10 ? '0'+m : m}`;
+            
+            const start = rawKioskSettings.autoOnTime || '06:00';
+            const end = rawKioskSettings.autoOffTime || '23:00';
+            let isOp = true;
+            if (start < end) {
+                isOp = (currentString >= start && currentString < end);
+            } else {
+                isOp = (currentString >= start || currentString < end); // Cross midnight
+            }
+            // Update state only if changed to avoid unnecessary re-renders
+            setIsOperatingHours(prev => {
+                if (prev !== isOp) return isOp;
+                return prev;
+            });
+        };
+        checkOperatingHours();
+        const interval = setInterval(checkOperatingHours, 60000); // Check every minute
+        return () => clearInterval(interval);
+    }, [rawKioskSettings?.autoOnOff, rawKioskSettings?.autoOnTime, rawKioskSettings?.autoOffTime, isOperatingHours]);
+
+    const photoEnabled = (config.POLICIES?.PHOTO_ENABLED === true || faceRecognitionEnabled === true) && isOperatingHours;
     const { videoRef, canvasRef, capturePhoto, uploadPhoto, stream: cameraStream } = useAttendanceCamera(photoEnabled);
 
     const {
         faceModelsLoaded, isScanning, faceVideoRef,
         lastDescriptorRef, activeTaskIdRef, findBestMatch
     } = useFacialRecognition({
-        enabled: faceRecognitionEnabled,
+        enabled: faceRecognitionEnabled && isOperatingHours,
         autoUpdateRef,
         attendanceVideoRef: videoRef, // 사진 캡처용 카메라 공유
         proceedWithCheckIn: useCallback((pin, isDup, memberId, task) => {
@@ -117,14 +154,10 @@ const CheckInPage = () => {
         }, []),
     });
 
-    const { kioskSettings, kioskNoticeHidden, setKioskNoticeHidden } = useKioskNotice({
-        isReady, currentBranch, message, showSelectionModal, showDuplicateConfirm
-    });
-
-    // 근접 감지: 공지 화면 표시 중 + 옵션 ON이면 카메라로 얼굴 감지 → 자동 전환
-    const isNoticeVisible = !!(kioskSettings?.active && kioskSettings?.imageUrl && !kioskNoticeHidden && !message);
+    // 근접 감지: 공지 화면 표시 중 + 옵션 ON이면 카메라로 얼굴 감지 → 자동 전환 (운영 시간일 때만)
+    const isNoticeVisible = !!(kioskSettings?.active && kioskSettings?.imageUrl && !kioskNoticeHidden && !message) && isOperatingHours;
     useProximityReturn({
-        enabled: !!kioskSettings?.proximityReturn,
+        enabled: !!kioskSettings?.proximityReturn && isOperatingHours,
         isNoticeVisible,
         videoRef: faceVideoRef,
         onPersonDetected: useCallback(() => setKioskNoticeHidden(true), [setKioskNoticeHidden])
@@ -460,7 +493,19 @@ const CheckInPage = () => {
             <MessageOverlay message={message} onClose={closeMessage} aiExperience={aiExperience} />
             <DuplicateConfirmModal show={showDuplicateConfirm} duplicateTimer={duplicateTimer} onCancel={() => { setShowDuplicateConfirm(false); setPin(''); }} onConfirm={() => { setShowDuplicateConfirm(false); proceedWithCheckIn(pendingPin, true); }} />
             
-            {kioskSettings?.active && kioskSettings?.imageUrl && !kioskNoticeHidden && !message && (
+            {/* ── 운영 시간 외 절전 모드 화면 ── */}
+            {!isOperatingHours && (
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 9999, backgroundColor: '#000',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#666'
+                }}>
+                    <span style={{ fontSize: '10rem', opacity: 0.1, marginBottom: '20px' }}>🌙</span>
+                    <h1 style={{ fontSize: '2rem', fontWeight: 'bold' }}>운영 시간이 종료되었습니다</h1>
+                    <p style={{ marginTop: '10px', opacity: 0.6 }}>내일 다시 만나요</p>
+                </div>
+            )}
+
+            {kioskSettings?.active && kioskSettings?.imageUrl && !kioskNoticeHidden && !message && isOperatingHours && (
                 <div onClick={() => setKioskNoticeHidden(true)} style={{ position: 'fixed', inset: 0, backgroundColor: '#000', zIndex: 2000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                     {(kioskSettings.mediaType === 'video' || kioskSettings.imageUrl.match(/notice_video\.|\.mp4|\.webm|\.mov/i)) ? (
                         <video src={kioskSettings.imageUrl} autoPlay loop muted playsInline style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />

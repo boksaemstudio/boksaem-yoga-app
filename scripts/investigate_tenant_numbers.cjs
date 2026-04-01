@@ -21,7 +21,7 @@ async function run() {
     if(sg.exists) console.log(JSON.stringify(sg.data(), null, 2));
     
     console.log('\n--- Checking Ssangmun Yoga 0324? ---');
-    const sg0324 = await db.collection('platform/registry/studios').doc('ssangmun-yoga-0324').get();
+    const sg0324 = await db.collection('platform/registry/studios').doc('ssangmun-yoga-0').get();
     if(sg0324.exists) console.log('Exists! ' + JSON.stringify(sg0324.data(), null, 2));
     
     console.log('\n--- pending_studios Cleanup Check ---');

@@ -236,7 +236,7 @@ const PRICING = {
     console.log(`👤 활성화된 회원: ${activatedCount}명`);
     console.log(`✅ 추가 출석 로그: ${attendanceLogs.length}건`);
     console.log(`💰 추가 매출: ${salesRecords.length}건 (${(totalRev / 10000).toFixed(0)}만원)`);
-    console.log(`🔗 확인: https://passflow-demo-0324.web.app/admin`);
+    console.log(`🔗 확인: https://passflow-demo.web.app/admin`);
     console.log('═══════════════════════════════════════');
     
     process.exit(0);

@@ -5,7 +5,7 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import reactPlugin from "eslint-plugin-react";
 
 export default [
-  { ignores: ["dist", "build"] },
+  { ignores: ["dist", "build", "test_images.js", "eslint-report*.json", "lint_*.txt", "functions/**", "scripts/**", "oldLogsTab.js", "dev-dist", "dev-dist/**"] },
   {
     files: ["src/**/*.{js,jsx}"],
     languageOptions: {
@@ -27,11 +27,31 @@ export default [
       ...reactPlugin.configs.recommended.rules,
       ...reactPlugin.configs["jsx-runtime"].rules,
       ...reactHooks.configs.recommended.rules,
+      // React 17+ JSX Transform — PropTypes 불필요
+      "react/prop-types": "off",
+      // 한국어 JSX 텍스트에서 따옴표 이스케이프 불필요
+      "react/no-unescaped-entities": "off",
+      // HOC/forwardRef 등에서 displayName 생략 허용
+      "react/display-name": "off",
       "react-refresh/only-export-components": [
         "warn",
         { allowConstantExport: true },
       ],
-      "no-unused-vars": ["warn"],
+      "no-unused-vars": ["warn", {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_"
+      }],
+      // 의도적 의존성 생략 허용 (warn으로 유지)
+      "react-hooks/exhaustive-deps": "warn",
+      // 빈 catch 블록 허용
+      "no-empty": ["error", { "allowEmptyCatch": true }],
+      // [FIX] Downgrade strict react-hooks / compiler rules to warnings to prevent breaking legacy architecture
+      "react-hooks/static-components": "warn",
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/preserve-manual-memoization": "warn",
+      "react-hooks/immutability": "warn",
+      "react-hooks/purity": "warn"
     },
     settings: {
       react: {

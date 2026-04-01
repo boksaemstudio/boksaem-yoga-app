@@ -1,4 +1,4 @@
-const admin = require('firebase-admin');
+﻿const admin = require('firebase-admin');
 const path = require('path');
 const fs = require('fs');
 
@@ -40,7 +40,7 @@ async function seedData() {
             IDENTITY: { NAME: '쌍문요가', SLOGAN: '도봉구 쌍문동 최고의 요가 공간, 나를 만나는 고요한 시간' },
             THEME: { PRIMARY_COLOR: '#d4af37', SKELETON_COLOR: '#1a1a1a' },
             ASSETS: {
-                LOGO: { SQUARE: 'https://passflow-0324.web.app/assets/demo_logo.png', WIDE: 'https://passflow-0324.web.app/assets/demo_logo.png' },
+                LOGO: { SQUARE: 'https://passflowai.web.app/assets/demo_logo.png', WIDE: 'https://passflowai.web.app/assets/demo_logo.png' },
                 MEMBER_BG: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1200&auto=format&fit=crop'
             },
             MEMBERSHIP: { TYPES: { 'MTypeA': '기구필라테스 30회권', 'MTypeB': '플라잉요가 1개월권', 'MTypeC': '빈야사 무제한 패스' } },

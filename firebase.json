@@ -63,7 +63,7 @@
       ]
     },
     {
-      "site": "passflow",
+      "site": "passflow-landing",
       "public": "dist",
       "ignore": [
         "firebase.json",
@@ -107,41 +107,6 @@
     },
     {
       "site": "ssangmun-yoga-0",
-      "public": "dist",
-      "ignore": [
-        "firebase.json",
-        "**/.*",
-        "**/node_modules/**"
-      ],
-      "rewrites": [
-        {
-          "source": "**",
-          "destination": "/index.html"
-        }
-      ],
-      "headers": [
-        {
-          "source": "**",
-          "headers": [
-            {
-              "key": "Cache-Control",
-              "value": "no-cache, no-store, must-revalidate"
-            }
-          ]
-        },
-        {
-          "source": "sw.js",
-          "headers": [
-            {
-              "key": "Cache-Control",
-              "value": "no-cache, no-store, must-revalidate"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "site": "passflow-demo",
       "public": "dist",
       "ignore": [
         "firebase.json",

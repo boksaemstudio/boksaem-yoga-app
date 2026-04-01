@@ -1,6 +1,6 @@
-const { initializeApp, cert } = require('firebase-admin/app');
+const admin = require('firebase-admin');
 const acc = require('../functions/service-account-key.json');
-try { initializeApp({ credential: cert(acc) }); } catch (e) {}
+if (!admin.apps.length) admin.initializeApp({ credential: admin.credential.cert(acc) });
 
 const { refreshDemoData } = require('../functions/helpers/demoSeeder');
 

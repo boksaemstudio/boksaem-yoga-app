@@ -1,4 +1,4 @@
-const fs = require('fs');
+﻿const fs = require('fs');
 
 // 1. Update firebase.json
 const fbConfig = JSON.parse(fs.readFileSync('firebase.json', 'utf8'));
@@ -50,7 +50,7 @@ const newSite = {
     ]
 };
 
-// Remove passflow-0324 if we want, or just add passflowai. We'll add it.
+// Remove passflowai if we want, or just add passflowai. We'll add it.
 let found = false;
 fbConfig.hosting.forEach(s => { if (s.site === 'passflowai') found = true; });
 if (!found) fbConfig.hosting.push(newSite);
