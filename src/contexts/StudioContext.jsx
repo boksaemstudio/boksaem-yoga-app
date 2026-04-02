@@ -108,6 +108,18 @@ export const StudioProvider = ({ children }) => {
                     };
                     fixPaths(merged.ASSETS);
 
+                    // [FIX] Firestore의 절대 URL(https://도메인/logo.png) → 상대 경로(/logo.png) 정규화
+                    const currentOrigin = window.location.origin;
+                    const normalizeLogoUrl = (url) => {
+                        if (!url || typeof url !== 'string') return url;
+                        if (url.startsWith(currentOrigin)) return url.replace(currentOrigin, '');
+                        return url;
+                    };
+                    if (merged.IDENTITY?.LOGO_URL) merged.IDENTITY.LOGO_URL = normalizeLogoUrl(merged.IDENTITY.LOGO_URL);
+                    if (merged.ASSETS?.LOGO?.WIDE) merged.ASSETS.LOGO.WIDE = normalizeLogoUrl(merged.ASSETS.LOGO.WIDE);
+                    if (merged.ASSETS?.LOGO?.SQUARE) merged.ASSETS.LOGO.SQUARE = normalizeLogoUrl(merged.ASSETS.LOGO.SQUARE);
+                    if (merged.ASSETS?.LOGO?.RYS200) merged.ASSETS.LOGO.RYS200 = normalizeLogoUrl(merged.ASSETS.LOGO.RYS200);
+
                     // [SaaS] 중립적 기본 로고 — 테넌트가 자체 로고 등록 전까지 표시
                     if (!merged.ASSETS.LOGO?.WIDE || merged.ASSETS.LOGO.WIDE === '/') merged.ASSETS.LOGO.WIDE = '/assets/passflow_logo.png';
                     // [SaaS] RYS200은 복샘요가 전용 — Firestore에 없으면 강제 주입하지 않음
