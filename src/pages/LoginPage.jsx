@@ -29,7 +29,9 @@ const LoginPage = () => {
                 try {
                     const tokenResult = await auth.currentUser.getIdTokenResult();
                     if (tokenResult.claims.role === 'superadmin') {
-                        navigate('/super-admin');
+                        // [SaaS] boksaem-yoga 도메인에서는 슈퍼어드민도 일반 관리자 화면으로
+                        const isBoksaemDomain = window.location.hostname.includes('boksaem-yoga');
+                        navigate(isBoksaemDomain ? '/admin' : '/super-admin');
                         return;
                     }
                 } catch (e) {
