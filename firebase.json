@@ -111,10 +111,6 @@
           "destination": "/home.html"
         },
         {
-          "source": "/privacy",
-          "destination": "/privacy.html"
-        },
-        {
           "source": "**",
           "function": "serveDynamicSaaS"
         }
