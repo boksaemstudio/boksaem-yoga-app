@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Buildings, Crown, CheckCircle, ShieldCheck, ArrowRight, ArrowLeft, Spinner, Upload, MagicWand, Image as ImageIcon, CalendarBlank, ArrowsClockwise } from '@phosphor-icons/react';
+import { Buildings, CheckCircle, ShieldCheck, ArrowRight, ArrowLeft, Spinner, Upload, MagicWand, Image as ImageIcon, CalendarBlank, ArrowsClockwise } from '@phosphor-icons/react';
 import { studioRegistryService } from '../services/studioRegistryService';
 import { storage } from '../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -173,7 +173,7 @@ const OnboardingPage = () => {
     });
 
     // Step indicator
-    const StepIndicator = () => {
+    const renderStepIndicator = () => {
         const totalSteps = 4; // Name, Logo, Email, Plan
         const currentIdx = step - 1; // step 0 is landing
         if (step === 0 || step === 5) return null;
@@ -197,10 +197,13 @@ const OnboardingPage = () => {
             <div style={containerStyle}>
                 <div style={cardStyle}>
                     <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-                        <div style={{ width: '80px', height: '80px', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-                            <Crown size={40} color="white" weight="fill" />
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '24px' }}>
+                            <img src="/assets/passflow_square_logo.png" alt="정사각형 로고" style={{ height: '56px', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }} />
+                            <div style={{ width: '220px', height: '60px', display: 'flex', alignItems: 'center', overflow: 'hidden', position: 'relative' }}>
+                                <img src="/assets/passflow_ai_logo_transparent.png" alt="가로형 로고" style={{ position: 'absolute', height: '160px', left: '-9px', maxWidth: 'none', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))' }} />
+                            </div>
                         </div>
-                        <h1 style={{ fontSize: '2rem', margin: '0 0 12px 0', fontWeight: '800' }}>패스플로우 Ai (PassFlow Ai)</h1>
+                        <h1 style={{ fontSize: '2rem', margin: '0 0 12px 0', fontWeight: '800' }}>패스플로우 Ai 도입 신청</h1>
                         <p style={{ color: '#94a3b8', fontSize: '1.1rem', margin: 0, lineHeight: '1.5' }}>
                             원장님을 위한 완벽한 스튜디오 관리 플랫폼,<br/>지금 바로 무료로 시작해보세요.
                         </p>
@@ -259,7 +262,7 @@ const OnboardingPage = () => {
             <div style={containerStyle}>
                 <div style={cardStyle}>
                     <button style={navButtonStyle} onClick={handlePrev}><ArrowLeft size={16} /> 이전</button>
-                    <StepIndicator />
+                    {renderStepIndicator()}
                     <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>우리 스튜디오의 이름은 무엇인가요?</h2>
                     <p style={{ color: '#94a3b8', marginBottom: '32px' }}>회원들에게 보여질 요가원/필라테스 스튜디오의 이름입니다.</p>
 
@@ -288,7 +291,7 @@ const OnboardingPage = () => {
             <div style={containerStyle}>
                 <div style={cardStyle}>
                     <button style={navButtonStyle} onClick={handlePrev}><ArrowLeft size={16} /> 이전</button>
-                    <StepIndicator />
+                    {renderStepIndicator()}
                     <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>
                         <span style={{ color: '#60a5fa' }}>{formData.name}</span>의 로고
                     </h2>
@@ -434,7 +437,7 @@ const OnboardingPage = () => {
             <div style={containerStyle}>
                 <div style={cardStyle}>
                     <button style={navButtonStyle} onClick={handlePrev}><ArrowLeft size={16} /> 이전</button>
-                    <StepIndicator />
+                    {renderStepIndicator()}
                     <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>원장님의 이메일을 알려주세요</h2>
                     <p style={{ color: '#94a3b8', marginBottom: '32px' }}>관리자 계정을 만들어 드리기 위해 필요해요.</p>
 
@@ -464,7 +467,7 @@ const OnboardingPage = () => {
             <div style={containerStyle}>
                 <div style={cardStyle}>
                     <button style={navButtonStyle} onClick={handlePrev}><ArrowLeft size={16} /> 이전</button>
-                    <StepIndicator />
+                    {renderStepIndicator()}
                     <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>어떤 형태로 운영하실 계획인가요?</h2>
                     <p style={{ color: '#94a3b8', marginBottom: '32px' }}>앱 설정의 뼈대를 만들기 위한 질문입니다.</p>
 

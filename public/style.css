@@ -9,8 +9,9 @@
     --glass-border: rgba(255, 255, 255, 0.08);
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', sans-serif; }
-body { background-color: var(--bg-dark); color: var(--text-main); overflow-x: hidden; }
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', sans-serif; }
+html { overflow-x: hidden; max-width: 100vw; }
+body { background-color: var(--bg-dark); color: var(--text-main); overflow-x: hidden; width: 100%; position: relative; }
 
 .glass {
     background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -34,7 +35,7 @@ button { border: none; cursor: pointer; font-weight: 600; border-radius: 8px; tr
 button.large { padding: 14px 28px; font-size: 1.1rem; }
 
 /* ── Navbar ── */
-.navbar { position: fixed; top: 0; width: 100%; z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; }
+.navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; }
 .navbar .logo { 
     font-family: 'Outfit', sans-serif; font-size: 1.9rem; display: flex; align-items: center; 
     position: relative; cursor: pointer; text-decoration: none; transition: all 0.3s;

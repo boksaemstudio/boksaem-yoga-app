@@ -24,8 +24,10 @@ const AdminHeader = ({
             <div className="admin-title" style={{ gap: '8px', fontSize: '0.95rem', display: 'flex', alignItems: 'center' }}>
                 {(config.IDENTITY?.NAME?.includes('PassFlow') || (typeof window !== 'undefined' && window.location.hostname.includes('passflow'))) ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <img src="/assets/passflow_square_logo.png" alt="Icon" style={{ height: '26px', borderRadius: '4px', boxShadow: '0 0 10px rgba(var(--primary-rgb), 0.3)' }} />
-                        <img src="/assets/passflow_ai_logo_transparent.png" alt="PassFlow Logo" style={{ height: '32px', objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }} />
+                        <img src="/assets/passflow_square_logo.png" alt="Icon" style={{ height: '28px', borderRadius: '4px', boxShadow: '0 0 10px rgba(var(--primary-rgb), 0.3)' }} />
+                        <div style={{ width: '130px', height: '34px', display: 'flex', alignItems: 'center', overflow: 'hidden', position: 'relative' }}>
+                            <img src="/assets/passflow_ai_logo_transparent.png" alt="PassFlow Logo" style={{ position: 'absolute', height: '100px', left: '-5px', maxWidth: 'none', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }} />
+                        </div>
                     </div>
                 ) : (
                     <>

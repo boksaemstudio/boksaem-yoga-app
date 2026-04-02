@@ -269,8 +269,12 @@ const SuperAdminPage = () => {
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Crown size={28} color="#D4AF37" weight="fill" />
-                    <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '700' }}>슈퍼 어드민</h1>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '8px' }}>
+                        <img src="/assets/passflow_square_logo.png" alt="정사각형 로고" style={{ height: '32px', borderRadius: '6px', boxShadow: '0 0 10px rgba(212, 175, 55, 0.3)' }} />
+                        <div style={{ width: '130px', height: '34px', display: 'flex', alignItems: 'center', overflow: 'hidden', position: 'relative' }}>
+                            <img src="/assets/passflow_ai_logo_transparent.png" alt="가로형 로고" style={{ position: 'absolute', height: '100px', left: '-5px', maxWidth: 'none', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }} />
+                        </div>
+                    </div>
                     <span style={{ fontSize: '0.8rem', padding: '4px 10px', borderRadius: '20px', background: 'rgba(212, 175, 55, 0.15)', color: '#D4AF37', fontWeight: '600' }}>플랫폼 관리</span>
                 </div>
             </div>
