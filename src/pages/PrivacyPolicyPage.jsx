@@ -64,10 +64,11 @@ const PrivacyPolicyPage = () => {
                     <h2 style={h2Style}>제2조 (처리하는 개인정보 항목)</h2>
                     <p style={pStyle}>회사는 다음의 개인정보 항목을 처리하고 있습니다.</p>
                     <ul style={ulStyle}>
-                        <li><strong>필수항목:</strong> 이름, 연락처(전화번호)</li>
-                        <li><strong>선택항목:</strong> 생년월일, 성별, 메모</li>
-                        <li><strong>자동수집항목:</strong> 출석 일시, 수강 이력, 서비스 이용 기록</li>
-                        <li><strong>안면인식 동의 시:</strong> 안면 특징 벡터(수치 데이터) — 원본 사진은 저장하지 않으며, 수치 데이터로 원본 복원이 불가능합니다</li>
+                        <li><strong>필수항목:</strong> 이름, 연락처(전화번호), 수강권 결제 및 이용 기록(결제수단, 금액 등)</li>
+                        <li><strong>선택항목:</strong> 생년월일, 성별, 취약 부위 등 메모</li>
+                        <li><strong>자동수집항목:</strong> 출석 일시, 예약 및 수강 이력, 서비스 이용 기록</li>
+                        <li><strong>안면인식 동의 시:</strong> 안면 특징 벡터(수치 데이터) — 원본 사진은 저장하지 않으며, 수치 데이터로 원본 복원이 기술적으로 불가능합니다</li>
+                        <li><strong>아동 개인정보 특칙:</strong> 만 14세 미만 아동의 회원 가입 시 법정대리인의 동의 절차를 거치기 위해 부모 등 법정대리인의 성명 및 연락처를 추가 수집할 수 있습니다.</li>
                     </ul>
                 </div>
 
@@ -87,7 +88,25 @@ const PrivacyPolicyPage = () => {
                 </div>
 
                 <div style={sectionStyle}>
-                    <h2 style={h2Style}>제5조 (개인정보의 안전성 확보 조치)</h2>
+                    <h2 style={h2Style}>제5조 (개인정보 처리 업무의 위탁)</h2>
+                    <p style={pStyle}>회사는 원활하고 향상된 서비스 제공을 위하여 다음과 같이 개인정보 처리 업무를 외부 전문업체에 위탁하여 운영하고 있습니다. 위탁계약 시 개인정보 보호 관련 지침 준수 및 법적 책임을 명확히 규정하고 있습니다.</p>
+                    <ul style={ulStyle}>
+                        <li><strong>시스템 유지보수 및 서버 운영:</strong> PassFlow Ai, Google Cloud(Firebase)</li>
+                        <li><strong>알림 메시지 발송:</strong> 알림톡 및 SMS 발송 대행사</li>
+                        <li><strong>전자결제 처리:</strong> 전자결제대행사(PG사 및 카드사)</li>
+                    </ul>
+                </div>
+
+                <div style={sectionStyle}>
+                    <h2 style={h2Style}>제6조 (개인정보 자동 수집 장치의 설치·운영 및 거부)</h2>
+                    <p style={pStyle}>회사는 이용자에게 편리한 접속 환경(간편 로그인 유지 등)을 제공하기 위해 이용정보를 저장하고 수시로 불러오는 '쿠키(Cookie)' 또는 '로컬스토리지(LocalStorage)' 등을 사용합니다.</p>
+                    <ul style={ulStyle}>
+                        <li><strong>설치·운영 거부:</strong> 기기 또는 브라우저의 설정에서 데이터 저장을 차단할 수 있으나, 이 경우 자동 로그인 등 개인화된 서비스 이용이 불가능할 수 있습니다.</li>
+                    </ul>
+                </div>
+
+                <div style={sectionStyle}>
+                    <h2 style={h2Style}>제7조 (개인정보의 안전성 확보 조치)</h2>
                     <p style={pStyle}>회사는 개인정보의 안전성 확보를 위해 다음과 같은 조치를 취하고 있습니다.</p>
                     <ul style={ulStyle}>
                         <li><strong>데이터 암호화:</strong> 개인정보는 AES-256 암호화된 상태로 저장되며, SSL/TLS를 통해 암호화되어 전송됩니다</li>
@@ -98,7 +117,7 @@ const PrivacyPolicyPage = () => {
                 </div>
 
                 <div style={sectionStyle}>
-                    <h2 style={h2Style}>제6조 (정보주체의 권리·의무 및 행사방법)</h2>
+                    <h2 style={h2Style}>제8조 (정보주체의 권리·의무 및 행사방법)</h2>
                     <p style={pStyle}>정보주체는 회사에 대해 언제든지 다음 각 호의 개인정보 보호 관련 권리를 행사할 수 있습니다.</p>
                     <ul style={ulStyle}>
                         <li>개인정보 열람 요구</li>
@@ -106,22 +125,22 @@ const PrivacyPolicyPage = () => {
                         <li>삭제 요구</li>
                         <li>처리정지 요구</li>
                     </ul>
-                    <p style={pStyle}>위 권리 행사는 회사에 서면, 전화, 구두 등의 방법으로 하실 수 있으며, 회사는 이에 대해 지체 없이 조치하겠습니다.</p>
+                    <p style={pStyle}>위 권리 행사는 회사에 서면, 전화, 통신망 등의 방법으로 하실 수 있으며, 회사는 이에 대해 지체 없이 조치하겠습니다.</p>
                 </div>
 
                 <div style={sectionStyle}>
-                    <h2 style={h2Style}>제7조 (안면인식 데이터에 관한 특칙)</h2>
+                    <h2 style={h2Style}>제9조 (안면인식 데이터에 관한 특칙)</h2>
                     <ul style={ulStyle}>
                         <li>안면인식 출석 기능은 <strong>회원의 별도 동의</strong> 하에 제공됩니다</li>
-                        <li>수집되는 데이터는 <strong>안면 특징 벡터(수치 배열)</strong>로, 원본 사진을 저장하지 않습니다</li>
-                        <li>해당 수치 데이터로 원본 얼굴 이미지를 복원하는 것은 <strong>기술적으로 불가능</strong>합니다</li>
-                        <li>해당 데이터는 출석 확인 목적으로만 사용되며, 회원 탈퇴 시 <strong>즉시 삭제</strong>됩니다</li>
-                        <li>안면인식을 원하지 않는 회원은 수동 출석 방식을 이용할 수 있습니다</li>
+                        <li>수집되는 데이터는 <strong>안면 특징 벡터(수치 배열)</strong>로, 원본 사진을 파일로 저장하지 않습니다</li>
+                        <li>해당 수치 데이터로 원본 얼굴 이미지를 100% 특성 복원하는 것은 <strong>기술적으로 불가능</strong>합니다</li>
+                        <li>해당 데이터는 출석 확인 목적으로만 사용되며, 회원 탈퇴 시 <strong>즉시 비가역적으로 삭제</strong>됩니다</li>
+                        <li>안면인식을 원하지 않는 회원은 시스템상의 다른 수동 출석 방식을 자유롭게 이용할 수 있습니다</li>
                     </ul>
                 </div>
 
                 <div style={sectionStyle}>
-                    <h2 style={h2Style}>제8조 (개인정보 보호책임자)</h2>
+                    <h2 style={h2Style}>제10조 (개인정보 보호책임자)</h2>
                     <p style={pStyle}>회사는 개인정보 처리에 관한 업무를 총괄해서 책임지고, 개인정보와 관련한 정보주체의 불만처리 및 피해구제 등을 위하여 아래와 같이 개인정보 보호책임자를 지정하고 있습니다.</p>
                     <div style={{
                         background: 'rgba(255,255,255,0.03)', borderRadius: '10px',
@@ -131,12 +150,12 @@ const PrivacyPolicyPage = () => {
                         <div><strong style={{ color: 'var(--text-primary)' }}>개인정보 보호책임자</strong></div>
                         <div>소속: {studioName}</div>
                         <div>직책: 대표</div>
-                        <div>연락처: 해당 스튜디오로 문의</div>
+                        <div>연락처: 해당 스튜디오 채널 또는 데스크로 문의</div>
                     </div>
                 </div>
 
                 <div style={sectionStyle}>
-                    <h2 style={h2Style}>제9조 (개인정보처리방침의 변경)</h2>
+                    <h2 style={h2Style}>제11조 (개인정보처리방침의 변경)</h2>
                     <p style={pStyle}>이 개인정보처리방침은 시행일로부터 적용되며, 법령 및 방침에 따른 변경 내용의 추가, 삭제 및 정정이 있는 경우에는 변경사항의 시행 7일 전부터 공지사항을 통하여 고지할 것입니다.</p>
                 </div>
 
