@@ -11,7 +11,7 @@ export const STUDIO_CONFIG = {
         LOGO_TEXT: "YOGA",
         SLOGAN: "나를 만나는 고요한 시간",
         DESCRIPTION: "요가와 함께하는 건강한 일상",
-        APP_VERSION: "2026.04.03 06:18",
+        APP_VERSION: "2026.04.03 08:06",
         FAVICON: "/favicon.ico",
     },
 
@@ -52,7 +52,7 @@ export const STUDIO_CONFIG = {
         LOGO: {
             WIDE: '/assets/passflow_logo.png',
             SQUARE: '/assets/passflow_square_logo.png',
-            RYS200: '/assets/RYS200.webp',
+            // [SaaS] RYS200은 복샘요가 전용 — Firestore에서 개별 설정
         },
         MEMBER_BG: '/assets/default_member_bg.webp',
         BACKGROUNDS: {

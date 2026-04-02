@@ -60,10 +60,15 @@ const CheckInInfoSection = memo(({
         <div className="checkin-info-section">
             <header className="info-header" style={{ marginBottom: 'clamp(10px, 2vh, 25px)', flexShrink: 0 }}>
                 <div className="logo-container" style={{ display: 'flex', alignItems: 'center', gap: '35px', justifyContent: 'center' }}>
+                    {/* RYS200 로고 (설정되어 있을 때만) */}
+                    {rys200Logo && (
+                        <img src={rys200Logo} alt="RYS200" style={{ height: 'clamp(32px, 7vh, 65px)', width: 'auto', objectFit: 'contain' }} />
+                    )}
+                    {/* 스튜디오 메인 로고 */}
                     {config.IDENTITY?.LOGO_URL ? (
                         <img src={config.IDENTITY.LOGO_URL} alt="Studio Logo" style={{ height: 'clamp(40px, 8vh, 80px)', width: 'auto', objectFit: 'contain' }} />
-                    ) : config.ASSETS?.LOGO?.WIDE ? (
-                        <img src={config.ASSETS.LOGO.WIDE} alt="Studio Logo" style={{ height: 'clamp(38px, 8vh, 78px)', width: 'auto' }} />
+                    ) : logoWide ? (
+                        <img src={logoWide} alt="Studio Logo" style={{ height: 'clamp(38px, 8vh, 78px)', width: 'auto' }} />
                     ) : (
                         <h1 style={{ color: 'white', fontSize: 'clamp(2rem, 5vh, 3rem)', margin: 0, fontWeight: 900, letterSpacing: '-1px' }}>{studioName}</h1>
                     )}

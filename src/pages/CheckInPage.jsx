@@ -39,7 +39,7 @@ const CheckInPage = () => {
     const { config } = useStudioConfig();
     const { speak } = useTTS();
     const logoWide = config.ASSETS?.LOGO?.WIDE || '/assets/passflow_logo.png';
-    const rys200Logo = config.ASSETS?.LOGO?.RYS200 || '/assets/RYS200.webp';
+    const rys200Logo = config.ASSETS?.LOGO?.RYS200 || '';  // [SaaS] 복샘요가만 Firestore에 RYS200 설정됨 → 그 외 스튜디오는 빈 문자열
     const branches = config.BRANCHES || [];
     // [FIX] FACE_RECOGNITION_ENABLED만으로 얼굴 인식 활성화 (SHOW_CAMERA_PREVIEW는 프리뷰 표시만 제어)
     const faceRecognitionEnabled = config.POLICIES?.FACE_RECOGNITION_ENABLED === true;

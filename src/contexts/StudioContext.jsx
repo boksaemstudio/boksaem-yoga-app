@@ -110,7 +110,7 @@ export const StudioProvider = ({ children }) => {
 
                     // [SaaS] 중립적 기본 로고 — 테넌트가 자체 로고 등록 전까지 표시
                     if (!merged.ASSETS.LOGO?.WIDE || merged.ASSETS.LOGO.WIDE === '/') merged.ASSETS.LOGO.WIDE = '/assets/passflow_logo.png';
-                    if (!merged.ASSETS.LOGO?.RYS200 || merged.ASSETS.LOGO.RYS200 === '/') merged.ASSETS.LOGO.RYS200 = '/assets/RYS200.webp';
+                    // [SaaS] RYS200은 복샘요가 전용 — Firestore에 없으면 강제 주입하지 않음
                     if (!merged.ASSETS.LOGO?.SQUARE || merged.ASSETS.LOGO.SQUARE === '/') merged.ASSETS.LOGO.SQUARE = '/assets/passflow_square_logo.png';
                 }
 
