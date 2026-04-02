@@ -11,7 +11,9 @@ const NotificationListener = () => {
         const unsubscribe = onMessage(messaging, (payload) => {
 
             // 1. Show custom Toast
-            const { title, body } = payload.notification || {};
+            // 데이터 전용(data-only) 메시지 대비 (events.js에서 notification 필드 제거 시 대응)
+            const notification = payload.notification || payload.data || {};
+            const { title, body } = notification;
             if (title) {
                 const url = payload.data?.url;
                 setToast({ title, body, url, visible: true });

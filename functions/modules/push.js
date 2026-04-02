@@ -92,34 +92,29 @@ exports.sendPushOnMessageV2 = onDocumentCreated({
         }
 
         // ── STEP 2: SMS 전송 (sms_only OR push_first에서 push 실패 시) ──
-        // [FIX] 알리고→뿌리오 전환: sms.js 모듈의 Ppurio 사용
+        // [FIX] 알리고 전환: Aligo는 내부 설정으로 처리됨
         const shouldSendSMS = sendMode === 'sms_only' || (sendMode === 'push_first' && pushResult && !pushResult.sent);
 
         if (shouldSendSMS) {
             try {
-                const ppurioAccount = process.env.PPURIO_ACCOUNT;
-                const ppurioPassword = process.env.PPURIO_PASSWORD;
-                const ppurioSender = process.env.PPURIO_SENDER || "01022232789";
-
-                if (ppurioAccount && ppurioPassword) {
+                // Aligo 설정은 sms.js에서 getAligoConfig()로 처리되므로 환경변수 필수 체크 우회
+                if (true) {
                     const memberDoc = await tdb.collection('members').doc(memberId).get();
                     if (memberDoc.exists) {
                         const phone = memberDoc.data().phone?.replace(/-/g, '');
                         if (phone) {
                             const { sendSMS } = require('./sms');
                             const result = await sendSMS(phone, content, `${studioName} 알림`);
-                            smsResult = { sent: true, result, provider: 'ppurio' };
+                            smsResult = { sent: true, result, provider: 'aligo' };
                         } else {
                             smsResult = { sent: false, error: "전화번호 없음" };
                         }
                     } else {
                         smsResult = { sent: false, error: "회원 없음" };
                     }
-                } else {
-                    smsResult = { sent: false, error: "Ppurio API 계정 미설정" };
                 }
             } catch (smsErr) {
-                console.error("[Push] SMS (Ppurio) failed:", smsErr);
+                console.error("[Push] SMS (Aligo) failed:", smsErr);
                 smsResult = { sent: false, error: smsErr.message };
             }
         }

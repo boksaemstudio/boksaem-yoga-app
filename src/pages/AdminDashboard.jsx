@@ -148,6 +148,12 @@ const AdminDashboard = () => {
             loadPricing();
         }, ['settings']);
 
+        // [ROOT FIX] 푸시 토큰 Role 수동 복원 (관리자 앱 열 때마다 FCM 갱신)
+        // 회원이 Member앱을 열어 토큰이 member로 갱신되더라도, 관리자 앱을 열면 'admin' role 누적 추가
+        if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && localStorage.getItem('admin_push_enabled') === 'true') {
+            storageService.requestPushPermission(undefined, 'admin').catch(() => {});
+        }
+
         return () => unsubscribe();
     }, [config]);
 

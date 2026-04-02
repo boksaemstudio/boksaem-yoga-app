@@ -11,7 +11,7 @@ export const resolveStudioId = (): string => {
 
     const host: string = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
     const params = new URLSearchParams(window.location.search);
-    let targetStudioId = 'boksaem-yoga'; // default
+    let targetStudioId = 'demo-yoga'; // SaaS 중립 기본값 (실 운영 DB 보호)
 
     // 1. 최고 우선순위: URL 파라미터 강제 주입
     const urlStudioId = params.get('studio');
@@ -23,7 +23,7 @@ export const resolveStudioId = (): string => {
     else if (host === 'localhost' || host === '127.0.0.1') {
         // @ts-ignore
         const localId: string = import.meta.env?.VITE_LOCAL_STUDIO_ID || localStorage.getItem('lastStudioId') || 'boksaem-yoga';
-        targetStudioId = localId === 'default' ? 'boksaem-yoga' : localId;
+        targetStudioId = localId === 'default' ? 'demo-yoga' : localId;
     } 
     // 3. 복샘요가 기본 배포 도메인
     else if (host.includes('boksaem-yoga.web.app') || host.includes('boksaem-yoga.firebaseapp.com')) {
@@ -44,7 +44,7 @@ export const resolveStudioId = (): string => {
             targetStudioId = parts[0];
         } else {
             // 5. 알 수 없는 도메인 → 캐시된 ID 또는 기본값
-            targetStudioId = localStorage.getItem('lastStudioId') || 'boksaem-yoga';
+            targetStudioId = localStorage.getItem('lastStudioId') || 'demo-yoga';
         }
     }
 

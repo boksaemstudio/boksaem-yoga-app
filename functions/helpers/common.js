@@ -30,15 +30,18 @@ const STUDIO_ID = process.env.STUDIO_ID || 'boksaem-yoga';
  * 
  * @returns {{ collection: Function, doc: Function, raw: Function }}
  */
-const tenantDb = () => {
+const tenantDb = (overrideStudioId) => {
     const db = admin.firestore();
+    const sid = overrideStudioId || STUDIO_ID;
     return {
+        /** 이 tdb 인스턴스가 바라보는 스튜디오 ID */
+        _studioId: sid,
         /** 테넌트 격리된 컬렉션 참조 */
-        collection: (name) => db.collection(`studios/${STUDIO_ID}/${name}`),
+        collection: (name) => db.collection(`studios/${sid}/${name}`),
         /** 테넌트 격리된 문서 참조 (콜렉션/문서 경로) */
         doc: (collectionName, docId) => docId
-            ? db.doc(`studios/${STUDIO_ID}/${collectionName}/${docId}`)
-            : db.collection(`studios/${STUDIO_ID}/${collectionName}`).doc(),
+            ? db.doc(`studios/${sid}/${collectionName}/${docId}`)
+            : db.collection(`studios/${sid}/${collectionName}`).doc(),
         /** 글로벌(루트) Firestore 직접 접근 (rate_limits, ai_logs 등) */
         raw: () => db
     };
@@ -219,15 +222,15 @@ const createPendingApproval = async (type, targetMemberIds, title, body, data = 
 /**
  * 스튜디오 이름 가져오기 (SaaS 동적 브랜딩)
  */
-const getStudioName = async () => {
+const getStudioName = async (overrideStudioId) => {
     try {
-        const studioId = process.env.STUDIO_ID || 'default';
-        const doc = await admin.firestore().collection('studios').doc(studioId).get();
+        const sid = overrideStudioId || process.env.STUDIO_ID || STUDIO_ID;
+        const doc = await admin.firestore().collection('studios').doc(sid).get();
         if (doc.exists) {
             return doc.data().IDENTITY?.NAME || "요가 스튜디오";
         }
         // Legacy fallback — 테넌트 경로에서 settings/identity 조회
-        const tdb = tenantDb();
+        const tdb = tenantDb(sid);
         const oldDoc = await tdb.collection('settings').doc('identity').get();
         if (oldDoc.exists) {
             return oldDoc.data().studioName || "요가 스튜디오";
@@ -241,17 +244,17 @@ const getStudioName = async () => {
 /**
  * 스튜디오 로고 URL 가져오기 (SaaS 동적 브랜딩)
  */
-const getStudioLogoUrl = async () => {
+const getStudioLogoUrl = async (overrideStudioId) => {
     try {
-        const studioId = process.env.STUDIO_ID || 'default';
-        const doc = await admin.firestore().collection('studios').doc(studioId).get();
+        const sid = overrideStudioId || process.env.STUDIO_ID || STUDIO_ID;
+        const doc = await admin.firestore().collection('studios').doc(sid).get();
         if (doc.exists && doc.data().IDENTITY?.LOGO_URL) {
             return doc.data().IDENTITY.LOGO_URL;
         }
     } catch (e) {
         console.warn("Failed to fetch studio logo:", e);
     }
-    return `https://${STUDIO_ID}.web.app/logo_circle.png`; // 동적 폴백
+    return '/assets/passflow_square_logo.png'; // SaaS 중립 폴백 (특정 스튜디오 URL 아님)
 };
 
 module.exports = {

@@ -126,7 +126,7 @@ const StudioSettingsTab = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Gear size={32} weight="fill" color="var(--primary-theme-color)" />
-                    우리 요가원 설정
+                    우리 스튜디오 설정
                 </h2>
                 <div style={{ display: 'flex', gap: '10px' }}>
                     <button 
@@ -159,7 +159,7 @@ const StudioSettingsTab = () => {
             {/* ─── 1. 우리 요가원 ─── */}
             <div className="dashboard-card">
                 <h3 className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                    🏠 우리 요가원
+                    🏠 우리 스튜디오
                 </h3>
 
                 {/* 로고 업로드 */}
@@ -172,7 +172,7 @@ const StudioSettingsTab = () => {
                         )}
                     </div>
                     <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '6px', fontSize: '0.95rem' }}>요가원 로고</div>
+                        <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '6px', fontSize: '0.95rem' }}>스튜디오 로고</div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '10px' }}>회원 앱과 알림에 표시돼요</div>
                         <input
                             ref={logoInputRef}
@@ -213,7 +213,7 @@ const StudioSettingsTab = () => {
                 {/* 기본 정보 */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
                     <div className="input-group">
-                        <label>요가원 이름</label>
+                        <label>스튜디오 이름</label>
                         <input 
                             type="text" 
                             className="styled-input" 

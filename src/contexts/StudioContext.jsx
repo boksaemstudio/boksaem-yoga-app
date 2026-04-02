@@ -114,16 +114,8 @@ export const StudioProvider = ({ children }) => {
                     if (!merged.ASSETS.LOGO?.SQUARE || merged.ASSETS.LOGO.SQUARE === '/') merged.ASSETS.LOGO.SQUARE = '/assets/passflow_square_logo.png';
                 }
 
-                // [DEMO OVERRIDE] 원장님 요청: 데모 사이트는 무조건 PassFlow 로고 노출
-                if (studioId === 'demo-yoga') {
-                    if (!merged.ASSETS) merged.ASSETS = {};
-                    if (!merged.ASSETS.LOGO) merged.ASSETS.LOGO = {};
-                    merged.ASSETS.LOGO.WIDE = '/assets/passflow_ai_logo_transparent.png';
-                    merged.ASSETS.LOGO.SQUARE = '/assets/passflow_square_logo.png';
-                    if (!merged.IDENTITY) merged.IDENTITY = {};
-                    merged.IDENTITY.NAME = 'PassFlow Ai 데모';
-                    merged.IDENTITY.LOGO_URL = '/assets/passflow_square_logo.png';
-                }
+                // [FIX] 원장님 요청: 데모 사이트에서도 SaaS 로고 변경 테스트가 가능하도록 하드코딩 오버라이드 제거.
+                // 이제 관리자 앱에서 수정한 로고가 passflowai.web.app에도 정상 반영됩니다.
 
                 setConfig(merged);
                 useStudioStore.getState().setConfig(merged);

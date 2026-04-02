@@ -5,7 +5,7 @@
  * @module helpers/urls
  */
 
-const STUDIO_ID = process.env.STUDIO_ID || 'passflowai';
+const STUDIO_ID = process.env.STUDIO_ID || 'boksaem-yoga'; // common.js와 동일한 기본값
 
 /**
  * 스튜디오 기본 URL 반환

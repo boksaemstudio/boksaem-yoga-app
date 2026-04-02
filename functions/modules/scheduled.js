@@ -16,7 +16,8 @@ const chunk = require('lodash/chunk');
 // [TEMP] 안면인식 확인용
 exports.checkFaceInfo = onRequest({ region: "asia-northeast3" }, async (req, res) => {
     try {
-        const snap = await admin.firestore().collection('studios/boksaem-yoga/members').get();
+        const tdb = tenantDb(); // 환경변수 STUDIO_ID 기반 동적 해석
+        const snap = await tdb.collection('members').get();
         let results = [];
         snap.forEach(doc => {
             const data = doc.data();
@@ -101,9 +102,9 @@ exports.sendDailyAdminReportV2 = onSchedule({
 
 오늘 하루도 수고 많으셨습니다. 🙏`;
 
-        let tokensSnap = await tdb.collection('fcm_tokens').where('role', '==', 'admin').get();
-        if (!tokensSnap.empty) {
-            const tokens = tokensSnap.docs.map(d => d.id);
+        // [ROOT FIX] roles 배열 + role 단일필드 모두 검색 (원장 토큰 role 덮어쓰기 방어)
+        const { tokens } = await getAllFCMTokens(null, { role: 'admin' });
+        if (tokens.length > 0) {
             await admin.messaging().sendEachForMulticast({
                 tokens,
                 notification: { title: "일일 리포트", body: reportBody.substring(0, 100) },
@@ -155,11 +156,9 @@ exports.sendScheduledMessages = onSchedule({
 
         console.log(`[Scheduled] Found ${snapshot.size} messages to send.`);
 
-        // [FIX] 알리고→뿌리오 전환: sms.js 모듈의 sendSMS 사용
+        // [FIX] 알리고 전환: sms.js 모듈의 sendSMS 사용
         const { sendSMS } = require('./sms');
-        const ppurioAccount = process.env.PPURIO_ACCOUNT;
-        const ppurioPassword = process.env.PPURIO_PASSWORD;
-        const hasPpurio = !!(ppurioAccount && ppurioPassword);
+        const hasAligo = true; // Aligo 설정은 getAligoConfig()에서 처리되므로 우회
 
         const docsToProcess = snapshot.docs;
         const results = [];
@@ -198,7 +197,7 @@ exports.sendScheduledMessages = onSchedule({
             const msgSendMode = msg.sendMode || 'push_first';
             const shouldSendSMS = msgSendMode === 'sms_only' || (msgSendMode === 'push_first' && !pushSuccess);
             
-            if (hasPpurio && shouldSendSMS) {
+            if (hasAligo && shouldSendSMS) {
                 try {
                     const memberDoc = await tdb.collection('members').doc(memberId).get();
                     if (memberDoc.exists) {
@@ -209,7 +208,7 @@ exports.sendScheduledMessages = onSchedule({
                         }
                     }
                 } catch (e) {
-                    console.error(`[Scheduled] Ppurio SMS failed for ${doc.id}:`, e);
+                    console.error(`[Scheduled] Aligo SMS failed for ${doc.id}:`, e);
                 }
             }
 

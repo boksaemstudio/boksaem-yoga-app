@@ -109,9 +109,11 @@ exports.processNoshowsV2 = onSchedule({
             const studioName = await getStudioName();
             const { tokens } = await getAllFCMTokens(null, { role: 'admin' });
             
-            // type: 'admin' 토큰도 포함
-            let adminTokenSnap = await tdb.collection('fcm_tokens').where('type', '==', 'admin').get();
-            const adminTokens = [...new Set([...tokens, ...adminTokenSnap.docs.map(d => d.id)])];
+            // [ROOT FIX] 'type' → 'role' (실제 저장 필드명). 레거시 'type' 필드도 보험 조회
+            let adminTokenSnap = await tdb.collection('fcm_tokens').where('role', '==', 'admin').get();
+            // 혹시 'type' 필드로 저장된 레거시 토큰도 잡기
+            const legacySnap = await tdb.collection('fcm_tokens').where('type', '==', 'admin').get().catch(() => ({ docs: [] }));
+            const adminTokens = [...new Set([...tokens, ...adminTokenSnap.docs.map(d => d.id), ...legacySnap.docs.map(d => d.id)])];
             
             if (adminTokens.length > 0) {
                 const summary = noshowMembers.slice(0, 5).map(m => 

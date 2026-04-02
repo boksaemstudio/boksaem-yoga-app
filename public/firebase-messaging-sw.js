@@ -35,10 +35,11 @@ messaging.onBackgroundMessage((payload) => {
     // data-only 메시지만 수동으로 표시
     const data = payload.data || {};
     const title = data.title || "내요가";
+    const notifIcon = data.icon || '/logo_circle.png';
     const options = {
         body: data.body || "",
-        icon: data.icon || '/logo_circle.png',
-        badge: '/logo_circle.png',
+        icon: notifIcon,
+        badge: notifIcon,
         tag: data.tag || `msg-${Date.now()}`,
         renotify: true,
         data: { url: data.url || '/' }

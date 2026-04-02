@@ -18,7 +18,7 @@ function getAligoConfig() {
     return {
         key: "5zefrcpzewkyhmfz8yh985mdh935b2cv",
         userid: "zipsuri0",
-        sender: (process.env.ALIGO_SENDER || "").trim() || "01022232789"
+        sender: (process.env.ALIGO_SENDER || "").trim() || "010-2223-2789"
     };
 }
 
@@ -209,94 +209,9 @@ exports.sendMessageOnApproval = onDocumentUpdated({
     }
 });
 
-exports.sendSolapiOnMessageV2 = onDocumentCreated({
-    document: `studios/{studioId}/messages/{messageId}`,
-    region: "asia-northeast3",
-    vpcConnector: "passflow-vpc",
-    vpcConnectorEgressSettings: "ALL_TRAFFIC",
-    timeoutSeconds: 120,
-    maxInstances: 100
-}, async (event) => {
-    const messageId = event.params.messageId;
-    console.log(`[Aligo] Triggered for message ${messageId}`);
-    const messageData = event.data.data();
-    const memberId = messageData.memberId;
-    let content = messageData.content;
 
-    if (messageData.skipSolapi || messageData.skipSms) return;
-    if (messageData.status === 'scheduled') return;
-    if (!memberId || !content) return;
 
-    try {
-        const tdb = tenantDb();
-        const memberDoc = await tdb.collection('members').doc(memberId).get();
-        if (!memberDoc.exists || !memberDoc.data().phone) return;
-
-        const memberData = memberDoc.data();
-        const cleanPhone = memberData.phone.replace(/-/g, '');
-        const studioName = await getStudioName();
-        const title = `${studioName} 알림`;
-
-        // 지터링 설정
-        const jitterMs = Math.floor(Math.random() * 15000);
-        await new Promise(resolve => setTimeout(resolve, jitterMs));
-
-        const result = await sendSMS(cleanPhone, content, title);
-
-        await event.data.ref.update({
-            smsStatus: {
-                sent: true,
-                sentAt: new Date().toISOString(),
-                method: 'SMS',
-                result: result,
-                recipient: cleanPhone,
-                provider: 'aligo'
-            }
-        });
-
-        await tdb.collection('push_history').add({
-            type: 'sms_msg',
-            title: title,
-            body: content,
-            status: 'sent',
-            targetCount: 1,
-            targetMemberId: memberId,
-            targetMemberName: memberData.name || '알 수 없음', 
-            sentAt: admin.firestore.FieldValue.serverTimestamp(),
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            method: '문자',
-            provider: 'aligo'
-        });
-
-    } catch (error) {
-        console.error("[Aligo] Individual Send Error:", error);
-        await event.data.ref.update({
-            smsStatus: {
-                sent: false,
-                error: error.message,
-                failedAt: new Date().toISOString()
-            }
-        });
-        
-        const tdbRef = tenantDb();
-        await tdbRef.collection('push_history').add({
-            type: 'sms_msg',
-            title: '문자 발송 실패',
-            body: content || '',
-            status: 'failed',
-            targetCount: 1,
-            targetMemberId: memberId || null,
-            targetMemberName: '알 수 없음',
-            sentAt: admin.firestore.FieldValue.serverTimestamp(),
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            method: '문자',
-            provider: 'aligo',
-            error: error.message
-        });
-    }
-});
-
-exports.getSolapiBalance = onCall({
+exports.getAligoBalance = onCall({
     region: "asia-northeast3",
     vpcConnector: "passflow-vpc",
     vpcConnectorEgressSettings: "ALL_TRAFFIC",

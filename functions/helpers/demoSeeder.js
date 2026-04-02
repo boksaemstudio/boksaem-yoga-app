@@ -74,7 +74,7 @@ async function refreshDemoData() {
     
     // 2. 강사 데이터
     const instructors = [
-        { id: 'ins-master', name: '김보람 원장', phone: '010-1111-1111', role: '원장' },
+        { id: 'ins-master', name: '엄마 원장 선생님', phone: '010-1111-1111', role: '원장' },
         { id: 'ins-01', name: '박태민 수석강사', phone: '010-2222-2222', role: '전임강사' },
         { id: 'ins-02', name: '이수아 강사', phone: '010-3333-3333', role: '오전전담' },
         { id: 'ins-03', name: '정다은 강사 (필라테스)', phone: '010-4444-4444', role: '파트타임' }
@@ -184,9 +184,19 @@ async function refreshDemoData() {
     // 4.5. 기타 필수 데모 자산 (로고, 시간표 이미지, 가격표, 휴지통 예시)
     const todayKST = todayStr;
     await addOp(() => {
-        // --- 1. 레거시 images 호환 모델 ---
+        // --- 1. 스튜디오 코어 설정 (BRANCHES, 로고) 강제 주입 ---
+        currentBatch.set(db.doc('studios/demo-yoga'), {
+            BRANCHES: [{ id: 'main', name: '패스플로우', color: '#D4AF37', themeColor: '#FBB117' }],
+            IDENTITY: {
+                NAME: '데모스튜디오',
+                LOGO_URL: '/assets/demo_logo.png' // 다운받은 신규 투명 로고
+            },
+            THEME: { PRIMARY_COLOR: '#FBB117' }
+        }, { merge: true });
+
+        // --- 2. 레거시 images 호환 모델 ---
         currentBatch.set(db.doc('studios/demo-yoga/images/logo'), {
-            url: 'https://passflowai.web.app/assets/passflow_ai_logo_transparent_final.png',
+            url: '/assets/demo_logo.png',
             updatedAt: new Date().toISOString()
         }, { merge: true });
         
@@ -208,14 +218,26 @@ async function refreshDemoData() {
             updatedAt: new Date().toISOString()
         }, { merge: true });
 
+        // Add to legacy images collection which the dashboard relies on
+        currentBatch.set(db.doc('studios/demo-yoga/images/price_table_1'), {
+            url: 'https://passflowai.web.app/assets/pricing_1_bg.png',
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+
+        currentBatch.set(db.doc('studios/demo-yoga/images/price_table_2'), {
+            url: 'https://passflowai.web.app/assets/pricing_2_bg.png',
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+
+
         currentBatch.set(tenantDb.collection('assets').doc('pricing'), {
-            mainUrl: '/assets/demo_pricing.png',
-            subUrl: '',
+            mainUrl: '/assets/pricing_1_bg.png',
+            subUrl: '/assets/pricing_2_bg.png',
             updatedAt: new Date().toISOString()
         }, { merge: true });
 
         currentBatch.set(tenantDb.collection('assets').doc('logo'), {
-            url: '/assets/passflow_ai_logo_transparent_final.png',
+            url: '/assets/demo_logo.png',
             updatedAt: new Date().toISOString()
         }, { merge: true });
 
@@ -248,7 +270,7 @@ async function refreshDemoData() {
         const id = tenantDb.collection('board_notices').doc().id;
         await addOp(() => currentBatch.set(tenantDb.collection('board_notices').doc(id), {
             id, ...notice,
-            author: '김보람 원장', createdAt: new Date(today.getTime() - Math.random()*86400000*5).toISOString()
+            author: '엠마 원장 선생님', createdAt: new Date(today.getTime() - Math.random()*86400000*5).toISOString()
         }));
     }
 
@@ -294,7 +316,7 @@ async function refreshDemoData() {
 
     // 7. 실시간 출석 및 매일 시간표 (요일별 리얼 스케줄)
     const scheduleTemplateWeakday = [
-        { time: '07:00', names: ['아쉬탕가 풀프라이머리', '하타 요가'], ins: '김보람 원장' },
+        { time: '07:00', names: ['아쉬탕가 풀프라이머리', '하타 요가'], ins: '엄마 원장 선생님' },
         { time: '09:00', names: ['리포머 코어포커스', '바렐 기초'], ins: '정다은 강사 (필라테스)' },
         { time: '10:00', names: ['하타 인텐시브', '빈야사 플로우'], ins: '이수아 강사' },
         { time: '12:00', names: ['인양 테라피', '릴랙스 요가'], ins: '이수아 강사' }, 
@@ -304,7 +326,7 @@ async function refreshDemoData() {
     ];
 
     const scheduleTemplateWeekend = [
-        { time: '10:00', names: ['인양 테라피', '하타 요가'], ins: '김보람 원장' },
+        { time: '10:00', names: ['인양 테라피', '하타 요가'], ins: '엄마 원장 선생님' },
         { time: '11:00', names: ['플라잉 요가', '리듬 요가'], ins: '이수아 강사' },
         { time: '14:00', names: ['기구 필라테스', '코어 강화'], ins: '정다은 강사 (필라테스)' }
     ];

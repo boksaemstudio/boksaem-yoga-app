@@ -22,27 +22,18 @@ const AdminHeader = ({
     return (
         <header className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
             <div className="admin-title" style={{ gap: '8px', fontSize: '0.95rem', display: 'flex', alignItems: 'center' }}>
-                {(config.IDENTITY?.NAME?.includes('PassFlow') || (typeof window !== 'undefined' && window.location.hostname.includes('passflow'))) ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <img src="/assets/passflow_square_logo.png" alt="Icon" style={{ height: '28px', borderRadius: '4px', boxShadow: '0 0 10px rgba(var(--primary-rgb), 0.3)' }} />
-                        <div style={{ width: '130px', height: '34px', display: 'flex', alignItems: 'center', overflow: 'hidden', position: 'relative' }}>
-                            <img src="/assets/passflow_ai_logo_transparent.png" alt="PassFlow Logo" style={{ position: 'absolute', height: '100px', left: '-5px', maxWidth: 'none', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }} />
-                        </div>
+                {config.IDENTITY?.LOGO_URL || (config.ASSETS?.LOGO?.SQUARE && config.ASSETS.LOGO.SQUARE !== '/assets/passflow_logo.png') ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <img src={config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.SQUARE} alt="로고" style={{ maxHeight: '24px', maxWidth: '100px', objectFit: 'contain', filter: 'drop-shadow(0px 0px 5px rgba(255, 255, 255, 0.5))' }} />
                     </div>
                 ) : (
-                    <>
-                        {(config.ASSETS?.LOGO?.SQUARE && config.ASSETS.LOGO.SQUARE !== '/assets/passflow_logo.png') || config.IDENTITY?.LOGO_URL ? (
-                            <img src={config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.SQUARE} alt="로고" style={{ height: '24px', borderRadius: '4px', objectFit: 'contain', filter: config.IDENTITY?.LOGO_URL ? 'none' : 'invert(1) brightness(1.5) drop-shadow(0 0 8px rgba(var(--primary-rgb), 0.4))' }} />
-                        ) : (
-                            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '4px', background: 'var(--primary-gold)', color: '#000', fontSize: '14px', fontWeight: '900', boxShadow: '0 0 8px rgba(var(--primary-rgb), 0.4)' }}>
-                                {config.IDENTITY?.NAME?.[0] || 'S'}
-                            </div>
-                        )}
-                        <span style={{ whiteSpace: 'nowrap', fontWeight: '800' }}>
-                            {config.IDENTITY?.NAME ? `${config.IDENTITY.NAME} 관리` : '관리'}
-                        </span>
-                    </>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '4px', background: 'var(--primary-gold)', color: '#000', fontSize: '14px', fontWeight: '900', boxShadow: '0 0 8px rgba(var(--primary-rgb), 0.4)' }}>
+                        {config.IDENTITY?.NAME?.[0] || 'S'}
+                    </div>
                 )}
+                <span style={{ whiteSpace: 'nowrap', fontWeight: '800' }}>
+                    {config.IDENTITY?.NAME ? `${config.IDENTITY.NAME} 관리` : '관리'}
+                </span>
                 
                 <button onClick={handleInstallClick} style={{ marginLeft: '8px', background: 'rgba(var(--primary-rgb), 0.1)', border: '1px solid rgba(var(--primary-rgb), 0.3)', color: 'var(--primary-gold)', cursor: 'pointer', padding: '0 8px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: 'bold' }} title="홈 화면에 추가">
                     <PlusCircle size={16} weight="bold" />

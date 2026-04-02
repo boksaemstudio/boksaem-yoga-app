@@ -105,7 +105,7 @@ const RequireAdmin = ({ children }) => {
 
   useEffect(() => {
     // [DEMO] 데모사이트는 로그인 없이 접근 가능 (정확히 'passflowai' 또는 'passflowai' 매칭)
-    const isDemoSite = window.location.hostname.includes('passflow-demo') || window.location.hostname.includes('passflowai');
+    const isDemoSite = window.location.hostname.includes('passflow-demo') || window.location.hostname.includes('passflowai') || localStorage.getItem('lastStudioId') === 'demo-yoga';
     
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -263,8 +263,9 @@ const RequireSuperAdmin = ({ children }) => {
 
 // --- ROOT ROUTE GUARD (도메인에 따라 랜딩페이지 vs 출석키오스크 분기) ---
 const RootRoute = () => {
-  const isMainDomain = window.location.hostname === 'passflowai.web.app';
-  if (isMainDomain) {
+  // [SaaS] 플랫폼 도메인에서는 랜딩페이지로, 그 외(각 스튜디오 도메인)에서는 키오스크로
+  const isPlatform = window.location.hostname === 'passflowai.web.app';
+  if (isPlatform) {
     if (window.location.pathname === '/') window.location.href = '/home.html';
     return null;
   }
@@ -325,6 +326,7 @@ function App() {
                 <Route path="/meditation" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><MeditationPage /></Suspense></ErrorBoundary>} />
                 <Route path="/super-admin" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><RequireSuperAdmin><SuperAdminPage /></RequireSuperAdmin></Suspense></ErrorBoundary>} />
                 <Route path="/auth/action" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><AuthActionPage /></Suspense></ErrorBoundary>} />
+                <Route path="/privacy" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><PrivacyPolicyPage /></Suspense></ErrorBoundary>} />
                 <Route path="/features.html" element={<HardReload target="/features.html" />} />
                 <Route path="/home.html" element={<HardReload target="/home.html" />} />
                 <Route path="*" element={<Navigate to="/" replace />} />

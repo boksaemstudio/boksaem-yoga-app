@@ -103,7 +103,14 @@ const SuperAdminPage = () => {
     };
 
     const handleCopyStudioLink = (studio) => {
-        const link = `https://passflowai.web.app/admin?studio=${studio.id}`;
+        // [FIX] 원장님께 전달하는 링크는 독립 도메인이 있다면 해당 도메인을 제공해야 합니다.
+        let link;
+        if (studio.domain) {
+            link = studio.domain.startsWith('http') ? `${studio.domain}/admin` : `https://${studio.domain}/admin`;
+        } else {
+            // 커스텀 도메인이 없는 옛날/베이직 티어의 경우
+            link = `https://passflowai.web.app/admin?studio=${studio.id}`;
+        }
         navigator.clipboard.writeText(link);
         setCopiedStudioId(studio.id);
         setTimeout(() => setCopiedStudioId(null), 2000);
@@ -217,14 +224,11 @@ const SuperAdminPage = () => {
     };
 
     const handleSwitch = (studio) => {
-        // [AUTO-HEALER] 독립 도메인이 있는 경우 해당 도메인으로 브릿지 연결 (완벽한 격리)
-        if (studio.domain) {
-            let domainUrl = studio.domain.startsWith('http') ? studio.domain : `https://${studio.domain}`;
-            window.open(`${domainUrl}/admin`, '_blank');
-        } else {
-            // 없는 경우 기존처럼 파라미터 기반 라우팅
-            window.open(`/admin?studio=${studio.id}`, '_blank');
-        }
+        // [FIX] 슈퍼어드민(본사)이 눌러서 들어가는 경우, 현재 접속 중인 도메인(passflowai.web.app)을
+        // 그대로 유지해야 슈퍼어드민 로그인 세션(권한)이 끊기지 않습니다.
+        // 독립 도메인(ssangmun-yoga-0.web.app)으로 튕겨버리면 로그아웃 상태가 되어 접근 거부가 뜹니다.
+        // 파라미터 기반 라우팅을 사용하여 동일 도메인에서 데이터만 해당 스튜디오로 갈아끼웁니다.
+        window.open(`/admin?studio=${studio.id}`, '_blank');
     };
 
     const handleDelete = async (studio) => {

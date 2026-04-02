@@ -37,7 +37,7 @@ exports.checkInMemberV2Call = onCall({
                 const studioConfig = configDocForFace.exists ? configDocForFace.data() : {};
                 
                 // Firestore의 POLICIES도 체크 (studio 문서 레벨)
-                const studioDocForFace = await transaction.get(tdb.raw().collection('studios').doc(tdb._studioId || 'boksaem-yoga'));
+                const studioDocForFace = await transaction.get(tdb.raw().collection('studios').doc(tdb._studioId));
                 const studioData = studioDocForFace.exists ? studioDocForFace.data() : {};
                 
                 const faceEnabledConfig = studioConfig.POLICIES?.FACE_RECOGNITION_ENABLED === true;

@@ -60,19 +60,12 @@ const CheckInInfoSection = memo(({
         <div className="checkin-info-section">
             <header className="info-header" style={{ marginBottom: 'clamp(10px, 2vh, 25px)', flexShrink: 0 }}>
                 <div className="logo-container" style={{ display: 'flex', alignItems: 'center', gap: '35px', justifyContent: 'center' }}>
-                    {typeof window !== 'undefined' && window.location.hostname.includes('passflow') ? (
-                        <h1 style={{ color: 'white', fontSize: 'clamp(2.5rem, 6vh, 4rem)', margin: 0, fontWeight: 900, fontStyle: 'italic', letterSpacing: '-1px' }}>Pass<span style={{ color: 'var(--primary-gold)' }}>Flow Ai</span></h1>
+                    {config.IDENTITY?.LOGO_URL ? (
+                        <img src={config.IDENTITY.LOGO_URL} alt="Studio Logo" style={{ height: 'clamp(40px, 8vh, 80px)', width: 'auto', objectFit: 'contain' }} />
+                    ) : config.ASSETS?.LOGO?.WIDE ? (
+                        <img src={config.ASSETS.LOGO.WIDE} alt="Studio Logo" style={{ height: 'clamp(38px, 8vh, 78px)', width: 'auto' }} />
                     ) : (
-                        <>
-                            {config.IDENTITY?.NAME?.includes('복샘') || config.IDENTITY?.BRANCH_ID?.includes('boksaem') || (!config.IDENTITY?.LOGO_URL && !config.ASSETS?.LOGO?.SQUARE) ? (
-                                <>
-                                    <img src={rys200Logo} alt="RYS200" style={{ height: 'clamp(40px, 8vh, 80px)', width: 'auto', filter: 'brightness(0) invert(1)', opacity: 0.8 }} />
-                                    <img src={logoWide} alt="logo" style={{ height: 'clamp(38px, 8vh, 78px)', width: 'auto' }} />
-                                </>
-                            ) : (
-                                <img src={config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.SQUARE} alt="Workspace Logo" style={{ height: 'clamp(40px, 8vh, 80px)', width: 'auto', filter: config.IDENTITY?.LOGO_URL ? 'none' : 'brightness(0) invert(1)', opacity: config.IDENTITY?.LOGO_URL ? 1 : 0.8 }} />
-                            )}
-                        </>
+                        <h1 style={{ color: 'white', fontSize: 'clamp(2rem, 5vh, 3rem)', margin: 0, fontWeight: 900, letterSpacing: '-1px' }}>{studioName}</h1>
                     )}
                 </div>
             </header>
@@ -323,7 +316,7 @@ const CheckInInfoSection = memo(({
                     </div>
                     <div className="qr-text" style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'center', marginTop: '-5px' }}>
                         <h3 style={{ fontSize: 'clamp(1.15rem, 2.5vh, 1.9rem)', color: 'var(--primary-gold)', marginBottom: 'clamp(4px, 1vh, 16px)', fontWeight: 900, lineHeight: 1 }}>
-                            {typeof window !== 'undefined' && window.location.hostname.includes('passflow') ? '내 PassFlow Ai' : `내 ${studioName}`}
+                            {`내 ${studioName}`}
                         </h3>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 'clamp(2px, 0.5vh, 5px)' }}>
                             <li style={{ fontSize: 'clamp(1.0rem, 2vh, 1.2rem)', color: 'rgba(255, 255, 255, 0.95)', display: 'flex', alignItems: 'center', gap: '8px', lineHeight: 1.1 }}>✓ 잔여 횟수 확인</li>

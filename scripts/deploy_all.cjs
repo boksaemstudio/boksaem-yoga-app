@@ -63,41 +63,46 @@ if (!fs.existsSync(distDir)) {
     execSync('npm run build', { stdio: 'inherit' });
 }
 
+console.log("⚙️  Setting up SSR (Server-Side Rendering) architecture...");
+const indexPath = path.join(distDir, 'index.html');
+const functionsAppPath = path.join(__dirname, '..', 'functions', 'app.html');
+if (fs.existsSync(indexPath)) {
+    fs.copyFileSync(indexPath, functionsAppPath);
+    console.log("✅ Copied index.html to functions/app.html for Cloud Function Rendering");
+    fs.unlinkSync(indexPath);
+    console.log("✅ Removed dist/index.html to force Firebase Routing to Cloud Function");
+}
+
+console.log("☁️  Deploying SSR Cloud Function...");
+try {
+    execSync('npx firebase deploy --only functions:serveDynamicSaaS', { stdio: 'inherit' });
+    console.log("🎉 SSR Function Deploy successful!");
+} catch (e) {
+    console.warn("⚠️  SSR Function Deploy failed or skipped.", e.message);
+}
+
 for (const tenant of tenants) {
     console.log(`\n===========================================`);
     console.log(`🚀 Preparing deployment for: ${tenant.name} (${tenant.siteId})`);
     console.log(`===========================================`);
 
-    // 1. Update index.html <title> and Open Graph Meta Tags
-    const indexPath = path.join(distDir, 'index.html');
-    updateFileContent(indexPath, (content) => {
-        let newContent = content.replace(/<title>.*?<\/title>/gi, `<title>${tenant.title}</title>`);
-        newContent = newContent.replace(/<meta property="og:title" content=".*?">/gi, `<meta property="og:title" content="${tenant.title}">`);
-        newContent = newContent.replace(/<meta property="og:site_name" content=".*?">/gi, `<meta property="og:site_name" content="${tenant.name}">`);
-        newContent = newContent.replace(/<meta property="og:description" content=".*?">/gi, `<meta property="og:description" content="${tenant.ogDesc}">`);
-        newContent = newContent.replace(/<meta name="description" content=".*?">/gi, `<meta name="description" content="${tenant.ogDesc}">`);
-        newContent = newContent.replace(/<meta property="og:image" content=".*?">/gi, `<meta property="og:image" content="${tenant.ogImage}">`);
-        return newContent;
-    });
-    console.log(`✅ Inject HTML Title & SEO Meta Tags for: ${tenant.name}`);
-
-    // 2. Update manifests PWA Names
+    // 1. Update manifests PWA Names (PWA 이름은 단말기 종속이므로 빌드 시점 유지)
     updateManifest('manifest-admin.json', `${tenant.name} 관리자`, '관리자');
     updateManifest('manifest-checkin.json', `${tenant.name} 출석체크`, '출석체크');
     updateManifest('manifest-instructor.json', `${tenant.name} 강사`, '강사');
     updateManifest('manifest-member.json', `내요가 (${tenant.name})`, '내요가');
     console.log(`✅ Inject PWA Manifest Names based on: ${tenant.name}`);
 
-    // 3. Deploy App
-    console.log(`☁️  Uploading to Firebase Hosting (${tenant.siteId})...`);
+    // 2. Deploy App Hosting
+    console.log(`☁️  Uploading Hosting to Firebase (${tenant.siteId})...`);
     try {
-        // Use standard Firebase CLI for all sites. ssangmun-yoga-0 is also in firebase.json.
         execSync(`npx firebase deploy --only hosting:${tenant.siteId}`, { stdio: 'inherit' });
-        console.log(`🎉 Deployment successful for ${tenant.siteId}!`);
+        console.log(`🎉 Hosting Deployment successful for ${tenant.siteId}!`);
     } catch (err) {
         console.error(`🚨 Deployment failed for ${tenant.siteId}`);
         process.exit(1);
     }
 }
 
-console.log(`\n✅ All tenants seamlessly built and deployed with proper Titles!`);
+console.log(`\n✅ All tenants seamlessly built and deployed with Cloud Function SSR!`);
+

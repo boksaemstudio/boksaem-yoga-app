@@ -106,7 +106,27 @@ const LoginPage = () => {
             }}>
                 <div className="login-header" style={{ textAlign: 'center', marginBottom: '4vh' }}>
                 {logoUrl ? (
-                    <img src={logoUrl} alt={studioName} style={{ width: '220px', marginBottom: '2vh', filter: `drop-shadow(0 0 10px ${primaryColor}4D)` }} />
+                    <div style={{
+                        background: 'transparent',
+                        padding: '16px 24px',
+                        display: 'inline-flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        marginBottom: '3vh',
+                        maxWidth: '100%'
+                    }}>
+                        <img 
+                            src={logoUrl} 
+                            alt={studioName} 
+                            style={{ 
+                                maxHeight: '80px', 
+                                maxWidth: '100%', 
+                                objectFit: 'contain',
+                                display: 'block',
+                                filter: 'drop-shadow(0px 0px 8px rgba(255,255,255,0.4))'
+                            }} 
+                        />
+                    </div>
                 ) : (
                     <h2 style={{ color: 'white', marginBottom: '2vh' }}>{studioName}</h2>
                 )}

@@ -82,7 +82,6 @@ exports.onAttendanceCreated = onDocumentCreated({
 
             // [1] 강사에게 푸시
             const instructorName = attendance.instructor;
-            const allSentTokens = new Set();
             if (instructorName) {
                 const { tokens } = await getAllFCMTokens(null, { role: 'instructor', instructorName });
                 if (tokens.length > 0) {
@@ -91,13 +90,17 @@ exports.onAttendanceCreated = onDocumentCreated({
                         try {
                             await admin.messaging().send({
                                 token,
-                                notification: { title: `🧘‍♀️ ${memberName}${rankLabel}님 출석`, body: `${studioName} | ${body}` },
-                                webpush: { 
-                                    notification: { icon: logoUrl, badge: logoUrl, tag: `att-${attendanceId}` },
-                                    fcm_options: { link: getStudioUrl('/instructor') }
-                                }
+                                // [ROOT FIX] data-only 메시지로 통일 → SW가 일관되게 처리
+                                data: { 
+                                    title: `🧘‍♀️ ${memberName}${rankLabel}님 출석`, 
+                                    body: `${studioName} | ${body}`,
+                                    icon: logoUrl || '',
+                                    tag: `att-inst-${attendanceId}`,
+                                    url: '/instructor'
+                                },
+                                webpush: { headers: { Urgency: 'high' } },
+                                android: { priority: 'high' }
                             });
-                            allSentTokens.add(token);
                         } catch (sendError) {
                             console.warn(`[Instructor Push] Send failed for token ${token.substring(0, 20)}...: ${sendError.code}`);
                             if (sendError.code === 'messaging/invalid-registration-token' || sendError.code === 'messaging/registration-token-not-registered') {
@@ -112,24 +115,31 @@ exports.onAttendanceCreated = onDocumentCreated({
                 console.warn(`[Attendance] 🚨 수업에 배정된 담당 강사 이름이 없습니다! 강사 푸시 원천 차단됨! 로그 확인 요망.`);
             }
 
-            // [2] 관리자(원장)에게도 항상 푸시 — 강사에게 이미 보낸 토큰은 중복 전송 방지
+            // [2] 관리자(원장)에게 항상 독립적으로 푸시
+            // [ROOT FIX] 중복 방지 로직 제거 — 원장이 강사를 겸할 때도
+            //   서로 다른 tag를 사용하므로 기기에서 별도 알림으로 표시됨
+            //   (같은 tag면 교체되므로 정보가 사라지는 문제 방지)
             const { tokens: adminTokens } = await getAllFCMTokens(null, { role: 'admin' });
             if (adminTokens.length === 0) {
-                console.warn(`[Attendance] 🚨 활성화된 원장(admin) 푸시 토큰이 없어 원장님께 비상 푸시를 발송하지 못했습니다!!`);
+                console.warn(`[Attendance] 🚨 활성화된 원장(admin) 푸시 토큰이 없어 원장님께 푸시를 발송하지 못했습니다!!`);
             }
             
-            const newAdminTokens = adminTokens.filter(t => !allSentTokens.has(t));
-            if (newAdminTokens.length > 0) {
-                console.log(`[Admin Push] Sending attendance push to ${newAdminTokens.length} admin tokens`);
-                for (const token of newAdminTokens) {
+            if (adminTokens.length > 0) {
+                console.log(`[Admin Push] Sending attendance push to ${adminTokens.length} admin tokens`);
+                for (const token of adminTokens) {
                     try {
                         await admin.messaging().send({
                             token,
-                            notification: { title: `🧘‍♀️ ${memberName}${rankLabel}님 출석`, body: `${studioName} | ${body}` },
-                            webpush: {
-                                notification: { icon: logoUrl, badge: logoUrl, tag: `att-${attendanceId}` },
-                                fcm_options: { link: getStudioUrl('/instructor') }
-                            }
+                            // [ROOT FIX] data-only + 관리자 전용 tag
+                            data: { 
+                                title: `🧘‍♀️ ${memberName}${rankLabel}님 출석`, 
+                                body: `${studioName} | ${body}`,
+                                icon: logoUrl || '',
+                                tag: `att-admin-${attendanceId}`,
+                                url: '/admin'
+                            },
+                            webpush: { headers: { Urgency: 'high' } },
+                            android: { priority: 'high' }
                         });
                     } catch (sendError) {
                         console.warn(`[Admin Push] Send failed for token ${token.substring(0, 20)}...: ${sendError.code}`);
@@ -182,11 +192,16 @@ exports.onAttendanceCreated = onDocumentCreated({
                         try {
                             await admin.messaging().send({
                                 token,
-                                notification: { title, body: `${studioName} | ${body}` },
-                                webpush: {
-                                    notification: { icon: logoUrl, badge: logoUrl, tag: `member-att-${attendanceId}` },
-                                    fcm_options: { link: getStudioUrl('/') }
-                                }
+                                // [ROOT FIX] data-only 통일 — SW가 icon/badge/tag를 직접 제어
+                                data: { 
+                                    title, 
+                                    body: `${studioName} | ${body}`,
+                                    icon: logoUrl || '',
+                                    tag: `member-att-${attendanceId}`,
+                                    url: '/member'
+                                },
+                                webpush: { headers: { Urgency: 'high' } },
+                                android: { priority: 'high' }
                             });
                         } catch (sendErr) {
                             if (sendErr.code === 'messaging/invalid-registration-token' || sendErr.code === 'messaging/registration-token-not-registered') {

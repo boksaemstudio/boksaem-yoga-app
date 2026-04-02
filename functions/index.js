@@ -28,6 +28,7 @@ const bookingFunctions = require('./modules/booking');
 const migrationFunctions = require('./modules/migration');
 const backupFunctions = require('./modules/backup');
 const adminClaimsFunctions = require('./modules/adminClaims');
+const ssrMetaFunctions = require('./modules/ssrMeta');
 
 // Re-export all functions
 module.exports = {
@@ -65,7 +66,10 @@ module.exports = {
     ...backupFunctions,
 
     // Admin Claims (Custom Claims 기반 권한 관리)
-    ...adminClaimsFunctions
+    ...adminClaimsFunctions,
+
+    // SaaS SSR (Dynamic OG 태그 & 로직)
+    ...ssrMetaFunctions
 };
 
 /**
@@ -102,10 +106,9 @@ module.exports = {
  * meditationFunctions (1):
  *   - generateMeditationGuidance
  * 
- * smsFunctions (3): [Aligo]
+ * smsFunctions (2): [Aligo]
  *   - sendMessageOnApproval
- *   - sendSolapiOnMessageV2
- *   - getSolapiBalance
+ *   - getAligoBalance
  * 
  * Total: 21 Cloud Functions
  */

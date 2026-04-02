@@ -105,10 +105,12 @@ const MembershipInfo = ({ member, daysRemaining, logs = [], t }) => {
                     </span>
                 )}
                 <span style={{ background: 'rgba(255,255,255,0.1)', color: 'white', padding: '3px 10px', borderRadius: '5px', fontSize: '0.75rem' }}>{member.phone}</span>
-                {config.IDENTITY?.NAME?.includes('복샘') || config.IDENTITY?.BRANCH_ID?.includes('boksaem') || (!config.IDENTITY?.LOGO_URL && !config.ASSETS?.LOGO?.SQUARE) ? (
-                    <img src={config.ASSETS?.LOGO?.RYS200} alt="RYS200" style={{ height: '49px', width: 'auto', marginLeft: 'auto', filter: 'brightness(0) invert(1)' }} />
+                {config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.SQUARE ? (
+                    <img src={config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.SQUARE} alt="Studio Logo" style={{ height: '49px', width: 'auto', marginLeft: 'auto', objectFit: 'contain' }} />
                 ) : (
-                    <img src={config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.SQUARE} alt="Workspace Logo" style={{ height: '49px', width: 'auto', marginLeft: 'auto', filter: config.IDENTITY?.LOGO_URL ? 'none' : 'brightness(0) invert(1)', objectFit: 'contain' }} />
+                    <div style={{ marginLeft: 'auto', width: '49px', height: '49px', borderRadius: '10px', background: 'var(--primary-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: '900', color: '#000' }}>
+                        {config.IDENTITY?.NAME?.[0] || 'S'}
+                    </div>
                 )}
             </div>
             {/* [NEW] 안면인식 안심 문구 */}
