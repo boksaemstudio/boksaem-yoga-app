@@ -1,8 +1,8 @@
 /**
- * SMS Message Module (Ppurio)
- * 비즈뿌리오(Bizppurio) REST API v3를 통한 SMS/LMS 발송 Cloud Functions
+ * SMS Message Module (Aligo)
+ * 알리고(Aligo) API를 통한 SMS/LMS 발송 Cloud Functions
  * 
- * 기존 알리고(Aligo)에서 비즈뿌리오(Ppurio)로 전환됨
+ * 기존 비즈뿌리오에서 알리고(Aligo)로 다시 전환
  * 
  * @module modules/sms
  */
@@ -11,142 +11,85 @@ const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/
 const { onCall } = require("firebase-functions/v2/https");
 const { admin, tenantDb, STUDIO_ID, logAIError, getStudioName } = require("../helpers/common");
 
-// ─── Ppurio API Configuration ───
-const PPURIO_API_URL = "https://message.ppurio.com/v1/message";
-const PPURIO_TOKEN_URL = "https://message.ppurio.com/v1/token";
+// ─── Aligo API Configuration ───
+const ALIGO_SEND_URL = "https://apis.aligo.in/send/";
 
-function getPpurioConfig() {
+function getAligoConfig() {
     return {
-        account: (process.env.PPURIO_ACCOUNT || "").trim(),
-        password: (process.env.PPURIO_PASSWORD || "").trim(),
-        sender: (process.env.PPURIO_SENDER || "").trim() || "01022232789"
+        key: "5zefrcpzewkyhmfz8yh985mdh935b2cv",
+        userid: "zipsuri0",
+        sender: (process.env.ALIGO_SENDER || "").trim() || "01022232789"
     };
-}
-
-let cachedPpurioToken = null;
-let tokenExpiresAt = 0;
-
-async function getPpurioToken() {
-    if (cachedPpurioToken && Date.now() < tokenExpiresAt) {
-        return cachedPpurioToken;
-    }
-    const config = getPpurioConfig();
-    if (!config.account || !config.password) {
-        throw new Error("[Ppurio] Missing account or password in env Variables.");
-    }
-
-    const basicAuth = Buffer.from(config.account + ':' + config.password).toString('base64');
-    
-    // Node 22 native fetch
-    const res = await fetch(PPURIO_TOKEN_URL, {
-        method: "POST",
-        headers: {
-            "Authorization": `Basic ${basicAuth}`,
-            "Content-Type": "application/json"
-        }
-    });
-
-    if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`[Ppurio] Token fetch failed: ${res.status} ${errText}`);
-    }
-
-    const data = await res.json();
-    const tokenVal = data.accesstoken || data.token;
-    if (tokenVal) {
-        cachedPpurioToken = tokenVal;
-        tokenExpiresAt = Date.now() + (20 * 60 * 60 * 1000); 
-        return cachedPpurioToken;
-    } else {
-        throw new Error("[Ppurio] Unexpected token response: " + JSON.stringify(data));
-    }
 }
 
 /**
- * 단일 문자 발송 (뿌리오)
+ * 단일 문자 발송 (알리고)
  */
 async function sendSMS(receiver, msg, title, msgType) {
-    const config = getPpurioConfig();
-    const token = await getPpurioToken();
-    const byteLength = Buffer.byteLength(msg, 'utf8');
-    const type = msgType ? msgType : (byteLength > 90 ? 'lms' : 'sms');
+    const config = getAligoConfig();
 
-    const refkey = 'PF_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+    const formData = new URLSearchParams();
+    formData.append('key', config.key);
+    formData.append('user_id', config.userid);
+    formData.append('sender', config.sender);
+    formData.append('receiver', receiver);
+    formData.append('msg', msg);
+    if (title) formData.append('title', title);
 
-    const payload = {
-        account: config.account,
-        messageType: type === 'lms' ? 'LMS' : 'SMS',
-        from: config.sender,
-        duplicateFlag: 'Y',
-        targetCount: 1,
-        targets: [
-            { to: receiver }
-        ],
-        content: msg,
-        refKey: refkey
-    };
-
-    const res = await fetch(PPURIO_API_URL, {
+    const res = await fetch(ALIGO_SEND_URL, {
         method: "POST",
         headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
+            "Content-Type": "application/x-www-form-urlencoded"
         },
-        body: JSON.stringify(payload)
+        body: formData.toString()
     });
 
     if (!res.ok) {
         const errText = await res.text();
-        throw new Error(`[Ppurio] Message Send Failed: HTTP ${res.status} ${errText}`);
+        throw new Error(`[Aligo] Message Send Failed: HTTP ${res.status} ${errText}`);
     }
 
     const data = await res.json();
-    console.log(`[Ppurio] Send result:`, JSON.stringify(data));
+    console.log(`[Aligo] Send result:`, JSON.stringify(data));
 
-    // Ppurio returns 1000 for success
-    if (data.code && data.code !== 1000) {
-        throw new Error(`[Ppurio] Send failed: ${data.description} (code: ${data.code})`);
+    if (data.result_code !== '1' && data.result_code !== 1) {
+        throw new Error(`[Aligo] Send failed: ${data.message} (code: ${data.result_code})`);
     }
 
-    // Mocking common success fields for compatibility
-    data.success_cnt = 1;
+    data.success_cnt = parseInt(data.success_cnt || 1, 10);
     return data;
 }
 
 exports.sendSMS = sendSMS;
 
 /**
- * 대량 문자 발송 (뿌리오)
+ * 대량 문자 발송 (알리고)
  */
 async function sendBulkSMS(receivers, msg, title) {
-    const config = getPpurioConfig();
-    if (!config.account || !config.password) {
-        throw new Error("[Ppurio] API credentials missing.");
-    }
-    const token = await getPpurioToken();
-    const byteLength = Buffer.byteLength(msg, 'utf8');
-    const type = byteLength > 90 ? 'lms' : 'sms';
-
     const results = [];
     
-    // Concurrency limit to 50
-    for (let i = 0; i < receivers.length; i += 50) {
-        const chunk = receivers.slice(i, i + 50);
-        const promises = chunk.map(phone => sendSMS(phone, msg, title, type));
+    // Aligo API는 receiver를 콤마로 구분하여 최대 1000명까지 발송 가능하지만 안정성을 위해 500 단위 분할
+    for (let i = 0; i < receivers.length; i += 500) {
+        const chunk = receivers.slice(i, i + 500);
+        const receiverString = chunk.join(',');
         
-        const chunkResults = await Promise.allSettled(promises);
-        
-        let success_cnt = 0;
-        chunkResults.forEach(r => {
-            if (r.status === 'fulfilled' && r.value.code === 1000) success_cnt++;
-        });
-
-        results.push({ success_cnt, error_cnt: chunk.length - success_cnt });
+        try {
+            const data = await sendSMS(receiverString, msg, title);
+            results.push({
+                success_cnt: parseInt(data.success_cnt || 0, 10),
+                error_cnt: parseInt(data.error_cnt || 0, 10)
+            });
+        } catch (e) {
+            results.push({
+                success_cnt: 0,
+                error_cnt: chunk.length,
+                error: e.message
+            });
+        }
     }
 
     return results;
 }
-
 
 // ═══════════════════════════════════════════════════════════════
 // Cloud Functions (기존 호출명 유지)
@@ -167,19 +110,14 @@ exports.sendMessageOnApproval = onDocumentUpdated({
     if (newData.status !== 'approved' || oldData.status === 'approved') return;
 
     if (newData.smsStatus?.sent || newData.solapiStatus?.sent) {
-        console.log(`[Ppurio] Message ${approvalId} already sent.`);
+        console.log(`[Aligo] Message ${approvalId} already sent.`);
         return;
     }
 
-    console.log(`[Ppurio] Processing approved message: ${approvalId}`);
+    console.log(`[Aligo] Processing approved message: ${approvalId}`);
     const tdb = tenantDb();
 
     try {
-        const config = getPpurioConfig();
-        if (!config.account || !config.password) {
-            throw new Error("Ppurio API is not configured.");
-        }
-
         const targetMemberIds = newData.targetMemberIds || [];
         const content = newData.body || "";
         const studioName = await getStudioName();
@@ -228,7 +166,7 @@ exports.sendMessageOnApproval = onDocumentUpdated({
                 method: 'SMS', 
                 recipientCount: phoneNumbers.length,
                 successCount,
-                provider: 'ppurio'
+                provider: 'aligo'
             }
         });
 
@@ -241,11 +179,11 @@ exports.sendMessageOnApproval = onDocumentUpdated({
             sentAt: admin.firestore.FieldValue.serverTimestamp(),
             createdAt: admin.firestore.FieldValue.serverTimestamp(), 
             method: '문자',
-            provider: 'ppurio'
+            provider: 'aligo'
         });
 
     } catch (error) {
-        console.error("[Ppurio] Sending failed:", error);
+        console.error("[Aligo] Sending failed:", error);
         await event.data.after.ref.update({
             smsStatus: {
                 sent: false,
@@ -263,11 +201,11 @@ exports.sendMessageOnApproval = onDocumentUpdated({
             sentAt: admin.firestore.FieldValue.serverTimestamp(),
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             method: '문자',
-            provider: 'ppurio',
+            provider: 'aligo',
             error: error.message
         });
 
-        await logAIError('Ppurio_Send_Failed', error);
+        await logAIError('Aligo_Send_Failed', error);
     }
 });
 
@@ -280,7 +218,7 @@ exports.sendSolapiOnMessageV2 = onDocumentCreated({
     maxInstances: 100
 }, async (event) => {
     const messageId = event.params.messageId;
-    console.log(`[Ppurio] Triggered for message ${messageId}`);
+    console.log(`[Aligo] Triggered for message ${messageId}`);
     const messageData = event.data.data();
     const memberId = messageData.memberId;
     let content = messageData.content;
@@ -290,12 +228,6 @@ exports.sendSolapiOnMessageV2 = onDocumentCreated({
     if (!memberId || !content) return;
 
     try {
-        const config = getPpurioConfig();
-        if (!config.account || !config.password) {
-            console.warn("[Ppurio] API not configured.");
-            return;
-        }
-
         const tdb = tenantDb();
         const memberDoc = await tdb.collection('members').doc(memberId).get();
         if (!memberDoc.exists || !memberDoc.data().phone) return;
@@ -318,7 +250,7 @@ exports.sendSolapiOnMessageV2 = onDocumentCreated({
                 method: 'SMS',
                 result: result,
                 recipient: cleanPhone,
-                provider: 'ppurio'
+                provider: 'aligo'
             }
         });
 
@@ -333,11 +265,11 @@ exports.sendSolapiOnMessageV2 = onDocumentCreated({
             sentAt: admin.firestore.FieldValue.serverTimestamp(),
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             method: '문자',
-            provider: 'ppurio'
+            provider: 'aligo'
         });
 
     } catch (error) {
-        console.error("[Ppurio] Individual Send Error:", error);
+        console.error("[Aligo] Individual Send Error:", error);
         await event.data.ref.update({
             smsStatus: {
                 sent: false,
@@ -358,7 +290,7 @@ exports.sendSolapiOnMessageV2 = onDocumentCreated({
             sentAt: admin.firestore.FieldValue.serverTimestamp(),
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             method: '문자',
-            provider: 'ppurio',
+            provider: 'aligo',
             error: error.message
         });
     }
@@ -371,20 +303,16 @@ exports.getSolapiBalance = onCall({
     cors: require('../helpers/cors').ALLOWED_ORIGINS
 }, async (request) => {
     try {
-        const config = getPpurioConfig();
-        if (!config.account || !config.password) {
-            return { connected: false, error: 'Ppurio API Keys missing' };
-        }
-        await getPpurioToken();
+        const config = getAligoConfig();
         
         return { 
             connected: true, 
-            message: "Ppurio Connected",
-            provider: 'ppurio',
+            message: "Aligo Connected",
+            provider: 'aligo',
             balance: {
-                SMS_CNT: '무제한 (계약 참조)',
-                LMS_CNT: '무제한 (계약 참조)',
-                MMS_CNT: '무제한 (계약 참조)'
+                SMS_CNT: '무제한 (알리고 대시보드 참조)',
+                LMS_CNT: '무제한 (알리고 대시보드 참조)',
+                MMS_CNT: '무제한 (알리고 대시보드 참조)'
             },
             currency: 'KRW'
         };
