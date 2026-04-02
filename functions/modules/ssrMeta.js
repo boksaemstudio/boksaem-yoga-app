@@ -239,7 +239,7 @@ exports.serveDynamicSaaS = onRequest(
                 .replace(/<meta property="og:site_name" content=".*?">/gi, `<meta property="og:site_name" content="${studioName}">`)
                 .replace(/<meta property="og:description" content=".*?">/gi, `<meta property="og:description" content="${desc}">`)
                 .replace(/<meta name="description" content=".*?">/gi, `<meta name="description" content="${desc}">`)
-                .replace(/<meta property="og:image" content=".*?">/gi, `<meta property="og:image" content="${logoUrl}">`);
+                .replace(/<meta property="og:image" content=".*?">/gi, `<meta property="og:image" content="${logoUrl}">\n  <meta property="og:image:width" content="800">\n  <meta property="og:image:height" content="800">\n  <meta property="og:image:alt" content="${studioName} 로고">`);
 
             // ── [ROOT FIX] 파비콘 + apple-touch-icon 동적 치환 ──
             // 각 스튜디오의 관리자 설정 로고가 브라우저 탭 아이콘에 반영
