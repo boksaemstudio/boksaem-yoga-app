@@ -314,22 +314,51 @@ async function refreshDemoData() {
 
     console.log('✅ 매출 통계 데이터 시딩 완료.');
 
-    // 7. 실시간 출석 및 매일 시간표 (요일별 리얼 스케줄)
-    const scheduleTemplateWeakday = [
-        { time: '07:00', names: ['아쉬탕가 풀프라이머리', '하타 요가'], ins: '엠마 원장 선생님' },
-        { time: '09:00', names: ['리포머 코어포커스', '바렐 기초'], ins: '정다은 강사 (필라테스)' },
-        { time: '10:00', names: ['하타 인텐시브', '빈야사 플로우'], ins: '이수아 강사' },
-        { time: '12:00', names: ['인양 테라피', '릴랙스 요가'], ins: '이수아 강사' }, 
-        { time: '18:30', names: ['캐딜락&바렐 그룹', '기구 필라테스'], ins: '정다은 강사 (필라테스)' },
-        { time: '19:30', names: ['플라잉 베이직', '아쉬탕가 풀프라이머리'], ins: '박태민 수석강사' },
-        { time: '20:30', names: ['리포머 코어포커스', '빈야사 플로우'], ins: '박태민 수석강사' }
-    ];
-
-    const scheduleTemplateWeekend = [
-        { time: '10:00', names: ['인양 테라피', '하타 요가'], ins: '엠마 원장 선생님' },
-        { time: '11:00', names: ['플라잉 요가', '리듬 요가'], ins: '이수아 강사' },
-        { time: '14:00', names: ['기구 필라테스', '코어 강화'], ins: '정다은 강사 (필라테스)' }
-    ];
+    // 7. 실시간 출석 및 매일 시간표 (요일별 리얼 스케줄 - 강사별 휴무일 고려)
+    // 0: 일, 1: 월, 2: 화, 3: 수, 4: 목, 5: 금, 6: 토
+    const scheduleByDay = {
+        1: [ // 월요일
+            { time: '07:00', names: ['아쉬탕가 풀프라이머리', '하타 요가'], ins: '엠마 원장 선생님' },
+            { time: '09:00', names: ['리포머 코어포커스', '바렐 기초'], ins: '정다은 강사 (필라테스)' },
+            { time: '10:00', names: ['하타 인텐시브', '빈야사 플로우'], ins: '이수아 강사' },
+            { time: '18:30', names: ['캐딜락&바렐 그룹'], ins: '정다은 강사 (필라테스)' },
+            { time: '19:30', names: ['플라잉 베이직'], ins: '박태민 수석강사' }
+        ],
+        2: [ // 화요일 (엠마 원무, 이수아 풀강)
+            { time: '09:00', names: ['빈야사 플로우'], ins: '이수아 강사' },
+            { time: '12:00', names: ['인양 테라피', '릴랙스 요가'], ins: '이수아 강사' },
+            { time: '18:30', names: ['기구 필라테스'], ins: '정다은 강사 (필라테스)' },
+            { time: '19:30', names: ['아쉬탕가 풀프라이머리'], ins: '박태민 수석강사' },
+            { time: '20:30', names: ['빈야사 플로우'], ins: '박태민 수석강사' }
+        ],
+        3: [ // 수요일
+            { time: '07:00', names: ['하타 요가'], ins: '엠마 원장 선생님' },
+            { time: '10:00', names: ['하타 인텐시브'], ins: '엠마 원장 선생님' },
+            { time: '18:30', names: ['캐딜락&바렐 그룹'], ins: '정다은 강사 (필라테스)' },
+            { time: '20:30', names: ['리포머 코어포커스'], ins: '박태민 수석강사' }
+        ],
+        4: [ // 목요일 (엠마 휴무)
+            { time: '09:00', names: ['바렐 기초'], ins: '정다은 강사 (필라테스)' },
+            { time: '10:00', names: ['빈야사 플로우'], ins: '이수아 강사' },
+            { time: '19:30', names: ['플라잉 베이직'], ins: '박태민 수석강사' },
+            { time: '20:30', names: ['빈야사 플로우'], ins: '박태민 수석강사' }
+        ],
+        5: [ // 금요일
+            { time: '07:00', names: ['아쉬탕가 풀프라이머리'], ins: '엠마 원장 선생님' },
+            { time: '12:00', names: ['인양 테라피'], ins: '이수아 강사' },
+            { time: '18:30', names: ['바렐 기초'], ins: '정다은 강사 (필라테스)' },
+            { time: '19:30', names: ['아쉬탕가 풀프라이머리'], ins: '박태민 수석강사' }
+        ],
+        6: [ // 토요일 (주말 강좌)
+            { time: '10:00', names: ['인양 테라피'], ins: '엠마 원장 선생님' },
+            { time: '11:00', names: ['플라잉 요가'], ins: '이수아 강사' },
+            { time: '14:00', names: ['기구 필라테스', '코어 강화'], ins: '정다은 강사 (필라테스)' }
+        ],
+        0: [ // 일요일 (단축 수업, 엠마 휴무)
+            { time: '11:00', names: ['리듬 요가'], ins: '이수아 강사' },
+            { time: '14:00', names: ['체형교정 필라테스'], ins: '정다은 강사 (필라테스)' }
+        ]
+    };
 
     let attendanceCount = 0;
 
@@ -346,7 +375,7 @@ async function refreshDemoData() {
         const isPast = date.getTime() < today.getTime();
         const isToday = date.toDateString() === today.toDateString();
 
-        const scheduleSlots = (dayOfWeek === 0 || dayOfWeek === 6) ? scheduleTemplateWeekend : scheduleTemplateWeakday;
+        const scheduleSlots = scheduleByDay[dayOfWeek] || [];
         const dailyClasses = [];
         const dailyClassInfos = []; 
 

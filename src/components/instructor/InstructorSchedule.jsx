@@ -172,9 +172,14 @@ const InstructorSchedule = ({ instructorName }) => {
             const activeBranches = branches.filter(b => branchStatus[`has_${b.id}`]);
             if (activeBranches.length > 1) {
                 borderStyle = '2px solid';
-                borderColor = `${activeBranches[0].color} ${activeBranches[1].color} ${activeBranches[1].color} ${activeBranches[0].color}`;
+                const c1 = activeBranches[0].color || 'var(--primary-gold)';
+                const c2 = activeBranches[1].color || 'var(--primary-gold)';
+                borderColor = `${c1} ${c2} ${c2} ${c1}`;
             } else if (activeBranches.length === 1) {
-                borderStyle = `2px solid ${activeBranches[0].color}`;
+                borderStyle = `2px solid ${activeBranches[0].color || 'var(--primary-gold)'}`;
+            } else if (branchStatus.hasAny) {
+                // 단일 지점이거나 지점 정보가 없는데 내 수업은 있는 경우
+                borderStyle = `2px solid var(--primary-gold)`;
             }
             
             // [DEBUG] Log if border is applied unexpectedly
@@ -217,8 +222,6 @@ const InstructorSchedule = ({ instructorName }) => {
                         padding: '4px', textAlign: 'center', cursor: 'pointer', borderRadius: '8px',
                         background: isSelected ? 'var(--primary-gold)' : isToday ? 'rgba(var(--primary-rgb), 0.15)' : 'transparent',
                         color: textColor,
-                        border: borderStyle,
-                        borderColor: borderColor !== 'transparent' ? borderColor : undefined,
                         fontWeight: branchStatus.hasAny ? 'bold' : 'normal',
                         transition: 'all 0.2s',
                         position: 'relative',
@@ -230,6 +233,19 @@ const InstructorSchedule = ({ instructorName }) => {
                     }}
                 >
                     <span style={{ position: 'relative', zIndex: 1, fontSize: '1rem' }}>{d}</span>
+                    
+                    {/* [NEW] Indicator Dot for Classes */}
+                    {branchStatus.hasAny && !isSelected && (
+                        <div style={{
+                            width: '4px',
+                            height: '4px',
+                            borderRadius: '50%',
+                            background: activeBranches.length === 1 ? (activeBranches[0].color || 'var(--primary-gold)') : 'var(--primary-gold)',
+                            marginTop: '2px',
+                            boxShadow: activeBranches.length > 1 ? `0 0 0 2px ${activeBranches[1]?.color || 'var(--primary-gold)'} inset` : 'none'
+                        }} />
+                    )}
+
                     {holidayName && (
                         <span style={{ 
                             fontSize: '0.6rem', 

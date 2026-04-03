@@ -1,4 +1,4 @@
-const admin = require('firebase-admin');
+const admin = require('./functions/node_modules/firebase-admin');
 const { refreshDemoData } = require('./functions/helpers/demoSeeder.js');
 const sa = require('./functions/service-account-key.json');
 
