@@ -37,6 +37,9 @@ const LoginPage = ({ config, t, onLogin, loading }) => {
         }
     };
 
+    const displayLogo = config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.WIDE || '/assets/passflow_logo.png';
+    const isDefaultLogo = typeof displayLogo === 'string' && displayLogo.includes('passflow_logo');
+
     return (
         <div style={{
             minHeight: '100vh', position: 'relative', overflowX: 'hidden', overflowY: 'auto',
@@ -55,8 +58,19 @@ const LoginPage = ({ config, t, onLogin, loading }) => {
                 textAlign: 'center', width: '100%', maxWidth: '360px'
             }}>
                 <div style={{ marginBottom: '40px' }}>
-                    <img src={config.ASSETS?.LOGO?.WIDE} alt={config.IDENTITY?.NAME || 'Studio'}
-                        style={{ width: '85px', height: 'auto', opacity: 0.9, filter: 'brightness(0) invert(1) drop-shadow(0 0 15px rgba(255, 255, 255, 0.4))', marginBottom: '25px' }} />
+                    <img src={displayLogo} alt={config.IDENTITY?.NAME || 'Studio'}
+                        style={{ 
+                            width: isDefaultLogo ? '85px' : 'auto', 
+                            height: isDefaultLogo ? 'auto' : '65px',
+                            maxWidth: '180px',
+                            objectFit: 'contain',
+                            background: 'rgba(255, 255, 255, 0.85)',
+                            padding: '6px',
+                            borderRadius: '12px',
+                            opacity: 0.9, 
+                            filter: isDefaultLogo ? 'brightness(0) invert(1) drop-shadow(0 0 15px rgba(255, 255, 255, 0.4))' : 'none', 
+                            marginBottom: '25px' 
+                        }} />
                     <h2 style={{ fontSize: '1.4rem', fontWeight: '800', marginBottom: '10px', color: 'var(--primary-gold)' }}>{t('loginTitle')}</h2>
                     <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.7)', lineHeight: '1.6', wordBreak: 'keep-all' }}>
                         {t('loginWelcome')}<br />

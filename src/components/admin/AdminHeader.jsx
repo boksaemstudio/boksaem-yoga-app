@@ -24,7 +24,7 @@ const AdminHeader = ({
             <div className="admin-title" style={{ gap: '8px', fontSize: '0.95rem', display: 'flex', alignItems: 'center' }}>
                 {config.IDENTITY?.LOGO_URL || (config.ASSETS?.LOGO?.SQUARE && config.ASSETS.LOGO.SQUARE !== '/assets/passflow_logo.png') ? (
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <img src={config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.SQUARE} alt="로고" style={{ maxHeight: '24px', maxWidth: '100px', objectFit: 'contain', background: 'white', padding: '2px', borderRadius: '4px' }} />
+                        <img src={config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.SQUARE} alt="로고" style={{ maxHeight: '24px', maxWidth: '100px', objectFit: 'contain', background: 'rgba(255, 255, 255, 0.85)', padding: '4px', borderRadius: '6px' }} />
                     </div>
                 ) : (
                     <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '4px', background: 'var(--primary-gold)', color: '#000', fontSize: '14px', fontWeight: '900', boxShadow: '0 0 8px rgba(var(--primary-rgb), 0.4)' }}>

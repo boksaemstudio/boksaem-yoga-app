@@ -29,7 +29,10 @@ const LoginPage = () => {
                 try {
                     const tokenResult = await auth.currentUser.getIdTokenResult();
                     if (tokenResult.claims.role === 'superadmin') {
-                        navigate('/super-admin');
+                        // 플랫폼 도메인(passflowai)에서만 super-admin으로 이동
+                        // 테넌트 전용 도메인(boksaem-yoga, ssangmun-yoga 등)에서는 해당 스튜디오 /admin으로 진입
+                        const isPlatformDomain = window.location.hostname.includes('passflowai');
+                        navigate(isPlatformDomain ? '/super-admin' : '/admin');
                         return;
                     }
                 } catch (e) {
@@ -107,8 +110,6 @@ const LoginPage = () => {
                 <div className="login-header" style={{ textAlign: 'center', marginBottom: '4vh' }}>
                 {logoUrl ? (
                     <div style={{
-                        background: 'transparent',
-                        padding: '16px 24px',
                         display: 'inline-flex',
                         justifyContent: 'center',
                         alignItems: 'center',
@@ -123,6 +124,9 @@ const LoginPage = () => {
                                 maxWidth: '100%', 
                                 objectFit: 'contain',
                                 display: 'block',
+                                background: 'rgba(255, 255, 255, 0.85)',
+                                padding: '6px',
+                                borderRadius: '12px',
                                 filter: 'drop-shadow(0px 0px 8px rgba(255,255,255,0.4))'
                             }} 
                         />

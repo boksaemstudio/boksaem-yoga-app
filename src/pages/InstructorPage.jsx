@@ -385,7 +385,7 @@ const InstructorPage = () => {
             <div style={{ background: 'rgba(20, 20, 25, 0.95)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', position: 'relative', zIndex: 2 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     {config.IDENTITY?.LOGO_URL ? (
-                        <img src={config.IDENTITY.LOGO_URL} alt="로고" style={{ maxHeight: '36px', width: 'auto', objectFit: 'contain', background: 'white', padding: '2px', borderRadius: '4px' }} onError={(e) => e.target.style.display = 'none'} />
+                        <img src={config.IDENTITY.LOGO_URL} alt="로고" style={{ maxHeight: '36px', width: 'auto', objectFit: 'contain', background: 'rgba(255, 255, 255, 0.85)', padding: '4px', borderRadius: '6px' }} onError={(e) => e.target.style.display = 'none'} />
                     ) : (
                         <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '4px', background: 'var(--primary-gold)', color: '#000', fontSize: '16px', fontWeight: '900' }}>
                             {config.IDENTITY?.NAME?.[0] || 'S'}

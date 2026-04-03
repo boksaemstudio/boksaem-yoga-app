@@ -704,7 +704,15 @@ const StudioSettingsTab = () => {
                         { label: '출석체크앱', path: '/checkin', icon: '✅', desc: '키오스크/태블릿' },
                     ].map(app => {
                         const sid = getCurrentStudioId();
-                        const fullUrl = `${window.location.origin}${app.path}?studio=${sid}`;
+                        // [SaaS] 스튜디오별 전용 도메인 매핑 — 올바른 URL 생성
+                        const studioOriginMap = {
+                            'boksaem-yoga': 'https://boksaem-yoga.web.app',
+                            'demo-yoga': 'https://passflowai.web.app',
+                            'ssangmun-yoga': 'https://ssangmun-yoga-0.web.app',
+                        };
+                        const origin = studioOriginMap[sid] || 'https://passflowai.web.app';
+                        const needsParam = !studioOriginMap[sid]; // 전용 도메인 없으면 ?studio= 필요
+                        const fullUrl = needsParam ? `${origin}${app.path}?studio=${sid}` : `${origin}${app.path}`;
                         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&format=png&data=${encodeURIComponent(fullUrl)}`;
                         return (
                             <div key={app.path} style={{
