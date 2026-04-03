@@ -58,7 +58,7 @@ const MemberProfile = () => {
     } = useMemberUI();
 
     // ─── Derived Assets (SaaS) ───
-    const logo = images.logo || config.ASSETS?.LOGO?.WIDE;
+    const logo = config.IDENTITY?.LOGO_URL || images.logo || config.ASSETS?.LOGO?.WIDE || '/assets/passflow_logo.png';
     const memberBg = images.memberBg || config.ASSETS?.MEMBER_BG;
     const timeTable1 = images.timeTable1 || config.ASSETS?.TIMETABLE?.BRANCH1;
     const timeTable2 = images.timeTable2 || config.ASSETS?.TIMETABLE?.BRANCH2;

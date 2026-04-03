@@ -105,13 +105,6 @@ const MembershipInfo = ({ member, daysRemaining, logs = [], t }) => {
                     </span>
                 )}
                 <span style={{ background: 'rgba(255,255,255,0.1)', color: 'white', padding: '3px 10px', borderRadius: '5px', fontSize: '0.75rem' }}>{member.phone}</span>
-                {config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.SQUARE ? (
-                    <img src={config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.SQUARE} alt="Studio Logo" style={{ height: '49px', width: 'auto', marginLeft: 'auto', objectFit: 'contain' }} />
-                ) : (
-                    <div style={{ marginLeft: 'auto', width: '49px', height: '49px', borderRadius: '10px', background: 'var(--primary-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: '900', color: '#000' }}>
-                        {config.IDENTITY?.NAME?.[0] || 'S'}
-                    </div>
-                )}
             </div>
             {/* [NEW] 안면인식 안심 문구 */}
             {member.hasFaceDescriptor && (

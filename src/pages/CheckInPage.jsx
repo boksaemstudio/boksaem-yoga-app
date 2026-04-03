@@ -40,11 +40,11 @@ const CheckInPage = () => {
     const { speak } = useTTS();
     const logoWide = config.ASSETS?.LOGO?.WIDE || '/assets/passflow_logo.png';
     // [SaaS] 키오스크 로고: 관리자앱 키오스크 탭에서 설정한 로고 배열 우선
-    // 없으면 설정 탭의 스튜디오 로고(IDENTITY.LOGO_URL) 또는 가로형 로고 fallback
+    // 없으면 가로형 로고(WIDE) fallback — IDENTITY.LOGO_URL은 흰배경 정사각형이라 키오스크 검은 배경에 안 어울림
     const kioskLogos = (() => {
         const logos = (config.KIOSK?.LOGOS || []).filter(Boolean);
         if (logos.length > 0) return logos;
-        // fallback: 스튜디오 설정 로고 → 가로형 로고
+        // fallback: 설정 메뉴의 스튜디오 로고 -> 가로형 로고
         const fallback = config.IDENTITY?.LOGO_URL || logoWide;
         return fallback ? [fallback] : [];
     })();
