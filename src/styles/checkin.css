@@ -119,11 +119,13 @@
 }
 
 .logo-container img {
-  height: clamp(60px, 8vh, 90px);
+  box-sizing: content-box;
+  height: clamp(105px, 14vh, 157px);
   width: auto;
-  opacity: 0.9;
-  filter: brightness(0) invert(1) drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
   transition: var(--transition);
+  background-color: white;
+  padding: 8px 16px;
+  border-radius: 16px;
 }
 
 .info-body {

@@ -136,10 +136,11 @@ const InstructorSchedule = ({ instructorName }) => {
 
     const getBranchStatus = (dateStr) => {
         const classes = monthlyData[dateStr] || [];
-        const myClasses = classes.filter(cls => 
-            cls.instructor === instructorName && 
-            cls.status !== 'cancelled'
-        );
+        const myClasses = classes.filter(cls => {
+            const ins1 = (cls.instructor || '').replace(/\s/g, '');
+            const ins2 = (instructorName || '').replace(/\s/g, '');
+            return (ins1.includes(ins2) || ins2.includes(ins1)) && cls.status !== 'cancelled';
+        });
         const status = {};
         branches.forEach(b => {
             status[`has_${b.id}`] = myClasses.some(cls => cls.branchId === b.id || cls.branchName === b.name);
@@ -323,22 +324,26 @@ const InstructorSchedule = ({ instructorName }) => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             {selectedClasses.map((cls, idx) => {
                                 const isCancelled = cls.status === 'cancelled';
+                                const ins1 = (cls.instructor || '').replace(/\s/g, '');
+                                const ins2 = (instructorName || '').replace(/\s/g, '');
+                                const isMyClass = ins1.includes(ins2) || ins2.includes(ins1);
+
                                 return (
                                     <div
                                         key={idx}
                                         onClick={() => {
-                                            if (!isCancelled && cls.instructor === instructorName) {
+                                            if (!isCancelled && isMyClass) {
                                                 const key = `${cls.time}_${cls.title}`;
                                                 setExpandedClassKey(expandedClassKey === key ? null : key);
                                             }
                                         }}
                                         style={{
                                             padding: '12px', borderRadius: '8px',
-                                            background: isCancelled ? 'rgba(255, 71, 87, 0.1)' : cls.instructor === instructorName ? 'rgba(var(--primary-rgb), 0.1)' : 'var(--bg-input)',
+                                            background: isCancelled ? 'rgba(255, 71, 87, 0.1)' : isMyClass ? 'rgba(var(--primary-rgb), 0.1)' : 'var(--bg-input)',
                                             borderLeft: `4px solid ${isCancelled ? '#ff4757' : (cls.branchColor || 'var(--primary-gold)')}`,
                                             position: 'relative',
                                             opacity: isCancelled ? 0.7 : 1,
-                                            cursor: (!isCancelled && cls.instructor === instructorName) ? 'pointer' : 'default',
+                                            cursor: (!isCancelled && isMyClass) ? 'pointer' : 'default',
                                             ...(expandedClassKey === `${cls.time}_${cls.title}` ? {
                                                 borderTop: `1px solid ${cls.branchColor}`,
                                                 borderRight: `1px solid ${cls.branchColor}`,
@@ -375,7 +380,7 @@ const InstructorSchedule = ({ instructorName }) => {
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                                             <span style={{ fontWeight: 'bold', fontSize: '1.1rem', textDecoration: isCancelled ? 'line-through' : 'none' }}>{cls.time}</span>
-                                            {cls.instructor === instructorName && !isCancelled && <span style={{ fontSize: '0.75rem', background: 'var(--primary-gold)', color: 'var(--text-on-primary)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>내 수업</span>}
+                                            {isMyClass && !isCancelled && <span style={{ fontSize: '0.75rem', background: 'var(--primary-gold)', color: 'var(--text-on-primary)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>내 수업</span>}
                                         </div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <div style={{ fontSize: '0.95rem', textDecoration: isCancelled ? 'line-through' : 'none', color: isCancelled ? 'var(--text-secondary)' : 'var(--text-primary)' }}>{cls.title}</div>

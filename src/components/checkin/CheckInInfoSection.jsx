@@ -66,7 +66,7 @@ const CheckInInfoSection = memo(({
                                 key={idx}
                                 src={logoUrl}
                                 alt={`Kiosk Logo ${idx + 1}`}
-                                style={{ height: 'clamp(32px, 7vh, 70px)', width: 'auto', maxWidth: kioskLogos.length > 1 ? '45%' : '80%', objectFit: 'contain' }}
+                                style={{ height: 'clamp(56px, 12.5vh, 125px)', width: 'auto', maxWidth: kioskLogos.length > 1 ? '45%' : '80%', objectFit: 'contain', background: 'white', padding: '3px', borderRadius: '8px' }}
                                 onError={(e) => { e.target.style.display = 'none'; }}
                             />
                         ))

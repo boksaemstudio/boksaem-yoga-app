@@ -74,7 +74,7 @@ async function refreshDemoData() {
     
     // 2. 강사 데이터
     const instructors = [
-        { id: 'ins-master', name: '엄마 원장 선생님', phone: '010-1111-1111', role: '원장' },
+        { id: 'ins-master', name: '엠마 원장 선생님', phone: '010-1111-1111', role: '원장' },
         { id: 'ins-01', name: '박태민 수석강사', phone: '010-2222-2222', role: '전임강사' },
         { id: 'ins-02', name: '이수아 강사', phone: '010-3333-3333', role: '오전전담' },
         { id: 'ins-03', name: '정다은 강사 (필라테스)', phone: '010-4444-4444', role: '파트타임' }
@@ -316,7 +316,7 @@ async function refreshDemoData() {
 
     // 7. 실시간 출석 및 매일 시간표 (요일별 리얼 스케줄)
     const scheduleTemplateWeakday = [
-        { time: '07:00', names: ['아쉬탕가 풀프라이머리', '하타 요가'], ins: '엄마 원장 선생님' },
+        { time: '07:00', names: ['아쉬탕가 풀프라이머리', '하타 요가'], ins: '엠마 원장 선생님' },
         { time: '09:00', names: ['리포머 코어포커스', '바렐 기초'], ins: '정다은 강사 (필라테스)' },
         { time: '10:00', names: ['하타 인텐시브', '빈야사 플로우'], ins: '이수아 강사' },
         { time: '12:00', names: ['인양 테라피', '릴랙스 요가'], ins: '이수아 강사' }, 
@@ -326,7 +326,7 @@ async function refreshDemoData() {
     ];
 
     const scheduleTemplateWeekend = [
-        { time: '10:00', names: ['인양 테라피', '하타 요가'], ins: '엄마 원장 선생님' },
+        { time: '10:00', names: ['인양 테라피', '하타 요가'], ins: '엠마 원장 선생님' },
         { time: '11:00', names: ['플라잉 요가', '리듬 요가'], ins: '이수아 강사' },
         { time: '14:00', names: ['기구 필라테스', '코어 강화'], ins: '정다은 강사 (필라테스)' }
     ];

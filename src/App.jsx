@@ -226,14 +226,7 @@ const RequireSuperAdmin = ({ children }) => {
           setAllowed(false); setChecked(true); return;
         }
 
-        // [SaaS Decoupling] boksaem-yoga 자체 도메인에서는 슈퍼어드민 페이지 접근 차단
-        const host = window.location.hostname;
-        if (host.includes('boksaem-yoga')) {
-            console.warn('[Security] ❌ 슈퍼어드민 권한이 있으나, 이 도메인(boksaem-yoga)에서는 접근할 수 없습니다.');
-            setAllowed(false); 
-            setChecked(true); 
-            return;
-        }
+        // Remove domain block logic so user can access super admin from their own domain
 
         setAllowed(role === 'superadmin');
         setChecked(true);

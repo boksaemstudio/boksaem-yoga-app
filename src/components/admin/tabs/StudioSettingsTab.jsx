@@ -717,7 +717,13 @@ const StudioSettingsTab = () => {
                                     <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '4px' }}>{app.label}</div>
                                     <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>{app.desc}</div>
                                 </div>
-                                <div style={{ background: 'white', padding: '8px', borderRadius: '12px' }}>
+                                <div 
+                                    style={{ background: 'white', padding: '8px', borderRadius: '12px', cursor: 'pointer', transition: 'transform 0.2s' }}
+                                    onClick={() => window.open(fullUrl, '_blank')}
+                                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                                    onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                    title="클릭하여 새 탭에서 열기"
+                                >
                                     <img src={qrUrl} alt={`${app.label} QR`} style={{ width: '120px', height: '120px', display: 'block' }} />
                                 </div>
                                 <div style={{

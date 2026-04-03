@@ -42,6 +42,26 @@ const InstructorPage = () => {
     const [showInstallGuide, setShowInstallGuide] = useState(false); // [PWA] Install Guide
     const [pushEnabled, setPushEnabled] = useState('Notification' in window && Notification.permission === 'granted');
     const [pushLoading, setPushLoading] = useState(false);
+
+    // [PWA Back Button Intercept]
+    useEffect(() => {
+        const handlePopState = (e) => {
+            if (showInstallGuide) {
+                setShowInstallGuide(false);
+            }
+        };
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, [showInstallGuide]);
+
+    const safeSetShowInstallGuide = (open) => {
+        if (open && !window.history.state?.installGuideOpen) {
+            window.history.pushState({ installGuideOpen: true }, '');
+        } else if (!open && window.history.state?.installGuideOpen) {
+            window.history.back();
+        }
+        setShowInstallGuide(open);
+    };
     
     // Attendance State (Global)
     const [attendance, setAttendance] = useState([]);
@@ -363,9 +383,18 @@ const InstructorPage = () => {
             
             {/* Header */}
             <div style={{ background: 'rgba(20, 20, 25, 0.95)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', position: 'relative', zIndex: 2 }}>
-                <div>
-                    <h1 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--primary-gold)' }}>{config.IDENTITY?.NAME || 'Studio'} 선생님</h1>
-                    <div style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{instructorName} 선생님</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {config.IDENTITY?.LOGO_URL ? (
+                        <img src={config.IDENTITY.LOGO_URL} alt="로고" style={{ maxHeight: '36px', width: 'auto', objectFit: 'contain', background: 'white', padding: '2px', borderRadius: '4px' }} onError={(e) => e.target.style.display = 'none'} />
+                    ) : (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '4px', background: 'var(--primary-gold)', color: '#000', fontSize: '16px', fontWeight: '900' }}>
+                            {config.IDENTITY?.NAME?.[0] || 'S'}
+                        </div>
+                    )}
+                    <div>
+                        <h1 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--primary-gold)' }}>{config.IDENTITY?.NAME || 'Studio'} 선생님</h1>
+                        <div style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{instructorName} 선생님</div>
+                    </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <button
@@ -493,8 +522,8 @@ const InstructorPage = () => {
                 <TabButton icon={<Bell size={24} />} label="공지" active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} />
             </div>
 
-            <InstallBanner onManualInstallClick={() => setShowInstallGuide(true)} />
-            <InstallGuideModal isOpen={showInstallGuide} onClose={() => setShowInstallGuide(false)} />
+            <InstallBanner onManualInstallClick={() => safeSetShowInstallGuide(true)} />
+            <InstallGuideModal isOpen={showInstallGuide} onClose={() => safeSetShowInstallGuide(false)} />
             <div style={{ textAlign: 'center', padding: '16px 0 80px', position: 'relative', zIndex: 1 }}>
                 <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.2)', textDecoration: 'none' }}>개인정보처리방침</a>
             </div>

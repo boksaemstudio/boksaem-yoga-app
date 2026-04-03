@@ -5,7 +5,7 @@ const ProfileHeader = ({ logo, studioName, langLabelIndex, langLabels, t, logout
     return (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 10px', paddingTop: 'max(20px, env(safe-area-inset-top))' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <img src={logo} alt="Logo" style={{ width: '30px', height: 'auto', filter: 'brightness(0) invert(1)' }} />
+                <img src={logo} alt="Logo" style={{ width: 'auto', height: '30px', objectFit: 'contain', background: 'white', padding: '2px', borderRadius: '4px' }} onError={(e) => { e.target.style.display = 'none'; }} />
                 <span style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'white' }}>{studioName}</span>
             </div>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
