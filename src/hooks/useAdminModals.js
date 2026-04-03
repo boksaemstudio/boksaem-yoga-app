@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 /**
  * AdminDashboard의 모달창 상태를 통합 관리하는 커스텀 훅
