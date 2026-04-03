@@ -39,9 +39,15 @@ const CheckInPage = () => {
     const { config } = useStudioConfig();
     const { speak } = useTTS();
     const logoWide = config.ASSETS?.LOGO?.WIDE || '/assets/passflow_logo.png';
-    // [SaaS] RYS200 로고는 복샘요가 출석체크앱에서만 표시 (도메인 하드코딩)
-    const isBoksaemYoga = window.location.hostname.includes('boksaem-yoga');
-    const rys200Logo = isBoksaemYoga ? (config.ASSETS?.LOGO?.RYS200 || '/assets/RYS200.webp') : '';
+    // [SaaS] 키오스크 로고: 관리자앱 키오스크 탭에서 설정한 로고 배열 우선
+    // 없으면 설정 탭의 스튜디오 로고(IDENTITY.LOGO_URL) 또는 가로형 로고 fallback
+    const kioskLogos = (() => {
+        const logos = (config.KIOSK?.LOGOS || []).filter(Boolean);
+        if (logos.length > 0) return logos;
+        // fallback: 스튜디오 설정 로고 → 가로형 로고
+        const fallback = config.IDENTITY?.LOGO_URL || logoWide;
+        return fallback ? [fallback] : [];
+    })();
     const branches = config.BRANCHES || [];
     // [FIX] FACE_RECOGNITION_ENABLED만으로 얼굴 인식 활성화 (SHOW_CAMERA_PREVIEW는 프리뷰 표시만 제어)
     const faceRecognitionEnabled = config.POLICIES?.FACE_RECOGNITION_ENABLED === true;
@@ -485,7 +491,7 @@ const CheckInPage = () => {
             <TopBar weather={weather} currentBranch={currentBranch} branches={branches} handleBranchChange={c => { setCurrentBranch(c); storageService.setKioskBranch(c); }} toggleFullscreen={() => { try { const el = document.documentElement; const isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement; if (!isFs) { (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || (() => {})).call(el); } else { (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || (() => {})).call(document); } } catch(e) { console.warn('[Fullscreen] Not supported:', e.message); } }} language="ko" onInstructorClick={() => setShowInstructorQR(true)} />
 
             <div className="checkin-content" style={{ zIndex: 5, flex: 1, display: 'flex', gap: '2vh', padding: '3vh 3vw 5vh', width: '100%', alignItems: 'stretch', overflow: 'hidden' }}>
-                <CheckInInfoSection pin={pin} loading={loading} aiExperience={aiExperience} aiEnhancedMsg={aiEnhancedMsg} aiLoading={aiLoading} rys200Logo={rys200Logo} logoWide={logoWide} qrCodeUrl={qrCodeUrl} handleQRInteraction={() => setShowKioskInstallGuide(true)} onCameraTouch={() => setShowFaceRegModal(true)} faceRecognitionEnabled={faceRecognitionEnabled} isScanning={isScanning} cameraVideoRef={faceVideoRef} cameraStream={cameraStream} attendanceVideoRef={videoRef} />
+                <CheckInInfoSection pin={pin} loading={loading} aiExperience={aiExperience} aiEnhancedMsg={aiEnhancedMsg} aiLoading={aiLoading} kioskLogos={kioskLogos} qrCodeUrl={qrCodeUrl} handleQRInteraction={() => setShowKioskInstallGuide(true)} onCameraTouch={() => setShowFaceRegModal(true)} faceRecognitionEnabled={faceRecognitionEnabled} isScanning={isScanning} cameraVideoRef={faceVideoRef} cameraStream={cameraStream} attendanceVideoRef={videoRef} />
                 <CheckInKeypadSection pin={pin} loading={loading} isReady={isReady} loadingMessage={loadingMessage} keypadLocked={keypadLocked} showSelectionModal={showSelectionModal} message={message} handleKeyPress={handleKeyPress} handleClear={handleClear} handleSubmit={handleSubmit} />
             </div>
 

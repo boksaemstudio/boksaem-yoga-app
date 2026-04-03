@@ -10,7 +10,7 @@ const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024;
 
 const KioskSettingsTab = () => {
-    const { config } = useStudioConfig();
+    const { config, updateConfig, refreshConfig } = useStudioConfig();
     const branches = config.BRANCHES || [];
     const [settings, setSettings] = useState({ active: false, imageUrl: null, mediaType: 'image' });
     const [isUploading, setIsUploading] = useState(false);
@@ -188,6 +188,109 @@ const KioskSettingsTab = () => {
                 <Image size={24} weight="fill" color="var(--primary-gold)" />
                 키오스크 화면 설정
             </h3>
+
+            {/* ━━━ 출석 화면 로고 설정 (SaaS) ━━━ */}
+            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '16px', border: '1px solid var(--border-color)', marginBottom: '24px' }}>
+                <h4 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    📷 출석 화면 로고
+                </h4>
+                <p style={{ margin: '0 0 20px 0', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                    출석체크 키오스크 숫자패드 위에 표시될 로고입니다. 최대 2개까지 등록할 수 있습니다.
+                    <br />
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
+                        등록하지 않으면 설정 탭의 스튜디오 로고가 표시됩니다.
+                    </span>
+                </p>
+
+                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                    {[0, 1].map((slotIdx) => {
+                        const logos = config.KIOSK?.LOGOS || [];
+                        const logoUrl = logos[slotIdx] || '';
+                        const inputId = `kiosk-logo-upload-${slotIdx}`;
+                        return (
+                            <div key={slotIdx} style={{
+                                flex: '1 1 200px', minHeight: '140px',
+                                background: 'rgba(0,0,0,0.3)', borderRadius: '12px',
+                                border: logoUrl ? '2px solid var(--primary-gold)' : '2px dashed rgba(255,255,255,0.15)',
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                position: 'relative', overflow: 'hidden', transition: 'all 0.2s'
+                            }}>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', position: 'absolute', top: '8px', left: '12px', fontWeight: 'bold' }}>
+                                    로고 {slotIdx + 1}
+                                </div>
+                                {logoUrl ? (
+                                    <>
+                                        <img src={logoUrl} alt={`키오스크 로고 ${slotIdx + 1}`} style={{ maxHeight: '80px', maxWidth: '90%', objectFit: 'contain', margin: '10px' }} />
+                                        <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+                                            <label htmlFor={inputId} style={{
+                                                padding: '4px 10px', borderRadius: '6px', fontSize: '0.7rem', cursor: 'pointer',
+                                                background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', border: '1px solid rgba(255,255,255,0.1)'
+                                            }}>변경</label>
+                                            <button onClick={async () => {
+                                                const newLogos = [...(config.KIOSK?.LOGOS || [])];
+                                                newLogos[slotIdx] = '';
+                                                // 빈 문자열 제거 (뒤에서부터)
+                                                while (newLogos.length > 0 && !newLogos[newLogos.length - 1]) newLogos.pop();
+                                                try {
+                                                    await updateConfig({ KIOSK: { ...(config.KIOSK || {}), LOGOS: newLogos } });
+                                                    await refreshConfig();
+                                                } catch(e) { alert('삭제 실패: ' + e.message); }
+                                            }} style={{
+                                                padding: '4px 10px', borderRadius: '6px', fontSize: '0.7rem', cursor: 'pointer',
+                                                background: 'rgba(244,63,94,0.1)', color: '#F43F5E', border: '1px solid rgba(244,63,94,0.3)'
+                                            }}>삭제</button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <label htmlFor={inputId} style={{
+                                        cursor: 'pointer', textAlign: 'center', padding: '20px',
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px'
+                                    }}>
+                                        <Image size={32} weight="light" color="rgba(255,255,255,0.2)" />
+                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
+                                            {slotIdx === 0 ? '클릭하여 업로드' : '(선택사항)'}
+                                        </span>
+                                    </label>
+                                )}
+                                <input
+                                    type="file" accept="image/*" id={inputId}
+                                    style={{ display: 'none' }}
+                                    onChange={async (e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        if (file.size > 5 * 1024 * 1024) { alert('최대 5MB까지 업로드 가능합니다.'); return; }
+                                        try {
+                                            setIsUploading(true);
+                                            setUploadProgress(`로고 ${slotIdx + 1} 업로드 중...`);
+                                            const ext = file.name.split('.').pop().toLowerCase();
+                                            const storageRef = ref(storage, tenantStoragePath(`kiosk_logo_${slotIdx}_${Date.now()}.${ext}`));
+                                            await uploadBytes(storageRef, file, { contentType: file.type });
+                                            const url = await getDownloadURL(storageRef);
+
+                                            const newLogos = [...(config.KIOSK?.LOGOS || [])];
+                                            // 슬롯 크기 맞추기
+                                            while (newLogos.length <= slotIdx) newLogos.push('');
+                                            newLogos[slotIdx] = url;
+
+                                            await updateConfig({ KIOSK: { ...(config.KIOSK || {}), LOGOS: newLogos } });
+                                            await refreshConfig();
+                                            alert(`✅ 로고 ${slotIdx + 1} 업로드 완료!`);
+                                        } catch (err) {
+                                            console.error('[Kiosk] Logo upload failed:', err);
+                                            alert('업로드 실패: ' + err.message);
+                                        } finally {
+                                            setIsUploading(false);
+                                            setUploadProgress('');
+                                        }
+                                        e.target.value = '';
+                                    }}
+                                />
+                            </div>
+                        );
+                    })}
+                </div>
+                {isUploading && <div style={{ marginTop: '12px', textAlign: 'center', color: 'var(--primary-gold)', fontSize: '0.85rem', fontWeight: 'bold' }}>{uploadProgress}</div>}
+            </div>
 
             <div style={{ padding: '16px', background: 'rgba(var(--primary-rgb), 0.05)', borderRadius: '12px', border: '1px solid rgba(var(--primary-rgb), 0.2)', marginBottom: '24px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                 <Info size={20} color="var(--primary-gold)" style={{ flexShrink: 0, marginTop: '2px' }} />

@@ -165,10 +165,22 @@ export const StudioProvider = ({ children }) => {
         }
     };
 
+    // [SaaS] 수동 새로고침 (onSnapshot이 자동이지만, 안전망용)
+    const refreshConfig = async () => {
+        try {
+            const studioId = resolveStudioId();
+            const snap = await import('firebase/firestore').then(m => m.getDoc(doc(db, 'studios', studioId)));
+            if (snap.exists()) {
+                setConfig(prev => ({ ...prev, ...snap.data() }));
+            }
+        } catch(e) { console.warn('[Studio] Manual refresh failed:', e); }
+    };
+
     const value = {
         config,
         loading,
         updateConfig,
+        refreshConfig,
         // Helper to get nested values safely with fallback
         get: (path, fallback) => {
             return path.split('.').reduce((obj, key) => (obj && obj[key] !== undefined) ? obj[key] : undefined, config) || fallback;

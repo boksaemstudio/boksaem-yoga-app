@@ -7,8 +7,7 @@ const CheckInInfoSection = memo(({
     aiExperience,
     aiEnhancedMsg,
     aiLoading,
-    rys200Logo,
-    logoWide,
+    kioskLogos = [],
     qrCodeUrl,
     handleQRInteraction,
     onCameraTouch,
@@ -60,15 +59,17 @@ const CheckInInfoSection = memo(({
         <div className="checkin-info-section">
             <header className="info-header" style={{ marginBottom: 'clamp(10px, 2vh, 25px)', flexShrink: 0 }}>
                 <div className="logo-container" style={{ display: 'flex', alignItems: 'center', gap: '35px', justifyContent: 'center' }}>
-                    {/* RYS200 로고 (설정되어 있을 때만 — 복샘요가 전용) */}
-                    {rys200Logo && (
-                        <img src={rys200Logo} alt="RYS200" style={{ height: 'clamp(32px, 7vh, 65px)', width: 'auto', objectFit: 'contain' }} onError={(e) => { e.target.style.display = 'none'; }} />
-                    )}
-                    {/* 스튜디오 메인 로고 — 키오스크에서는 가로형(WIDE) 우선 사용 */}
-                    {logoWide ? (
-                        <img src={logoWide} alt="Studio Logo" style={{ height: 'clamp(38px, 8vh, 78px)', width: 'auto', objectFit: 'contain' }} onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling && (e.target.nextSibling.style.display = 'block'); }} />
-                    ) : config.IDENTITY?.LOGO_URL ? (
-                        <img src={config.IDENTITY.LOGO_URL} alt="Studio Logo" style={{ height: 'clamp(40px, 8vh, 80px)', width: 'auto', objectFit: 'contain' }} onError={(e) => { e.target.style.display = 'none'; }} />
+                    {/* [SaaS] 키오스크 로고: 관리자가 키오스크 탭에서 등록한 이미지들 */}
+                    {kioskLogos.length > 0 ? (
+                        kioskLogos.map((logoUrl, idx) => (
+                            <img
+                                key={idx}
+                                src={logoUrl}
+                                alt={`Kiosk Logo ${idx + 1}`}
+                                style={{ height: 'clamp(32px, 7vh, 70px)', width: 'auto', maxWidth: kioskLogos.length > 1 ? '45%' : '80%', objectFit: 'contain' }}
+                                onError={(e) => { e.target.style.display = 'none'; }}
+                            />
+                        ))
                     ) : (
                         <h1 style={{ color: 'white', fontSize: 'clamp(2rem, 5vh, 3rem)', margin: 0, fontWeight: 900, letterSpacing: '-1px' }}>{studioName}</h1>
                     )}
