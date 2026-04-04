@@ -8,7 +8,7 @@
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { admin, tenantDb, getAI, createPendingApproval, logAIError, getKSTDateString, getStudioName } = require("../helpers/common");
+const { admin, tenantDb, STUDIO_ID, getAI, createPendingApproval, logAIError, getKSTDateString, getStudioName } = require("../helpers/common");
 
 /**
  * 보안 회원 조회 (PIN 기반)
@@ -16,7 +16,7 @@ const { admin, tenantDb, getAI, createPendingApproval, logAIError, getKSTDateStr
 exports.getSecureMemberV2Call = onCall({ 
     cors: require('../helpers/cors').ALLOWED_ORIGINS
 }, async (request) => {
-    const tdb = tenantDb();
+    const tdb = tenantDb(request.data.studioId);
     const db = tdb.raw(); // 글로벌 컬렉션(rate_limits)용
     const { phoneLast4 } = request.data;
     
@@ -92,7 +92,7 @@ exports.getSecureMemberV2Call = onCall({
 exports.memberLoginV2Call = onCall({
     cors: require('../helpers/cors').ALLOWED_ORIGINS
 }, async (request) => {
-    const tdb = tenantDb();
+    const tdb = tenantDb(request.data.studioId);
     const db = tdb.raw(); // 글로벌 컬렉션(rate_limits)용
     
     // [FIX] Warmup Ping Handler
@@ -216,7 +216,7 @@ exports.memberLoginV2Call = onCall({
 exports.verifyInstructorV2Call = onCall({
     cors: require('../helpers/cors').ALLOWED_ORIGINS
 }, async (request) => {
-    const tdb = tenantDb();
+    const tdb = tenantDb(request.data.studioId);
     const db = tdb.raw(); // 글로벌 컬렉션(rate_limits)용
     const { name, phoneLast4 } = request.data;
 
@@ -309,7 +309,7 @@ exports.checkExpiringMembersV2 = onSchedule({
     schedule: 'every day 13:00',
     timeZone: 'Asia/Seoul'
 }, async (event) => {
-    const tdb = tenantDb();
+    const tdb = tenantDb(STUDIO_ID);
     const ai = getAI();
     const today = new Date();
     const targetDateStr = getKSTDateString(today);
@@ -348,8 +348,8 @@ exports.checkExpiringMembersV2 = onSchedule({
         for (const [lang, memberIds] of Object.entries(membersByLang)) {
             const body = messagesByLang[lang];
             if (memberIds && memberIds.length > 0) {
-                const studioName = await getStudioName();
-                await createPendingApproval('expiration', memberIds, `${studioName} 알림`, body, { lang, date: targetDateStr });
+                const studioName = await getStudioName(STUDIO_ID);
+                await createPendingApproval('expiration', memberIds, `${studioName} 알림`, body, { lang, date: targetDateStr }, STUDIO_ID);
             }
         }
     } catch (error) {
@@ -370,7 +370,7 @@ exports.applyMemberHoldCall = onCall({
     // [FIX] Auth guard — 회원 인증 필요
     const { requireAuth } = require('../helpers/authGuard');
     requireAuth(request, 'applyMemberHoldCall');
-    const tdb = tenantDb();
+    const tdb = tenantDb(request.data.studioId);
     const db = tdb.raw(); // 글로벌 컬렉션(studios)용
     const { memberId, holdDays } = request.data;
 

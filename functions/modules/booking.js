@@ -22,7 +22,7 @@ exports.processNoshowsV2 = onSchedule({
     timeZone: "Asia/Seoul",
     region: "asia-northeast3"
 }, async (event) => {
-    const tdb = tenantDb();
+    const tdb = tenantDb(STUDIO_ID);
     const todayStr = getKSTDateString(new Date());
     
     // 현재 KST 시간 (HH:MM)
@@ -106,8 +106,8 @@ exports.processNoshowsV2 = onSchedule({
         
         // 4. 관리자에게 노쇼 요약 알림
         if (noshowMembers.length > 0) {
-            const studioName = await getStudioName();
-            const { tokens } = await getAllFCMTokens(null, { role: 'admin' });
+            const studioName = await getStudioName(STUDIO_ID);
+            const { tokens } = await getAllFCMTokens(null, { role: 'admin', studioId: STUDIO_ID });
             
             // [ROOT FIX] 'type' → 'role' (실제 저장 필드명). 레거시 'type' 필드도 보험 조회
             let adminTokenSnap = await tdb.collection('fcm_tokens').where('role', '==', 'admin').get();
@@ -167,7 +167,7 @@ exports.onBookingStatusChanged = onDocumentUpdated({
 }, async (event) => {
     const before = event.data.before.data();
     const after = event.data.after.data();
-    const tdb = tenantDb();
+    const tdb = tenantDb(event.params.studioId);
     
     // 상태가 변하지 않았으면 무시
     if (before.status === after.status) return null;
@@ -219,10 +219,10 @@ exports.onBookingStatusChanged = onDocumentUpdated({
             
             // 승격된 회원에게 푸시 알림
             if (promoted.memberId) {
-                const { tokens } = await getAllFCMTokens(null, { memberId: promoted.memberId });
+                const { tokens } = await getAllFCMTokens(null, { memberId: promoted.memberId, studioId: event.params.studioId });
                 
                 if (tokens.length > 0) {
-                    const studioName = await getStudioName();
+                    const studioName = await getStudioName(event.params.studioId);
                     await admin.messaging().sendEachForMulticast({
                         tokens,
                         notification: {
@@ -260,7 +260,7 @@ exports.generateBookingStatsV2 = onSchedule({
     timeZone: "Asia/Seoul",
     region: "asia-northeast3"
 }, async (event) => {
-    const tdb = tenantDb();
+    const tdb = tenantDb(STUDIO_ID);
     const todayStr = getKSTDateString(new Date());
     
     console.log(`[Booking] Generating daily stats for ${todayStr}`);

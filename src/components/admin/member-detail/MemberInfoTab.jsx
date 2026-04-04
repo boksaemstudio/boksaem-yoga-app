@@ -114,6 +114,191 @@ const BasicInfoBlock = ({ editData, setEditData, originalData }) => {
 };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 블록 1.5: 관리자 수동 홀딩
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const AdminHoldBlock = ({ originalData }) => {
+    const [isHolding, setIsHolding] = useState(false);
+    const [holdLoading, setHoldLoading] = useState(false);
+    
+    // Custom Modal States
+    const [modalConfig, setModalConfig] = useState(null); // null | { type: 'apply' | 'release' }
+    const [holdDaysText, setHoldDaysText] = useState('14');
+
+    useEffect(() => {
+        setIsHolding(originalData?.holdStatus === 'holding');
+    }, [originalData?.holdStatus]);
+
+    const handleHoldToggleClick = () => {
+        if (!originalData?.id) return;
+        if (isHolding) {
+            setModalConfig({ type: 'release' });
+        } else {
+            setHoldDaysText('14');
+            setModalConfig({ type: 'apply' });
+        }
+    };
+
+    const executeReleaseHold = async () => {
+        setModalConfig(null);
+        setHoldLoading(true);
+        try {
+            const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            const holdStart = new Date(originalData.holdStartDate + 'T00:00:00+09:00');
+            const todayDate = new Date(today + 'T00:00:00+09:00');
+            let actualHoldDays = Math.max(1, Math.round((todayDate - holdStart) / (1000 * 60 * 60 * 24)));
+
+            if (originalData.holdRequestedDays) {
+                actualHoldDays = Math.min(actualHoldDays, originalData.holdRequestedDays);
+            }
+
+            let newEndDate = originalData.endDate;
+            if (originalData.endDate && originalData.endDate !== 'TBD' && originalData.endDate !== 'unlimited') {
+                const currentEnd = new Date(originalData.endDate);
+                currentEnd.setDate(currentEnd.getDate() + actualHoldDays);
+                newEndDate = currentEnd.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            }
+
+            const history = [...(originalData.holdHistory || [])];
+            if (history.length > 0 && !history[history.length - 1].releasedAt) {
+                history[history.length - 1].releasedAt = new Date().toISOString();
+                history[history.length - 1].actualDays = actualHoldDays;
+            }
+
+            await memberService.updateMember(originalData.id, {
+                holdStatus: null,
+                holdStartDate: null,
+                holdRequestedDays: null,
+                endDate: newEndDate,
+                holdHistory: history
+            });
+            alert(`✅ 성공적으로 수동 해제되었으며, ${actualHoldDays}일 만큼 만료일이 연장되었습니다.`);
+        } catch (e) {
+            alert('해제 중 오류 발생: ' + e.message);
+        } finally {
+            setHoldLoading(false);
+        }
+    };
+
+    const executeApplyHold = async () => {
+        setModalConfig(null);
+        setHoldLoading(true);
+        try {
+            const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+            const history = [...(originalData.holdHistory || [])];
+            history.push({
+                startDate: today,
+                appliedAt: new Date().toISOString(),
+                appliedByAdmin: true
+            });
+
+            await memberService.updateMember(originalData.id, {
+                holdStatus: 'holding',
+                holdStartDate: today,
+                holdHistory: history
+            });
+            alert(`✅ 성공적으로 수강권 홀딩이 시작되었습니다!\n\n회원 상태가 '홀딩 일시정지 중'으로 변경되었으며, 회원이 복귀하여 첫 출석체크를 하는 순간 홀딩이 해제되고 쉰 날짜만큼 연장됩니다.`);
+        } catch (e) {
+            alert('적용 중 오류 발생: ' + e.message);
+        } finally {
+            setHoldLoading(false);
+        }
+    };
+
+    return (
+        <>
+            <div style={{
+                background: 'rgba(251, 146, 60, 0.05)', border: '1px solid rgba(251, 146, 60, 0.2)',
+                borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '1rem' }}>⏸️</span>
+                        <span style={{ fontSize: '0.85rem', color: '#fb923c', fontWeight: 'bold' }}>
+                            {isHolding ? `현재 홀딩 중 (${originalData.holdStartDate} ~ )` : '관리자 권한 홀딩 (일시정지)'}
+                        </span>
+                    </div>
+                    <button
+                        onClick={handleHoldToggleClick}
+                        disabled={holdLoading}
+                        style={{
+                            padding: '6px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold', border: 'none',
+                            background: isHolding ? 'rgba(239, 68, 68, 0.2)' : '#fb923c',
+                            color: isHolding ? '#ef4444' : 'white', cursor: holdLoading ? 'not-allowed' : 'pointer'
+                        }}
+                    >
+                        {holdLoading ? '처리 중...' : isHolding ? '홀딩 해제' : '홀딩 적용'}
+                    </button>
+                </div>
+                {!isHolding && (
+                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', lineHeight: '1.4' }}>
+                        회원의 앱에서 '회원 자가 홀딩' 설정을 켜지 않더라도 이 화면에서 관리자가 직접 수강권을 일시정지할 수 있습니다.
+                    </div>
+                )}
+            </div>
+
+            {/* Custom Modals */}
+            {modalConfig?.type === 'apply' && (
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.7)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
+                }}>
+                    <div style={{
+                        background: '#18181b', border: '1px solid #3f3f46', borderRadius: '16px',
+                        width: '100%', maxWidth: '400px', padding: '24px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)'
+                    }}>
+                        <h3 style={{ margin: '0 0 16px', color: 'white', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{color: '#fb923c'}}>⏸️</span> 관리자 수동 홀딩 적용
+                        </h3>
+                        <p style={{ margin: '0 0 16px', color: '#a1a1aa', fontSize: '0.9rem' }}>회원의 수강권을 일시정지 하시겠습니까?</p>
+                        <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px', marginBottom: '24px' }}>
+                            <p style={{ margin: '0 0 8px', color: '#fb923c', fontSize: '0.8rem', fontWeight: 'bold' }}>⚠️ 주의사항 및 동작 방식</p>
+                            <ul style={{ margin: 0, paddingLeft: '16px', color: '#a1a1aa', fontSize: '0.75rem', lineHeight: '1.5' }}>
+                                <li style={{ marginBottom: '6px' }}>적용 즉시 수강권 이용이 정지되며 기간 차감이 멈춥니다.</li>
+                                <li style={{ marginBottom: '6px' }}>회원이 복귀하여 <strong style={{color:'white'}}>처음 출석체크</strong>를 하는 날 바로 홀딩이 풀리며, 쉬었던 기간만큼 종료일이 자동으로 연장됩니다.</li>
+                                <li>언제든 이 화면에서 관리자가 수동으로 홀딩을 해제할 수 있습니다.</li>
+                            </ul>
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button onClick={() => setModalConfig(null)} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: '#3f3f46', color: 'white', fontWeight: 'bold', cursor: 'pointer' }}>취소</button>
+                            <button onClick={executeApplyHold} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: '#fb923c', color: 'white', fontWeight: 'bold', cursor: 'pointer' }}>적용하기</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {modalConfig?.type === 'release' && (
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.7)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
+                }}>
+                    <div style={{
+                        background: '#18181b', border: '1px solid #3f3f46', borderRadius: '16px',
+                        width: '100%', maxWidth: '400px', padding: '24px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)'
+                    }}>
+                        <h3 style={{ margin: '0 0 16px', color: 'white', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{color: '#ef4444'}}>⏹️</span> 홀딩 강제 해제
+                        </h3>
+                        <p style={{ margin: '0 0 20px', color: '#d4d4d8', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                            정말 현재 진행 중인 홀딩을 해제하시겠습니까?
+                        </p>
+                        <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '12px', borderRadius: '8px', marginBottom: '24px' }}>
+                            <p style={{ margin: '0 0 8px', color: '#ef4444', fontSize: '0.8rem', fontWeight: 'bold' }}>⚠️ 변경 사항</p>
+                            <p style={{ margin: 0, color: '#a1a1aa', fontSize: '0.8rem', lineHeight: '1.5' }}>
+                                지금까지 쉬었던 일수(최대 한도 내)를 계산하여 즉시 <strong style={{color:'white'}}>회원권 만료일을 연장</strong>하고, 상태를 '이용 중'으로 되돌립니다.
+                            </p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button onClick={() => setModalConfig(null)} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: '#3f3f46', color: 'white', fontWeight: 'bold', cursor: 'pointer' }}>취소</button>
+                            <button onClick={executeReleaseHold} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: '#ef4444', color: 'white', fontWeight: 'bold', cursor: 'pointer' }}>해제하기</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 블록 2: 회원권 현황 (읽기전용 카드 + 수동 조정)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const MembershipBlock = ({ editData, setEditData, originalData, pricingConfig, getTypeLabel }) => {
@@ -127,6 +312,7 @@ const MembershipBlock = ({ editData, setEditData, originalData, pricingConfig, g
     let statusLabel = '만료됨';
     let statusColor = '#ef4444';
     if (isTBD) { statusLabel = '첫 출석 대기'; statusColor = 'var(--primary-gold)'; }
+    else if (originalData?.holdStatus === 'holding') { statusLabel = '홀딩 일시정지 중'; statusColor = '#fb923c'; }
     else if (endDate && endDate >= todayStr && credits > 0) { statusLabel = '이용 중'; statusColor = '#10b981'; }
     else if (endDate && endDate >= todayStr && credits <= 0) { statusLabel = '횟수 소진'; statusColor = '#f59e0b'; }
     else if (endDate && endDate < todayStr) { statusLabel = '기간 만료'; statusColor = '#ef4444'; }
@@ -179,6 +365,37 @@ const MembershipBlock = ({ editData, setEditData, originalData, pricingConfig, g
                     </div>
                 </div>
             </div>
+
+            {/* ── 홀딩 내역 ── */}
+            {originalData?.holdHistory && originalData.holdHistory.length > 0 && (
+                <div style={{
+                    background: 'rgba(251,146,60,0.08)', border: '1px solid rgba(251,146,60,0.25)',
+                    borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px',
+                    marginTop: '10px'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '0.75rem', background: '#fb923c', color: '#000', padding: '3px 10px', borderRadius: '6px', fontWeight: 'bold' }}>
+                            홀딩 내역
+                        </span>
+                        <span style={{ fontSize: '0.8rem', color: '#fb923c', fontWeight: '600' }}>총 {originalData.holdHistory.length}회 기록</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {originalData.holdHistory.map((h, i) => (
+                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '8px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    <span style={{ color: '#fb923c', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                                        {h.startDate.replace(/-/g, '.')} ~ {h.releasedAt ? new Date(h.releasedAt).toLocaleDateString('sv-SE', {timeZone:'Asia/Seoul'}).replace(/-/g, '.') : '현재'}
+                                    </span>
+                                    <span style={{ color: '#a1a1aa', fontSize: '0.75rem' }}>{h.appliedByAdmin ? '관리자 수동 정지' : '시스템 처리'}</span>
+                                </div>
+                                <div style={{ color: 'white', fontSize: '0.85rem', fontWeight: 'bold', background: 'rgba(255,255,255,0.1)', padding:'6px 10px', borderRadius:'6px' }}>
+                                    {h.releasedAt ? `${h.actualDays || '?'}일 정지 완료` : '정지 중'}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* ── 다가올 수강권 (선등록) ── */}
             {upcoming && (
@@ -590,6 +807,11 @@ const MemberInfoTab = ({ editData, setEditData, onSave, pricingConfig, originalD
 
             {/* ━━━ 구분선 ━━━ */}
             <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', margin: '0' }} />
+
+            {/* ━━━ 관리자 수동 홀딩 블록 ━━━ */}
+            {originalData?.role !== 'instructor' && (
+                <AdminHoldBlock originalData={originalData} />
+            )}
 
             {/* ━━━ 블록 3: 수강권 타임라인 ━━━ */}
             <PaymentHistoryBlock originalData={originalData} getTypeLabel={getTypeLabel} />

@@ -142,7 +142,7 @@ function generateManifest(config, roleType) {
         gcm_sender_id: gcmSenderId,
         scope: role.scope,
         display: role.display,
-        background_color: "#121212",
+        background_color: "#000000",
         theme_color: themeColor,
         orientation: role.orientation,
         icons
@@ -232,14 +232,15 @@ exports.serveDynamicSaaS = onRequest(
                 }
             }
 
-            // ── OG 메타태그 치환 (카카오톡/페이스북 크롤러) ──
+            // ── OG 메타태그 치환 (카카오톡/페이스북 크롤러 완벽 대응) ──
+            // 관리자가 설정한 로고 하나가 파비콘, PWA, 카카오톡 미리보기에 모두 동일하게 적용
             let finalHtml = baseHtml
                 .replace(/<title>.*?<\/title>/gi, `<title>${displayTitle}</title>`)
                 .replace(/<meta property="og:title" content=".*?">/gi, `<meta property="og:title" content="${displayTitle}">`)
                 .replace(/<meta property="og:site_name" content=".*?">/gi, `<meta property="og:site_name" content="${studioName}">`)
                 .replace(/<meta property="og:description" content=".*?">/gi, `<meta property="og:description" content="${desc}">`)
                 .replace(/<meta name="description" content=".*?">/gi, `<meta name="description" content="${desc}">`)
-                .replace(/<meta property="og:image" content=".*?">/gi, `<meta property="og:image" content="${logoUrl}">\n  <meta property="og:image:width" content="800">\n  <meta property="og:image:height" content="800">\n  <meta property="og:image:alt" content="${studioName} 로고">`);
+                .replace(/<meta property="og:image" content=".*?">/gi, `<meta property="og:image" content="${logoUrl}">\n  <meta property="og:image:width" content="512">\n  <meta property="og:image:height" content="512">\n  <meta property="og:image:alt" content="${studioName}">\n  <meta name="twitter:card" content="summary">\n  <meta name="twitter:title" content="${displayTitle}">\n  <meta name="twitter:description" content="${desc}">\n  <meta name="twitter:image" content="${logoUrl}">\n  <meta itemprop="image" content="${logoUrl}">`);
 
             // ── [ROOT FIX] 파비콘 + apple-touch-icon 동적 치환 ──
             // 각 스튜디오의 관리자 설정 로고가 브라우저 탭 아이콘에 반영

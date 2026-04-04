@@ -7,6 +7,7 @@ import { doc, query, where, getDocs, getDoc, addDoc, updateDoc, setDoc, deleteDo
 import { httpsCallable } from 'firebase/functions';
 import { tenantDb } from '../utils/tenantDb';
 import { safeLocalStorage } from '../utils/safeLocalStorage';
+import { getCurrentStudioId } from '../utils/resolveStudioId';
 
 // ── Types ──
 export interface Member {
@@ -125,7 +126,7 @@ export const memberService = {
             else {
                 try {
                     const getSecureMember = httpsCallable(functions, 'getSecureMemberV2Call');
-                    const result = await withTimeout(getSecureMember({ phoneLast4: last4Digits }), 15000, '회원 조회 시간 초과');
+                    const result = await withTimeout(getSecureMember({ phoneLast4: last4Digits, studioId: getCurrentStudioId() }), 15000, '회원 조회 시간 초과');
                     let fetchedMembers = ((result.data as { members?: Member[] }).members || []) as Member[];
                     // 백엔드 반환 결과 중 소프트 삭제된 멤버 클라이언트단에서 2중 차단
                     members = fetchedMembers.filter(m => !(m as Record<string, unknown>).deletedAt);

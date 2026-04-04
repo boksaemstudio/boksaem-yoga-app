@@ -18,7 +18,7 @@ exports.generatePageExperienceV2 = onCall({
     timeoutSeconds: 120,
     cors: require('../helpers/cors').ALLOWED_ORIGINS 
 }, async (request) => {
-    await checkAIQuota();
+    await checkAIQuota(request.data.studioId);
 
     let role = request.data.role || 'member';
     const type = request.data.type || 'experience';
@@ -39,7 +39,7 @@ exports.generatePageExperienceV2 = onCall({
     }, {
         uid: request.auth?.uid || 'anonymous',
         ip: request.rawRequest ? request.rawRequest.ip : 'unknown'
-    });
+    }, request.data.studioId);
 
     try {
         const ai = getAI();
@@ -278,7 +278,7 @@ exports.generateDailyYogaV2 = onCall({
     cors: require('../helpers/cors').ALLOWED_ORIGINS 
 }, async (request) => {
     try {
-        await checkAIQuota();
+        await checkAIQuota(request.data.studioId);
         const ai = getAI();
         const language = request.data.language || 'ko';
         const result = await ai.generateDailyYoga(language);
@@ -305,7 +305,7 @@ exports.parseStudioDocument = onCall({
     const { requireAdmin } = require('../helpers/authGuard');
     requireAdmin(request, 'parseStudioDocument');
     try {
-        await checkAIQuota(); // Use same quota system to prevent abuse
+        await checkAIQuota(request.data.studioId); // Use same quota system to prevent abuse
         
         // Ensure only authenticated users (preferably admins, but we check existence here) can use this
         // In real prod, you'd likely strictly verify admin role, but let's allow basic auth for now

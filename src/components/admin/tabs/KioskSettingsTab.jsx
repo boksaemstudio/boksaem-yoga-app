@@ -16,9 +16,9 @@ const KioskSettingsTab = () => {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState('');
     const [selectedBranch, setSelectedBranch] = useState('all');
-    // [NEW] 갤러리: 업로드된 모든 미디어 리스트
     const [gallery, setGallery] = useState([]);
     const [loadingGallery, setLoadingGallery] = useState(true);
+    const [tempOpacities, setTempOpacities] = useState({});
 
     // ─── 설정 + 갤러리 로드 ───
     useEffect(() => {
@@ -206,33 +206,115 @@ const KioskSettingsTab = () => {
                     {[0, 1].map((slotIdx) => {
                         const logos = config.KIOSK?.LOGOS || [];
                         const logoUrl = logos[slotIdx] || '';
+                        const bgs = config.KIOSK?.LOGO_BGS || [];
+                        const opacities = config.KIOSK?.LOGO_OPACITIES || [];
+                        const currentBg = bgs[slotIdx] || 'transparent'; // 'transparent', 'white', 'black'
+                        const dbOpacity = typeof opacities[slotIdx] === 'number' ? opacities[slotIdx] : 1.0;
+                        const currentOpacity = tempOpacities[slotIdx] !== undefined ? tempOpacities[slotIdx] : dbOpacity;
+                        
                         const inputId = `kiosk-logo-upload-${slotIdx}`;
+
+                        const bgRgb = currentBg === 'white' ? '255,255,255' : currentBg === 'black' ? '0,0,0' : null;
+                        const finalBg = bgRgb ? `rgba(${bgRgb}, ${currentOpacity})` : 'transparent';
+
                         return (
                             <div key={slotIdx} style={{
                                 flex: '1 1 200px', minHeight: '140px',
                                 background: 'rgba(0,0,0,0.3)', borderRadius: '12px',
                                 border: logoUrl ? '2px solid var(--primary-gold)' : '2px dashed rgba(255,255,255,0.15)',
                                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                                position: 'relative', overflow: 'hidden', transition: 'all 0.2s'
+                                position: 'relative', overflow: 'hidden', transition: 'all 0.2s', paddingBottom: logoUrl ? '10px' : '0'
                             }}>
-                                <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', position: 'absolute', top: '8px', left: '12px', fontWeight: 'bold' }}>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', position: 'absolute', top: '8px', left: '12px', fontWeight: 'bold', zIndex: 10 }}>
                                     로고 {slotIdx + 1}
                                 </div>
                                 {logoUrl ? (
                                     <>
-                                        <img src={logoUrl} alt={`키오스크 로고 ${slotIdx + 1}`} style={{ maxHeight: '80px', maxWidth: '90%', objectFit: 'contain', margin: '10px' }} />
+                                        {/* 이미지만 감싸는 컨테이너에 선택한 배경 부여 (프리뷰 흐릿함 방지) */}
+                                        <div style={{
+                                            width: '100%', display: 'flex', justifyContent: 'center', padding: '16px 0',
+                                            background: finalBg,
+                                        }}>
+                                            <img src={logoUrl} alt={`키오스크 로고 ${slotIdx + 1}`} style={{ maxHeight: '70px', maxWidth: '80%', objectFit: 'contain' }} />
+                                        </div>
+
+                                        {/* 배경색 선택 UI */}
+                                        <div style={{ display: 'flex', gap: '8px', marginTop: '12px', alignItems: 'center', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                                            <span>배경:</span>
+                                            {['transparent', 'white', 'black'].map(bgValue => (
+                                                <label key={bgValue} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                                                    <input 
+                                                        type="radio" 
+                                                        checked={currentBg === bgValue} 
+                                                        onChange={async () => {
+                                                            const newBgs = [...bgs];
+                                                            while (newBgs.length <= slotIdx) newBgs.push('transparent');
+                                                            newBgs[slotIdx] = bgValue;
+                                                            try {
+                                                                await updateConfig({ KIOSK: { ...(config.KIOSK || {}), LOGO_BGS: newBgs } });
+                                                                await refreshConfig();
+                                                            } catch(e) { alert('변경 실패: ' + e.message); }
+                                                        }}
+                                                    />
+                                                    {bgValue === 'transparent' ? '없음' : bgValue === 'white' ? '흰' : '검'}
+                                                </label>
+                                            ))}
+                                        </div>
+
+                                        {/* 농도 조절 슬라이더 */}
+                                        {currentBg !== 'transparent' && (
+                                            <div style={{ padding: '0 16px', marginTop: '8px', width: '100%', boxSizing: 'border-box' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'var(--text-tertiary)', marginBottom: '4px' }}>
+                                                    <span>농도 조절</span>
+                                                    <span>{Math.round(currentOpacity * 100)}%</span>
+                                                </div>
+                                                <input 
+                                                    type="range" 
+                                                    min="0.1" max="1.0" step="0.05" 
+                                                    value={currentOpacity}
+                                                    onChange={(e) => setTempOpacities(prev => ({...prev, [slotIdx]: parseFloat(e.target.value)}))}
+                                                    onMouseUp={async () => {
+                                                        const newOpacs = [...opacities];
+                                                        while (newOpacs.length <= slotIdx) newOpacs.push(1.0);
+                                                        newOpacs[slotIdx] = currentOpacity;
+                                                        try {
+                                                            await updateConfig({ KIOSK: { ...(config.KIOSK || {}), LOGO_OPACITIES: newOpacs } });
+                                                            await refreshConfig();
+                                                        } catch(e) {}
+                                                    }}
+                                                    onTouchEnd={async () => {
+                                                        const newOpacs = [...opacities];
+                                                        while (newOpacs.length <= slotIdx) newOpacs.push(1.0);
+                                                        newOpacs[slotIdx] = currentOpacity;
+                                                        try {
+                                                            await updateConfig({ KIOSK: { ...(config.KIOSK || {}), LOGO_OPACITIES: newOpacs } });
+                                                            await refreshConfig();
+                                                        } catch(e) {}
+                                                    }}
+                                                    style={{ width: '100%', cursor: 'pointer' }}
+                                                />
+                                            </div>
+                                        )}
+
                                         <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
                                             <label htmlFor={inputId} style={{
                                                 padding: '4px 10px', borderRadius: '6px', fontSize: '0.7rem', cursor: 'pointer',
                                                 background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', border: '1px solid rgba(255,255,255,0.1)'
                                             }}>변경</label>
                                             <button onClick={async () => {
-                                                const newLogos = [...(config.KIOSK?.LOGOS || [])];
+                                                const newLogos = [...logos];
+                                                const newBgs = [...bgs];
+                                                const newOpacs = [...opacities];
+                                                
                                                 newLogos[slotIdx] = '';
-                                                // 빈 문자열 제거 (뒤에서부터)
+                                                newBgs[slotIdx] = 'transparent';
+                                                newOpacs[slotIdx] = 1.0;
+                                                
                                                 while (newLogos.length > 0 && !newLogos[newLogos.length - 1]) newLogos.pop();
+                                                while (newBgs.length > 0 && newBgs[newBgs.length - 1] === 'transparent') newBgs.pop();
+
                                                 try {
-                                                    await updateConfig({ KIOSK: { ...(config.KIOSK || {}), LOGOS: newLogos } });
+                                                    await updateConfig({ KIOSK: { ...(config.KIOSK || {}), LOGOS: newLogos, LOGO_BGS: newBgs } });
                                                     await refreshConfig();
                                                 } catch(e) { alert('삭제 실패: ' + e.message); }
                                             }} style={{

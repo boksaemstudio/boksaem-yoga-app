@@ -16,7 +16,7 @@ const chunk = require('lodash/chunk');
 // [TEMP] 안면인식 확인용
 exports.checkFaceInfo = onRequest({ region: "asia-northeast3" }, async (req, res) => {
     try {
-        const tdb = tenantDb(); // 환경변수 STUDIO_ID 기반 동적 해석
+        const tdb = tenantDb(STUDIO_ID); // 환경변수 STUDIO_ID 기반 동적 해석
         const snap = await tdb.collection('members').get();
         let results = [];
         snap.forEach(doc => {
@@ -40,7 +40,7 @@ exports.checkLowCreditsV2 = onDocumentUpdated({
     const newData = event.data.after.data();
     const oldData = event.data.before.data();
     const memberId = event.params.memberId;
-    const tdb = tenantDb();
+    const tdb = tenantDb(event.params.studioId);
 
     if (newData.credits === oldData.credits) return null;
     // [FIX] || → && : 크레딧이 정확히 0이 되었고(newData.credits !== 0이면 skip), 감소 방향일 때만 알림
@@ -56,8 +56,8 @@ exports.checkLowCreditsV2 = onDocumentUpdated({
 
         let tokensSnap = await tdb.collection('fcm_tokens').where('memberId', '==', memberId).get();
         if (!tokensSnap.empty) {
-            const studioName = await getStudioName();
-            await createPendingApproval('low_credits', [memberId], `${studioName} 알림`, body, { credits: 0, prevCredits: oldData.credits });
+            const studioName = await getStudioName(event.params.studioId);
+            await createPendingApproval('low_credits', [memberId], `${studioName} 알림`, body, { credits: 0, prevCredits: oldData.credits }, event.params.studioId);
         }
     } catch (e) {
         console.error(e);
@@ -72,7 +72,7 @@ exports.sendDailyAdminReportV2 = onSchedule({
     timeZone: "Asia/Seoul",
     region: "asia-northeast3"
 }, async (event) => {
-    const tdb = tenantDb();
+    const tdb = tenantDb(STUDIO_ID);
     const todayStr = getKSTDateString(new Date());
 
     try {
@@ -89,7 +89,7 @@ exports.sendDailyAdminReportV2 = onSchedule({
         const anomalyCount = anomalySnap.size;
         const ghostCount = ghostSnap.size;
 
-        const studioName = await getStudioName();
+        const studioName = await getStudioName(STUDIO_ID);
         const reportBody = `[${studioName} 일일 리포트] ${todayStr}
 
 [출석 / 가입]
@@ -103,7 +103,7 @@ exports.sendDailyAdminReportV2 = onSchedule({
 오늘 하루도 수고 많으셨습니다. 🙏`;
 
         // [ROOT FIX] roles 배열 + role 단일필드 모두 검색 (원장 토큰 role 덮어쓰기 방어)
-        const { tokens } = await getAllFCMTokens(null, { role: 'admin' });
+        const { tokens } = await getAllFCMTokens(null, { role: 'admin', studioId: STUDIO_ID });
         if (tokens.length > 0) {
             await admin.messaging().sendEachForMulticast({
                 tokens,
@@ -123,7 +123,7 @@ exports.sendDailyAdminReportV2 = onSchedule({
 
     } catch (error) {
         console.error("Daily report failed:", error);
-        await logAIError('DailyReport', error);
+        await logAIError('DailyReport', error, STUDIO_ID);
     }
 });
 
@@ -137,7 +137,7 @@ exports.sendScheduledMessages = onSchedule({
     vpcConnector: "passflow-vpc",
     vpcConnectorEgressSettings: "ALL_TRAFFIC"
 }, async (event) => {
-    const tdb = tenantDb();
+    const tdb = tenantDb(STUDIO_ID);
     const now = new Date();
     
     console.log(`[Scheduled] Checking for messages to send at ${now.toISOString()}`);
@@ -203,8 +203,8 @@ exports.sendScheduledMessages = onSchedule({
                     if (memberDoc.exists) {
                         const phone = memberDoc.data().phone?.replace(/-/g, '');
                         if (phone) {
-                            const smsStudioName = await getStudioName();
-                            smsResult = await sendSMS(phone, content, `${smsStudioName} 알림`);
+                            const smsStudioName = await getStudioName(STUDIO_ID);
+                            smsResult = await sendSMS(phone, content, `${smsStudioName} 알림`, undefined, STUDIO_ID);
                         }
                     }
                 } catch (e) {
@@ -291,5 +291,61 @@ exports.injectLiveDemoActivity = onSchedule({
         await injectLiveActivity();
     } catch (e) {
         console.error('[Scheduled] injectLiveActivity failed:', e);
+    }
+});
+
+/**
+ * 자동 홀딩 만료 (매일 KST 01:00)
+ * 관리자가 정한 최대 홀딩 일수(holdRequestedDays)가 초과되었는데도 회원이 출석하지 않는 경우,
+ * 무기한 홀딩 상태로 방치되지 않도록 자동으로 홀딩을 해제합니다.
+ */
+exports.autoExpireHoldsV2 = onSchedule({
+    schedule: "0 1 * * *",
+    timeZone: "Asia/Seoul",
+    region: "asia-northeast3"
+}, async (event) => {
+    const { tenantDb, getKSTDateString } = require("../helpers/common");
+    const { processHoldRelease } = require("./attendance/coreLogic");
+    const tdb = tenantDb(STUDIO_ID); // 테넌트 동적 로드
+    
+    try {
+        console.log(`[Scheduled] Checking for expired holds at ${new Date().toISOString()}`);
+        const snapshot = await tdb.collection('members').where('holdStatus', '==', 'holding').get();
+        if (snapshot.empty) return;
+
+        const todayStr = getKSTDateString(new Date());
+        const timestampISO = new Date().toISOString();
+        const batch = tdb.raw().batch();
+        let releaseCount = 0;
+
+        snapshot.docs.forEach(doc => {
+            const memberData = doc.data();
+            if (!memberData.holdRequestedDays || !memberData.holdStartDate) return;
+
+            const holdStart = new Date(memberData.holdStartDate + 'T00:00:00+09:00');
+            const todayDate = new Date(todayStr + 'T00:00:00+09:00');
+            const daysElapsed = Math.round((todayDate - holdStart) / (1000 * 60 * 60 * 24));
+
+            // 경과된 일수가 한도(requestedDays)에 도달했거나 초과했다면 (출석 없이 30일이 지난 경우 등) 자동 릴리즈
+            if (daysElapsed >= memberData.holdRequestedDays) {
+                // coreLogic.js의 processHoldRelease는 Math.min 처리를 포함해 자동으로 최대 연장일수(requestedDays)를 적용함.
+                const { holdReleased, holdUpdates } = processHoldRelease(memberData, todayStr, timestampISO);
+                if (holdReleased) {
+                    const updateData = { 
+                        ...holdUpdates, 
+                        endDate: memberData.endDate // 연장된 endDate 반영
+                    };
+                    batch.update(doc.ref, updateData);
+                    releaseCount++;
+                }
+            }
+        });
+
+        if (releaseCount > 0) {
+            await batch.commit();
+            console.log(`[Scheduled] Auto-released ${releaseCount} holds that reached their maximum duration.`);
+        }
+    } catch (e) {
+        console.error("[Scheduled] autoExpireHoldsV2 failed:", e);
     }
 });

@@ -43,13 +43,13 @@ exports.adminAddAttendanceCall = onCall({
 }, async (request) => {
     requireAdmin(request, 'adminAddAttendanceCall');
 
-    const { memberId, branchId, date, className, instructor, skipCreditDeduction } = request.data;
+    const { memberId, branchId, date, className, instructor, skipCreditDeduction, studioId } = request.data;
 
     if (!memberId || !branchId) {
         throw new HttpsError('invalid-argument', '회원 ID와 지점 ID가 필요합니다.');
     }
 
-    const tdb = tenantDb();
+    const tdb = tenantDb(studioId);
     // [FIX] ISO 형식이 들어와도 항상 YYYY-MM-DD로 정규화 (근원 버그 수정)
     const dateStr = normalizeDateToYYYYMMDD(date);
     // timestamp 복원: date가 ISO면 그 시각 사용, YYYY-MM-DD면 현재 시각 사용
@@ -103,7 +103,8 @@ exports.adminAddAttendanceCall = onCall({
                 dateStr,
                 timestampISO: dateObj.toISOString(),
                 type: 'manual',
-                eventId: null
+                eventId: null,
+                studioId
             }, {
                 skipCreditDeduction: !!skipCreditDeduction,
                 skipValidation: true  // 관리자는 만료/횟수 무시 가능

@@ -35,16 +35,16 @@ exports.sendPushOnMessageV2 = onDocumentCreated({
     }
 
     try {
-        const tdb = tenantDb();
-        const studioName = await getStudioName();
-        const logoUrl = await getStudioLogoUrl();
+        const tdb = tenantDb(event.params.studioId);
+        const studioName = await getStudioName(event.params.studioId);
+        const logoUrl = await getStudioLogoUrl(event.params.studioId);
 
         let pushResult = null;
         let smsResult = null;
 
         // ── STEP 1: Push 전송 (push_only or push_first) ──
         if (sendMode !== 'sms_only') {
-            const { tokens, tokenSources } = await getAllFCMTokens(null, { memberId });
+            const { tokens, tokenSources } = await getAllFCMTokens(null, { memberId, studioId: event.params.studioId });
 
             if (tokens.length > 0) {
                 const response = await admin.messaging().sendEachForMulticast({
@@ -104,7 +104,7 @@ exports.sendPushOnMessageV2 = onDocumentCreated({
                         const phone = memberDoc.data().phone?.replace(/-/g, '');
                         if (phone) {
                             const { sendSMS } = require('./sms');
-                            const result = await sendSMS(phone, content, `${studioName} 알림`);
+                            const result = await sendSMS(phone, content, `${studioName} 알림`, undefined, event.params.studioId);
                             smsResult = { sent: true, result, provider: 'aligo' };
                         } else {
                             smsResult = { sent: false, error: "전화번호 없음" };
@@ -164,8 +164,8 @@ exports.sendBulkPushV2 = onDocumentCreated({
     const snap = event.data;
     const data = snap.data();
     const targetMemberIds = data.targetMemberIds || [];
-    const studioName = await getStudioName();
-    const logoUrl = await getStudioLogoUrl();
+    const studioName = await getStudioName(event.params.studioId);
+    const logoUrl = await getStudioLogoUrl(event.params.studioId);
     const titleOriginal = data.title || studioName;
     const bodyOriginal = data.body || "";
 
@@ -175,7 +175,7 @@ exports.sendBulkPushV2 = onDocumentCreated({
     try {
         await snap.ref.update({ status: 'processing', startedAt: admin.firestore.FieldValue.serverTimestamp() });
 
-        const tdb = tenantDb();
+        const tdb = tenantDb(event.params.studioId);
         const ai = getAI();
 
         let successTotal = 0;
@@ -284,11 +284,11 @@ exports.sendPushOnNoticeV2 = onDocumentCreated({
     const bodyOriginal = noticeData.content || "새로운 소식이 등록되었습니다";
 
     try {
-        const tdb = tenantDb();
+        const tdb = tenantDb(event.params.studioId);
         const ai = getAI();
-        const logoUrl = await getStudioLogoUrl();
-        // [FIX] 인라인 3중 컬렉션 순회 → getAllFCMTokens 헬퍼 + 그룹핑
-        const { tokens: allTokens } = await getAllFCMTokens(null);
+        const logoUrl = await getStudioLogoUrl(event.params.studioId);
+        // [FIX] 인라인 3중 컨렉션 순회 → getAllFCMTokens 헬퍼 + 그룹핑
+        const { tokens: allTokens } = await getAllFCMTokens(null, { studioId: event.params.studioId });
         const tokensByGroup = {};
 
         // [FIX] 테넌트 + 루트 양쪽에서 토큰 조회 및 그룹핑
@@ -382,7 +382,7 @@ exports.cleanupGhostTokens = onSchedule({
     memory: "512MiB",
     timeoutSeconds: 300,
 }, async (event) => {
-    const tdb = tenantDb();
+    const tdb = tenantDb(STUDIO_ID);
     const batchSize = 400;
     let totalTokensDeleted = 0;
     let totalUsersDeleted = 0;

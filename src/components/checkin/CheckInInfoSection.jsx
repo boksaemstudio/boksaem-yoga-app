@@ -61,15 +61,32 @@ const CheckInInfoSection = memo(({
                 <div className="logo-container" style={{ display: 'flex', alignItems: 'center', gap: '35px', justifyContent: 'center' }}>
                     {/* [SaaS] 키오스크 로고: 관리자가 키오스크 탭에서 등록한 이미지들 */}
                     {kioskLogos.length > 0 ? (
-                        kioskLogos.map((logoUrl, idx) => (
-                            <img
-                                key={idx}
-                                src={logoUrl}
-                                alt={`Kiosk Logo ${idx + 1}`}
-                                style={{ height: 'clamp(56px, 12.5vh, 125px)', width: 'auto', maxWidth: kioskLogos.length > 1 ? '45%' : '80%', objectFit: 'contain', background: 'rgba(255, 255, 255, 0.85)', padding: '6px', borderRadius: '12px' }}
-                                onError={(e) => { e.target.style.display = 'none'; }}
-                            />
-                        ))
+                        kioskLogos.map((logoUrl, idx) => {
+                            const bgs = config.KIOSK?.LOGO_BGS || [];
+                            const opacities = config.KIOSK?.LOGO_OPACITIES || [];
+                            const currentBg = bgs[idx] || 'transparent';
+                            const opacity = typeof opacities[idx] === 'number' ? opacities[idx] : 1.0;
+                            const bgRgb = currentBg === 'white' ? '255,255,255' : currentBg === 'black' ? '0,0,0' : null;
+                            const bgStyle = bgRgb ? `rgba(${bgRgb}, ${opacity})` : 'transparent';
+                            
+                            // 여백(padding) 등 강제로 들어갔던 부분 완전히 삭제 후, 지정된 색상 배경만 추가
+                            return (
+                                <img
+                                    key={idx}
+                                    src={logoUrl}
+                                    alt={`Kiosk Logo ${idx + 1}`}
+                                    style={{ 
+                                        height: 'clamp(56px, 12.5vh, 125px)', 
+                                        width: 'auto', 
+                                        maxWidth: kioskLogos.length > 1 ? '45%' : '80%', 
+                                        objectFit: 'contain', 
+                                        background: bgStyle,
+                                        borderRadius: currentBg === 'transparent' ? '0' : '8px' // 배경색이 있을 때만 미세한 라운드 처리 (여백 없음)
+                                    }}
+                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                />
+                            );
+                        })
                     ) : (
                         <h1 style={{ color: 'white', fontSize: 'clamp(2rem, 5vh, 3rem)', margin: 0, fontWeight: 900, letterSpacing: '-1px' }}>{studioName}</h1>
                     )}

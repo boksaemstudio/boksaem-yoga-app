@@ -4,6 +4,37 @@
 <head>
   <meta charset="UTF-8" />
 
+  <!-- [FIX] 1. globalThis Polyfill (For Firebase on iOS 11 / Chrome 60) -->
+  <script>
+    if (typeof globalThis === 'undefined') {
+      (function() {
+        if (typeof window !== 'undefined') { window.globalThis = window; }
+        else if (typeof self !== 'undefined') { self.globalThis = self; }
+      })();
+    }
+  </script>
+
+  <!-- [FIX] 2. Poisoned Cache Guard (For old WebViews/Tablets stuck with old ServiceWorker) -->
+  <script>
+    (function() {
+      // If the browser does not support <script type="module"> natively, then 
+      // the new module scripts won't run, BUT the ServiceWorker might still be serving old HTML!
+      var isModuleSupported = 'noModule' in HTMLScriptElement.prototype;
+      if (!isModuleSupported && 'serviceWorker' in navigator) {
+        // This is a hopelessly old browser that somehow registered a SW (e.g. Chrome 59 Android).
+        // Nuke the service worker to force a clean fetch of the legacy bundles!
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+          if (regs.length > 0) {
+            console.warn('[Cache Guard] Legacy browser detected. Purging poisoned ServiceWorkers...');
+            regs.forEach(function(r) { r.unregister(); });
+            // Add a small delay to ensure unregister completes before reload
+            setTimeout(function() { window.location.reload(true); }, 500);
+          }
+        });
+      }
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
@@ -18,10 +49,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
 
   <!-- [SaaS] theme-color — SSR이 스튜디오별 테마색으로 교체합니다 -->
-  <meta name="theme-color" content="#D4AF37">
+  <meta name="theme-color" content="#000000">
 
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   <!-- SEO & Open Graph — SSR(Cloud Function)이 스튜디오별 설정으로 동적 교체합니다 -->
   <meta name="description" content="PassFlow Ai — AI 기반 스튜디오 운영 솔루션">

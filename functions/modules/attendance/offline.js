@@ -18,7 +18,7 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
 
     const data = snapshot.data();
     const { memberId, branchId, classTitle, instructor, timestamp, date, eventId } = data;
-    const tdb = tenantDb();
+    const tdb = tenantDb(event.params.studioId);
 
     console.log(`[OfflineSync] Processing pending check-in for member: ${memberId}`);
 
@@ -51,7 +51,8 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
                 dateStr: date,
                 timestampISO: timestamp,
                 type: 'checkin',
-                eventId
+                eventId,
+                studioId: event.params.studioId
             }, {
                 skipCreditDeduction: false,
                 skipValidation: false,

@@ -84,13 +84,13 @@ const getKSTDateString = (date = new Date()) => {
  * 모든 FCM 컬렉션에서 토큰을 조회하는 공통 헬퍼
  * [TENANT] 테넌트 격리 경로를 사용합니다.
  * @param {Object} _db - (레거시 호환) 무시됨, tenantDb() 사용
- * @param {Object} filters - { memberId, role, instructorName } 등 필터 조건
+ * @param {Object} filters - { memberId, role, instructorName, studioId } 등 필터 조건
  * @returns {Object} { tokens: string[], tokenSources: { token: collectionName } }
  */
 const getAllFCMTokens = async (_db, filters = {}) => {
     const tokens = [];
     const tokenSources = {};
-    const tdb = tenantDb();
+    const tdb = tenantDb(filters.studioId);
 
     for (const col of FCM_COLLECTIONS) {
         try {
@@ -139,9 +139,9 @@ const getAllFCMTokens = async (_db, filters = {}) => {
 /**
  * AI 에러 로깅
  */
-const logAIError = async (context, error) => {
+const logAIError = async (context, error, overrideStudioId) => {
     try {
-        const tdb = tenantDb();
+        const tdb = tenantDb(overrideStudioId);
         await tdb.collection('ai_error_logs').add({
             context,
             error: error.message || error,
@@ -155,9 +155,9 @@ const logAIError = async (context, error) => {
 /**
  * AI 요청 로깅 (디버깅용)
  */
-const logAIRequest = async (type, memberName, data, context) => {
+const logAIRequest = async (type, memberName, data, context, overrideStudioId) => {
     try {
-        const tdb = tenantDb();
+        const tdb = tenantDb(overrideStudioId);
         await tdb.collection('ai_request_logs').add({
             type,
             memberName,
@@ -181,10 +181,10 @@ const getAI = () => {
 /**
  * AI 일일 할당량 체크
  */
-const checkAIQuota = async () => {
+const checkAIQuota = async (overrideStudioId) => {
     // [FIX] 순환 require('./common') 제거 — 동일 파일 스코프의 getKSTDateString 직접 사용
     const today = getKSTDateString();
-    const tdb = tenantDb();
+    const tdb = tenantDb(overrideStudioId);
     const quotaRef = tdb.collection('ai_quota').doc(today);
     
     const quotaSnap = await quotaRef.get();
@@ -206,8 +206,8 @@ const checkAIQuota = async () => {
 /**
  * Pending Approval 생성 (관리자 확인 필요한 푸시)
  */
-const createPendingApproval = async (type, targetMemberIds, title, body, data = {}) => {
-    const tdb = tenantDb();
+const createPendingApproval = async (type, targetMemberIds, title, body, data = {}, overrideStudioId) => {
+    const tdb = tenantDb(overrideStudioId);
     await tdb.collection('pending_approvals').add({
         type,
         targetMemberIds,

@@ -73,7 +73,7 @@ exports.generateMeditationGuidance = onCall({
         return { success: true, message: "AI Function Warmed Up" };
     }
 
-    await checkAIQuota();
+    await checkAIQuota(request.data.studioId);
 
     const { 
         type, // 'question' | 'prescription' | 'session_message'
@@ -168,7 +168,7 @@ exports.generateMeditationGuidance = onCall({
                 ? expertPerspectives[intentionFocus]
                 : null;
 
-            const studioName = await getStudioName();
+            const studioName = await getStudioName(request.data.studioId);
             prompt = `
 Role: ${studioName}의 명상 인사이트 가이드 (Korean, 해요체). 
 Goal: Help user notice "Here & Now" sensations (Body, Breath, Feeling) with Radical Acceptance.
@@ -537,7 +537,7 @@ JSON Output:
             else if (timeHour >= 22 || timeHour < 5) timeOfDay = 'late_night';
             else if (timeHour >= 18) timeOfDay = 'evening';
 
-            const studioName = await getStudioName();
+            const studioName = await getStudioName(request.data.studioId);
             prompt = `
 Role: ${studioName} AI Curator (Korean).
 Goal: Generate varied, poetic, and context-aware labels for meditation options.
@@ -655,7 +655,7 @@ JSON Output:
         };
 
         // [FIX] 테넌트 경로에 로그 저장
-        const tdb = tenantDb();
+        const tdb = tenantDb(request.data.studioId);
         await tdb.collection('meditation_ai_logs').add({
             type,
             timeContext: timeContext || 'unknown',

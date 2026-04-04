@@ -7,6 +7,7 @@ import { httpsCallable } from "firebase/functions";
 import { getDoc } from "firebase/firestore";
 import { tenantDb } from '../utils/tenantDb';
 import { getKSTHour } from '../utils/dates';
+import { getCurrentStudioId } from '../utils/resolveStudioId';
 
 // ── Types ──
 export interface AIExperienceResult {
@@ -83,7 +84,7 @@ export const getAIExperience = async (
     try {
         const genAI = httpsCallable(functions, 'generatePageExperienceV2');
         const isGeneric = !memberName || ["방문 회원", "방문회원", "visitor", "Guest"].includes(memberName);
-        const res = await genAI({ memberName, attendanceCount, dayOfWeek: day, timeOfDay: hour, upcomingClass, weather, credits, remainingDays, language, diligence, role: isGeneric ? 'visitor' : 'member', type: 'experience', context, mbti });
+        const res = await genAI({ memberName, attendanceCount, dayOfWeek: day, timeOfDay: hour, upcomingClass, weather, credits, remainingDays, language, diligence, role: isGeneric ? 'visitor' : 'member', type: 'experience', context, mbti, studioId: getCurrentStudioId() });
         const data = res.data as AIExperienceResult | null;
 
         if (!data || (Array.isArray(data) && data.length === 0)) {
@@ -110,7 +111,7 @@ export const getAIAnalysis = async (
 
     try {
         const genAI = httpsCallable(functions, 'generatePageExperienceV2');
-        const res = await genAI({ memberName, attendanceCount, logs: (logs || []).slice(0, 10), type: 'analysis', timeOfDay, language, role: requestRole, statsData, context });
+        const res = await genAI({ memberName, attendanceCount, logs: (logs || []).slice(0, 10), type: 'analysis', timeOfDay, language, role: requestRole, statsData, context, studioId: getCurrentStudioId() });
         const data = res.data as AIAnalysisResult;
         if (data && !data.isFallback) _safeSetItem(cacheKey, JSON.stringify(data));
         return data;
@@ -156,7 +157,8 @@ export const getChurnAnalysis = async (
             language,
             churnData,
             memberName: 'Admin',
-            role: 'admin'
+            role: 'admin',
+            studioId: getCurrentStudioId()
         });
         const data = res.data as AIAnalysisResult;
         if (data && !data.isFallback) _safeSetItem(cacheKey, JSON.stringify(data));
@@ -184,7 +186,8 @@ export const generateChurnMessage = async (
             memberInfo,
             studioName,
             memberName: memberInfo.name,
-            role: 'admin'
+            role: 'admin',
+            studioId: getCurrentStudioId()
         });
         const data = res.data as AIAnalysisResult;
         const msg = data?.message || '';
@@ -205,7 +208,7 @@ export const getDailyYoga = async (language = 'ko', mbti: string | null = null):
     }
     try {
         const genYoga = httpsCallable(functions, 'generateDailyYogaV2');
-        const response = await genYoga({ language, timeOfDay: getKSTHour(), weather: 'Sunny', mbti });
+        const response = await genYoga({ language, timeOfDay: getKSTHour(), weather: 'Sunny', mbti, studioId: getCurrentStudioId() });
         const data = response.data as DailyYogaPose[] | null;
         if (!data || (Array.isArray(data) && data.length === 0)) return DAILY_YOGA_FALLBACK(language);
         _safeSetItem(cacheKey, JSON.stringify(data));

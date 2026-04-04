@@ -57,14 +57,15 @@ const MembershipInfo = ({ member, daysRemaining, logs = [], t }) => {
         }
     };
 
-    // 홀딩 중일 때 예상 종료일 계산
+    // 홀딩 중일 때 정보 계산
     const getHoldEndInfo = () => {
         if (!isHolding || !member.holdStartDate) return null;
         const start = new Date(member.holdStartDate);
         const today = new Date();
         const elapsed = Math.max(1, Math.round((today - start) / (1000 * 60 * 60 * 24)));
-        const requested = member.holdRequestedDays || 14;
-        return { elapsed, requested, startDate: member.holdStartDate };
+        const isAdminHold = !member.holdRequestedDays; // 관리자 수동 홀딩 = 무기한
+        const requested = member.holdRequestedDays || null;
+        return { elapsed, requested, startDate: member.holdStartDate, isAdminHold };
     };
 
     const holdInfo = getHoldEndInfo();
@@ -137,11 +138,16 @@ const MembershipInfo = ({ member, daysRemaining, logs = [], t }) => {
                         <div>
                             <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#fb923c', marginBottom: '4px' }}>{t('holdPauseTitle')}</div>
                             <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
-                                {t('holdElapsed', { start: holdInfo.startDate, elapsed: holdInfo.elapsed, requested: holdInfo.requested })}
+                                {holdInfo.isAdminHold
+                                    ? `${holdInfo.startDate}부터 정지 중 (${holdInfo.elapsed}일째)`
+                                    : t('holdElapsed', { start: holdInfo.startDate, elapsed: holdInfo.elapsed, requested: holdInfo.requested })
+                                }
                             </div>
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)' }}>{t('holdAutoRelease')}</div>
+                            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)' }}>
+                                {holdInfo.isAdminHold ? '첫 출석 시 재시작' : t('holdAutoRelease')}
+                            </div>
                             <div style={{ fontSize: '0.7rem', color: '#fb923c' }}>{t('holdExtended', { days: holdInfo.elapsed })}</div>
                         </div>
                     </div>

@@ -239,9 +239,12 @@ export const calculateDerivedData = (
         if (t.instructorName) instructorNamesWithPush.add(t.instructorName);
     });
 
-    // ━━━━ 재등록률 계산 (통일된 정의) ━━━━
-    // 정의: 해당 월에 결제한 회원 중, 그 월 이전에도 결제 이력이 있으면 "재등록"
-    // 이 정의를 상단 카드, 최근 3개월, 월별 트렌드에서 동일하게 적용
+    // ━━━━ 재등록률 계산 (유일한 계산 소스 — Single Source of Truth) ━━━━
+    // ⚠️ 서버(stats.js)의 'reReg'는 금액 기준 (재등록 매출액)이며, 여기서 계산하는 것은 회원 수 기준
+    // 정의: 해당 월에 결제한 회원 중, 그 월 이전에도 결제 이력이 있으면 "재등록 회원"
+    //       reRegistrationRate = 재등록 회원 수 / 전체 결제 회원 수 × 100
+    // 이 로직만이 관리자 대시보드에 표시되는 유일한 재등록률 소스입니다.
+    // ※ 서버 revenue_summary.monthly.reReg는 '재등록 매출 금액'이며, 이 비율과 무관합니다.
 
     // Step 1: 회원별 결제 월 수집
     const salesMonthsByMember = new Map<string, Set<string>>();  // memberId -> Set<"2026-03">
@@ -256,7 +259,7 @@ export const calculateDerivedData = (
     const membersWithSales = salesMonthsByMember.size;
 
     // Step 2: 월별 트렌드 (최근 6개월) — 기준 정의
-    const monthlyReRegTrend: { month: string; total: number; reReg: number; rate: number | null }[] = [];
+    const monthlyReRegTrend: { month: string; monthKey: string; total: number; reReg: number; rate: number | null }[] = [];
     const recentMonthKeys: string[] = [];
 
     for (let i = 5; i >= 0; i--) {
@@ -279,6 +282,7 @@ export const calculateDerivedData = (
 
         monthlyReRegTrend.push({
             month: monthLabel,
+            monthKey: monthStr,  // "2026-03" 형식 — 어떤 기간인지 명확히 추적 가능
             total: totalMembers,
             reReg: reRegMembers,
             // total=0이면 null (데이터 없음), total>0이고 reReg=0이면 진짜 0%

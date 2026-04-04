@@ -1,6 +1,11 @@
 import { useState, useRef } from 'react';
 import { X, PaperPlaneTilt, Calendar } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
+import { getCurrentStudioId } from '../../../utils/resolveStudioId';
+
+const SMS_ENABLED_STUDIOS = ['boksaem-yoga'];
+const DEMO_STUDIOS = ['demo-yoga'];
+const KAKAO_PASSFLOW_URL = 'http://pf.kakao.com/_zDxiMX/chat';
 
 const SEND_MODES = [
     { id: 'push_only', label: '앱 푸시만', desc: '무료', icon: '📱', color: '#10b981' },
@@ -17,6 +22,10 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
     const scheduleInputRef = useRef(null);
 
     if (!isOpen) return null;
+
+    const studioId = getCurrentStudioId();
+    const isSmsAvailable = SMS_ENABLED_STUDIOS.includes(studioId);
+    const isDemo = DEMO_STUDIOS.includes(studioId);
 
     const templates = [
         "[일괄연장] 휴무로 인해 전 회원 수강 기간이 O일 연장되었습니다.",
@@ -128,32 +137,47 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
                 <div style={{ marginBottom: '16px' }}>
                     <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.85rem', color: '#a1a1aa' }}>전송 방식</label>
                     <div style={{ display: 'flex', gap: '6px' }}>
-                        {SEND_MODES.map(mode => (
+                        {SEND_MODES.map(mode => {
+                            const isSmsMode = mode.id !== 'push_only';
+                            const smsBlocked = isSmsMode && !isSmsAvailable && !isDemo;
+                            return (
                             <button
                                 key={mode.id}
-                                onClick={() => setSendMode(mode.id)}
+                                onClick={() => {
+                                    if (smsBlocked) {
+                                        if (window.confirm('발신자 번호가 등록되어 있지 않습니다.\n\nSMS 발송을 위해서는 발신자 번호 등록이 필요합니다.\n패스플로우 카카오톡으로 문의하시겠습니까?')) {
+                                            window.open(KAKAO_PASSFLOW_URL, '_blank');
+                                        }
+                                        return;
+                                    }
+                                    setSendMode(mode.id);
+                                }}
                                 style={{
                                     flex: 1,
                                     padding: '10px 6px',
                                     borderRadius: '10px',
                                     border: sendMode === mode.id ? `2px solid ${mode.color}` : '1px solid rgba(255,255,255,0.1)',
-                                    background: sendMode === mode.id ? `${mode.color}15` : 'rgba(255,255,255,0.03)',
-                                    color: sendMode === mode.id ? mode.color : '#a1a1aa',
-                                    cursor: 'pointer',
+                                    background: smsBlocked ? 'rgba(255,255,255,0.02)' : sendMode === mode.id ? `${mode.color}15` : 'rgba(255,255,255,0.03)',
+                                    color: smsBlocked ? '#52525b' : sendMode === mode.id ? mode.color : '#a1a1aa',
+                                    cursor: smsBlocked ? 'not-allowed' : 'pointer',
                                     fontSize: '0.8rem',
                                     fontWeight: sendMode === mode.id ? '700' : '500',
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
                                     gap: '3px',
-                                    transition: 'all 0.15s ease'
+                                    transition: 'all 0.15s ease',
+                                    opacity: smsBlocked ? 0.5 : 1
                                 }}
                             >
                                 <span style={{ fontSize: '1.1rem' }}>{mode.icon}</span>
                                 <span>{mode.label}</span>
-                                <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>{mode.desc}</span>
+                                <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>
+                                    {smsBlocked ? '등록 필요' : isDemo && isSmsMode ? '시뮬레이션' : mode.desc}
+                                </span>
                             </button>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 

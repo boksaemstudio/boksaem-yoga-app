@@ -17,7 +17,8 @@ exports.onAttendanceCreated = onDocumentCreated({
     const currentDate = attendance.date;
     if (!memberId || !currentDate) return;
     
-    const tdb = tenantDb();
+    const tdb = tenantDb(event.params.studioId);
+    const currentStudioId = event.params.studioId;
 
     try {
         const parts = currentDate.split('-').map(Number);
@@ -71,8 +72,8 @@ exports.onAttendanceCreated = onDocumentCreated({
             if (totalCount === 1) rankLabel = ' [신규]';
             else if (totalCount >= 2 && totalCount <= 3) rankLabel = ` [${totalCount}회차]`;
 
-            const studioName = await getStudioName();
-            const logoUrl = await getStudioLogoUrl();
+            const studioName = await getStudioName(currentStudioId);
+            const logoUrl = await getStudioLogoUrl(currentStudioId);
             let body = `${memberName}님이 출석하셨습니다.`;
             if (attendance.credits !== undefined || attendance.endDate) {
                 const credits = attendance.credits !== undefined ? `${attendance.credits}회 남음` : '';
@@ -83,7 +84,7 @@ exports.onAttendanceCreated = onDocumentCreated({
             // [1] 강사에게 푸시
             const instructorName = attendance.instructor;
             if (instructorName) {
-                const { tokens } = await getAllFCMTokens(null, { role: 'instructor', instructorName });
+                const { tokens } = await getAllFCMTokens(null, { role: 'instructor', instructorName, studioId: currentStudioId });
                 if (tokens.length > 0) {
                     console.log(`[Instructor Push] Sending to ${tokens.length} tokens for "${instructorName}"`);
                     for (const token of tokens) {
@@ -119,7 +120,7 @@ exports.onAttendanceCreated = onDocumentCreated({
             // [ROOT FIX] 중복 방지 로직 제거 — 원장이 강사를 겸할 때도
             //   서로 다른 tag를 사용하므로 기기에서 별도 알림으로 표시됨
             //   (같은 tag면 교체되므로 정보가 사라지는 문제 방지)
-            const { tokens: adminTokens } = await getAllFCMTokens(null, { role: 'admin' });
+            const { tokens: adminTokens } = await getAllFCMTokens(null, { role: 'admin', studioId: currentStudioId });
             if (adminTokens.length === 0) {
                 console.warn(`[Attendance] 🚨 활성화된 원장(admin) 푸시 토큰이 없어 원장님께 푸시를 발송하지 못했습니다!!`);
             }
@@ -165,8 +166,8 @@ exports.onAttendanceCreated = onDocumentCreated({
                 const className = attendance.className || '수업';
                 const endDate = attendance.endDate;
                 const cumulativeCount = attendance.cumulativeCount || 0;
-                const studioName = await getStudioName();
-                const logoUrl = await getStudioLogoUrl();
+                const studioName = await getStudioName(currentStudioId);
+                const logoUrl = await getStudioLogoUrl(currentStudioId);
 
                 // 잔여일 계산
                 let daysLeft = '';
@@ -185,7 +186,7 @@ exports.onAttendanceCreated = onDocumentCreated({
                 const body = `${className} | ${parts.join(' • ')}`;
 
                 // [1] 회원 앱 푸시 (무료)
-                const { tokens: memberTokens } = await getAllFCMTokens(null, { memberId });
+                const { tokens: memberTokens } = await getAllFCMTokens(null, { memberId, studioId: currentStudioId });
                 if (memberTokens.length > 0) {
                     console.log(`[Member Push] Sending attendance push to ${memberTokens.length} tokens for "${memberName}"`);
                     for (const token of memberTokens) {
@@ -221,7 +222,7 @@ exports.onAttendanceCreated = onDocumentCreated({
                         const phone = memberSettings.phone;
                         if (phone) {
                             const smsBody = `[${studioName}] ${memberName}님 출석 확인\n${className} | ${parts.join(' | ')}\n${cumulativeCount > 0 ? `누적 ${cumulativeCount}회 출석` : ''}`;
-                            await sendSMS(phone, smsBody);
+                            await sendSMS(phone, smsBody, undefined, undefined, currentStudioId);
                             console.log(`[Member SMS] Attendance SMS sent to ${memberName} (${phone})`);
                         }
                     } catch (smsErr) {

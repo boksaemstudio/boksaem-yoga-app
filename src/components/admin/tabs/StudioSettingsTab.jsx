@@ -660,7 +660,24 @@ const StudioSettingsTab = () => {
                                             handleChange('BRANCHES', newBranches);
                                         }}
                                     />
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
+                                        ID: {branch.id} (변경 불가)
+                                    </div>
                                 </div>
+                                {localConfig.BRANCHES.length > 2 && (
+                                    <button
+                                        className="action-btn sm"
+                                        style={{ background: 'rgba(239,68,68,0.1)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.3)', fontSize: '0.75rem' }}
+                                        onClick={() => {
+                                            if (window.confirm(`"${branch.name}" 지점을 삭제하시겠습니까?\n\n⚠️ 주의: 해당 지점에 등록된 회원의 출석/매출/시간표 기록에서 지점 정보가 사라질 수 있습니다.\n\n이 작업은 되돌릴 수 없습니다.`)) {
+                                                const newBranches = localConfig.BRANCHES.filter((_, i) => i !== index);
+                                                handleChange('BRANCHES', newBranches);
+                                            }
+                                        }}
+                                    >
+                                        삭제
+                                    </button>
+                                )}
                             </div>
                         ))}
                         <button 
@@ -669,7 +686,6 @@ const StudioSettingsTab = () => {
                             onClick={() => {
                                 const name = prompt('새 지점 이름을 입력하세요:');
                                 if (name) {
-                                    // 자동 ID 생성
                                     const id = name.replace(/[^a-zA-Z0-9가-힣]/g, '').toLowerCase() || `branch_${Date.now()}`;
                                     const autoId = id.replace(/[가-힣]+/g, () => `branch_${Date.now()}`);
                                     const finalId = /^[a-z]/.test(autoId) ? autoId : `branch_${Date.now()}`;
@@ -680,6 +696,19 @@ const StudioSettingsTab = () => {
                         >
                             + 지점 추가
                         </button>
+                    </div>
+                    {/* ⚠️ 지점 관리 주의사항 */}
+                    <div style={{
+                        marginTop: '16px', padding: '12px 14px', borderRadius: '10px',
+                        background: 'rgba(245, 158, 11, 0.06)', border: '1px solid rgba(245, 158, 11, 0.15)',
+                        fontSize: '0.78rem', color: '#a1a1aa', lineHeight: '1.6'
+                    }}>
+                        <div style={{ fontWeight: '700', color: '#F59E0B', marginBottom: '6px', fontSize: '0.8rem' }}>
+                            ⚠️ 지점 관리 주의사항
+                        </div>
+                        <div>• 지점 ID는 한번 생성되면 <strong style={{ color: '#F59E0B' }}>변경할 수 없습니다</strong>. 지점명만 수정 가능합니다.</div>
+                        <div>• 지점을 삭제하면, 해당 지점의 출석/매출/시간표 기록에서 지점 정보가 사라질 수 있습니다.</div>
+                        <div>• 기존 회원의 소속 지점이 삭제된 경우, "전체" 보기에는 포함되지만 지점별 필터링이 불가합니다.</div>
                     </div>
                 </div>
             )}

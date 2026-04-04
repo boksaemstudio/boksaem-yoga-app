@@ -20,8 +20,8 @@ const { calculateStreak } = require('./helpers');
  * @param {string} startDate - 해소된 시작일
  * @param {string} endDate - 해소된 종료일
  */
-function updateTBDSalesRecords(memberId, startDate, endDate) {
-    const tdb = tenantDb();
+function updateTBDSalesRecords(memberId, startDate, endDate, studioId) {
+    const tdb = tenantDb(studioId);
     setImmediate(async () => {
         try {
             const salesSnap = await tdb.collection('sales')
@@ -52,7 +52,14 @@ function processHoldRelease(memberData, dateStr, timestampISO) {
 
     const holdStart = new Date(memberData.holdStartDate + 'T00:00:00+09:00');
     const todayDate = new Date(dateStr + 'T00:00:00+09:00');
-    const actualHoldDays = Math.max(1, Math.round((todayDate - holdStart) / (1000 * 60 * 60 * 24)));
+    
+    // 기본적으로 쉰 날짜 전체 계산
+    let actualHoldDays = Math.max(1, Math.round((todayDate - holdStart) / (1000 * 60 * 60 * 24)));
+
+    // [규칙 지키기] 신청/입력한 일수를 초과해서 쉬었다면 최대 허용 기간까지만 연장하도록 Cap (한도 제한)
+    if (memberData.holdRequestedDays) {
+        actualHoldDays = Math.min(actualHoldDays, memberData.holdRequestedDays);
+    }
 
     if (memberData.endDate && memberData.endDate !== 'TBD' && memberData.endDate !== 'unlimited') {
         const currentEnd = new Date(memberData.endDate);
@@ -142,7 +149,7 @@ function processTBDResolution(memberData, memberId, dateStr) {
     console.log(`[CoreLogic] TBD resolved: start=${newStart}, end=${newEnd} (duration=${dur}mo)`);
 
     // Fire-and-forget: Sales 기록도 실일자로 반영
-    updateTBDSalesRecords(memberId, newStart, newEnd);
+    updateTBDSalesRecords(memberId, newStart, newEnd, memberData._studioId);
 
     return { resolved: true, startDate: newStart, endDate: newEnd };
 }
@@ -168,13 +175,14 @@ function processTBDResolution(memberData, memberId, dateStr) {
  * @param {Object} options
  * @param {boolean} options.skipCreditDeduction - 횟수 차감 안 함 (관리자)
  * @param {boolean} options.skipValidation - 만료/횟수 검증 건너뛰기 (관리자)
+ * @param {boolean} options.force - 5분 디바운스 무시 (강제 출석)
  * @param {Object|null} options.preActivatedUpcoming - 오프라인에서 미리 계산된 upcoming
  * @returns {Object} 출석 처리 결과
  */
 async function processAttendanceCore(transaction, params, options = {}) {
-    const { memberId, branchId, className, instructor, classTime, dateStr, timestampISO, type, eventId, source } = params;
-    const { skipCreditDeduction = false, skipValidation = false, preActivatedUpcoming = null } = options;
-    const tdb = tenantDb();
+    const { memberId, branchId, className, instructor, classTime, dateStr, timestampISO, type, eventId, source, studioId } = params;
+    const { skipCreditDeduction = false, skipValidation = false, force = false, preActivatedUpcoming = null } = options;
+    const tdb = tenantDb(studioId);
 
     // ━━━━ 1. 회원 조회 ━━━━
     const memberRef = tdb.collection('members').doc(memberId);
@@ -221,10 +229,11 @@ async function processAttendanceCore(transaction, params, options = {}) {
     }
 
     // ━━━━ 4. TBD 해소 ━━━━
+    memberData._studioId = studioId; // Pass studioId for updateTBDSalesRecords
     const tbdResult = processTBDResolution(memberData, memberId, dateStr);
     if (activated && swapUpdates) {
         // 선등록 활성화된 경우 TBD 매출도 업데이트
-        updateTBDSalesRecords(memberId, memberData.startDate, memberData.endDate);
+        updateTBDSalesRecords(memberId, memberData.startDate, memberData.endDate, studioId);
     }
 
     // ━━━━ 5. 출석 검증 ━━━━
@@ -258,14 +267,14 @@ async function processAttendanceCore(transaction, params, options = {}) {
     );
     const records = recentSnap.docs.map(d => d.data()).filter(r => r.status === 'valid');
 
-    // 디바운스 방어막 (5분 이내 중복 출석 전면 차단)
-    if (records.length > 0 && records[0].timestamp) {
+    // 디바운스 방어막 (5초 이내 네트워크 이중전송 방지 — 중복 출석 UX는 프론트가 담당)
+    if (!force && records.length > 0 && records[0].timestamp) {
         const lastTime = new Date(records[0].timestamp);
         const nowTime = new Date(timestampISO);
-        const diffMinutes = (nowTime - lastTime) / (1000 * 60);
-        if (diffMinutes < 5) {
-            console.log(`[CoreLogic] BLOCKED duplicate attendance for ${memberId} within ${diffMinutes.toFixed(1)} mins.`);
-            return { success: false, status: 'error', message: '너무 빠른 중복 출석입니다. (5분 제한)' };
+        const diffSeconds = (nowTime - lastTime) / 1000;
+        if (diffSeconds < 5) {
+            console.log(`[CoreLogic] BLOCKED network duplicate for ${memberId} within ${diffSeconds.toFixed(1)}s.`);
+            return { success: false, status: 'error', message: '잠시 후 다시 시도해주세요.' };
         }
     }
 

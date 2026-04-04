@@ -1,11 +1,15 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-
 import { VitePWA } from 'vite-plugin-pwa';
+import legacy from '@vitejs/plugin-legacy';
 
 export default defineConfig({
   plugins: [
     react(),
+    legacy({
+      targets: ['defaults', 'chrome >= 59', 'safari >= 11', 'ios >= 11', 'android >= 5'],
+      additionalLegacyPolyfills: ['regenerator-runtime/runtime']
+    }),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
@@ -15,8 +19,8 @@ export default defineConfig({
         globPatterns: ['**/*.{css,html,ico,svg}', 'assets/index-*.js', 'assets/vendor-*.js'],
         // [FIX] Prevent Service Worker from hijacking static HTML pages into React Router SPA
         navigateFallbackDenylist: [/^\/features\.html$/, /^\/home\.html$/, /^\/onboarding_guide\.html$/],
-        // [PERF] 600KB 이하 파일만 프리캐시 허용 (vendor-firebase 512KB 수용, CheckInPage 1.4MB 제외)
-        maximumFileSizeToCacheInBytes: 600 * 1024,
+        // [PERF] 레거시 번들이 분리되면서 vendor-firebase-legacy가 971KB를 초과하므로 3MB로 상향 조치
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
@@ -49,9 +53,9 @@ export default defineConfig({
         name: '스튜디오',
         short_name: '스튜디오',
         description: '스튜디오 관리 앱',
-        theme_color: '#08080A',
-        background_color: '#08080A',
-        display: 'standalone',
+        theme_color: '#000000',
+        background_color: '#000000',
+        display: 'fullscreen',
         start_url: '/',
         icons: [
           {
@@ -80,8 +84,11 @@ export default defineConfig({
   esbuild: {
     drop: ['debugger'],
     pure: ['console.log', 'console.debug'],
+    target: 'chrome60'
   },
   build: {
+    target: ['es2015', 'chrome60', 'safari12'],
+    cssTarget: 'chrome61',
     outDir: 'dist',
     // [PERF] 'hidden' = 소스맵 생성하되 번들에서 참조 제거 → 에러 추적 가능 + 빌드 속도 약간 향상
     sourcemap: 'hidden',

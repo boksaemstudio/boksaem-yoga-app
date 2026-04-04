@@ -118,15 +118,16 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
                 monthlyRevenue: currentSummary.monthlyRevenue,
                 todayRevenue: currentSummary.totalRevenueToday,
 
-                // ── 재등록률 (경영 핵심 지표) ──
-                reRegistrationRate: currentSummary.reRegistrationRate || 0,
-                recentReRegRate: currentSummary.recentReRegRate || 0,
+                // ── 재등록률 (회원 수 기준 — 유일한 소스: adminCalculations.ts) ──
+                // ※ 서버 revenue_summary.monthly.reReg는 금액 기반이므로 별개의 지표입니다.
+                reRegistrationRate: currentSummary.reRegistrationRate || 0,  // 누적 재등록률 (%)
+                recentReRegRate: currentSummary.recentReRegRate || 0,        // 최근 3개월 재등록률 (%)
                 recentExpiredCount: currentSummary.recentExpiredCount || 0,
                 recentReRegisteredCount: currentSummary.recentReRegisteredCount || 0,
                 membersWithSales: currentSummary.membersWithSales || 0,
                 membersReRegistered: currentSummary.membersReRegistered || 0,
                 monthlyReRegTrend: (currentSummary.monthlyReRegTrend || []).map(t => ({
-                    month: t.month, total: t.total, reReg: t.reReg, rate: t.rate
+                    month: t.month, monthKey: t.monthKey, total: t.total, reReg: t.reReg, rate: t.rate
                 })),
 
                 // ── 이탈/위험 지표 ──

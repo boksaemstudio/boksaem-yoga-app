@@ -86,6 +86,8 @@ const CheckInPage = () => {
     const [duplicateTimer, setDuplicateTimer] = useState(config.POLICIES?.SESSION_AUTO_CLOSE_SEC || 25);
     const [isDuplicateFlow, setIsDuplicateFlow] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState('출석 확인 중...');
+    // [안면인식 확인 모달] 중신뢰 매칭 시 "OO회원님 맞나요?" 표시
+    const [faceConfirmMember, setFaceConfirmMember] = useState(null);
     const [period, setPeriod] = useState(() => {
         const h = getKSTHour();
         if (h >= 6 && h < 12) return 'morning';
@@ -304,7 +306,18 @@ const CheckInPage = () => {
         setAiLoading(false);
     };
 
-    const proceedWithCheckIn = async (p, isDup = false, memberIdToForce = null, facialTask = null) => {
+    const proceedWithCheckIn = async (p, isDup = false, memberIdToForce = null, facialTask = null, needConfirm = false) => {
+        // [안면인식 확인 모달] 중신뢰 매칭이면 확인 모달 먼저 표시
+        if (needConfirm && memberIdToForce) {
+            try {
+                const members = await storageService.getMemberById(memberIdToForce);
+                if (members) {
+                    setFaceConfirmMember({ id: memberIdToForce, name: members.name || '회원' });
+                    return;
+                }
+            } catch (_e) { /* fallthrough to PIN */ }
+            return;
+        }
         setLoading(true);
         recentCheckInsRef.current.push({ pin: p, timestamp: Date.now() });
         try {
@@ -343,7 +356,7 @@ const CheckInPage = () => {
                             (m.faceDescriptors && m.faceDescriptors.length > 0) || m.faceDescriptor
                         );
 
-                        if (allHaveFace && faceModelsLoaded && lastDescriptorRef.current) {
+                        if (allHaveFace && faceRecognitionEnabled && faceModelsLoaded && lastDescriptorRef.current) {
                             const bestMatch = findBestMatch(lastDescriptorRef.current, candidateMembers);
                             if (bestMatch) {
                                 const { euclideanDistance } = await import('../services/facialService');
@@ -367,7 +380,9 @@ const CheckInPage = () => {
                                     }
                                 }
                                 const gap = secondBestDist - bestDist;
-                                if (gap > 0.15) {
+                                // [강화] 극히 높은 신뢰도(dist<0.30 + gap>0.20)일 때만 자동 선택
+                                // 그 외에는 반드시 선택 모달 표시
+                                if (bestDist < 0.30 && gap > 0.20) {
                                     targetMemberId = bestMatch.id;
                                     isFacialMatch = true;
                                 }
@@ -399,7 +414,7 @@ const CheckInPage = () => {
                 } else {
                     uploadPhoto(res.attendanceId, res.member?.name, 'valid');
                     await showCheckInSuccess(res, isDup);
-                    if (faceModelsLoaded && lastDescriptorRef.current) {
+                    if (faceRecognitionEnabled && faceModelsLoaded && lastDescriptorRef.current) {
                         memberService.updateFaceDescriptor(targetMemberId, lastDescriptorRef.current);
                     }
                 }
@@ -422,7 +437,7 @@ const CheckInPage = () => {
         
         const taskId = ++activeTaskIdRef.current;
         let facialTask = null;
-        if (faceModelsLoaded && videoRef.current) {
+        if (faceRecognitionEnabled && faceModelsLoaded && videoRef.current) {
             facialTask = extractFaceDescriptor(videoRef.current).then(desc => {
                 if (taskId === activeTaskIdRef.current) { lastDescriptorRef.current = desc; return desc; }
                 return null;
@@ -431,7 +446,7 @@ const CheckInPage = () => {
 
         setTimeout(() => capturePhoto(), 0);
         
-        const duplicateThresholdMs = 20000;
+        const duplicateThresholdMs = 300000; // 5분 (백엔드 차단 시간과 동일)
         const isDup = recentCheckInsRef.current.some(e => e.pin === pinCode && (Date.now() - e.timestamp) < duplicateThresholdMs);
 
         if (isDup) {
@@ -523,6 +538,61 @@ const CheckInPage = () => {
                             <span style={{ fontSize: '2rem' }}>👆</span> 화면을 터치하면 출석부로 이동합니다
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* ── 안면인식 확인 모달: "OO회원님 맞나요?" ── */}
+            {faceConfirmMember && (
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 3500,
+                    background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+                }}>
+                    <div style={{
+                        background: 'rgba(30,30,40,0.95)', borderRadius: '24px', padding: '40px 48px',
+                        textAlign: 'center', maxWidth: '420px', width: '90%',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)'
+                    }}>
+                        <div style={{ fontSize: '4rem', marginBottom: '16px' }}>🧘</div>
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: '800', color: 'white', marginBottom: '12px' }}>
+                            {faceConfirmMember.name}님
+                        </h2>
+                        <p style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.7)', marginBottom: '32px' }}>
+                            출석하시겠습니까?
+                        </p>
+                        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+                            <button
+                                onClick={() => {
+                                    setFaceConfirmMember(null);
+                                    speak("info");
+                                }}
+                                style={{
+                                    flex: 1, padding: '16px 24px', borderRadius: '14px', fontSize: '1.2rem', fontWeight: '700',
+                                    background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                아니요
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const memberId = faceConfirmMember.id;
+                                    setFaceConfirmMember(null);
+                                    proceedWithCheckIn(null, false, memberId, null);
+                                }}
+                                style={{
+                                    flex: 1, padding: '16px 24px', borderRadius: '14px', fontSize: '1.2rem', fontWeight: '700',
+                                    background: 'var(--primary-theme-color, #D4AF37)', color: 'black', border: 'none',
+                                    cursor: 'pointer', boxShadow: '0 4px 20px rgba(212,175,55,0.4)'
+                                }}
+                            >
+                                네, 맞아요
+                            </button>
+                        </div>
+                        <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', marginTop: '20px' }}>
+                            본인이 아니면 4자리 핀번호로 출석해주세요
+                        </p>
+                    </div>
                 </div>
             )}
 

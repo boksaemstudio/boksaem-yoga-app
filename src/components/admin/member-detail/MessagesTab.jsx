@@ -3,6 +3,12 @@ import { useState, useEffect, useRef } from 'react';
 import { storageService } from '../../../services/storage';
 import { onSnapshot, query, where, orderBy, limit as firestoreLimit, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { tenantDb } from '../../../utils/tenantDb';
+import { getCurrentStudioId } from '../../../utils/resolveStudioId';
+
+// [SaaS] SMS 발송이 가능한 스튜디오 목록 (알리고 발신자 번호 등록 완료)
+const SMS_ENABLED_STUDIOS = ['boksaem-yoga'];
+const DEMO_STUDIOS = ['demo-yoga'];
+const KAKAO_PASSFLOW_URL = 'http://pf.kakao.com/_zDxiMX/chat';
 
 const SEND_MODES = [
     { id: 'push_only', label: '앱 푸시만', desc: '무료', icon: '📱', color: '#10b981' },
@@ -14,6 +20,10 @@ const MessagesTab = ({ memberId, member, prefillMessage, onPrefillConsumed }) =>
     const isUnlimited = member && (member.credits >= 999999 || member.endDate === 'unlimited');
     const [attendanceSmsEnabled, setAttendanceSmsEnabled] = useState(member?.attendanceSmsEnabled || false);
     const [smsSaving, setSmsSaving] = useState(false);
+    // [SaaS] SMS 가용 여부
+    const studioId = getCurrentStudioId();
+    const isSmsAvailable = SMS_ENABLED_STUDIOS.includes(studioId);
+    const isDemo = DEMO_STUDIOS.includes(studioId);
 
     const handleToggleAttendanceSms = async () => {
         const newVal = !attendanceSmsEnabled;
@@ -265,32 +275,47 @@ const MessagesTab = ({ memberId, member, prefillMessage, onPrefillConsumed }) =>
                 <div style={{ marginBottom: '12px' }}>
                     <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.8rem', color: '#a1a1aa' }}>전송 방식</label>
                     <div style={{ display: 'flex', gap: '6px' }}>
-                        {SEND_MODES.map(mode => (
+                        {SEND_MODES.map(mode => {
+                            const isSmsMode = mode.id !== 'push_only';
+                            const smsBlocked = isSmsMode && !isSmsAvailable && !isDemo;
+                            return (
                             <button
                                 key={mode.id}
-                                onClick={() => setSendMode(mode.id)}
+                                onClick={() => {
+                                    if (smsBlocked) {
+                                        if (window.confirm('발신자 번호가 등록되어 있지 않습니다.\n\nSMS 발송을 위해서는 발신자 번호 등록이 필요합니다.\n패스플로우 카카오톡으로 문의하시겠습니까?')) {
+                                            window.open(KAKAO_PASSFLOW_URL, '_blank');
+                                        }
+                                        return;
+                                    }
+                                    setSendMode(mode.id);
+                                }}
                                 style={{
                                     flex: 1,
                                     padding: '8px 6px',
                                     borderRadius: '8px',
                                     border: sendMode === mode.id ? `2px solid ${mode.color}` : '1px solid rgba(255,255,255,0.1)',
-                                    background: sendMode === mode.id ? `${mode.color}15` : 'rgba(255,255,255,0.03)',
-                                    color: sendMode === mode.id ? mode.color : '#a1a1aa',
-                                    cursor: 'pointer',
+                                    background: smsBlocked ? 'rgba(255,255,255,0.02)' : sendMode === mode.id ? `${mode.color}15` : 'rgba(255,255,255,0.03)',
+                                    color: smsBlocked ? '#52525b' : sendMode === mode.id ? mode.color : '#a1a1aa',
+                                    cursor: smsBlocked ? 'not-allowed' : 'pointer',
                                     fontSize: '0.75rem',
                                     fontWeight: sendMode === mode.id ? '700' : '500',
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
                                     gap: '2px',
-                                    transition: 'all 0.15s ease'
+                                    transition: 'all 0.15s ease',
+                                    opacity: smsBlocked ? 0.5 : 1
                                 }}
                             >
                                 <span style={{ fontSize: '1rem' }}>{mode.icon}</span>
                                 <span>{mode.label}</span>
-                                <span style={{ fontSize: '0.65rem', opacity: 0.7 }}>{mode.desc}</span>
+                                <span style={{ fontSize: '0.65rem', opacity: 0.7 }}>
+                                    {smsBlocked ? '등록 필요' : isDemo && isSmsMode ? '시뮬레이션' : mode.desc}
+                                </span>
                             </button>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 

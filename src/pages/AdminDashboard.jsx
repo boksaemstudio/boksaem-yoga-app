@@ -33,6 +33,7 @@ import BookingsTab from '../components/admin/tabs/BookingsTab';
 import TrashTab from '../components/admin/tabs/TrashTab';
 import OperationsGuideTab from '../components/admin/tabs/OperationsGuideTab';
 import AdminInsights from '../components/AdminInsights';
+import AdminAIAssistant from '../components/admin/AdminAIAssistant';
 import { usePWA }
 from '../hooks/usePWA';
 import ScheduleTab from '../components/admin/tabs/ScheduleTab';
@@ -795,6 +796,10 @@ const AdminDashboard = () => {
 
                 {activeTab === 'settings' && (
                     <StudioSettingsTab />
+                )}
+
+                {activeTab === 'ai_assistant' && (
+                    <AdminAIAssistant />
                 )}
             </div>
 

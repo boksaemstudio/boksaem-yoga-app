@@ -9,6 +9,7 @@ import { httpsCallable } from 'firebase/functions';
 import { memberService } from './memberService';
 import { evaluateUpcomingActivation, isTBD, calculateEndDate } from '../utils/membershipUtils';
 import { tenantDb } from '../utils/tenantDb';
+import { getCurrentStudioId } from '../utils/resolveStudioId';
 
 // ── Types ──
 export interface AttendanceLog {
@@ -257,7 +258,7 @@ export const attendanceService = {
             for (let attempt = 1; attempt <= 2; attempt++) {
                 try {
                     const response = await withTimeout(
-                        checkInMember({ memberId, branchId, classTitle, instructor, classTime: currentClassInfo?.time || null, force, eventId: eventId || safeUUID(), facialMatched, source }),
+                        checkInMember({ memberId, branchId, classTitle, instructor, classTime: currentClassInfo?.time || null, force, eventId: eventId || safeUUID(), facialMatched, source, studioId: getCurrentStudioId() }),
                         12000, 'timeout'
                     );
                     const data = response.data as Record<string, unknown>;
@@ -327,7 +328,7 @@ export const attendanceService = {
             // [DRY Refactor] 모든 비즈니스 로직은 서버의 coreLogic.js가 처리.
             // 프론트엔드는 파라미터만 전달하는 thin client.
             const adminAddAttendance = httpsCallable(functions, 'adminAddAttendanceCall');
-            const response = await adminAddAttendance({ memberId, branchId, date, className, instructor, skipCreditDeduction });
+            const response = await adminAddAttendance({ memberId, branchId, date, className, instructor, skipCreditDeduction, studioId: getCurrentStudioId() });
             const data = response.data as Record<string, unknown>;
             if (data.success) {
                 notifyCallback();

@@ -189,14 +189,14 @@ async function refreshDemoData() {
             BRANCHES: [{ id: 'main', name: '패스플로우', color: '#D4AF37', themeColor: '#FBB117' }],
             IDENTITY: {
                 NAME: '데모스튜디오',
-                LOGO_URL: '/assets/demo_logo.png' // 다운받은 신규 투명 로고
+                LOGO_URL: '/assets/demo_logo_v2.png' // 다운받은 신규 투명 로고
             },
             THEME: { PRIMARY_COLOR: '#FBB117' }
         }, { merge: true });
 
         // --- 2. 레거시 images 호환 모델 ---
         currentBatch.set(db.doc('studios/demo-yoga/images/logo'), {
-            url: '/assets/demo_logo.png',
+            url: '/assets/demo_logo_v2.png',
             updatedAt: new Date().toISOString()
         }, { merge: true });
         
@@ -237,7 +237,7 @@ async function refreshDemoData() {
         }, { merge: true });
 
         currentBatch.set(tenantDb.collection('assets').doc('logo'), {
-            url: '/assets/demo_logo.png',
+            url: '/assets/demo_logo_v2.png',
             updatedAt: new Date().toISOString()
         }, { merge: true });
 
@@ -256,6 +256,11 @@ async function refreshDemoData() {
             data: { memberName: '김민준', className: '아쉬탕가 베이직', date: todayKST },
             deletedBy: 'admin@passflow.kr'
         });
+
+        // --- 4. 레지스트리 로고 동기화 (super-admin 카드 ↔ settings 일치) ---
+        currentBatch.set(db.doc('platform/registry/studios/demo-yoga'), {
+            logoUrl: '/assets/demo_logo_v2.png'
+        }, { merge: true });
     });
     console.log('✅ 추가 데모 자산(시간표 포함) 시딩 완료.');
 

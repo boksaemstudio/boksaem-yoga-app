@@ -249,25 +249,38 @@ const PriceTab = ({
                             </div>
                         )}
 
-                        {paymentInfo && (
-                            <div style={{
-                                background: 'rgba(var(--primary-rgb), 0.06)',
-                                borderRadius: '10px',
-                                border: '1px solid rgba(var(--primary-rgb), 0.12)',
-                                padding: '14px',
-                                display: 'flex', flexDirection: 'column', gap: '6px'
-                            }}>
-                                <div style={{ fontWeight: '700', color: 'var(--primary-gold)', fontSize: '0.9rem', marginBottom: '4px' }}>
-                                    {t('paymentAccount')}
+                        {paymentInfo && (() => {
+                            const handleCopyAccount = () => {
+                                const text = `${paymentInfo.bank} ${paymentInfo.account} ${paymentInfo.holder}`;
+                                navigator.clipboard.writeText(text)
+                                    .then(() => alert(t('accountCopied') || '계좌번호가 복사되었습니다.'))
+                                    .catch(() => alert('복사 기능을 지원하지 않는 브라우저입니다. 직접 텍스트를 선택해 복사해주세요.'));
+                            };
+                            return (
+                                <div 
+                                    onClick={handleCopyAccount}
+                                    style={{
+                                        background: 'rgba(var(--primary-rgb), 0.06)',
+                                        borderRadius: '10px',
+                                        border: '1px solid rgba(var(--primary-rgb), 0.12)',
+                                        padding: '14px',
+                                        display: 'flex', flexDirection: 'column', gap: '6px',
+                                        cursor: 'pointer', position: 'relative'
+                                    }}
+                                >
+                                    <div style={{ fontWeight: '700', color: 'var(--primary-gold)', fontSize: '0.9rem', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <span>{t('paymentAccount')}</span>
+                                        <span style={{ fontSize: '0.75rem', background: 'rgba(var(--primary-rgb), 0.15)', padding: '4px 8px', borderRadius: '12px' }}>📋 복사하기</span>
+                                    </div>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+                                        <strong>{paymentInfo.bank}</strong> {paymentInfo.account}
+                                    </div>
+                                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                                        {t('accountHolder')}: {paymentInfo.holder}
+                                    </div>
                                 </div>
-                                <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
-                                    <strong>{paymentInfo.bank}</strong> {paymentInfo.account}
-                                </div>
-                                <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                                    {t('accountHolder')}: {paymentInfo.holder}
-                                </div>
-                            </div>
-                        )}
+                            );
+                        })()}
                     </div>
                 </div>
             )}

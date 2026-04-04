@@ -17,7 +17,7 @@ exports.onAttendancePhotoAdded = onDocumentUpdated({
     // photoUrl이 새로 추가된 경우에만 실행
     if (before.photoUrl || !after.photoUrl) return;
 
-    const tdb = tenantDb();
+    const tdb = tenantDb(event.params.studioId);
     const attendanceId = event.params.attendanceId;
     const instructorName = after.instructor;
 
@@ -25,7 +25,7 @@ exports.onAttendancePhotoAdded = onDocumentUpdated({
 
     try {
         const { getAllFCMTokens } = require("../../helpers/common");
-        const { tokens, tokenSources } = await getAllFCMTokens(null, { role: 'instructor', instructorName });
+        const { tokens, tokenSources } = await getAllFCMTokens(null, { role: 'instructor', instructorName, studioId: event.params.studioId });
 
         if (tokens.length === 0) return;
 
@@ -44,7 +44,7 @@ exports.onAttendancePhotoAdded = onDocumentUpdated({
             body = `${className} | ${credits} ${expiry}`;
         }
 
-        const logoUrl = await getStudioLogoUrl();
+        const logoUrl = await getStudioLogoUrl(event.params.studioId);
 
         for (const token of tokens) {
             try {

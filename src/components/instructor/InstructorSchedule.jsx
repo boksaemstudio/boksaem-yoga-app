@@ -222,6 +222,8 @@ const InstructorSchedule = ({ instructorName }) => {
                         padding: '4px', textAlign: 'center', cursor: 'pointer', borderRadius: '8px',
                         background: isSelected ? 'var(--primary-gold)' : isToday ? 'rgba(var(--primary-rgb), 0.15)' : 'transparent',
                         color: textColor,
+                        border: borderStyle !== 'none' && !isSelected ? borderStyle : 'none',
+                        borderColor: borderColor,
                         fontWeight: branchStatus.hasAny ? 'bold' : 'normal',
                         transition: 'all 0.2s',
                         position: 'relative',
@@ -233,18 +235,6 @@ const InstructorSchedule = ({ instructorName }) => {
                     }}
                 >
                     <span style={{ position: 'relative', zIndex: 1, fontSize: '1rem' }}>{d}</span>
-                    
-                    {/* [NEW] Indicator Dot for Classes */}
-                    {branchStatus.hasAny && !isSelected && (
-                        <div style={{
-                            width: '4px',
-                            height: '4px',
-                            borderRadius: '50%',
-                            background: activeBranches.length === 1 ? (activeBranches[0].color || 'var(--primary-gold)') : 'var(--primary-gold)',
-                            marginTop: '2px',
-                            boxShadow: activeBranches.length > 1 ? `0 0 0 2px ${activeBranches[1]?.color || 'var(--primary-gold)'} inset` : 'none'
-                        }} />
-                    )}
 
                     {holidayName && (
                         <span style={{ 

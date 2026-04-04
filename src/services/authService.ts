@@ -7,6 +7,7 @@ import { signInAnonymously, signInWithCustomToken, Unsubscribe as AuthUnsubscrib
 import { httpsCallable } from "firebase/functions";
 import { addDoc } from 'firebase/firestore';
 import { tenantDb } from '../utils/tenantDb';
+import { getCurrentStudioId } from '../utils/resolveStudioId';
 
 // ── Types ──
 export interface LoginResult {
@@ -64,7 +65,7 @@ export const authService = {
             if (!name || !last4Digits) return { success: false, error: 'INVALID_INPUT', message: '이름과 비밀번호를 모두 입력해주세요.' };
             const loginFunc = httpsCallable(functions, 'memberLoginV2Call');
             const safeName = String(name || '').trim();
-            const response = await loginFunc({ name: safeName, phoneLast4: last4Digits });
+            const response = await loginFunc({ name: safeName, phoneLast4: last4Digits, studioId: getCurrentStudioId() });
             const data = response.data as { success: boolean; token?: string; member?: Record<string, unknown>; message?: string };
 
             if (data.success && data.token) {
@@ -95,7 +96,7 @@ export const authService = {
         try {
             const verifyInstructor = httpsCallable(functions, 'verifyInstructorV2Call');
             const safeName = String(name || '').trim();
-            const response = await withTimeout(verifyInstructor({ name: safeName, phoneLast4: last4Digits }), 10000, '선생님 인증 시간 초과');
+            const response = await withTimeout(verifyInstructor({ name: safeName, phoneLast4: last4Digits, studioId: getCurrentStudioId() }), 10000, '선생님 인증 시간 초과');
             const data = response.data as { success: boolean; token?: string; name?: string; message?: string };
 
             if (data.success) {

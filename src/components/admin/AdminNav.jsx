@@ -1,6 +1,6 @@
 import { 
     Users, ClockCounterClockwise, Calendar, Tag, ChartBar, 
-    Megaphone, BellRinging, Database, Desktop, Gear, CalendarCheck, Trash 
+    Megaphone, BellRinging, Database, Desktop, Gear, CalendarCheck, Trash, Robot 
 } from '@phosphor-icons/react';
 
 const AdminNav = ({ activeTab, setActiveTab, pendingApprovals, config }) => {
@@ -64,6 +64,10 @@ const AdminNav = ({ activeTab, setActiveTab, pendingApprovals, config }) => {
             <button onClick={() => setActiveTab('trash')} className={`nav-tab-item ${activeTab === 'trash' ? 'active' : ''}`}>
                 <Trash size={22} weight={activeTab === 'trash' ? "fill" : "regular"} />
                 <span>휴지통</span>
+            </button>
+            <button onClick={() => setActiveTab('ai_assistant')} className={`nav-tab-item ${activeTab === 'ai_assistant' ? 'active' : ''}`}>
+                <Robot size={22} weight={activeTab === 'ai_assistant' ? "fill" : "regular"} />
+                <span>AI비서</span>
             </button>
             <button onClick={() => setActiveTab('guide')} className={`nav-tab-item ${activeTab === 'guide' ? 'active' : ''}`}>
                 <span style={{ fontSize: '22px' }}>📖</span>

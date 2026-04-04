@@ -8,6 +8,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { tenantStoragePath } from '../utils/tenantStorage';
 import { httpsCallable } from "firebase/functions";
 import { tenantDb } from '../utils/tenantDb';
+import { getCurrentStudioId } from '../utils/resolveStudioId';
 
 // ── Types ──
 export interface Notice {
@@ -100,7 +101,7 @@ export const translateNotices = async (notices: Notice[], targetLang: string): P
     if (targetLang === 'ko' || !notices || notices.length === 0) return notices;
     try {
         const translateCall = httpsCallable(functions, 'translateNoticesV2');
-        const response = await translateCall({ notices: notices.map(n => ({ id: n.id, title: n.title, content: n.content })), language: targetLang });
+        const response = await translateCall({ notices: notices.map(n => ({ id: n.id, title: n.title, content: n.content })), language: targetLang, studioId: getCurrentStudioId() });
         const data = response.data as { notices?: Array<{ id: string; title?: string; content?: string }> };
         if (data?.notices) {
             return data.notices.map(translated => {

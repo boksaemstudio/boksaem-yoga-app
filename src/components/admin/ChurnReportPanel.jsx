@@ -2,6 +2,11 @@ import { useState, useMemo, useRef } from 'react';
 import { Warning, PaperPlaneTilt, X, PencilSimple } from '@phosphor-icons/react';
 import { storageService } from '../../services/storage';
 import { getChurnAnalysis, generateChurnMessage } from '../../services/aiService';
+import { getCurrentStudioId } from '../../utils/resolveStudioId';
+
+const SMS_ENABLED_STUDIOS = ['boksaem-yoga'];
+const DEMO_STUDIOS = ['demo-yoga'];
+const KAKAO_PASSFLOW_URL = 'http://pf.kakao.com/_zDxiMX/chat';
 
 /**
  * getChurnRisk — 이탈 위험도 계산
@@ -57,7 +62,11 @@ const ChurnReportPanel = ({ dormantMembers, onSendMessage, onClose, sales }) => 
     const [sendingId, setSendingId] = useState(null);
     const [sentIds, setSentIds] = useState(new Set());
     const [sendMode, setSendMode] = useState('push_first');
-    const [activeLevel, setActiveLevel] = useState(null); // null=전체, 'critical'/'high'/'medium'
+    const [activeLevel, setActiveLevel] = useState(null);
+    // [SaaS] SMS 가용 여부
+    const studioId = getCurrentStudioId();
+    const isSmsAvailable = SMS_ENABLED_STUDIOS.includes(studioId);
+    const isDemo = DEMO_STUDIOS.includes(studioId);
     // [NEW] 컨펌 모달 상태 — 메시지 미리보기 + 편집 가능
     const [confirmTarget, setConfirmTarget] = useState(null);
     const [editMessage, setEditMessage] = useState('');
@@ -392,21 +401,35 @@ const ChurnReportPanel = ({ dormantMembers, onSendMessage, onClose, sales }) => 
                     { id: 'push_only', label: '📱 푸시만', color: '#10b981' },
                     { id: 'push_first', label: '📱➡📩 푸시우선', color: 'var(--primary-gold)' },
                     { id: 'sms_only', label: '📩 SMS', color: '#3B82F6' },
-                ].map(mode => (
+                ].map(mode => {
+                    const isSmsMode = mode.id !== 'push_only';
+                    const smsBlocked = isSmsMode && !isSmsAvailable && !isDemo;
+                    return (
                     <button
                         key={mode.id}
-                        onClick={() => setSendMode(mode.id)}
+                        onClick={() => {
+                            if (smsBlocked) {
+                                if (window.confirm('발신자 번호가 등록되어 있지 않습니다.\n\nSMS 발송을 위해서는 발신자 번호 등록이 필요합니다.\n패스플로우 카카오톡으로 문의하시겠습니까?')) {
+                                    window.open(KAKAO_PASSFLOW_URL, '_blank');
+                                }
+                                return;
+                            }
+                            setSendMode(mode.id);
+                        }}
                         style={{
                             padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem',
                             border: sendMode === mode.id ? `1px solid ${mode.color}` : '1px solid rgba(255,255,255,0.1)',
-                            background: sendMode === mode.id ? `${mode.color}15` : 'transparent',
-                            color: sendMode === mode.id ? mode.color : '#a1a1aa',
-                            cursor: 'pointer', fontWeight: sendMode === mode.id ? '700' : '400'
+                            background: smsBlocked ? 'rgba(255,255,255,0.02)' : sendMode === mode.id ? `${mode.color}15` : 'transparent',
+                            color: smsBlocked ? '#52525b' : sendMode === mode.id ? mode.color : '#a1a1aa',
+                            cursor: smsBlocked ? 'not-allowed' : 'pointer',
+                            fontWeight: sendMode === mode.id ? '700' : '400',
+                            opacity: smsBlocked ? 0.5 : 1
                         }}
                     >
-                        {mode.label}
+                        {mode.label}{smsBlocked ? ' (등록 필요)' : ''}
                     </button>
-                ))}
+                    );
+                })}
             </div>
 
             {/* Member Risk List */}

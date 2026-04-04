@@ -14,19 +14,100 @@ const { admin, tenantDb, STUDIO_ID, logAIError, getStudioName } = require("../he
 // ─── Aligo API Configuration ───
 const ALIGO_SEND_URL = "https://apis.aligo.in/send/";
 
+/**
+ * 복샘요가 전용 알리고 설정 (기본값)
+ * 다른 스튜디오는 Firestore studios/{studioId}/settings/aligo 문서에 설정 저장
+ */
+const BOKSAEM_ALIGO_CONFIG = {
+    key: "5zefrcpzewkyhmfz8yh985mdh935b2cv",
+    userid: "zipsuri0",
+    sender: "010-2223-2789"
+};
+
+/**
+ * [SaaS] 테넌트별 알리고 설정 조회
+ * 
+ * - boksaem-yoga: 하드코딩된 기본 설정 사용
+ * - demo-yoga: 시뮬레이션 모드 (실제 API 미호출)
+ * - 기타 스튜디오: Firestore students/{studioId} 문서의 SMS 설정 조회
+ * 
+ * @param {string} studioId - 스튜디오 ID
+ * @returns {Promise<{key:string, userid:string, sender:string, simulation:boolean} | null>}
+ */
+async function getAligoConfigForStudio(studioId) {
+    // 1. 데모 스튜디오 → 시뮬레이션 모드
+    if (studioId === 'demo-yoga') {
+        return { ...BOKSAEM_ALIGO_CONFIG, simulation: true };
+    }
+    
+    // 2. 복샘요가 → 기본 설정 (실제 발송)
+    if (!studioId || studioId === 'boksaem-yoga') {
+        return { ...BOKSAEM_ALIGO_CONFIG, simulation: false };
+    }
+    
+    // 3. 기타 스튜디오 → Firestore에서 설정 조회
+    try {
+        const db = admin.firestore();
+        const configDoc = await db.doc(`studios/${studioId}`).get();
+        if (configDoc.exists) {
+            const data = configDoc.data();
+            const smsConfig = data.SMS_CONFIG || data.smsConfig;
+            if (smsConfig && smsConfig.aligoKey && smsConfig.aligoUserId && smsConfig.sender) {
+                return {
+                    key: smsConfig.aligoKey,
+                    userid: smsConfig.aligoUserId,
+                    sender: smsConfig.sender,
+                    simulation: false
+                };
+            }
+        }
+    } catch (e) {
+        console.warn(`[SMS] Failed to load Aligo config for ${studioId}:`, e.message);
+    }
+    
+    // 4. 설정 없음 → null 반환 (발송 차단)
+    return null;
+}
+
+// [레거시 호환] push.js 등에서 기존 getAligoConfig() 호출 지원
 function getAligoConfig() {
-    return {
-        key: "5zefrcpzewkyhmfz8yh985mdh935b2cv",
-        userid: "zipsuri0",
-        sender: (process.env.ALIGO_SENDER || "").trim() || "010-2223-2789"
-    };
+    return BOKSAEM_ALIGO_CONFIG;
 }
 
 /**
  * 단일 문자 발송 (알리고)
+ * @param {string} receiver - 수신자 번호
+ * @param {string} msg - 메시지 내용
+ * @param {string} [title] - 제목 (LMS)
+ * @param {string} [msgType] - 메시지 타입
+ * @param {string} [studioId] - 발송 스튜디오 ID (테넌트 격리)
  */
-async function sendSMS(receiver, msg, title, msgType) {
-    const config = getAligoConfig();
+async function sendSMS(receiver, msg, title, msgType, studioId) {
+    const config = studioId 
+        ? await getAligoConfigForStudio(studioId) 
+        : BOKSAEM_ALIGO_CONFIG;
+    
+    // [SaaS] 설정이 없는 스튜디오 → 발송 차단
+    if (!config) {
+        console.warn(`[SMS] ⚠️ 스튜디오 "${studioId}"에 알리고 발신자 번호가 등록되어 있지 않습니다. 관리자에게 발신자 번호 등록을 요청하세요.`);
+        return { 
+            result_code: '-1', 
+            message: `발신자 번호 미등록 (${studioId}). 관리자에게 문의하세요.`,
+            success_cnt: 0,
+            _blocked: true 
+        };
+    }
+    
+    // [SaaS] 데모 스튜디오 → 시뮬레이션 모드
+    if (config.simulation) {
+        console.log(`[SMS][SIMULATION] 📱 데모 문자 시뮬레이션 → 수신: ${receiver}, 내용: ${msg.substring(0, 50)}...`);
+        return { 
+            result_code: '1', 
+            message: 'Simulated (demo)', 
+            success_cnt: 1,
+            _simulated: true 
+        };
+    }
 
     const formData = new URLSearchParams();
     formData.append('key', config.key);
@@ -50,7 +131,7 @@ async function sendSMS(receiver, msg, title, msgType) {
     }
 
     const data = await res.json();
-    console.log(`[Aligo] Send result:`, JSON.stringify(data));
+    console.log(`[Aligo] Send result (${studioId || 'boksaem-yoga'}):`, JSON.stringify(data));
 
     if (data.result_code !== '1' && data.result_code !== 1) {
         throw new Error(`[Aligo] Send failed: ${data.message} (code: ${data.result_code})`);
@@ -65,7 +146,7 @@ exports.sendSMS = sendSMS;
 /**
  * 대량 문자 발송 (알리고)
  */
-async function sendBulkSMS(receivers, msg, title) {
+async function sendBulkSMS(receivers, msg, title, studioId) {
     const results = [];
     
     // Aligo API는 receiver를 콤마로 구분하여 최대 1000명까지 발송 가능하지만 안정성을 위해 500 단위 분할
@@ -74,7 +155,7 @@ async function sendBulkSMS(receivers, msg, title) {
         const receiverString = chunk.join(',');
         
         try {
-            const data = await sendSMS(receiverString, msg, title);
+            const data = await sendSMS(receiverString, msg, title, undefined, studioId);
             results.push({
                 success_cnt: parseInt(data.success_cnt || 0, 10),
                 error_cnt: parseInt(data.error_cnt || 0, 10)
@@ -115,12 +196,12 @@ exports.sendMessageOnApproval = onDocumentUpdated({
     }
 
     console.log(`[Aligo] Processing approved message: ${approvalId}`);
-    const tdb = tenantDb();
+    const tdb = tenantDb(event.params.studioId);
 
     try {
         const targetMemberIds = newData.targetMemberIds || [];
         const content = newData.body || "";
-        const studioName = await getStudioName();
+        const studioName = await getStudioName(event.params.studioId);
         const title = newData.title || `${studioName} 알림`;
 
         if (!content) {
@@ -152,7 +233,7 @@ exports.sendMessageOnApproval = onDocumentUpdated({
             throw new Error("No valid phone numbers found for targets.");
         }
 
-        const results = await sendBulkSMS(phoneNumbers, content, title);
+        const results = await sendBulkSMS(phoneNumbers, content, title, event.params.studioId);
 
         let successCount = 0;
         for (const r of results) {
@@ -205,7 +286,7 @@ exports.sendMessageOnApproval = onDocumentUpdated({
             error: error.message
         });
 
-        await logAIError('Aligo_Send_Failed', error);
+        await logAIError('Aligo_Send_Failed', error, event.params.studioId);
     }
 });
 
