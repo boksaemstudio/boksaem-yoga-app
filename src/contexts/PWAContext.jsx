@@ -26,7 +26,9 @@ export const PWAProvider = ({ children }) => {
         
         // PWA 설치 상태 감지
         const checkStandalone = () => {
-            const isInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+            const isInstalled = window.matchMedia('(display-mode: standalone)').matches 
+                || window.matchMedia('(display-mode: fullscreen)').matches 
+                || window.navigator.standalone === true;
             setIsStandalone(isInstalled);
         };
         checkStandalone();

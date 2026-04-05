@@ -65,9 +65,10 @@
 
   <script>
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // [SaaS] 역할별 PWA Manifest 동적 선택
-    // 매니페스트 JSON 자체는 Cloud Function이 동적 생성합니다.
-    // 여기선 URL 경로에 따라 어떤 매니페스트를 요청할지만 결정합니다.
+    // [ROOT FIX] 역할별 PWA Manifest 정적 선택
+    // public/ 디렉토리에 역할별 manifest JSON이 정적 파일로 존재합니다.
+    // checkin: display=fullscreen (상태바 완전 제거)
+    // admin/member/instructor: display=standalone
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     (function () {
       var path = window.location.pathname;
@@ -81,14 +82,11 @@
         manifestFile = '/manifest-instructor.json';
       }
 
-      // PWA Manifest 주입 — Cloud Function이 스튜디오별 JSON을 동적 생성
+      // PWA Manifest 주입 — 정적 JSON 파일 참조
       var link = document.createElement('link');
       link.rel = 'manifest';
       link.href = manifestFile;
       document.head.appendChild(link);
-      
-      // 참고: title 및 apple-mobile-web-app-title은 
-      // Cloud Function(ssrMeta.js)에서 서버 사이드로 주입합니다.
     })();
   </script>
 <style>

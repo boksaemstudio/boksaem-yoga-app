@@ -49,27 +49,9 @@ export default defineConfig({
           }
         ]
       },
-      manifest: {
-        name: '스튜디오',
-        short_name: '스튜디오',
-        description: '스튜디오 관리 앱',
-        theme_color: '#000000',
-        background_color: '#000000',
-        display: 'fullscreen',
-        start_url: '/',
-        icons: [
-          {
-            src: 'logo_circle.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'logo_circle.png',
-            sizes: '512x512',
-            type: 'image/png'
-          }
-        ]
-      }
+      // [ROOT FIX] manifest는 public/manifest-*.json으로 정적 제공 (역할별 display mode 분리)
+      // Vite PWA 플러그인의 자체 manifest 생성을 비활성화하여 이중 manifest 충돌 방지
+      manifest: false
     })
   ],
   resolve: {
