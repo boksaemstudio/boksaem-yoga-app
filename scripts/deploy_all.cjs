@@ -63,22 +63,14 @@ if (!fs.existsSync(distDir)) {
     execSync('npm run build', { stdio: 'inherit' });
 }
 
-console.log("⚙️  Setting up SSR (Server-Side Rendering) architecture...");
+// SSR 설정: index.html을 functions/app.html로 복사만 합니다 (절대 삭제하지 않음!)
+console.log("⚙️  Setting up SSR template (copy-only, no delete!)...");
 const indexPath = path.join(distDir, 'index.html');
 const functionsAppPath = path.join(__dirname, '..', 'functions', 'app.html');
 if (fs.existsSync(indexPath)) {
     fs.copyFileSync(indexPath, functionsAppPath);
-    console.log("✅ Copied index.html to functions/app.html for Cloud Function Rendering");
-    fs.unlinkSync(indexPath);
-    console.log("✅ Removed dist/index.html to force Firebase Routing to Cloud Function");
-}
-
-console.log("☁️  Deploying SSR Cloud Function...");
-try {
-    execSync('npx firebase deploy --only functions:serveDynamicSaaS', { stdio: 'inherit' });
-    console.log("🎉 SSR Function Deploy successful!");
-} catch (e) {
-    console.warn("⚠️  SSR Function Deploy failed or skipped.", e.message);
+    console.log("✅ Copied index.html to functions/app.html (index.html preserved in dist!)");
+    // 🚨 절대 fs.unlinkSync(indexPath) 하지 마세요! 전체 서비스 먹통됩니다!
 }
 
 for (const tenant of tenants) {

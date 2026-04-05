@@ -11,7 +11,7 @@
       "rewrites": [
         {
           "source": "**",
-          "function": "serveDynamicSaaS"
+          "destination": "/index.html"
         }
       ],
       "headers": [
@@ -73,7 +73,7 @@
       "rewrites": [
         {
           "source": "**",
-          "function": "serveDynamicSaaS"
+          "destination": "/index.html"
         }
       ],
       "headers": [
@@ -112,7 +112,7 @@
         },
         {
           "source": "**",
-          "function": "serveDynamicSaaS"
+          "destination": "/index.html"
         }
       ],
       "headers": [
