@@ -142,9 +142,63 @@ const MembersTab = ({
 
 
             {/* Summary Grid */}
-            <div className="stats-grid">
-                <div className={`dashboard-card interactive ${filterType === 'all' ? 'highlight' : ''}`}
-                    onClick={() => handleToggleFilter('all')}>
+            <div className={`stats-grid`} style={viewMode === 'compact' ? { gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' } : {}}>
+                {viewMode === 'compact' ? (
+                    <>
+                        {/* 1. 활성 회원 (핵심 자산) */}
+                        <div className={`dashboard-card interactive ${filterType === 'active' ? 'highlight' : ''}`}
+                            onClick={() => handleToggleFilter('active')}
+                            style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>활동중인 회원</div>
+                            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--primary-theme-color)' }}>{summary.activeMembers}명</div>
+                        </div>
+
+                        {/* 2. 오늘 등록 (성장 지표) */}
+                        <div className={`dashboard-card interactive ${filterType === 'registration' ? 'highlight' : ''}`}
+                            onClick={() => handleToggleFilter('registration')}
+                            style={{ padding: '16px', background: 'rgba(16, 185, 129, 0.05)', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#10B981', marginBottom: '4px', fontWeight: 'bold' }}>오늘 등록·결제</div>
+                            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#10B981' }}>{summary.todayRegistration}명</div>
+                        </div>
+
+                        {/* 3. AI 이탈 (행동 처방) */}
+                        {(() => {
+                            let riskCount = 0;
+                            if (getDormantSegments) {
+                                const segments = getDormantSegments(members);
+                                const dormant = segments['all'] || [];
+                                riskCount = dormant.filter(m => {
+                                    const r = getChurnRisk(m);
+                                    return r.level === 'critical' || r.level === 'high';
+                                }).length;
+                            }
+                            if (riskCount > 0) {
+                                return (
+                                    <div className={`dashboard-card interactive ${filterType === 'churn' ? 'highlight' : ''}`}
+                                        onClick={() => handleToggleFilter('churn')}
+                                        style={{ padding: '16px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                                        <div style={{ fontSize: '0.8rem', color: '#EF4444', marginBottom: '4px', fontWeight: 'bold' }}>AI 이탈 경고</div>
+                                        <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#EF4444' }}>{riskCount}명</div>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()}
+
+                        {/* 4. 안면 미등록 (기능 활성화) */}
+                        {summary.bioMissingCount > 0 && (
+                            <div className={`dashboard-card interactive ${filterType === 'bio_missing' ? 'highlight' : ''}`}
+                                onClick={() => handleToggleFilter('bio_missing')}
+                                style={{ padding: '16px', background: 'rgba(59, 130, 246, 0.05)', borderRadius: '12px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                                <div style={{ fontSize: '0.8rem', color: '#60A5FA', marginBottom: '4px', fontWeight: 'bold' }}>얼굴 미등록</div>
+                                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#60A5FA' }}>{summary.bioMissingCount}명</div>
+                            </div>
+                        )}
+                    </>
+                ) : (
+                    <>
+                        <div className={`dashboard-card interactive ${filterType === 'all' ? 'highlight' : ''}`}
+                            onClick={() => handleToggleFilter('all')}>
                     <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         전체 회원
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
@@ -449,7 +503,9 @@ const MembersTab = ({
                         <div style={{ width: `${100 - (summary.facialDataRatio || 0)}%`, height: '100%', background: '#60A5FA', transition: 'width 0.5s ease' }}></div>
                     </div>
                 </div>
-            </div>
+            </>
+            )}
+        </div>
 
             {/* Revenue Card (Visual Bar Chart Simulated) — 접기/펼치기 적용 */}
             {(() => {

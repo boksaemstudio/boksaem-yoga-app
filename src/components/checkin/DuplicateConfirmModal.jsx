@@ -48,30 +48,44 @@ const DuplicateConfirmModal = ({
                     아니라면, 아래 <span style={{ color: '#ff6b6b', textDecoration: 'underline' }}>빨간 버튼</span>을 눌러주세요!
                 </p>
 
-                <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <style>
+                    {`
+                    @keyframes franticShake {
+                        0% { transform: rotate(0deg); }
+                        25% { transform: rotate(-3deg) scale(1.02); }
+                        50% { transform: rotate(3deg) scale(1.02); }
+                        75% { transform: rotate(-3deg) scale(1.02); }
+                        100% { transform: rotate(0deg) scale(1); }
+                    }
+                    `}
+                </style>
+                <div style={{ display: 'flex', gap: '30px', justifyContent: 'center', flexWrap: 'wrap' }}>
                     <button
                         onClick={(e) => { e.stopPropagation(); onCancel(); }}
                         onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onCancel(); }}
                         style={{
                             flex: '1 1 280px',
-                            padding: '20px 15px',
-                            borderRadius: '20px',
-                            border: '3px solid #ff6b6b',
+                            padding: '30px 20px',
+                            borderRadius: '24px',
+                            border: '4px solid #ff6b6b',
                             background: 'rgba(255,107,107,0.15)',
                             color: '#ff6b6b',
-                            fontSize: '1.5rem',
-                            fontWeight: 800,
+                            fontSize: '1.7rem',
+                            fontWeight: 900,
                             cursor: 'pointer',
-                            boxShadow: '0 10px 30px rgba(255,107,107,0.2)',
+                            boxShadow: '0 10px 40px rgba(255,107,107,0.3)',
                             transition: 'all 0.2s',
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
-                            gap: '6px'
+                            minHeight: '120px',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            animation: 'franticShake 0.4s ease-in-out 0.2s 1'
                         }}
                     >
-                        <span>😱 잘못 눌렀어요!</span>
-                        <span style={{ fontSize: '0.85rem', fontWeight: 500, opacity: 0.8 }}>(취소하기)</span>
+                        <span>😱 아차, 잘못 눌렀어요!</span>
+                        <span style={{ fontSize: '1rem', fontWeight: 600, opacity: 0.9, background: '#ff6b6b', color: '#fff', padding: '4px 12px', borderRadius: '12px', marginTop: '6px' }}>(출석 취소하기)</span>
                     </button>
 
                     <button
@@ -79,23 +93,25 @@ const DuplicateConfirmModal = ({
                         onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onConfirm(); }}
                         style={{
                             flex: '1 1 280px',
-                            padding: '20px 15px',
-                            borderRadius: '20px',
-                            border: 'none',
-                            background: `linear-gradient(135deg, ${config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'}, #f5d76e)`,
-                            color: 'var(--text-on-primary)',
-                            fontSize: '1.5rem',
-                            fontWeight: 800,
+                            padding: '24px 15px',
+                            borderRadius: '24px',
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            background: 'rgba(255,255,255,0.05)',
+                            color: 'rgba(255,255,255,0.8)',
+                            fontSize: '1.4rem',
+                            fontWeight: 700,
                             cursor: 'pointer',
-                            boxShadow: '0 10px 30px rgba(var(--primary-rgb), 0.4)',
                             transition: 'all 0.2s',
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
-                            gap: '6px'
+                            minHeight: '120px',
+                            justifyContent: 'center',
+                            gap: '8px'
                         }}
                     >
-                        <span>🙆‍♀️ 네, 또 왔어요</span>
+                        <span style={{ opacity: 0.8 }}>🙆‍♀️ 네, 두명 맞아요</span>
+                        <span style={{ fontSize: '0.9rem', color: '#f5d76e' }}>(동반 출석)</span>
                     </button>
                 </div>
 

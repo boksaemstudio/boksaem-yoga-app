@@ -15,13 +15,13 @@ const STUDIO_HOSTS = {
     ],
     'boksaem-yoga': [
         'https://boksaem-yoga.web.app',
-        'https://boksaem-yoga.firebaseapp.com'
+        'https://boksaem-yoga.firebaseapp.com',
+        'https://boksaemyoga.web.app',
+        'https://boksaemyoga.firebaseapp.com'
     ],
     'ssangmun-yoga': [
         'https://ssangmunyoga.web.app',
-        'https://ssangmunyoga.firebaseapp.com',
-        'https://ssangmun-yoga-0.web.app',
-        'https://ssangmun-yoga-0.firebaseapp.com'
+        'https://ssangmunyoga.firebaseapp.com'
     ],
     // 새 스튜디오 추가 시 여기에 추가:
     // 'new-studio': ['https://new-studio.web.app', 'https://new-studio.firebaseapp.com'],

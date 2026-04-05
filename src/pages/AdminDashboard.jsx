@@ -100,8 +100,11 @@ const AdminDashboard = () => {
     const navigate = useNavigate();
     const initialTab = new URLSearchParams(window.location.search).get('tab') || 'logs';
     const [activeTab, setActiveTab] = useState(initialTab);
-    const [viewMode, setViewMode] = useState(() => localStorage.getItem('dashboardViewMode') || 'full'); // 'compact' | 'full'
-
+    const [viewMode, setViewMode] = useState(() => {
+        const stored = localStorage.getItem('dashboardViewMode');
+        if (stored) return stored;
+        return window.innerWidth <= 768 ? 'compact' : 'full';
+    });
     // [Refactor] Use Custom Hook for Data & Logic
     const adminData = useAdminData(activeTab, 'all');
 

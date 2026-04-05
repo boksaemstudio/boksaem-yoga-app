@@ -39,49 +39,74 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats, viewMode })
 
             {/* Total Month Summary */}
             <CollapsibleCard id="revenue-summary" title={`${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월 총 매출 요약`} titleExtra={`${formatCurrency(monthlyStats.totalRevenue)}원`} defaultOpen={true}>
-                <div className="dashboard-card revenue-summary-card" style={{ marginTop: '0', overflow: 'hidden' }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                        <div style={{ flex: '1 1 auto', minWidth: '240px' }}>
-                            <div className="revenue-summary-title">
-                                이번 달 누적 매출
+                <div className="dashboard-card revenue-summary-card" style={{ marginTop: '0', overflow: 'hidden', padding: viewMode === 'compact' ? '16px' : '20px' }}>
+                    {viewMode === 'compact' ? (
+                        /* [HONEST ANALYSIS] Ultra-compact view for mobile leaders */
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>오늘 매출</div>
+                                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--primary-theme-color)', lineHeight: 1 }}>{formatCurrency(comparativeStats.today)}원</div>
                             </div>
-                            <div className="revenue-summary-amount" style={{ wordBreak: 'break-all', whiteSpace: 'normal', lineHeight: '1.2' }}>
-                                {formatCurrency(monthlyStats.totalRevenue)}원
+                            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>이번 달 누적</div>
+                                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#fff', lineHeight: 1 }}>{formatCurrency(monthlyStats.totalRevenue)}원</div>
                             </div>
-                            <div className="revenue-summary-details">
-                                (신규: <span className="revenue-new">{formatCurrency(monthlyStats.totalRevenueNew)}원</span> / 
-                                 재등록: <span className="revenue-rereg">{formatCurrency(monthlyStats.totalRevenueReReg)}원</span>)
+                            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>신규 비중</div>
+                                <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#4ade80' }}>
+                                    {monthlyStats.totalRevenue > 0 ? Math.round((monthlyStats.totalRevenueNew / monthlyStats.totalRevenue) * 100) : 0}% 
+                                    <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', marginLeft:'4px', fontWeight:400 }}>({formatCurrency(monthlyStats.totalRevenueNew)}원)</span>
+                                </div>
+                            </div>
+                            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>총 결제 건수</div>
+                                <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff' }}>{monthlyStats.totalCount}건</div>
                             </div>
                         </div>
-                        <div style={{ textAlign: 'right' }}>
-                            <div style={{ marginBottom: '12px' }}>
-                                <div className="revenue-count-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
-                                    오늘 발생 매출
-                                    <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
-                                        <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 'bold' }}>i</div>
-                                        <div className="tooltip-text" style={{ width: '200px', left: 'auto', right: 0, transform: 'translateX(0)', textAlign: 'left' }}>
-                                            <strong>오늘 매출 기준</strong><br/>현재 날짜(자정 0시 기준)에 발생한 결제 금액의 총합입니다.
-                                        </div>
-                                    </div>
+                    ) : (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                            <div style={{ flex: '1 1 auto', minWidth: '240px' }}>
+                                <div className="revenue-summary-title">
+                                    이번 달 누적 매출
                                 </div>
-                                <div className="revenue-summary-amount" style={{ fontSize: '1.4rem', color: 'var(--primary-theme-color)' }}>
-                                    {formatCurrency(comparativeStats.today)}원
+                                <div className="revenue-summary-amount" style={{ wordBreak: 'break-all', whiteSpace: 'normal', lineHeight: '1.2' }}>
+                                    {formatCurrency(monthlyStats.totalRevenue)}원
+                                </div>
+                                <div className="revenue-summary-details">
+                                    (신규: <span className="revenue-new">{formatCurrency(monthlyStats.totalRevenueNew)}원</span> / 
+                                     재등록: <span className="revenue-rereg">{formatCurrency(monthlyStats.totalRevenueReReg)}원</span>)
                                 </div>
                             </div>
-                            <div>
-                                <div className="revenue-count-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
-                                    이번 달 결제 건수
-                                    <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
-                                        <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 'bold' }}>i</div>
-                                        <div className="tooltip-text" style={{ width: '200px', left: 'auto', right: 0, transform: 'translateX(0)', textAlign: 'left' }}>
-                                            <strong>총 결제 건수</strong><br/>이번 달 발생한 승인 완료된 결제의 총 횟수입니다.
+                            <div style={{ textAlign: 'right' }}>
+                                <div style={{ marginBottom: '12px' }}>
+                                    <div className="revenue-count-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
+                                        오늘 발생 매출
+                                        <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                            <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 'bold' }}>i</div>
+                                            <div className="tooltip-text" style={{ width: '200px', left: 'auto', right: 0, transform: 'translateX(0)', textAlign: 'left' }}>
+                                                <strong>오늘 매출 기준</strong><br/>현재 날짜(자정 0시 기준)에 발생한 결제 금액의 총합입니다.
+                                            </div>
                                         </div>
                                     </div>
+                                    <div className="revenue-summary-amount" style={{ fontSize: '1.4rem', color: 'var(--primary-theme-color)' }}>
+                                        {formatCurrency(comparativeStats.today)}원
+                                    </div>
                                 </div>
-                                <div className="revenue-count">{monthlyStats.totalCount}건</div>
+                                <div>
+                                    <div className="revenue-count-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
+                                        이번 달 결제 건수
+                                        <div className="tooltip-container" style={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                            <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 'bold' }}>i</div>
+                                            <div className="tooltip-text" style={{ width: '200px', left: 'auto', right: 0, transform: 'translateX(0)', textAlign: 'left' }}>
+                                                <strong>총 결제 건수</strong><br/>이번 달 발생한 승인 완료된 결제의 총 횟수입니다.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="revenue-count">{monthlyStats.totalCount}건</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </CollapsibleCard>
 

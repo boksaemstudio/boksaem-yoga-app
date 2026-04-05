@@ -443,14 +443,52 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
             </div>
 
             {/* ─── Summary Section ─── */}
-            <div className="summary-grid">
-                <div className="dashboard-card" style={{ padding: '16px', background: 'rgba(255,255,255,0.02)' }}>
-                    <div className="card-label" style={{ fontSize: '0.85rem', marginBottom: '8px' }}>오늘 총 출석</div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                        <span style={{ fontSize: '1.5rem', fontWeight: '800' }}>{activeLogs.length}</span>
-                        <span style={{ fontSize: '0.9rem', opacity: 0.6 }}>건</span>
+            <div className="summary-grid" style={viewMode === 'compact' ? { gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' } : {}}>
+                {viewMode === 'compact' ? (
+                    <>
+                        <div className="dashboard-card" style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px' }}>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>총 출석 완료</div>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                                <span style={{ fontSize: '1.6rem', fontWeight: '800', color: '#fff' }}>{activeLogs.filter(l => l.status !== 'denied').length}</span>
+                                <span style={{ fontSize: '0.85rem', opacity: 0.6 }}>건</span>
+                            </div>
+                        </div>
+                        <div className="dashboard-card" style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px' }}>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>다회 출석 (열성 회원)</div>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                                <span style={{ fontSize: '1.6rem', fontWeight: '800', color: 'var(--primary-theme-color)' }}>{multiAttMemberIds.length}</span>
+                                <span style={{ fontSize: '0.85rem', opacity: 0.6 }}>명</span>
+                            </div>
+                        </div>
+                        {activeLogs.filter(l => l.status === 'denied').length > 0 && (
+                            <div className="dashboard-card" style={{ padding: '16px', background: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.3)', borderRadius: '12px' }}>
+                                <div style={{ fontSize: '0.8rem', color: '#F43F5E', marginBottom: '8px', fontWeight: 'bold' }}>⚠️ 출석 제한·거부</div>
+                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                                    <span style={{ fontSize: '1.6rem', fontWeight: '800', color: '#FFF' }}>{activeLogs.filter(l => l.status === 'denied').length}</span>
+                                    <span style={{ fontSize: '0.85rem', opacity: 0.8 }}>건 발생 (조치 필요)</span>
+                                </div>
+                            </div>
+                        )}
+                        {classCards.length > 0 && (() => {
+                            const maxClass = [...classCards].sort((a, b) => b.count - a.count)[0];
+                            return maxClass.count > 0 ? (
+                                <div className="dashboard-card" style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px' }}>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>가장 붐비는 수업</div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{maxClass.className} <span style={{fontSize:'0.8rem', opacity:0.6}}>{maxClass.classTime && `(${maxClass.classTime})`}</span></div>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--primary-gold)', marginTop: '4px' }}>{maxClass.count}명 참석</div>
+                                </div>
+                            ) : null;
+                        })()}
+                    </>
+                ) : (
+                    <div className="dashboard-card" style={{ padding: '16px', background: 'rgba(255,255,255,0.02)' }}>
+                        <div className="card-label" style={{ fontSize: '0.85rem', marginBottom: '8px' }}>오늘 총 출석</div>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                            <span style={{ fontSize: '1.5rem', fontWeight: '800' }}>{activeLogs.length}</span>
+                            <span style={{ fontSize: '0.9rem', opacity: 0.6 }}>건</span>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             {/* ─── Attendance Trend Analytics ─── */}
