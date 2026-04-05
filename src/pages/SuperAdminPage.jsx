@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Buildings, Plus, Trash, Crown, X, UserCirclePlus, Lock, ShieldCheck, Eye, EyeSlash, Copy, Check } from '@phosphor-icons/react';
+import { Buildings, Plus, Trash, Crown, X, UserCirclePlus, Lock, ShieldCheck, Eye, EyeSlash, Copy, Check, Globe, LinkSimple } from '@phosphor-icons/react';
 import { studioRegistryService } from '../services/studioRegistryService';
 import { getCurrentStudioId } from '../utils/resolveStudioId';
 import { useStudioConfig } from '../contexts/StudioContext';
@@ -290,6 +290,9 @@ const SuperAdminPage = () => {
                 </button>
                 <button onClick={() => { setActiveSection('admins'); if (admins.length === 0) loadAdmins(); }} style={{ padding: '10px 20px', background: activeSection === 'admins' ? '#3B82F6' : 'rgba(255,255,255,0.05)', color: activeSection === 'admins' ? 'white' : '#aaa', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <ShieldCheck size={18} /> 관리자 계정
+                </button>
+                <button onClick={() => setActiveSection('domains')} style={{ padding: '10px 20px', background: activeSection === 'domains' ? '#3B82F6' : 'rgba(255,255,255,0.05)', color: activeSection === 'domains' ? 'white' : '#aaa', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Globe size={18} /> 도메인 관리
                 </button>
             </div>
 
@@ -610,6 +613,85 @@ const SuperAdminPage = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* ═══ DOMAINS (도메인 보관 리스트) ═══ */}
+            {activeSection === 'domains' && (
+                <>
+                    <div style={{ marginBottom: '20px' }}>
+                        <div style={{ padding: '12px 16px', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.03))', borderRadius: '10px', border: '1px solid rgba(99, 102, 241, 0.2)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <Globe size={20} weight="fill" color="#6366F1" />
+                            <span style={{ fontSize: '0.85rem', color: '#a5b4fc' }}>선점 완료된 Firebase Hosting 도메인 목록입니다. 다른 사용자가 절대 가져갈 수 없습니다.</span>
+                        </div>
+                    </div>
+
+                    {/* 운영 중인 도메인 */}
+                    <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#10B981', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <LinkSimple size={18} weight="bold" /> 운영 중 (Active)
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '10px', marginBottom: '28px' }}>
+                        {[
+                            { name: '복샘요가', siteId: 'boksaem-yoga', url: 'boksaem-yoga.web.app', active: true },
+                            { name: '쌍문요가', siteId: 'ssangmunyoga', url: 'ssangmunyoga.web.app', active: true },
+                            { name: 'PassFlow Ai', siteId: 'passflowai', url: 'passflowai.web.app', active: true },
+                        ].map(d => (
+                            <div key={d.siteId} style={{ padding: '14px 16px', background: 'rgba(16, 185, 129, 0.06)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                    <div style={{ fontWeight: '700', fontSize: '0.9rem', color: '#f0f0f0' }}>{d.name}</div>
+                                    <div style={{ fontSize: '0.75rem', color: '#6ee7b7', marginTop: '2px' }}>{d.url}</div>
+                                </div>
+                                <span style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.15)', color: '#10B981', fontWeight: '600' }}>운영중</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* 보관 중인 도메인 (선점만) */}
+                    <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#F59E0B', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Lock size={18} weight="bold" /> 선점 보관 중 (Reserved)
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '10px', marginBottom: '28px' }}>
+                        {[
+                            { name: '복샘요가 (붙임)', siteId: 'boksaemyoga', url: 'boksaemyoga.web.app' },
+                            { name: '쌍문요가 (기존)', siteId: 'ssangmun-yoga-0', url: 'ssangmun-yoga-0.web.app' },
+                            { name: '마포요가', siteId: 'mapo-yoga', url: 'mapo-yoga.web.app' },
+                            { name: '마포요가 (붙임)', siteId: 'mapoyoga', url: 'mapoyoga.web.app' },
+                            { name: '공덕요가', siteId: 'gongdeok-yoga', url: 'gongdeok-yoga.web.app' },
+                            { name: '공덕요가 (붙임)', siteId: 'gongdeokyoga', url: 'gongdeokyoga.web.app' },
+                            { name: '아현요가', siteId: 'ahyeon-yoga', url: 'ahyeon-yoga.web.app' },
+                            { name: '아현요가 (붙임)', siteId: 'ahyeonyoga', url: 'ahyeonyoga.web.app' },
+                            { name: '이대요가', siteId: 'ewha-yoga', url: 'ewha-yoga.web.app' },
+                            { name: '이대요가 (붙임)', siteId: 'ewhayoga', url: 'ewhayoga.web.app' },
+                            { name: '신촌요가', siteId: 'sinchon-yoga', url: 'sinchon-yoga.web.app' },
+                            { name: '신촌요가 (붙임)', siteId: 'sinchonyoga', url: 'sinchonyoga.web.app' },
+                            { name: '홍대요가', siteId: 'hongdae-yoga', url: 'hongdae-yoga.web.app' },
+                            { name: '홍대요가 (붙임)', siteId: 'hongdaeyoga', url: 'hongdaeyoga.web.app' },
+                            { name: '망원요가', siteId: 'mangwon-yoga', url: 'mangwon-yoga.web.app' },
+                            { name: '망원요가 (붙임)', siteId: 'mangwonyoga', url: 'mangwonyoga.web.app' },
+                            { name: '합정요가', siteId: 'hapjeong-yoga', url: 'hapjeong-yoga.web.app' },
+                            { name: '합정요가 (붙임)', siteId: 'hapjeongyoga', url: 'hapjeongyoga.web.app' },
+                            { name: '애오개요가', siteId: 'aeogae-yoga', url: 'aeogae-yoga.web.app' },
+                            { name: '애오개요가 (붙임)', siteId: 'aeogaeyoga', url: 'aeogaeyoga.web.app' },
+                            { name: '여의도요가', siteId: 'yeouido-yoga', url: 'yeouido-yoga.web.app' },
+                            { name: '여의도요가 (붙임)', siteId: 'yeoidoyoga', url: 'yeoidoyoga.web.app' },
+                            { name: 'PassFlow 랜딩', siteId: 'passflow-landing', url: 'passflow-landing.web.app' },
+                        ].map(d => (
+                            <div key={d.siteId} style={{ padding: '14px 16px', background: 'rgba(245, 158, 11, 0.04)', border: '1px solid rgba(245, 158, 11, 0.12)', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                    <div style={{ fontWeight: '600', fontSize: '0.85rem', color: '#d1d5db' }}>{d.name}</div>
+                                    <div style={{ fontSize: '0.72rem', color: '#78716c', marginTop: '2px' }}>{d.url}</div>
+                                </div>
+                                <span style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: '12px', background: 'rgba(245, 158, 11, 0.1)', color: '#F59E0B', fontWeight: '600' }}>보관</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div style={{ padding: '14px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)', fontSize: '0.78rem', color: '#6b7280', lineHeight: 1.7 }}>
+                        <div style={{ fontWeight: '700', color: '#9ca3af', marginBottom: '4px' }}>📌 도메인 관리 안내</div>
+                        <div>• 모든 도메인은 Firebase Hosting에 선점 등록되어, 외부인이 동일 이름으로 사이트를 만들 수 없습니다.</div>
+                        <div>• '보관' 상태의 도메인은 아직 앱이 배포되지 않은 상태이며, 고객 온보딩 시 즉시 활성화됩니다.</div>
+                        <div>• <strong>ssangmun-yoga</strong> (하이픈 포함)는 타 프로젝트에 선점되어 있어 <strong>ssangmunyoga</strong>로 운영 중입니다.</div>
+                    </div>
+                </>
             )}
         </div>
     );

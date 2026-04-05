@@ -63,7 +63,7 @@
       ]
     },
     {
-      "site": "ssangmun-yoga-0",
+      "site": "ssangmunyoga",
       "public": "dist",
       "ignore": [
         "firebase.json",

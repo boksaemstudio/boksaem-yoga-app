@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:ital,wght@1,800&amp;display=swap');
+      .logo-text {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 800;
+        font-style: italic;
+      }
+    </style>
+    <!-- 동일한 브랜드 그라데이션 -->
+    <linearGradient id="passflow-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F5132" />
+      <stop offset="50%" stop-color="#198754" />
+      <stop offset="100%" stop-color="#0DCAF0" />
+    </linearGradient>
+    <linearGradient id="ai-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8A2BE2" />
+      <stop offset="100%" stop-color="#FF1493" />
+    </linearGradient>
+  </defs>
+
+  <!-- 앱 아이콘 다크그레이 배경 (둥근 사각형) -->
+  <rect width="400" height="400" rx="90" fill="#08080A" />
+
+  <!-- PF -->
+  <text x="60" y="250" class="logo-text" font-size="180px" letter-spacing="-5px" fill="url(#passflow-grad)">PF</text>
+  
+  <!-- Ai -->
+  <text x="255" y="250" class="logo-text" font-size="150px" letter-spacing="-2px" fill="url(#ai-grad)">Ai</text>
+</svg>

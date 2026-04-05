@@ -660,9 +660,6 @@ const StudioSettingsTab = () => {
                                             handleChange('BRANCHES', newBranches);
                                         }}
                                     />
-                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
-                                        ID: {branch.id} (변경 불가)
-                                    </div>
                                 </div>
                                 {localConfig.BRANCHES.length > 2 && (
                                     <button
@@ -706,7 +703,6 @@ const StudioSettingsTab = () => {
                         <div style={{ fontWeight: '700', color: '#F59E0B', marginBottom: '6px', fontSize: '0.8rem' }}>
                             ⚠️ 지점 관리 주의사항
                         </div>
-                        <div>• 지점 ID는 한번 생성되면 <strong style={{ color: '#F59E0B' }}>변경할 수 없습니다</strong>. 지점명만 수정 가능합니다.</div>
                         <div>• 지점을 삭제하면, 해당 지점의 출석/매출/시간표 기록에서 지점 정보가 사라질 수 있습니다.</div>
                         <div>• 기존 회원의 소속 지점이 삭제된 경우, "전체" 보기에는 포함되지만 지점별 필터링이 불가합니다.</div>
                     </div>
@@ -737,7 +733,7 @@ const StudioSettingsTab = () => {
                         const studioOriginMap = {
                             'boksaem-yoga': 'https://boksaem-yoga.web.app',
                             'demo-yoga': 'https://passflowai.web.app',
-                            'ssangmun-yoga': 'https://ssangmun-yoga-0.web.app',
+                            'ssangmun-yoga': 'https://ssangmunyoga.web.app',
                         };
                         const origin = studioOriginMap[sid] || 'https://passflowai.web.app';
                         const needsParam = !studioOriginMap[sid]; // 전용 도메인 없으면 ?studio= 필요

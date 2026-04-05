@@ -34,7 +34,7 @@ export const resolveStudioId = (): string => {
         targetStudioId = 'demo-yoga';
     } 
     // 3-2. 쌍문요가
-    else if (host.includes('ssangmun-yoga-0.web.app') || host.includes('ssangmun-yoga-0.firebaseapp.com')) {
+    else if (host.includes('ssangmun-yoga-0.web.app') || host.includes('ssangmun-yoga-0.firebaseapp.com') || host.includes('ssangmunyoga.web.app') || host.includes('ssangmunyoga.firebaseapp.com')) {
         targetStudioId = 'ssangmun-yoga';
     } 
     // 4. 서브도메인 파싱

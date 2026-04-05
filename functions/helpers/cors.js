@@ -18,6 +18,8 @@ const STUDIO_HOSTS = {
         'https://boksaem-yoga.firebaseapp.com'
     ],
     'ssangmun-yoga': [
+        'https://ssangmunyoga.web.app',
+        'https://ssangmunyoga.firebaseapp.com',
         'https://ssangmun-yoga-0.web.app',
         'https://ssangmun-yoga-0.firebaseapp.com'
     ],

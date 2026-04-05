@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 200" width="100%" height="100%">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:ital,wght@1,800&amp;display=swap');
+      .logo-text {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 800;
+        font-style: italic;
+        font-size: 150px;
+        letter-spacing: -4px;
+      }
+      .ai-text {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 800;
+        font-style: italic;
+        font-size: 150px;
+        letter-spacing: -2px;
+      }
+    </style>
+    <!-- 1. Pass와 Flow의 넓은 전이 그라데이션 (Green -> Cyan) -->
+    <linearGradient id="passflow-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0F5132" />     <!-- 딥 포레스트 그린 (Pass 시작) -->
+      <stop offset="35%" stop-color="#198754" />    <!-- 에메랄드 (Pass 끝 부분) -->
+      <stop offset="65%" stop-color="#0DCAF0" />    <!-- 라이트 시안 (Flow 시작 부분) -->
+      <stop offset="100%" stop-color="#007BFF" />   <!-- 딥 블루 시안 (Flow 끝) -->
+    </linearGradient>
+    
+    <!-- 2. AI만의 차별화된 하이테크 컬러 (Neon Purple -> Magenta) -->
+    <linearGradient id="ai-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8A2BE2" />     <!-- 블루 바이올렛 -->
+      <stop offset="50%" stop-color="#D100D1" />    <!-- 네온 마젠타 -->
+      <stop offset="100%" stop-color="#FF1493" />   <!-- 딥 핑크 -->
+    </linearGradient>
+  </defs>
+
+  <!-- 투명 배경 -->
+  <rect width="850" height="200" fill="transparent" />
+
+  <!-- PassFlow 텍스트 -->
+  <text x="40" y="150" class="logo-text" fill="url(#passflow-grad)">PassFlow</text>
+  
+  <!-- Ai 텍스트 (색상 분리) -->
+  <text x="640" y="150" class="ai-text" fill="url(#ai-grad)">Ai</text>
+</svg>

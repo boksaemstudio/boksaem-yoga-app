@@ -13,7 +13,7 @@ const tenants = [
         ogImage: '/pwa-icon-512.png'
     },
     {
-        siteId: 'ssangmun-yoga-0',
+        siteId: 'ssangmunyoga',
         name: '쌍문요가',
         title: '쌍문요가 - 출석 관리 솔루션',
         ogDesc: '쌍문요가 출석·수련 기록 서비스',
