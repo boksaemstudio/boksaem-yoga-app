@@ -215,6 +215,16 @@
                 { "fieldPath": "memberId", "order": "ASCENDING" },
                 { "fieldPath": "date", "order": "ASCENDING" }
             ]
+        },
+        {
+            "collectionGroup": "attendance",
+            "queryScope": "COLLECTION",
+            "fields": [
+                { "fieldPath": "memberId", "order": "ASCENDING" },
+                { "fieldPath": "date", "order": "ASCENDING" },
+                { "fieldPath": "status", "order": "ASCENDING" },
+                { "fieldPath": "timestamp", "order": "ASCENDING" }
+            ]
         }
     ],
     "fieldOverrides": []

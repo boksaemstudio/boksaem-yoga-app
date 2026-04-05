@@ -77,6 +77,38 @@ exports.checkInMemberV2Call = onCall({
                 console.log(`[Attendance] Force Check-in or No EventId for ${memberId}. Skipping deduplication.`);
             }
 
+            // ━━━━ 1.5. Time-based Debounce (5초 이내 동일 회원 중복 차단) ━━━━
+            // UUID 멱등성과 별개로, 같은 회원이 서로 다른 eventId로 빠르게 2번 요청하는 것을 차단합니다.
+            // (예: 더블탭, 네트워크 타임아웃 후 프론트엔드 재시도 등)
+            // force=true일 때는 건너뜁니다 (원장님이 의도적으로 재출석 처리).
+            if (!force) {
+                const DEBOUNCE_SECONDS = 5;
+                const debounceThreshold = new Date(now.getTime() - DEBOUNCE_SECONDS * 1000).toISOString();
+                const recentQuery = tdb.collection('attendance')
+                    .where('memberId', '==', memberId)
+                    .where('date', '==', today)
+                    .where('timestamp', '>=', debounceThreshold)
+                    .where('status', '==', 'valid')
+                    .limit(1);
+                
+                const recentSnap = await transaction.get(recentQuery);
+                
+                if (!recentSnap.empty) {
+                    const existingDoc = recentSnap.docs[0];
+                    const existing = existingDoc.data();
+                    const memberSnap = await transaction.get(tdb.collection('members').doc(memberId));
+                    const memberData = memberSnap.exists ? memberSnap.data() : {};
+                    console.log(`[Attendance] ⏱️ Debounce blocked for ${memberId} (within ${DEBOUNCE_SECONDS}s of last valid check-in)`);
+                    return {
+                        success: true, message: '이미 출석 처리되었습니다.',
+                        attendanceStatus: existing.status, attendanceId: existingDoc.id,
+                        newCredits: memberData.credits, attendanceCount: memberData.attendanceCount,
+                        memberName: memberData.name, startDate: memberData.startDate, endDate: memberData.endDate,
+                        streak: memberData.streak || 0, isDuplicate: true
+                    };
+                }
+            }
+
             // ━━━━ 2. Server-side Class Matching ━━━━
             let finalClassTitle = classTitle;
             let finalInstructor = instructor;
