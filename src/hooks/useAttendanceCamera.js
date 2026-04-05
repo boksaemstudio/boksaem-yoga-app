@@ -116,9 +116,9 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
         };
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
-        // [FIX] 3분 Heartbeat — 스트림 건강 체크
+        // [FIX] 1분 Heartbeat — 스트림 건강 체크 (PWA 전체화면에서 visibilityState가 불안정하므로 항상 체크)
         const heartbeatInterval = setInterval(() => {
-            if (!isMounted || document.visibilityState !== 'visible') return;
+            if (!isMounted) return;
             
             if (!isStreamAlive()) {
                 console.warn('[PHOTO] ⚠️ Heartbeat: Camera stream is dead. Recovering...');
@@ -127,7 +127,7 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
                 console.log('[PHOTO] Heartbeat: Video is paused, resuming...');
                 videoRef.current.play().catch(() => {});
             }
-        }, 3 * 60 * 1000); // 3분
+        }, 60 * 1000); // 1분
 
         return () => {
             isMounted = false;
