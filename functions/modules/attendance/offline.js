@@ -60,10 +60,16 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
                 preActivatedUpcoming: data.activatedUpcomingMembership || null
             });
 
-            // ━━━━ 3. 출석 기록에 오프라인 마크 추가 ━━━━
+            // ━━━━ 3. 출석 기록에 오프라인 마크 + 사진 URL 복사 ━━━━
             if (result.success) {
                 const attRef = tdb.collection('attendance').doc(result.attendanceId);
-                transaction.update(attRef, { syncMode: 'offline-restored' });
+                const updateData = { syncMode: 'offline-restored' };
+                // [FIX] pending_attendance에 저장된 사진 URL이 있으면 attendance 문서에 복사
+                if (data.photoUrl) {
+                    updateData.photoUrl = data.photoUrl;
+                    updateData.photoStatus = 'offline-synced';
+                }
+                transaction.update(attRef, updateData);
             }
 
             // ━━━━ 4. Pending 문서 삭제 ━━━━

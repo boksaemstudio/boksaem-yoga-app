@@ -412,7 +412,28 @@ const CheckInPage = () => {
                     await new Promise(r => setTimeout(r, 300));
                     setMessage({ type: 'error', text: '기간 혹은 횟수가 만료되었습니다.' });
                 } else {
-                    uploadPhoto(res.attendanceId, res.member?.name, 'valid');
+                    // [FIX] 오프라인 출석이면 사진 URL을 pending_attendance에 저장
+                    if (res.isOffline) {
+                        uploadPhoto(null, res.member?.name, 'offline-pending').then(url => {
+                            if (url) {
+                                import('firebase/firestore').then(({ getDocs, query, where, updateDoc }) => {
+                                    import('../utils/tenantDb').then(({ tenantDb }) => {
+                                        getDocs(query(tenantDb.collection('pending_attendance'),
+                                            where('memberId', '==', targetMemberId),
+                                            where('date', '==', new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }))
+                                        )).then(snap => {
+                                            if (!snap.empty) {
+                                                updateDoc(snap.docs[snap.docs.length - 1].ref, { photoUrl: url });
+                                                console.log('[PHOTO] ✅ Photo URL saved to pending_attendance for offline sync');
+                                            }
+                                        }).catch(() => {});
+                                    });
+                                });
+                            }
+                        });
+                    } else {
+                        uploadPhoto(res.attendanceId, res.member?.name, 'valid');
+                    }
                     await showCheckInSuccess(res, isDup);
                     if (faceRecognitionEnabled && faceModelsLoaded && lastDescriptorRef.current) {
                         memberService.updateFaceDescriptor(targetMemberId, lastDescriptorRef.current);

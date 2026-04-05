@@ -259,7 +259,7 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
 
     // [PHOTO] 비동기 업로드
     const uploadPhoto = async (attendanceId, memberName, status) => {
-        if (!PHOTO_ENABLED) return;
+        if (!PHOTO_ENABLED) return null;
         // [FIX] navigator.onLine 체크 제거 — 태블릿에서 잘못 감지될 수 있음
         // 업로드 시도 후 실패하면 catch에서 처리
 
@@ -304,11 +304,11 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
                     timeSinceLastCapture: Date.now() - lastCaptureTimeRef.current
                 });
             } catch (e) {}
-            return;
+            return null;
         }
 
         if (!attendanceId) {
-            console.warn('[PHOTO] No attendanceId provided (offline mode?). Skipping doc update.');
+            console.log('[PHOTO] No attendanceId (offline mode). Will upload and return URL for pending sync.');
         }
 
         try {
@@ -329,6 +329,7 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
                 });
             }
             console.log(`[PHOTO] ✅ Upload Success: ${path} (${(blob.size / 1024).toFixed(1)}KB)`);
+            return url;
         } catch (err) {
             console.error(`[PHOTO] ❌ Upload failed:`, err.message);
             try {
@@ -337,6 +338,7 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
                     attendanceId 
                 });
             } catch (e) {}
+            return null;
         } finally {
             // [O] Immediate memory release
             capturedPhotoRef.current = null;
