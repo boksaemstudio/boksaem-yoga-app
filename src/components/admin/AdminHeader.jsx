@@ -59,11 +59,11 @@ const AdminHeader = ({
                             }}
                         >
                             {viewMode === 'compact' ? <ToggleRight size={18} weight="fill" /> : <ToggleLeft size={18} />}
-                            <span className="hide-mobile">{viewMode === 'compact' ? '간편' : '전체'}</span>
+                            <span className="hide-mobile">{viewMode === 'compact' ? '전체접기' : '전체보기'}</span>
                         </button>
                         <div className="tooltip-text" style={{ width: '200px', left: 'auto', right: '50%', transform: 'translateX(50%)', top: '130%', zIndex: 10 }}>
-                            <strong>{viewMode === 'compact' ? '간편 보기 사용 중' : '전체 보기 사용 중'}</strong><br/>
-                            클릭 시, 복잡한 그래프를 숨기고 꼭 필요한 수치만 깔끔하게 보여줍니다.
+                            <strong>{viewMode === 'compact' ? '전체접기 모드' : '전체보기 모드'}</strong><br/>
+                            {viewMode === 'compact' ? '모든 그래프와 상세 정보를 접어 꽑 필요한 수치만 보여줍니다.' : '모든 그래프와 상세 정보를 펼쳐서 보여줍니다.'}
                         </div>
                     </div>
                 )}

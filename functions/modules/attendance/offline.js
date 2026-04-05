@@ -52,6 +52,7 @@ exports.onPendingAttendanceCreated = onDocumentCreated({
                 timestampISO: timestamp,
                 type: 'checkin',
                 eventId,
+                source: data.source || 'offline',
                 studioId: event.params.studioId
             }, {
                 skipCreditDeduction: false,

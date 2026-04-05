@@ -164,20 +164,28 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
         
         if (!cameraStreamRef.current || !isStreamAlive()) {
             console.warn('[PHOTO] ⚠️ Camera stream is not available. Triggering recovery + retry...');
-            initCamera('capture_recovery').then(ok => {
+            // [FIX] 복구+재캡처를 Promise로 감싸서 uploadPhoto가 대기할 수 있게 등록
+            const recoveryPromise = initCamera('capture_recovery').then(ok => {
                 if (ok) {
-                    // [SaaS FIX] 복구 성공 시 1.5초 후 재캡처 (카메라 안정화 대기)
-                    setTimeout(() => {
-                        const v = videoRef.current;
-                        if (v && v.readyState >= 2 && !v.paused && isStreamAlive()) {
-                            console.log('[PHOTO] ✅ Recovery succeeded, retrying capture...');
-                            doCapture(v);
-                        } else {
-                            console.warn('[PHOTO] ⚠️ Recovery succeeded but video still not ready.');
-                        }
-                    }, 1500);
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            const v = videoRef.current;
+                            if (v && v.readyState >= 2 && !v.paused && isStreamAlive()) {
+                                console.log('[PHOTO] ✅ Recovery succeeded, retrying capture...');
+                                doCapture(v);
+                                // doCapture 안에서 toBlob은 비동기이므로 추가 대기
+                                setTimeout(() => resolve(capturedPhotoRef.current), 1000);
+                            } else {
+                                console.warn('[PHOTO] ⚠️ Recovery succeeded but video still not ready.');
+                                resolve(null);
+                            }
+                        }, 1500);
+                    });
                 }
+                return null;
             });
+            capturePromisesRef.current.push(recoveryPromise);
+            if (capturePromisesRef.current.length > 5) capturePromisesRef.current.shift();
             return;
         }
 
@@ -265,9 +273,19 @@ export const useAttendanceCamera = (PHOTO_ENABLED) => {
             ]);
         }
 
-        // [FIX] blob이 아직 없으면 짧은 대기 후 재확인 (toBlob 콜백 지연 대비)
+        // [FIX] blob이 아직 없으면 단계적 대기 (카메라 복구 포함 최대 3초)
         if (!capturedPhotoRef.current) {
-            console.log('[PHOTO] No blob yet, waiting 500ms...');
+            console.log('[PHOTO] No blob yet, waiting for recovery (up to 3s)...');
+            // 1차: 캡처 promise 대기 (복구 포함)
+            if (capturePromisesRef.current.length > 0) {
+                const lastPromise = capturePromisesRef.current[capturePromisesRef.current.length - 1];
+                await Promise.race([lastPromise, new Promise(r => setTimeout(r, 3000))]);
+            } else {
+                await new Promise(r => setTimeout(r, 1000));
+            }
+        }
+        // 2차: 그래도 없으면 마지막 500ms 대기
+        if (!capturedPhotoRef.current) {
             await new Promise(r => setTimeout(r, 500));
         }
 
