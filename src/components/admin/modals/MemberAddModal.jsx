@@ -497,15 +497,21 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                                         value={(() => {
                                             const cls = newMember.todayClass;
                                             if (!cls) return '자율수련';
-                                            return cls.title || '자율수련';
+                                            // [FIX] 고유키(time__title) 사용하여 동일 수업명 중복 시에도 정확한 선택 보장
+                                            return cls._key || cls.title || '자율수련';
                                         })()}
                                         onChange={(e) => {
-                                            const selectedTitle = e.target.value;
-                                            if (selectedTitle === '자율수련') {
+                                            const selectedKey = e.target.value;
+                                            if (selectedKey === '자율수련') {
                                                 setNewMember({ ...newMember, todayClass: null });
                                             } else {
-                                                const matched = dailyClasses.find(c => (c.title || c.className) === selectedTitle);
-                                                setNewMember({ ...newMember, todayClass: matched ? { title: matched.title || matched.className, instructor: matched.instructor, time: matched.time } : { title: selectedTitle } });
+                                                // [FIX] 고유키(time__title)로 매칭하여 정확한 수업 정보 반영
+                                                const matched = dailyClasses.find(c => {
+                                                    const t = c.title || c.className || '';
+                                                    const tm = c.time || '';
+                                                    return `${tm}__${t}` === selectedKey;
+                                                });
+                                                setNewMember({ ...newMember, todayClass: matched ? { _key: selectedKey, title: matched.title || matched.className, instructor: matched.instructor, time: matched.time } : { title: selectedKey } });
                                             }
                                         }}
                                     >
@@ -515,7 +521,9 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                                             const time = cls.time || '';
                                             const instructor = cls.instructor || '';
                                             const label = [time, title, instructor].filter(Boolean).join(' ') + ' (-1회)';
-                                            return <option key={idx} value={title}>{label}</option>;
+                                            // [FIX] 고유키(time__title) — 같은 수업이 다른 시간대에 있어도 구분 가능
+                                            const uniqueKey = `${time}__${title}`;
+                                            return <option key={uniqueKey} value={uniqueKey}>{label}</option>;
                                         })}
                                     </select>
                                 </div>

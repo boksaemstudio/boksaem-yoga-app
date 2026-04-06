@@ -16,7 +16,9 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
         return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     });
     const [immediateBranch, setImmediateBranch] = useState(member.homeBranch || (branches.length > 0 ? branches[0].id : ''));
-    const [immediateClassName, setImmediateClassName] = useState('자율수련');
+    // [FIX] 수업 선택값을 '자율수련' 또는 'time__title' 형식의 고유키로 관리
+    const [immediateClassKey, setImmediateClassKey] = useState('자율수련');
+    const [immediateInstructor, setImmediateInstructor] = useState('');
     const [immediateDailyClasses, setImmediateDailyClasses] = useState([]);
 
     // Renew State
@@ -137,8 +139,9 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
     }, [startDateMode, immediateBranch, immediateDate]);
 
     // ─── 즉시 출석: 수업 옵션 ───
+    // [FIX] value를 'time__title' 형식의 고유키로 사용하여 동일 수업명 중복 문제 해결
     const immediateClassOptions = useMemo(() => {
-        const options = [{ value: '자율수련', label: '자율수련' }];
+        const options = [{ value: '자율수련', label: '자율수련', time: '', instructor: '', className: '자율수련' }];
         if (immediateDailyClasses.length > 0) {
             immediateDailyClasses.forEach(cls => {
                 const time = cls.time || '';
@@ -146,7 +149,9 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                 const instructor = cls.instructor || '';
                 const parts = [time, title, instructor].filter(Boolean);
                 const label = parts.join(' ');
-                options.push({ value: title, label, time });
+                // 고유키: 시간__수업명 (예: '19:50__하타')
+                const uniqueKey = `${time}__${title}`;
+                options.push({ value: uniqueKey, label, time, instructor, className: title });
             });
         }
         return options;
@@ -154,8 +159,18 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
 
     // ─── 즉시 출석: 지점/날짜 변경 시 수업 선택 초기화 ───
     useEffect(() => {
-        setImmediateClassName('자율수련');
+        setImmediateClassKey('자율수련');
+        setImmediateInstructor('');
     }, [immediateBranch, immediateDate]);
+
+    // ─── 즉시 출석: 선택된 수업에서 실제 className, time, instructor 추출 ───
+    const selectedClassInfo = useMemo(() => {
+        const found = immediateClassOptions.find(opt => opt.value === immediateClassKey);
+        if (!found || immediateClassKey === '자율수련') {
+            return { className: '자율수련', time: immediateTime, instructor: '', isFreePractice: true };
+        }
+        return { className: found.className, time: found.time, instructor: found.instructor, isFreePractice: false };
+    }, [immediateClassKey, immediateClassOptions, immediateTime]);
 
     // [INFO] 선등록 여부 확인 — 현재 회원권이 활성 상태인지 체크
     const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
@@ -233,7 +248,11 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
             // [FIX] 즉시 출석 모드일 때 등록과 동시에 출석 처리 (선택한 시간/수업 사용)
             if (isImmediate && onManualAttendance) {
                 try {
-                    await onManualAttendance(immediateDate, immediateTime, immediateBranch || member.homeBranch || '', immediateClassName);
+                    // [FIX] 선택된 수업의 시간/강사명을 정확하게 전달
+                    const finalTime = selectedClassInfo.isFreePractice ? immediateTime : selectedClassInfo.time;
+                    const finalClassName = selectedClassInfo.className;
+                    const finalInstructor = selectedClassInfo.instructor;
+                    await onManualAttendance(immediateDate, finalTime, immediateBranch || member.homeBranch || '', finalClassName, finalInstructor);
                 } catch (attErr) {
                     console.error('Auto attendance error:', attErr);
                     // 등록은 성공했으므로 출석 실패는 경고만
@@ -430,23 +449,32 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                                    {/* 시간 */}
-                                    <input
-                                        type="time"
-                                        value={immediateTime}
-                                        onChange={e => setImmediateTime(e.target.value)}
-                                        className="form-input"
-                                        style={{ flex: 1, minWidth: '100px', cursor: 'pointer', fontFamily: 'var(--font-main)' }}
-                                    />
-                                    {/* 수업 */}
+                                    {/* [FIX] 시간 입력: 자율수련일 때만 표시 (스케줄 수업은 시간이 자동 결정) */}
+                                    {selectedClassInfo.isFreePractice && (
+                                        <input
+                                            type="time"
+                                            value={immediateTime}
+                                            onChange={e => setImmediateTime(e.target.value)}
+                                            className="form-input"
+                                            style={{ flex: 1, minWidth: '100px', cursor: 'pointer', fontFamily: 'var(--font-main)' }}
+                                        />
+                                    )}
+                                    {/* [FIX] 수업 선택: 고유키(time__title) 사용, 선택 시 시간/강사 자동 반영 */}
                                     <select
-                                        value={immediateClassName}
-                                        onChange={(e) => setImmediateClassName(e.target.value)}
+                                        value={immediateClassKey}
+                                        onChange={(e) => {
+                                            const key = e.target.value;
+                                            setImmediateClassKey(key);
+                                            const matched = immediateClassOptions.find(opt => opt.value === key);
+                                            if (matched) {
+                                                setImmediateInstructor(matched.instructor || '');
+                                            }
+                                        }}
                                         className="form-select"
-                                        style={{ flex: 1.2, minWidth: '120px' }}
+                                        style={{ flex: selectedClassInfo.isFreePractice ? 1.2 : 1, minWidth: '120px' }}
                                     >
                                         {immediateClassOptions.map(opt => (
-                                            <option key={opt.label} value={opt.value}>{opt.label}</option>
+                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
                                         ))}
                                     </select>
                                 </div>
