@@ -228,7 +228,7 @@ async function processTBDResolution(memberData, memberId, dateStr, studioId) {
  */
 async function processAttendanceCore(transaction, params, options = {}) {
     const { memberId, branchId, className, instructor, classTime, dateStr, timestampISO, type, eventId, source, studioId } = params;
-    const { skipCreditDeduction = false, skipValidation = false, force = false, preActivatedUpcoming = null } = options;
+    const { skipCreditDeduction = false, skipValidation = false, force = false, preActivatedUpcoming = null, duplicateConfirmMethod = null } = options;
     const tdb = tenantDb(studioId);
 
     // ━━━━ 1. 회원 조회 ━━━━
@@ -359,6 +359,8 @@ async function processAttendanceCore(transaction, params, options = {}) {
         source: source || type || 'unknown'
     };
     if (denialReason) attendanceData.denialReason = denialReason;
+    // [FIX] 중복 출석 확인 방식 기록 (button_confirm: 버튼 클릭 / auto_timer: 타이머 자동)
+    if (duplicateConfirmMethod) attendanceData.duplicateConfirmMethod = duplicateConfirmMethod;
 
     // ━━━━ PRE-STATE BACKUP ATTACHMENT ━━━━
     if (activated || tbdResult?.resolved) {

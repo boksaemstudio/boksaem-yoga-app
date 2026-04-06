@@ -142,6 +142,7 @@ export const attendanceService = {
             const { writeBatch: wb } = await import('firebase/firestore');
             const batch = wb(db);
 
+            let creditAction = 'none';
             if (logSnap.exists()) {
                 const logData = logSnap.data() as AttendanceLog;
                 const lowerStatus = (logData.status || '').toLowerCase();
@@ -157,7 +158,6 @@ export const attendanceService = {
 
                     if (logData.stateChanges) {
                         const prev = logData.stateChanges as Record<string, unknown>;
-                        // 강제 롤백 (activation or TBD 해소를 되돌림)
                         updates.credits = prev.credits !== undefined ? prev.credits : increment(creditsToRestore);
                         updates.membershipType = prev.membershipType === null ? deleteField() : prev.membershipType;
                         updates.startDate = prev.startDate === null ? deleteField() : prev.startDate;
@@ -166,13 +166,17 @@ export const attendanceService = {
                     }
 
                     batch.update(tenantDb.doc('members', logData.memberId), updates);
+                    creditAction = `restored_${creditsToRestore}`;
                 }
             }
-            // Soft Delete: 실제 삭제 대신 deletedAt 필드 설정 (복원 가능)
-            batch.update(logRef, { deletedAt: new Date().toISOString(), _deletedBy: 'admin' });
+            // Soft Delete: 감사 로그 포함
+            batch.update(logRef, {
+                deletedAt: new Date().toISOString(),
+                _deletedBy: 'admin',
+                _deleteAction: creditAction, // 크레딧 복원 여부 기록
+            });
             await batch.commit();
 
-            // 사진은 보존 (soft delete이므로 나중에 복원 시 필요)
             cachedAttendance = cachedAttendance.filter(l => l.id !== logId);
             notifyCallback();
             return { success: true };
@@ -193,8 +197,14 @@ export const attendanceService = {
             const { writeBatch: wb, deleteField: df } = await import('firebase/firestore');
             const batch = wb(db);
 
-            // deletedAt 필드 제거
-            batch.update(logRef, { deletedAt: df(), _deletedBy: df() });
+            // deletedAt 필드 제거 + 복원 이력 기록
+            batch.update(logRef, {
+                deletedAt: df(),
+                _deletedBy: df(),
+                _deleteAction: df(),
+                _restoredAt: new Date().toISOString(),
+                _restoredBy: 'admin'
+            });
 
             // 크레딧 차감 복원
             const lowerStatus = (logData.status || '').toLowerCase();
@@ -226,7 +236,24 @@ export const attendanceService = {
 
     async permanentDeleteAttendance(logId: string): Promise<{ success: boolean; message?: string }> {
         try {
-            await deleteDoc(tenantDb.doc('attendance', logId));
+            // 영구 삭제 전 audit_log에 백업 기록
+            const logRef = tenantDb.doc('attendance', logId);
+            const logSnap = await getDoc(logRef);
+            if (logSnap.exists()) {
+                const logData = logSnap.data();
+                try {
+                    await addDoc(tenantDb.collection('audit_log'), {
+                        action: 'permanent_delete_attendance',
+                        attendanceId: logId,
+                        attendanceData: logData,
+                        timestamp: new Date().toISOString(),
+                        performedBy: 'admin'
+                    });
+                } catch (auditErr) {
+                    console.warn('[attendanceService] Audit log save failed:', auditErr);
+                }
+            }
+            await deleteDoc(logRef);
             notifyCallback();
             return { success: true };
         } catch (e) {
@@ -247,7 +274,7 @@ export const attendanceService = {
         return { successCount, remainingCount: remainingQueue.length };
     },
 
-    async checkInById(memberId: string, branchId: string, force = false, eventId: string | null = null, facialMatched = false, source: string = 'pin'): Promise<CheckInResult> {
+    async checkInById(memberId: string, branchId: string, force = false, eventId: string | null = null, facialMatched = false, source: string = 'pin', duplicateConfirmMethod: string | null = null): Promise<CheckInResult> {
         try {
             const checkInMember = httpsCallable(functions, 'checkInMemberV2Call');
             const currentClassInfo = await deps.getCurrentClass(branchId);
@@ -258,7 +285,7 @@ export const attendanceService = {
             for (let attempt = 1; attempt <= 2; attempt++) {
                 try {
                     const response = await withTimeout(
-                        checkInMember({ memberId, branchId, classTitle, instructor, classTime: currentClassInfo?.time || null, force, eventId: eventId || safeUUID(), facialMatched, source, studioId: getCurrentStudioId() }),
+                        checkInMember({ memberId, branchId, classTitle, instructor, classTime: currentClassInfo?.time || null, force, eventId: eventId || safeUUID(), facialMatched, source, studioId: getCurrentStudioId(), duplicateConfirmMethod }),
                         12000, 'timeout'
                     );
                     const data = response.data as Record<string, unknown>;
@@ -303,6 +330,7 @@ export const attendanceService = {
             const pendingData: Record<string, unknown> = {
                 memberId, branchId, classTitle, instructor, classTime: currentClassInfo?.time || null,
                 date: today, timestamp: now, status: 'pending-offline', eventId: eventId || safeUUID(), facialMatched, source,
+                duplicateConfirmMethod: duplicateConfirmMethod || null,
                 activatedUpcomingMembership: member && member.startDate === today ? { membershipType: member.membershipType, startDate: member.startDate, endDate: member.endDate, credits: member.credits } : null
             };
 

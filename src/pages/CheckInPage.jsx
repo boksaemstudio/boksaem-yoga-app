@@ -306,7 +306,7 @@ const CheckInPage = () => {
         setAiLoading(false);
     };
 
-    const proceedWithCheckIn = async (p, isDup = false, memberIdToForce = null, facialTask = null, needConfirm = false) => {
+    const proceedWithCheckIn = async (p, isDup = false, memberIdToForce = null, facialTask = null, needConfirm = false, duplicateConfirmMethod = null) => {
         // [안면인식 확인 모달] 중신뢰 매칭이면 확인 모달 먼저 표시
         if (needConfirm && memberIdToForce) {
             try {
@@ -403,7 +403,7 @@ const CheckInPage = () => {
 
             const safeUUID = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'id_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
             const source = (memberIdToForce && !p) ? 'facial' : 'pin';
-            const res = await storageService.checkInById(targetMemberId, currentBranch, isDup, safeUUID(), isFacialMatch, source);
+            const res = await storageService.checkInById(targetMemberId, currentBranch, isDup, safeUUID(), isFacialMatch, source, duplicateConfirmMethod);
             if (res.success) {
                 setIsOnline(!res.isOffline);
                 if (res.attendanceStatus === 'denied') {
@@ -513,7 +513,7 @@ const CheckInPage = () => {
             if (duplicateAutoCloseRef.current) { clearInterval(duplicateAutoCloseRef.current); duplicateAutoCloseRef.current = null; }
             return;
         }
-        if (duplicateTimer <= 0) { setShowDuplicateConfirm(false); proceedWithCheckIn(pendingPin, true); } 
+        if (duplicateTimer <= 0) { setShowDuplicateConfirm(false); proceedWithCheckIn(pendingPin, true, null, null, false, 'auto_timer'); } 
     }, [duplicateTimer, showDuplicateConfirm, pendingPin]);
 
     // ── Render ──
@@ -533,7 +533,7 @@ const CheckInPage = () => {
 
             <SelectionModal show={showSelectionModal} duplicateMembers={duplicateMembers} loading={loading} onClose={() => { setShowSelectionModal(false); setPin(''); }} onSelect={id => { setShowSelectionModal(false); proceedWithCheckIn(pin, isDuplicateFlow, id); }} />
             <MessageOverlay message={message} onClose={closeMessage} aiExperience={aiExperience} />
-            <DuplicateConfirmModal show={showDuplicateConfirm} duplicateTimer={duplicateTimer} onCancel={() => { setShowDuplicateConfirm(false); setPin(''); }} onConfirm={() => { setShowDuplicateConfirm(false); proceedWithCheckIn(pendingPin, true); }} />
+            <DuplicateConfirmModal show={showDuplicateConfirm} duplicateTimer={duplicateTimer} onCancel={() => { setShowDuplicateConfirm(false); setPin(''); }} onConfirm={() => { setShowDuplicateConfirm(false); proceedWithCheckIn(pendingPin, true, null, null, false, 'button_confirm'); }} />
             
             {/* ── 운영 시간 외 절전 모드 화면 ── */}
             {!isOperatingHours && (

@@ -17,7 +17,7 @@ exports.checkInMemberV2Call = onCall({
         return { success: true, message: 'pong', timestamp: Date.now() };
     }
 
-    const { memberId, branchId, classTitle, instructor, classTime, force, eventId, source, studioId } = request.data;
+    const { memberId, branchId, classTitle, instructor, classTime, force, eventId, source, studioId, duplicateConfirmMethod } = request.data;
     const tdb = tenantDb(studioId);
 
     console.log(`[Attendance] Check-in request for ${memberId} in ${branchId}. Force: ${force}, EventId: ${eventId}`);
@@ -224,7 +224,8 @@ exports.checkInMemberV2Call = onCall({
             }, {
                 skipCreditDeduction: false,
                 skipValidation: false,
-                force: force || false
+                force: force || false,
+                duplicateConfirmMethod: duplicateConfirmMethod || null
             });
 
             // 주간/일간 제한으로 거부된 경우 출석 상태 덮어쓰기
