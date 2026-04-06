@@ -8,9 +8,35 @@ import { storageService } from '../services/storage';
  * 
  * Firestore 리스너, 가격 자동채움, AI분석, 변경감지/저장, 수동출석/삭제 관리
  */
-export const useAdminMemberDetail = (initialMember, propMemberLogs, { onUpdateMember, onClose }) => {
+export const useAdminMemberDetail = (initialMember, propMemberLogs, { onUpdateMember, onClose, pricingConfig }) => {
     const [localMember, setLocalMember] = useState(initialMember);
     const member = localMember || initialMember;
+
+    // [DEFENSE] duration 교차 검증 헬퍼
+    // member.duration이 없거나 1이면서 credits > 1이면 pricing config로 보정
+    const getSafeDuration = useCallback((m) => {
+        let dur = m.duration || 1;
+        if (dur <= 1 && (m.credits > 1 || m.subject) && pricingConfig) {
+            const category = pricingConfig[m.membershipType];
+            if (category?.options) {
+                let matched = category.options.find(opt =>
+                    m.subject && opt.label && m.subject.includes(opt.label)
+                );
+                if (!matched) {
+                    matched = category.options.find(opt =>
+                        opt.credits === (m.credits || 0) + (m.attendanceCount || 0)
+                    );
+                }
+                if (matched?.months && matched.months > dur) {
+                    console.warn(`[MemberDetail] ⚠️ duration 보정: ${m.name} duration=${dur} → pricing=${matched.months}mo`);
+                    dur = matched.months;
+                    // DB에도 수정 (fire-and-forget)
+                    storageService.updateMember(m.id, { duration: dur }).catch(() => {});
+                }
+            }
+        }
+        return dur;
+    }, [pricingConfig]);
 
     const [editData, setEditData] = useState({ ...initialMember });
     const [memberLogs, setMemberLogs] = useState(propMemberLogs || []);
@@ -63,7 +89,8 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, { onUpdateMe
                 const sorted = [...history].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
                 const d = new Date(sorted[0].timestamp);
                 const startDateStr = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-                const end = new Date(d); end.setMonth(end.getMonth() + (member.duration || 1)); end.setDate(end.getDate() - 1);
+                const safeDur = getSafeDuration(member);
+                const end = new Date(d); end.setMonth(end.getMonth() + safeDur); end.setDate(end.getDate() - 1);
                 const endDateStr = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
                 storageService.updateMember(member.id, { startDate: startDateStr, endDate: endDateStr }).catch(() => {});
             }
@@ -205,7 +232,8 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, { onUpdateMe
                 if (member.startDate === 'TBD') {
                     const startDateStr = dateStr;
                     const d = new Date(dateStr);
-                    const end = new Date(d); end.setMonth(end.getMonth() + (member.duration || 1)); end.setDate(end.getDate() - 1);
+                    const safeDur = getSafeDuration(member);
+                    const end = new Date(d); end.setMonth(end.getMonth() + safeDur); end.setDate(end.getDate() - 1);
                     const endDateStr = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
                     await storageService.updateMember(member.id, { startDate: startDateStr, endDate: endDateStr });
                     setLocalMember(prev => ({ ...prev, startDate: startDateStr, endDate: endDateStr }));

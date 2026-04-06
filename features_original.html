@@ -1,0 +1,278 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PassFlow Ai - ?뺣룄???ㅽ뒠?붿삤 ?댁쁺 ?붾（??/title>
+    <meta name="description" content="AI 湲곕컲 臾댁씤 異쒖꽍, 媛뺤궗 沅뚰븳 遺꾨━, ?ㅼ쨷 吏??留ㅼ텧 ?듯빀源뚯?. ?붽?쨌?꾨씪?뚯뒪 ?ㅽ뒠?붿삤 ?먯옣?섏쓣 ?꾪븳 媛??吏꾨낫?? 洹몃윭??媛???⑥닚???댁쁺 ?붾（?섏엯?덈떎.">
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="stylesheet" href="style.css?v=20">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --surface-bg: rgba(20, 20, 24, 0.6);
+            --border-glow: rgba(212, 175, 55, 0.15);
+            --text-muted: rgba(255, 255, 255, 0.65);
+        }
+        body { background-color: #050507; color: #ffffff; overflow-x: hidden; }
+        
+        .hero-section {
+            position: relative;
+            padding: clamp(120px, 15vw, 180px) 0 clamp(80px, 10vw, 120px);
+            text-align: center;
+            background: radial-gradient(circle at 50% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 60%), #050507;
+            overflow: hidden;
+        }
+        
+        /* Background Animated Glow */
+        .hero-section::before {
+            content: ''; position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
+            width: 800px; height: 800px; background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
+            filter: blur(60px); z-index: 0; animation: pulseGlow 8s infinite alternate;
+        }
+        @keyframes pulseGlow { 0% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.9); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } }
+
+        .container { position: relative; z-index: 2; max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+        
+        .badge {
+            display: inline-flex; align-items: center; padding: 8px 18px; border-radius: 30px;
+            background: rgba(212, 175, 55, 0.1); border: 1px solid var(--border-glow);
+            color: #d4af37; font-weight: 600; font-size: 0.85rem; letter-spacing: 1.5px; margin-bottom: 24px;
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 6vw, 4.2rem); font-weight: 800; line-height: 1.25; margin-bottom: 25px;
+            letter-spacing: -1px;
+        }
+        .hero-desc {
+            font-size: clamp(1.05rem, 2vw, 1.25rem); color: var(--text-muted); max-width: 760px; margin: 0 auto 50px; line-height: 1.6;
+            font-weight: 300; word-break: keep-all;
+        }
+
+        /* Feature Sub-Sections */
+        .spec-category {
+            margin: 100px 0;
+            padding-top: 60px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .spec-header { margin-bottom: 50px; text-align: left; }
+        .spec-header h2 { font-size: 2.2rem; margin-bottom: 15px; color: #fff; font-weight: 700; letter-spacing: -0.5px; display: flex; align-items: center; gap: 12px; }
+        .spec-header p { color: var(--text-muted); font-size: 1.1rem; max-width: 600px; line-height: 1.5; }
+
+        .feature-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--surface-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glow); border-radius: 20px;
+            padding: 40px 30px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; overflow: hidden;
+        }
+        .feature-card:hover {
+            transform: translateY(-8px); border-color: rgba(212, 175, 55, 0.4);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(212, 175, 55, 0.05);
+        }
+        .feature-card::after {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(212,175,55,0.5), transparent);
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .feature-card:hover::after { opacity: 1; }
+
+        .f-icon {
+            font-size: 2.2rem; margin-bottom: 20px; display: inline-flex; align-items: center; justify-content: center;
+            width: 64px; height: 64px; background: rgba(212, 175, 55, 0.08); border-radius: 16px; border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        .f-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 12px; color: #fff; letter-spacing: -0.3px; }
+        .f-desc { color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px; word-break: keep-all; }
+        
+        .f-points { list-style: none; padding: 0; margin: 0; }
+        .f-points li {
+            position: relative; padding-left: 24px; margin-bottom: 12px; font-size: 0.9rem; color: #ececec; line-height: 1.5;
+        }
+        .f-points li::before {
+            content: '??; position: absolute; left: 0; color: #d4af37; font-size: 0.9rem;
+        }
+
+        /* Target Audience Callout */
+        .sympathy-box {
+            background: linear-gradient(145deg, rgba(212, 175, 55, 0.1), rgba(0,0,0,0.8));
+            border-left: 4px solid #d4af37; border-radius: 0 16px 16px 0;
+            padding: 40px; margin: 80px 0;
+        }
+        .sympathy-box h3 { font-size: 1.6rem; margin-bottom: 15px; color: #fff; }
+        .sympathy-box p { font-size: 1.05rem; line-height: 1.7; color: rgba(255,255,255,0.8); word-break: keep-all; }
+
+        /* Tech philosophical box */
+        .philosophy-box {
+            display: flex; gap: 30px; align-items: center; background: rgba(255,255,255,0.03);
+            border-radius: 24px; padding: 40px; border: 1px solid rgba(255,255,255,0.08);
+            flex-wrap: wrap; margin-top: 40px;
+        }
+        .philosophy-box img { width: 120px; opacity: 0.8; mix-blend-mode: screen; }
+
+    </style>
+</head>
+<body>
+    <nav class="navbar glass">
+        <a href="home.html" class="logo" style="text-decoration:none; display: flex; align-items: center; gap: 8px;">
+            <img src="/assets/passflow_square_logo.png" alt="Icon" style="height: 36px; border-radius: 6px;" />
+            <div style="width: 140px; height: 38px; display: flex; align-items: center; overflow: hidden; position: relative;">
+                <img src="/assets/passflow_ai_logo_transparent.png" alt="PassFlow Ai" style="position: absolute; height: 110px; left: -6px; max-width: none;" />
+            </div>
+        </a>
+        <div class="nav-links" id="navLinks">
+            <a href="home.html#live-demo">?곕え</a>
+            <a href="features.html" style="color:#d4af37; font-weight:600;">?곸꽭湲곕뒫</a>
+            <a href="home.html#pricing">媛寃?/a>
+            <a href="home.html#contact">臾몄쓽</a>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero-section">
+            <div class="container">
+                <span class="badge">VISIONARY STUDIO MANAGEMENT</span>
+                <h1 class="hero-title gradient-text">?먯옣?섏쓽 ?쒓컙?<br>?ㅼ쭅 ?섏뾽怨?寃쎌쁺?먮쭔.</h1>
+                <p class="hero-desc">蹂듭옟??湲곗닠? ?쒖뒪???꾨옒??源딆닕???④꼈?듬땲??<br>?덉빟, 異쒖꽍, 留ㅼ텧, 媛뺤궗 愿由? 吏???뺤옣源뚯? 留됲옒?놁씠 ?섎윭媛??沅곴레??SaaS ?붾（?섏쓣 寃쏀뿕?섏떗?쒖삤.</p>
+                
+                <div style="display: flex; justify-content: center; gap: 16px;">
+                    <a href="home.html#live-demo" class="btn-primary" style="padding: 16px 32px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 1.05rem;">臾대즺 ?곕え ?쒖옉?섍린</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="container" style="padding-bottom: 120px;">
+            
+            <div class="sympathy-box">
+                <h3>?ㅼ쭅 ?ㅽ뒠?붿삤 ?먯옣?섎뱾???꾪빐 ?ㅺ퀎?덉뒿?덈떎.</h3>
+                <p>"媛뺤궗?섎뱾 沅뚰븳? ?대뼸寃?遺꾨━?섏?? 2?몄젏 留ㅼ텧? ?대뼸寃??⑹궛?댁꽌 蹂쇨퉴? ?몄눥(No-show)?섎뒗 ?뚯썝? ?대뼸寃?愿由ы빐???곸쿂諛쏆? ?딄퀬 ?덈궡?????덉쓣源? 鍮꾩떬 吏臾??몄떇湲곕? ?ъ빞留?臾댁씤 異쒖꽍??媛?ν븷源?"<br><br>
+                ?먯옣?섎뱾???꾩옣?먯꽌 寃る뒗 ?ㅽ듃?덉뒪? ?섏씤?ъ씤??Pain-point)瑜??꾧뎄蹂대떎 ???뚭린?? **媛쒕컻?먭? ?꾨땶 ?붽?쨌?꾨씪?뚯뒪 ?꾨Ц媛???쒖꽑**?먯꽌 ??紐⑤뱺 怨좊??????섎굹???쒖뒪?쒖뿉 ?댁븘?덉뒿?덈떎.</p>
+            </div>
+
+            <!-- 1. AI & Kiosk -->
+            <div class="spec-category">
+                <div class="spec-header">
+                    <h2>?쨼 珥덇퀬??Edge-AI 臾댁씤 異쒖꽍 (?ㅼ삤?ㅽ겕)</h2>
+                    <p>怨좉????λ퉬??蹂듭옟??吏臾??깅줉???꾩슂 ?놁뒿?덈떎. ?쒕툝由????濡??댁쁺?섎뒗 留덈쾿 媛숈? AI 異쒖꽍.</p>
+                </div>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="f-icon">??/div>
+                        <div class="f-title">0.1珥??덈㈃ ?몄떇 & PIN 蹂묓뻾</div>
+                        <div class="f-desc">移대찓???욎뿉 ?쒓린留??섎㈃ 異쒖꽍 ?? 留덉뒪?щ굹 議곕챸 蹂?섎줈 ?몄떇???대젮?????대????룹옄由?PIN)濡?利됱떆 ?고쉶 媛?ν빀?덈떎.</div>
+                        <ul class="f-points">
+                            <li>Face-API 湲곕컲 ?ㅽ봽?쇱씤 Edge 異붾줎</li>
+                            <li>?뺤긽/留뚮즺/以묐났 異쒖꽍 ?먮룞 ?뚯꽦 諛섑솚(TTS)</li>
+                            <li>?덉쟾 紐⑤뱶 ?먮룞?붾줈 ?쒕툝由??섎챸 洹밸???/li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <div class="f-icon">?벛</div>
+                        <div class="f-title">媛뺣젰???ㅽ봽?쇱씤 蹂듭썝??/div>
+                        <div class="f-desc">??댄뙆?닿? ?딄꼈?섏슂? ?뱁솴?섏? 留덉꽭?? ?ㅽ봽?쇱씤?먯꽌???묐룞?섍퀬, ?붾㈃?먯꽌 ?듭떊 ?λ퉬瑜??щ??낇븯?꾨줉 ?ㅼ뒪濡??泥섑빀?덈떎.</div>
+                        <ul class="f-points">
+                            <li>?ㅽ봽?쇱씤 異쒖꽍 罹먯떛 (?곌껐 ??利됱떆 ?쒕쾭 ?숆린??</li>
+                            <li>異쒖꽍 ?곗씠???좎떎 0% ?꾪궎?띿쿂</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Admin Assistant -->
+            <div class="spec-category">
+                <div class="spec-header">
+                    <h2>?쭬 ???먯븞??鍮꾩꽌, AI ?대뱶誘?/h2>
+                    <p>?섏떗 媛쒖쓽 踰꾪듉???꾨Ⅴ怨??묒??????꾩슂媛 ?놁뒿?덈떎. 臾산퀬, ??듭쓣 ?ｊ퀬, 寃곗젙???대━?몄슂.</p>
+                </div>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="f-icon">?뮠</div>
+                        <div class="f-title">?먯뿰????뷀삎 AI 鍮꾩꽌</div>
+                        <div class="f-desc">"?ㅻ뒛 諛??섏뾽??10?뚭텒 ?댁긽 ?⑥? ?щ엺 ?꾧뎄??", "源蹂듭닚 ?뚯썝???붿뿬 ?잛닔??" 梨꾪똿?섎벏 臾쇱뼱蹂대㈃ AI媛 ?곗씠?곕쿋?댁뒪瑜?寃?됲빐 利됱떆 ??듯빀?덈떎.</div>
+                        <ul class="f-points">
+                            <li>Gemini / OpenAI LLM 湲곕컲 援щЦ 遺꾩꽍</li>
+                            <li>留ㅼ텧 ?붿빟 諛??뱀젙 ?뚯썝 ?뺣낫 利됯컖 議고쉶</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <div class="f-icon">?뱢</div>
+                        <div class="f-title">?댄깉 諛⑹? 諛?由ы뀗??遺꾩꽍</div>
+                        <div class="f-desc">留뚮즺 ?덉젙???뚯썝, 理쒓렐 14?쇨컙 ?섑??섏? ?딆? ?뚯썝??AI媛 ?먮룞?쇰줈 異붾젮?댁뼱, 遺?댁뒪?쎌? ?딆? ?덈? 臾몄옄 珥덉븞源뚯? ?묒꽦??以띾땲??</div>
+                        <ul class="f-points">
+                            <li>?щ벑濡앸쪧 / ?댄깉瑜??ㅼ떆媛??쒓컖??/li>
+                            <li>?댁???Soft Delete) 湲곕뒫?쇰줈 ?덉쟾???곗씠??愿由?/li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Multi-Branch & SaaS -->
+            <div class="spec-category">
+                <div class="spec-header">
+                    <h2>?룫 ?ㅼ쨷 吏??Multi-Branch) & PWA</h2>
+                    <p>蹂몄젏怨??섎쭖? 吏?먯쓽 踰쎌쓣 ?덈Ъ?덉뒿?덈떎. ?뷀꽣?꾨씪?댁쫰???ㅼ??쇱쓣 ?뚭퇋紐??ㅽ뒠?붿삤??</p>
+                </div>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="f-icon">?뙋</div>
+                        <div class="f-title">吏?먮퀎 ?꾨꼍 ?낅┰ ?쒖뒪??/div>
+                        <div class="f-desc">濡쒓렇?꾩썐/濡쒓렇???놁씠 ?곷떒 ??쭔 ?꾨Ⅴ硫??띾??? 媛뺣궓?먯쓽 留ㅼ텧怨??ㅼ?以꾩쓣 ?섎굹??땲?? ?섏?留?媛뺤궗? ?뚯썝? ?먯떊??吏?먮쭔 蹂닿쾶 ?⑸땲??</div>
+                        <ul class="f-points">
+                            <li>?꾨옖李⑥씠利덇툒 ?뚮꼳??遺꾨━ ?꾪궎?띿쿂</li>
+                            <li>媛?吏?먮퀎 而ㅼ뒪? ?꾨찓??(xxx-yoga.web.app) ?쒓났</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <div class="f-icon">?벑</div>
+                        <div class="f-title">沅뚰븳蹂?3媛쒖쓽 ?낅┰ PWA ??/div>
+                        <div class="f-desc">?깆뒪?좎뼱 ?뱀씤 ?湲??놁씠, ?ы뙆由щ굹 ?щ＼?먯꽌 踰꾪듉 ??踰덉씠硫?諛뷀깢?붾㈃???뚯썝??媛뺤궗??愿由ъ옄???낅┰ ?깆씠 ?ㅼ튂?⑸땲??</div>
+                        <ul class="f-points">
+                            <li>?ㅼ튂?⑥씠 ?믪? 媛踰쇱슫 ?뱀빋 (Progressive Web App)</li>
+                            <li>?ㅽ뒠?붿삤 濡쒓퀬? ?뚮쭏 而щ윭媛 ???꾩씠肄섏뿉 ?먮룞 諛섏쁺</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Security & Simplicity -->
+            <div class="spec-category">
+                <div class="spec-header">
+                    <h2>?썳截?洹밸룄???⑥닚?? 泥좊꼍媛숈? ?뺣낫 蹂댄샇</h2>
+                    <p>媛쒕컻?먭? ?곹샎??媛덉븘?ｌ뼱 留뚮뱺 媛??蹂듭옟???대씪?곕뱶 湲곗닠?? ?ъ슜?먯뿉寃?媛???⑥닚???대┃ ??踰덉쑝濡??먭뺨吏묐땲??</p>
+                </div>
+                
+                <div class="philosophy-box">
+                    <div style="flex:1; min-width: 250px;">
+                        <h4 style="font-size: 1.3rem; margin-bottom: 12px; color: #d4af37;">媛쒖씤?뺣낫瑜???ν븯吏 ?딅뒗 ?앹껜?몄떇</h4>
+                        <p style="color: rgba(255,255,255,0.7); font-size: 0.95rem; line-height: 1.6;">
+                            ?뚯썝??誘몄냼 ???쇨뎬 ?ъ쭊? ?쒕쾭????λ릺吏 ?딆뒿?덈떎. PassFlow Ai???ъ쭊??128媛쒖쓽 臾댁쓽誘명븳 ?レ옄 諛곗뿴(Vector)濡?利됱떆 ?뷀샇??蹂?섑븯硫? ?대뼚??寃쎌슦?먮룄 ?먮낯 ?쇨뎬??蹂듭썝?????놁뒿?덈떎. (媛쒖씤?뺣낫蹂댄샇踰??꾨꼍 以??
+                        </p>
+                    </div>
+                    <div style="flex:1; min-width: 250px;">
+                        <h4 style="font-size: 1.3rem; margin-bottom: 12px; color: #d4af37;">媛뺤궗 ?꾨씪?대쾭??蹂댄샇</h4>
+                        <p style="color: rgba(255,255,255,0.7); font-size: 0.95rem; line-height: 1.6;">
+                            媛뺤궗?섎뱾? ?꾩슜 ?깆쓣 ?듯빐 濡쒓렇?명빀?덈떎. ?ㅽ뒠?붿삤??誘쇨컧???꾩껜 留ㅼ텧?대굹 ?ㅻⅨ 媛뺤궗???섏뾽 ?뺣낫??蹂????놁쑝硫? ?ㅻ줈吏 蹂몄씤???섏뾽 紐낅떒怨??섎룞 異쒖꽍 泥댄겕 沅뚰븳留?媛吏묐땲??
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <footer class="footer" style="padding: 60px 0; background: #000; text-align: center; border-top: 1px solid rgba(255,255,255,0.05);">
+        <div class="container">
+            <h2 style="font-size: 1.8rem; color: #fff; margin-bottom: 25px;">湲곗닠???뺣뒗 ?꾨꼍???댁쁺???먮쫫</h2>
+            <div style="display: flex; gap: 16px; justify-content: center; align-items: center; max-width: 600px; margin: 0 auto 30px; flex-wrap: wrap;">
+                <a href="home.html#live-demo" style="background: #d4af37; color: #000; padding: 16px 36px; border-radius: 30px; text-decoration: none; font-weight: 700;">吏湲?臾대즺濡??꾩엯?섍린</a>
+            </div>
+            <p style="color: rgba(255,255,255,0.4); font-size: 0.85rem; line-height: 1.6;">
+                &copy; 2026 PassFlow Ai. All rights reserved.<br>
+                ?⑥뒪?뚮줈???먯씠?꾩씠 | ??? 源蹂듭닚 | ?ъ뾽?먮벑濡앸쾲?? 789-66-00676
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -3,275 +3,445 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PassFlow Ai - 압도적 스튜디오 운영 솔루션</title>
-    <meta name="description" content="AI 기반 무인 출석, 강사 권한 분리, 다중 지점 매출 통합까지. 요가·필라테스 스튜디오 원장님을 위한 가장 진보된, 그러나 가장 단순한 운영 솔루션입니다.">
+    <title>패스플로우 AI 기능 가이드 | 무인 헬스장, 크로스핏, 요가원 회원관리 프로그램</title>
+    <meta name="description" content="안면인식 출입통제, 예약 결제 시스템, 매출 통계, AI 비서 자동화까지. 헬스장 및 피트니스 체육시설 운영에 최적화된 올인원 스마트 관리 프로그램 기능을 확인하세요.">
+    <meta name="keywords" content="무인 헬스장, 안면인식 출입통제, 스피드게이트 연동, 헬스장 회원관리 프로그램 추천, 피트니스 CRM, 크로스핏 클래스 예약, 요가원 CRM 기능">
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="stylesheet" href="style.css?v=20">
+    <link rel="stylesheet" href="style.css?v=14">
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --surface-bg: rgba(20, 20, 24, 0.6);
-            --border-glow: rgba(212, 175, 55, 0.15);
-            --text-muted: rgba(255, 255, 255, 0.65);
-        }
-        body { background-color: #050507; color: #ffffff; overflow-x: hidden; }
-        
-        .hero-section {
+        body { background-color: #08080A; color: #ffffff; }
+        .features-header {
             position: relative;
-            padding: clamp(120px, 15vw, 180px) 0 clamp(80px, 10vw, 120px);
+            padding: clamp(100px, 12vw, 150px) 0 clamp(60px, 8vw, 100px);
             text-align: center;
-            background: radial-gradient(circle at 50% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 60%), #050507;
-            overflow: hidden;
+            background: linear-gradient(rgba(8, 8, 10, 0.6), rgba(8, 8, 10, 0.95)), 
+                        url('assets/feature_automation_bg.png') center/cover no-repeat fixed;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        
-        /* Background Animated Glow */
-        .hero-section::before {
-            content: ''; position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
-            width: 800px; height: 800px; background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
-            filter: blur(60px); z-index: 0; animation: pulseGlow 8s infinite alternate;
+        .detailed-list { margin-top: 20px; padding-left: 20px; list-style-type: none; }
+        .detailed-list li {
+            position: relative; margin-bottom: 14px; font-size: 0.93rem;
+            color: rgba(255,255,255,0.75); line-height: 1.65; word-break: keep-all;
         }
-        @keyframes pulseGlow { 0% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.9); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } }
-
-        .container { position: relative; z-index: 2; max-width: 1100px; margin: 0 auto; padding: 0 24px; }
-        
-        .badge {
-            display: inline-flex; align-items: center; padding: 8px 18px; border-radius: 30px;
-            background: rgba(212, 175, 55, 0.1); border: 1px solid var(--border-glow);
-            color: #d4af37; font-weight: 600; font-size: 0.85rem; letter-spacing: 1.5px; margin-bottom: 24px;
+        .detailed-list li::before {
+            content: "✓"; position: absolute; left: -22px;
+            color: #d4af37; font-weight: bold; font-size: 1.1em;
         }
-
-        .hero-title {
-            font-size: clamp(2.5rem, 6vw, 4.2rem); font-weight: 800; line-height: 1.25; margin-bottom: 25px;
-            letter-spacing: -1px;
-        }
-        .hero-desc {
-            font-size: clamp(1.05rem, 2vw, 1.25rem); color: var(--text-muted); max-width: 760px; margin: 0 auto 50px; line-height: 1.6;
-            font-weight: 300; word-break: keep-all;
-        }
-
-        /* Feature Sub-Sections */
-        .spec-category {
-            margin: 100px 0;
-            padding-top: 60px;
-            border-top: 1px solid rgba(255,255,255,0.05);
-        }
-        .spec-header { margin-bottom: 50px; text-align: left; }
-        .spec-header h2 { font-size: 2.2rem; margin-bottom: 15px; color: #fff; font-weight: 700; letter-spacing: -0.5px; display: flex; align-items: center; gap: 12px; }
-        .spec-header p { color: var(--text-muted); font-size: 1.1rem; max-width: 600px; line-height: 1.5; }
-
-        .feature-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;
-        }
-
-        .feature-card {
-            background: var(--surface-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border-glow); border-radius: 20px;
-            padding: 40px 30px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        .detailed-list li strong { color: rgba(255,255,255,0.95); font-weight: 600; }
+        .feat-role-section {
+            background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px; padding: clamp(30px, 5vw, 50px); margin-bottom: 60px;
             position: relative; overflow: hidden;
         }
-        .feature-card:hover {
-            transform: translateY(-8px); border-color: rgba(212, 175, 55, 0.4);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(212, 175, 55, 0.05);
+        .feat-role-section::before {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, transparent, #d4af37, transparent); opacity: 0.5;
         }
-        .feature-card::after {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-            background: linear-gradient(90deg, transparent, rgba(212,175,55,0.5), transparent);
-            opacity: 0; transition: opacity 0.3s ease;
+        .feat-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px; margin-top: 40px;
         }
-        .feature-card:hover::after { opacity: 1; }
-
-        .f-icon {
-            font-size: 2.2rem; margin-bottom: 20px; display: inline-flex; align-items: center; justify-content: center;
-            width: 64px; height: 64px; background: rgba(212, 175, 55, 0.08); border-radius: 16px; border: 1px solid rgba(212, 175, 55, 0.2);
+        .feat-item {
+            background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 16px; padding: 30px; transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .f-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 12px; color: #fff; letter-spacing: -0.3px; }
-        .f-desc { color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px; word-break: keep-all; }
-        
-        .f-points { list-style: none; padding: 0; margin: 0; }
-        .f-points li {
-            position: relative; padding-left: 24px; margin-bottom: 12px; font-size: 0.9rem; color: #ececec; line-height: 1.5;
+        .feat-item:hover {
+            transform: translateY(-5px); box-shadow: 0 10px 30px rgba(212, 175, 55, 0.08);
+            border-color: rgba(212, 175, 55, 0.3);
         }
-        .f-points li::before {
-            content: '✦'; position: absolute; left: 0; color: #d4af37; font-size: 0.9rem;
+        .feat-icon {
+            font-size: 2.5rem; margin-bottom: 20px; display: inline-block;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), transparent);
+            width: 60px; height: 60px; text-align: center; line-height: 60px;
+            border-radius: 12px; border: 1px solid rgba(212, 175, 55, 0.3);
         }
-
-        /* Target Audience Callout */
-        .sympathy-box {
-            background: linear-gradient(145deg, rgba(212, 175, 55, 0.1), rgba(0,0,0,0.8));
-            border-left: 4px solid #d4af37; border-radius: 0 16px 16px 0;
-            padding: 40px; margin: 80px 0;
+        .feat-item h4 { font-size: 1.2rem; color: #fff; margin-bottom: 10px; font-weight: 700; letter-spacing: -0.5px; }
+        .competitor-note {
+            margin-top: 18px; padding: 14px 18px; border-radius: 10px;
+            background: rgba(212, 175, 55, 0.06); border-left: 3px solid #d4af37;
+            font-size: 0.85rem; color: rgba(255,255,255,0.7); line-height: 1.5;
         }
-        .sympathy-box h3 { font-size: 1.6rem; margin-bottom: 15px; color: #fff; }
-        .sympathy-box p { font-size: 1.05rem; line-height: 1.7; color: rgba(255,255,255,0.8); word-break: keep-all; }
-
-        /* Tech philosophical box */
-        .philosophy-box {
-            display: flex; gap: 30px; align-items: center; background: rgba(255,255,255,0.03);
-            border-radius: 24px; padding: 40px; border: 1px solid rgba(255,255,255,0.08);
-            flex-wrap: wrap; margin-top: 40px;
+        .total-features-badge {
+            display: inline-flex; align-items: center; gap: 10px; padding: 10px 24px;
+            border-radius: 30px; background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.3);
+            font-size: 0.95rem; color: #d4af37; font-weight: 700; margin-top: 20px;
         }
-        .philosophy-box img { width: 120px; opacity: 0.8; mix-blend-mode: screen; }
-
     </style>
 </head>
 <body>
+    <!-- 1. Navigation -->
     <nav class="navbar glass">
         <a href="home.html" class="logo" style="text-decoration:none; display: flex; align-items: center; gap: 8px;">
-            <img src="/assets/passflow_square_logo.png" alt="Icon" style="height: 36px; border-radius: 6px;" />
+            <img src="/assets/passflow_square_logo.png" alt="Icon" style="height: 36px; border-radius: 6px; box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.3);" />
             <div style="width: 140px; height: 38px; display: flex; align-items: center; overflow: hidden; position: relative;">
-                <img src="/assets/passflow_ai_logo_transparent.png" alt="PassFlow Ai" style="position: absolute; height: 110px; left: -6px; max-width: none;" />
+                <img src="/assets/passflow_ai_logo_transparent.png" alt="PassFlow Ai" style="position: absolute; height: 110px; left: -6px; max-width: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));" />
             </div>
         </a>
         <div class="nav-links" id="navLinks">
-            <a href="home.html#live-demo">데모</a>
-            <a href="features.html" style="color:#d4af37; font-weight:600;">상세기능</a>
+            <a href="home.html#live-demo" style="color:#d4af37; font-weight:600;">데모</a>
+            <a href="features.html">상세기능</a>
             <a href="home.html#pricing">가격</a>
             <a href="home.html#contact">문의</a>
         </div>
+        <button class="nav-hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
     </nav>
 
-    <main>
-        <section class="hero-section">
-            <div class="container">
-                <span class="badge">VISIONARY STUDIO MANAGEMENT</span>
-                <h1 class="hero-title gradient-text">원장님의 시간은<br>오직 수업과 경영에만.</h1>
-                <p class="hero-desc">복잡한 기술은 시스템 아래에 깊숙이 숨겼습니다.<br>예약, 출석, 매출, 강사 관리, 지점 확장까지 막힘없이 흘러가는 궁극의 SaaS 솔루션을 경험하십시오.</p>
-                
-                <div style="display: flex; justify-content: center; gap: 16px;">
-                    <a href="home.html#live-demo" class="btn-primary" style="padding: 16px 32px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 1.05rem;">무료 데모 시작하기</a>
-                </div>
+    <!-- 2. Header -->
+    <header class="features-header" style="background: url('assets/hero_features_ai_meeting_bg.png') center/cover no-repeat;">
+        <div class="container" style="position: relative; z-index: 2;">
+            <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border-radius:30px; background:rgba(212, 175, 55, 0.1); border:1px solid rgba(212, 175, 55, 0.3); margin-bottom:20px; font-size:0.85rem; color:#d4af37; font-weight:600; letter-spacing:1px;">
+                PASSFLOW FEATURE GUIDE
             </div>
-        </section>
-
-        <section class="container" style="padding-bottom: 120px;">
-            
-            <div class="sympathy-box">
-                <h3>오직 스튜디오 원장님들을 위해 설계했습니다.</h3>
-                <p>"강사님들 권한은 어떻게 분리하지? 2호점 매출은 어떻게 합산해서 볼까? 노쇼(No-show)하는 회원은 어떻게 관리해야 상처받지 않고 안내할 수 있을까? 비싼 지문 인식기를 사야만 무인 출석이 가능할까?"<br><br>
-                원장님들이 현장에서 겪는 스트레스와 페인포인트(Pain-point)를 누구보다 잘 알기에, **개발자가 아닌 요가·필라테스 전문가의 시선**에서 이 모든 고민을 단 하나의 시스템에 담아냈습니다.</p>
-            </div>
-
-            <!-- 1. AI & Kiosk -->
-            <div class="spec-category">
-                <div class="spec-header">
-                    <h2>🤖 초고속 Edge-AI 무인 출석 (키오스크)</h2>
-                    <p>고가의 장비나 복잡한 지문 등록이 필요 없습니다. 태블릿 한 대로 운영되는 마법 같은 AI 출석.</p>
-                </div>
-                <div class="feature-grid">
-                    <div class="feature-card">
-                        <div class="f-icon">⚡</div>
-                        <div class="f-title">0.1초 안면 인식 & PIN 병행</div>
-                        <div class="f-desc">카메라 앞에 서기만 하면 출석 끝. 마스크나 조명 변수로 인식이 어려울 땐 휴대폰 뒷자리(PIN)로 즉시 우회 가능합니다.</div>
-                        <ul class="f-points">
-                            <li>Face-API 기반 오프라인 Edge 추론</li>
-                            <li>정상/만료/중복 출석 자동 음성 반환(TTS)</li>
-                            <li>절전 모드 자동화로 태블릿 수명 극대화</li>
-                        </ul>
-                    </div>
-                    <div class="feature-card">
-                        <div class="f-icon">📶</div>
-                        <div class="f-title">강력한 오프라인 복원력</div>
-                        <div class="f-desc">와이파이가 끊겼나요? 당황하지 마세요. 오프라인에서도 작동하고, 화면에서 통신 장비를 재부팅하도록 스스로 대처합니다.</div>
-                        <ul class="f-points">
-                            <li>오프라인 출석 캐싱 (연결 시 즉시 서버 동기화)</li>
-                            <li>출석 데이터 유실 0% 아키텍처</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. Admin Assistant -->
-            <div class="spec-category">
-                <div class="spec-header">
-                    <h2>🧠 내 손안의 비서, AI 어드민</h2>
-                    <p>수십 개의 버튼을 누르고 엑셀을 열 필요가 없습니다. 묻고, 대답을 듣고, 결정을 내리세요.</p>
-                </div>
-                <div class="feature-grid">
-                    <div class="feature-card">
-                        <div class="f-icon">💬</div>
-                        <div class="f-title">자연어 대화형 AI 비서</div>
-                        <div class="f-desc">"오늘 밤 수업에 10회권 이상 남은 사람 누구야?", "김복순 회원님 잔여 횟수는?" 채팅하듯 물어보면 AI가 데이터베이스를 검색해 즉시 대답합니다.</div>
-                        <ul class="f-points">
-                            <li>Gemini / OpenAI LLM 기반 구문 분석</li>
-                            <li>매출 요약 및 특정 회원 정보 즉각 조회</li>
-                        </ul>
-                    </div>
-                    <div class="feature-card">
-                        <div class="f-icon">📈</div>
-                        <div class="f-title">이탈 방지 및 리텐션 분석</div>
-                        <div class="f-desc">만료 예정된 회원, 최근 14일간 나타나지 않은 회원을 AI가 자동으로 추려내어, 부담스럽지 않은 안부 문자 초안까지 작성해 줍니다.</div>
-                        <ul class="f-points">
-                            <li>재등록률 / 이탈률 실시간 시각화</li>
-                            <li>휴지통(Soft Delete) 기능으로 안전한 데이터 관리</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. Multi-Branch & SaaS -->
-            <div class="spec-category">
-                <div class="spec-header">
-                    <h2>🏢 다중 지점(Multi-Branch) & PWA</h2>
-                    <p>본점과 수많은 지점의 벽을 허물었습니다. 엔터프라이즈의 스케일을 소규모 스튜디오에.</p>
-                </div>
-                <div class="feature-grid">
-                    <div class="feature-card">
-                        <div class="f-icon">🌐</div>
-                        <div class="f-title">지점별 완벽 독립 시스템</div>
-                        <div class="f-desc">로그아웃/로그인 없이 상단 탭만 누르면 홍대점, 강남점의 매출과 스케줄을 넘나듭니다. 하지만 강사와 회원은 자신의 지점만 보게 됩니다.</div>
-                        <ul class="f-points">
-                            <li>프랜차이즈급 테넌트 분리 아키텍처</li>
-                            <li>각 지점별 커스텀 도메인 (xxx-yoga.web.app) 제공</li>
-                        </ul>
-                    </div>
-                    <div class="feature-card">
-                        <div class="f-icon">📱</div>
-                        <div class="f-title">권한별 3개의 독립 PWA 앱</div>
-                        <div class="f-desc">앱스토어 승인 대기 없이, 사파리나 크롬에서 버튼 한 번이면 바탕화면에 회원용/강사용/관리자용 독립 앱이 설치됩니다.</div>
-                        <ul class="f-points">
-                            <li>설치율이 높은 가벼운 웹앱 (Progressive Web App)</li>
-                            <li>스튜디오 로고와 테마 컬러가 앱 아이콘에 자동 반영</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 4. Security & Simplicity -->
-            <div class="spec-category">
-                <div class="spec-header">
-                    <h2>🛡️ 극도의 단순함, 철벽같은 정보 보호</h2>
-                    <p>개발자가 영혼을 갈아넣어 만든 가장 복잡한 클라우드 기술이, 사용자에겐 가장 단순한 클릭 한 번으로 느껴집니다.</p>
-                </div>
-                
-                <div class="philosophy-box">
-                    <div style="flex:1; min-width: 250px;">
-                        <h4 style="font-size: 1.3rem; margin-bottom: 12px; color: #d4af37;">개인정보를 저장하지 않는 생체인식</h4>
-                        <p style="color: rgba(255,255,255,0.7); font-size: 0.95rem; line-height: 1.6;">
-                            회원의 미소 띤 얼굴 사진은 서버에 저장되지 않습니다. PassFlow Ai는 사진을 128개의 무의미한 숫자 배열(Vector)로 즉시 암호화 변환하며, 어떠한 경우에도 원본 얼굴을 복원할 수 없습니다. (개인정보보호법 완벽 준수)
-                        </p>
-                    </div>
-                    <div style="flex:1; min-width: 250px;">
-                        <h4 style="font-size: 1.3rem; margin-bottom: 12px; color: #d4af37;">강사 프라이버시 보호</h4>
-                        <p style="color: rgba(255,255,255,0.7); font-size: 0.95rem; line-height: 1.6;">
-                            강사님들은 전용 앱을 통해 로그인합니다. 스튜디오의 민감한 전체 매출이나 다른 강사의 수업 정보는 볼 수 없으며, 오로지 본인의 수업 명단과 수동 출석 체크 권한만 가집니다.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-        </section>
-    </main>
-
-    <footer class="footer" style="padding: 60px 0; background: #000; text-align: center; border-top: 1px solid rgba(255,255,255,0.05);">
-        <div class="container">
-            <h2 style="font-size: 1.8rem; color: #fff; margin-bottom: 25px;">기술이 돕는 완벽한 운영의 흐름</h2>
-            <div style="display: flex; gap: 16px; justify-content: center; align-items: center; max-width: 600px; margin: 0 auto 30px; flex-wrap: wrap;">
-                <a href="home.html#live-demo" style="background: #d4af37; color: #000; padding: 16px 36px; border-radius: 30px; text-decoration: none; font-weight: 700;">지금 무료로 도입하기</a>
-            </div>
-            <p style="color: rgba(255,255,255,0.4); font-size: 0.85rem; line-height: 1.6;">
-                &copy; 2026 PassFlow Ai. All rights reserved.<br>
-                패스플로우 에이아이 | 대표: 김복순 | 사업자등록번호: 789-66-00676
+            <h1 class="gradient-text" style="font-size: clamp(2.3rem, 5vw, 3.5rem); margin-bottom: 25px; line-height: 1.3;">
+                운영을 가볍게, 관리는 체계적으로.<br>스튜디오 실무를 돕는 기능 가이드
+            </h1>
+            <p style="font-size: clamp(1rem, 2vw, 1.15rem); max-width: 800px; margin: 0 auto; color:rgba(255,255,255,0.7); line-height:1.7;">
+                단순한 예약 시스템을 넘어 스튜디오의 일상적인 반복 업무를 자동화하고,<br>
+                회원 관리와 매출 데이터를 직관적으로 파악할 수 있는 실무 최적화 환경을 제공합니다.<br><br>
+                <span style="color:rgba(212,175,55,0.9);">마케팅 전문 AI, 회계 분석 AI, 경영 전략 AI</span>가 원장님의 데이터를 함께 분석하며,<br>
+                운영 데이터가 쌓일수록 더 정교한 인사이트와 맞춤형 제안을 드립니다.
             </p>
+        </div>
+    </header>
+
+    <!-- 3. Features Layout -->
+    <div class="features-layout" style="padding: 60px 0; background-color: #08080A;">
+        <div class="container">
+
+            <!-- ======================================== -->
+            <!-- 1. 관리자 대시보드 -->
+            <!-- ======================================== -->
+            <section class="feat-role-section" id="admin-spec">
+                <h2 style="font-size: 2rem; color: #fff; margin-bottom: 10px;">📊 1. 스튜디오 통합 관리 대시보드</h2>
+                <p style="color: rgba(255,255,255,0.6); font-size: 1.05rem;">모든 경영 데이터를 통합하여 직관적인 통계 및 회원 상태를 실시간으로 확인합니다.</p>
+                
+                <div class="feat-grid">
+                    <div class="feat-item">
+                        <div class="feat-icon">📉</div>
+                        <h4>매출 현황 및 리포트</h4>
+                        <ul class="detailed-list">
+                            <li><strong>매출 추이 시각화:</strong> 월별, 일별 매출 등의 결제 데이터를 그래프로 확인하여 흐름을 파악합니다.</li>
+                            <li><strong>수강권별 판매 비중:</strong> 권종 및 결제 수단(카드, 현금 등)에 따른 통계를 제공합니다.</li>
+                            <li><strong>재등록 지표 분석:</strong> 신규 등록과 만료 예정, 재등록 회원을 분류하여 리텐션(재구매율) 전략에 참고할 수 있습니다.</li>
+                            <li><strong>출석 추이 차트:</strong> 요일별·시간대별 출석 패턴을 그래프로 확인하여 수업 편성에 활용합니다.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">🏢</div>
+                        <h4>다중 지점(Multi-Branch) 운영</h4>
+                        <ul class="detailed-list">
+                            <li><strong>지점별 데이터 완벽 분리:</strong> 본점과 지점의 시간표, 매출, 강사 데이터를 각각 독립적으로 관리합니다.</li>
+                            <li><strong>통합 확인 지원:</strong> 대시보드 내에서 손쉽게 탭을 전환하여 지점별 운영 상황을 체크할 수 있습니다.</li>
+                            <li><strong>지점 추가/삭제:</strong> 설정 화면에서 새로운 지점을 자유롭게 추가하거나 정리할 수 있습니다.</li>
+                            <li><strong>각 지점 고유 접속 주소:</strong> 스튜디오명.web.app 형태의 전용 도메인이 자동 생성됩니다.</li>
+                            <li><strong>프로그램별 독립 운영:</strong> 같은 공간에서도 요가부 / 필라테스부 / 헬스부로 나눠 프로그램별 시간표·매출·강사를 독립 관리할 수 있습니다.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">💳</div>
+                        <h4>수강권 및 결제 이력 관리</h4>
+                        <ul class="detailed-list">
+                            <li><strong>유연한 수강권 설정:</strong> 정액권, 횟수권, 요가/필라테스 패키지 등 스튜디오에 맞는 수강권 종류를 설정합니다.</li>
+                            <li><strong>결제 및 사용 시작일 제어:</strong> 결제일과 실제 수강 시작일을 다르게 지정할 수 있어 사전 등록이 편리합니다.</li>
+                            <li><strong>수강권 연장 기능:</strong> 만료된 수강권도 간편하게 연장 처리할 수 있습니다.</li>
+                            <li><strong>실수 복구(Soft Delete):</strong> 실수로 회원이나 결제 기록을 삭제해도 휴지통에서 완전 복구 가능합니다.</li>
+                            <li><strong>수강 횟수 관리 방식 선택:</strong> 전체 기간 내 자유 사용 또는 주간 단위(주 N회) 제한 중 선택 가능합니다.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">📅</div>
+                        <h4>예약 시스템 및 대기열 관리</h4>
+                        <ul class="detailed-list">
+                            <li><strong>수업 예약 ON/OFF:</strong> 원장님이 설정에서 예약 기능을 켜고 끌 수 있습니다.</li>
+                            <li><strong>정원 관리:</strong> 수업당 최대 인원을 지점별/수업별로 세밀하게 설정합니다.</li>
+                            <li><strong>대기열(Waitlist) 자동 승격:</strong> 정원이 찬 수업에 대기 신청 → 취소 발생 시 자동 예약 확정 + 알림.</li>
+                            <li><strong>노쇼(No-show) 관리:</strong> 예약 후 미출석 시 횟수 차감 규칙을 자유롭게 설정합니다.</li>
+                            <li><strong>예약/취소 마감 시간:</strong> 수업 몇 시간 전까지 예약·취소 가능한지 설정할 수 있습니다.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">⏸️</div>
+                        <h4>회원 홀딩(일시정지) 관리</h4>
+                        <ul class="detailed-list">
+                            <li><strong>셀프 홀딩 ON/OFF:</strong> 회원이 앱에서 직접 수강권을 일시정지할 수 있도록 허용/제한합니다.</li>
+                            <li><strong>홀딩 규칙 세분화:</strong> 수강 기간별 최대 홀딩 횟수, 1회 최대 기간(주 단위)을 자유롭게 설정합니다.</li>
+                            <li><strong>만료일 자동 연장:</strong> 홀딩 기간만큼 수강권 만료일이 자동으로 뒤로 밀립니다.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">📢</div>
+                        <h4>공지사항 및 단체 메시지</h4>
+                        <ul class="detailed-list">
+                            <li><strong>공지사항 게시판:</strong> 원장님이 작성한 공지가 회원 앱과 강사 앱에 실시간으로 노출됩니다.</li>
+                            <li><strong>단체 메시지 발송:</strong> 조건에 맞는 회원들에게 푸시 알림 또는 알림톡을 한 번에 발송합니다.</li>
+                            <li><strong>개별 메시지 이력:</strong> 회원별 발송/수신 메시지 이력을 확인할 수 있습니다.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">🔄</div>
+                        <h4>AI 스마트 데이터 이전 (초기 세팅)</h4>
+                        <ul class="detailed-list">
+                            <li><strong>기존 회원 엑셀(CSV) 자동 인식:</strong> 이전에 쓰던 회원 목록 파일을 업로드하면 AI가 양식을 자동 분석하여 시스템에 바로 등록합니다.</li>
+                            <li><strong>시간표 이미지 자동 변환:</strong> 사진으로 찍은 시간표를 AI가 인식해서 디지털 시간표로 변환합니다.</li>
+                            <li><strong>가격표 이미지 자동 변환:</strong> 가격표 사진을 업로드하면 AI가 요금제 데이터로 자동 추출합니다.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">⚙️</div>
+                        <h4>스튜디오 개성 커스터마이징</h4>
+                        <ul class="detailed-list">
+                            <li><strong>로고 업로드:</strong> 우리 스튜디오 로고를 업로드하면 키오스크, 회원 앱, 알림 등 모든 곳에 자동 반영됩니다.</li>
+                            <li><strong>SNS 링크 관리:</strong> 인스타그램, 블로그, 카카오 채널 등 외부 링크를 등록하면 회원 앱에 표시됩니다.</li>
+                            <li><strong>앱 URL 및 QR 코드:</strong> 관리자앱/강사앱/회원앱/출석체크앱 각각의 QR 코드를 자동 생성하여 간편 공유를 지원합니다.</li>
+                            <li><strong>운영 가이드 내장:</strong> 처음 사용하는 원장님을 위한 단계별 운영 가이드가 앱 내에 탑재되어 있습니다.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======================================== -->
+            <!-- 2. 회원 전용 앱 -->
+            <!-- ======================================== -->
+            <section class="feat-role-section" id="member-spec">
+                <h2 style="font-size: 2rem; color: #fff; margin-bottom: 10px;">📱 2. 회원용 예약 출석 앱</h2>
+                <p style="color: rgba(255,255,255,0.6); font-size: 1.05rem;">앱스토어 설치 없이 바로 쓸 수 있는 가벼운 전용 웹앱(PWA)으로, 예약부터 정보 확인까지 회원이 직접 처리합니다.</p>
+                
+                <div class="feat-grid">
+                    <div class="feat-item">
+                        <div class="feat-icon">🔑</div>
+                        <h4>간편 접속 (PIN 형태 로그인)</h4>
+                        <ul class="detailed-list">
+                            <li><strong>직관적인 로그인 방식:</strong> 전화번호 기반의 간편 접속을 지원하여 비밀번호 분실로 인한 CS 문의를 줄입니다.</li>
+                            <li><strong>PWA(웹앱) 홈화면 설치:</strong> 별도 앱스토어를 거치지 않고 브라우저에서 버튼 클릭만으로 스마트폰에 아이콘을 추가할 수 있습니다. iOS/Android 맞춤 안내가 자동 표시됩니다.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">📅</div>
+                        <h4>투명한 시간표 및 예약 시스템</h4>
+                        <ul class="detailed-list">
+                            <li><strong>클래스 잔여석 확인:</strong> 수강 신청 가능한 목록과 남은 자리가 실시간으로 표시됩니다.</li>
+                            <li><strong>대기 접수 및 확정:</strong> 예약 정원이 가득 차면 대기로 등록하고, 결원 시 순차적으로 푸시 알림과 함께 자동 확정됩니다.</li>
+                            <li><strong>이용 내역 조회:</strong> 본인의 수강권 정보(남은 횟수 및 만료일)를 앱 내에서 상시 확인 가능합니다.</li>
+                            <li><strong>가격표 확인:</strong> 스튜디오에서 설정한 수강권 가격과 혜택을 앱에서 바로 확인할 수 있습니다.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">📊</div>
+                        <h4>나의 운동 리포트</h4>
+                        <ul class="detailed-list">
+                            <li><strong>출석 통계 시각화:</strong> 월별 출석 횟수를 그래프로 확인하여 운동 습관을 점검할 수 있습니다.</li>
+                            <li><strong>출석 이력 조회:</strong> 과거 출석 기록을 날짜별로 확인 가능합니다.</li>
+                            <li><strong>수강권 정보 한눈에:</strong> 현재 활성 수강권, 남은 횟수, 만료까지 남은 일수를 직관적으로 표시합니다.</li>
+                            <li><strong>결제 이력 조회:</strong> 본인의 결제 내역(금액, 결제수단, 날짜)을 투명하게 확인합니다.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">⏸️</div>
+                        <h4>셀프 홀딩 및 알림 설정</h4>
+                        <ul class="detailed-list">
+                            <li><strong>셀프 홀딩(일시정지):</strong> 원장님이 허용한 경우, 회원이 앱에서 직접 수강권을 일시정지할 수 있습니다.</li>
+                            <li><strong>푸시 알림 설정:</strong> 예약 확정, 수업 리마인더, 공지사항 등의 알림을 개별적으로 켜고 끌 수 있습니다.</li>
+                            <li><strong>공지사항 확인:</strong> 원장님이 게시한 공지사항을 앱 내에서 바로 확인합니다.</li>
+                            <li><strong>SNS 바로가기:</strong> 스튜디오의 인스타그램, 블로그 등 등록된 SNS 링크에 바로 접속할 수 있습니다.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======================================== -->
+            <!-- 3. 무인 출석 및 센터 제어 -->
+            <!-- ======================================== -->
+            <section class="feat-role-section" id="kiosk-spec">
+                <h2 style="font-size: 2rem; color: #fff; margin-bottom: 10px;">🤖 3. 스마트 출석 데스크 (키오스크)</h2>
+                <p style="color: rgba(255,255,255,0.6); font-size: 1.05rem;">프론트 인력의 부담을 덜어주는 방문자 확인 및 자동 출석 기록 시스템입니다.</p>
+                
+                <div class="feat-grid">
+                    <div class="feat-item">
+                        <div class="feat-icon">👁️</div>
+                        <h4>Edge-AI(기기 내 처리) 안면인식 및 PIN 병행 출석</h4>
+                        <ul class="detailed-list">
+                            <li><strong>안면인식 모드 (Face-API 기반):</strong> 얼굴 사진을 서버로 보내지 않고 태블릿 자체에서 인식 처리합니다(Edge Computing). 비접촉 방식으로 빠르게 출석을 기록합니다.</li>
+                            <li><strong>PIN(전화번호 뒷자리) 입력 병행:</strong> 마스크, 조명 등으로 인식이 어려울 때 숫자 패드로 즉시 우회 가능합니다.</li>
+                            <li><strong>중복 체크인 방지:</strong> 짧은 시간(5초) 내 중복 인식을 자동 제어하여 출석 카운트가 여러 번 차감되지 않습니다.</li>
+                            <li><strong>TTS(음성 합성) 안내:</strong> 정상 출석/만료/중복 출석 시 각각 다른 음성으로 자동 안내합니다.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">🔒</div>
+                        <h4>안면정보 암호화 (개인정보보호법 준수)</h4>
+                        <ul class="detailed-list">
+                            <li><strong>128차원 벡터(숫자 배열) 변환 저장:</strong> 원본 사진을 파일로 저장하지 않고 역추적 불가능한 숫자 배열 형태만 보관합니다.</li>
+                            <li><strong>회원 정보 실시간 매칭:</strong> 출석과 동시에 수강권 상태(만료/잔여 횟수)를 확인하여, 소진 시 입장 제한 알림을 화면에 표시합니다.</li>
+                            <li><strong>오프라인 출석 로컬 캐싱:</strong> 인터넷이 끊겨도 LocalStorage에 회원 데이터가 캐싱되어 출석이 계속 기록됩니다. 연결 복구 시 자동 동기화.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">🖼️</div>
+                        <h4>키오스크 공지 및 미디어 갤러리</h4>
+                        <ul class="detailed-list">
+                            <li><strong>이미지/영상 공지:</strong> 태블릿 대기 화면에 이미지(최대 10MB)나 영상(MP4/WebM/MOV, 최대 50MB)을 표시할 수 있습니다.</li>
+                            <li><strong>미디어 갤러리 관리:</strong> 여러 미디어를 업로드해두고 갤러리에서 선택 → 즉시 키오스크에 반영합니다.</li>
+                            <li><strong>터치로 출석부 전환:</strong> 공지 화면을 터치하면 자동으로 출석체크 화면으로 전환됩니다.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">⏰</div>
+                        <h4>키오스크 세부 제어</h4>
+                        <ul class="detailed-list">
+                            <li><strong>운영 시간 자동 ON/OFF:</strong> 설정된 시간 외에는 화면과 카메라를 끄고 절전(대기) 모드에 진입하여 태블릿 수명을 극대화합니다.</li>
+                            <li><strong>근접 감지 자동 복귀:</strong> 카메라로 사람 접근을 감지하면 자동으로 공지 화면에서 출석체크 화면으로 전환합니다.</li>
+                            <li><strong>키오스크 로고 커스텀:</strong> 숫자패드 위에 표시될 로고를 최대 2개까지 등록하고, 배경색(흰색/검정/투명)과 농도를 세밀하게 조절합니다.</li>
+                            <li><strong>카메라 프리뷰 크기 설정:</strong> 카메라 영상을 크게(로고 하단) 또는 작게(옆에 미니 프리뷰) 표시할 수 있습니다.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======================================== -->
+            <!-- 4. 강사 전용 화면 (권한 분리) -->
+            <!-- ======================================== -->
+            <section class="feat-role-section" id="instructor-spec">
+                <h2 style="font-size: 2rem; color: #fff; margin-bottom: 10px;">🧘‍♀️ 4. 강사 전용 출석 및 수업 화면</h2>
+                <p style="color: rgba(255,255,255,0.6); font-size: 1.05rem;">운영 매출 등의 민감 정보를 제한하고, 맡은 수업의 관리 권한만 부여합니다.</p>
+                
+                <div class="feat-grid">
+                    <div class="feat-item">
+                        <div class="feat-icon">✅</div>
+                        <h4>출결 상황 연동</h4>
+                        <ul class="detailed-list">
+                            <li><strong>클래스별 명단 확인:</strong> 오늘 로그인한 강사 담당의 수업과 수강 신청자 명단만 깔끔하게 노출됩니다.</li>
+                            <li><strong>수동 출석 및 지각 체크:</strong> 키오스크 이용이 어려웠던 회원을 강사가 앱 화면에서 직접 출석 처리할 수 있습니다.</li>
+                            <li><strong>특이사항(메모) 공유:</strong> 부상 여부 등 회원별 특이사항을 적어두어 수업 퀄리티 유지와 관리에 참고할 수 있습니다.</li>
+                            <li><strong>공지사항 확인:</strong> 원장님이 게시한 공지사항을 강사 전용 앱에서도 확인할 수 있습니다.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">🔐</div>
+                        <h4>권한 분리 및 프라이버시 보호</h4>
+                        <ul class="detailed-list">
+                            <li><strong>PIN 기반 인증(커스텀 토큰):</strong> 강사님들은 전화번호 뒷자리(PIN)로 간편하게 로그인합니다. 일반 회원과는 다른 고유 인증 체계입니다.</li>
+                            <li><strong>매출 정보 비공개:</strong> 스튜디오 전체 매출이나 다른 강사의 수업 정보는 일체 볼 수 없습니다.</li>
+                            <li><strong>담당 수업만 노출:</strong> 본인이 맡은 수업 명단과 수동 출석 체크 권한만 가집니다.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======================================== -->
+            <!-- 5. 메시지 및 백엔드 인프라 -->
+            <!-- ======================================== -->
+            <section class="feat-role-section" id="ai-spec">
+                <h2 style="font-size: 2rem; color: #fff; margin-bottom: 10px;">🧠 5. AI 비서 기능 (대화형 어시스턴트)</h2>
+                <p style="color: rgba(255,255,255,0.6); font-size: 1.05rem;">엑셀을 열 필요 없이 채팅하듯 물어보면 AI가 즉시 답해드립니다.</p>
+                
+                <div class="feat-grid">
+                    <div class="feat-item">
+                        <div class="feat-icon">💬</div>
+                        <h4>자연어 대화형 AI 비서</h4>
+                        <ul class="detailed-list">
+                            <li><strong>대화로 경영 데이터 조회:</strong> "오늘 밤 수업에 10회권 이상 남은 사람은?", "김복순 회원님 잔여 횟수는?" 채팅하듯 물어보면 AI가 데이터를 검색해 즉시 대답합니다.</li>
+                            <li><strong>매출 요약 리포트:</strong> 오늘, 이번 주, 이번 달 매출을 AI가 자동으로 요약하여 한눈에 파악할 수 있습니다.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">📈</div>
+                        <h4>이탈 방지 및 리텐션 분석</h4>
+                        <ul class="detailed-list">
+                            <li><strong>이탈 위험 회원 자동 감지:</strong> 만료 예정이거나 최근 14일간 나타나지 않은 회원을 AI가 자동으로 추려냅니다.</li>
+                            <li><strong>안부 문자 초안 작성:</strong> 부담스럽지 않은 톤의 안부 메시지 템플릿을 AI가 자동 제안하여 원장님의 소통 부담을 덜어드립니다.</li>
+                            <li><strong>재등록률 실시간 시각화:</strong> 재등록률과 이탈률을 그래프로 확인할 수 있습니다.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======================================== -->
+            <!-- 6. 메시지 및 백엔드 인프라 -->
+            <!-- ======================================== -->
+            <section class="feat-role-section" id="infra-spec">
+                <h2 style="font-size: 2rem; color: #fff; margin-bottom: 10px;">☁️ 6. 알림 시스템 및 데이터 보안</h2>
+                <p style="color: rgba(255,255,255,0.6); font-size: 1.05rem;">안정적인 서버 환경과 회원과의 투명한 소통을 위한 도구입니다.</p>
+                
+                <div class="feat-grid">
+                    <div class="feat-item">
+                        <div class="feat-icon">💬</div>
+                        <h4>통합 메시징 플랫폼</h4>
+                        <ul class="detailed-list">
+                            <li><strong>앱 푸시(Push) 무료 제공:</strong> 안내 사항, 휴강 안내, 예약 확정/취소 등을 무료 앱 기반 FCM(Firebase Cloud Messaging) 푸시로 우선 발송합니다.</li>
+                            <li><strong>알림톡 / SMS 보완:</strong> 비즈뿌리오 API 연동 및 고정 IP(Cloud NAT)를 통해 스팸 필터링을 최소화하고 높은 도달률을 확보합니다.</li>
+                            <li><strong>발송 이력 관리:</strong> 푸시/SMS/알림톡 발송 이력을 대시보드에서 확인할 수 있습니다.</li>
+                            <li><strong>카카오톡 상담 버튼:</strong> 회원 앱 하단에 카카오톡 상담 채널 바로가기 버튼이 내장되어 있습니다.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">🛡️</div>
+                        <h4>데이터 안전 관리 및 인프라</h4>
+                        <ul class="detailed-list">
+                            <li><strong>Google Firebase 클라우드:</strong> 구글 클라우드(asia-northeast3, 서울 리전) 인프라를 활용해 데이터 동기화와 저장소 확장을 유연하게 처리합니다.</li>
+                            <li><strong>Firestore 자동 백업 (하루 2회):</strong> 운영 데이터가 매일 2번 자동 백업되어, 만약의 사태에도 데이터를 복구할 수 있습니다.</li>
+                            <li><strong>🔒 외부 공격 방어:</strong> Google Cloud의 엔터프라이즈급 보안 인프라(DDoS 방어, SSL/TLS 암호화, Firestore 보안 규칙)가 스튜디오 데이터를 24시간 보호합니다.</li>
+                            <li><strong>🛡️ 실수로부터의 보호:</strong> 회원 정보를 삭제해도 즉시 복구(Soft Delete)가 가능하며, 매출 데이터는 변경 이력이 자동 기록되어 되돌릴 수 있습니다.</li>
+                            <li><strong>🌐 천재지변·장애 대비:</strong> 서울 리전 장애 시에도 Google Cloud의 다중 영역(Multi-Zone) 복제를 통해 데이터가 안전하게 보존됩니다. 백업 데이터로 빠른 복구가 가능합니다.</li>
+                            <li><strong>오프라인 출석 자동 동기화:</strong> 와이파이가 끊겨도 출석은 LocalStorage에 기록되고, 연결 복구 시 자동 동기화됩니다.</li>
+                            <li><strong>네트워크 상태 모니터링:</strong> 인터넷 연결이 끊기면 앱 상단에 알림을 표시하고, 복구 시 자동으로 데이터를 동기화합니다.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">📱</div>
+                        <h4>PWA(웹앱) 4개 독립 앱 제공</h4>
+                        <ul class="detailed-list">
+                            <li><strong>앱스토어 없이 즉시 설치:</strong> 사파리나 크롬에서 "홈 화면에 추가"만 누르면 출석체크/회원용/강사용/원장님용 4개의 독립 아이콘이 설치됩니다.</li>
+                            <li><strong>스튜디오 로고 자동 반영:</strong> PWA 아이콘과 스플래시 화면에 우리 스튜디오 로고와 이름이 자동 적용됩니다. (SSR 동적 매니페스트 생성)</li>
+                            <li><strong>SNS 공유 최적화(OG 태그):</strong> 카카오/라인/페이스북 등에 앱 링크를 공유하면 스튜디오 로고와 이름이 미리보기에 예쁘게 표시됩니다.</li>
+                            <li><strong>다국어 지원:</strong> 한국어/영어 UI 전환을 지원하며, 외국인 회원도 편하게 이용할 수 있습니다.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">⚡</div>
+                        <h4>성능 최적화 및 안정성</h4>
+                        <ul class="detailed-list">
+                            <li><strong>레거시(구형) 브라우저 지원:</strong> 오래된 태블릿에서도 안정적으로 동작하도록 Polyfill(호환성 보완 코드) 및 Legacy 빌드를 자동 적용합니다.</li>
+                            <li><strong>에러 자동 복구:</strong> 앱에서 오류 발생 시 자동으로 복구를 시도하고, 화이트 스크린(빈 화면)을 방지합니다.</li>
+                            <li><strong>Warmup(사전 로딩):</strong> 앱 시작 시 필수 데이터를 미리 로드하여 체감 속도를 높입니다.</li>
+                            <li><strong>SaaS 멀티 테넌트 아키텍처:</strong> 하나의 서버에서 여러 스튜디오가 완벽하게 격리된 상태로 운영됩니다. 데이터가 섞일 걱정이 없습니다.</li>
+                            <li><strong>개인정보처리방침:</strong> 법적 요구사항에 맞는 개인정보처리방침 페이지가 자동 제공됩니다.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <div class="competitor-note" style="margin-bottom: 40px; background: rgba(255,255,255,0.03); border-left: 3px solid rgba(255,255,255,0.2);">
+                안내: 이 페이지에 설명된 서비스 구성 및 부가 기능(얼굴 인식, 메시지 자동화 등)은 실제 데모 페이지에서 대부분 동일하게 체험 가능하도록 구현되어 있습니다. 시스템 한도 및 통신사 환경에 따라 세부적인 통지 속도는 일부 편차가 있을 수 있습니다.
+            </div>
+
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <section class="cta-section" style="padding: 100px 0; background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9)), url('assets/feature_success_bg_v2.png') center/cover no-repeat; text-align: center;">
+        <div class="container">
+            <h2 style="font-size: clamp(2rem, 4vw, 2.8rem); color: #fff; margin-bottom: 20px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">이제 직접 확인해보세요</h2>
+            <p style="color: rgba(255,255,255,0.8); margin-bottom: 40px; font-size: 1.1rem; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+                과장없이 꼭 필요한 솔루션만 직관적으로 구성했습니다.<br>관리자용 데모 화면에서 AI가 주는 즐거움과 성공의 확신을 체험해보세요.
+            </p>
+            <div style="display: flex; gap: 16px; justify-content: center; align-items: center; max-width: 600px; margin: 0 auto; flex-wrap: wrap;">
+                <a href="home.html#live-demo" class="btn-primary" style="min-width: 240px; padding: 18px 30px; font-size: 1.1rem; border-radius: 40px; text-decoration: none; display: inline-block; font-weight: 700; box-shadow: 0 10px 30px rgba(212,175,55,0.3); background: linear-gradient(135deg, #d4af37, #f5d67b); color: #000;">데모 사용해보기</a>
+                <a href="home.html#pricing" class="btn-secondary" style="min-width: 240px; padding: 18px 30px; font-size: 1.1rem; border-radius: 40px; text-decoration: none; display: inline-block; background: rgba(0,0,0,0.5); border: 2px solid rgba(212,175,55,0.5); color: #f5d67b; font-weight: 700; backdrop-filter: blur(5px); transition: all 0.3s ease;">비용 및 도입 절차 안내 →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" style="padding: 40px 0; background: #000; text-align: center;">
+        <div class="container">
+            <div class="footer-bottom">
+                <h4 style="font-size:0.85rem; color:#d4af37; margin-bottom:8px;">체육시설 회원관리 프로그램의 새로운 기준</h4>
+                <p style="font-size:0.85rem; color:rgba(255,255,255,0.6); margin-bottom:12px; line-height:1.5;">패스플로우 AI는 헬스장, 크로스핏, PT샵 및 요가·필라테스 스튜디오의 무인 출입통제와 회원관리를 완벽하게 자동화하는 AI 스마트 플랫폼입니다.</p>
+                <p>&copy; 2026 PassFlow Ai. All rights reserved.</p>
+                <p style="margin-top:4px; font-size:0.75rem; color:rgba(255,255,255,0.4);">패스플로우 에이아이(Passflow AI) | 대표: 김복순 | 사업자등록번호: 789-66-00676 | 주소: 서울특별시 마포구 서강로1길 61, 201호</p>
+                <p style="margin-top:8px;"><a href="https://passflowai.web.app/privacy" target="_blank" rel="noopener noreferrer" style="color:rgba(255,255,255,0.25); text-decoration:none; font-size:0.75rem;">개인정보처리방침</a></p>
+            </div>
         </div>
     </footer>
 </body>

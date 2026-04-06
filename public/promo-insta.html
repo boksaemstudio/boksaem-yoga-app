@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>PassFlow AI 인스타그램 홍보</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { 
+    width: 1080px; 
+    height: 1080px; 
+    overflow: hidden;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: #06060A;
+}
+.canvas {
+    width: 1080px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(170deg, #08081A 0%, #0D0A1F 30%, #100D25 60%, #08080E 100%);
+    display: flex;
+    flex-direction: column;
+}
+
+/* 배경 장식 */
+.bg-glow-1 {
+    position: absolute;
+    width: 500px; height: 500px;
+    top: -80px; right: -100px;
+    background: radial-gradient(circle, rgba(212,175,55,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+}
+.bg-glow-2 {
+    position: absolute;
+    width: 400px; height: 400px;
+    bottom: 50px; left: -150px;
+    background: radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 70%);
+    border-radius: 50%;
+}
+.bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image: 
+        linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+    background-size: 54px 54px;
+}
+
+/* 헤더 */
+.header {
+    padding: 44px 64px 0;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.logo-icon {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, #D4AF37, #B8952E);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 6px 24px rgba(212,175,55,0.35);
+}
+.logo-text {
+    font-family: 'Outfit', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #D4AF37 0%, #F0D76E 50%, #D4AF37 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
+}
+.logo-text span {
+    font-weight: 400;
+}
+.badge {
+    padding: 8px 18px;
+    background: rgba(212,175,55,0.1);
+    border: 1px solid rgba(212,175,55,0.2);
+    border-radius: 20px;
+    color: #D4AF37;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2px;
+}
+
+/* 메인 카피 */
+.main-copy {
+    padding: 32px 64px 0;
+    position: relative;
+    z-index: 2;
+}
+.headline {
+    font-size: 54px;
+    font-weight: 900;
+    color: #FFFFFF;
+    line-height: 1.25;
+    letter-spacing: -2.5px;
+    margin-bottom: 14px;
+}
+.headline em {
+    font-style: normal;
+    background: linear-gradient(135deg, #D4AF37, #F0D76E);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.sub-headline {
+    font-size: 20px;
+    color: rgba(255,255,255,0.4);
+    font-weight: 400;
+    letter-spacing: 6px;
+}
+
+/* 기능 카드 */
+.features {
+    padding: 28px 64px 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    position: relative;
+    z-index: 2;
+}
+.feature-card {
+    padding: 26px 20px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+}
+.feature-card:nth-child(1) { border-color: rgba(212,175,55,0.15); background: rgba(212,175,55,0.035); }
+.feature-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+    display: block;
+}
+.feature-title {
+    font-size: 19px;
+    font-weight: 800;
+    color: #f0f0f0;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+}
+.feature-desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.35);
+    line-height: 1.5;
+}
+
+/* 하단: 가격 + CTA */
+.bottom-section {
+    margin-top: auto;
+    padding: 0 64px 44px;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+.price-area {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+}
+.price-old {
+    font-size: 18px;
+    color: rgba(255,255,255,0.2);
+    text-decoration: line-through;
+    font-weight: 400;
+}
+.price-main {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+.price-label {
+    font-size: 20px;
+    color: rgba(255,255,255,0.45);
+    font-weight: 500;
+}
+.price-amount {
+    font-size: 56px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #D4AF37, #F0D76E);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -2px;
+    line-height: 1;
+}
+.price-unit {
+    font-size: 22px;
+    color: rgba(212,175,55,0.7);
+    font-weight: 600;
+}
+.price-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.25);
+    margin-left: 4px;
+}
+
+.cta-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+.cta-url {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #D4AF37, #B8952E);
+    border-radius: 14px;
+    color: #000;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    box-shadow: 0 10px 36px rgba(212,175,55,0.3);
+}
+.cta-tags {
+    display: flex;
+    gap: 8px;
+}
+.cta-tag {
+    padding: 6px 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    color: rgba(255,255,255,0.3);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* 하단 바 */
+.bottom-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #D4AF37, #6366F1, #10B981, #D4AF37);
+}
+</style>
+</head>
+<body>
+<div class="canvas">
+    <div class="bg-glow-1"></div>
+    <div class="bg-glow-2"></div>
+    <div class="bg-grid"></div>
+
+    <div class="header">
+        <div class="logo-area">
+            <div class="logo-icon">⚡</div>
+            <div class="logo-text">PassFlow <span>Ai</span></div>
+        </div>
+        <div class="badge">SMART STUDIO SOLUTION</div>
+    </div>
+
+    <div class="main-copy">
+        <div class="headline">
+            <em>AI</em>가 알아서<br>관리하는 스튜디오
+        </div>
+        <div class="sub-headline">무인 출석 · 회원관리 · 매출분석</div>
+    </div>
+
+    <div class="features">
+        <div class="feature-card">
+            <span class="feature-icon">👤</span>
+            <div class="feature-title">안면인식 출석</div>
+            <div class="feature-desc">카메라 앞에 서면 끝.<br>출석부가 필요 없습니다.</div>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">📊</span>
+            <div class="feature-title">실시간 매출 분석</div>
+            <div class="feature-desc">오늘 매출, 이번 달 흐름을<br>한눈에 파악합니다.</div>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">📱</span>
+            <div class="feature-title">회원 전용 앱</div>
+            <div class="feature-desc">예약, 남은 횟수 확인까지.<br>회원님 전용 모바일 앱.</div>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">🤖</span>
+            <div class="feature-title">AI 경영 어시스턴트</div>
+            <div class="feature-desc">궁금한 건 AI에게 물어보세요.<br>"이번 달 재등록률은?"</div>
+        </div>
+    </div>
+
+    <div class="bottom-section">
+        <div>
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:6px;">
+                <span class="price-old">타사 월 5~10만원</span>
+            </div>
+            <div class="price-main">
+                <span class="price-label">연</span>
+                <span class="price-amount">10</span>
+                <span class="price-unit">만원</span>
+                <span class="price-sub">· 월 8,300원 꼴</span>
+            </div>
+        </div>
+        <div class="cta-right">
+            <div class="cta-url">
+                passflowai.web.app →
+            </div>
+            <div class="cta-tags">
+                <div class="cta-tag">#요가원관리</div>
+                <div class="cta-tag">#필라테스</div>
+                <div class="cta-tag">#AI출석</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-bar"></div>
+</div>
+</body>
+</html>

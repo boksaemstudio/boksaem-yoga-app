@@ -284,7 +284,7 @@ const SuperAdminPage = () => {
             </div>
 
             {/* Section Tabs */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
                 <button onClick={() => setActiveSection('studios')} style={{ padding: '10px 20px', background: activeSection === 'studios' ? '#3B82F6' : 'rgba(255,255,255,0.05)', color: activeSection === 'studios' ? 'white' : '#aaa', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Buildings size={18} /> 스튜디오
                 </button>
@@ -293,6 +293,10 @@ const SuperAdminPage = () => {
                 </button>
                 <button onClick={() => setActiveSection('domains')} style={{ padding: '10px 20px', background: activeSection === 'domains' ? '#3B82F6' : 'rgba(255,255,255,0.05)', color: activeSection === 'domains' ? 'white' : '#aaa', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Globe size={18} /> 도메인 관리
+                </button>
+                
+                <button onClick={() => window.open('https://analytics.google.com/analytics/web/#/p518971396/reports/intelligenthome', '_blank')} style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #10B981, #059669)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto', boxShadow: '0 4px 12px rgba(16,185,129,0.3)' }} title="Passflow Ai 및 요가원 방문자 트래픽 통계를 확인합니다">
+                    📊 방문자 통계 (GA4)
                 </button>
             </div>
 

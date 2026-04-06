@@ -16,6 +16,15 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
     const getBranchColor = (id) => (config.BRANCHES || []).find(b => b.id === id)?.color || 'var(--primary-gold)';
     const getMembershipTypeLabel = (key) => getMembershipLabel(key, config);
 
+    // [FIX] 전화번호 포맷: 01012345678 → 010-1234-5678
+    const formatPhone = (phone) => {
+        if (!phone) return '';
+        const digits = phone.replace(/\D/g, '');
+        if (digits.length === 11) return `${digits.slice(0,3)}-${digits.slice(3,7)}-${digits.slice(7)}`;
+        if (digits.length === 10) return `${digits.slice(0,3)}-${digits.slice(3,6)}-${digits.slice(6)}`;
+        return phone; // 이미 포맷되어 있거나 예외
+    };
+
     // ─── Business Logic Hook (~330줄 → 1줄) ───
     const {
         member, editData, memberLogs, logLimit, setLogLimit,
@@ -24,7 +33,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
         showChangeModal, setShowChangeModal, pendingChanges, selectedChangeKeys, setSelectedChangeKeys,
         setEditData, handlePreSave, handleFinalSave, handleSafeClose,
         handleManualAttendance, handleDeleteAttendance,
-    } = useAdminMemberDetail(initialMember, propMemberLogs, { onUpdateMember, onClose });
+    } = useAdminMemberDetail(initialMember, propMemberLogs, { onUpdateMember, onClose, pricingConfig });
 
     const tabs = member.role === 'instructor' 
         ? [{ id: 'info', label: '강사 정보', icon: <User size={20} /> }]
@@ -43,7 +52,7 @@ const AdminMemberDetailModal = ({ member: initialMember, memberLogs: propMemberL
                     <div>
                         <h2>
                             {member.name}
-                            <span className="phone">{member.phone}</span>
+                            <span className="phone">{formatPhone(member.phone)}</span>
                             <div className="branch-badge" style={{ background: getBranchColor(member.homeBranch || member.branchId) }}>
                                 {getBranchName(member.homeBranch || member.branchId)}
                             </div>

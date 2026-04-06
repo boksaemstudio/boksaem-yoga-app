@@ -207,6 +207,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                 updateData.upcomingMembership = {
                     membershipType: membershipType,
                     credits: customCredits,
+                    originalCredits: customCredits, // [FIX] 원래 횟수 기록 (역추적용)
                     startDate: finalStartDate,
                     endDate: finalEndDate,
                     durationMonths: durationMonths,
@@ -218,6 +219,7 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
             } else {
                 updateData.membershipType = membershipType;
                 updateData.credits = customCredits;
+                updateData.originalCredits = customCredits; // [FIX] 원래 횟수 기록 (역추적용)
                 updateData.startDate = finalStartDate;
                 updateData.endDate = finalEndDate;
                 updateData.duration = durationMonths; // [FIX] TBD 해소 시 attendance.js가 이 값으로 endDate 계산

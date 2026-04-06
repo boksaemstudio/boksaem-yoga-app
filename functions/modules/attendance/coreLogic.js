@@ -129,19 +129,65 @@ function processUpcomingActivation(memberData, dateStr) {
 
 /**
  * TBD(미확정 시작일) 해소 처리
+ * 
+ * [CRITICAL FIX] duration || 1 맹목적 폴백 제거.
+ * duration이 의심스러울 때(1이면서 credits > 1) pricing config를 교차 검증하여
+ * 올바른 유효기간을 보장합니다. 스튜디오 수가 증가해도 안전합니다.
+ * 
  * @param {Object} memberData - 회원 문서 데이터 (mutate됨)
  * @param {string} memberId - 매출 기록 업데이트용
  * @param {string} dateStr - 오늘 날짜 = 새 시작일
+ * @param {string} studioId - 스튜디오 ID (pricing config 조회용)
  * @returns {{ resolved: boolean, startDate: string, endDate: string }}
  */
-function processTBDResolution(memberData, memberId, dateStr) {
+async function processTBDResolution(memberData, memberId, dateStr, studioId) {
     const st = memberData.startDate;
     const ed = memberData.endDate;
     if (!membershipUtils.isTBD(st) && st && !membershipUtils.isTBD(ed) && ed) {
         return { resolved: false, startDate: st, endDate: ed };
     }
 
-    const dur = memberData.duration || 1;
+    let dur = memberData.duration || 1;
+
+    // ━━━ DEFENSE: duration 교차 검증 ━━━
+    // duration이 1이면서 credits가 1보다 큰 경우 → 가격표 설정과 불일치 가능성 높음
+    // pricing config를 조회하여 올바른 months 값을 찾습니다.
+    if (dur <= 1 && (memberData.credits > 1 || memberData.subject)) {
+        try {
+            const tdb = tenantDb(studioId);
+            const pricingSnap = await tdb.collection('settings').doc('pricing').get();
+            if (pricingSnap.exists) {
+                const pricing = pricingSnap.data();
+                const category = pricing[memberData.membershipType];
+                if (category?.options) {
+                    // 1차: subject(이용권 이름)로 정확 매칭
+                    let matchedOption = category.options.find(opt =>
+                        memberData.subject && opt.label && memberData.subject.includes(opt.label)
+                    );
+                    // 2차: credits 수로 매칭
+                    if (!matchedOption) {
+                        matchedOption = category.options.find(opt =>
+                            opt.credits === memberData.credits + (memberData.attendanceCount || 0)
+                        );
+                    }
+                    if (matchedOption?.months && matchedOption.months > dur) {
+                        console.warn(`[CoreLogic] ⚠️ DURATION CORRECTED: member "${memberData.name}" (${memberId}) had duration=${dur}, pricing says ${matchedOption.months}mo. Using pricing value.`);
+                        dur = matchedOption.months;
+                        // DB에도 올바른 duration 저장 (fire-and-forget)
+                        setImmediate(async () => {
+                            try {
+                                await tdb.collection('members').doc(memberId).update({ duration: dur });
+                                console.log(`[CoreLogic] Fixed duration for ${memberId} to ${dur}`);
+                            } catch (e) { console.warn(`[CoreLogic] Failed to fix duration:`, e.message); }
+                        });
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('[CoreLogic] Pricing lookup for duration correction failed:', e.message);
+        }
+    }
+
     const newStart = dateStr;
     const newEnd = membershipUtils.calculateEndDate(newStart, dur);
     memberData.startDate = newStart;
@@ -149,7 +195,8 @@ function processTBDResolution(memberData, memberId, dateStr) {
     console.log(`[CoreLogic] TBD resolved: start=${newStart}, end=${newEnd} (duration=${dur}mo)`);
 
     // Fire-and-forget: Sales 기록도 실일자로 반영
-    updateTBDSalesRecords(memberId, newStart, newEnd, memberData._studioId);
+    const effectiveStudioId = studioId || memberData._studioId;
+    updateTBDSalesRecords(memberId, newStart, newEnd, effectiveStudioId);
 
     return { resolved: true, startDate: newStart, endDate: newEnd };
 }
@@ -230,7 +277,7 @@ async function processAttendanceCore(transaction, params, options = {}) {
 
     // ━━━━ 4. TBD 해소 ━━━━
     memberData._studioId = studioId; // Pass studioId for updateTBDSalesRecords
-    const tbdResult = processTBDResolution(memberData, memberId, dateStr);
+    const tbdResult = await processTBDResolution(memberData, memberId, dateStr, studioId);
     if (activated && swapUpdates) {
         // 선등록 활성화된 경우 TBD 매출도 업데이트
         updateTBDSalesRecords(memberId, memberData.startDate, memberData.endDate, studioId);

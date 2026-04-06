@@ -197,11 +197,11 @@ const AdminAIAssistant = () => {
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 200px)', maxHeight: '800px', minHeight: '400px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '60vh', flex: 1 }}>
             {/* 헤더 */}
             <div style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '16px 20px',
+                padding: '16px 20px', flexShrink: 0,
                 background: 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.15), rgba(139, 92, 246, 0.1))',
                 borderRadius: '16px 16px 0 0',
                 borderBottom: '1px solid rgba(var(--primary-rgb), 0.2)'
@@ -297,7 +297,7 @@ const AdminAIAssistant = () => {
 
             {/* 대화 영역 */}
             <div style={{
-                flex: 1, overflowY: 'auto', padding: '20px',
+                flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '20px',
                 background: 'rgba(0,0,0,0.15)',
                 display: 'flex', flexDirection: 'column', gap: '16px'
             }}>
@@ -446,7 +446,7 @@ const AdminAIAssistant = () => {
             {/* 입력 영역 */}
             <div style={{
                 padding: '16px 20px',
-                background: 'rgba(0,0,0,0.3)',
+                background: 'rgba(0,0,0,0.3)', flexShrink: 0,
                 borderTop: '1px solid rgba(255,255,255,0.06)',
                 borderRadius: '0 0 16px 16px'
             }}>
@@ -478,15 +478,21 @@ const AdminAIAssistant = () => {
                     <textarea
                         ref={inputRef}
                         value={input}
-                        onChange={e => setInput(e.target.value)}
+                        onChange={e => {
+                            setInput(e.target.value);
+                            e.target.style.height = '1.5em'; // reset before calc
+                            const scrollHeight = e.target.scrollHeight;
+                            e.target.style.height = `${Math.min(scrollHeight, 120)}px`;
+                        }}
                         onKeyDown={handleKeyDown}
                         placeholder={isListening ? '🎤 말씀하세요...' : '질문을 입력하세요...'}
                         rows={1}
                         style={{
                             flex: 1, border: 'none', background: 'transparent', outline: 'none',
-                            color: 'var(--text-primary)', fontSize: '0.9rem', resize: 'none',
-                            minHeight: '38px', maxHeight: '100px', lineHeight: '1.5',
-                            fontFamily: 'inherit'
+                            color: 'var(--text-primary)', fontSize: '0.95rem', resize: 'none',
+                            height: '1.5em', minHeight: '1.5em', maxHeight: '120px', lineHeight: '1.5',
+                            fontFamily: 'inherit', padding: '0', margin: '4px 0', overflowY: 'auto',
+                            wordBreak: 'break-word', whiteSpace: 'pre-wrap'
                         }}
                     />
 

@@ -1,0 +1,281 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PassFlow Ai - 湲곕뒫 媛?대뱶 | 泥닿퀎?곸씤 ?ㅽ뒠?붿삤 ?댁쁺</title>
+    <meta name="description" content="異쒖꽍, ?덉빟, 留ㅼ텧, ?먮룞?붾맂 ?뚮┝源뚯?. ?붽?쨌?꾨씪?뚯뒪 ?ㅽ뒠?붿삤 ?댁쁺??理쒖쟻?붾맂 ?듯빀 愿由??붾（?섏엯?덈떎.">
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="stylesheet" href="style.css?v=14">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #08080A; color: #ffffff; }
+        .features-header {
+            position: relative;
+            padding: clamp(100px, 12vw, 150px) 0 clamp(60px, 8vw, 100px);
+            text-align: center;
+            background: linear-gradient(rgba(8, 8, 10, 0.6), rgba(8, 8, 10, 0.95)), 
+                        url('assets/feature_automation_bg.png') center/cover no-repeat fixed;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .detailed-list { margin-top: 20px; padding-left: 20px; list-style-type: none; }
+        .detailed-list li {
+            position: relative; margin-bottom: 14px; font-size: 0.93rem;
+            color: rgba(255,255,255,0.75); line-height: 1.65; word-break: keep-all;
+        }
+        .detailed-list li::before {
+            content: "??; position: absolute; left: -22px;
+            color: #d4af37; font-weight: bold; font-size: 1.1em;
+        }
+        .detailed-list li strong { color: rgba(255,255,255,0.95); font-weight: 600; }
+        .feat-role-section {
+            background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px; padding: clamp(30px, 5vw, 50px); margin-bottom: 60px;
+            position: relative; overflow: hidden;
+        }
+        .feat-role-section::before {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, transparent, #d4af37, transparent); opacity: 0.5;
+        }
+        .feat-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px; margin-top: 40px;
+        }
+        .feat-item {
+            background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 16px; padding: 30px; transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feat-item:hover {
+            transform: translateY(-5px); box-shadow: 0 10px 30px rgba(212, 175, 55, 0.08);
+            border-color: rgba(212, 175, 55, 0.3);
+        }
+        .feat-icon {
+            font-size: 2.5rem; margin-bottom: 20px; display: inline-block;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), transparent);
+            width: 60px; height: 60px; text-align: center; line-height: 60px;
+            border-radius: 12px; border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        .feat-item h4 { font-size: 1.2rem; color: #fff; margin-bottom: 10px; font-weight: 700; letter-spacing: -0.5px; }
+        .competitor-note {
+            margin-top: 18px; padding: 14px 18px; border-radius: 10px;
+            background: rgba(212, 175, 55, 0.06); border-left: 3px solid #d4af37;
+            font-size: 0.85rem; color: rgba(255,255,255,0.7); line-height: 1.5;
+        }
+        .total-features-badge {
+            display: inline-flex; align-items: center; gap: 10px; padding: 10px 24px;
+            border-radius: 30px; background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.3);
+            font-size: 0.95rem; color: #d4af37; font-weight: 700; margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 1. Navigation -->
+    <nav class="navbar glass">
+        <a href="home.html" class="logo" style="text-decoration:none; display: flex; align-items: center; gap: 8px;">
+            <img src="/assets/passflow_square_logo.png" alt="Icon" style="height: 36px; border-radius: 6px; box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.3);" />
+            <div style="width: 140px; height: 38px; display: flex; align-items: center; overflow: hidden; position: relative;">
+                <img src="/assets/passflow_ai_logo_transparent.png" alt="PassFlow Ai" style="position: absolute; height: 110px; left: -6px; max-width: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));" />
+            </div>
+        </a>
+        <div class="nav-links" id="navLinks">
+            <a href="home.html#live-demo" style="color:#d4af37; font-weight:600;">?곕え</a>
+            <a href="features.html">?곸꽭湲곕뒫</a>
+            <a href="home.html#pricing">媛寃?/a>
+            <a href="home.html#contact">臾몄쓽</a>
+        </div>
+        <button class="nav-hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')">??/button>
+    </nav>
+
+    <!-- 2. Header -->
+    <header class="features-header">
+        <div class="container" style="position: relative; z-index: 2;">
+            <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border-radius:30px; background:rgba(212, 175, 55, 0.1); border:1px solid rgba(212, 175, 55, 0.3); margin-bottom:20px; font-size:0.85rem; color:#d4af37; font-weight:600; letter-spacing:1px;">
+                PASSFLOW FEATURE GUIDE
+            </div>
+            <h1 class="gradient-text" style="font-size: clamp(2.3rem, 5vw, 3.5rem); margin-bottom: 25px; line-height: 1.3;">
+                ?댁쁺??媛蹂띻쾶, 愿由щ뒗 泥닿퀎?곸쑝濡?<br>?ㅽ뒠?붿삤 ?ㅻТ瑜??뺣뒗 湲곕뒫 媛?대뱶
+            </h1>
+            <p style="font-size: clamp(1rem, 2vw, 1.15rem); max-width: 800px; margin: 0 auto; color:rgba(255,255,255,0.7); line-height:1.7;">
+                ?⑥닚???덉빟 ?쒖뒪?쒖쓣 ?섏뼱 ?ㅽ뒠?붿삤???쇱긽?곸씤 諛섎났 ?낅Т瑜??먮룞?뷀븯怨?<br>
+                ?뚯썝 愿由ъ? 留ㅼ텧 ?곗씠?곕? 吏곴??곸쑝濡??뚯븙?????덈뒗 ?ㅻТ 理쒖쟻???섍꼍???쒓났?⑸땲??
+            </p>
+        </div>
+    </header>
+
+    <!-- 3. Features Layout -->
+    <div class="features-layout" style="padding: 60px 0; background-color: #08080A;">
+        <div class="container">
+
+            <!-- ======================================== -->
+            <!-- 1. 愿由ъ옄 ??쒕낫??-->
+            <!-- ======================================== -->
+            <section class="feat-role-section" id="admin-spec">
+                <h2 style="font-size: 2rem; color: #fff; margin-bottom: 10px;">?뱤 1. ?ㅽ뒠?붿삤 ?듯빀 愿由???쒕낫??/h2>
+                <p style="color: rgba(255,255,255,0.6); font-size: 1.05rem;">紐⑤뱺 寃쎌쁺 ?곗씠?곕? ?듯빀?섏뿬 吏곴??곸씤 ?듦퀎 諛??뚯썝 ?곹깭瑜??ㅼ떆媛꾩쑝濡??뺤씤?⑸땲??</p>
+                
+                <div class="feat-grid">
+                    <div class="feat-item">
+                        <div class="feat-icon">?뱣</div>
+                        <h4>留ㅼ텧 ?꾪솴 諛?由ы룷??/h4>
+                        <ul class="detailed-list">
+                            <li><strong>留ㅼ텧 異붿씠 ?쒓컖??</strong> ?붾퀎, ?쇰퀎 留ㅼ텧 ?깆쓽 寃곗젣 ?곗씠?곕? 洹몃옒?꾨줈 ?뺤씤?섏뿬 ?먮쫫???뚯븙?⑸땲??</li>
+                            <li><strong>?섍컯沅뚮퀎 ?먮ℓ 鍮꾩쨷:</strong> 沅뚯쥌 諛?寃곗젣 ?섎떒(移대뱶, ?꾧툑 ?????곕Ⅸ ?듦퀎瑜??쒓났?⑸땲??</li>
+                            <li><strong>?щ벑濡?吏??遺꾩꽍:</strong> ?좉퇋 ?깅줉怨?留뚮즺 ?덉젙, ?щ벑濡??뚯썝??遺꾨쪟?섏뿬 由ы뀗???꾨왂??李멸퀬?????덉뒿?덈떎.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">?룫</div>
+                        <h4>?ㅼ쨷 吏??(Multi-Branch) ?댁쁺</h4>
+                        <ul class="detailed-list">
+                            <li><strong>吏?먮퀎 ?곗씠??遺꾨━:</strong> 蹂몄젏怨?吏?먯쓽 ?쒓컙?? 留ㅼ텧, 媛뺤궗 ?곗씠?곕? 媛곴컖 ?낅┰?곸쑝濡?愿由ы빀?덈떎.</li>
+                            <li><strong>?듯빀 ?뺤씤 吏??</strong> ??쒕낫???댁뿉???먯돺寃???쓣 ?꾪솚?섏뿬 吏?먮퀎 ?댁쁺 ?곹솴??泥댄겕?????덉뒿?덈떎.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">?뮩</div>
+                        <h4>?섍컯沅?諛?寃곗젣 ?대젰 愿由?/h4>
+                        <ul class="detailed-list">
+                            <li><strong>?좎뿰???섍컯沅??ㅼ젙:</strong> ?뺤븸沅? ?잛닔沅? ?붽?/?꾨씪?뚯뒪 ?⑦궎吏 ???ㅽ뒠?붿삤??留욌뒗 ?섍컯沅?醫낅쪟瑜??ㅼ젙?⑸땲??</li>
+                            <li><strong>寃곗젣 諛??ъ슜 ?쒖옉???쒖뼱:</strong> 寃곗젣?쇨낵 ?ㅼ젣 ?섍컯 ?쒖옉???먯쑉 吏?????ㅻⅤ寃?吏?뺥븷 ???덉뼱 ?ъ쟾 ?깅줉???몃━?⑸땲??</li>
+                            <li><strong>?댁???蹂듭썝 湲곕뒫:</strong> ?ㅼ닔濡??뚯썝 諛?寃곗젣 湲곕줉????젣??寃쎌슦 '?댁??????듯빐 蹂듭썝 媛?ν빀?덈떎.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">?쭬</div>
+                        <h4>二쇱슂 吏???곗씠???붿빟 (AI 吏??</h4>
+                        <ul class="detailed-list">
+                            <li><strong>?뺢린 ?댁쁺 釉뚮━??</strong> 湲덉씪 ?덉빟 ?꾪솴, 寃곗젣 諛쒖깮, 留뚮즺 ?덉젙 ?뚯썝???붿빟???띿뒪???뺥깭濡??쒓났諛쏆뒿?덈떎.</li>
+                            <li><strong>誘몃갑臾??⑦꽩 遺꾩꽍:</strong> ?κ린 誘몄텧???뚯썝??媛먯??섍퀬 ?곸젅???덈? 硫붿떆吏 ?쒗뵆由?珥덉븞???쒖븞?⑸땲??</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======================================== -->
+            <!-- 2. ?뚯썝 ?꾩슜 ??-->
+            <!-- ======================================== -->
+            <section class="feat-role-section" id="member-spec">
+                <h2 style="font-size: 2rem; color: #fff; margin-bottom: 10px;">?벑 2. ?뚯썝???덉빟 異쒖꽍 ??/h2>
+                <p style="color: rgba(255,255,255,0.6); font-size: 1.05rem;">?ㅼ튂 遺?댁씠 ?곸? PWA ?뺥깭???뱀빋?쇰줈, ?덉빟遺???뺣낫 ?뺤씤源뚯? ?뚯썝??吏곸젒 泥섎━?⑸땲??</p>
+                
+                <div class="feat-grid">
+                    <div class="feat-item">
+                        <div class="feat-icon">?뵎</div>
+                        <h4>媛꾪렪 ?묒냽 (PIN ?뺥깭 濡쒓렇??</h4>
+                        <ul class="detailed-list">
+                            <li><strong>吏곴??곸씤 濡쒓렇??諛⑹떇:</strong> ?꾪솕踰덊샇 湲곕컲??媛꾪렪 ?묒냽??吏?먰븯??鍮꾨?踰덊샇 遺꾩떎濡??명븳 CS 臾몄쓽瑜?以꾩엯?덈떎.</li>
+                            <li><strong>PWA ?덊솕硫?異붽?:</strong> 蹂꾨룄 ?깆뒪?좎뼱瑜?嫄곗튂吏 ?딄퀬 釉뚮씪?곗??먯꽌 踰꾪듉 ?대┃留뚯쑝濡??ㅻ쭏?명룿???꾩씠肄섏쓣 異붽??????덉뒿?덈떎.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">?뱟</div>
+                        <h4>?щ챸???쒓컙??諛??덉빟 ?쒖뒪??/h4>
+                        <ul class="detailed-list">
+                            <li><strong>?대옒???붿뿬???뺤씤:</strong> ?섍컯 ?좎껌 媛?ν븳 紐⑸줉怨??⑥? ?먮━媛 ?ㅼ떆媛꾩쑝濡??쒖떆?⑸땲??</li>
+                            <li><strong>?湲??묒닔 諛??뺤젙:</strong> ?덉빟 ?뺤썝??媛??李⑤㈃ ?湲곕줈 ?깅줉?섍퀬, 寃곗썝 ???쒖감?곸쑝濡??몄떆 ?뚮┝怨??④퍡 ?뺤젙?⑸땲??</li>
+                            <li><strong>?댁슜 ?댁뿭 議고쉶:</strong> 蹂몄씤???섍컯沅??뺣낫(?⑥? ?잛닔 諛?留뚮즺??瑜????댁뿉???곸떆 ?뺤씤 媛?ν빀?덈떎.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======================================== -->
+            <!-- 3. 臾댁씤 異쒖꽍 諛??쇳꽣 ?쒖뼱 -->
+            <!-- ======================================== -->
+            <section class="feat-role-section" id="kiosk-spec">
+                <h2 style="font-size: 2rem; color: #fff; margin-bottom: 10px;">?쨼 3. ?ㅻ쭏??異쒖꽍 ?곗뒪??(?ㅼ삤?ㅽ겕)</h2>
+                <p style="color: rgba(255,255,255,0.6); font-size: 1.05rem;">?꾨줎???몃젰??遺?댁쓣 ?쒖뼱二쇰뒗 諛⑸Ц???뺤씤 諛??먮룞 異쒖꽍 湲곕줉 ?쒖뒪?쒖엯?덈떎.</p>
+                
+                <div class="feat-grid">
+                    <div class="feat-item">
+                        <div class="feat-icon">?몓截?/div>
+                        <h4>?덈㈃?몄떇 諛?PIN 蹂묓뻾 異쒖꽍</h4>
+                        <ul class="detailed-list">
+                            <li><strong>?덈㈃?몄떇 紐⑤뱶 (?좏깮):</strong> ?깅줉 ???앹꽦???섏튂?붾맂 ?⑦꽩??鍮꾧탳?섏뿬 鍮꾩젒珥?諛⑹떇?쇰줈 異쒖꽍??湲곕줉?⑸땲??</li>
+                            <li><strong>?ㅼ뼇???섍꼍 吏??</strong> 湲곌린 ?섍꼍?대굹 議곕챸 ?댁뒋 ??PIN(?꾪솕踰덊샇) ?낅젰???듯빐 ?덉쇅 ?놁씠 異쒖꽍??媛?ν빀?덈떎.</li>
+                            <li><strong>以묐났 泥댄겕??諛⑹?:</strong> 吏㏃? ?쒓컙 ?댁쓽 以묐났 ?몄떇???쒖뼱?섏뿬 異쒖꽍 移댁슫?멸? ?щ윭 踰?李④컧?섏? ?딆뒿?덈떎.</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">?뵒</div>
+                        <h4>?덈㈃?뺣낫 ?뷀샇??(蹂댁븞 以??</h4>
+                        <ul class="detailed-list">
+                            <li><strong>?섑븰???뱀쭠?????</strong> ?먮낯 ?ъ쭊???뚯씪濡???ν븯吏 ?딄퀬 蹂?섎맂 ?섏튂(踰≫꽣) ?뺥깭留?蹂닿??섏뿬 ?앸퀎 ?곗씠?곗쓽 ?꾪뿕?깆쓣 理쒖냼?뷀븯??듬땲??</li>
+                            <li><strong>?뚯썝 ?뺣낫 留ㅼ묶:</strong> 異쒖꽍怨??숈떆??沅뚰븳(留뚮즺 ?щ? ?????뺤씤?섏뿬, ?섍컯沅??뚯쭊 ???낆옣???쒗븳?섎뒗 ?뚮┝???붾㈃???쒖떆?⑸땲??</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======================================== -->
+            <!-- 4. 媛뺤궗 ?꾩슜 ?붾㈃ (沅뚰븳 遺꾨━) -->
+            <!-- ======================================== -->
+            <section class="feat-role-section" id="instructor-spec">
+                <h2 style="font-size: 2rem; color: #fff; margin-bottom: 10px;">?쭣?띯?截?4. 媛뺤궗 ?꾩슜 異쒖꽍 諛??섏뾽 ?붾㈃</h2>
+                <p style="color: rgba(255,255,255,0.6); font-size: 1.05rem;">?댁쁺 留ㅼ텧 ?깆쓽 誘쇨컧 ?뺣낫瑜??쒗븳?섍퀬, 留≪? ?섏뾽??愿由?沅뚰븳留?遺?ы빀?덈떎.</p>
+                
+                <div class="feat-grid">
+                    <div class="feat-item">
+                        <div class="feat-icon">??/div>
+                        <h4>異쒓껐 ?곹솴 ?곕룞</h4>
+                        <ul class="detailed-list">
+                            <li><strong>?대옒?ㅻ퀎 紐낅떒 ?뺤씤:</strong> ?ㅻ뒛 濡쒓렇?명븳 媛뺤궗 ?대떦???섏뾽怨??섍컯 ?좎껌??紐낅떒留?源붾걫?섍쾶 ?몄텧?⑸땲??</li>
+                            <li><strong>?섎룞 異쒖꽍 諛?吏媛?泥댄겕:</strong> ?ㅼ삤?ㅽ겕 ?댁슜???대젮?좊뜕 ?뚯썝??媛뺤궗媛 ???붾㈃?먯꽌 吏곸젒 異쒖꽍 泥섎━?????덉뒿?덈떎.</li>
+                            <li><strong>?뱀씠?ы빆 怨듭쑀:</strong> 遺???щ? ???뚯썝蹂??뱀씠?ы빆???곸뼱?먯뼱 ?섏뾽 ?꾨━???좎?? 愿由ъ뿉 李멸퀬?????덉뒿?덈떎.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======================================== -->
+            <!-- 5. 硫붿떆吏 諛?諛깆뿏???명봽??-->
+            <!-- ======================================== -->
+            <section class="feat-role-section" id="infra-spec">
+                <h2 style="font-size: 2rem; color: #fff; margin-bottom: 10px;">?곻툘 5. ?뺤옣 湲곕뒫 諛??명봽??蹂댁븞</h2>
+                <p style="color: rgba(255,255,255,0.6); font-size: 1.05rem;">?덉젙?깆쓣 ?꾪븳 ?대씪?곕뱶 ?뗭뾽怨??뚯썝怨쇱쓽 ?щ챸???뚰넻???꾪븳 ?꾧뎄?낅땲??</p>
+                
+                <div class="feat-grid">
+                    <div class="feat-item">
+                        <div class="feat-icon">?뮠</div>
+                        <h4>?듯빀 硫붿떆吏??뚮옯???곕룞</h4>
+                        <ul class="detailed-list">
+                            <li><strong>???몄떆(Push) ?쒓났:</strong> ?덈궡 ?ы빆, ?닿컯 ?덈궡, ?덉빟 ?묒닔 ?뺤씤 ?깆쓣 臾대즺 ??湲곕컲 ?몄떆濡??곗꽑 諛쒖넚?⑸땲??</li>
+                            <li><strong>?뚮┝??/ SMS 蹂댁셿:</strong> ?덉젙?곸씤 諛쒖넚留?鍮꾩쫰肉뚮━??API) ?곕룞 諛?怨좎젙 IP(Cloud NAT)瑜??듯빐 ?ㅽ뙵 ?꾪꽣留곸쓣 理쒖냼?뷀븯怨??믪? ?꾨떖瑜좎쓣 ?꾨え?⑸땲??</li>
+                        </ul>
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon">?썳截?/div>
+                        <h4>?쒕퉬???꾪궎?띿쿂 諛??곗씠??愿由?/h4>
+                        <ul class="detailed-list">
+                            <li><strong>?덉젙?곸씤 ?쇰툝由??대씪?곕뱶:</strong> Google Firebase ?명봽?쇰? ?쒖슜???곗씠???숆린?붿? ??μ냼 ?뺤옣???좎뿰?섍쾶 泥섎━?⑸땲??</li>
+                            <li><strong>?뺢린 ?곗씠??諛깆뾽:</strong> ?댁쁺 ?곗씠?곗쓽 ?덉쟾?깆쓣 ?꾪빐 ?뚮옯??李⑥썝??諛깆뾽 ?덉감媛 ?뺢린?곸쑝濡??섑뻾?⑸땲??</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <div class="competitor-note" style="margin-bottom: 40px; background: rgba(255,255,255,0.03); border-left: 3px solid rgba(255,255,255,0.2);">
+                ?덈궡: ???섏씠吏???ㅻ챸???쒕퉬??援ъ꽦 諛?遺媛 湲곕뒫(?쇨뎬 ?몄떇, 硫붿떆吏 ?먮룞????? ?ㅼ젣 ?곕え ?섏씠吏?먯꽌 ?遺遺??숈씪?섍쾶 泥댄뿕 媛?ν븯?꾨줉 援ы쁽?섏뼱 ?덉뒿?덈떎. ?쒖뒪???쒕룄 諛??듭떊???섍꼍???곕씪 ?몃??곸씤 ?듭? ?띾룄???쇰? ?몄감媛 ?덉쓣 ???덉뒿?덈떎.
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Footer / CTA -->
+    <footer class="footer" style="padding: 80px 0; background: linear-gradient(to top, #000, #08080A); text-align: center;">
+        <div class="container">
+            <h2 style="font-size: 2rem; color: #fff; margin-bottom: 10px;">?댁젣 吏곸젒 ?뺤씤?대낫?몄슂</h2>
+            <p style="color: rgba(255,255,255,0.6); margin-bottom: 25px;">怨쇱옣?놁씠 瑗??꾩슂???붾（?섎쭔 吏곴??곸쑝濡?援ъ꽦?덉뒿?덈떎. 愿由ъ옄???곕え ?붾㈃?먯꽌 泥댄뿕?대낫?????덉뒿?덈떎.</p>
+            <div style="display: flex; gap: 16px; justify-content: center; align-items: center; max-width: 600px; margin: 0 auto; flex-wrap: wrap; margin-bottom: 10px;">
+                <a href="home.html#live-demo" class="btn-primary" style="min-width: 240px; padding: 18px 30px; font-size: 1.1rem; border-radius: 40px; text-decoration: none; display: inline-block; font-weight: 700; box-shadow: 0 10px 30px rgba(212,175,55,0.2);">?곕え ?ъ슜?대낫湲?/a>
+                <a href="home.html#pricing" class="btn-secondary" style="min-width: 240px; padding: 18px 30px; font-size: 1.1rem; border-radius: 40px; text-decoration: none; display: inline-block; background: rgba(212,175,55,0.12); border: 2px solid rgba(212,175,55,0.3); color: #f5d67b; font-weight: 700; transition: all 0.3s ease;">鍮꾩슜 諛??꾩엯 ?덉감 ?덈궡 ??/a>
+            </div>
+            <div class="footer-bottom" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 30px; margin-top: 40px;">
+                <p>&copy; 2026 PassFlow Ai. ?붽?쨌?꾨씪?뚯뒪 ?ㅽ뒠?붿삤??紐⑤뱺 ?댁쁺??臾??먮Ⅴ???쎄쾶 留뚮뱾?댁＜??AI 湲곕컲 ?ㅻ쭏???뚮옯??</p>
+                <p style="margin-top:4px; font-size:0.75rem; color:rgba(255,255,255,0.4);">?⑥뒪?뚮줈???먯씠?꾩씠(Passflow AI) | ??? 源蹂듭닚 | ?ъ뾽?먮벑濡앸쾲?? 789-66-00676 | 二쇱냼: ?쒖슱?밸퀎??留덊룷援??쒓컯濡?湲?61, 201??/p>
+                <p style="margin-top:8px;"><a href="https://passflowai.web.app/privacy" target="_blank" rel="noopener noreferrer" style="color:rgba(255,255,255,0.25); text-decoration:none; font-size:0.75rem;">媛쒖씤?뺣낫泥섎━諛⑹묠</a></p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

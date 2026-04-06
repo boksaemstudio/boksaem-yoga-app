@@ -40,8 +40,7 @@ const AttendanceTab = ({ logs, member, aiAnalysis, onAdd, onDelete, isSubmitting
     // 수업 목록: 선택 지점의 해당 날짜 수업 + 자율수련(시간만)
     const classOptions = useMemo(() => {
         // 자율수련 포함 - 선택된 지점의 이름 찾기
-        const selectedBranchName = branches.find(b => b.id === manualBranch)?.name || '';
-        const options = [{ value: '자율수련', label: '자율수련' }];
+        const options = [{ value: '자율수련', label: '자율수련', time: undefined, instructor: undefined, title: '자율수련' }];
 
         if (dailyClasses.length > 0) {
             dailyClasses.forEach(cls => {
@@ -50,7 +49,9 @@ const AttendanceTab = ({ logs, member, aiAnalysis, onAdd, onDelete, isSubmitting
                 const instructor = cls.instructor || '';
                 const parts = [time, title, instructor].filter(Boolean);
                 const label = parts.join(' ');
-                options.push({ value: title, label, time, instructor });
+                // [FIX] value를 'time|title'로 구성하여 같은 수업명이 다른 시간대에 있어도 고유하게 식별
+                const uniqueValue = `${time}|${title}`;
+                options.push({ value: uniqueValue, label, time, instructor, title });
             });
         }
         return options;
@@ -96,14 +97,15 @@ const AttendanceTab = ({ logs, member, aiAnalysis, onAdd, onDelete, isSubmitting
                     }}
                 >
                     {classOptions.map(opt => (
-                        <option key={opt.label} value={opt.value}>{opt.label}</option>
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
                     ))}
                 </select>
                 <button
                     onClick={() => {
-                        const selectedInfo = classOptions.find(opt => opt.value === manualClassName) || { time: '10:00', instructor: '관리자' };
-                        // Pass (date, time, branch, className, instructor)
-                        onAdd(manualDate, selectedInfo.time, manualBranch, manualClassName, selectedInfo.instructor);
+                        const selectedInfo = classOptions.find(opt => opt.value === manualClassName) || { time: '10:00', instructor: '관리자', title: '자율수련' };
+                        // [FIX] title(수업명)을 넘기도록 수정 (value는 이제 'time|title' 형태이므로)
+                        const className = selectedInfo.title || manualClassName;
+                        onAdd(manualDate, selectedInfo.time, manualBranch, className, selectedInfo.instructor);
                     }}
                     disabled={isSubmitting}
                     style={{

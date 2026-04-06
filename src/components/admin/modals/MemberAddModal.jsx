@@ -54,16 +54,16 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
     }, [isOpen, newMember.branch]);
 
     // [Smart Calculation Logic for New Member]
-    const { calculatedPrice, calculatedCredits, calculatedEndDate, calculatedRealEndDate, calculatedProductName } = useMemo(() => {
-        if (!isOpen) return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedRealEndDate: '', calculatedProductName: '' };
+    const { calculatedPrice, calculatedCredits, calculatedEndDate, calculatedRealEndDate, calculatedProductName, durationMonths } = useMemo(() => {
+        if (!isOpen) return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedRealEndDate: '', calculatedProductName: '', durationMonths: 1 };
 
         const { membershipType, selectedOption, duration, paymentMethod, startDate, includeToday } = newMember;
         const category = pricingConfig[membershipType];
 
-        if (!category) return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedRealEndDate: '', calculatedProductName: '' };
+        if (!category) return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedRealEndDate: '', calculatedProductName: '', durationMonths: 1 };
 
         const option = category.options.find(opt => opt.id === selectedOption);
-        if (!option) return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedRealEndDate: '', calculatedProductName: '' };
+        if (!option) return { calculatedPrice: 0, calculatedCredits: 0, calculatedEndDate: '', calculatedRealEndDate: '', calculatedProductName: '', durationMonths: 1 };
 
         let p = 0;
         let c = 0;
@@ -115,7 +115,8 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
             calculatedCredits: c,
             calculatedEndDate: newMember.autoStart ? '첫 출석 시 확정' : (newMember.manualEndDate ? newMember.manualEndDate : realEnd),
             calculatedRealEndDate: newMember.manualEndDate ? newMember.manualEndDate : realEnd,
-            calculatedProductName: `${label} ${duration > 1 && option.type !== 'ticket' ? `(${duration}개월)` : ''}`
+            calculatedProductName: `${label} ${duration > 1 && option.type !== 'ticket' ? `(${duration}개월)` : ''}`,
+            durationMonths: months  // [FIX] 실제 계산된 유효기간(개월) — ticket/subscription 무관하게 정확한 값
         };
     }, [newMember, pricingConfig, isOpen]);
 
@@ -191,7 +192,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                 regDate: newMember.regDate,
                 startDate: newMember.autoStart ? 'TBD' : newMember.startDate,
                 endDate: newMember.autoStart ? 'TBD' : newMember.endDate,
-                duration: newMember.duration,
+                duration: durationMonths,  // [FIX] 가격표의 실제 유효기간(months) 사용 — newMember.duration은 subscription UI용이라 ticket에서 값이 안 바뀜
                 attendanceCount: newMember.includeToday ? 1 : 0, // [NEW] Mark initial attendance
                 lastAttendance: newMember.includeToday ? new Date().toISOString() : null,
                 notes: newMember.notes || ''

@@ -476,7 +476,7 @@ const MembershipBlock = ({ editData, setEditData, originalData, pricingConfig, g
                                 if (v && v !== 'TBD' && editData.duration) {
                                     const start = new Date(v + 'T00:00:00+09:00');
                                     const end = new Date(start);
-                                    end.setMonth(end.getMonth() + (Number(editData.duration) || 1));
+                                    end.setMonth(end.getMonth() + (Number(editData.duration) || 1));  // [NOTE] duration이 DB에 올바르게 저장되어야 정상 동작 (MemberAddModal 수정 참조)
                                     end.setDate(end.getDate() - 1);
                                     const newEndDate = end.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
                                     if (confirm(`시작일 변경에 따라 종료일을 ${newEndDate}로 자동 조정하시겠습니까?`)) {
