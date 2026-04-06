@@ -315,11 +315,13 @@ async function processAttendanceCore(transaction, params, options = {}) {
     const records = recentSnap.docs.map(d => d.data()).filter(r => r.status === 'valid');
 
     // 디바운스 방어막 (5초 이내 네트워크 이중전송 방지 — 중복 출석 UX는 프론트가 담당)
-    if (!force && records.length > 0 && records[0].timestamp) {
+    // 수동 출석(type=manual)은 관리자 의도이므로 디바운스 스킵
+    if (!force && type !== 'manual' && records.length > 0 && records[0].timestamp) {
         const lastTime = new Date(records[0].timestamp);
         const nowTime = new Date(timestampISO);
         const diffSeconds = (nowTime - lastTime) / 1000;
-        if (diffSeconds < 5) {
+        // diffSeconds > 0 (현재가 마지막 출석보다 나중)이고 5초 미만일 때만 차단
+        if (diffSeconds >= 0 && diffSeconds < 5) {
             console.log(`[CoreLogic] BLOCKED network duplicate for ${memberId} within ${diffSeconds.toFixed(1)}s.`);
             return { success: false, status: 'error', message: '잠시 후 다시 시도해주세요.' };
         }
