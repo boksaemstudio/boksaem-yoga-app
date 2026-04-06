@@ -111,7 +111,9 @@ export const paymentService = {
             const { deleteField } = await import('firebase/firestore');
             await updateDoc(tenantDb.doc('sales', salesId), { 
                 deletedAt: deleteField(),
-                _deletedBy: deleteField()
+                _deletedBy: deleteField(),
+                _restoredAt: new Date().toISOString(),
+                _restoredBy: 'admin'
             });
             return true;
         } catch (e) {
@@ -134,7 +136,23 @@ export const paymentService = {
     async permanentDeleteSalesRecord(salesId: string): Promise<boolean> {
         try {
             const { deleteDoc } = await import('firebase/firestore');
-            await deleteDoc(tenantDb.doc('sales', salesId));
+            // 영구 삭제 전 audit_log에 백업
+            const saleRef = tenantDb.doc('sales', salesId);
+            const saleSnap = await getDoc(saleRef);
+            if (saleSnap.exists()) {
+                try {
+                    await addDoc(tenantDb.collection('audit_log'), {
+                        action: 'permanent_delete_sales',
+                        salesId,
+                        salesData: saleSnap.data(),
+                        timestamp: new Date().toISOString(),
+                        performedBy: 'admin'
+                    });
+                } catch (auditErr) {
+                    console.warn('[paymentService] Audit log save failed:', auditErr);
+                }
+            }
+            await deleteDoc(saleRef);
             return true;
         } catch (e) {
             console.error("[paymentService] Permanent delete sales record failed:", e);

@@ -379,7 +379,9 @@ export const memberService = {
         try {
             await updateDoc(tenantDb.doc('members', memberId), {
                 deletedAt: deleteField(),
-                _deletedBy: deleteField()
+                _deletedBy: deleteField(),
+                _restoredAt: new Date().toISOString(),
+                _restoredBy: 'admin'
             });
             this.triggerKioskSync();
             return { success: true };
@@ -402,6 +404,21 @@ export const memberService = {
 
     async permanentDeleteMember(memberId: string): Promise<{ success: boolean; error?: string }> {
         try {
+            // 영구 삭제 전 audit_log에 백업
+            const memberSnap = await getDoc(tenantDb.doc('members', memberId));
+            if (memberSnap.exists()) {
+                try {
+                    await addDoc(tenantDb.collection('audit_log'), {
+                        action: 'permanent_delete_member',
+                        memberId,
+                        memberData: memberSnap.data(),
+                        timestamp: new Date().toISOString(),
+                        performedBy: 'admin'
+                    });
+                } catch (auditErr) {
+                    console.warn('[memberService] Audit log save failed:', auditErr);
+                }
+            }
             await deleteDoc(tenantDb.doc('members', memberId));
             this.triggerKioskSync();
             return { success: true };
