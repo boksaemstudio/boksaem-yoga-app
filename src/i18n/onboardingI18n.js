@@ -107,7 +107,7 @@ const onboardingI18n = {
     goHome: 'Back to Home',
     submitError: (msg) => 'An error occurred: ' + msg,
     ctaType: 'email',
-    ctaUrl: 'mailto:passflow.ai.app@gmail.com?subject=PassFlow%20AI%20Inquiry&body=Hi%2C%20I%27m%20interested%20in%20PassFlow%20AI%20for%20my%20studio.',
+    ctaUrl: 'mailto:motionpt@gmail.com?subject=PassFlow%20AI%20Inquiry&body=Hi%2C%20I%27m%20interested%20in%20PassFlow%20AI%20for%20my%20studio.',
     homeUrl: '/en/home.html',
   },
 
@@ -158,7 +158,7 @@ const onboardingI18n = {
     goHome: 'ホームに戻る',
     submitError: (msg) => 'エラーが発生しました: ' + msg,
     ctaType: 'email',
-    ctaUrl: 'mailto:passflow.ai.app@gmail.com?subject=PassFlow%20AI%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6',
+    ctaUrl: 'mailto:motionpt@gmail.com?subject=PassFlow%20AI%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6',
     homeUrl: '/ja/home.html',
   },
 
@@ -209,7 +209,7 @@ const onboardingI18n = {
     goHome: 'Back to Home',
     submitError: (msg) => 'Something went wrong: ' + msg,
     ctaType: 'email',
-    ctaUrl: 'mailto:passflow.ai.app@gmail.com?subject=PassFlow%20AI%20Inquiry%20from%20India',
+    ctaUrl: 'mailto:motionpt@gmail.com?subject=PassFlow%20AI%20Inquiry%20from%20India',
     homeUrl: '/in/home.html',
   }
 };
