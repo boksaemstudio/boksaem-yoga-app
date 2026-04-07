@@ -278,6 +278,7 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats, viewMode })
 
             {/* Calendar View */}
             <CollapsibleCard id="revenue-calendar" title={`📅 ${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월 정산 달력`} defaultOpen={true}>
+                <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x', margin: '0 -4px', padding: '0 4px' }}>
                 <div className="calendar-grid custom-scroll" style={{ minWidth: '600px' }}>
                     {/* Header */}
                     {['일', '월', '화', '수', '목', '금', '토'].map((dayName, index) => (
@@ -331,6 +332,7 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats, viewMode })
                             )}
                         </div>
                     ))}
+                </div>
                 </div>
             </CollapsibleCard>
 
