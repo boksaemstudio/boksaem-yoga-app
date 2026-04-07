@@ -159,7 +159,7 @@
             <a href="#features">Features</a>
             <a href="#pricing">Pricing</a>
             <a href="#contact">Contact</a>
-            <div class="lang-switcher">
+            <div class="lang-switcher" style="margin-left:16px;">
                 <button class="lang-switcher-btn" onclick="document.querySelector('.lang-dropdown').classList.toggle('show')">🌐 IN ▾</button>
                 <div class="lang-dropdown">
                     <a href="/home.html">🇰🇷 한국어</a>
@@ -428,10 +428,10 @@
                     </table>
                 </div>
 
-                <a href="mailto:motionpt@gmail.com?subject=PassFlow%20AI%20Inquiry%20from%20India&body=Hi%2C%20I%27m%20interested%20in%20PassFlow%20AI%20for%20my%20gym.%0A%0AGym%20Name%3A%20%0ACity%3A%20%0A" style="display:flex; justify-content:center; align-items:center; gap:10px; width:100%; padding:18px; font-size:1.1rem; font-weight:800; background:linear-gradient(135deg,#ff9900,#ffb84d); color:#000; border-radius:14px; border:none; text-decoration:none; box-shadow:0 4px 20px rgba(255,153,0,0.3);">
+                <a href="mailto:motionpt@gmail.com?subject=PassFlow%20AI%20Inquiry%20from%20India&body=Hi%2C%20I%27m%20interested%20in%20PassFlow%20AI%20for%20my%20gym.%0A%0AGym%20Name%3A%20%0ACity%3A%20%0A" id="cta-email-in" onclick="gtag('event','generate_lead',{event_category:'conversion',event_label:'in-landing-email',source:'landing',page:'in'})" style="display:flex; justify-content:center; align-items:center; gap:10px; width:100%; padding:18px; font-size:1.1rem; font-weight:800; background:linear-gradient(135deg,#ff9900,#ffb84d); color:#000; border-radius:14px; border:none; text-decoration:none; box-shadow:0 4px 20px rgba(255,153,0,0.3);">
                     📧 Email Us — Start in 24 Hours
                 </a>
-                <a href="/onboarding?lang=in" style="display:block; margin-top:12px; text-align:center; padding:16px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:12px; color:#fff; font-weight:600; text-decoration:none; font-size:0.95rem;">
+                <a href="/onboarding?lang=in" id="cta-onboarding-in" onclick="gtag('event','generate_lead',{event_category:'conversion',event_label:'in-landing-onboarding',source:'landing',page:'in'})" style="display:block; margin-top:12px; text-align:center; padding:16px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:12px; color:#fff; font-weight:600; text-decoration:none; font-size:0.95rem;">
                     🚀 Apply Online — Free Setup
                 </a>
             </div>

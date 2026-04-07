@@ -200,8 +200,8 @@
             <a href="features.html">상세기능</a>
             <a href="home.html#pricing">가격</a>
             <a href="home.html#contact">문의</a>
-            <div style="position:relative; display:inline-flex; align-items:center;">
-                <button onclick="document.getElementById('langDrop').classList.toggle('show')" style="display:flex; align-items:center; gap:6px; padding:6px 14px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.8); font-size:0.85rem; cursor:pointer;">🌐 KR ▾</button>
+            <div style="position:relative; display:inline-flex; align-items:center; margin-left:16px;">
+                <button onclick="var d=document.getElementById('langDrop'); d.style.display=d.style.display==='block'?'none':'block';" style="display:flex; align-items:center; gap:6px; padding:6px 14px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.8); font-size:0.85rem; cursor:pointer;">🌐 KR ▾</button>
                 <div id="langDrop" style="position:absolute; top:calc(100% + 8px); right:0; min-width:160px; background:rgba(20,20,25,0.98); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:6px; display:none; z-index:1000; box-shadow:0 10px 40px rgba(0,0,0,0.6);">
                     <a href="/home.html" style="display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:8px; text-decoration:none; color:#d4af37; font-size:0.9rem; font-weight:600;">🇰🇷 한국어</a>
                     <a href="/en/home.html" style="display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:8px; text-decoration:none; color:rgba(255,255,255,0.75); font-size:0.9rem;">🇺🇸 English</a>
@@ -562,7 +562,7 @@
     <script>
         document.addEventListener('click', function(e) {
             var d = document.getElementById('langDrop');
-            if (d && !e.target.closest('[onclick]') && !e.target.closest('#langDrop')) d.classList.remove('show');
+            if (d && !e.target.closest('[onclick]') && !e.target.closest('#langDrop')) d.style.display = 'none';
         });
     </script>
     <script src="script.js"></script>
