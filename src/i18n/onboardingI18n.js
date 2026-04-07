@@ -1,0 +1,241 @@
+// Onboarding page i18n strings
+// Each key corresponds to a language code detected from URL or browser
+
+const onboardingI18n = {
+  ko: {
+    // Landing (step 0)
+    heroTitle: '패스플로우 Ai 도입 신청',
+    heroDesc: '원장님을 위한 완벽한 스튜디오 관리 플랫폼,\n지금 바로 무료로 시작해보세요.',
+    featureManage: '쉽고 편한 통합 관리',
+    featureManageDesc: '복잡한 회원 관리부터 출석, 수강권, 매출까지 하나의 화면에서 해결하세요.',
+    featureSecurity: '데이터 안심 보안',
+    featureSecurityDesc: '구글(Google) 최고 수준의 서버에 데이터가 분산 암호화되어 보관됩니다.',
+    startBtn: '시작하기',
+    kakaoBtn: '카카오톡으로 1:1 도입 문의',
+    backToHome: '메인으로 돌아가기',
+    // Step 1: Name
+    nameTitle: '우리 스튜디오의 이름은 무엇인가요?',
+    nameDesc: '회원들에게 보여질 요가원/필라테스 스튜디오의 이름입니다.',
+    namePlaceholder: '예: 쌍문요가',
+    nextBtn: '다음',
+    prevBtn: '이전',
+    // Step 2: Logo
+    logoTitle: (name) => `${name}의 로고`,
+    logoDesc: '로고가 없으시면 AI가 스튜디오 이름에 맞는 로고를 만들어 드립니다.',
+    logoAi: 'AI 로고 자동 생성',
+    logoAiDesc: (name) => `"${name}" 이름에 맞는 로고를 AI가 만들어 드립니다`,
+    logoRegenerate: '다른 색상 뽑기',
+    logoUpload: '내 로고 업로드',
+    logoUploadDesc: '이미 로고가 있다면 이미지 파일을 올려주세요',
+    logoLater: '나중에 설정하기',
+    logoLaterDesc: '설정 후 관리자 화면에서 변경 가능합니다',
+    scheduleTitle: '시간표 · 가격표 파일 첨부 (선택 사항)',
+    scheduleDesc: '운용 중이신 시간표나 가격표(워드, 엑셀, PDF, 이미지 등)를 업로드해주시면 담당자가 확인하여 초기 세팅을 도와드립니다.',
+    scheduleBtn: '+ 파일 첨부하기 (최대 4개)',
+    scheduleMaxAlert: '첨부파일은 최대 4개까지만 가능합니다.',
+    // Step 3: Email
+    emailTitle: '원장님의 이메일을 알려주세요',
+    emailDesc: '관리자 계정을 만들어 드리기 위해 필요해요.',
+    emailPlaceholder: '예: admin@yoga.com',
+    // Step 4: Plan
+    planTitle: '어떤 형태로 운영하실 계획인가요?',
+    planDesc: '앱 설정의 뼈대를 만들기 위한 질문입니다.',
+    planFree: '무료 체험',
+    planFreeDesc: '도입 전 시스템만 둘러보고 싶어요.',
+    planBasic: '베이직',
+    planBasicDesc: '동네 요가/필라테스 운영에 딱 맞아요.',
+    planPro: '프로페셔널',
+    planProDesc: '강사 여러 명과 지점을 운영할 거예요.',
+    submitBtn: '신청서 제출하기',
+    // Step 5: Success
+    successTitle: '신청이 완료되었습니다! 🎉',
+    successDesc: (email) => `슈퍼어드민이 승인하는 즉시,\n${email} 주소로\n초기 비밀번호와 접속 링크를 보내드립니다.`,
+    aiLogoDone: 'AI 로고 생성 완료!',
+    aiLogoApplied: '스튜디오 승인 시 이 로고가 자동 적용됩니다.',
+    goHome: '홈으로 돌아가기',
+    submitError: (msg) => '신청 중 오류가 발생했습니다: ' + msg,
+    // CTA
+    ctaType: 'kakao', // kakao | whatsapp | line | email
+    ctaUrl: 'http://pf.kakao.com/_zDxiMX/chat',
+    homeUrl: '/home.html',
+  },
+
+  en: {
+    heroTitle: 'Get Started with PassFlow AI',
+    heroDesc: 'The complete studio management platform for gym,\nyoga & pilates owners. Start free today.',
+    featureManage: 'All-in-One Management',
+    featureManageDesc: 'Members, attendance, pass credits, revenue — manage everything from a single dashboard.',
+    featureSecurity: 'Enterprise-Grade Security',
+    featureSecurityDesc: 'Your data is encrypted and stored on Google Cloud servers with daily automated backups.',
+    startBtn: 'Get Started',
+    kakaoBtn: '📧 Email Us to Get Started',
+    backToHome: 'Back to Home',
+    nameTitle: "What's your studio name?",
+    nameDesc: 'This is the name your members will see in the app.',
+    namePlaceholder: 'e.g., Sunrise Yoga Studio',
+    nextBtn: 'Next',
+    prevBtn: 'Back',
+    logoTitle: (name) => `Logo for ${name}`,
+    logoDesc: "Don't have a logo? Our AI will create one automatically based on your studio name.",
+    logoAi: 'Generate AI Logo',
+    logoAiDesc: (name) => `AI will create a logo based on "${name}"`,
+    logoRegenerate: 'Try another color',
+    logoUpload: 'Upload my logo',
+    logoUploadDesc: 'Already have a logo? Upload your image file here.',
+    logoLater: 'Set up later',
+    logoLaterDesc: 'You can change this anytime from the admin dashboard.',
+    scheduleTitle: 'Attach schedule or pricing (optional)',
+    scheduleDesc: 'Upload your class timetable or pricing sheet (Word, Excel, PDF, image) and we\'ll help set up your system.',
+    scheduleBtn: '+ Attach files (max 4)',
+    scheduleMaxAlert: 'Maximum 4 files allowed.',
+    emailTitle: 'Your email address',
+    emailDesc: "We'll use this to create your admin account.",
+    emailPlaceholder: 'e.g., owner@yogastudio.com',
+    planTitle: 'How do you plan to operate?',
+    planDesc: 'This helps us set up the right configuration for you.',
+    planFree: 'Free Trial',
+    planFreeDesc: "I'd like to explore the system first.",
+    planBasic: 'Basic',
+    planBasicDesc: 'Perfect for a single-location yoga/pilates studio.',
+    planPro: 'Professional',
+    planProDesc: "I'll run multiple instructors and/or branches.",
+    submitBtn: 'Submit Application',
+    successTitle: 'Application Submitted! 🎉',
+    successDesc: (email) => `Once approved by our team,\nwe'll send your login credentials and setup link to\n${email}.`,
+    aiLogoDone: 'AI Logo Created!',
+    aiLogoApplied: 'This logo will be automatically applied when your studio is approved.',
+    goHome: 'Back to Home',
+    submitError: (msg) => 'An error occurred: ' + msg,
+    ctaType: 'email',
+    ctaUrl: 'mailto:passflow.ai.app@gmail.com?subject=PassFlow%20AI%20Inquiry&body=Hi%2C%20I%27m%20interested%20in%20PassFlow%20AI%20for%20my%20studio.',
+    homeUrl: '/en/home.html',
+  },
+
+  ja: {
+    heroTitle: 'PassFlow AI 導入のお申し込み',
+    heroDesc: 'ヨガ・ピラティス・ジムオーナーのための\n完全スタジオ管理AI。今すぐ無料で始めましょう。',
+    featureManage: 'ワンストップ統合管理',
+    featureManageDesc: '会員管理から出席、チケット（回数券）、売上まで、ひとつの画面で完結します。',
+    featureSecurity: '万全のデータセキュリティ',
+    featureSecurityDesc: 'Google Cloud（東京リージョン）で暗号化保管。毎日自動バックアップ。',
+    startBtn: 'はじめる',
+    kakaoBtn: '📧 メールでお問い合わせ',
+    backToHome: 'ホームに戻る',
+    nameTitle: 'スタジオの名前を教えてください',
+    nameDesc: '会員様に表示されるスタジオの名称です。',
+    namePlaceholder: '例: 表参道ヨガスタジオ',
+    nextBtn: '次へ',
+    prevBtn: '戻る',
+    logoTitle: (name) => `${name} のロゴ`,
+    logoDesc: 'ロゴをお持ちでない場合、AIがスタジオ名に合わせたロゴを自動で作成します。',
+    logoAi: 'AIロゴ自動生成',
+    logoAiDesc: (name) => `「${name}」の名前に合わせたロゴをAIが作成します`,
+    logoRegenerate: '別の色を試す',
+    logoUpload: 'ロゴをアップロード',
+    logoUploadDesc: 'すでにロゴをお持ちの方は画像ファイルをアップロードしてください。',
+    logoLater: 'あとで設定する',
+    logoLaterDesc: '管理画面からいつでも変更可能です。',
+    scheduleTitle: '時間割・料金表の添付（任意）',
+    scheduleDesc: '現在ご使用の時間割や料金表（Word, Excel, PDF, 画像など）をアップロードいただければ、初期設定をサポートいたします。',
+    scheduleBtn: '+ ファイルを添付（最大4つ）',
+    scheduleMaxAlert: '添付ファイルは最大4つまでです。',
+    emailTitle: 'メールアドレスを教えてください',
+    emailDesc: '管理者アカウントの作成に使用します。',
+    emailPlaceholder: '例: info@yoga-studio.co.jp',
+    planTitle: 'どのような形態で運営されますか？',
+    planDesc: 'システムの初期設定の参考にさせていただきます。',
+    planFree: '無料体験',
+    planFreeDesc: 'まずはシステムを試してみたいです。',
+    planBasic: 'ベーシック',
+    planBasicDesc: '個人スタジオの運営に最適です。',
+    planPro: 'プロフェッショナル',
+    planProDesc: '複数のインストラクターや店舗を運営予定です。',
+    submitBtn: '申請書を提出する',
+    successTitle: 'お申し込みが完了しました！🎉',
+    successDesc: (email) => `担当者の確認が完了次第、\n${email} 宛に\n初期パスワードとアクセスリンクをお送りします。`,
+    aiLogoDone: 'AIロゴ作成完了！',
+    aiLogoApplied: 'スタジオ承認時にこのロゴが自動適用されます。',
+    goHome: 'ホームに戻る',
+    submitError: (msg) => 'エラーが発生しました: ' + msg,
+    ctaType: 'email',
+    ctaUrl: 'mailto:passflow.ai.app@gmail.com?subject=PassFlow%20AI%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6',
+    homeUrl: '/ja/home.html',
+  },
+
+  in: {
+    heroTitle: 'Start with PassFlow AI',
+    heroDesc: 'Complete gym & yoga studio management platform.\nStart free — just ₹14/day for the full year.',
+    featureManage: 'Everything in One Place',
+    featureManageDesc: 'Members, attendance, billing, revenue — no more register books or Excel sheets.',
+    featureSecurity: 'Bank-Grade Security',
+    featureSecurityDesc: 'Data encrypted on Google Cloud. Automatic daily backups. No data loss, ever.',
+    startBtn: 'Get Started Free',
+    kakaoBtn: '📧 Email Us to Get Started',
+    backToHome: 'Back to Home',
+    nameTitle: "What's your gym/studio name?",
+    nameDesc: 'This name will appear in the app for your members.',
+    namePlaceholder: 'e.g., FitLife Gym Mumbai',
+    nextBtn: 'Next',
+    prevBtn: 'Back',
+    logoTitle: (name) => `Logo for ${name}`,
+    logoDesc: "No logo yet? AI will create one for you instantly based on your gym name.",
+    logoAi: 'Auto-Generate AI Logo',
+    logoAiDesc: (name) => `AI will design a logo based on "${name}"`,
+    logoRegenerate: 'Try another color',
+    logoUpload: 'Upload my logo',
+    logoUploadDesc: 'Have your own logo? Upload the image file here.',
+    logoLater: 'Do it later',
+    logoLaterDesc: 'You can always change this from the admin panel.',
+    scheduleTitle: 'Attach class schedule or pricing (optional)',
+    scheduleDesc: 'Upload your class timetable or fee chart (Word, Excel, PDF, image) and our team will help set up everything.',
+    scheduleBtn: '+ Attach files (max 4)',
+    scheduleMaxAlert: 'Maximum 4 files allowed.',
+    emailTitle: 'Your email address',
+    emailDesc: "We'll create your owner/admin account with this email.",
+    emailPlaceholder: 'e.g., owner@fitlifegym.in',
+    planTitle: 'How will you be using PassFlow?',
+    planDesc: 'This helps us configure the right setup for your business.',
+    planFree: 'Free Trial',
+    planFreeDesc: 'Just want to explore the system first.',
+    planBasic: 'Basic',
+    planBasicDesc: 'Running a single gym or yoga studio.',
+    planPro: 'Professional',
+    planProDesc: 'Multiple trainers, branches, or fitness programs.',
+    submitBtn: 'Submit Application',
+    successTitle: 'Application Received! 🎉',
+    successDesc: (email) => `Our team will review your request.\nOnce approved, we'll send login details to\n${email} within 24 hours.`,
+    aiLogoDone: 'AI Logo Ready!',
+    aiLogoApplied: 'This logo will be applied automatically when your gym is approved.',
+    goHome: 'Back to Home',
+    submitError: (msg) => 'Something went wrong: ' + msg,
+    ctaType: 'email',
+    ctaUrl: 'mailto:passflow.ai.app@gmail.com?subject=PassFlow%20AI%20Inquiry%20from%20India',
+    homeUrl: '/in/home.html',
+  }
+};
+
+// Detect language from URL path or browser
+export function detectOnboardingLang() {
+  const path = window.location.pathname;
+  const params = new URLSearchParams(window.location.search);
+  const langParam = params.get('lang');
+
+  if (langParam && onboardingI18n[langParam]) return langParam;
+  if (path.startsWith('/en/') || path.includes('lang=en')) return 'en';
+  if (path.startsWith('/ja/') || path.includes('lang=ja')) return 'ja';
+  if (path.startsWith('/in/') || path.includes('lang=in')) return 'in';
+
+  // Browser language detection
+  const browserLang = navigator.language?.toLowerCase() || '';
+  if (browserLang.startsWith('ja')) return 'ja';
+  if (browserLang.startsWith('hi') || browserLang === 'en-in') return 'in';
+  if (browserLang.startsWith('en')) return 'en';
+
+  return 'ko'; // default
+}
+
+export function getOnboardingStrings(lang) {
+  return onboardingI18n[lang] || onboardingI18n.ko;
+}
+
+export default onboardingI18n;

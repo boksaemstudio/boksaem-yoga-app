@@ -10,6 +10,16 @@
     <meta property="og:description" content="연 10만 원! 안면인식 출입통제부터 예약, 결제 관리까지. 체육 시설 운영에 필요한 모든 것을 담았습니다.">
     <meta property="og:image" content="/assets/passflow_square_logo.png">
     <meta property="og:type" content="website">
+    <meta property="og:url" content="https://passflowai.web.app/home.html">
+
+    <!-- International SEO: hreflang -->
+    <link rel="alternate" hreflang="ko" href="https://passflowai.web.app/home.html" />
+    <link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html" />
+    <link rel="alternate" hreflang="ja" href="https://passflowai.web.app/ja/home.html" />
+    <link rel="alternate" hreflang="en-IN" href="https://passflowai.web.app/in/home.html" />
+    <link rel="alternate" hreflang="x-default" href="https://passflowai.web.app/en/home.html" />
+    <link rel="canonical" href="https://passflowai.web.app/home.html" />
+
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/logo_circle_white.webp">
     <!-- Google Analytics 4 (GA4) -->
@@ -164,6 +174,15 @@
             <a href="features.html">상세기능</a>
             <a href="home.html#pricing">가격</a>
             <a href="home.html#contact">문의</a>
+            <div style="position:relative; display:inline-flex; align-items:center;">
+                <button onclick="document.getElementById('langDrop').classList.toggle('show')" style="display:flex; align-items:center; gap:6px; padding:6px 14px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.8); font-size:0.85rem; cursor:pointer;">🌐 KR ▾</button>
+                <div id="langDrop" style="position:absolute; top:calc(100% + 8px); right:0; min-width:160px; background:rgba(20,20,25,0.98); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:6px; display:none; z-index:1000; box-shadow:0 10px 40px rgba(0,0,0,0.6);">
+                    <a href="/home.html" style="display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:8px; text-decoration:none; color:#d4af37; font-size:0.9rem; font-weight:600;">🇰🇷 한국어</a>
+                    <a href="/en/home.html" style="display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:8px; text-decoration:none; color:rgba(255,255,255,0.75); font-size:0.9rem;">🇺🇸 English</a>
+                    <a href="/ja/home.html" style="display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:8px; text-decoration:none; color:rgba(255,255,255,0.75); font-size:0.9rem;">🇯🇵 日本語</a>
+                    <a href="/in/home.html" style="display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:8px; text-decoration:none; color:rgba(255,255,255,0.75); font-size:0.9rem;">🇮🇳 India</a>
+                </div>
+            </div>
         </div>
         <button class="nav-hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
     </nav>
@@ -396,7 +415,7 @@
                     <h3 style="color:#fff; font-size:1.2rem; margin-bottom:10px;">출석 체크</h3>
                     <p style="color:rgba(255,255,255,0.6); font-size:0.9rem; margin-bottom:24px; line-height:1.5; min-height:44px;">
                         안면인식·번호 입력 출석<br>
-                        <span style="font-size:0.8rem; color:#d4af37; font-weight:500;">*태블릿 화면에 최적화되어 있습니다.</span>
+                        <span style="font-size:0.8rem; color:#d4af37; font-weight:600;">📱↔️ 태블릿 <strong>가로 모드</strong>에서 가장 잘 보입니다</span>
                     </p>
                     <a href="https://passflowai.web.app/checkin" target="_blank"
                        style="display:inline-block; padding:14px 24px; background:linear-gradient(135deg,#d4af37,#f5d67b); color:#000; font-weight:700; border-radius:30px; text-decoration:none; transition:all 0.3s; width:100%; box-sizing:border-box; font-size:0.95rem;">
@@ -514,6 +533,12 @@
         </div>
     </footer>
 
+    <script>
+        document.addEventListener('click', function(e) {
+            var d = document.getElementById('langDrop');
+            if (d && !e.target.closest('[onclick]') && !e.target.closest('#langDrop')) d.classList.remove('show');
+        });
+    </script>
     <script src="script.js"></script>
 </body>
 </html>

@@ -72,6 +72,24 @@ exports.onAttendanceCreated = onDocumentCreated({
             if (totalCount === 1) rankLabel = ' [신규]';
             else if (totalCount >= 2 && totalCount <= 3) rankLabel = ` [${totalCount}회차]`;
 
+            // [FEATURE] 지점명 조회 — attendance의 branchId로 studio_config.BRANCHES에서 매핑
+            let branchLabel = '';
+            const branchId = attendance.branchId;
+            if (branchId) {
+                try {
+                    const studioDoc = await admin.firestore().collection('studios').doc(currentStudioId).get();
+                    if (studioDoc.exists) {
+                        const branches = studioDoc.data().BRANCHES || [];
+                        const branch = branches.find(b => b.id === branchId);
+                        if (branch && branches.length > 1) {
+                            branchLabel = `[${branch.name}] `;
+                        }
+                    }
+                } catch (branchErr) {
+                    console.warn('[Attendance] Branch name lookup failed:', branchErr.message);
+                }
+            }
+
             const studioName = await getStudioName(currentStudioId);
             const logoUrl = await getStudioLogoUrl(currentStudioId);
             let body = `${memberName}님이 출석하셨습니다.`;
@@ -93,7 +111,7 @@ exports.onAttendanceCreated = onDocumentCreated({
                                 token,
                                 // [ROOT FIX] data-only 메시지로 통일 → SW가 일관되게 처리
                                 data: { 
-                                    title: `🧘‍♀️ ${memberName}${rankLabel}님 출석`, 
+                                    title: `🧘‍♀️ ${branchLabel}${memberName}${rankLabel}님 출석`, 
                                     body: `${studioName} | ${body}`,
                                     icon: logoUrl || '',
                                     tag: `att-inst-${attendanceId}`,
@@ -133,7 +151,7 @@ exports.onAttendanceCreated = onDocumentCreated({
                             token,
                             // [ROOT FIX] data-only + 관리자 전용 tag
                             data: { 
-                                title: `🧘‍♀️ ${memberName}${rankLabel}님 출석`, 
+                                title: `🧘‍♀️ ${branchLabel}${memberName}${rankLabel}님 출석`, 
                                 body: `${studioName} | ${body}`,
                                 icon: logoUrl || '',
                                 tag: `att-admin-${attendanceId}`,

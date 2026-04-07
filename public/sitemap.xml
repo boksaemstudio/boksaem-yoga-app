@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- Korean (default) -->
+  <url>
+    <loc>https://passflowai.web.app/home.html</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://passflowai.web.app/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://passflowai.web.app/ja/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en-IN" href="https://passflowai.web.app/in/home.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://passflowai.web.app/en/home.html"/>
+    <lastmod>2026-04-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- English (Global) -->
+  <url>
+    <loc>https://passflowai.web.app/en/home.html</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://passflowai.web.app/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://passflowai.web.app/ja/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en-IN" href="https://passflowai.web.app/in/home.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://passflowai.web.app/en/home.html"/>
+    <lastmod>2026-04-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Japanese -->
+  <url>
+    <loc>https://passflowai.web.app/ja/home.html</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://passflowai.web.app/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://passflowai.web.app/ja/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en-IN" href="https://passflowai.web.app/in/home.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://passflowai.web.app/en/home.html"/>
+    <lastmod>2026-04-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- India (English) -->
+  <url>
+    <loc>https://passflowai.web.app/in/home.html</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://passflowai.web.app/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://passflowai.web.app/ja/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en-IN" href="https://passflowai.web.app/in/home.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://passflowai.web.app/en/home.html"/>
+    <lastmod>2026-04-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Features (Korean) -->
+  <url>
+    <loc>https://passflowai.web.app/features.html</loc>
+    <lastmod>2026-04-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Privacy Policy -->
+  <url>
+    <loc>https://passflowai.web.app/privacy</loc>
+    <lastmod>2026-04-07</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+</urlset>

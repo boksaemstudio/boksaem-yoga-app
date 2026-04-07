@@ -9,7 +9,7 @@
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { onRequest } = require("firebase-functions/v2/https");
 const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
-const { admin, tenantDb, STUDIO_ID, getAI, createPendingApproval, logAIError, getKSTDateString, getStudioName } = require("../helpers/common");
+const { admin, tenantDb, STUDIO_ID, getAI, createPendingApproval, logAIError, getKSTDateString, getStudioName, getAllFCMTokens } = require("../helpers/common");
 const { getStudioUrl } = require('../helpers/urls');
 const chunk = require('lodash/chunk');
 
@@ -105,18 +105,31 @@ exports.sendDailyAdminReportV2 = onSchedule({
         // [ROOT FIX] roles 배열 + role 단일필드 모두 검색 (원장 토큰 role 덮어쓰기 방어)
         const { tokens } = await getAllFCMTokens(null, { role: 'admin', studioId: STUDIO_ID });
         if (tokens.length > 0) {
+            // [ROOT FIX] data-only 패턴으로 통일 — SW가 일관되게 처리
             await admin.messaging().sendEachForMulticast({
                 tokens,
-                notification: { title: "일일 리포트", body: reportBody.substring(0, 100) },
-                data: { fullReport: reportBody }
+                data: { 
+                    title: "📊 일일 리포트", 
+                    body: reportBody.substring(0, 200),
+                    url: '/admin',
+                    fullReport: reportBody
+                },
+                webpush: { headers: { Urgency: 'high' } },
+                android: { priority: 'high' }
             });
 
-            // [PERF] 보안 이상 확인 — tokensSnap 재사용 (이중 조회 제거)
+            // [PERF] 보안 이상 확인
             if (anomalyCount > 0 || ghostCount > 10) {
                 const securityMessage = `[긴급 보안 알림] 크레딧 오류: ${anomalyCount}건, 유령 토큰: ${ghostCount}건 - 확인이 필요합니다.`;
                 await admin.messaging().sendEachForMulticast({
                     tokens,
-                    notification: { title: "보안 알림", body: securityMessage }
+                    data: { 
+                        title: "🚨 보안 알림", 
+                        body: securityMessage,
+                        url: '/admin'
+                    },
+                    webpush: { headers: { Urgency: 'high' } },
+                    android: { priority: 'high' }
                 });
             }
         }

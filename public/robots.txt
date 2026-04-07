@@ -4,4 +4,9 @@ Disallow: /admin/
 Disallow: /admin
 Disallow: /member/
 Disallow: /member
+Disallow: /instructor/
+Disallow: /instructor
+Disallow: /checkin/
+Disallow: /checkin
 
+Sitemap: https://passflowai.web.app/sitemap.xml
