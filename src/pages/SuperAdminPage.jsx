@@ -328,6 +328,7 @@ const SuperAdminPage = () => {
                                         {pendingStudios.map(p => (
                                             <div key={p.id} style={{ background: 'rgba(0,0,0,0.3)', border: '1px dashed rgba(59, 130, 246, 0.4)', borderRadius: '12px', padding: '16px' }}>
                                                 <div style={{ fontWeight: '700', fontSize: '1.1rem', marginBottom: '4px' }}>{p.name} {p.nameEnglish && `(${p.nameEnglish})`}</div>
+                                                {p.language && p.language !== 'ko' && <div style={{ fontSize: '0.75rem', marginBottom: '4px' }}><span style={{ padding: '2px 8px', borderRadius: '10px', background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', fontWeight: '600' }}>{p.language === 'en' ? '🇺🇸 English' : p.language === 'ja' ? '🇯🇵 日本語' : p.language === 'in' ? '🇮🇳 India' : `🌐 ${p.language}`}</span></div>}
                                                 <div style={{ fontSize: '0.85rem', color: '#aaa', marginBottom: '4px' }}>📧 {p.ownerEmail}</div>
                                                 <div style={{ fontSize: '0.85rem', color: '#aaa', marginBottom: p.scheduleUrl ? '8px' : '16px' }}>📦 요금제: {p.plan === 'pro' ? '프로' : p.plan === 'basic' ? '베이직' : '무료체험'}</div>
                                                 {p.scheduleUrls && p.scheduleUrls.length > 0 && (
