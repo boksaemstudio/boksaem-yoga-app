@@ -81,7 +81,7 @@ exports.onAttendanceCreated = onDocumentCreated({
                     if (studioDoc.exists) {
                         const branches = studioDoc.data().BRANCHES || [];
                         const branch = branches.find(b => b.id === branchId);
-                        if (branch && branches.length > 1) {
+                        if (branch) {
                             branchLabel = `[${branch.name}] `;
                         }
                     }
