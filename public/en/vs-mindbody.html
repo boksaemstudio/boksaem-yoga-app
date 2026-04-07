@@ -204,23 +204,44 @@
                 Join hundreds of studios already running on PassFlow AI.
             </p>
             <p style="font-size: 0.9rem; color: #71717a;">No credit card required. No contracts. Cancel anytime.</p>
-            <a href="mailto:motionpt@gmail.com?subject=PassFlow%20AI%20Demo%20Request&body=I'm%20interested%20in%20switching%20from%20Mindbody%20to%20PassFlow%20AI.%20Please%20send%20me%20a%20demo." class="cta-btn">
+            <a href="mailto:motionpt@gmail.com?subject=PassFlow%20AI%20Demo%20Request&body=I'm%20interested%20in%20switching%20from%20Mindbody%20to%20PassFlow%20AI.%20Please%20send%20me%20a%20demo." class="cta-btn" id="cta-demo-mindbody" onclick="gtag('event','generate_lead',{event_category:'conversion',event_label:'vs-mindbody-demo',source:'comparison',competitor:'mindbody'})">
                 🚀 Get Your Free Demo
             </a>
             <br>
-            <a href="/en/home.html" style="display: inline-block; margin-top: 16px; color: #d4af37; text-decoration: none; font-weight: 600;">
+            <a href="/en/home.html" style="display: inline-block; margin-top: 16px; color: #d4af37; text-decoration: none; font-weight: 600;" id="cta-features-mindbody" onclick="gtag('event','click',{event_category:'navigation',event_label:'vs-mindbody-to-features'})">
                 Or explore all features →
             </a>
         </div>
 
         <!-- Cross-link -->
         <div style="text-align: center; margin-top: 40px; padding: 20px; border-radius: 12px; background: rgba(255,255,255,0.02);">
-            <p>Also compare: <a href="/en/vs-vagaro.html" style="color: #d4af37; text-decoration: none; font-weight: 600;">PassFlow AI vs Vagaro →</a></p>
+            <p>Also compare: <a href="/en/vs-vagaro.html" style="color: #d4af37; text-decoration: none; font-weight: 600;" onclick="gtag('event','click',{event_category:'navigation',event_label:'mindbody-to-vagaro'})">PassFlow AI vs Vagaro →</a></p>
         </div>
 
         <div style="text-align: center; margin-top: 40px; font-size: 0.75rem; color: #52525b;">
             <p>Pricing data based on publicly available information as of April 2026. Mindbody is a trademark of Mindbody, Inc. PassFlow AI is not affiliated with Mindbody.</p>
         </div>
     </div>
+
+    <!-- GA4 Conversion Funnel Tracking -->
+    <script>
+        // Track page scroll depth
+        let maxScroll = 0;
+        window.addEventListener('scroll', function() {
+            const scrollPct = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+            if (scrollPct > maxScroll) {
+                maxScroll = scrollPct;
+                if ([25, 50, 75, 100].includes(scrollPct)) {
+                    gtag('event', 'scroll_depth', { event_category: 'engagement', event_label: 'vs-mindbody', value: scrollPct });
+                }
+            }
+        });
+        // Track time on page
+        let startTime = Date.now();
+        window.addEventListener('beforeunload', function() {
+            const seconds = Math.round((Date.now() - startTime) / 1000);
+            gtag('event', 'time_on_page', { event_category: 'engagement', event_label: 'vs-mindbody', value: seconds });
+        });
+    </script>
 </body>
 </html>

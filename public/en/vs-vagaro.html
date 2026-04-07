@@ -192,23 +192,42 @@
                 $69/year. AI included. No add-ons. No surprises.
             </p>
             <p style="font-size: 0.9rem; color: #71717a;">No credit card required. No contracts. Cancel anytime.</p>
-            <a href="mailto:motionpt@gmail.com?subject=PassFlow%20AI%20Demo%20Request&body=I'm%20interested%20in%20switching%20from%20Vagaro%20to%20PassFlow%20AI.%20Please%20send%20me%20a%20demo." class="cta-btn">
+            <a href="mailto:motionpt@gmail.com?subject=PassFlow%20AI%20Demo%20Request&body=I'm%20interested%20in%20switching%20from%20Vagaro%20to%20PassFlow%20AI.%20Please%20send%20me%20a%20demo." class="cta-btn" id="cta-demo-vagaro" onclick="gtag('event','generate_lead',{event_category:'conversion',event_label:'vs-vagaro-demo',source:'comparison',competitor:'vagaro'})">
                 🚀 Get Your Free Demo
             </a>
             <br>
-            <a href="/en/home.html" style="display: inline-block; margin-top: 16px; color: #d4af37; text-decoration: none; font-weight: 600;">
+            <a href="/en/home.html" style="display: inline-block; margin-top: 16px; color: #d4af37; text-decoration: none; font-weight: 600;" id="cta-features-vagaro" onclick="gtag('event','click',{event_category:'navigation',event_label:'vs-vagaro-to-features'})">
                 Or explore all features →
             </a>
         </div>
 
         <!-- Cross-link -->
         <div class="also-compare">
-            <p>Also compare: <a href="/en/vs-mindbody.html">PassFlow AI vs Mindbody →</a></p>
+            <p>Also compare: <a href="/en/vs-mindbody.html" onclick="gtag('event','click',{event_category:'navigation',event_label:'vagaro-to-mindbody'})">PassFlow AI vs Mindbody →</a></p>
         </div>
 
         <div style="text-align: center; margin-top: 40px; font-size: 0.75rem; color: #52525b;">
             <p>Pricing data based on publicly available information as of April 2026. Vagaro is a trademark of Vagaro, Inc. PassFlow AI is not affiliated with Vagaro.</p>
         </div>
     </div>
+
+    <!-- GA4 Conversion Funnel Tracking -->
+    <script>
+        let maxScroll = 0;
+        window.addEventListener('scroll', function() {
+            const scrollPct = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+            if (scrollPct > maxScroll) {
+                maxScroll = scrollPct;
+                if ([25, 50, 75, 100].includes(scrollPct)) {
+                    gtag('event', 'scroll_depth', { event_category: 'engagement', event_label: 'vs-vagaro', value: scrollPct });
+                }
+            }
+        });
+        let startTime = Date.now();
+        window.addEventListener('beforeunload', function() {
+            const seconds = Math.round((Date.now() - startTime) / 1000);
+            gtag('event', 'time_on_page', { event_category: 'engagement', event_label: 'vs-vagaro', value: seconds });
+        });
+    </script>
 </body>
 </html>
