@@ -8,9 +8,13 @@ const LanguageSelector = ({ variant = 'default' }) => {
     const languages = [
         { code: 'ko', label: '한국어' },
         { code: 'en', label: 'English' },
+        { code: 'ja', label: '日本語' },
         { code: 'ru', label: 'Русский' },
         { code: 'zh', label: '中文' },
-        { code: 'ja', label: '日本語' }
+        { code: 'es', label: 'Español' },
+        { code: 'pt', label: 'Português' },
+        { code: 'fr', label: 'Français' },
+        { code: 'de', label: 'Deutsch' }
     ];
 
     const handleChange = (e) => {

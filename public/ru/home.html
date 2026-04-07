@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PassFlow AI | Умное управление фитнес-студией — 5 900 ₽/год, а не в месяц</title>
+    <meta name="description" content="Самое доступное ПО для управления фитнес-залом, йога- и пилатес-студией. AI-распознавание лиц, бронирование, CRM — всего за 5 900 ₽ в ГОД. Без скрытых платежей.">
+    <meta name="keywords" content="программа для фитнес клуба, CRM для йога студии, учёт клиентов фитнес, распознавание лиц вход, турникет без карт, управление тренажерным залом, замена iiko sport, альтернатива 1С фитнес, PassFlow AI">
+    <meta property="og:title" content="PassFlow AI — 5 900 ₽/год. Управление студией с ИИ">
+    <meta property="og:description" content="AI-распознавание лиц, учёт абонементов, аналитика — за 5 900 ₽/год. Дешевле чашки кофе в месяц.">
+    <meta property="og:image" content="/assets/passflow_square_logo.png">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://passflowai.web.app/ru/home.html">
+
+    <link rel="alternate" hreflang="ru" href="https://passflowai.web.app/ru/home.html" />
+    <link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html" />
+    <link rel="alternate" hreflang="ko" href="https://passflowai.web.app/home.html" />
+    <link rel="alternate" hreflang="ja" href="https://passflowai.web.app/ja/home.html" />
+    <link rel="alternate" hreflang="zh" href="https://passflowai.web.app/zh/home.html" />
+    <link rel="alternate" hreflang="x-default" href="https://passflowai.web.app/en/home.html" />
+    <link rel="canonical" href="https://passflowai.web.app/ru/home.html" />
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "PassFlow AI",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web, iOS, Android",
+        "description": "AI-система управления фитнес-студией: распознавание лиц, абонементы, CRM, аналитика — 5 900 ₽/год.",
+        "url": "https://passflowai.web.app/ru/home.html",
+        "offers": {
+            "@type": "Offer",
+            "price": "5900",
+            "priceCurrency": "RUB",
+            "priceValidUntil": "2027-12-31",
+            "availability": "https://schema.org/InStock"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "ratingCount": "47"
+        },
+        "featureList": "AI-распознавание лиц, CRM участников, бронирование классов, аналитика выручки, многофилиальность, автобиллинг"
+    }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="image" type="image/webp" href="/assets/hero_bg_ai.webp">
+
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3D6011MNHF"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-3D6011MNHF');
+    </script>
+    <link rel="stylesheet" href="/style.css?v=6">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', 'Outfit', sans-serif; }
+        .hero-glow { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+        .year-emphasis { display: inline-block; background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.3); border-radius: 6px; padding: 2px 10px; font-weight: 800; letter-spacing: 0.5px; }
+        .lang-switcher { position: relative; display: inline-flex; align-items: center; cursor: pointer; }
+        .lang-switcher-btn { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .lang-switcher-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(212,175,55,0.3); }
+        .lang-dropdown { position: absolute; top: calc(100% + 8px); right: 0; min-width: 160px; background: rgba(20,20,25,0.98); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 6px; display: none; z-index: 1000; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+        .lang-dropdown.show { display: block; }
+        .lang-dropdown a { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; text-decoration: none; color: rgba(255,255,255,0.75); font-size: 0.9rem; transition: all 0.15s; }
+        .lang-dropdown a:hover { background: rgba(212,175,55,0.1); color: #d4af37; }
+        .lang-dropdown a.active { color: #d4af37; font-weight: 600; }
+        .feature-card-ru { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 40px; text-align: center; }
+        .sympathy-box { background: linear-gradient(145deg, rgba(212,175,55,0.1), rgba(0,0,0,0.8)); border-left: 4px solid #d4af37; border-radius: 0 16px 16px 0; padding: 30px; margin: 40px 0; }
+        .single-plan-card { position: relative; z-index: 1; max-width: 520px; margin: 40px auto 0; padding: clamp(30px, 6vw, 50px) clamp(20px, 6vw, 40px); background: rgba(15,15,20,0.75); backdrop-filter: blur(12px); border: 1px solid rgba(212,175,55,0.3); border-radius: 24px; box-shadow: 0 30px 60px rgba(0,0,0,0.6); transition: transform 0.4s; }
+        .single-plan-card:hover { border-color: rgba(212,175,55,0.6); transform: translateY(-4px); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar glass">
+        <a href="/ru/home.html" class="logo" style="text-decoration:none; display: flex; align-items: center; gap: 8px;">
+            <img src="/assets/passflow_square_logo.png" alt="PassFlow AI" style="height: 36px; border-radius: 6px;" />
+            <div style="width: 140px; height: 38px; display: flex; align-items: center; overflow: hidden; position: relative;">
+                <img src="/assets/passflow_ai_logo_transparent.webp" alt="PassFlow AI" style="position: absolute; height: 110px; left: -6px; max-width: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));" />
+            </div>
+        </a>
+        <div class="nav-links" id="navLinks">
+            <a href="#live-demo" style="color:#d4af37; font-weight:600;">Демо</a>
+            <a href="#features">Возможности</a>
+            <a href="#pricing">Цены</a>
+            <a href="#contact">Контакты</a>
+            <div class="lang-switcher" style="margin-left:16px;">
+                <button class="lang-switcher-btn" onclick="document.querySelector('.lang-dropdown').classList.toggle('show')">
+                    🌐 RU ▾
+                </button>
+                <div class="lang-dropdown">
+                    <a href="/home.html">🇰🇷 한국어</a>
+                    <a href="/en/home.html">🇺🇸 English</a>
+                    <a href="/ja/home.html">🇯🇵 日本語</a>
+                    <a href="/zh/home.html">🇨🇳 中文</a>
+                    <a href="/ru/home.html" class="active">🇷🇺 Русский</a>
+                    <a href="/es/home.html">🇪🇸 Español</a>
+                    <a href="/pt/home.html">🇧🇷 Português</a>
+                    <a href="/fr/home.html">🇫🇷 Français</a>
+                    <a href="/de/home.html">🇩🇪 Deutsch</a>
+                    <a href="/in/home.html">🇮🇳 India</a>
+                    <a href="/au/home.html">🇦🇺 Australia</a>
+                    <a href="/ca/home.html">🇨🇦 Canada</a>
+                </div>
+            </div>
+        </div>
+        <button class="nav-hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+    </nav>
+
+    <header class="hero" id="home">
+        <div class="hero-bg"></div>
+        <div class="hero-glow"></div>
+        <div class="hero-content" style="position: relative; z-index: 2; padding-top: 40px;">
+            <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border-radius:30px; background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.25); margin-bottom:24px; font-size:0.85rem; font-weight: 600; color:#d4af37;">
+                AI-управление для фитнес-залов, йога- и пилатес-студий
+            </div>
+            <h1 style="color:#fff; font-size:clamp(2.2rem, 5vw, 3.8rem); font-weight:800; line-height: 1.25; margin-bottom:20px; letter-spacing: -1px;">
+                Вы тренируете. <span class="gradient-text">Мы берём на себя всё остальное.</span>
+            </h1>
+            <p style="color:rgba(255,255,255,0.7); font-size:clamp(1.05rem, 2vw, 1.25rem); font-weight: 400; line-height: 1.6; max-width: 680px; margin: 0 auto 30px;">
+                Хватит переплачивать за громоздкое ПО.<br>
+                AI-вход, бронирование, управление клиентами — всё в одном. <strong style="color:#d4af37;">5 900 ₽ в год, а не в месяц.</strong>
+            </p>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                <div style="display: inline-flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; padding: 12px 24px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 50px;">
+                    <span style="color:#fff; font-size:0.95rem; font-weight: 600;">✔ AI-распознавание лиц</span>
+                    <span style="color:rgba(255,255,255,0.2); margin: 0 6px;">|</span>
+                    <span style="color:#fff; font-size:0.95rem; font-weight: 600;">✔ Авто-списание занятий</span>
+                    <span style="color:rgba(255,255,255,0.2); margin: 0 6px;">|</span>
+                    <span style="color:#d4af37; font-size:0.95rem; font-weight: 700;">✔ 5 900 ₽/<span class="year-emphasis">ГОД</span></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="features" id="features" style="padding: clamp(30px, 5vw, 60px) 0;">
+        <div class="container">
+            <h2 style="text-align:center; margin-bottom: 20px; font-size: 2.2rem; color: #fff;">Три главных функции, <span style="color:#d4af37;">полностью автоматизированы</span></h2>
+            <p style="text-align:center; color:rgba(255,255,255,0.6); margin-bottom: 60px; font-size: 1.1rem; line-height: 1.7;">
+                Забудьте о тетрадках, Excel-таблицах и дорогих программах.<br>
+                <span style="color:rgba(212,175,55,0.85);">AI-помощник, который становится умнее с каждым днём</span> — маркетинг, учёт и аналитика включены.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+                <div class="feature-card-ru">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">👋</div>
+                    <h3 style="font-size: 1.4rem; color: #fff; margin-bottom: 12px; font-weight: 700;">Без администратора</h3>
+                    <p style="font-size: 1rem; color: rgba(255,255,255,0.6); line-height: 1.6;">Просто поставьте планшет на входе.<br>Клиенты входят по лицу или PIN — персонал не нужен.</p>
+                </div>
+                <div class="feature-card-ru">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">🎫</div>
+                    <h3 style="font-size: 1.4rem; color: #fff; margin-bottom: 12px; font-weight: 700;">Авто-списание абонемента</h3>
+                    <p style="font-size: 1rem; color: rgba(255,255,255,0.6); line-height: 1.6;">Занятия списываются автоматически при входе. Сроки отслеживаются в реальном времени.<br>Никакого ручного подсчёта.</p>
+                </div>
+                <div class="feature-card-ru">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">📉</div>
+                    <h3 style="font-size: 1.4rem; color: #fff; margin-bottom: 12px; font-weight: 700;">Отчёты одним нажатием</h3>
+                    <p style="font-size: 1rem; color: rgba(255,255,255,0.6); line-height: 1.6;">Кто пришёл, сколько заработано сегодня, кто давно не был.<br>Чёткая статистика прямо в телефон.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" style="padding: clamp(40px, 6vw, 80px) 0;">
+        <div class="container">
+            <div class="sympathy-box">
+                <h3>Создано владельцами студий для владельцев студий</h3>
+                <p>«Как вести круглосуточный зал без дорогого оборудования? Как отслеживать выручку нескольких точек? Как возвращать клиентов, которые перестали ходить?»<br><br>
+                Мы сами прошли через все эти проблемы. Поэтому создали <strong>одну простую систему для учёта посещений, расписания, платежей и AI-удержания клиентов</strong> — по цене, которая не съест вашу маржу.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="live-demo" style="padding: clamp(40px, 6vw, 70px) 0;">
+        <div class="container">
+            <h2 style="text-align:center; margin-bottom: 15px;"><span class="gradient-text">Посмотрите в действии — прямо сейчас</span></h2>
+            <p class="section-desc" style="margin-bottom: clamp(30px, 5vw, 40px);">Попробуйте каждое приложение. Регистрация не нужна.</p>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; max-width: 800px; margin: 0 auto;">
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 30px 24px; text-align: center;">
+                    <img src="/assets/demo_admin.webp" alt="Панель администратора" style="width:100%; height:200px; object-fit:cover; border-radius:16px; margin-bottom:20px;">
+                    <h3 style="color:#fff; font-size:1.2rem; margin-bottom:10px;">Панель администратора</h3>
+                    <a href="https://passflowai.web.app/admin" target="_blank" style="display:inline-block; padding:14px 24px; background:linear-gradient(135deg,#d4af37,#f5d67b); color:#000; font-weight:700; border-radius:30px; text-decoration:none; width:100%; box-sizing:border-box;">Открыть</a>
+                </div>
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 30px 24px; text-align: center;">
+                    <img src="/assets/demo_checkin.webp" alt="Киоск входа" style="width:100%; height:200px; object-fit:cover; border-radius:16px; margin-bottom:20px;">
+                    <h3 style="color:#fff; font-size:1.2rem; margin-bottom:10px;">Киоск входа</h3>
+                    <a href="https://passflowai.web.app/checkin" target="_blank" style="display:inline-block; padding:14px 24px; background:linear-gradient(135deg,#d4af37,#f5d67b); color:#000; font-weight:700; border-radius:30px; text-decoration:none; width:100%; box-sizing:border-box;">Открыть</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="pricing" style="padding: 40px 0 30px;">
+        <div class="container" style="position: relative; z-index: 1;">
+            <h2 style="text-align:center; margin-bottom: 10px; color: #fff; font-size: 2rem;">Хватит платить <span style="color:#d4af37;">каждый месяц</span></h2>
+            <p style="text-align:center; color:rgba(255,255,255,0.5); margin-bottom: 10px; font-size: 1rem;">Конкуренты берут 5 000–50 000 ₽ <em>в месяц</em>. Мы — <em>в год</em>.</p>
+            <div class="single-plan-card">
+                <div style="font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Полный пакет</div>
+                <h3 style="font-size: clamp(2.5rem, 6vw, 3.2rem); margin-bottom: 4px; color: #d4af37; font-weight: 900;">
+                    5 900 ₽<span style="font-size: 0.4em; font-weight: 500; color: rgba(255,255,255,0.5);">/</span><span class="year-emphasis" style="font-size: 0.5em;">ГОД</span>
+                </h3>
+                <p style="font-size: 1.1rem; color: rgba(255,255,255,0.6); margin-bottom: 12px;">Это <strong style="color:#fff;">492 ₽/месяц</strong> — дешевле чашки капучино.</p>
+                <p style="font-size: 0.85rem; color: rgba(212,175,55,0.7); margin-bottom: 30px; font-weight: 500;">⚡ Без скрытых платежей. Без абонплаты. Без комиссий.</p>
+                <p style="font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-bottom: 16px;">🔒 Данные хранятся на серверах Google Cloud в соответствии с 152-ФЗ «О персональных данных». Лицевые данные обрабатываются на устройстве — на сервер не отправляются.</p>
+
+                <a href="mailto:motionpt@gmail.com?subject=PassFlow%20AI%20Запрос%20из%20России&body=Здравствуйте!%20Меня%20интересует%20PassFlow%20AI%20для%20моей%20студии.%0A%0AНазвание:%20%0AГород:%20" class="btn-primary" id="cta-email-ru" onclick="gtag('event','generate_lead',{event_category:'conversion',event_label:'ru-landing-email',source:'landing',page:'ru'})" style="display:flex; justify-content:center; align-items:center; gap:8px; width:100%; box-sizing:border-box; text-align:center; padding: 18px; font-size: 1.1rem; text-decoration: none; font-weight: 800; background: linear-gradient(135deg,#d4af37,#f5d67b); color: #000; border-radius: 12px; border: none;">
+                    📧 Написать нам — бесплатная демонстрация
+                </a>
+                <a href="/onboarding?lang=ru" class="btn-secondary" id="cta-onboarding-ru" onclick="gtag('event','generate_lead',{event_category:'conversion',event_label:'ru-landing-onboarding',source:'landing',page:'ru'})" style="display:block; width:100%; box-sizing:border-box; text-align:center; padding: 18px; font-size: 1rem; text-decoration: none; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; font-weight: 600; border-radius: 12px; margin-top: 12px;">
+                    🚀 Подать заявку — запуск за 24 часа
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer" id="contact" style="padding: 20px 0 25px; text-align: center;">
+        <div class="container">
+            <div class="footer-bottom" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                <h4 style="font-size:0.85rem; color:#d4af37; margin-bottom:8px;">Новый стандарт управления фитнес-студиями</h4>
+                <p style="font-size:0.85rem; color:rgba(255,255,255,0.6); margin-bottom:12px; line-height:1.5;">PassFlow AI — AI-платформа для автоматизации входа, учёта клиентов и бизнес-аналитики в фитнес-клубах, йога- и пилатес-студиях по всему миру.</p>
+                <p>&copy; 2026 PassFlow AI. Все права защищены.</p>
+                <p style="margin-top:8px;"><a href="https://passflowai.web.app/privacy" target="_blank" rel="noopener noreferrer" style="color:rgba(255,255,255,0.25); text-decoration:none; font-size:0.75rem;">Политика конфиденциальности</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.lang-switcher')) {
+                document.querySelectorAll('.lang-dropdown').forEach(d => d.classList.remove('show'));
+            }
+        });
+    </script>
+    <script src="/script.js"></script>
+</body>
+</html>

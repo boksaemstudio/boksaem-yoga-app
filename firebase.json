@@ -146,6 +146,38 @@
           "destination": "/en/vs-vagaro.html"
         },
         {
+          "source": "/ru/home.html",
+          "destination": "/ru/home.html"
+        },
+        {
+          "source": "/zh/home.html",
+          "destination": "/zh/home.html"
+        },
+        {
+          "source": "/es/home.html",
+          "destination": "/es/home.html"
+        },
+        {
+          "source": "/pt/home.html",
+          "destination": "/pt/home.html"
+        },
+        {
+          "source": "/fr/home.html",
+          "destination": "/fr/home.html"
+        },
+        {
+          "source": "/de/home.html",
+          "destination": "/de/home.html"
+        },
+        {
+          "source": "/au/home.html",
+          "destination": "/au/home.html"
+        },
+        {
+          "source": "/ca/home.html",
+          "destination": "/ca/home.html"
+        },
+        {
           "source": "**",
           "destination": "/index.html"
         }

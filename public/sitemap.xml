@@ -9,8 +9,16 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html"/>
     <xhtml:link rel="alternate" hreflang="ja" href="https://passflowai.web.app/ja/home.html"/>
     <xhtml:link rel="alternate" hreflang="en-IN" href="https://passflowai.web.app/in/home.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://passflowai.web.app/ru/home.html"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://passflowai.web.app/zh/home.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://passflowai.web.app/es/home.html"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://passflowai.web.app/pt/home.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://passflowai.web.app/fr/home.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://passflowai.web.app/de/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://passflowai.web.app/au/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://passflowai.web.app/ca/home.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://passflowai.web.app/en/home.html"/>
-    <lastmod>2026-04-07</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -21,9 +29,16 @@
     <xhtml:link rel="alternate" hreflang="ko" href="https://passflowai.web.app/home.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html"/>
     <xhtml:link rel="alternate" hreflang="ja" href="https://passflowai.web.app/ja/home.html"/>
-    <xhtml:link rel="alternate" hreflang="en-IN" href="https://passflowai.web.app/in/home.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://passflowai.web.app/ru/home.html"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://passflowai.web.app/zh/home.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://passflowai.web.app/es/home.html"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://passflowai.web.app/pt/home.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://passflowai.web.app/fr/home.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://passflowai.web.app/de/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://passflowai.web.app/au/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://passflowai.web.app/ca/home.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://passflowai.web.app/en/home.html"/>
-    <lastmod>2026-04-07</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -31,54 +46,120 @@
   <!-- Japanese -->
   <url>
     <loc>https://passflowai.web.app/ja/home.html</loc>
-    <xhtml:link rel="alternate" hreflang="ko" href="https://passflowai.web.app/home.html"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html"/>
     <xhtml:link rel="alternate" hreflang="ja" href="https://passflowai.web.app/ja/home.html"/>
-    <xhtml:link rel="alternate" hreflang="en-IN" href="https://passflowai.web.app/in/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://passflowai.web.app/en/home.html"/>
-    <lastmod>2026-04-07</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
-  <!-- India (English) -->
+  <!-- India -->
   <url>
     <loc>https://passflowai.web.app/in/home.html</loc>
-    <xhtml:link rel="alternate" hreflang="ko" href="https://passflowai.web.app/home.html"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html"/>
-    <xhtml:link rel="alternate" hreflang="ja" href="https://passflowai.web.app/ja/home.html"/>
     <xhtml:link rel="alternate" hreflang="en-IN" href="https://passflowai.web.app/in/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://passflowai.web.app/en/home.html"/>
-    <lastmod>2026-04-07</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
-  <!-- Features (Korean) -->
+  <!-- Russia -->
   <url>
-    <loc>https://passflowai.web.app/features.html</loc>
-    <lastmod>2026-04-07</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://passflowai.web.app/ru/home.html</loc>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://passflowai.web.app/ru/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://passflowai.web.app/en/home.html"/>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
 
-  <!-- Privacy Policy -->
+  <!-- China -->
   <url>
-    <loc>https://passflowai.web.app/privacy</loc>
-    <lastmod>2026-04-07</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <loc>https://passflowai.web.app/zh/home.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://passflowai.web.app/zh/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://passflowai.web.app/en/home.html"/>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
 
-  <!-- Comparison: PassFlow AI vs Mindbody -->
+  <!-- Spain / Latin America -->
+  <url>
+    <loc>https://passflowai.web.app/es/home.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://passflowai.web.app/es/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://passflowai.web.app/en/home.html"/>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Brazil / Portugal -->
+  <url>
+    <loc>https://passflowai.web.app/pt/home.html</loc>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://passflowai.web.app/pt/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://passflowai.web.app/en/home.html"/>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- France -->
+  <url>
+    <loc>https://passflowai.web.app/fr/home.html</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://passflowai.web.app/fr/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://passflowai.web.app/en/home.html"/>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Germany -->
+  <url>
+    <loc>https://passflowai.web.app/de/home.html</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://passflowai.web.app/de/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://passflowai.web.app/en/home.html"/>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Australia -->
+  <url>
+    <loc>https://passflowai.web.app/au/home.html</loc>
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://passflowai.web.app/au/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://passflowai.web.app/en/home.html"/>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Canada -->
+  <url>
+    <loc>https://passflowai.web.app/ca/home.html</loc>
+    <xhtml:link rel="alternate" hreflang="en-CA" href="https://passflowai.web.app/ca/home.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://passflowai.web.app/en/home.html"/>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Comparison Pages -->
   <url>
     <loc>https://passflowai.web.app/en/vs-mindbody.html</loc>
     <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
-
-  <!-- Comparison: PassFlow AI vs Vagaro -->
   <url>
     <loc>https://passflowai.web.app/en/vs-vagaro.html</loc>
     <lastmod>2026-04-08</lastmod>
@@ -86,6 +167,18 @@
     <priority>0.9</priority>
   </url>
 
+  <!-- Features & Privacy -->
+  <url>
+    <loc>https://passflowai.web.app/features.html</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://passflowai.web.app/privacy</loc>
+    <lastmod>2026-04-07</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
 </urlset>
-
-
