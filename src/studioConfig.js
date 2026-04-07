@@ -11,7 +11,7 @@ export const STUDIO_CONFIG = {
         LOGO_TEXT: "YOGA",
         SLOGAN: "나를 만나는 고요한 시간",
         DESCRIPTION: "요가와 함께하는 건강한 일상",
-        APP_VERSION: "2026.04.08 00:32",
+        APP_VERSION: "2026.04.08 00:53",
         FAVICON: "/favicon.ico",
     },
 
