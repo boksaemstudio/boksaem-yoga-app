@@ -240,6 +240,8 @@ const RegistrationTab = ({ pricingConfig, member, onAddSalesRecord, onUpdateMemb
                 updateData.duration = durationMonths; // [FIX] TBD 해소 시 attendance.js가 이 값으로 endDate 계산
                 updateData.lastPaymentDate = new Date().toISOString();
                 updateData.price = price;
+                updateData.attendanceCount = 0; // [FIX] 재등록 시 출석 횟수 리셋 (이전 등록 횟수 잔류 방지)
+                updateData.streak = 0;          // [FIX] 연속 출석도 리셋
                 if (notesText !== (member.notes || '')) updateData.notes = notesText;
             }
 
