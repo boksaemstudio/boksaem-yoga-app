@@ -114,6 +114,38 @@
       ],
       "rewrites": [
         {
+          "source": "/sitemap.xml",
+          "destination": "/sitemap.xml"
+        },
+        {
+          "source": "/robots.txt",
+          "destination": "/robots.txt"
+        },
+        {
+          "source": "/home.html",
+          "destination": "/home.html"
+        },
+        {
+          "source": "/en/home.html",
+          "destination": "/en/home.html"
+        },
+        {
+          "source": "/ja/home.html",
+          "destination": "/ja/home.html"
+        },
+        {
+          "source": "/in/home.html",
+          "destination": "/in/home.html"
+        },
+        {
+          "source": "/en/vs-mindbody.html",
+          "destination": "/en/vs-mindbody.html"
+        },
+        {
+          "source": "/en/vs-vagaro.html",
+          "destination": "/en/vs-vagaro.html"
+        },
+        {
           "source": "**",
           "destination": "/index.html"
         }
