@@ -146,6 +146,14 @@
           "destination": "/en/vs-vagaro.html"
         },
         {
+          "source": "/en/vs-glofox.html",
+          "destination": "/en/vs-glofox.html"
+        },
+        {
+          "source": "/en/vs-zenplanner.html",
+          "destination": "/en/vs-zenplanner.html"
+        },
+        {
           "source": "/ru/home.html",
           "destination": "/ru/home.html"
         },
