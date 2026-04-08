@@ -75,15 +75,20 @@ export const studioRegistryService = {
                 return { success: false, message: `이미 등록된 스튜디오 ID입니다: ${studioId}` };
             }
 
-            // 2. 레지스트리에 등록
+            // 2. 레지스트리에 등록 (2개월 무료 체험 기본)
+            const now = new Date();
+            const trialEnd = new Date(now);
+            trialEnd.setDate(trialEnd.getDate() + 60);
             const registryData: any = {
                 name,
                 nameEnglish: nameEnglish || name,
                 domain: domain || '',
                 ownerEmail,
-                status: 'active',
-                plan: plan || 'free',
-                createdAt: new Date().toISOString(),
+                status: 'trial',
+                plan: plan || 'basic',
+                createdAt: now.toISOString(),
+                trialStartDate: now.toISOString(),
+                trialEndDate: trialEnd.toISOString(),
                 memberCount: 0,
             };
             if (logoUrl) registryData.logoUrl = logoUrl;
@@ -156,19 +161,65 @@ export const studioRegistryService = {
         }
     },
 
-    /** 신규 온보딩 신청 (원장님용) */
+    /** 신규 온보딩 신청 → 자동 승인 + 관리자 푸시 알림 */
     async requestOnboarding(data: any) {
         try {
+            // 1. pending_studios에 기록 (이력 보존)
             const newDocRef = doc(collection(db, 'platform/registry/pending_studios'));
             await setDoc(newDocRef, {
                 ...data,
                 status: 'pending',
                 createdAt: new Date().toISOString()
             });
-            return { success: true, id: newDocRef.id };
+
+            // 2. studioId 자동 생성 (영문 이름 기반, 중복 방지)
+            const baseName = (data.nameEnglish || data.name || 'studio')
+                .toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').substring(0, 20);
+            const studioId = `${baseName}-${Date.now().toString(36)}`;
+
+            // 3. 즉시 스튜디오 등록 (2개월 무료 체험)
+            const regResult = await this.registerStudio({
+                studioId,
+                name: data.name,
+                nameEnglish: data.nameEnglish,
+                ownerEmail: data.ownerEmail,
+                plan: data.plan || 'basic',
+                logoUrl: data.logoUrl,
+                scheduleUrls: data.scheduleUrls || []
+            });
+
+            if (!regResult.success) {
+                return { success: false, message: regResult.message };
+            }
+
+            // 4. pending 상태를 approved로 업데이트
+            await setDoc(newDocRef, { 
+                status: 'approved', 
+                approvedAt: new Date().toISOString(),
+                assignedStudioId: studioId 
+            }, { merge: true });
+
+            // 5. 복샘요가 관리자에게 푸시 알림 (notices 트리거를 활용)
+            try {
+                const noticeRef = doc(collection(db, 'studios/boksaem-yoga/notices'));
+                await setDoc(noticeRef, {
+                    title: `🆕 새 스튜디오 가입: ${data.name}`,
+                    content: `${data.name} (${data.ownerEmail})이 PassFlow AI에 가입했습니다. 스튜디오ID: ${studioId}`,
+                    date: new Date().toISOString().split('T')[0],
+                    timestamp: new Date().toISOString(),
+                    images: [],
+                    sendPush: true,
+                    isSystemNotice: true
+                });
+                console.log('[Registry] Admin push notification sent via notices trigger');
+            } catch (pushErr) {
+                console.warn('[Registry] Failed to send admin push:', pushErr);
+            }
+
+            return { success: true, id: newDocRef.id, studioId };
         } catch (e) {
             console.error('[Registry] Failed to request onboarding:', e);
-            return { success: false, message: e.message };
+            return { success: false, message: (e as Error).message };
         }
     },
 

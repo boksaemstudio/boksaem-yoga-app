@@ -38,6 +38,7 @@ import { usePWA }
 from '../hooks/usePWA';
 import ScheduleTab from '../components/admin/tabs/ScheduleTab';
 import { getContrastText } from '../utils/colors';
+import TrialPaywall from '../components/common/TrialPaywall';
 
 // [REFACTOR] State Management Custom Hooks
 import { useAdminModals } from '../hooks/useAdminModals';
@@ -567,6 +568,7 @@ const AdminDashboard = () => {
     }
 
     return (
+        <TrialPaywall>
         <div className="admin-container">
             <AdminHeader
                 config={config}
@@ -846,6 +848,7 @@ const AdminDashboard = () => {
             }
             <div style={{ height: '300px', width: '100%' }}></div>
         </div >
+        </TrialPaywall>
     );
 };
 

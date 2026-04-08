@@ -186,6 +186,10 @@
           "destination": "/ca/home.html"
         },
         {
+          "source": "/yandex_*.html",
+          "destination": "/yandex_1565c933364dacbc.html"
+        },
+        {
           "source": "**",
           "destination": "/index.html"
         }

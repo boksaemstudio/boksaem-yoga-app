@@ -409,6 +409,22 @@ const SuperAdminPage = () => {
                                                     <button onClick={() => handleDelete(studio)} title={`[가입 해지] 이 요가원을 플랫폼 목록에서 아예 삭제합니다.`} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', padding: '4px' }}><Trash size={18} /></button>
                                                 </div>
                                             </div>
+                                            {/* Trial 남은 기간 + 사용량 */}
+                                            {studio.status === 'trial' && studio.trialEndDate && (() => {
+                                                const daysLeft = Math.ceil((new Date(studio.trialEndDate) - new Date()) / (1000*60*60*24));
+                                                const isExpired = daysLeft <= 0;
+                                                const isUrgent = daysLeft <= 14 && daysLeft > 0;
+                                                return (
+                                                    <div style={{ marginTop: '10px', padding: '8px 12px', borderRadius: '8px', background: isExpired ? 'rgba(239,68,68,0.1)' : isUrgent ? 'rgba(245,158,11,0.1)' : 'rgba(74,222,128,0.06)', border: `1px solid ${isExpired ? 'rgba(239,68,68,0.3)' : isUrgent ? 'rgba(245,158,11,0.3)' : 'rgba(74,222,128,0.2)'}`, fontSize: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <span style={{ color: isExpired ? '#EF4444' : isUrgent ? '#F59E0B' : '#4ade80', fontWeight: '700' }}>
+                                                            {isExpired ? '⛔ 체험 만료' : `⏰ 체험 D-${daysLeft}`}
+                                                        </span>
+                                                        <span style={{ color: '#888' }}>
+                                                            👥 회원 {studio.memberCount || 0}명
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })()}
                                             {(studio.scheduleUrls && studio.scheduleUrls.length > 0) ? (
                                                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px' }} onClick={e => e.stopPropagation()}>
                                                     {studio.scheduleUrls.map((url, i) => (

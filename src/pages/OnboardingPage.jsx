@@ -31,6 +31,7 @@ const OnboardingPage = () => {
         language: lang // track which language the user signed up with
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [createdStudioId, setCreatedStudioId] = useState(null);
     const [aiColor, setAiColor] = useState('60a5fa');
     
     const handleRegenerateAiLogo = (e) => {
@@ -92,6 +93,7 @@ const OnboardingPage = () => {
         const result = await studioRegistryService.requestOnboarding(submitData);
         setIsSubmitting(false);
         if (result.success) {
+            if (result.studioId) setCreatedStudioId(result.studioId);
             setStep(5);
         } else {
             alert(t.submitError(result.message));
@@ -414,8 +416,11 @@ const OnboardingPage = () => {
         );
     }
 
-    // Step 5: Success
+    // Step 5: Success — 즉시 접속 URL 안내
     if (step === 5) {
+        const adminUrl = createdStudioId 
+            ? `https://passflowai.web.app/admin?studioId=${createdStudioId}` 
+            : 'https://passflowai.web.app/admin';
         return (
             <div style={containerStyle}>
                 <div style={cardStyle}>
@@ -424,9 +429,25 @@ const OnboardingPage = () => {
                             <CheckCircle size={48} color="#34d399" weight="fill" />
                         </div>
                         <h2 style={{ fontSize: '1.8rem', margin: '0 0 16px 0' }}>{t.successTitle}</h2>
-                        <p style={{ color: '#94a3b8', lineHeight: '1.6', marginBottom: '32px', whiteSpace: 'pre-line' }}>
+                        <p style={{ color: '#94a3b8', lineHeight: '1.6', marginBottom: '24px', whiteSpace: 'pre-line' }}>
                             {t.successDesc(formData.ownerEmail)}
                         </p>
+
+                        {/* 즉시 접속 안내 */}
+                        {createdStudioId && (
+                            <div style={{ padding: '20px', borderRadius: '16px', background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.2)', marginBottom: '20px', textAlign: 'left' }}>
+                                <div style={{ fontSize: '1rem', fontWeight: '700', color: '#4ade80', marginBottom: '12px' }}>
+                                    🎉 {lang === 'ko' ? '스튜디오가 즉시 생성되었습니다!' : 'Your studio is ready!'}
+                                </div>
+                                <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '8px' }}>
+                                    Studio ID: <strong style={{ color: '#fff' }}>{createdStudioId}</strong>
+                                </div>
+                                <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '4px' }}>
+                                    {lang === 'ko' ? '✅ 2개월 무료 체험이 시작되었습니다' : '✅ Your 2-month free trial has started'}
+                                </div>
+                            </div>
+                        )}
+
                         {formData.logoOption === 'ai' && (
                             <div style={{ padding: '16px', borderRadius: '14px', background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.15)', marginBottom: '24px', fontSize: '0.9rem', color: '#94a3b8', lineHeight: '1.5', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
                                 <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=${aiColor}&color=fff&size=128&rounded=true&font-size=0.4&bold=true`} alt="AI Logo" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
@@ -435,6 +456,13 @@ const OnboardingPage = () => {
                                     {t.aiLogoApplied}
                                 </div>
                             </div>
+                        )}
+
+                        {createdStudioId && (
+                            <a href={adminUrl} target="_blank" rel="noopener noreferrer"
+                                style={{ ...buttonStyle, background: 'linear-gradient(135deg, #4ade80, #22c55e)', textDecoration: 'none', marginBottom: '12px' }}>
+                                🚀 {lang === 'ko' ? '내 스튜디오 바로 접속하기' : 'Go to My Studio Now'}
+                            </a>
                         )}
                         <button style={{ ...buttonStyle, background: 'rgba(255,255,255,0.1)' }} onClick={() => navigate(t.homeUrl || '/')}>
                             {t.goHome}
