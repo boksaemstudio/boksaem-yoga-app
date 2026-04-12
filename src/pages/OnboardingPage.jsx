@@ -103,7 +103,8 @@ const OnboardingPage = () => {
     // Styles
     const containerStyle = {
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
+        backgroundColor: '#0f172a',
         color: '#f8fafc',
         display: 'flex',
         flexDirection: 'column',
@@ -113,14 +114,15 @@ const OnboardingPage = () => {
         fontFamily: lang === 'ja' ? "'Noto Sans JP', sans-serif" : "'Pretendard', 'Inter', sans-serif"
     };
     const cardStyle = {
-        background: 'rgba(255, 255, 255, 0.05)',
+        background: 'linear-gradient(145deg, rgba(30, 30, 60, 0.95), rgba(20, 20, 45, 0.98))',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255,255,255,0.1)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255,255,255,0.12)',
         borderRadius: '24px',
         padding: '40px',
         width: '100%',
         maxWidth: '500px',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.05)',
         position: 'relative',
         overflow: 'hidden'
     };

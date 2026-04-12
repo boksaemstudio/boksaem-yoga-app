@@ -18,7 +18,14 @@ export default defineConfig({
         // [FIX] png를 프리캐시에서 제외 — 랜딩페이지 이미지(660~771KB)가 600KB 제한 초과
         globPatterns: ['**/*.{css,html,ico,svg}', 'assets/index-*.js', 'assets/vendor-*.js'],
         // [FIX] Prevent Service Worker from hijacking static HTML pages into React Router SPA
-        navigateFallbackDenylist: [/^\/features\.html$/, /^\/home\.html$/, /^\/onboarding_guide\.html$/],
+        // [CRITICAL] All language-specific landing pages MUST be listed here
+        // Without this, SW serves index.html (Korean SPA) instead of the actual localized HTML
+        navigateFallbackDenylist: [
+          /^\/features\.html$/,
+          /^\/home\.html$/,
+          /^\/onboarding_guide\.html$/,
+          /^\/(en|ja|zh|es|de|fr|pt|ru|in|au|ca)\//,  // ALL language subdirectories
+        ],
         // [PERF] 레거시 번들이 분리되면서 vendor-firebase-legacy가 971KB를 초과하므로 3MB로 상향 조치
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         cleanupOutdatedCaches: true,

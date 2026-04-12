@@ -199,16 +199,33 @@ export const generateChurnMessage = async (
     }
 };
 
-export const getDailyYoga = async (language = 'ko', mbti: string | null = null): Promise<DailyYogaPose[]> => {
+export const getDailyYoga = async (
+    language = 'ko', 
+    mbti: string | null = null,
+    context: { weather?: string | null; temperature?: number | null; primaryClass?: string | null } = {}
+): Promise<DailyYogaPose[]> => {
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-    const cacheKey = `daily_yoga_${today}_${language}_${mbti || 'none'}_v4`;
+    const hour = getKSTHour();
+    // Cache key includes weather condition + temperature range for variety
+    const tempBucket = context.temperature != null ? Math.round(context.temperature / 5) * 5 : 'none';
+    const weatherKey = context.weather?.slice(0,8) || 'none';
+    const classKey = context.primaryClass?.slice(0,10) || 'none';
+    const cacheKey = `daily_yoga_${today}_${language}_${mbti || 'none'}_${weatherKey}_${tempBucket}_${classKey}_v5`;
     const cached = _safeGetItem(cacheKey);
     if (cached && cached !== 'null' && cached !== 'undefined') {
         try { const parsed = JSON.parse(cached); if (Array.isArray(parsed) && parsed.length > 0) return parsed; } catch { /* ignore */ }
     }
     try {
         const genYoga = httpsCallable(functions, 'generateDailyYogaV2');
-        const response = await genYoga({ language, timeOfDay: getKSTHour(), weather: 'Sunny', mbti, studioId: getCurrentStudioId() });
+        const response = await genYoga({ 
+            language, 
+            timeOfDay: hour, 
+            weather: context.weather || 'Sunny',
+            temperature: context.temperature || null,
+            primaryClass: context.primaryClass || null,
+            mbti, 
+            studioId: getCurrentStudioId() 
+        });
         const data = response.data as DailyYogaPose[] | null;
         if (!data || (Array.isArray(data) && data.length === 0)) return DAILY_YOGA_FALLBACK(language);
         _safeSetItem(cacheKey, JSON.stringify(data));

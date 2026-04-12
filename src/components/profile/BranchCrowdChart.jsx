@@ -27,10 +27,10 @@ const HeatCell = memo(({ val, maxCount, isNow }) => {
             boxShadow: isNow ? '0 0 8px rgba(var(--primary-rgb), 0.3)' : 'none',
         }}>
             <span style={{
-                fontSize: '0.7rem', fontWeight: '700',
+                fontSize: '0.8rem',
                 color: val > 0 ? level.color : 'rgba(255,255,255,0.15)'
             }}>
-                {val > 0 ? val : '·'}
+                {val > 0 ? level.emoji : '·'}
             </span>
             {isNow && (
                 <div style={{
@@ -238,9 +238,6 @@ const BranchCrowdChart = memo(() => {
                     </div>
                     <div style={{ fontSize: '1rem', fontWeight: '700', color: nowLevel.color }}>
                         {nowLevel.label}
-                        <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', marginLeft: '8px', fontWeight: '400' }}>
-                            (평균 {nowVal}명)
-                        </span>
                     </div>
                 </div>
             </div>

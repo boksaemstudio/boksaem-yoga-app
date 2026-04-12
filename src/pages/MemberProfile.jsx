@@ -225,9 +225,8 @@ const MemberProfile = () => {
                             <div className="glass-panel" style={{ padding: '24px', marginBottom: '20px', background: 'rgba(20, 20, 20, 0.9)', border: '1px solid rgba(255,255,255,0.15)' }}>
                                 <MembershipInfo member={member} daysRemaining={daysRemaining} logs={validLogs} t={t} />
                                 <MyStatsChart logs={validLogs} />
-                                <BranchCrowdChart />
                                 <AISection aiExperience={aiExperience} weatherData={weatherData} greetingVisible={greetingVisible} t={t} getTraditionalYogaMessage={getTraditionalYogaMessage} />
-                                <HomeYogaSection language={language} t={t} mbti={mbti} />
+                                <HomeYogaSection language={language} t={t} mbti={mbti} weatherData={weatherData} logs={validLogs} />
                                 <RecentAttendance logs={validLogs} language={language} t={t} setActiveTab={setActiveTab} />
 
                                 {/* Push Notification Toggle */}
@@ -481,6 +480,7 @@ const MemberProfile = () => {
                     {/* HISTORY TAB */}
                     {activeTab === 'history' && (
                         <div className="fade-in">
+                            <BranchCrowdChart />
                             <AttendanceHistory logs={logs} member={member} language={language} t={t} aiAnalysis={aiAnalysis} />
                         </div>
                     )}
