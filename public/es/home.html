@@ -1,32 +1,30 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- [CRITICAL] Service Worker bypass + auto-reload for localized landing pages -->
+    <!-- [CRITICAL] Service Worker bypass + force-reload v3 -->
     <script>
     (function() {
+        // Skip if already reloaded (check URL param)
+        if (location.search.indexOf('swcleared=1') !== -1) return;
         if ('serviceWorker' in navigator) {
-            var hadSW = false;
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                registrations.forEach(function(registration) {
-                    hadSW = true;
-                    registration.unregister();
-                });
-                // Clear all caches
-                if ('caches' in window) {
-                    caches.keys().then(function(names) {
-                        var p = names.map(function(name) { return caches.delete(name); });
-                        Promise.all(p).then(function() {
-                            // If we had a SW, force reload to get correct content from server
-                            if (hadSW && !sessionStorage.getItem('sw_cleared')) {
-                                sessionStorage.setItem('sw_cleared', '1');
-                                location.reload();
-                            }
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+                if (regs.length === 0) return; // No SW = page is clean
+                // Unregister all SWs
+                var tasks = regs.map(function(r) { return r.unregister(); });
+                Promise.all(tasks).then(function() {
+                    // Clear all caches then reload
+                    if ('caches' in window) {
+                        caches.keys().then(function(names) {
+                            Promise.all(names.map(function(n) { return caches.delete(n); })).then(function() {
+                                var sep = location.search ? '&' : '?';
+                                location.replace(location.href + sep + 'swcleared=1');
+                            });
                         });
-                    });
-                } else if (hadSW && !sessionStorage.getItem('sw_cleared')) {
-                    sessionStorage.setItem('sw_cleared', '1');
-                    location.reload();
-                }
+                    } else {
+                        var sep = location.search ? '&' : '?';
+                        location.replace(location.href + sep + 'swcleared=1');
+                    }
+                });
             });
         }
     })();
