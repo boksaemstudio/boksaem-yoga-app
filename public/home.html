@@ -1,6 +1,24 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+    <!-- [CRITICAL] Service Worker bypass for localized landing pages -->
+    <script>
+    // If a Service Worker is serving cached Korean index.html instead of this page,
+    // unregister it and reload to get the correct localized content
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            registrations.forEach(function(registration) {
+                registration.unregister();
+            });
+        });
+        // Clear all caches to prevent stale SW responses
+        if ('caches' in window) {
+            caches.keys().then(function(names) {
+                names.forEach(function(name) { caches.delete(name); });
+            });
+        }
+    }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>패스플로우 AI | 헬스장, 크로스핏, 요가, 필라테스 무인 출입 및 회원관리 프로그램</title>
