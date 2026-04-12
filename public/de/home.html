@@ -1,23 +1,35 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <!-- [CRITICAL] Service Worker bypass for localized landing pages -->
+    <!-- [CRITICAL] Service Worker bypass + auto-reload for localized landing pages -->
     <script>
-    // If a Service Worker is serving cached Korean index.html instead of this page,
-    // unregister it and reload to get the correct localized content
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            registrations.forEach(function(registration) {
-                registration.unregister();
-            });
-        });
-        // Clear all caches to prevent stale SW responses
-        if ('caches' in window) {
-            caches.keys().then(function(names) {
-                names.forEach(function(name) { caches.delete(name); });
+    (function() {
+        if ('serviceWorker' in navigator) {
+            var hadSW = false;
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                registrations.forEach(function(registration) {
+                    hadSW = true;
+                    registration.unregister();
+                });
+                // Clear all caches
+                if ('caches' in window) {
+                    caches.keys().then(function(names) {
+                        var p = names.map(function(name) { return caches.delete(name); });
+                        Promise.all(p).then(function() {
+                            // If we had a SW, force reload to get correct content from server
+                            if (hadSW && !sessionStorage.getItem('sw_cleared')) {
+                                sessionStorage.setItem('sw_cleared', '1');
+                                location.reload();
+                            }
+                        });
+                    });
+                } else if (hadSW && !sessionStorage.getItem('sw_cleared')) {
+                    sessionStorage.setItem('sw_cleared', '1');
+                    location.reload();
+                }
             });
         }
-    }
+    })();
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
