@@ -39,7 +39,7 @@ const OnboardingPage = () => {
         setAiColor(Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'));
     };
 
-    const handleNext = () => setStep(s => Math.min(s + 1, 5));
+    const handleNext = () => setStep(s => Math.min(s + 1, 3));
     const handlePrev = () => setStep(s => Math.max(s - 1, 0));
 
     const handleLogoUpload = (e) => {
@@ -94,7 +94,7 @@ const OnboardingPage = () => {
         setIsSubmitting(false);
         if (result.success) {
             if (result.studioId) setCreatedStudioId(result.studioId);
-            setStep(5);
+            setStep(2);
         } else {
             alert(t.submitError(result.message));
         }
@@ -207,9 +207,9 @@ const OnboardingPage = () => {
     };
 
     const renderStepIndicator = () => {
-        const totalSteps = 4;
+        const totalSteps = 2;
         const currentIdx = step - 1;
-        if (step === 0 || step === 5) return null;
+        if (step === 0 || step === 2) return null;
         return (
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '32px' }}>
                 {Array.from({ length: totalSteps }).map((_, i) => (
@@ -265,173 +265,34 @@ const OnboardingPage = () => {
         );
     }
 
-    // Step 1: Name
+    // Step 1: Name + Email (combined for faster conversion)
     if (step === 1) {
+        const canSubmit = formData.name.trim() && formData.ownerEmail.includes('@');
         return (
             <div style={containerStyle}>
                 <div style={cardStyle}>
                     <button style={navButtonStyle} onClick={handlePrev}><ArrowLeft size={16} /> {t.prevBtn}</button>
                     {renderStepIndicator()}
                     <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>{t.nameTitle}</h2>
-                    <p style={{ color: '#94a3b8', marginBottom: '32px' }}>{t.nameDesc}</p>
+                    <p style={{ color: '#94a3b8', marginBottom: '24px' }}>{t.nameDesc}</p>
                     <input style={inputStyle} placeholder={t.namePlaceholder} value={formData.name}
                         onChange={e => setFormData({ ...formData, name: e.target.value })} autoFocus />
-                    <button style={{ ...buttonStyle, opacity: formData.name.trim() ? 1 : 0.5 }}
-                        onClick={() => formData.name.trim() && handleNext()}>
-                        {t.nextBtn} <ArrowRight size={20} weight="bold" />
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    // Step 2: Logo
-    if (step === 2) {
-        return (
-            <div style={containerStyle}>
-                <div style={cardStyle}>
-                    <button style={navButtonStyle} onClick={handlePrev}><ArrowLeft size={16} /> {t.prevBtn}</button>
-                    {renderStepIndicator()}
-                    <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>
-                        <span style={{ color: '#60a5fa' }}>{t.logoTitle(formData.name)}</span>
-                    </h2>
-                    <p style={{ color: '#94a3b8', marginBottom: '32px' }}>{t.logoDesc}</p>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px' }}>
-                        <div onClick={() => setFormData({ ...formData, logoOption: 'ai' })} style={optionCardStyle(formData.logoOption === 'ai')}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                                <MagicWand size={28} color={formData.logoOption === 'ai' ? '#60a5fa' : '#94a3b8'} weight="duotone" />
-                                <div>
-                                    <div style={{ fontSize: '1.1rem', fontWeight: '700', color: formData.logoOption === 'ai' ? '#60a5fa' : 'white' }}>{t.logoAi}</div>
-                                    <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>{t.logoAiDesc(formData.name)}</div>
-                                </div>
-                            </div>
-                            {formData.logoOption === 'ai' && formData.name && (
-                                <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }} onClick={e => e.stopPropagation()}>
-                                    <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=${aiColor}&color=fff&size=256&rounded=true&font-size=0.4&bold=true`} alt="AI Logo" style={{ width: '80px', height: '80px', borderRadius: '50%', filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.3))' }} />
-                                    <button onClick={handleRegenerateAiLogo} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '6px 16px', borderRadius: '20px', fontSize: '0.8rem', display: 'flex', gap: '6px', alignItems: 'center', cursor: 'pointer' }}>
-                                        <ArrowsClockwise size={16} /> {t.logoRegenerate}
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                        <div onClick={() => document.getElementById('logo-upload-input')?.click()} style={optionCardStyle(formData.logoOption === 'upload')}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                                <Upload size={28} color={formData.logoOption === 'upload' ? '#60a5fa' : '#94a3b8'} weight="duotone" />
-                                <div>
-                                    <div style={{ fontSize: '1.1rem', fontWeight: '700', color: formData.logoOption === 'upload' ? '#60a5fa' : 'white' }}>{t.logoUpload}</div>
-                                    <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>{t.logoUploadDesc}</div>
-                                </div>
-                            </div>
-                            {formData.logoPreviewUrl && (
-                                <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'center' }}>
-                                    <img src={formData.logoPreviewUrl} alt="Logo preview" style={{ maxHeight: '60px', borderRadius: '8px' }} />
-                                </div>
-                            )}
-                            <input id="logo-upload-input" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleLogoUpload} />
-                        </div>
-                        <div onClick={() => setFormData({ ...formData, logoOption: 'later' })} style={optionCardStyle(formData.logoOption === 'later')}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                                <ImageIcon size={28} color={formData.logoOption === 'later' ? '#60a5fa' : '#94a3b8'} weight="duotone" />
-                                <div>
-                                    <div style={{ fontSize: '1.1rem', fontWeight: '700', color: formData.logoOption === 'later' ? '#60a5fa' : 'white' }}>{t.logoLater}</div>
-                                    <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>{t.logoLaterDesc}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {/* Schedule attachment */}
-                    <div style={{ padding: '16px 20px', borderRadius: '14px', background: 'rgba(251, 191, 36, 0.08)', border: '1px solid rgba(251, 191, 36, 0.15)', marginBottom: '8px' }}>
-                        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                            <CalendarBlank size={22} color="#fbbf24" weight="duotone" style={{ flexShrink: 0, marginTop: '2px' }} />
-                            <div style={{ width: '100%' }}>
-                                <div style={{ fontSize: '0.95rem', color: '#fbbf24', fontWeight: '600', marginBottom: '4px' }}>{t.scheduleTitle}</div>
-                                <div style={{ fontSize: '0.83rem', color: '#94a3b8', lineHeight: '1.5', marginBottom: '12px' }}>{t.scheduleDesc}</div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                    <button onClick={() => document.getElementById('schedule-upload-input')?.click()}
-                                        style={{ padding: '8px 16px', background: 'rgba(251, 191, 36, 0.15)', color: '#fbbf24', border: '1px dashed rgba(251, 191, 36, 0.4)', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                                        {t.scheduleBtn}
-                                    </button>
-                                    {formData.scheduleFiles && formData.scheduleFiles.length > 0 && (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
-                                            {formData.scheduleFiles.map((f, idx) => (
-                                                <div key={idx} style={{ fontSize: '0.8rem', color: '#cbd5e1', background: 'rgba(0,0,0,0.2)', padding: '6px 12px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
-                                                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📁 {f.name}</span>
-                                                    <button onClick={(e) => { e.stopPropagation(); const nf = [...formData.scheduleFiles]; nf.splice(idx, 1); setFormData({ ...formData, scheduleFiles: nf }); }}
-                                                        style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 4px', fontWeight: 'bold' }}>✕</button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                    <input id="schedule-upload-input" type="file" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" style={{ display: 'none' }}
-                                        onChange={(e) => {
-                                            const newFiles = Array.from(e.target.files);
-                                            const currentFiles = formData.scheduleFiles || [];
-                                            const combined = [...currentFiles, ...newFiles];
-                                            if (combined.length > 4) alert(t.scheduleMaxAlert);
-                                            setFormData({ ...formData, scheduleFiles: combined.slice(0, 4) });
-                                            e.target.value = '';
-                                        }} />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <button style={buttonStyle} onClick={handleNext}>{t.nextBtn} <ArrowRight size={20} weight="bold" /></button>
-                </div>
-            </div>
-        );
-    }
-
-    // Step 3: Email
-    if (step === 3) {
-        return (
-            <div style={containerStyle}>
-                <div style={cardStyle}>
-                    <button style={navButtonStyle} onClick={handlePrev}><ArrowLeft size={16} /> {t.prevBtn}</button>
-                    {renderStepIndicator()}
-                    <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>{t.emailTitle}</h2>
-                    <p style={{ color: '#94a3b8', marginBottom: '32px' }}>{t.emailDesc}</p>
+                    <h2 style={{ fontSize: '1.4rem', marginBottom: '8px', marginTop: '8px' }}>{t.emailTitle}</h2>
+                    <p style={{ color: '#94a3b8', marginBottom: '24px' }}>{t.emailDesc}</p>
                     <input type="email" style={inputStyle} placeholder={t.emailPlaceholder} value={formData.ownerEmail}
-                        onChange={e => setFormData({ ...formData, ownerEmail: e.target.value })} autoFocus />
-                    <button style={{ ...buttonStyle, opacity: formData.ownerEmail.includes('@') ? 1 : 0.5 }}
-                        onClick={() => formData.ownerEmail.includes('@') && handleNext()}>
-                        {t.nextBtn} <ArrowRight size={20} weight="bold" />
+                        onChange={e => setFormData({ ...formData, ownerEmail: e.target.value })} />
+                    <button style={{ ...buttonStyle, opacity: canSubmit ? 1 : 0.5 }}
+                        onClick={() => canSubmit && handleSubmit()} disabled={isSubmitting || !canSubmit}>
+                        {isSubmitting ? <Spinner size={24} className="spin" /> : <><CheckCircle size={20} weight="bold" /> {t.submitBtn || t.nextBtn}</>}
                     </button>
+                    {renderCTA()}
                 </div>
             </div>
         );
     }
 
-    // Step 4: Plan
-    if (step === 4) {
-        return (
-            <div style={containerStyle}>
-                <div style={cardStyle}>
-                    <button style={navButtonStyle} onClick={handlePrev}><ArrowLeft size={16} /> {t.prevBtn}</button>
-                    {renderStepIndicator()}
-                    <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>{t.planTitle}</h2>
-                    <p style={{ color: '#94a3b8', marginBottom: '32px' }}>{t.planDesc}</p>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
-                        {[
-                            { id: 'free', title: t.planFree, desc: t.planFreeDesc },
-                            { id: 'basic', title: t.planBasic, desc: t.planBasicDesc },
-                            { id: 'pro', title: t.planPro, desc: t.planProDesc }
-                        ].map(p => (
-                            <div key={p.id} onClick={() => setFormData({ ...formData, plan: p.id })} style={optionCardStyle(formData.plan === p.id)}>
-                                <div style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '4px', color: formData.plan === p.id ? '#60a5fa' : 'white' }}>{p.title}</div>
-                                <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>{p.desc}</div>
-                            </div>
-                        ))}
-                    </div>
-                    <button style={buttonStyle} onClick={handleSubmit} disabled={isSubmitting}>
-                        {isSubmitting ? <Spinner size={24} className="spin" /> : <><CheckCircle size={20} weight="bold" /> {t.submitBtn}</>}
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    // Step 5: Success — 즉시 접속 URL 안내
-    if (step === 5) {
+    // Step 2: Success — 즉시 접속 URL 안내
+    if (step === 2) {
         const adminUrl = createdStudioId 
             ? `https://passflowai.web.app/admin?studioId=${createdStudioId}` 
             : 'https://passflowai.web.app/admin';
@@ -462,17 +323,7 @@ const OnboardingPage = () => {
                             </div>
                         )}
 
-                        {formData.logoOption === 'ai' && (
-                            <div style={{ padding: '16px', borderRadius: '14px', background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.15)', marginBottom: '24px', fontSize: '0.9rem', color: '#94a3b8', lineHeight: '1.5', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-                                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=${aiColor}&color=fff&size=128&rounded=true&font-size=0.4&bold=true`} alt="AI Logo" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
-                                <div style={{ textAlign: 'left' }}>
-                                    <strong style={{ color: '#60a5fa' }}>{t.aiLogoDone}</strong><br/>
-                                    {t.aiLogoApplied}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 초기 세팅 가이드 — i18n 기반 */}
+                        {/* 초기 세팅 가이드 */}
                         <div style={{ textAlign: 'left', background: 'rgba(255,255,255,0.05)', padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', marginBottom: '24px' }}>
                             <h3 style={{ fontSize: '1.1rem', margin: '0 0 20px 0', color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 🚀 {t.setupGuideTitle}

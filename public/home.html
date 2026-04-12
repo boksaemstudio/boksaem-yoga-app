@@ -1,24 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <!-- [CRITICAL] Service Worker bypass for localized landing pages -->
-    <script>
-    // If a Service Worker is serving cached Korean index.html instead of this page,
-    // unregister it and reload to get the correct localized content
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            registrations.forEach(function(registration) {
-                registration.unregister();
-            });
-        });
-        // Clear all caches to prevent stale SW responses
-        if ('caches' in window) {
-            caches.keys().then(function(names) {
-                names.forEach(function(name) { caches.delete(name); });
-            });
-        }
-    }
-    </script>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>패스플로우 AI | 헬스장, 크로스핏, 요가, 필라테스 무인 출입 및 회원관리 프로그램</title>
@@ -280,6 +263,33 @@
                     <span style="color:#d4af37; font-size:0.95rem; font-weight: 700; display: flex; align-items: center; gap: 6px;">
                         ✔ 연 10만 원 (숨은 비용 없음)
                     </span>
+                </div>
+
+                <!-- Hero CTA Buttons -->
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 10px;">
+                    <a href="/onboarding" style="display: inline-flex; align-items: center; gap: 8px; padding: 16px 32px; background: linear-gradient(135deg, #4ade80, #22c55e); color: #000; font-weight: 800; font-size: 1.1rem; border-radius: 50px; text-decoration: none; box-shadow: 0 4px 20px rgba(74,222,128,0.35); transition: all 0.3s; animation: pulse 2s ease-in-out infinite;">
+                        🚀 2개월 무료로 시작
+                    </a>
+                    <a href="http://pf.kakao.com/_zDxiMX/chat" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 8px; padding: 16px 28px; background: #FEE500; color: #191919; font-weight: 700; font-size: 1rem; border-radius: 50px; text-decoration: none; box-shadow: 0 4px 15px rgba(254,229,0,0.25); transition: all 0.3s;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-5.52 0-10 3.58-10 8 0 2.85 1.83 5.34 4.54 6.8-.3 1.14-1.14 4.28-1.17 4.41-.03.11.04.22.14.22.06 0 .13-.02.18-.06 1.48-1.07 5.17-3.71 5.4-3.87.3.04.6.06.91.06 5.52 0 10-3.58 10-8s-4.48-8-10-8z"/></svg>
+                        카톡 상담
+                    </a>
+                </div>
+
+                <!-- Social Proof -->
+                <div style="display: flex; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; justify-content: center;">
+                    <div style="display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);">
+                        <span style="font-size: 0.82rem;">🟢</span>
+                        <span style="color: rgba(255,255,255,0.7); font-size: 0.8rem; font-weight: 500;">현재 실제 운영 중</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);">
+                        <span style="font-size: 0.82rem;">🔒</span>
+                        <span style="color: rgba(255,255,255,0.7); font-size: 0.8rem; font-weight: 500;">개인정보보호법 준수</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);">
+                        <span style="font-size: 0.82rem;">☁️</span>
+                        <span style="color: rgba(255,255,255,0.7); font-size: 0.8rem; font-weight: 500;">Google Cloud 기반</span>
+                    </div>
                 </div>
                 </div>
             </div>
