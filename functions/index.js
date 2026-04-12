@@ -28,6 +28,7 @@ const backupFunctions = require('./modules/backup');
 const adminClaimsFunctions = require('./modules/adminClaims');
 const ssrMetaFunctions = require('./modules/ssrMeta');
 const adminAssistantFunctions = require('./modules/adminAssistant');
+const superAdminFunctions = require('./modules/superAdmin');
 
 // Re-export all functions
 module.exports = {
@@ -71,5 +72,8 @@ module.exports = {
     ...ssrMetaFunctions,
 
     // Admin AI Assistant (관리자 AI 비서)
-    ...adminAssistantFunctions
+    ...adminAssistantFunctions,
+
+    // SaaS 플랫폼 통합 관리 리포트
+    ...superAdminFunctions
 };

@@ -119,7 +119,7 @@ const MiniCalendar = memo(({ selectedDate, onSelect, onClose, config }) => {
 MiniCalendar.displayName = 'MiniCalendar';
 
 // ─── Main Component ───
-const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, members = [], onMemberClick, summary, viewMode }) => {
+const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, members = [], onMemberClick, summary }) => {
     const { config } = useStudioConfig();
     const branches = config.BRANCHES || [];
     const getBranchName = (id) => branches.find(b => b.id === id)?.name || id;
@@ -181,11 +181,14 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
         const loadTrend = async () => {
             setLoadingTrend(true);
             try {
-                // Determine past 21 days (3 weeks)
+                // 선택된 날짜의 요일을 구합니다 (같은 요일에만 반복 수업이 있으므로)
+                const selectedDayObj = new Date(selectedDate + 'T00:00:00+09:00');
+                const selectedDayOfWeek = selectedDayObj.getDay(); // 0=일, 1=월, ...
+
+                // 과거 21일(3주) 중 같은 요일인 날짜만 추출
                 const datesToFetch = [];
                 const d = new Date(selectedDate + 'T00:00:00+09:00');
                 
-                // Start from the currently selected date, and go backwards 21 days
                 for (let i = 0; i < 21; i++) {
                     const temp = new Date(d);
                     temp.setDate(temp.getDate() - i);
@@ -197,45 +200,37 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                     storageService.getAttendanceByDate(dateStr, tBranch)
                 ));
 
-                const chartDataMap = {};
-                
-                // Initialize map with empty counts to maintain timeline gaps
-                datesToFetch.forEach(dateStr => {
-                    const md = dateStr.slice(5); // "MM-DD"
-                    // Only plotting days where checking actually found the class, 
-                    // or keeping zeros? Let's keep zeros only if the class was actually scheduled.
-                    // simpler approach: just find instances of the class.
-                });
-
                 const rawPlotData = [];
 
                 results.forEach((dayLogs, idx) => {
                     const targetDateStr = datesToFetch[idx];
+                    const dObj = new Date(targetDateStr + 'T00:00:00+09:00');
+                    const dayOfWeek = dObj.getDay();
+
+                    // [FIX] 같은 요일인 날만 차트에 표시 (반복 수업 패턴)
+                    if (dayOfWeek !== selectedDayOfWeek) return;
+
                     let count = 0;
                     
                     dayLogs.forEach(log => {
                         const info = guessClassInfo(log);
                         const cName = info?.className || log.className || '일반';
                         const cInst = info?.instructor || log.instructor || '선생님';
-                        const cTime = info?.startTime || '00:00';
                         
-                        if (log.status !== 'denied' && cName === tName && cInst === tInst && cTime === tTime) {
+                        // [FIX] 수업명 + 강사명만 매칭 (시간은 무시 — 같은 수업이라도 시간대가 변경될 수 있음)
+                        if (log.status !== 'denied' && cName === tName && cInst === tInst) {
                             count++;
                         }
                     });
 
-                    // Only add to chart if count > 0, to avoid connecting empty dots 
-                    // for days the class doesn't run.
-                    if (count > 0 || idx === 0 /* Always show current selected date */) {
-                        const dObj = new Date(targetDateStr + 'T00:00:00+09:00');
-                        rawPlotData.push({
-                            date: targetDateStr.slice(5).replace('-', '/'), // "MM/DD"
-                            fullDate: targetDateStr,
-                            timestamp: dObj.getTime(),
-                            count: count,
-                            dayName: ['일', '월', '화', '수', '목', '금', '토'][dObj.getDay()]
-                        });
-                    }
+                    // [FIX] 같은 요일이면 count가 0이더라도 표시 (수업이 쉰 날 = "0명")
+                    rawPlotData.push({
+                        date: targetDateStr.slice(5).replace('-', '/'), // "MM/DD"
+                        fullDate: targetDateStr,
+                        timestamp: dObj.getTime(),
+                        count: count,
+                        dayName: ['일', '월', '화', '수', '목', '금', '토'][dayOfWeek]
+                    });
                 });
 
                 // Sort chronologically (oldest first)
@@ -443,9 +438,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
             </div>
 
             {/* ─── Summary Section ─── */}
-            <div className="summary-grid" style={viewMode === 'compact' ? { gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' } : {}}>
-                {viewMode === 'compact' ? (
-                    <>
+            <div className="summary-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }}>
                         <div className="dashboard-card" style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px' }}>
                             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>총 출석 완료</div>
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
@@ -479,24 +472,12 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                 </div>
                             ) : null;
                         })()}
-                    </>
-                ) : (
-                    <div className="dashboard-card" style={{ padding: '16px', background: 'rgba(255,255,255,0.02)' }}>
-                        <div className="card-label" style={{ fontSize: '0.85rem', marginBottom: '8px' }}>오늘 총 출석</div>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                            <span style={{ fontSize: '1.5rem', fontWeight: '800' }}>{activeLogs.length}</span>
-                            <span style={{ fontSize: '0.9rem', opacity: 0.6 }}>건</span>
-                        </div>
-                    </div>
-                )}
             </div>
 
             {/* ─── Attendance Trend Analytics ─── */}
-            {viewMode !== 'compact' && (
-                <CollapsibleCard id="logs-trend" title="📈 출석 추세 분석" defaultOpen={false}>
-                    <AttendanceTrendChart selectedDate={selectedDate} members={members} />
-                </CollapsibleCard>
-            )}
+            <CollapsibleCard id="logs-trend" title="📈 출석 추세 분석" defaultOpen={false}>
+                <AttendanceTrendChart selectedDate={selectedDate} members={members} />
+            </CollapsibleCard>
 
             {/* ─── Loading State ─── */}
             {loadingHistorical && (
@@ -584,7 +565,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                 </div>
 
                                 {/* [UX FIX] 차트를 선택된 카드 바로 아래에 인라인 표시 */}
-                                {isSelected && viewMode !== 'compact' && (
+                                {isSelected && (
                                     <div style={{ 
                                         gridColumn: '1 / -1',
                                         padding: '16px', 

@@ -16,8 +16,8 @@ const AdminHeader = ({
     activeTab,
     currentBranch,
     handleBranchChange,
-    viewMode,
-    handleViewModeToggle
+    isAllExpanded,
+    handleToggleAllCards
 }) => {
     return (
         <header className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
@@ -45,25 +45,25 @@ const AdminHeader = ({
             </div>
             
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                {viewMode !== undefined && (
+                {isAllExpanded !== undefined && (
                     <div className="tooltip-container" style={{ display: 'inline-flex' }}>
                         <button 
-                            onClick={handleViewModeToggle}
+                            onClick={handleToggleAllCards}
                             style={{ 
                                 display: 'flex', alignItems: 'center', gap: '6px', 
                                 padding: '0 12px', borderRadius: '8px', height: '34px',
-                                border: viewMode === 'compact' ? '1px solid rgba(var(--primary-rgb), 0.4)' : '1px solid rgba(255,255,255,0.15)',
-                                background: viewMode === 'compact' ? 'rgba(var(--primary-rgb), 0.15)' : 'rgba(255,255,255,0.05)',
-                                color: viewMode === 'compact' ? 'var(--primary-gold)' : 'var(--text-secondary)',
+                                border: !isAllExpanded ? '1px solid rgba(var(--primary-rgb), 0.4)' : '1px solid rgba(255,255,255,0.15)',
+                                background: !isAllExpanded ? 'rgba(var(--primary-rgb), 0.15)' : 'rgba(255,255,255,0.05)',
+                                color: !isAllExpanded ? 'var(--primary-gold)' : 'var(--text-secondary)',
                                 cursor: 'pointer', transition: 'all 0.2s', fontSize: '0.75rem', fontWeight: 'bold'
                             }}
                         >
-                            {viewMode === 'compact' ? <ToggleRight size={18} weight="fill" /> : <ToggleLeft size={18} />}
-                            <span className="hide-mobile">{viewMode === 'compact' ? '전체접기' : '전체보기'}</span>
+                            {!isAllExpanded ? <ToggleRight size={18} weight="fill" /> : <ToggleLeft size={18} />}
+                            <span className="hide-mobile">{!isAllExpanded ? '전체접기' : '전체보기'}</span>
                         </button>
                         <div className="tooltip-text" style={{ width: '200px', left: 'auto', right: '50%', transform: 'translateX(50%)', top: '130%', zIndex: 10 }}>
-                            <strong>{viewMode === 'compact' ? '전체접기 모드' : '전체보기 모드'}</strong><br/>
-                            {viewMode === 'compact' ? '모든 그래프와 상세 정보를 접어 꽑 필요한 수치만 보여줍니다.' : '모든 그래프와 상세 정보를 펼쳐서 보여줍니다.'}
+                            <strong>{!isAllExpanded ? '모든 카드 접기' : '모든 카드 펼치기'}</strong><br/>
+                            {!isAllExpanded ? '접기 가능한 모든 카드를 접어서 요약만 봅니다.' : '모든 카드를 펼쳐서 상세 내역을 봅니다.'}
                         </div>
                     </div>
                 )}

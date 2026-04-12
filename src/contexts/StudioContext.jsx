@@ -199,7 +199,15 @@ export const StudioProvider = ({ children }) => {
                     background: '#08080A',
                     color: 'var(--primary-gold)'
                 }}>
-                    <div className="pulse">스튜디오 준비 중...</div>
+                    <div className="pulse">
+                        {(() => {
+                            if (typeof window === 'undefined') return '스튜디오 준비 중...';
+                            const lang = new URLSearchParams(window.location.search).get('lang');
+                            if (lang === 'en' || lang === 'us') return 'Loading Studio...';
+                            if (lang === 'ja' || lang === 'jp') return 'スタジオ準備中...';
+                            return '스튜디오 준비 중...';
+                        })()}
+                    </div>
                 </div>
             )}
         </StudioContext.Provider>

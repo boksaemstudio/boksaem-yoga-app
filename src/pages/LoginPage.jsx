@@ -4,6 +4,7 @@ import { useStudioConfig } from '../contexts/StudioContext';
 import { storageService } from '../services/storage';
 import { logger } from '../utils/logger';
 import { auth } from '../firebase';
+import { useLanguageStore } from '../stores/useLanguageStore';
 
 const LoginPage = () => {
     const { config } = useStudioConfig();
@@ -12,6 +13,7 @@ const LoginPage = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const t = useLanguageStore(s => s.t);
     const logoUrl = config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.WIDE;
 
     const handleLogin = async (e, overrideEmail, overridePassword) => {
@@ -46,7 +48,7 @@ const LoginPage = () => {
             }
         } catch (err) {
             console.error('[LoginPage] Login error:', err);
-            setError('로그인 처리 중 오류가 발생했습니다.');
+            setError(t('loginError'));
             setLoading(false);
             logger.error('Login Error', err.message, { email: targetEmail });
         }
@@ -135,7 +137,7 @@ const LoginPage = () => {
                     <h2 style={{ color: 'white', marginBottom: '2vh' }}>{studioName}</h2>
                 )}
                 <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', color: primaryColor, marginBottom: '1vh', letterSpacing: '-0.02em' }}>{config.IDENTITY?.SLOGAN || ''}</h1>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', opacity: 0.8 }}>{studioName} 관리자 시스템</p>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', opacity: 0.8 }}>{studioName} {t('adminSystem')}</p>
             </div>
 
                 {error && (
@@ -154,7 +156,7 @@ const LoginPage = () => {
 
                 <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                     <div style={{ textAlign: 'left' }}>
-                        <label style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginLeft: '12px', marginBottom: '5px', display: 'block' }}>이메일</label>
+                        <label style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginLeft: '12px', marginBottom: '5px', display: 'block' }}>{t('emailLabel')}</label>
                         <input
                             type="email"
                             placeholder="example@test.com"
@@ -174,7 +176,7 @@ const LoginPage = () => {
                         />
                     </div>
                     <div style={{ textAlign: 'left' }}>
-                        <label style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginLeft: '12px', marginBottom: '5px', display: 'block' }}>비밀번호</label>
+                        <label style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginLeft: '12px', marginBottom: '5px', display: 'block' }}>{t('passwordLabel')}</label>
                         <input
                             type="password"
                             placeholder="••••••••"
@@ -211,7 +213,7 @@ const LoginPage = () => {
                             boxShadow: '0 4px 15px rgba(var(--primary-rgb), 0.4)'
                         }}
                     >
-                        {loading ? '인증 중...' : '접속하기'}
+                        {loading ? t('authenticating') : t('loginBtn')}
                     </button>
                     
                     {/* SaaS Admin Demo Quick Login Button */}
@@ -243,7 +245,7 @@ const LoginPage = () => {
                                 transition: 'transform 0.2s',
                             }}
                         >
-                            🚀 관리자 데모 자동 로그인
+                            {t('demoAutoLogin')}
                         </button>
                     )}
                 </form>
@@ -287,7 +289,7 @@ const LoginPage = () => {
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: '8px' }}>
                         <path d="M12 3c-5.52 0-10 3.58-10 8 0 2.85 1.83 5.34 4.54 6.8-.3 1.14-1.14 4.28-1.17 4.41-.03.11.04.22.14.22.06 0 .13-.02.18-.06 1.48-1.07 5.17-3.71 5.4-3.87.3.04.6.06.91.06 5.52 0 10-3.58 10-8s-4.48-8-10-8z"/>
                     </svg>
-                    카카오톡 고객센터 문의하기
+                    {t('kakaoSupport')}
                 </a>
 
                 <div style={{ marginTop: '8px', wordBreak: 'keep-all' }}>

@@ -59,7 +59,15 @@ exports.onAttendancePhotoAdded = onDocumentUpdated({
             } catch (sendErr) {
                 if (sendErr.code === 'messaging/invalid-registration-token' || sendErr.code === 'messaging/registration-token-not-registered') {
                     const collectionName = tokenSources[token] || 'fcm_tokens';
-                    await tdb.collection(collectionName).doc(token).delete().catch(() => {});
+                    try {
+                        await tdb.collection(collectionName).doc(token).delete();
+                        console.log(`[FCM Cleanup] ✅ Dead photo-push token purged: ${token.substring(0, 20)}...`);
+                    } catch (delErr) {
+                        try {
+                            const snap = await tdb.collection(collectionName).where('token', '==', token).get();
+                            for (const d of snap.docs) await d.ref.delete();
+                        } catch (_) {}
+                    }
                 }
             }
         }

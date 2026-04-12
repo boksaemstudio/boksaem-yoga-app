@@ -11,7 +11,7 @@ import NetworkStatus from './components/common/NetworkStatus';
 import { useStudioConfig } from './contexts/StudioContext';
 import ReloadPrompt from './components/ReloadPrompt';
 import { auth } from './firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { useNetworkStatus } from './hooks/useNetworkStatus';
 import { attendanceService } from './services/attendanceService';
 
@@ -27,6 +27,32 @@ const SuperAdminPage = lazy(() => import('./pages/SuperAdminPage'));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 const AuthActionPage = lazy(() => import('./pages/AuthActionPage'));
+
+// i18n helper for loading/error screens
+const getLang = () => new URLSearchParams(window.location.search).get('lang') || 'ko';
+const loadingTexts = {
+    ko: { error: '⚠️ 시스템 오류 발생', errorDesc: '애플리케이션을 로드하는 중 문제가 발생했습니다.', retry: '새로고침 및 캐시 초기화', authCheck: '인증 확인 중...', permCheck: '권한 확인 중...',
+        accessDenied: '🔒 접근 권한 없음', accessDeniedDesc: '이 업장의 관리자 권한이 없습니다.', logoutBtn: '로그아웃',
+        superAdmin: '👑 슈퍼어드민 전용', superAdminDesc: '이 페이지는 플랫폼 관리자만 접근할 수 있습니다.', adminLogin: '관리자 계정 로그인', goHome: '홈으로 이동',
+        demoSite: '🎯 데모 사이트', demoDesc: '데모 사이트에 접속합니다.', demoAccess: '데모 접속하기', demoPreparing: '데모 사이트 준비 중...' },
+    en: { error: '⚠️ System Error', errorDesc: 'An error occurred while loading the application.', retry: 'Retry & Clear Cache', authCheck: 'Checking authentication...', permCheck: 'Checking permissions...',
+        accessDenied: '🔒 Access Denied', accessDeniedDesc: 'You don\'t have admin access to this studio.', logoutBtn: 'Logout',
+        superAdmin: '👑 Super Admin Only', superAdminDesc: 'This page is only accessible to platform administrators.', adminLogin: 'Login as Admin', goHome: 'Go Home',
+        demoSite: '🎯 Demo Site', demoDesc: 'Accessing the demo site.', demoAccess: 'Access Demo', demoPreparing: 'Preparing demo site...' },
+    ja: { error: '⚠️ システムエラー', errorDesc: 'アプリの読み込み中にエラーが発生しました。', retry: 'リロード＆キャッシュクリア', authCheck: '認証確認中...', permCheck: '権限確認中...',
+        accessDenied: '🔒 アクセス拒否', accessDeniedDesc: '管理者権限がありません。', logoutBtn: 'ログアウト',
+        superAdmin: '👑 スーパー管理者専用', superAdminDesc: 'このページはプラットフォーム管理者専用です。', adminLogin: '管理者ログイン', goHome: 'ホームへ',
+        demoSite: '🎯 デモサイト', demoDesc: 'デモサイトに接続します。', demoAccess: 'デモにアクセス', demoPreparing: 'デモ準備中...' },
+    ru: { error: '⚠️ Системная ошибка', errorDesc: 'Произошла ошибка при загрузке приложения.', retry: 'Обновить и очистить кэш', authCheck: 'Проверка аутентификации...', permCheck: 'Проверка прав...',
+        accessDenied: '🔒 Доступ запрещён', accessDeniedDesc: 'У вас нет прав администратора.', logoutBtn: 'Выйти',
+        superAdmin: '👑 Только для супер-админа', superAdminDesc: 'Эта страница доступна только администраторам платформы.', adminLogin: 'Войти как админ', goHome: 'На главную',
+        demoSite: '🎯 Демо', demoDesc: 'Подключение к демо.', demoAccess: 'Войти в демо', demoPreparing: 'Подготовка демо...' },
+    zh: { error: '⚠️ 系统错误', errorDesc: '加载应用程序时发生错误。', retry: '刷新并清除缓存', authCheck: '验证中...', permCheck: '检查权限...',
+        accessDenied: '🔒 访问被拒绝', accessDeniedDesc: '您没有管理员权限。', logoutBtn: '登出',
+        superAdmin: '👑 超级管理员专属', superAdminDesc: '此页面仅限平台管理员访问。', adminLogin: '管理员登录', goHome: '返回首页',
+        demoSite: '🎯 演示站点', demoDesc: '正在访问演示站点。', demoAccess: '进入演示', demoPreparing: '正在准备演示...' },
+};
+const lt = () => loadingTexts[getLang()] || loadingTexts.en;
 
 // Loading fallback
 const LoadingScreen = () => {
@@ -45,11 +71,13 @@ const LoadingScreen = () => {
 };
 
 // Error fallback
-const ErrorFallback = ({ error }) => (
+const ErrorFallback = ({ error }) => {
+  const t = lt();
+  return (
   <div className="global-error-fallback">
     <div className="global-error-content">
-      <h1 className="global-error-title">⚠️ 시스템 오류 발생</h1>
-      <p className="global-error-desc">애플리케이션을 로드하는 중 문제가 발생했습니다.</p>
+      <h1 className="global-error-title">{t.error}</h1>
+      <p className="global-error-desc">{t.errorDesc}</p>
       <pre className="global-error-pre">
         {error?.toString()}
       </pre>
@@ -71,11 +99,12 @@ const ErrorFallback = ({ error }) => (
             }
         }}
       >
-        새로고침 및 캐시 초기화 (Retry)
+        {t.retry}
       </button>
     </div>
   </div>
-);
+  );
+};
 
 // --- AUTH GUARD ---
 const RequireAuth = ({ children }) => {
@@ -92,12 +121,14 @@ const RequireAuth = ({ children }) => {
     return () => unsub();
   }, [navigate]);
 
-  if (!authChecked) return <div className="auth-checking">인증 확인 중...</div>;
+  if (!authChecked) return <div className="auth-checking">{lt().authCheck}</div>;
   if (!isAuthed) return null;
   return children;
 };
 
 // --- ADMIN GUARD (claims.role === admin/superadmin + studioId 일치) ---
+import { getCurrentStudioId } from './utils/resolveStudioId';
+
 const RequireAdmin = ({ children }) => {
   const [checked, setChecked] = useState(false);
   const [allowed, setAllowed] = useState(false);
@@ -112,7 +143,6 @@ const RequireAdmin = ({ children }) => {
         if (isDemoSite) {
           // 데모 사이트: 자동 익명 인증 후 접근 허용
           try {
-            const { signInAnonymously } = await import('firebase/auth');
             await signInAnonymously(auth);
             // onAuthStateChanged가 다시 호출됨
           } catch (e) {
@@ -139,7 +169,6 @@ const RequireAdmin = ({ children }) => {
 
         // 일반 어드민은 studioId 일치 필요
         if (role === 'admin') {
-          const { getCurrentStudioId } = await import('./utils/resolveStudioId');
           const currentStudioId = getCurrentStudioId();
           if (claims.studioId === currentStudioId) { setAllowed(true); setChecked(true); return; }
         }
@@ -159,7 +188,7 @@ const RequireAdmin = ({ children }) => {
     return () => unsub();
   }, [navigate]);
 
-  if (!checked) return <div className="auth-checking">권한 확인 중...</div>;
+  if (!checked) return <div className="auth-checking">{lt().permCheck}</div>;
   if (!allowed) {
     // [DEMO] 접근 거부 시에도 데모 사이트면 (혹은 데모 스튜디오면) 캐시 지우고 자동 새로고침
     const isDemoFallback = window.location.hostname.includes('passflow-demo') || localStorage.getItem('lastStudioId') === 'demo-yoga';
@@ -175,15 +204,15 @@ const RequireAdmin = ({ children }) => {
           navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
         }
         setTimeout(() => window.location.reload(), 500);
-        return <div className="auth-checking">데모 사이트 준비 중...</div>;
+        return <div className="auth-checking">{lt().demoPreparing}</div>;
       }
       // 새로고침 후에도 여전히 차단이면 → 수동 버튼
       return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#08080A', color: '#f0f0f0' }}>
           <div style={{ textAlign: 'center', padding: '40px' }}>
-            <h2 style={{ color: 'var(--primary-gold)', marginBottom: '16px' }}>🎯 데모 사이트</h2>
-            <p style={{ color: '#888', marginBottom: '20px' }}>데모 사이트에 접속합니다.</p>
-            <button onClick={() => { sessionStorage.removeItem(reloadKey); auth.signOut().then(() => window.location.reload()); }} style={{ padding: '12px 30px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}>데모 접속하기</button>
+            <h2 style={{ color: 'var(--primary-gold)', marginBottom: '16px' }}>{lt().demoSite}</h2>
+            <p style={{ color: '#888', marginBottom: '20px' }}>{lt().demoDesc}</p>
+            <button onClick={() => { sessionStorage.removeItem(reloadKey); auth.signOut().then(() => window.location.reload()); }} style={{ padding: '12px 30px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}>{lt().demoAccess}</button>
           </div>
         </div>
       );
@@ -191,9 +220,9 @@ const RequireAdmin = ({ children }) => {
     return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#08080A', color: '#f0f0f0' }}>
       <div style={{ textAlign: 'center', padding: '40px' }}>
-        <h2 style={{ color: '#EF4444', marginBottom: '16px' }}>🔒 접근 권한 없음</h2>
-        <p style={{ color: '#888' }}>이 업장의 관리자 권한이 없습니다.</p>
-        <button onClick={() => { auth.signOut(); navigate('/login'); }} style={{ marginTop: '20px', padding: '10px 20px', background: '#3B82F6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>로그아웃</button>
+        <h2 style={{ color: '#EF4444', marginBottom: '16px' }}>{lt().accessDenied}</h2>
+        <p style={{ color: '#888' }}>{lt().accessDeniedDesc}</p>
+        <button onClick={() => { auth.signOut(); navigate('/login'); }} style={{ marginTop: '20px', padding: '10px 20px', background: '#3B82F6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>{lt().logoutBtn}</button>
       </div>
     </div>
   );
@@ -238,15 +267,15 @@ const RequireSuperAdmin = ({ children }) => {
     return () => unsub();
   }, [navigate]);
 
-  if (!checked) return <div className="auth-checking">권한 확인 중...</div>;
+  if (!checked) return <div className="auth-checking">{lt().permCheck}</div>;
   if (!allowed) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#08080A', color: '#f0f0f0' }}>
       <div style={{ textAlign: 'center', padding: '40px' }}>
-        <h2 style={{ color: '#EF4444', marginBottom: '16px' }}>👑 슈퍼어드민 전용</h2>
-        <p style={{ color: '#888' }}>이 페이지는 플랫폼 관리자만 접근할 수 있습니다.</p>
+        <h2 style={{ color: '#EF4444', marginBottom: '16px' }}>{lt().superAdmin}</h2>
+        <p style={{ color: '#888' }}>{lt().superAdminDesc}</p>
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px' }}>
-          <button onClick={() => { auth.signOut().then(() => navigate('/login')); }} style={{ padding: '10px 20px', background: '#3B82F6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>관리자 계정 로그인</button>
-          <button onClick={() => { auth.signOut().then(() => window.location.href = '/'); }} style={{ padding: '10px 20px', background: '#333', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>홈으로 이동</button>
+          <button onClick={() => { auth.signOut().then(() => navigate('/login')); }} style={{ padding: '10px 20px', background: '#3B82F6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>{lt().adminLogin}</button>
+          <button onClick={() => { auth.signOut().then(() => window.location.href = '/'); }} style={{ padding: '10px 20px', background: '#333', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>{lt().goHome}</button>
         </div>
       </div>
     </div>

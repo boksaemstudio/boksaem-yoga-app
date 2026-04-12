@@ -20,7 +20,15 @@ import { translations } from '../utils/translations';
  */
 export const useLanguageStore = create((set, get) => ({
     language: (() => {
-        try { return localStorage.getItem('appLanguage') || 'ko'; }
+        try {
+            // [ROOT FIX] URL ?lang= 파라미터가 최우선 → localStorage → 기본값 'ko'
+            const urlLang = new URLSearchParams(window.location.search).get('lang');
+            if (urlLang && translations[urlLang]) {
+                localStorage.setItem('appLanguage', urlLang);
+                return urlLang;
+            }
+            return localStorage.getItem('appLanguage') || 'ko';
+        }
         catch { return 'ko'; }
     })(),
 

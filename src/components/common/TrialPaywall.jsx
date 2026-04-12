@@ -7,9 +7,9 @@ import { resolveStudioId } from '../../utils/resolveStudioId';
  * TrialPaywall — 2개월 무료 체험 만료 시 어드민 접근 차단
  * registry에서 trial 정보를 확인하고:
  *   - 만료 전: 상단 알림 배너 표시
- *   - 만료 후: 전체 차단 + Stripe 결제 유도
+ *   - 만료 후: 전체 차단 + PayPal 결제 유도
  */
-const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/TODO_REPLACE_WITH_REAL_LINK'; // TODO: 실제 Stripe link로 교체
+const PAYPAL_PAYMENT_LINK = 'https://paypal.me/passflowai/69USD';
 
 const TrialPaywall = ({ children }) => {
     const [trialInfo, setTrialInfo] = useState(null); // { status, trialEndDate, plan }
@@ -41,6 +41,30 @@ const TrialPaywall = ({ children }) => {
         };
         checkTrial();
     }, []);
+
+    useEffect(() => {
+        if (!trialInfo || trialInfo.status === 'active' || loading) return;
+
+        const now = new Date();
+        const trialEnd = trialInfo.trialEndDate ? new Date(trialInfo.trialEndDate) : null;
+        if (!trialEnd) return;
+
+        const daysLeft = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
+
+        // D-5 부터 매일 한 번씩 접속 시 알림
+        if (daysLeft > 0 && daysLeft <= 5) {
+            const todayStr = now.toLocaleDateString('sv-SE'); // YYYY-MM-DD
+            const lastAlert = localStorage.getItem('lastTrialAlertDate');
+
+            if (lastAlert !== todayStr) {
+                // 약간의 지연을 주어 UI가 렌더링된 후 뜨도록 함
+                setTimeout(() => {
+                    alert(`🚨 [안내] PassFlow AI 무료 체험 만료까지 ${daysLeft}일 남았습니다.\n서비스 중단을 막기 위해 연장을 진행해 주세요.`);
+                }, 500);
+                localStorage.setItem('lastTrialAlertDate', todayStr);
+            }
+        }
+    }, [trialInfo, loading]);
 
     if (loading) return null;
     if (!trialInfo) return children; // 기존 스튜디오 → 차단 없음
@@ -74,19 +98,45 @@ const TrialPaywall = ({ children }) => {
                         {trialInfo.name || '스튜디오'}의 2개월 무료 체험 기간이 만료되었습니다.<br/>
                         연간 $69 (약 10만원) 으로 모든 기능을 계속 사용하세요.
                     </p>
-                    <a href={STRIPE_PAYMENT_LINK} target="_blank" rel="noopener noreferrer" style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '8px',
-                        padding: '16px 32px', background: 'linear-gradient(135deg, #4ade80, #22c55e)',
-                        color: '#000', fontWeight: '800', fontSize: '1.1rem',
-                        borderRadius: '12px', textDecoration: 'none',
-                        boxShadow: '0 4px 20px rgba(74,222,128,0.3)',
-                        transition: 'transform 0.2s'
+                    
+                    <div style={{
+                        background: 'rgba(255,255,255,0.08)', borderRadius: '12px',
+                        padding: '20px', marginBottom: '24px', textAlign: 'left',
+                        border: '1px solid rgba(255,255,255,0.1)'
                     }}>
-                        💳 연간 플랜 결제하기 ($69/year)
+                        <div style={{ fontSize: '0.9rem', color: '#94a3b8', marginBottom: '8px' }}>🇰🇷 국내 계좌이체 (100,000원)</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '8px' }}>
+                            <div style={{ fontSize: '1.05rem', fontWeight: 'bold', color: '#fff', letterSpacing: '0.5px' }}>
+                                MG새마을 9003-2623-9687-7
+                                <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '4px', fontWeight: 'normal' }}>예금주: 송대민</div>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText('9003262396877');
+                                    alert('계좌번호가 복사되었습니다.');
+                                }}
+                                style={{
+                                    background: 'var(--primary-gold)', color: '#000', border: 'none',
+                                    padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem',
+                                    cursor: 'pointer', fontWeight: 'bold'
+                                }}
+                            >복사</button>
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '12px' }}>
+                            * 입금 후 <strong style={{ color: '#94a3b8' }}>motionpt@gmail.com</strong> (또는 도입 문의처)로 알려주시면 즉시 서비스가 연장됩니다.
+                        </div>
+                    </div>
+
+                    <a href={PAYPAL_PAYMENT_LINK} target="_blank" rel="noopener noreferrer" style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                        padding: '16px', background: 'linear-gradient(135deg, #0070ba, #1546a0)',
+                        color: '#fff', fontWeight: '800', fontSize: '1rem',
+                        borderRadius: '12px', textDecoration: 'none',
+                        boxShadow: '0 4px 20px rgba(0,112,186,0.3)',
+                        transition: 'transform 0.2s', width: '100%'
+                    }}>
+                        🌍 해외 결제: PayPal ($69)
                     </a>
-                    <p style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '16px' }}>
-                        문의: motionpt@gmail.com
-                    </p>
                 </div>
             </div>
         );
@@ -109,12 +159,12 @@ const TrialPaywall = ({ children }) => {
                     flexWrap: 'wrap'
                 }}>
                     <span>⏰ 무료 체험 D-{daysLeft} | 연간 $69로 연장하세요</span>
-                    <a href={STRIPE_PAYMENT_LINK} target="_blank" rel="noopener noreferrer" style={{
+                    <a href={PAYPAL_PAYMENT_LINK} target="_blank" rel="noopener noreferrer" style={{
                         padding: '6px 16px', background: 'rgba(0,0,0,0.3)',
                         color: '#fff', borderRadius: '20px', textDecoration: 'none',
                         fontWeight: '700', fontSize: '0.85rem', border: '1px solid rgba(255,255,255,0.3)'
                     }}>
-                        💳 결제하기
+                        💳 페이팔 연장
                     </a>
                 </div>
             )}

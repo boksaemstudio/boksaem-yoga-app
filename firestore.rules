@@ -234,5 +234,14 @@ service cloud.firestore {
     match /platform/{document=**} {
       allow read, write: if isAuth();
     }
+
+    // ========================================
+    // 📨 Inquiries - 해외 고객 문의 메시지
+    // ========================================
+    match /inquiries/{inquiryId} {
+      allow create: if true; // 비인증 사용자도 문의 가능 (랜딩 페이지)
+      allow read, update: if isAuth(); // 슈퍼어드민만 읽기/상태 변경
+      allow delete: if false; // 삭제 금지
+    }
   }
 }

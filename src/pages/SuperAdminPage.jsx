@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Buildings, Plus, Trash, Crown, X, UserCirclePlus, Lock, ShieldCheck, Eye, EyeSlash, Copy, Check, Globe, LinkSimple } from '@phosphor-icons/react';
+import { Buildings, Plus, Trash, Crown, X, UserCirclePlus, Lock, ShieldCheck, Eye, EyeSlash, Copy, Check, Globe, LinkSimple, ChatCircleDots, EnvelopeOpen, Translate } from '@phosphor-icons/react';
+import { getFirestore, collection, query, orderBy, limit, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { studioRegistryService } from '../services/studioRegistryService';
 import { getCurrentStudioId } from '../utils/resolveStudioId';
 import { useStudioConfig } from '../contexts/StudioContext';
@@ -33,7 +34,47 @@ const SuperAdminPage = () => {
     const [showPassword, setShowPassword] = useState({});
     const [resetting, setResetting] = useState(false);
 
+    // 문의 메시지
+    const [inquiries, setInquiries] = useState([]);
+    const [inquiriesLoading, setInquiriesLoading] = useState(false);
+    const [translating, setTranslating] = useState({});
+
     useEffect(() => { loadStudios(); }, []);
+
+    const loadInquiries = async () => {
+        setInquiriesLoading(true);
+        try {
+            const db = getFirestore();
+            const q = query(collection(db, 'inquiries'), orderBy('createdAt', 'desc'), limit(50));
+            const snap = await getDocs(q);
+            const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            setInquiries(list);
+        } catch (e) {
+            console.error('문의 로딩 실패:', e);
+        }
+        setInquiriesLoading(false);
+    };
+
+    const handleTranslate = async (inq) => {
+        setTranslating(p => ({ ...p, [inq.id]: true }));
+        try {
+            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=ko&dt=t&q=${encodeURIComponent(inq.message)}`);
+            const data = await res.json();
+            const translated = data[0].map(s => s[0]).join('');
+            setInquiries(prev => prev.map(i => i.id === inq.id ? { ...i, translatedMessage: translated } : i));
+        } catch (e) {
+            console.error('번역 실패:', e);
+        }
+        setTranslating(p => ({ ...p, [inq.id]: false }));
+    };
+
+    const handleMarkRead = async (inqId) => {
+        try {
+            const db = getFirestore();
+            await updateDoc(doc(db, 'inquiries', inqId), { status: 'read' });
+            setInquiries(prev => prev.map(i => i.id === inqId ? { ...i, status: 'read' } : i));
+        } catch (e) { console.error(e); }
+    };
 
     const loadStudios = async () => {
         setLoading(true);
@@ -293,6 +334,12 @@ const SuperAdminPage = () => {
                 </button>
                 <button onClick={() => setActiveSection('domains')} style={{ padding: '10px 20px', background: activeSection === 'domains' ? '#3B82F6' : 'rgba(255,255,255,0.05)', color: activeSection === 'domains' ? 'white' : '#aaa', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Globe size={18} /> 도메인 관리
+                </button>
+                <button onClick={() => { setActiveSection('inquiries'); if (inquiries.length === 0) loadInquiries(); }} style={{ padding: '10px 20px', background: activeSection === 'inquiries' ? '#8B5CF6' : 'rgba(255,255,255,0.05)', color: activeSection === 'inquiries' ? 'white' : '#aaa', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
+                    <ChatCircleDots size={18} /> 문의 메시지
+                    {inquiries.filter(i => i.status === 'new').length > 0 && (
+                        <span style={{ position: 'absolute', top: '-4px', right: '-4px', width: '18px', height: '18px', borderRadius: '50%', background: '#EF4444', color: '#fff', fontSize: '0.65rem', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{inquiries.filter(i => i.status === 'new').length}</span>
+                    )}
                 </button>
                 
                 <button onClick={() => window.open('https://analytics.google.com/analytics/web/#/p518971396/reports/intelligenthome', '_blank')} style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #10B981, #059669)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto', boxShadow: '0 4px 12px rgba(16,185,129,0.3)' }} title="Passflow Ai 및 요가원 방문자 트래픽 통계를 확인합니다">
@@ -712,6 +759,90 @@ const SuperAdminPage = () => {
                         <div>• '보관' 상태의 도메인은 아직 앱이 배포되지 않은 상태이며, 고객 온보딩 시 즉시 활성화됩니다.</div>
                         <div>• <strong>ssangmun-yoga</strong> (하이픈 포함)는 타 프로젝트에 선점되어 있어 <strong>ssangmunyoga</strong>로 운영 중입니다.</div>
                     </div>
+                </>
+            )}
+
+            {/* ═══ INQUIRIES ═══ */}
+            {activeSection === 'inquiries' && (
+                <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                        <h2 style={{ fontSize: '1.2rem', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <ChatCircleDots size={24} color="#8B5CF6" weight="duotone" /> 해외 고객 문의 메시지
+                        </h2>
+                        <button onClick={loadInquiries} style={{ padding: '8px 16px', background: 'rgba(139,92,246,0.15)', color: '#8B5CF6', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem' }}>
+                            🔄 새로고침
+                        </button>
+                    </div>
+
+                    {inquiriesLoading ? (
+                        <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>로딩 중...</div>
+                    ) : inquiries.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '60px 20px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                            <ChatCircleDots size={48} color="#555" weight="duotone" />
+                            <p style={{ color: '#888', marginTop: '12px' }}>아직 접수된 문의가 없습니다.</p>
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            {inquiries.map(inq => (
+                                <div key={inq.id} style={{ padding: '20px', background: inq.status === 'new' ? 'rgba(139,92,246,0.06)' : 'rgba(255,255,255,0.02)', border: `1px solid ${inq.status === 'new' ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.06)'}`, borderRadius: '14px', position: 'relative' }}>
+                                    {/* Header */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            {inq.status === 'new' && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#EF4444', animation: 'pulse 1.5s infinite' }} />}
+                                            <span style={{ fontWeight: '700', color: '#e0e0e0', fontSize: '0.95rem' }}>{inq.email}</span>
+                                            <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '8px', background: 'rgba(99,102,241,0.15)', color: '#6366f1' }}>{inq.lang?.toUpperCase()}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                            <span style={{ fontSize: '0.75rem', color: '#666' }}>
+                                                {inq.createdAt?.toDate ? inq.createdAt.toDate().toLocaleString('ko-KR') : '시간 미상'}
+                                            </span>
+                                            {inq.status === 'new' && (
+                                                <button onClick={() => handleMarkRead(inq.id)} style={{ padding: '4px 10px', fontSize: '0.72rem', background: 'rgba(16,185,129,0.1)', color: '#10B981', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
+                                                    ✅ 읽음
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Original message */}
+                                    <div style={{ padding: '14px', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', marginBottom: '8px' }}>
+                                        <div style={{ fontSize: '0.72rem', color: '#888', marginBottom: '6px', fontWeight: '600' }}>💬 원문</div>
+                                        <p style={{ margin: 0, color: '#d1d5db', fontSize: '0.9rem', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{inq.message}</p>
+                                    </div>
+
+                                    {/* Translation */}
+                                    {inq.translatedMessage ? (
+                                        <div style={{ padding: '14px', background: 'rgba(139,92,246,0.05)', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.1)' }}>
+                                            <div style={{ fontSize: '0.72rem', color: '#8B5CF6', marginBottom: '6px', fontWeight: '600' }}>🇰🇷 한국어 번역</div>
+                                            <p style={{ margin: 0, color: '#e0e0e0', fontSize: '0.9rem', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{inq.translatedMessage}</p>
+                                        </div>
+                                    ) : (
+                                        <button onClick={() => handleTranslate(inq)} disabled={translating[inq.id]}
+                                            style={{ padding: '8px 14px', fontSize: '0.8rem', background: 'rgba(139,92,246,0.1)', color: '#8B5CF6', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <Translate size={16} /> {translating[inq.id] ? '번역 중...' : '한국어로 번역'}
+                                        </button>
+                                    )}
+
+                                    {/* Reply action */}
+                                    <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                        <a href={`mailto:${inq.email}?subject=Re: PassFlow AI Inquiry`} target="_blank" rel="noopener noreferrer"
+                                            style={{ padding: '8px 14px', fontSize: '0.8rem', background: 'rgba(59,130,246,0.1)', color: '#3B82F6', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '8px', textDecoration: 'none', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <EnvelopeOpen size={16} /> 이메일로 답변
+                                        </a>
+                                        <button onClick={() => { navigator.clipboard.writeText(inq.email); }}
+                                            style={{ padding: '8px 14px', fontSize: '0.8rem', background: 'rgba(255,255,255,0.05)', color: '#aaa', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <Copy size={16} /> 이메일 복사
+                                        </button>
+                                        {inq.page && (
+                                            <span style={{ fontSize: '0.72rem', color: '#555', alignSelf: 'center' }}>📍 {inq.page}</span>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    <style>{`@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }`}</style>
                 </>
             )}
         </div>

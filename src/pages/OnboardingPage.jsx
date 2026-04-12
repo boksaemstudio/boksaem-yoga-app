@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Buildings, CheckCircle, ShieldCheck, ArrowRight, ArrowLeft, Spinner, Upload, MagicWand, Image as ImageIcon, CalendarBlank, ArrowsClockwise } from '@phosphor-icons/react';
+import { Buildings, CheckCircle, ShieldCheck, ArrowRight, ArrowLeft, Spinner, Upload, MagicWand, Image as ImageIcon, CalendarBlank, ArrowsClockwise, EnvelopeSimple } from '@phosphor-icons/react';
 import { studioRegistryService } from '../services/studioRegistryService';
 import { storage } from '../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -182,11 +182,23 @@ const OnboardingPage = () => {
             );
         }
         if (t.ctaType === 'email') {
+            const emailAddr = 'motionpt@gmail.com';
             return (
-                <a href={t.ctaUrl}
-                    style={{ ...buttonStyle, background: 'rgba(255,255,255,0.1)', color: '#fff', marginTop: '12px', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.15)' }}>
-                    📧 {t.kakaoBtn}
-                </a>
+                <div style={{ marginTop: '16px', padding: '20px', borderRadius: '16px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}>
+                    <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '12px', textAlign: 'center', fontWeight: '500' }}>
+                        {lang === 'ko' ? '또는 이메일로 문의하기' : 'Or contact us via email'}
+                    </div>
+                    <a href={t.ctaUrl} target="_blank" rel="noopener noreferrer"
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '14px 20px', borderRadius: '12px', background: 'linear-gradient(135deg, rgba(96,165,250,0.15), rgba(139,92,246,0.15))', border: '1px solid rgba(96,165,250,0.25)', color: '#93c5fd', textDecoration: 'none', fontWeight: '600', fontSize: '0.95rem', transition: 'all 0.2s' }}>
+                        <EnvelopeSimple size={20} weight="duotone" />
+                        {t.kakaoBtn}
+                    </a>
+                    <button onClick={() => { navigator.clipboard.writeText(emailAddr); const btn = document.getElementById('email-copy-btn'); if(btn) { btn.textContent = '✅ Copied!'; setTimeout(() => { btn.textContent = emailAddr; }, 2000); } }}
+                        id="email-copy-btn"
+                        style={{ display: 'block', width: '100%', marginTop: '8px', background: 'none', border: 'none', color: '#64748b', padding: '8px', cursor: 'pointer', fontSize: '0.8rem', transition: 'all 0.2s', textAlign: 'center', letterSpacing: '0.5px' }}>
+                        {emailAddr}
+                    </button>
+                </div>
             );
         }
         return null;
@@ -218,8 +230,8 @@ const OnboardingPage = () => {
                     <div style={{ textAlign: 'center', marginBottom: '32px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '24px' }}>
                             <img src="/assets/passflow_square_logo.png" alt="Logo" style={{ height: '56px', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }} />
-                            <div style={{ width: '220px', height: '60px', display: 'flex', alignItems: 'center', overflow: 'hidden', position: 'relative' }}>
-                                <img src="/assets/passflow_ai_logo_transparent.png" alt="PassFlow AI" style={{ position: 'absolute', height: '160px', left: '-9px', maxWidth: 'none', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))' }} />
+                            <div style={{ width: '220px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
+                                <img src="/assets/passflow_ai_logo_transparent.png" alt="PassFlow AI" style={{ position: 'absolute', height: '160px', left: '50%', transform: 'translateX(-50%)', maxWidth: 'none', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))' }} />
                             </div>
                         </div>
                         <h1 style={{ fontSize: '2rem', margin: '0 0 12px 0', fontWeight: '800' }}>{t.heroTitle}</h1>
@@ -457,6 +469,30 @@ const OnboardingPage = () => {
                                 </div>
                             </div>
                         )}
+
+                        {/* 초기 세팅 가이드 — i18n 기반 */}
+                        <div style={{ textAlign: 'left', background: 'rgba(255,255,255,0.05)', padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', marginBottom: '24px' }}>
+                            <h3 style={{ fontSize: '1.1rem', margin: '0 0 20px 0', color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                🚀 {t.setupGuideTitle}
+                            </h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', color: '#94a3b8', fontSize: '0.9rem', lineHeight: '1.6' }}>
+                                <div style={{ padding: '14px', background: 'rgba(96,165,250,0.06)', borderRadius: '12px', border: '1px solid rgba(96,165,250,0.1)' }}>
+                                    <strong style={{ color: '#fff', display: 'block', marginBottom: '6px' }}>{t.setupScheduleLabel}</strong>
+                                    {t.setupScheduleDesc}
+                                </div>
+                                <div style={{ padding: '14px', background: 'rgba(74,222,128,0.06)', borderRadius: '12px', border: '1px solid rgba(74,222,128,0.1)' }}>
+                                    <strong style={{ color: '#fff', display: 'block', marginBottom: '6px' }}>{t.setupMemberLabel}</strong>
+                                    {t.setupMemberDesc}
+                                </div>
+                                <div style={{ padding: '14px', background: 'rgba(251,191,36,0.06)', borderRadius: '12px', border: '1px solid rgba(251,191,36,0.1)' }}>
+                                    <strong style={{ color: '#fff', display: 'block', marginBottom: '6px' }}>{t.setupPricingLabel}</strong>
+                                    {t.setupPricingDesc}
+                                </div>
+                                <div style={{ fontSize: '0.85rem', color: '#64748b', padding: '0 4px' }}>
+                                    {t.setupLogoNote}
+                                </div>
+                            </div>
+                        </div>
 
                         {createdStudioId && (
                             <a href={adminUrl} target="_blank" rel="noopener noreferrer"

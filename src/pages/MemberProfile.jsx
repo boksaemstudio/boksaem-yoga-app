@@ -22,6 +22,7 @@ import AttendanceHistory from '../components/profile/AttendanceHistory';
 import RecentAttendance from '../components/profile/RecentAttendance';
 import ProfileTabs from '../components/profile/ProfileTabs';
 import MyStatsChart from '../components/profile/MyStatsChart';
+import BranchCrowdChart from '../components/profile/BranchCrowdChart';
 import MessagesTab from '../components/profile/MessagesTab';
 import ImageLightbox from '../components/common/ImageLightbox';
 
@@ -224,6 +225,7 @@ const MemberProfile = () => {
                             <div className="glass-panel" style={{ padding: '24px', marginBottom: '20px', background: 'rgba(20, 20, 20, 0.9)', border: '1px solid rgba(255,255,255,0.15)' }}>
                                 <MembershipInfo member={member} daysRemaining={daysRemaining} logs={validLogs} t={t} />
                                 <MyStatsChart logs={validLogs} />
+                                <BranchCrowdChart />
                                 <AISection aiExperience={aiExperience} weatherData={weatherData} greetingVisible={greetingVisible} t={t} getTraditionalYogaMessage={getTraditionalYogaMessage} />
                                 <HomeYogaSection language={language} t={t} mbti={mbti} />
                                 <RecentAttendance logs={validLogs} language={language} t={t} setActiveTab={setActiveTab} />

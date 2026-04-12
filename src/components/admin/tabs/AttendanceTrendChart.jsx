@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo, memo } from 'react';
-import { TrendUp, TrendDown, Equals, ChartLineUp, ChartBar, Fire, Users } from '@phosphor-icons/react';
+import { useState, useEffect, useMemo, memo, useRef, useCallback } from 'react';
+import { TrendUp, TrendDown, Equals, ChartLineUp, ChartBar, Fire, Users, Funnel, CalendarBlank } from '@phosphor-icons/react';
 import {
     ResponsiveContainer, LineChart, Line, XAxis, YAxis,
     CartesianGrid, Tooltip, LabelList
 } from 'recharts';
 import { storageService } from '../../../services/storage';
+import { useStudioConfig } from '../../../contexts/StudioContext';
 
 // ─── 주간 비교 요약 카드 (동일 시점 비교) ───
 const WeeklyComparisonCards = memo(({ thisWeekCount, lastWeekSameCount, lastWeekLabel }) => {
@@ -306,11 +307,30 @@ const NewVsReturningBar = memo(({ newCount, existingCount }) => {
 });
 NewVsReturningBar.displayName = 'NewVsReturningBar';
 
+// ─── 기간 표시 헬퍼 ───
+const formatPeriodLabel = (days) => {
+    if (days <= 14) return `${days}일`;
+    if (days < 60) return `${Math.round(days / 7)}주`;
+    return `${Math.round(days / 30)}개월`;
+};
+
 // ─── Main Component ───
 const AttendanceTrendChart = memo(({ selectedDate, members = [] }) => {
+    const { config } = useStudioConfig();
+    const branches = config?.BRANCHES || [];
     const [rawLogs, setRawLogs] = useState(null); // { dateStr: AttendanceLog[] }
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('daily'); // 'daily' | 'heatmap' | 'ranking'
+    const [branchFilter, setBranchFilter] = useState('all'); // 'all' | branchId
+    const [periodDays, setPeriodDays] = useState(28); // fetch 트리거용 (디바운스)
+    const [sliderDays, setSliderDays] = useState(28); // UI 즉시 반영용
+    const debounceRef = useRef(null);
+
+    const handlePeriodChange = useCallback((val) => {
+        setSliderDays(val);
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => setPeriodDays(val), 400);
+    }, []);
 
     const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
     const baseDate = selectedDate || todayStr;
@@ -322,7 +342,7 @@ const AttendanceTrendChart = memo(({ selectedDate, members = [] }) => {
         return map;
     }, [members]);
 
-    // Fetch 28 days of raw log data
+    // Fetch N days of raw log data (periodDays)
     useEffect(() => {
         let isMounted = true;
 
@@ -332,7 +352,7 @@ const AttendanceTrendChart = memo(({ selectedDate, members = [] }) => {
                 const datesToFetch = [];
                 const d = new Date(baseDate + 'T00:00:00+09:00');
 
-                for (let i = 0; i < 28; i++) {
+                for (let i = 0; i < periodDays; i++) {
                     const temp = new Date(d);
                     temp.setDate(temp.getDate() - i);
                     datesToFetch.push(temp.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }));
@@ -360,13 +380,21 @@ const AttendanceTrendChart = memo(({ selectedDate, members = [] }) => {
 
         fetchData();
         return () => { isMounted = false; };
-    }, [baseDate]);
+    }, [baseDate, periodDays]);
 
     // ─── Computed Data ───
     const computed = useMemo(() => {
         if (!rawLogs) return null;
 
-        const sortedDates = Object.keys(rawLogs).sort();
+        // ── 지점 필터 적용 ──
+        const filteredLogs = {};
+        Object.entries(rawLogs).forEach(([dateStr, logs]) => {
+            filteredLogs[dateStr] = branchFilter === 'all'
+                ? logs
+                : logs.filter(l => l.branchId === branchFilter);
+        });
+
+        const sortedDates = Object.keys(filteredLogs).sort();
         const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
         const thirtyDaysAgo = new Date(baseDate + 'T00:00:00+09:00');
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -383,7 +411,7 @@ const AttendanceTrendChart = memo(({ selectedDate, members = [] }) => {
         let totalNewCount = 0;
         let totalExistingCount = 0;
         const daily = sortedDates.map((dateStr, idx) => {
-            const logs = rawLogs[dateStr];
+            const logs = filteredLogs[dateStr];
             const count = logs.length;
             const isToday = dateStr === todayStr;
 
@@ -437,9 +465,9 @@ const AttendanceTrendChart = memo(({ selectedDate, members = [] }) => {
         sortedDates.forEach(dateStr => {
             const diff = Math.floor((bd.getTime() - new Date(dateStr + 'T00:00:00+09:00').getTime()) / (1000 * 60 * 60 * 24));
             if (diff >= 0 && diff <= mondayOffset) {
-                thisWeek += rawLogs[dateStr].length;
+                thisWeek += filteredLogs[dateStr].length;
             } else if (diff >= 7 && diff <= 7 + mondayOffset) {
-                lastWeekSame += rawLogs[dateStr].length;
+                lastWeekSame += filteredLogs[dateStr].length;
                 const dObj = new Date(dateStr + 'T00:00:00+09:00');
                 lastWeekDayNames.push(dayNames[dObj.getDay()]);
             }
@@ -452,7 +480,7 @@ const AttendanceTrendChart = memo(({ selectedDate, members = [] }) => {
         // ── 요일×시간대 히트맵 ──
         const heatmapData = {};
         sortedDates.forEach(dateStr => {
-            rawLogs[dateStr].forEach(log => {
+            filteredLogs[dateStr].forEach(log => {
                 if (!log.timestamp) return;
                 const ts = new Date(log.timestamp);
                 const dayIdx = ts.getDay(); // 0~6
@@ -469,7 +497,7 @@ const AttendanceTrendChart = memo(({ selectedDate, members = [] }) => {
         const classCounts = {};
         const instructorCounts = {};
         sortedDates.forEach(dateStr => {
-            rawLogs[dateStr].forEach(log => {
+            filteredLogs[dateStr].forEach(log => {
                 const cls = log.className || '일반';
                 const inst = log.instructor || '미지정';
                 classCounts[cls] = (classCounts[cls] || 0) + 1;
@@ -498,7 +526,7 @@ const AttendanceTrendChart = memo(({ selectedDate, members = [] }) => {
             totalNewCount,
             totalExistingCount
         };
-    }, [rawLogs, baseDate, todayStr, memberMap]);
+    }, [rawLogs, baseDate, todayStr, memberMap, branchFilter]);
 
     if (loading) {
         return (
@@ -543,7 +571,7 @@ const AttendanceTrendChart = memo(({ selectedDate, members = [] }) => {
             {/* Header */}
             <div style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                marginBottom: '16px', flexWrap: 'wrap', gap: '8px'
+                marginBottom: '12px', flexWrap: 'wrap', gap: '8px'
             }}>
                 <h3 className="card-label" style={{
                     margin: 0, color: 'var(--primary-gold)',
@@ -562,6 +590,66 @@ const AttendanceTrendChart = memo(({ selectedDate, members = [] }) => {
                     <button onClick={() => setActiveTab('ranking')} style={tabStyle(activeTab === 'ranking')}>
                         <Fire size={14} /> 인기 분석
                     </button>
+                </div>
+            </div>
+
+            {/* ─── 지점 + 기간 필터 ─── */}
+            <div style={{
+                display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap',
+                marginBottom: '16px', padding: '10px 12px',
+                background: 'rgba(255,255,255,0.02)', borderRadius: '10px',
+                border: '1px solid rgba(255,255,255,0.04)'
+            }}>
+                {/* 지점 필터 (다중 지점일 때만 표시) */}
+                {branches.length > 1 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Funnel size={14} color="var(--text-secondary)" />
+                        <select
+                            value={branchFilter}
+                            onChange={(e) => setBranchFilter(e.target.value)}
+                            style={{
+                                background: 'rgba(var(--primary-rgb), 0.08)',
+                                border: '1px solid rgba(var(--primary-rgb), 0.2)',
+                                borderRadius: '6px', padding: '5px 10px',
+                                color: 'var(--text-primary)', fontSize: '0.8rem',
+                                fontWeight: '600', cursor: 'pointer'
+                            }}
+                        >
+                            <option value="all">📊 전체 통합</option>
+                            {branches.map(b => (
+                                <option key={b.id} value={b.id}>{b.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+
+                {/* 기간 선택 — 슬라이더 */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '180px', marginLeft: branches.length > 1 ? '8px' : '0' }}>
+                    <CalendarBlank size={14} color="var(--text-secondary)" style={{ flexShrink: 0 }} />
+                    <span style={{
+                        fontSize: '0.75rem', fontWeight: '800', color: 'var(--primary-gold)',
+                        minWidth: '42px', textAlign: 'center', flexShrink: 0
+                    }}>
+                        {formatPeriodLabel(sliderDays)}
+                    </span>
+                    <input
+                        type="range"
+                        min={7}
+                        max={365}
+                        step={1}
+                        value={sliderDays}
+                        onChange={(e) => handlePeriodChange(Number(e.target.value))}
+                        style={{
+                            flex: 1, height: '4px', cursor: 'pointer',
+                            accentColor: 'var(--primary-gold)',
+                            WebkitAppearance: 'none', appearance: 'none',
+                            background: `linear-gradient(to right, var(--primary-gold) ${((sliderDays - 7) / (365 - 7)) * 100}%, rgba(255,255,255,0.1) ${((sliderDays - 7) / (365 - 7)) * 100}%)`,
+                            borderRadius: '2px', outline: 'none'
+                        }}
+                    />
+                    <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', flexShrink: 0, opacity: 0.5 }}>
+                        1년
+                    </span>
                 </div>
             </div>
 
@@ -678,14 +766,14 @@ const AttendanceTrendChart = memo(({ selectedDate, members = [] }) => {
             ) : activeTab === 'heatmap' ? (
                 <>
                     <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-                        최근 4주 기준, 요일×시간대별 출석 분포 (숫자 = 총 출석 수)
+                        최근 {formatPeriodLabel(periodDays)} 기준, 요일×시간대별 출석 분포 {branchFilter !== 'all' ? `(${branches.find(b => b.id === branchFilter)?.name || branchFilter})` : '(전체)'}
                     </div>
                     <HeatmapChart data={heatmapData} />
                 </>
             ) : (
                 <>
                     <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-                        최근 4주 기준, 수업/강사별 총 출석 수
+                        최근 {formatPeriodLabel(periodDays)} 기준, 수업/강사별 총 출석 수 {branchFilter !== 'all' ? `(${branches.find(b => b.id === branchFilter)?.name || branchFilter})` : '(전체)'}
                     </div>
                     <PopularityRanking classRanking={classRanking} instructorRanking={instructorRanking} />
                 </>

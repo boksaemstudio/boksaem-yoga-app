@@ -101,11 +101,7 @@ const AdminDashboard = () => {
     const navigate = useNavigate();
     const initialTab = new URLSearchParams(window.location.search).get('tab') || 'logs';
     const [activeTab, setActiveTab] = useState(initialTab);
-    const [viewMode, setViewMode] = useState(() => {
-        const stored = localStorage.getItem('dashboardViewMode');
-        if (stored) return stored;
-        return window.innerWidth <= 768 ? 'compact' : 'full';
-    });
+    const [isAllExpanded, setIsAllExpanded] = useState(false);
     // [Refactor] Use Custom Hook for Data & Logic
     const adminData = useAdminData(activeTab, 'all');
 
@@ -184,11 +180,11 @@ const AdminDashboard = () => {
         window.history.replaceState(null, '', `?tab=${tabId}`);
     };
 
-    // 뷰 모드 토글
-    const handleViewModeToggle = () => {
-        const newMode = viewMode === 'full' ? 'compact' : 'full';
-        setViewMode(newMode);
-        localStorage.setItem('dashboardViewMode', newMode);
+    // 전부 펼치기/접기 토글
+    const handleToggleAllCards = () => {
+        const next = !isAllExpanded;
+        setIsAllExpanded(next);
+        window.dispatchEvent(new CustomEvent('toggleAllCards', { detail: next }));
     };
 
     // Auth Logout
@@ -585,8 +581,8 @@ const AdminDashboard = () => {
                 activeTab={activeTab}
                 currentBranch={currentBranch}
                 handleBranchChange={handleBranchChange}
-                viewMode={viewMode}
-                handleViewModeToggle={handleViewModeToggle}
+                isAllExpanded={isAllExpanded}
+                handleToggleAllCards={handleToggleAllCards}
             />
 
             <AdminNav
@@ -663,7 +659,7 @@ const AdminDashboard = () => {
                 )}
 
                 {activeTab === 'revenue' && (
-                    <AdminRevenue members={members} sales={sales} currentBranch={currentBranch} revenueStats={revenueStats} viewMode={viewMode} />
+                    <AdminRevenue members={members} sales={sales} currentBranch={currentBranch} revenueStats={revenueStats} />
                 )}
 
                 {activeTab === 'pricing' && (
@@ -745,7 +741,6 @@ const AdminDashboard = () => {
                             onNoteClick={(m) => openModal('note', { member: m })}
                             todayReRegMemberIds={todayReRegMemberIds}
                             sales={sales}
-                            viewMode={viewMode}
                         />
                 </div>
             )}
@@ -775,7 +770,6 @@ const AdminDashboard = () => {
                         members={members}
                         onMemberClick={handleOpenEdit}
                         summary={extendedSummary}
-                        viewMode={viewMode}
                     />
                 )}
 

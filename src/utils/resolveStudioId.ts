@@ -31,7 +31,26 @@ export const resolveStudioId = (): string => {
     } 
     // 3-1. 데모앱 (리허설 + 고객 시연)
     else if (host.includes('passflow-demo') || host.includes('demo.passflow') || host.includes('passflowai')) {
-        targetStudioId = 'demo-yoga';
+        // 🌐 글로벌 데모: ?lang= 파라미터에 따라 언어별 데모 스튜디오로 라우팅
+        const langParam = params.get('lang');
+        const DEMO_LANG_MAP: Record<string, string> = {
+            'en': 'demo-yoga-en', 'us': 'demo-yoga-en',
+            'ja': 'demo-yoga-ja', 'jp': 'demo-yoga-ja',
+            'zh': 'demo-yoga-zh', 'cn': 'demo-yoga-zh',
+            'es': 'demo-yoga-es',
+            'fr': 'demo-yoga-fr',
+            'de': 'demo-yoga-de',
+            'pt': 'demo-yoga-pt', 'br': 'demo-yoga-pt',
+            'ru': 'demo-yoga-ru',
+            'in': 'demo-yoga-en',  // India → English demo
+            'au': 'demo-yoga-en',  // Australia → English demo
+            'ca': 'demo-yoga-en',  // Canada → English demo
+        };
+        if (langParam && DEMO_LANG_MAP[langParam]) {
+            targetStudioId = DEMO_LANG_MAP[langParam];
+        } else {
+            targetStudioId = 'demo-yoga';
+        }
     } 
     // 3-2. 쌍문요가
     else if (host.includes('ssangmunyoga.web.app') || host.includes('ssangmunyoga.firebaseapp.com')) {

@@ -31,8 +31,7 @@ const MembersTab = ({
     setActiveTab,
     onNoteClick,
     todayReRegMemberIds,
-    sales,
-    viewMode
+    sales
 }) => {
     const { config } = useStudioConfig();
     const branches = config.BRANCHES || [];
@@ -142,9 +141,7 @@ const MembersTab = ({
 
 
             {/* Summary Grid */}
-            <div className={`stats-grid`} style={viewMode === 'compact' ? { gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' } : {}}>
-                {viewMode === 'compact' ? (
-                    <>
+            <div className={`stats-grid`} style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
                         {/* 1. 활성 회원 (핵심 자산) */}
                         <div className={`dashboard-card interactive ${filterType === 'active' ? 'highlight' : ''}`}
                             onClick={() => handleToggleFilter('active')}
@@ -194,47 +191,7 @@ const MembersTab = ({
                                 <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#60A5FA' }}>{summary.bioMissingCount}명</div>
                             </div>
                         )}
-                    </>
-                ) : (
-                    <>
-                        <div className={`dashboard-card interactive ${filterType === 'all' ? 'highlight' : ''}`}
-                            onClick={() => handleToggleFilter('all')}>
-                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        전체 회원
-                        <div className="tooltip-container" onClick={e => e.stopPropagation()}>
-                            <Info size={14} style={{ opacity: 0.7 }} />
-                            <span className="tooltip-text">현재 지점에 등록된<br />모든 회원의 수입니다.<br />(삭제/탈퇴 회원 제외)</span>
-                        </div>
-                    </div>
-                    <div className="card-value">{summary.totalMembers}명</div>
-                </div>
-                <div className={`dashboard-card interactive ${filterType === 'active' ? 'highlight' : ''}`}
-                    onClick={() => handleToggleFilter('active')}>
-                    <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        활성 회원
-                        <div className="tooltip-container" onClick={e => e.stopPropagation()}>
-                            <Info size={14} style={{ opacity: 0.7 }} />
-                            <span className="tooltip-text">
-                                잔여 횟수가 1회 이상이며,<br />만료일이 지나지 않아 수강<br />자격이 유효한 회원입니다.
-                            </span>
-                        </div>
-                    </div>
-                    <div className="card-value gold">{summary.activeMembers}명</div>
-                </div>
-                <div className={`dashboard-card interactive ${filterType === 'attendance' ? 'highlight' : ''}`}
-                    onClick={() => handleToggleFilter('attendance')}>
-                    <div className="card-label">오늘 출석</div>
-                    <div className="card-value">{summary.todayAttendance}명 / <span style={{ fontSize: '1rem', opacity: 0.8 }}>{summary.totalAttendanceToday}회</span></div>
-                    {/* [NEW] Denied Stats Display */}
-                    {summary.deniedCount > 0 && (
-                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.1)', fontSize: '0.85rem', color: '#ff4d4f', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <span>⛔ 거부 {summary.deniedCount}명</span>
-                            <span style={{ fontSize: '0.75rem', opacity: 0.8, fontWeight: 'normal' }}>
-                                (기간만료 {summary.deniedExpiredCount || 0}, 횟수소진 {summary.deniedNoCreditsCount || 0})
-                            </span>
-                        </div>
-                    )}
-                </div>
+                    
                 <div className={`dashboard-card interactive ${filterType === 'registration' ? 'highlight' : ''}`}
                     onClick={() => handleToggleFilter('registration')}>
                     <div className="card-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
@@ -503,11 +460,8 @@ const MembersTab = ({
                         <div style={{ width: `${100 - (summary.facialDataRatio || 0)}%`, height: '100%', background: '#60A5FA', transition: 'width 0.5s ease' }}></div>
                     </div>
                 </div>
-            </>
-            )}
-        </div>
-
-            {/* Revenue Card (Visual Bar Chart Simulated) — 접기/펼치기 적용 */}
+            </div>
+        {/* Revenue Card (Visual Bar Chart Simulated) — 접기/펼치기 적용 */}
             {(() => {
                 const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
                 const month = now.getMonth() + 1;

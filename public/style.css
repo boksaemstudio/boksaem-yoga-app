@@ -2,7 +2,7 @@
     --primary: #d4af37;
     --primary-glow: rgba(212, 175, 55, 0.4);
     --primary-rgb: 212, 175, 55;
-    --bg-dark: #0a0a0c;
+    --bg-dark: #050507;
     --text-main: #ffffff;
     --text-muted: #a0a0b0;
     --glass-bg: rgba(255, 255, 255, 0.03);
@@ -73,12 +73,45 @@ button.large { padding: 14px 28px; font-size: 1.1rem; }
 .nav-links a:hover { opacity: 1; }
 .nav-hamburger { display: none; background: transparent; color: white; font-size: 1.5rem; border: none; padding: 5px 10px; }
 
+/* ── Centered Language Switcher (navbar) ── */
+.lang-switcher { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; z-index: 100; }
+.lang-switcher .lang-switcher-btn,
+.lang-switcher > button {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 8px;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.8); font-size: 0.85rem; font-weight: 500;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.lang-switcher .lang-switcher-btn:hover,
+.lang-switcher > button:hover {
+    background: rgba(255,255,255,0.1); border-color: rgba(212,175,55,0.3);
+}
+.lang-dropdown, #langDrop {
+    position: absolute; top: calc(100% + 8px);
+    left: 50%; transform: translateX(-50%);
+    min-width: 180px; max-height: 70vh; overflow-y: auto;
+    background: rgba(15,15,20,0.98); backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 12px;
+    padding: 6px; display: none; z-index: 1000;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+}
+.lang-dropdown.show, #langDrop[style*="display: block"], #langDrop[style*="display:block"] { display: block; }
+.lang-dropdown-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; border-radius: 8px;
+    text-decoration: none; font-size: 0.9rem;
+    color: rgba(255,255,255,0.85); transition: all 0.15s;
+}
+.lang-dropdown-link:hover { background: rgba(212,175,55,0.1); color: #d4af37; }
+.lang-dropdown-link.active { color: #d4af37; font-weight: 700; background: rgba(212,175,55,0.08); }
+
 .container { max-width: 1200px; margin: 0 auto; padding: 60px 5%; }
 .section-desc { text-align: center; margin-bottom: 30px; font-size: 1.1rem; }
 
 /* ── Hero ── */
 .hero { min-height: 75vh; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 60px 5% 0; }
-.hero-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('assets/hero_bg_ai.webp'); background-size: cover; background-position: center; opacity: 0.4; z-index: -1; mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%); -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%); }
+.hero-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('assets/hero_bg_ai.webp'); background-size: cover; background-position: center; opacity: 0.2; z-index: -1; mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%); -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%); }
 .hero-badge { display: inline-block; padding: 8px 16px; border-radius: 20px; background: rgba(212, 175, 55, 0.15); border: 1px solid rgba(212, 175, 55, 0.3); color: var(--primary); font-size: 0.9rem; }
 /* ── Features Page Styles ── */
 .features-header { padding: 160px 8% 80px; text-align: center; background: url('assets/hero_features_ai_meeting_bg.webp') center/cover; position: relative; box-sizing: border-box; }
@@ -288,11 +321,49 @@ button.large { padding: 14px 28px; font-size: 1.1rem; }
     .custom-showcase-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* ── Demo card responsive ── */
+.demo-card-enhanced {
+    background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: clamp(24px, 4vw, 40px) 24px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.4s;
+    position: relative;
+    overflow: hidden;
+}
+.demo-card-enhanced:hover { border-color: rgba(212,175,55,0.2); transform: translateY(-4px); }
+.demo-card-enhanced img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.demo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
 /* ── Mobile ── */
 @media (max-width: 768px) {
+    /* Demo grid: force single column on mobile */
+    .demo-grid,
+    [style*="grid-template-columns:repeat(2,1fr)"],
+    [style*="grid-template-columns: repeat(2, 1fr)"] {
+        grid-template-columns: 1fr !important;
+    }
+    .demo-card-enhanced { padding: 20px !important; }
+    .demo-card-enhanced img { height: 160px !important; }
     /* 타이틀 & 텍스트 */
-    h1 { font-size: 1.8rem; line-height: 1.35; word-break: keep-all; }
-    h2 { font-size: 1.5rem; line-height: 1.35; word-break: keep-all; }
+    h1 { font-size: 1.8rem; line-height: 1.35; word-break: keep-all; overflow-wrap: break-word; }
+    h2 { font-size: 1.5rem; line-height: 1.35; word-break: keep-all; overflow-wrap: break-word; }
     p { font-size: 0.95rem; }
 
     /* 네비게이션 */
@@ -307,6 +378,27 @@ button.large { padding: 14px 28px; font-size: 1.1rem; }
     .nav-links.open { display: flex; }
     .nav-links a { margin-left: 0; font-size: 1.05rem; opacity: 1; padding: 8px 0; }
     .nav-hamburger { display: block; }
+
+    /* 모바일: 언어 선택기를 햄버거 메뉴 왼쪽으로 이동 (겹침 방지) */
+    .lang-switcher {
+        position: static !important;
+        left: auto !important; transform: none !important;
+        margin-left: auto; margin-right: 8px;
+    }
+    .lang-dropdown, #langDrop {
+        left: auto !important; right: 0 !important;
+        transform: none !important;
+    }
+
+    /* CTA 버튼 긴 텍스트 방어 (DE/RU 등) */
+    .single-plan-card a[class*="btn"],
+    .single-plan-card a[style*="border-radius:30px"],
+    .single-plan-card a[style*="border-radius: 12px"] {
+        word-break: keep-all;
+        overflow-wrap: break-word;
+        font-size: clamp(0.85rem, 3vw, 1.05rem) !important;
+        padding: 14px 16px !important;
+    }
 
     /* Hero — 네비바에 가리지 않도록 padding-top 추가 */
     .hero { padding-top: 80px; min-height: auto; padding-bottom: 40px; }

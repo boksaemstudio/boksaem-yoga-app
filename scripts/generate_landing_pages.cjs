@@ -14,7 +14,7 @@ const pages = {
     currency: 'BRL', price: '349', symbol: 'R$', monthly: 'R$29', priceLabel: 'R$349',
     tagline: 'Gestão com IA para Academias, Yoga e Pilates',
     h1: 'Você ensina. <span class="gradient-text">A gente cuida do resto.</span>',
-    sub: 'Pare de pagar caro por sistemas complicados.<br>Check-in com IA, agendamentos, gestão de alunos — tudo em um só lugar. <strong style="color:#d4af37;">R$349/ano, não por mês.</strong>',
+    sub: 'Pare de pagar caro por sistemas complicados.<br><strong style="color:#d4af37;">R$349/ano, não por mês.</strong>',
     feat1: 'Sem Recepcionista', feat1d: 'Coloque um tablet na entrada.<br>Alunos entram por reconhecimento facial ou PIN — sem funcionário.',
     feat2: 'Desconto Automático', feat2d: 'Aulas descontadas automaticamente no check-in. Vencimentos acompanhados em tempo real.',
     feat3: 'Relatórios com Um Toque', feat3d: 'Quem veio, quanto faturou, quais alunos correm risco de abandono. Estatísticas direto no celular.',
@@ -37,7 +37,7 @@ const pages = {
     currency: 'EUR', price: '59', symbol: '€', monthly: '4,92€', priceLabel: '59€',
     tagline: 'Gestion IA pour Salles de Sport, Yoga et Pilates',
     h1: 'Vous enseignez. <span class="gradient-text">On s\'occupe du reste.</span>',
-    sub: 'Arrêtez de surpayer pour un logiciel compliqué.<br>Check-in IA, réservations, gestion clients — tout-en-un. <strong style="color:#d4af37;">59€ par an, pas par mois.</strong>',
+    sub: 'Arrêtez de surpayer pour un logiciel compliqué.<br><strong style="color:#d4af37;">59€ par an, pas par mois.</strong>',
     feat1: 'Sans Réceptionniste', feat1d: 'Placez une tablette à l\'entrée.<br>Les membres s\'enregistrent par reconnaissance faciale ou code PIN.',
     feat2: 'Déduction Automatique', feat2d: 'Les séances se déduisent automatiquement lors du check-in. Dates d\'expiration suivies en temps réel.',
     feat3: 'Rapports en Un Clic', feat3d: 'Qui est venu, combien de CA aujourd\'hui, quels membres risquent de partir.<br>Stats claires sur votre mobile.',
@@ -60,7 +60,7 @@ const pages = {
     currency: 'EUR', price: '59', symbol: '€', monthly: '4,92€', priceLabel: '59€',
     tagline: 'KI-Verwaltung für Fitnessstudios, Yoga & Pilates',
     h1: 'Du trainierst. <span class="gradient-text">Wir kümmern uns um den Rest.</span>',
-    sub: 'Schluss mit überteuerten Studio-Programmen.<br>KI-Check-in, Buchungen, Mitgliederverwaltung — alles in einem. <strong style="color:#d4af37;">59€ pro Jahr, nicht pro Monat.</strong>',
+    sub: 'Schluss mit überteuerten Studio-Programmen.<br><strong style="color:#d4af37;">59€ pro Jahr, nicht pro Monat.</strong>',
     feat1: 'Kein Empfang Nötig', feat1d: 'Einfach ein Tablet am Eingang aufstellen.<br>Mitglieder checken per Gesichtserkennung oder PIN ein — kein Personal nötig.',
     feat2: 'Automatische Abrechnung', feat2d: 'Einheiten werden beim Check-in automatisch abgezogen. Ablaufdaten in Echtzeit verfolgt.',
     feat3: 'Tagesberichte mit einem Tipp', feat3d: 'Wer war da, wie viel Umsatz heute, welche Mitglieder drohen abzuwandern.<br>Klare Statistik aufs Handy.',
@@ -83,7 +83,7 @@ const pages = {
     currency: 'AUD', price: '99', symbol: 'A$', monthly: 'A$8.25', priceLabel: 'A$99',
     tagline: 'AI-Powered for Gyms, Yoga & Pilates Studios in Australia',
     h1: 'You teach. <span class="gradient-text">We handle everything else.</span>',
-    sub: 'Stop overpaying for bloated studio software.<br>AI check-in, booking, member management — all in one. <strong style="color:#d4af37;">A$99 per year, not per month.</strong>',
+    sub: 'Stop overpaying for bloated studio software.<br><strong style="color:#d4af37;">A$99 per year, not per month.</strong>',
     feat1: 'No Front Desk Needed', feat1d: 'Place a tablet at your entrance.<br>Members check in with their face or PIN — no staff required.',
     feat2: 'Auto Credit Deduction', feat2d: 'Credits deduct automatically on check-in. Expiry dates tracked in real-time. No more manual counting.',
     feat3: 'Daily Reports in 1 Tap', feat3d: 'Who came in, how much revenue today, which members are at risk of churning. Clean stats, straight to your phone.',
@@ -106,7 +106,7 @@ const pages = {
     currency: 'CAD', price: '89', symbol: 'C$', monthly: 'C$7.42', priceLabel: 'C$89',
     tagline: 'AI-Powered for Gyms, Yoga & Pilates Studios in Canada',
     h1: 'You teach. <span class="gradient-text">We handle everything else.</span>',
-    sub: 'Stop overpaying for bloated studio software.<br>AI check-in, booking, member management — all in one. <strong style="color:#d4af37;">C$89 per year, not per month.</strong>',
+    sub: 'Stop overpaying for bloated studio software.<br><strong style="color:#d4af37;">C$89 per year, not per month.</strong>',
     feat1: 'No Front Desk Needed', feat1d: 'Place a tablet at your entrance.<br>Members check in with their face or PIN — no staff required.',
     feat2: 'Auto Credit Deduction', feat2d: 'Credits deduct automatically on check-in. Expiry dates tracked in real-time. No more manual counting.',
     feat3: 'Daily Reports in 1 Tap', feat3d: 'Who came in, how much revenue today, which members are at risk of churning. Clean stats, straight to your phone.',
@@ -124,18 +124,25 @@ const pages = {
   }
 };
 
+function getLangDropdownStr(currentPath) {
+  const isCode = (baseCode) => currentPath === (baseCode === 'ko' ? 'home.html' : `${baseCode}/home.html`);
+  return `
+                    <a href="/home.html"${isCode('ko')?' class="active" style="color:#d4af37;font-weight:600;"':''} style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;">🇰🇷 한국어</a>
+                    <a href="/en/home.html"${isCode('en')?' class="active" style="color:#d4af37;font-weight:600;"':''} style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;">🇺🇸 English (US)</a>
+                    <a href="/ja/home.html"${isCode('ja')?' class="active" style="color:#d4af37;font-weight:600;"':''} style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;">🇯🇵 日本語</a>
+                    <a href="/ru/home.html"${isCode('ru')?' class="active" style="color:#d4af37;font-weight:600;"':''} style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;">🇷🇺 Русский</a>
+                    <a href="/zh/home.html"${isCode('zh')?' class="active" style="color:#d4af37;font-weight:600;"':''} style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;">🇨🇳 中文</a>
+                    <a href="/es/home.html"${isCode('es')?' class="active" style="color:#d4af37;font-weight:600;"':''} style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;">🇪🇸 Español</a>
+                    <a href="/pt/home.html"${isCode('pt')?' class="active" style="color:#d4af37;font-weight:600;"':''} style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;">🇧🇷 Português</a>
+                    <a href="/fr/home.html"${isCode('fr')?' class="active" style="color:#d4af37;font-weight:600;"':''} style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;">🇫🇷 Français</a>
+                    <a href="/de/home.html"${isCode('de')?' class="active" style="color:#d4af37;font-weight:600;"':''} style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;">🇩🇪 Deutsch</a>
+                    <a href="/in/home.html"${isCode('in')?' class="active" style="color:#d4af37;font-weight:600;"':''} style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;">🇮🇳 India (EN)</a>
+                    <a href="/au/home.html"${isCode('au')?' class="active" style="color:#d4af37;font-weight:600;"':''} style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;">🇦🇺 Australia</a>
+                    <a href="/ca/home.html"${isCode('ca')?' class="active" style="color:#d4af37;font-weight:600;"':''} style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;">🇨🇦 Canada</a>`;
+}
+
 function generatePage(code, p) {
-  const langDropdown = `
-                    <a href="/en/home.html">🇺🇸 English</a>
-                    <a href="/es/home.html"${code==='es'?' class="active"':''}>🇪🇸 Español</a>
-                    <a href="/pt/home.html"${code==='pt'?' class="active"':''}>🇧🇷 Português</a>
-                    <a href="/fr/home.html"${code==='fr'?' class="active"':''}>🇫🇷 Français</a>
-                    <a href="/de/home.html"${code==='de'?' class="active"':''}>🇩🇪 Deutsch</a>
-                    <a href="/au/home.html"${code==='au'?' class="active"':''}>🇦🇺 Australia</a>
-                    <a href="/ca/home.html"${code==='ca'?' class="active"':''}>🇨🇦 Canada</a>
-                    <a href="/ja/home.html">🇯🇵 日本語</a>
-                    <a href="/ru/home.html">🇷🇺 Русский</a>
-                    <a href="/zh/home.html">🇨🇳 中文</a>`;
+  const langDropdown = getLangDropdownStr(code+'/home.html');
 
   return `<!DOCTYPE html>
 <html lang="${p.lang}">

@@ -51,6 +51,18 @@ const CollapsibleCard = ({
         }
     }, [effectiveDefaultOpen, id]);
 
+    useEffect(() => {
+        const handler = (e) => {
+            const next = e.detail;
+            setIsOpen(next);
+            const s = getStoredState();
+            s[id] = next;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+        };
+        window.addEventListener('toggleAllCards', handler);
+        return () => window.removeEventListener('toggleAllCards', handler);
+    }, [id]);
+
     const handleToggle = (e) => {
         e.stopPropagation();
         const next = !isOpen;

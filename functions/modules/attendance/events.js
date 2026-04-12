@@ -123,7 +123,17 @@ exports.onAttendanceCreated = onDocumentCreated({
                         } catch (sendError) {
                             console.warn(`[Instructor Push] Send failed for token ${token.substring(0, 20)}...: ${sendError.code}`);
                             if (sendError.code === 'messaging/invalid-registration-token' || sendError.code === 'messaging/registration-token-not-registered') {
-                                await tdb.collection('fcm_tokens').doc(token).delete().catch(() => {});
+                                try {
+                                    await tdb.collection('fcm_tokens').doc(token).delete();
+                                    console.log(`[FCM Cleanup] ✅ Dead instructor token purged: ${token.substring(0, 20)}...`);
+                                } catch (delErr) {
+                                    console.warn(`[FCM Cleanup] ⚠️ Doc delete failed (${delErr.message}), trying query-based cleanup...`);
+                                    try {
+                                        const snap = await tdb.collection('fcm_tokens').where('token', '==', token).get();
+                                        for (const d of snap.docs) await d.ref.delete();
+                                        if (snap.size > 0) console.log(`[FCM Cleanup] ✅ Query-purged ${snap.size} stale token doc(s)`);
+                                    } catch (_) {}
+                                }
                             }
                         }
                     }
@@ -163,7 +173,17 @@ exports.onAttendanceCreated = onDocumentCreated({
                     } catch (sendError) {
                         console.warn(`[Admin Push] Send failed for token ${token.substring(0, 20)}...: ${sendError.code}`);
                         if (sendError.code === 'messaging/invalid-registration-token' || sendError.code === 'messaging/registration-token-not-registered') {
-                            await tdb.collection('fcm_tokens').doc(token).delete().catch(() => {});
+                            try {
+                                await tdb.collection('fcm_tokens').doc(token).delete();
+                                console.log(`[FCM Cleanup] ✅ Dead admin token purged: ${token.substring(0, 20)}...`);
+                            } catch (delErr) {
+                                console.warn(`[FCM Cleanup] ⚠️ Doc delete failed (${delErr.message}), trying query-based cleanup...`);
+                                try {
+                                    const snap = await tdb.collection('fcm_tokens').where('token', '==', token).get();
+                                    for (const d of snap.docs) await d.ref.delete();
+                                    if (snap.size > 0) console.log(`[FCM Cleanup] ✅ Query-purged ${snap.size} stale token doc(s)`);
+                                } catch (_) {}
+                            }
                         }
                     }
                 }
@@ -224,7 +244,15 @@ exports.onAttendanceCreated = onDocumentCreated({
                             });
                         } catch (sendErr) {
                             if (sendErr.code === 'messaging/invalid-registration-token' || sendErr.code === 'messaging/registration-token-not-registered') {
-                                await tdb.collection('fcm_tokens').doc(token).delete().catch(() => {});
+                                try {
+                                    await tdb.collection('fcm_tokens').doc(token).delete();
+                                    console.log(`[FCM Cleanup] ✅ Dead member token purged: ${token.substring(0, 20)}...`);
+                                } catch (delErr) {
+                                    try {
+                                        const snap = await tdb.collection('fcm_tokens').where('token', '==', token).get();
+                                        for (const d of snap.docs) await d.ref.delete();
+                                    } catch (_) {}
+                                }
                             }
                         }
                     }

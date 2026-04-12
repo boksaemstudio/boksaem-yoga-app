@@ -5,7 +5,7 @@ import CollapsibleCard from './admin/CollapsibleCard';
 import { useRevenueStats } from '../hooks/useRevenueStats';
 import { useStudioConfig } from '../contexts/StudioContext';
 
-const AdminRevenue = ({ members, sales, currentBranch, revenueStats, viewMode }) => {
+const AdminRevenue = ({ members, sales, currentBranch, revenueStats }) => {
     const { config } = useStudioConfig();
     const branches = config.BRANCHES || [];
     const getBranchName = (id) => branches.find(b => b.id === id)?.name || id;
@@ -39,31 +39,7 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats, viewMode })
 
             {/* Total Month Summary */}
             <CollapsibleCard id="revenue-summary" title={`${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월 총 매출 요약`} titleExtra={`${formatCurrency(monthlyStats.totalRevenue)}원`} defaultOpen={true}>
-                <div className="dashboard-card revenue-summary-card" style={{ marginTop: '0', overflow: 'hidden', padding: viewMode === 'compact' ? '16px' : '20px' }}>
-                    {viewMode === 'compact' ? (
-                        /* [HONEST ANALYSIS] Ultra-compact view for mobile leaders */
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>오늘 매출</div>
-                                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--primary-theme-color)', lineHeight: 1 }}>{formatCurrency(comparativeStats.today)}원</div>
-                            </div>
-                            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>이번 달 누적</div>
-                                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#fff', lineHeight: 1 }}>{formatCurrency(monthlyStats.totalRevenue)}원</div>
-                            </div>
-                            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>신규 비중</div>
-                                <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#4ade80' }}>
-                                    {monthlyStats.totalRevenue > 0 ? Math.round((monthlyStats.totalRevenueNew / monthlyStats.totalRevenue) * 100) : 0}% 
-                                    <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', marginLeft:'4px', fontWeight:400 }}>({formatCurrency(monthlyStats.totalRevenueNew)}원)</span>
-                                </div>
-                            </div>
-                            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>총 결제 건수</div>
-                                <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff' }}>{monthlyStats.totalCount}건</div>
-                            </div>
-                        </div>
-                    ) : (
+                <div className="dashboard-card revenue-summary-card" style={{ marginTop: '0', overflow: 'hidden', padding: '20px' }}>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                             <div style={{ flex: '1 1 auto', minWidth: '240px' }}>
                                 <div className="revenue-summary-title">
@@ -106,20 +82,16 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats, viewMode })
                                 </div>
                             </div>
                         </div>
-                    )}
                 </div>
             </CollapsibleCard>
 
             {/* Revenue Graph (Straight Line) */}
-            {viewMode !== 'compact' && (
-                <CollapsibleCard id="revenue-daily" title="📈 최근 14일 일별 매출" defaultOpen={true}>
-                    <StraightLineChart data={recentTrend} branches={branches} showBranches={currentBranch === 'all' && branches.length > 1} />
-                </CollapsibleCard>
-            )}
+            <CollapsibleCard id="revenue-daily" title="📈 최근 14일 일별 매출" defaultOpen={true}>
+                <StraightLineChart data={recentTrend} branches={branches} showBranches={currentBranch === 'all' && branches.length > 1} />
+            </CollapsibleCard>
 
             {/* Monthly Bar Chart */}
-            {viewMode !== 'compact' && (
-                <CollapsibleCard id="revenue-monthly" title="📊 월별 매출 추이 (최근 6개월)" defaultOpen={true}>
+            <CollapsibleCard id="revenue-monthly" title="📊 월별 매출 추이 (최근 6개월)" defaultOpen={true}>
                 <div style={{ height: '360px', display: 'flex', flexDirection: 'column' }}>
                     <div style={{ flex: 1, minHeight: 0 }}>
                         <ResponsiveContainer width="100%" height="100%">
@@ -211,11 +183,10 @@ const AdminRevenue = ({ members, sales, currentBranch, revenueStats, viewMode })
                         </ResponsiveContainer>
                     </div>
                 </div>
-                </CollapsibleCard>
-            )}
+            </CollapsibleCard>
 
             {/* Membership Type Sales */}
-            {membershipSales && membershipSales.length > 0 && viewMode !== 'compact' && (
+            {membershipSales && membershipSales.length > 0 && (
                 <CollapsibleCard id="revenue-membership" title="🏷️ 회원권별 판매 현황" titleExtra={`${membershipSales.length}종`} defaultOpen={true}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {membershipSales.map((ms, idx) => {
