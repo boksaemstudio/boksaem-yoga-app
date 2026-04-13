@@ -1,5 +1,6 @@
 import MemberScheduleCalendar from '../../MemberScheduleCalendar';
 import { useStudioConfig } from '../../../contexts/StudioContext';
+import { useLanguageStore } from '../../../stores/useLanguageStore';
 
 const ScheduleTab = ({
     t,
@@ -16,6 +17,7 @@ const ScheduleTab = ({
     setLightboxImage,
     member
 }) => {
+
     const { config } = useStudioConfig();
     const viewToggleStyle = {
         border: 'none',

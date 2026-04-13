@@ -1,7 +1,9 @@
 
 import { Icons } from '../CommonIcons';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 const PWAInstallPrompts = ({ isInStandaloneMode, isInAppBrowser, isIOS, installPrompt, handleInstallClick, t }) => {
+
     if (isInStandaloneMode || isInAppBrowser) {
         if (isInAppBrowser) {
             return (

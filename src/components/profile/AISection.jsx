@@ -1,7 +1,9 @@
 import React from 'react';
 import { Icons } from '../CommonIcons';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 const AISection = ({ aiExperience, weatherData, greetingVisible, t, getTraditionalYogaMessage }) => {
+
     // [FIX] Clean up AI messages that sound like system errors or negative states
     const getCleanMessage = () => {
         const raw = aiExperience?.message || getTraditionalYogaMessage();

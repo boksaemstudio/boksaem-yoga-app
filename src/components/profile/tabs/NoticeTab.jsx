@@ -1,4 +1,5 @@
 import * as Icons from '@phosphor-icons/react';
+import { useLanguageStore } from '../../../stores/useLanguageStore';
 
 const NoticeTab = ({
     t,
@@ -7,6 +8,7 @@ const NoticeTab = ({
     setSelectedNoticeId,
     setLightboxImage
 }) => {
+
     return (
         <div className="fade-in">
             <div style={{ padding: '0 5px 20px' }}>

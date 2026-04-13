@@ -4,8 +4,10 @@ import { getMembershipLabel } from '../../utils/membershipLabels';
 import { toKSTDateString } from '../../utils/dates';
 import { functions } from '../../firebase';
 import { httpsCallable } from 'firebase/functions';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 const MembershipInfo = ({ member, daysRemaining, logs = [], t }) => {
+
     const { config } = useStudioConfig();
     const [showHoldModal, setShowHoldModal] = useState(false);
     const [holdDays, setHoldDays] = useState(7);

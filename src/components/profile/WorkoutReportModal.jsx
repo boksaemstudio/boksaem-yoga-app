@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { getTranslatedClass } from '../../utils/classMapping';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 const WorkoutReportModal = ({ log, onClose, t }) => {
+
     const [animationState, setAnimationState] = useState(false);
 
     useEffect(() => {

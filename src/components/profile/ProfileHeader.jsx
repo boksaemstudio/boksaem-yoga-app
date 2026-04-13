@@ -1,7 +1,9 @@
 import React from 'react';
 import LanguageSelector from '../LanguageSelector';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 const ProfileHeader = ({ logo, studioName, langLabelIndex, langLabels, t, logout }) => {
+
     return (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 10px', paddingTop: 'max(20px, env(safe-area-inset-top))' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

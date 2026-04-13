@@ -5,8 +5,10 @@ import { getHolidayName } from '../../utils/holidays';
 import { useStudioConfig } from '../../contexts/StudioContext';
 import { getMembershipLabel } from '../../utils/membershipLabels';
 import WorkoutReportModal from './WorkoutReportModal';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 const AttendanceHistory = ({ logs, member, language, t, aiAnalysis, onDelete, isSubmitting, logLimit, setLogLimit }) => {
+
     const { config } = useStudioConfig();
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
     const [currentDate, setCurrentDate] = useState(new Date());

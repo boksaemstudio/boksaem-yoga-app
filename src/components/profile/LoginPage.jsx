@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import LanguageSelector from '../LanguageSelector';
 import { profileStyles } from './profileStyles';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 /**
  * LoginPage — 회원 로그인 화면
  * MemberProfile.jsx에서 추출 (~100줄)
  */
 const LoginPage = ({ config, t, onLogin, loading }) => {
+
     const { authInput: authInputStyle, authButton: authButtonStyle } = profileStyles;
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
