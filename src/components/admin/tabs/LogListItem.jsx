@@ -13,6 +13,7 @@ const LogListItem = memo(({
     onImageClick, getBranchName, getBranchColor, getBranchThemeColor,
     summary, sessionRank, totalSessions, isMultiAttMember
 }) => {
+    const t = useLanguageStore(s => s.t);
     const handleClick = () => {
         if (log.memberId && onMemberClick) {
             const member = members.find(m => m.id === log.memberId);
