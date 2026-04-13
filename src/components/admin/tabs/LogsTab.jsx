@@ -12,6 +12,7 @@ import CollapsibleCard from '../CollapsibleCard';
 
 // ─── Mini Calendar Popup ───
 const MiniCalendar = memo(({ selectedDate, onSelect, onClose, config }) => {
+    const t = useLanguageStore(s => s.t);
     const themeColor = config?.THEME?.PRIMARY_COLOR || 'var(--primary-gold)';
     const sel = new Date(selectedDate + 'T00:00:00+09:00');
     const [viewYear, setViewYear] = useState(sel.getFullYear());

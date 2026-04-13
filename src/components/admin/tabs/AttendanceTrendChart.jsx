@@ -10,6 +10,7 @@ import { useStudioConfig } from '../../../contexts/StudioContext';
 
 // ─── 주간 비교 요약 카드 (동일 시점 비교) ───
 const WeeklyComparisonCards = memo(({ thisWeekCount, lastWeekSameCount, lastWeekLabel }) => {
+    const t = useLanguageStore(s => s.t);
     const diff = thisWeekCount - lastWeekSameCount;
     const pct = lastWeekSameCount > 0
         ? Math.round((diff / lastWeekSameCount) * 100)
@@ -100,6 +101,7 @@ const DailyTooltip = ({ active, payload }) => {
 
 // ─── 요일×시간대 히트맵 ───
 const HeatmapChart = memo(({ data }) => {
+    const t = useLanguageStore(s => s.t);
     // data: { [dayIdx]: { [hourBucket]: count } }
     const dayLabels = ['월', '화', '수', '목', '금', '토', '일'];
     const hourBuckets = ['06', '08', '10', '12', '14', '16', '18', '20'];
@@ -199,6 +201,7 @@ HeatmapChart.displayName = 'HeatmapChart';
 
 // ─── 수업/강사 인기 랭킹 ───
 const PopularityRanking = memo(({ classRanking, instructorRanking }) => {
+    const t = useLanguageStore(s => s.t);
     return (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             {/* 수업 랭킹 */}
@@ -266,6 +269,7 @@ PopularityRanking.displayName = 'PopularityRanking';
 
 // ─── 신규/기존 회원 비율 ───
 const NewVsReturningBar = memo(({ newCount, existingCount }) => {
+    const t = useLanguageStore(s => s.t);
     const total = newCount + existingCount;
     if (total === 0) return null;
     const newPct = Math.round((newCount / total) * 100);
@@ -318,6 +322,7 @@ const formatPeriodLabel = (days) => {
 
 // ─── Main Component ───
 const AttendanceTrendChart = memo(({ selectedDate, members = [] }) => {
+    const t = useLanguageStore(s => s.t);
     const { config } = useStudioConfig();
     const branches = config?.BRANCHES || [];
     const [rawLogs, setRawLogs] = useState(null); // { dateStr: AttendanceLog[] }

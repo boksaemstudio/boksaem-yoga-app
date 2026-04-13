@@ -231,6 +231,7 @@ const StatCard = ({ label, value, color }) => (
 
 // ─── 수업별 예약 카드 ───
 const ClassBookingCard = ({ group, rules, onCancel }) => {
+    const t = useLanguageStore(s => s.t);
     const [expanded, setExpanded] = useState(false);
     const { cls, capacity, booked, waitlisted, attended, noshow, totalActive, allBookings } = group;
     const isCancelled = cls.status === 'cancelled';
@@ -307,7 +308,9 @@ const ClassBookingCard = ({ group, rules, onCancel }) => {
 };
 
 // ─── 예약 상태 그룹 ───
-const BookingGroup = ({ label, members, color, onCancel }) => (
+const BookingGroup = ({ label, members, color, onCancel }) => {
+    const t = useLanguageStore(s => s.t);
+    return (
     <div>
         <div style={{ fontSize: '0.7rem', color, fontWeight: 'bold', marginBottom: '4px' }}>{label} ({members.length})</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -337,7 +340,8 @@ const BookingGroup = ({ label, members, color, onCancel }) => (
             ))}
         </div>
     </div>
-);
+    );
+};
 
 const dateBtnStyle = {
     background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
