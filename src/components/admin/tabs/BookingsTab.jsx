@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useLanguageStore } from '../../../stores/useLanguageStore';
 import { UserCircle } from '@phosphor-icons/react';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 import * as bookingService from '../../../services/bookingService';
@@ -12,6 +13,7 @@ import { storageService } from '../../../services/storage';
  * - 예약/대기/노쇼/출석 상태 표시
  */
 const BookingsTab = ({ currentBranch }) => {
+    const t = useLanguageStore(s => s.t);
     const { config } = useStudioConfig();
     const [selectedDate, setSelectedDate] = useState(getTodayKST());
     const [dayBookings, setDayBookings] = useState([]);
@@ -171,7 +173,7 @@ const BookingsTab = ({ currentBranch }) => {
                 {!isToday && (
                     <div style={{ textAlign: 'center', marginTop: '6px' }}>
                         <button onClick={() => setSelectedDate(getTodayKST())} style={{ background: 'none', border: 'none', color: 'var(--primary-gold)', fontSize: '0.7rem', cursor: 'pointer' }}>
-                            오늘로 돌아가기
+                            {t('오늘로 돌아가기')}
                         </button>
                     </div>
                 )}
@@ -197,18 +199,18 @@ const BookingsTab = ({ currentBranch }) => {
 
             {/* 요약 통계 카드 */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
-                <StatCard label="예약" value={totalBooked} color="var(--primary-gold)" />
-                <StatCard label="출석" value={totalAttended} color="#2ed573" />
-                <StatCard label="노쇼" value={totalNoshow} color="#ff4757" />
-                <StatCard label="대기" value={totalWaitlisted} color="#f39c12" />
+                <StatCard label={t('예약')} value={totalBooked} color="var(--primary-gold)" />
+                <StatCard label={t('출석')} value={totalAttended} color="#2ed573" />
+                <StatCard label={t('노쇼')} value={totalNoshow} color="#ff4757" />
+                <StatCard label={t('대기')} value={totalWaitlisted} color="#f39c12" />
             </div>
 
             {/* 수업별 예약 현황 */}
             {loading ? (
-                <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.5)' }}>로딩 중...</div>
+                <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.5)' }}>{t('로딩 중...')}</div>
             ) : dailyClasses.length === 0 ? (
                 <div className="dashboard-card" style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.4)' }}>
-                    이 날짜에 등록된 수업이 없습니다
+                    {t('이 날짜에 등록된 수업이 없습니다')}
                 </div>
             ) : (
                 classBookingGroups.map((group) => (
@@ -279,22 +281,22 @@ const ClassBookingCard = ({ group, rules, onCancel }) => {
                 <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '12px' }}>
                     {allBookings.length === 0 ? (
                         <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', textAlign: 'center', padding: '10px' }}>
-                            예약자 없음
+                            {t('예약자 없음')}
                         </div>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             {/* 상태별 그룹 표시 */}
                             {attended.length > 0 && (
-                                <BookingGroup label="✅ 출석" members={attended} color="#2ed573" />
+                                <BookingGroup label={t('✅ 출석')} members={attended} color="#2ed573" />
                             )}
                             {booked.length > 0 && (
-                                <BookingGroup label="📋 예약" members={booked} color="var(--primary-gold)" onCancel={onCancel} />
+                                <BookingGroup label={t('📋 예약')} members={booked} color="var(--primary-gold)" onCancel={onCancel} />
                             )}
                             {waitlisted.length > 0 && (
-                                <BookingGroup label="⏳ 대기" members={waitlisted} color="#f39c12" onCancel={onCancel} />
+                                <BookingGroup label={t('⏳ 대기')} members={waitlisted} color="#f39c12" onCancel={onCancel} />
                             )}
                             {noshow.length > 0 && (
-                                <BookingGroup label="❌ 노쇼" members={noshow} color="#ff4757" />
+                                <BookingGroup label={t('❌ 노쇼')} members={noshow} color="#ff4757" />
                             )}
                         </div>
                     )}
@@ -329,7 +331,7 @@ const BookingGroup = ({ label, members, color, onCancel }) => (
                                 borderRadius: '4px', padding: '1px 5px', cursor: 'pointer',
                                 fontSize: '0.6rem', color: '#ff4757', marginLeft: '4px'
                             }}
-                        >취소</button>
+                        >{t('취소')}</button>
                     )}
                 </div>
             ))}

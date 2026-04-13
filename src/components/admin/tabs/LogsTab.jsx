@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback, memo } from 'react';
+import { useLanguageStore } from '../../../stores/useLanguageStore';
 import { ClockCounterClockwise, CaretLeft, CaretRight, CalendarBlank, TrendUp } from '@phosphor-icons/react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, LabelList } from 'recharts';
 import { guessClassInfo } from '../../../utils/classUtils';
@@ -111,7 +112,7 @@ const MiniCalendar = memo(({ selectedDate, onSelect, onClose, config }) => {
                         borderRadius: '6px', color: themeColor, fontWeight: 'bold',
                         fontSize: '0.8rem', cursor: 'pointer'
                     }}
-                >오늘로 이동</button>
+                >{t('오늘로 이동')}</button>
             </div>
         </div>
     );
@@ -120,6 +121,7 @@ MiniCalendar.displayName = 'MiniCalendar';
 
 // ─── Main Component ───
 const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, members = [], onMemberClick, summary }) => {
+    const t = useLanguageStore(s => s.t);
     const { config } = useStudioConfig();
     const branches = config.BRANCHES || [];
     const getBranchName = (id) => branches.find(b => b.id === id)?.name || id;
@@ -406,7 +408,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* ─── Date Navigation ─── */}
             <div className="date-nav">
-                <button onClick={handlePrevDay} className="nav-btn-circle" style={{ width: '36px', height: '36px' }} aria-label="이전 날"><CaretLeft size={18} weight="bold" /></button>
+                <button onClick={handlePrevDay} className="nav-btn-circle" style={{ width: '36px', height: '36px' }} aria-label={t('이전 날')}><CaretLeft size={18} weight="bold" /></button>
                 <button
                     onClick={() => setShowCalendar(v => !v)}
                     className={`date-nav__btn ${isToday ? 'date-nav__btn--today' : ''}`}
@@ -414,7 +416,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                 >
                     <CalendarBlank size={18} />
                     {formatDisplayDate(selectedDate)}
-                    {isToday && <span className="date-nav__today-tag">오늘</span>}
+                    {isToday && <span className="date-nav__today-tag">{t('오늘')}</span>}
                 </button>
                 <button
                     onClick={handleNextDay}
@@ -424,7 +426,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                 ><CaretRight size={18} weight="bold" /></button>
 
                 {!isToday && (
-                    <button onClick={() => setSelectedDate(todayStr)} className="date-nav__jump-today">오늘</button>
+                    <button onClick={() => setSelectedDate(todayStr)} className="date-nav__jump-today">{t('오늘')}</button>
                 )}
 
                 {showCalendar && (
@@ -440,25 +442,25 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
             {/* ─── Summary Section ─── */}
             <div className="summary-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }}>
                         <div className="dashboard-card" style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px' }}>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>총 출석 완료</div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>{t('총 출석 완료')}</div>
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
                                 <span style={{ fontSize: '1.6rem', fontWeight: '800', color: '#fff' }}>{activeLogs.filter(l => l.status !== 'denied').length}</span>
-                                <span style={{ fontSize: '0.85rem', opacity: 0.6 }}>건</span>
+                                <span style={{ fontSize: '0.85rem', opacity: 0.6 }}>{t('건')}</span>
                             </div>
                         </div>
                         <div className="dashboard-card" style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px' }}>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>다회 출석 (열성 회원)</div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>{t('다회 출석 (열성 회원)')}</div>
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
                                 <span style={{ fontSize: '1.6rem', fontWeight: '800', color: 'var(--primary-theme-color)' }}>{multiAttMemberIds.length}</span>
-                                <span style={{ fontSize: '0.85rem', opacity: 0.6 }}>명</span>
+                                <span style={{ fontSize: '0.85rem', opacity: 0.6 }}>{t('명')}</span>
                             </div>
                         </div>
                         {activeLogs.filter(l => l.status === 'denied').length > 0 && (
                             <div className="dashboard-card" style={{ padding: '16px', background: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.3)', borderRadius: '12px' }}>
-                                <div style={{ fontSize: '0.8rem', color: '#F43F5E', marginBottom: '8px', fontWeight: 'bold' }}>⚠️ 출석 제한·거부</div>
+                                <div style={{ fontSize: '0.8rem', color: '#F43F5E', marginBottom: '8px', fontWeight: 'bold' }}>{t('⚠️ 출석 제한·거부')}</div>
                                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
                                     <span style={{ fontSize: '1.6rem', fontWeight: '800', color: '#FFF' }}>{activeLogs.filter(l => l.status === 'denied').length}</span>
-                                    <span style={{ fontSize: '0.85rem', opacity: 0.8 }}>건 발생 (조치 필요)</span>
+                                    <span style={{ fontSize: '0.85rem', opacity: 0.8 }}>{t('건 발생 (조치 필요)')}</span>
                                 </div>
                             </div>
                         )}
@@ -466,7 +468,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                             const maxClass = [...classCards].sort((a, b) => b.count - a.count)[0];
                             return maxClass.count > 0 ? (
                                 <div className="dashboard-card" style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px' }}>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>가장 붐비는 수업</div>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>{t('가장 붐비는 수업')}</div>
                                     <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{maxClass.className} <span style={{fontSize:'0.8rem', opacity:0.6}}>{maxClass.classTime && `(${maxClass.classTime})`}</span></div>
                                     <div style={{ fontSize: '0.85rem', color: 'var(--primary-gold)', marginTop: '4px' }}>{maxClass.count}명 참석</div>
                                 </div>
@@ -475,7 +477,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
             </div>
 
             {/* ─── Attendance Trend Analytics ─── */}
-            <CollapsibleCard id="logs-trend" title="📈 출석 추세 분석" defaultOpen={false}>
+            <CollapsibleCard id="logs-trend" title={t('📈 출석 추세 분석')} defaultOpen={false}>
                 <AttendanceTrendChart selectedDate={selectedDate} members={members} />
             </CollapsibleCard>
 
@@ -487,7 +489,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                         borderTop: '3px solid var(--primary-gold)', borderRadius: '50%',
                         animation: 'spin 0.8s linear infinite', margin: '0 auto 12px'
                     }} />
-                    출석 데이터를 불러오는 중...
+                    {t('출석 데이터를 불러오는 중...')}
                     <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
                 </div>
             )}
@@ -537,7 +539,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                     <div style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '8px' }}>{cls.instructor} 선생님</div>
                                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px' }}>
                                         <span style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--primary-gold)', lineHeight: 1 }}>{cls.count}</span>
-                                        <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>명 참여</span>
+                                        <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>{t('명 참여')}</span>
                                         {cls.deniedCount > 0 && (
                                             <span style={{
                                                 fontSize: '0.7rem', color: '#ff4d4f', background: 'rgba(255, 77, 79, 0.1)',
@@ -583,7 +585,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                         
                                         {loadingTrend ? (
                                             <div style={{ height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                                                데이터 분석 중...
+                                                {t('데이터 분석 중...')}
                                             </div>
                                         ) : trendData && trendData.length > 0 ? (
                                             <div style={{ width: '100%', height: '160px' }}>
@@ -628,7 +630,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                             </div>
                                         ) : (
                                             <div style={{ height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
-                                                최근 3주 내에 동일한 시간대의 수업 기록이 없습니다.
+                                                {t('최근 3주 내에 동일한 시간대의 수업 기록이 없습니다.')}
                                             </div>
                                         )}
                                     </div>
@@ -648,7 +650,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                         {formatDisplayDate(selectedDate)}에 출석 기록이 없습니다.
                     </div>
                     <div style={{ fontSize: '0.85rem', opacity: 0.6 }}>
-                        다른 날짜를 선택해보세요.
+                        {t('다른 날짜를 선택해보세요.')}
                     </div>
                 </div>
             )}
@@ -667,7 +669,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                         display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap'
                                     }}
                                 >
-                                    <ClockCounterClockwise size={14} /> 필터 해제
+                                    <ClockCounterClockwise size={14} /> {t('필터 해제')}
                                 </button>
                             )}
                             
@@ -678,7 +680,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                                     onChange={(e) => setLocalBranch(e.target.value)}
                                     className="filter-select"
                                 >
-                                    <option value="all">전체 지점</option>
+                                    <option value="all">{t('전체 지점')}</option>
                                     {(config.BRANCHES || []).map(b => (
                                         <option key={b.id} value={b.id}>{b.name}</option>
                                     ))}
@@ -689,7 +691,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                             <div style={{ position: 'relative' }}>
                                 <input 
                                     type="text"
-                                    placeholder="이름 검색..."
+                                    placeholder={t('이름 검색...')}
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="filter-input"
@@ -734,7 +736,7 @@ const LogsTab = ({ todayClasses, logs, currentLogPage, setCurrentLogPage, member
                             const totalLogPages = Math.ceil(filteredLogs.length / itemsPerPage);
 
                             if (filteredLogs.length === 0) {
-                                return <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>표시할 로그가 없습니다.</div>;
+                                return <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{t('표시할 로그가 없습니다.')}</div>;
                             }
 
                             return (

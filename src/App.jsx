@@ -136,7 +136,7 @@ const RequireAdmin = ({ children }) => {
 
   useEffect(() => {
     // [DEMO] 데모사이트는 로그인 없이 접근 가능 (정확히 'passflowai' 또는 'passflowai' 매칭)
-    const isDemoSite = window.location.hostname.includes('passflow-demo') || window.location.hostname.includes('passflowai') || localStorage.getItem('lastStudioId') === 'demo-yoga';
+    const isDemoSite = window.location.hostname.includes('passflow') || window.location.hostname.includes('passflowai') || localStorage.getItem('lastStudioId') === 'demo-yoga';
     
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -191,7 +191,7 @@ const RequireAdmin = ({ children }) => {
   if (!checked) return <div className="auth-checking">{lt().permCheck}</div>;
   if (!allowed) {
     // [DEMO] 접근 거부 시에도 데모 사이트면 (혹은 데모 스튜디오면) 캐시 지우고 자동 새로고침
-    const isDemoFallback = window.location.hostname.includes('passflow-demo') || localStorage.getItem('lastStudioId') === 'demo-yoga';
+    const isDemoFallback = window.location.hostname.includes('passflow') || localStorage.getItem('lastStudioId') === 'demo-yoga';
     if (isDemoFallback) {
       const reloadKey = 'demo-cache-cleared';
       if (!sessionStorage.getItem(reloadKey)) {

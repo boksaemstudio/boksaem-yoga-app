@@ -57,11 +57,19 @@ export const PWAProvider = ({ children }) => {
     // Handle dynamic manifest and title
     useEffect(() => {
         const path = location.pathname.toLowerCase(); // [FIX] 대소문자 무시
-        let manifestFile = '/manifest-checkin.json';
+        
+        // [ROOT FIX] 플랫폼 도메인 여부에 따라 루트(/) 경로 해석
+        const isPlatform = window.location.hostname.includes('passflow') || window.location.hostname.includes('demo');
+        const isCheckinRoot = path === '/' && !isPlatform;
+        
+        let manifestFile = '/manifest.json'; // 기본값 (포트레이트 모드)
         const studioName = config?.IDENTITY?.NAME || "Studio";
-        let appTitle = `${studioName} 출석체크`;
+        let appTitle = `PassFlow AI | ${studioName}`;
 
-        if (path.startsWith('/admin')) {
+        if (path.startsWith('/checkin') || isCheckinRoot) {
+            manifestFile = '/manifest-checkin.json';
+            appTitle = `${studioName} 출석체크`;
+        } else if (path.startsWith('/admin')) {
             manifestFile = '/manifest-admin.json';
             appTitle = `${studioName} 관리자`;
         } else if (path.startsWith('/member')) {
@@ -70,10 +78,12 @@ export const PWAProvider = ({ children }) => {
         } else if (path.startsWith('/instructor')) {
             manifestFile = '/manifest-instructor.json';
             appTitle = `${studioName} 선생님`;
-        } else if (path === '/login') {
+        } else if (path.includes('login')) {
             appTitle = `${studioName} 로그인`;
-        } else if (path === '/meditation') {
+        } else if (path.includes('meditation')) {
             appTitle = `${studioName} 명상`;
+        } else if (path.includes('onboarding')) {
+            appTitle = `PassFlow AI 온보딩`;
         }
 
         // Update manifest link

@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useLanguageStore } from '../../../stores/useLanguageStore';
 import { X, PaperPlaneTilt, Calendar } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 import { getCurrentStudioId } from '../../../utils/resolveStudioId';
@@ -14,6 +15,7 @@ const SEND_MODES = [
 ];
 
 const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) => {
+    const t = useLanguageStore(s => s.t);
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
     const [isScheduled, setIsScheduled] = useState(false);
@@ -118,7 +120,7 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                     <h3 style={{ margin: 0, color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <PaperPlaneTilt weight="fill" color="var(--primary-gold)" />
-                        단체 메시지 전송
+                        {t('단체 메시지 전송')}
                     </h3>
                     <button 
                         onClick={onClose} 
@@ -130,12 +132,12 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
                 </div>
 
                 <div style={{ marginBottom: '16px', color: '#e4e4e7', fontSize: '0.95rem' }}>
-                    <span style={{ color: 'var(--primary-gold)', fontWeight: 'bold' }}>{memberCount}명</span>의 회원에게 메시지를 보냅니다.
+                    <span style={{ color: 'var(--primary-gold)', fontWeight: 'bold' }}>{memberCount}명</span>{t('의 회원에게 메시지를 보냅니다.')}
                 </div>
 
                 {/* [NEW] Send Mode Selection — 3-way button group */}
                 <div style={{ marginBottom: '16px' }}>
-                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.85rem', color: '#a1a1aa' }}>전송 방식</label>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.85rem', color: '#a1a1aa' }}>{t('전송 방식')}</label>
                     <div style={{ display: 'flex', gap: '6px' }}>
                         {SEND_MODES.map(mode => {
                             const isSmsMode = mode.id !== 'push_only';
@@ -185,7 +187,7 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
                     <textarea
                         value={message}
                         onChange={e => setMessage(e.target.value)}
-                        placeholder="전송할 내용을 입력하세요..."
+                        placeholder={t('전송할 내용을 입력하세요...')}
                         style={{
                             width: '100%', height: '120px', background: 'transparent', border: 'none',
                             color: 'white', fontSize: '1rem', resize: 'none', outline: 'none'
@@ -197,7 +199,7 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
                         {sendMode === 'push_only' ? (
                             <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                                 <span>{message.length}자</span>
-                                <span style={{ color: '#10b981', fontWeight: '600' }}>📱 앱 푸시 • 무료</span>
+                                <span style={{ color: '#10b981', fontWeight: '600' }}>{t('📱 앱 푸시 • 무료')}</span>
                             </div>
                         ) : (
                             <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
@@ -233,7 +235,7 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
                         style={{ accentColor: 'var(--primary-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
                     />
                     <label htmlFor="bulkSchedule" style={{ color: '#e4e4e7', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Calendar size={16} /> 예약 발송
+                        <Calendar size={16} /> {t('예약 발송')}
                     </label>
                     {isScheduled && (
                         <input 
@@ -262,7 +264,7 @@ const BulkMessageModal = ({ isOpen, onClose, selectedMemberIds, memberCount }) =
 
                 {/* Templates (Quick Text) */}
                 <div style={{ marginBottom: '25px' }}>
-                    <p style={{ color: '#a1a1aa', fontSize: '0.85rem', marginBottom: '8px' }}>자주 쓰는 문구</p>
+                    <p style={{ color: '#a1a1aa', fontSize: '0.85rem', marginBottom: '8px' }}>{t('자주 쓰는 문구')}</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                         {templates.map((t, i) => (
                             <button

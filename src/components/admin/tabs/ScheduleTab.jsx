@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useLanguageStore } from '../../../stores/useLanguageStore';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 import AdminScheduleManager from '../../AdminScheduleManager';
 
 const ScheduleTab = ({ images, optimisticImages, handleImageUpload }) => {
+    const t = useLanguageStore(s => s.t);
     const { config } = useStudioConfig();
     const branches = config.BRANCHES || [];
     
@@ -19,11 +21,11 @@ const ScheduleTab = ({ images, optimisticImages, handleImageUpload }) => {
                 <button
                     onClick={() => setScheduleSubTab('monthly')}
                     style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: scheduleSubTab === 'monthly' ? 'var(--primary-gold)' : 'transparent', color: scheduleSubTab === 'monthly' ? 'black' : 'white', fontWeight: 'bold', cursor: 'pointer' }}
-                >월간 시간표</button>
+                >{t('월간 시간표')}</button>
                 <button
                     onClick={() => setScheduleSubTab('weekly')}
                     style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: scheduleSubTab === 'weekly' ? 'var(--primary-gold)' : 'transparent', color: scheduleSubTab === 'weekly' ? 'black' : 'white', fontWeight: 'bold', cursor: 'pointer' }}
-                >주간 시간표</button>
+                >{t('주간 시간표')}</button>
             </div>
 
             {scheduleSubTab === 'monthly' ? (
@@ -78,7 +80,7 @@ const ScheduleTab = ({ images, optimisticImages, handleImageUpload }) => {
                 </div>
             ) : (
                 <div className={branches.length > 1 ? "dashboard-card" : ""} style={{ ...(branches.length <= 1 ? { padding: 0 } : {}) }}>
-                    <h3 className="card-label" style={{ marginBottom: '20px' }}>주간 시간표 (이미지)</h3>
+                    <h3 className="card-label" style={{ marginBottom: '20px' }}>{t('주간 시간표 (이미지)')}</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
                         {branches.map(branch => {
                             const now = new Date();
@@ -102,12 +104,12 @@ const ScheduleTab = ({ images, optimisticImages, handleImageUpload }) => {
                                                 {(optimisticImages[curKey] || curImage) ? (
                                                     <img src={optimisticImages[curKey] || curImage} alt="Current" style={{ width: '100%' }} />
                                                 ) : (
-                                                    <span style={{ color: 'var(--text-secondary)' }}>이미지 없음</span>
+                                                    <span style={{ color: 'var(--text-secondary)' }}>{t('이미지 없음')}</span>
                                                 )}
                                             </div>
                                             <div style={{ textAlign: 'right' }}>
                                                 <input type="file" accept="image/*" onChange={e => handleImageUpload(e, curKey)} style={{ display: 'none' }} id={`up-cur-${branch.id}`} />
-                                                <label htmlFor={`up-cur-${branch.id}`} className="action-btn sm" style={{ padding: '6px 12px', fontSize: '0.8rem', cursor: 'pointer' }}>이미지 변경</label>
+                                                <label htmlFor={`up-cur-${branch.id}`} className="action-btn sm" style={{ padding: '6px 12px', fontSize: '0.8rem', cursor: 'pointer' }}>{t('이미지 변경')}</label>
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -116,12 +118,12 @@ const ScheduleTab = ({ images, optimisticImages, handleImageUpload }) => {
                                                 {(optimisticImages[nextKey] || nextImage) ? (
                                                     <img src={optimisticImages[nextKey] || nextImage} alt="Next" style={{ width: '100%' }} />
                                                 ) : (
-                                                    <span style={{ color: 'var(--text-secondary)' }}>이미지 없음</span>
+                                                    <span style={{ color: 'var(--text-secondary)' }}>{t('이미지 없음')}</span>
                                                 )}
                                             </div>
                                             <div style={{ textAlign: 'right' }}>
                                                 <input type="file" accept="image/*" onChange={e => handleImageUpload(e, nextKey)} style={{ display: 'none' }} id={`up-next-${branch.id}`} />
-                                                <label htmlFor={`up-next-${branch.id}`} className="action-btn sm" style={{ padding: '6px 12px', fontSize: '0.8rem', cursor: 'pointer' }}>이미지 등록/변경</label>
+                                                <label htmlFor={`up-next-${branch.id}`} className="action-btn sm" style={{ padding: '6px 12px', fontSize: '0.8rem', cursor: 'pointer' }}>{t('이미지 등록/변경')}</label>
                                             </div>
                                         </div>
                                     </div>

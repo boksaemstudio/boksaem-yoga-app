@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { ArrowsClockwise, X } from '@phosphor-icons/react';
+import { useLanguageStore } from '../stores/useLanguageStore';
 
 /**
  * PWA 업데이트 관리
@@ -11,6 +12,7 @@ import { ArrowsClockwise, X } from '@phosphor-icons/react';
 const IDLE_TIMEOUT_MS = 30_000;
 
 function ReloadPrompt() {
+  const t = useLanguageStore(s => s.t);
   const [updating, setUpdating] = useState(false);
   const lastActivityRef = useRef(Date.now());
   const pendingReloadRef = useRef(false);
@@ -151,7 +153,7 @@ function ReloadPrompt() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
              <div style={{ fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                  <ArrowsClockwise size={20} weight="bold" className="spin-hover" />
-                 새로운 버전이 준비되었습니다
+                 {t('새로운 버전이 준비되었습니다')}
              </div>
              <button 
                 onClick={() => setNeedRefresh(false)}
@@ -161,7 +163,7 @@ function ReloadPrompt() {
              </button>
         </div>
         <div style={{ fontSize: '0.85rem', opacity: 0.8, fontWeight: '500' }}>
-            새로운 기능 활성화 및 최적화를 위해<br/>지금 업데이트를 진행해주세요.
+            {t('새로운 기능 활성화 및 최적화를 위해')}<br/>{t('지금 업데이트를 진행해주세요.')}
         </div>
         <button
             onClick={handleUpdate}
@@ -174,7 +176,7 @@ function ReloadPrompt() {
                 opacity: updating ? 0.7 : 1
             }}
         >
-            {updating ? '업데이트 중...' : '클릭하여 업데이트 및 재시작'}
+            {updating ? t('업데이트 중...') : t('클릭하여 업데이트 및 재시작')}
         </button>
     </div>
   );

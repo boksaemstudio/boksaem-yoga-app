@@ -288,7 +288,7 @@ export const useMemberProfile = (language, t) => {
 
     // ─── Initial Load ───
     useEffect(() => {
-        const isDemoSite = (window.location.hostname.includes('passflow-demo') || localStorage.getItem('lastStudioId') === 'demo-yoga') && !sessionStorage.getItem('demoLogout');
+        const isDemoSite = (window.location.hostname.includes('passflow') || localStorage.getItem('lastStudioId') === 'demo-yoga') && !sessionStorage.getItem('demoLogout');
         const storedMember = safeLocalStorage.getItem('member');
 
         const autoLoginDemo = async () => {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, memo, useRef, useCallback } from 'react';
+import { useLanguageStore } from '../../../stores/useLanguageStore';
 import { TrendUp, TrendDown, Equals, ChartLineUp, ChartBar, Fire, Users, Funnel, CalendarBlank } from '@phosphor-icons/react';
 import {
     ResponsiveContainer, LineChart, Line, XAxis, YAxis,
@@ -29,9 +30,9 @@ const WeeklyComparisonCards = memo(({ thisWeekCount, lastWeekSameCount, lastWeek
                 border: '1px solid rgba(var(--primary-rgb), 0.15)',
                 textAlign: 'center'
             }}>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>이번 주</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>{t('이번 주')}</div>
                 <div style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--primary-gold)' }}>{thisWeekCount}</div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '2px' }}>월~오늘</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '2px' }}>{t('월~오늘')}</div>
             </div>
             {/* 지난 주 동일 시점 */}
             <div style={{
@@ -40,7 +41,7 @@ const WeeklyComparisonCards = memo(({ thisWeekCount, lastWeekSameCount, lastWeek
                 border: '1px solid rgba(255,255,255,0.06)',
                 textAlign: 'center'
             }}>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>지난 주</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>{t('지난 주')}</div>
                 <div style={{ fontSize: '1.4rem', fontWeight: '800' }}>{lastWeekSameCount}</div>
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '2px' }}>{lastWeekLabel}</div>
             </div>
@@ -52,7 +53,7 @@ const WeeklyComparisonCards = memo(({ thisWeekCount, lastWeekSameCount, lastWeek
                 textAlign: 'center',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
             }}>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>동일 시점 대비</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>{t('동일 시점 대비')}</div>
                 <div style={{
                     display: 'flex', alignItems: 'center', gap: '4px',
                     fontSize: '1.3rem', fontWeight: '800',
@@ -69,6 +70,7 @@ WeeklyComparisonCards.displayName = 'WeeklyComparisonCards';
 
 // ─── Custom Tooltip ───
 const DailyTooltip = ({ active, payload }) => {
+    const t = useLanguageStore(s => s.t);
     if (!active || !payload?.length) return null;
     const d = payload[0].payload;
     return (
@@ -181,13 +183,13 @@ const HeatmapChart = memo(({ data }) => {
             {/* 범례 */}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '10px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'rgba(var(--primary-rgb), 0.1)', display: 'inline-block' }} /> 적음
+                    <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'rgba(var(--primary-rgb), 0.1)', display: 'inline-block' }} /> {t('적음')}
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'rgba(var(--primary-rgb), 0.5)', display: 'inline-block' }} /> 보통
+                    <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'rgba(var(--primary-rgb), 0.5)', display: 'inline-block' }} /> {t('보통')}
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'var(--primary-gold)', display: 'inline-block' }} /> 피크
+                    <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'var(--primary-gold)', display: 'inline-block' }} /> {t('피크')}
                 </span>
             </div>
         </div>
@@ -202,7 +204,7 @@ const PopularityRanking = memo(({ classRanking, instructorRanking }) => {
             {/* 수업 랭킹 */}
             <div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '10px', fontWeight: '600' }}>
-                    🏆 인기 수업 Top 5
+                    {t('🏆 인기 수업 Top 5')}
                 </div>
                 {classRanking.slice(0, 5).map((c, i) => (
                     <div key={i} style={{
@@ -225,13 +227,13 @@ const PopularityRanking = memo(({ classRanking, instructorRanking }) => {
                     </div>
                 ))}
                 {classRanking.length === 0 && (
-                    <div style={{ fontSize: '0.8rem', color: '#52525b', textAlign: 'center', padding: '16px' }}>데이터 없음</div>
+                    <div style={{ fontSize: '0.8rem', color: '#52525b', textAlign: 'center', padding: '16px' }}>{t('데이터 없음')}</div>
                 )}
             </div>
             {/* 강사 랭킹 */}
             <div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '10px', fontWeight: '600' }}>
-                    ⭐ 인기 강사 Top 5
+                    {t('⭐ 인기 강사 Top 5')}
                 </div>
                 {instructorRanking.slice(0, 5).map((c, i) => (
                     <div key={i} style={{
@@ -254,7 +256,7 @@ const PopularityRanking = memo(({ classRanking, instructorRanking }) => {
                     </div>
                 ))}
                 {instructorRanking.length === 0 && (
-                    <div style={{ fontSize: '0.8rem', color: '#52525b', textAlign: 'center', padding: '16px' }}>데이터 없음</div>
+                    <div style={{ fontSize: '0.8rem', color: '#52525b', textAlign: 'center', padding: '16px' }}>{t('데이터 없음')}</div>
                 )}
             </div>
         </div>
@@ -273,7 +275,7 @@ const NewVsReturningBar = memo(({ newCount, existingCount }) => {
         <div style={{ marginBottom: '18px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Users size={14} /> 신규 vs 기존 회원 (4주)
+                    <Users size={14} /> {t('신규 vs 기존 회원 (4주)')}
                 </span>
             </div>
             <div style={{ display: 'flex', height: '24px', borderRadius: '12px', overflow: 'hidden', background: 'rgba(255,255,255,0.04)' }}>
@@ -542,7 +544,7 @@ const AttendanceTrendChart = memo(({ selectedDate, members = [] }) => {
                     animation: 'spin 0.8s linear infinite',
                     margin: '0 auto 10px'
                 }} />
-                <span style={{ fontSize: '0.85rem' }}>출석 추세 분석 중...</span>
+                <span style={{ fontSize: '0.85rem' }}>{t('출석 추세 분석 중...')}</span>
                 <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
         );
@@ -578,17 +580,17 @@ const AttendanceTrendChart = memo(({ selectedDate, members = [] }) => {
                     display: 'flex', alignItems: 'center', gap: '8px'
                 }}>
                     <TrendUp size={18} />
-                    출석 추세 분석
+                    {t('출석 추세 분석')}
                 </h3>
                 <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '3px' }}>
                     <button onClick={() => setActiveTab('daily')} style={tabStyle(activeTab === 'daily')}>
-                        <ChartLineUp size={14} /> 일별 추세
+                        <ChartLineUp size={14} /> {t('일별 추세')}
                     </button>
                     <button onClick={() => setActiveTab('heatmap')} style={tabStyle(activeTab === 'heatmap')}>
-                        <ChartBar size={14} /> 히트맵
+                        <ChartBar size={14} /> {t('히트맵')}
                     </button>
                     <button onClick={() => setActiveTab('ranking')} style={tabStyle(activeTab === 'ranking')}>
-                        <Fire size={14} /> 인기 분석
+                        <Fire size={14} /> {t('인기 분석')}
                     </button>
                 </div>
             </div>
@@ -615,7 +617,7 @@ const AttendanceTrendChart = memo(({ selectedDate, members = [] }) => {
                                 fontWeight: '600', cursor: 'pointer'
                             }}
                         >
-                            <option value="all">📊 전체 통합</option>
+                            <option value="all">{t('📊 전체 통합')}</option>
                             {branches.map(b => (
                                 <option key={b.id} value={b.id}>{b.name}</option>
                             ))}
@@ -648,7 +650,7 @@ const AttendanceTrendChart = memo(({ selectedDate, members = [] }) => {
                         }}
                     />
                     <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', flexShrink: 0, opacity: 0.5 }}>
-                        1년
+                        {t('1년')}
                     </span>
                 </div>
             </div>
@@ -669,14 +671,14 @@ const AttendanceTrendChart = memo(({ selectedDate, members = [] }) => {
                     <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                             <span style={{ width: '12px', height: '2px', background: 'var(--primary-gold)', display: 'inline-block', borderRadius: '1px' }} />
-                            일별 출석
+                            {t('일별 출석')}
                         </span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                             <span style={{ width: '12px', height: '2px', background: 'rgba(255,255,255,0.25)', display: 'inline-block', borderRadius: '1px', borderTop: '2px dashed rgba(255,255,255,0.25)' }} />
-                            7일 이동평균
+                            {t('7일 이동평균')}
                         </span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#71717a', fontSize: '0.8rem' }}>
-                            ○ 점선 = 오늘(집계 중)
+                            {t('○ 점선 = 오늘(집계 중)')}
                         </span>
                     </div>
                     <div style={{ width: '100%', height: '200px' }}>

@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useLanguageStore } from '../../../stores/useLanguageStore';
 import { storageService } from '../../../services/storage';
 import { Trash, ArrowCounterClockwise, ClockCounterClockwise, CurrencyKrw, Users, Spinner } from '@phosphor-icons/react';
 
 const TrashTab = () => {
+    const t = useLanguageStore(s => s.t);
     const [deletedSales, setDeletedSales] = useState([]);
     const [deletedAttendance, setDeletedAttendance] = useState([]);
     const [deletedMembers, setDeletedMembers] = useState([]);
@@ -129,7 +131,7 @@ const TrashTab = () => {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '80px 0', color: 'var(--text-secondary)' }}>
                 <Spinner size={24} className="spin" style={{ marginRight: '8px' }} />
-                삭제된 항목 불러오는 중...
+                {t('삭제된 항목 불러오는 중...')}
             </div>
         );
     }
@@ -147,7 +149,7 @@ const TrashTab = () => {
                 </div>
                 <button onClick={loadDeletedItems} className="action-btn sm" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', border: 'none', fontSize: '0.75rem' }}>
                     <ArrowCounterClockwise size={14} style={{ marginRight: '4px' }} />
-                    새로고침
+                    {t('새로고침')}
                 </button>
             </div>
 
@@ -183,8 +185,8 @@ const TrashTab = () => {
             {totalCount === 0 && (
                 <div className="dashboard-card" style={{ textAlign: 'center', padding: '60px 20px' }}>
                     <Trash size={48} style={{ color: 'var(--border-color)', marginBottom: '16px' }} />
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', margin: 0 }}>삭제된 항목이 없습니다</p>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '8px' }}>회원, 출석 또는 매출을 삭제하면 이곳에 보관됩니다</p>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', margin: 0 }}>{t('삭제된 항목이 없습니다')}</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '8px' }}>{t('회원, 출석 또는 매출을 삭제하면 이곳에 보관됩니다')}</p>
                 </div>
             )}
 
@@ -253,7 +255,7 @@ const TrashTab = () => {
                                         onMouseOver={(e) => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.5)'; }}
                                         onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
                                     >
-                                        완전 삭제
+                                        {t('완전 삭제')}
                                     </button>
                                 </div>
                             </div>
@@ -323,7 +325,7 @@ const TrashTab = () => {
                                         onMouseOver={(e) => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.5)'; }}
                                         onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
                                     >
-                                        완전 삭제
+                                        {t('완전 삭제')}
                                     </button>
                                 </div>
                             </div>
@@ -393,7 +395,7 @@ const TrashTab = () => {
                                         onMouseOver={(e) => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.5)'; }}
                                         onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
                                     >
-                                        완전 삭제
+                                        {t('완전 삭제')}
                                     </button>
                                 </div>
                             </div>

@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef, memo } from 'react';
+import { useLanguageStore } from '../../../stores/useLanguageStore';
 import CollapsibleCard from '../CollapsibleCard';
 import { BellRinging, Check, Info, Plus, NotePencil, PaperPlaneTilt, UserFocus, CaretDown, CaretUp } from '@phosphor-icons/react';
 import { useStudioConfig } from '../../../contexts/StudioContext';
@@ -33,6 +34,7 @@ const MembersTab = ({
     todayReRegMemberIds,
     sales
 }) => {
+    const t = useLanguageStore(s => s.t);
     const { config } = useStudioConfig();
     const branches = config.BRANCHES || [];
     const getBranchName = (id) => branches.find(b => b.id === id)?.name || id;
@@ -128,13 +130,13 @@ const MembersTab = ({
         return result;
     }, [filteredMembers, filterType, getDormantSegments, localSort]);
 
-    if (!summary || !filteredMembers) return <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>데이터 로딩 중...</div>;
+    if (!summary || !filteredMembers) return <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>{t('데이터 로딩 중...')}</div>;
     return (
         <div className="members-tab-container">
 
             <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
                 <button onClick={() => setShowAddModal(true)} className="action-btn primary" style={{ flex: 'none', width: 'auto', minWidth: '350px', height: '54px', fontSize: '1.2rem', borderRadius: '12px', boxShadow: '0 8px 24px var(--primary-gold-glow)', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                    <Plus size={24} weight="bold" /> 신규 회원 등록하기
+                    <Plus size={24} weight="bold" /> {t('신규 회원 등록하기')}
                 </button>
             </div>
 
@@ -146,7 +148,7 @@ const MembersTab = ({
                         <div className={`dashboard-card interactive ${filterType === 'active' ? 'highlight' : ''}`}
                             onClick={() => handleToggleFilter('active')}
                             style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>활동중인 회원</div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>{t('활동중인 회원')}</div>
                             <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--primary-theme-color)' }}>{summary.activeMembers}명</div>
                         </div>
 
@@ -154,7 +156,7 @@ const MembersTab = ({
                         <div className={`dashboard-card interactive ${filterType === 'registration' ? 'highlight' : ''}`}
                             onClick={() => handleToggleFilter('registration')}
                             style={{ padding: '16px', background: 'rgba(16, 185, 129, 0.05)', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-                            <div style={{ fontSize: '0.8rem', color: '#10B981', marginBottom: '4px', fontWeight: 'bold' }}>오늘 등록·결제</div>
+                            <div style={{ fontSize: '0.8rem', color: '#10B981', marginBottom: '4px', fontWeight: 'bold' }}>{t('오늘 등록·결제')}</div>
                             <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#10B981' }}>{summary.todayRegistration}명</div>
                         </div>
 
@@ -174,7 +176,7 @@ const MembersTab = ({
                                     <div className={`dashboard-card interactive ${filterType === 'churn' ? 'highlight' : ''}`}
                                         onClick={() => handleToggleFilter('churn')}
                                         style={{ padding: '16px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-                                        <div style={{ fontSize: '0.8rem', color: '#EF4444', marginBottom: '4px', fontWeight: 'bold' }}>AI 이탈 경고</div>
+                                        <div style={{ fontSize: '0.8rem', color: '#EF4444', marginBottom: '4px', fontWeight: 'bold' }}>{t('AI 이탈 경고')}</div>
                                         <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#EF4444' }}>{riskCount}명</div>
                                     </div>
                                 );
@@ -187,7 +189,7 @@ const MembersTab = ({
                             <div className={`dashboard-card interactive ${filterType === 'bio_missing' ? 'highlight' : ''}`}
                                 onClick={() => handleToggleFilter('bio_missing')}
                                 style={{ padding: '16px', background: 'rgba(59, 130, 246, 0.05)', borderRadius: '12px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-                                <div style={{ fontSize: '0.8rem', color: '#60A5FA', marginBottom: '4px', fontWeight: 'bold' }}>얼굴 미등록</div>
+                                <div style={{ fontSize: '0.8rem', color: '#60A5FA', marginBottom: '4px', fontWeight: 'bold' }}>{t('얼굴 미등록')}</div>
                                 <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#60A5FA' }}>{summary.bioMissingCount}명</div>
                             </div>
                         )}
@@ -196,11 +198,11 @@ const MembersTab = ({
                     onClick={() => handleToggleFilter('registration')}>
                     <div className="card-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            오늘 전체 등록
+                            {t('오늘 전체 등록')}
                             <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                                 <Info size={14} style={{ opacity: 0.7 }} />
                                 <span className="tooltip-text">
-                                    오늘 새로 등록하거나<br />수강권을 재결제한 회원
+                                    {t('오늘 새로 등록하거나')}<br />{t('수강권을 재결제한 회원')}
                                 </span>
                             </div>
                         </div>
@@ -214,7 +216,7 @@ const MembersTab = ({
                                 transition: 'all 0.2s', flexShrink: 0
                             }}
                         >
-                            {expandedCards.reg ? <><CaretUp size={12} weight="bold" /> 접기</> : <><CaretDown size={12} weight="bold" /> 펼치기</>}
+                            {expandedCards.reg ? <><CaretUp size={12} weight="bold" /> {t('접기')}</> : <><CaretDown size={12} weight="bold" /> {t('펼치기')}</>}
                         </button>
                     </div>
                     <div className="card-value success" style={{ fontSize: '1.8rem' }}>
@@ -237,7 +239,7 @@ const MembersTab = ({
                     {/* 재등록률 */}
                     <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                            <span style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>누적 재등록률</span>
+                            <span style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>{t('누적 재등록률')}</span>
                             <span style={{ 
                                 fontSize: '1.1rem', fontWeight: '800',
                                 color: (summary.reRegistrationRate || 0) >= 50 ? '#10b981' : (summary.reRegistrationRate || 0) >= 30 ? '#f59e0b' : '#ef4444'
@@ -267,16 +269,16 @@ const MembersTab = ({
                     style={{ transition: 'all 0.3s ease', border: '1px solid rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.03)' }}>
                     <div className="card-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            🧠 AI 이탈 예측
+                            {t('🧠 AI 이탈 예측')}
                             <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                                 <Info size={14} style={{ opacity: 0.7 }} />
                                 <span className="tooltip-text" style={{ width: '260px' }}>
-                                    <strong>AI 이탈 예측이란?</strong><br />
-                                    활성 회원 중 최근 출석이 없는<br />회원을 위험도별로 분류합니다.<br /><br />
-                                    <strong>⚠ 위험</strong>: 30일+ 미출석 또는<br />잔여 1회 이하 + 14일+ 미출석<br />
-                                    <strong>🔶 주의</strong>: 21~29일 미출석<br />
-                                    <strong>💤 관찰</strong>: 14~20일 미출석<br /><br />
-                                    카드를 터치하면 상세 목록과<br />맞춤 안부 메시지 전송 기능을<br />사용할 수 있습니다.
+                                    <strong>{t('AI 이탈 예측이란?')}</strong><br />
+                                    {t('활성 회원 중 최근 출석이 없는')}<br />{t('회원을 위험도별로 분류합니다.')}<br /><br />
+                                    <strong>{t('⚠ 위험')}</strong>{t(': 30일+ 미출석 또는')}<br />{t('잔여 1회 이하 + 14일+ 미출석')}<br />
+                                    <strong>{t('🔶 주의')}</strong>{t(': 21~29일 미출석')}<br />
+                                    <strong>{t('💤 관찰')}</strong>{t(': 14~20일 미출석')}<br /><br />
+                                    {t('카드를 터치하면 상세 목록과')}<br />{t('맞춤 안부 메시지 전송 기능을')}<br />{t('사용할 수 있습니다.')}
                                 </span>
                             </div>
                         </div>
@@ -290,7 +292,7 @@ const MembersTab = ({
                                 transition: 'all 0.2s', flexShrink: 0
                             }}
                         >
-                            {expandedCards.churn ? <><CaretUp size={12} weight="bold" /> 접기</> : <><CaretDown size={12} weight="bold" /> 펼치기</>}
+                            {expandedCards.churn ? <><CaretUp size={12} weight="bold" /> {t('접기')}</> : <><CaretDown size={12} weight="bold" /> {t('펼치기')}</>}
                         </button>
                     </div>
                     {(() => {
@@ -369,12 +371,12 @@ const MembersTab = ({
                                                     <circle cx="12" cy="12" r="10" fill="none" stroke="rgba(168,85,247,0.3)" strokeWidth="2" />
                                                     <path d="M12 2 a10 10 0 0 1 10 10" fill="none" stroke="#A855F7" strokeWidth="2" strokeLinecap="round" />
                                                 </svg>
-                                                <span style={{ color: '#A855F7', fontSize: '0.78rem' }}>AI가 회원 데이터를 분석하고 있습니다...</span>
+                                                <span style={{ color: '#A855F7', fontSize: '0.78rem' }}>{t('AI가 회원 데이터를 분석하고 있습니다...')}</span>
                                             </div>
                                         ) : churnAiMessage ? (
                                             <span>{churnAiMessage}</span>
                                         ) : totalCount === 0 ? (
-                                            <span>✨ 모든 회원이 꾸준히 출석 중입니다.</span>
+                                            <span>{t('✨ 모든 회원이 꾸준히 출석 중입니다.')}</span>
                                         ) : (
                                             <span>📊 이탈 위험 회원 {totalCount}명 감지됨</span>
                                         )}
@@ -389,11 +391,11 @@ const MembersTab = ({
                     onClick={() => handleToggleFilter('installed')}>
                     <div className="card-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <BellRinging size={16} weight="fill" /> 알림 수신 가능
+                            <BellRinging size={16} weight="fill" /> {t('알림 수신 가능')}
                             <div className="tooltip-container">
                                 <Info size={14} style={{ opacity: 0.7 }} />
                                 <span className="tooltip-text">
-                                    앱 설치 + 알림 켜짐 상태로<br />메시지를 받을 수 있는 인원
+                                    {t('앱 설치 + 알림 켜짐 상태로')}<br />{t('메시지를 받을 수 있는 인원')}
                                 </span>
                             </div>
                         </div>
@@ -407,12 +409,12 @@ const MembersTab = ({
                                 transition: 'all 0.2s', flexShrink: 0
                             }}
                         >
-                            {expandedCards.push ? <><CaretUp size={12} weight="bold" /> 접기</> : <><CaretDown size={12} weight="bold" /> 펼치기</>}
+                            {expandedCards.push ? <><CaretUp size={12} weight="bold" /> {t('접기')}</> : <><CaretDown size={12} weight="bold" /> {t('펼치기')}</>}
                         </button>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', marginTop: '4px' }}>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                            <span style={{ fontSize: '0.9rem', color: '#A7F3D0', fontWeight: 'bold' }}>회원</span>
+                            <span style={{ fontSize: '0.9rem', color: '#A7F3D0', fontWeight: 'bold' }}>{t('회원')}</span>
                             <div className="card-value success" style={{ fontSize: '1.4rem' }}>
                                 {summary.pushEnabledCount}명
                             </div>
@@ -420,7 +422,7 @@ const MembersTab = ({
                                 ({summary.reachableRatio}%)
                             </span>
                             <span style={{ margin: '0 6px', opacity: 0.3, color: 'white' }}>|</span>
-                            <span style={{ fontSize: '0.9rem', color: '#FDE047', fontWeight: 'bold' }}>선생님</span>
+                            <span style={{ fontSize: '0.9rem', color: '#FDE047', fontWeight: 'bold' }}>{t('선생님')}</span>
                             <div className="card-value gold" style={{ fontSize: '1.4rem' }}>
                                 {summary.instructorPushCount || 0}명
                             </div>
@@ -444,11 +446,11 @@ const MembersTab = ({
                     onClick={() => handleToggleFilter('bio_missing')}
                     style={{ border: '1px solid rgba(59, 130, 246, 0.3)', background: 'rgba(59, 130, 246, 0.05)' }}>
                     <div className="card-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <UserFocus size={16} weight="fill" color="#60A5FA" /> 안면 미등록 회원
+                        <UserFocus size={16} weight="fill" color="#60A5FA" /> {t('안면 미등록 회원')}
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{ opacity: 0.7 }} />
                             <span className="tooltip-text">
-                                키오스크 얼굴인식 출석을<br />위해 얼굴 등록이 아직<br />안 된 활성 회원 수
+                                {t('키오스크 얼굴인식 출석을')}<br />{t('위해 얼굴 등록이 아직')}<br />{t('안 된 활성 회원 수')}
                             </span>
                         </div>
                     </div>
@@ -517,7 +519,7 @@ const MembersTab = ({
             {filterType === 'registration' && summary.monthlyReRegTrend && (
                 <CollapsibleCard
                     id="members-rereg-trend"
-                    title="📊 월별 재등록 추이 (최근 6개월)"
+                    title={t('📊 월별 재등록 추이 (최근 6개월)')}
                     titleExtra={`재등록률 ${summary.reRegistrationRate || 0}%`}
                     defaultOpen={false}
                     className="animated-show"
@@ -554,8 +556,8 @@ const MembersTab = ({
                         })}
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem', color: '#a1a1aa' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#10b981', display: 'inline-block' }} /> 재등록</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '8px', height: '8px', borderRadius: '2px', background: 'rgba(255,255,255,0.08)', display: 'inline-block' }} /> 만료 회원</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#10b981', display: 'inline-block' }} /> {t('재등록')}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '8px', height: '8px', borderRadius: '2px', background: 'rgba(255,255,255,0.08)', display: 'inline-block' }} /> {t('만료 회원')}</span>
                     </div>
                 </CollapsibleCard>
             )}
@@ -571,7 +573,7 @@ const MembersTab = ({
                     <input
                         type="text"
                         className="search-input"
-                        placeholder="🔍 이름 또는 전화번호 검색..."
+                        placeholder={t('🔍 이름 또는 전화번호 검색...')}
                         value={searchTerm}
                         onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                         style={{ margin: 0 }}
@@ -586,7 +588,7 @@ const MembersTab = ({
             {/* List Criteria Display & Local Sorting */}
             <div style={{ padding: '0 4px', marginBottom: '10px', fontSize: '0.9rem', color: 'var(--text-tertiary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                 <div>
-                    현재 <strong style={{ color: 'var(--primary-gold)' }}>
+                    {t('현재')} <strong style={{ color: 'var(--primary-gold)' }}>
                         {filterType === 'all' && '전체 회원'}
                         {filterType === 'active' && '활성 회원'}
                         {filterType === 'attendance' && '오늘 출석 회원'}
@@ -602,7 +604,7 @@ const MembersTab = ({
                          localSort === 'credits_asc' ? '잔여 횟수 적은 순' :
                          localSort === 'credits_desc' ? '잔여 횟수 많은 순' :
                          localSort === 'enddate_asc' ? '마감일 임박 순' : '마감일 여유 순'}
-                    </strong>으로 보고 계십니다.
+                    </strong>{t('으로 보고 계십니다.')}
                 </div>
 
                 {/* Legend removed per user request */}
@@ -615,11 +617,11 @@ const MembersTab = ({
                         border: '1px solid rgba(255,255,255,0.1)', color: 'white', fontSize: '0.85rem', cursor: 'pointer'
                     }}
                 >
-                    <option value="default" style={{ color: 'white', background: '#333' }}>기본 정렬</option>
-                    <option value="credits_asc" style={{ color: 'white', background: '#333' }}>잔여 횟수 적은 순</option>
-                    <option value="credits_desc" style={{ color: 'white', background: '#333' }}>잔여 횟수 많은 순</option>
-                    <option value="enddate_asc" style={{ color: 'white', background: '#333' }}>마감일 임박 순</option>
-                    <option value="enddate_desc" style={{ color: 'white', background: '#333' }}>마감일 여유 순</option>
+                    <option value="default" style={{ color: 'white', background: '#333' }}>{t('기본 정렬')}</option>
+                    <option value="credits_asc" style={{ color: 'white', background: '#333' }}>{t('잔여 횟수 적은 순')}</option>
+                    <option value="credits_desc" style={{ color: 'white', background: '#333' }}>{t('잔여 횟수 많은 순')}</option>
+                    <option value="enddate_asc" style={{ color: 'white', background: '#333' }}>{t('마감일 임박 순')}</option>
+                    <option value="enddate_desc" style={{ color: 'white', background: '#333' }}>{t('마감일 여유 순')}</option>
                 </select>
             </div>
 
@@ -665,7 +667,7 @@ const MembersTab = ({
 
                             {paginated.length === 0 ? (
                                 <div style={{ textAlign: 'center', padding: '60px 0', opacity: 0.5 }}>
-                                    검색 결과가 없거나 회원을 등록해주세요.
+                                    {t('검색 결과가 없거나 회원을 등록해주세요.')}
                                 </div>
                             ) : (
                                 paginated.map(member => (
@@ -694,7 +696,7 @@ const MembersTab = ({
                                                             padding: '1px 6px',
                                                             display: 'flex', alignItems: 'center', gap: '3px'
                                                         }}>
-                                                            🧠 안면인식
+                                                            {t('🧠 안면인식')}
                                                         </span>
                                                     )}
                                                     {filterType === 'installed' && (
@@ -713,7 +715,7 @@ const MembersTab = ({
                                                     <button 
                                                         onClick={(e) => { e.stopPropagation(); onNoteClick && onNoteClick(member); }}
                                                         style={{ background: 'none', border: 'none', color: member.notes ? 'var(--primary-gold)' : '#52525b', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px', marginLeft: 'auto' }}
-                                                        title="메모 작성/수정"
+                                                        title={t('메모 작성/수정')}
                                                     >
                                                         <NotePencil size={18} weight={member.notes ? "fill" : "regular"} />
                                                     </button>
@@ -725,21 +727,21 @@ const MembersTab = ({
                                                     const isUpcomingActive = member.upcomingMembership && member.upcomingMembership.startDate !== 'TBD' && new Date(member.upcomingMembership.startDate).getTime() <= todayStartMs;
                                                     
                                                     if (isUpcomingActive) {
-                                                        return <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34D399', border: '1px solid rgba(16, 185, 129, 0.4)' }}>활동중</span>;
+                                                        return <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34D399', border: '1px solid rgba(16, 185, 129, 0.4)' }}>{t('활동중')}</span>;
                                                     }
 
                                                     const isCurrentExhausted = member.credits <= 0 || (member.endDate && member.endDate !== 'TBD' && member.endDate !== 'unlimited' && new Date(member.endDate).getTime() < todayStartMs);
                                                     
                                                     if (isCurrentExhausted && member.upcomingMembership && member.upcomingMembership.startDate === 'TBD') {
-                                                        return <span className="badge" style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)' }}>시작 대기중</span>;
+                                                        return <span className="badge" style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)' }}>{t('시작 대기중')}</span>;
                                                     }
 
                                                     if (!member.endDate || member.endDate === 'TBD' || member.endDate === 'unlimited') {
                                                         if (member.credits > 0 || member.credits === 9999) {
-                                                            return <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34D399', border: '1px solid rgba(16, 185, 129, 0.4)' }}>활동중</span>;
+                                                            return <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34D399', border: '1px solid rgba(16, 185, 129, 0.4)' }}>{t('활동중')}</span>;
                                                         }
                                                         if (isCurrentExhausted && !member.upcomingMembership) {
-                                                            return <span className="badge" style={{ background: 'rgba(255, 59, 48, 0.15)', color: '#FF3B30', border: '1px solid rgba(255, 59, 48, 0.3)' }}>만료/소진</span>;
+                                                            return <span className="badge" style={{ background: 'rgba(255, 59, 48, 0.15)', color: '#FF3B30', border: '1px solid rgba(255, 59, 48, 0.3)' }}>{t('만료/소진')}</span>;
                                                         }
                                                         return null;
                                                     }
@@ -747,18 +749,18 @@ const MembersTab = ({
                                                     const diff = (endMs - todayStartMs) / (1000 * 60 * 60 * 24);
                                                     
                                                     if (diff < 0 || member.credits <= 0) {
-                                                        return <span className="badge" style={{ background: 'rgba(255, 59, 48, 0.15)', color: '#FF3B30', border: '1px solid rgba(255, 59, 48, 0.3)' }}>만료/소진</span>;
+                                                        return <span className="badge" style={{ background: 'rgba(255, 59, 48, 0.15)', color: '#FF3B30', border: '1px solid rgba(255, 59, 48, 0.3)' }}>{t('만료/소진')}</span>;
                                                     } else if (diff <= 7 || member.credits <= 2) {
-                                                        return <span className="badge" style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#FBBF24', border: '1px solid rgba(245, 158, 11, 0.4)' }}>만료/임박</span>;
+                                                        return <span className="badge" style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#FBBF24', border: '1px solid rgba(245, 158, 11, 0.4)' }}>{t('만료/임박')}</span>;
                                                     } else {
-                                                        return <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34D399', border: '1px solid rgba(16, 185, 129, 0.4)' }}>활동중</span>;
+                                                        return <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34D399', border: '1px solid rgba(16, 185, 129, 0.4)' }}>{t('활동중')}</span>;
                                                     }
                                                 })()}
 
                                                 {/* [NEW] Advance Registration Badge */}
                                                 {member.upcomingMembership && !(member.upcomingMembership.startDate !== 'TBD' && new Date(member.upcomingMembership.startDate).getTime() <= todayStartMs) && (
                                                     <span className="badge" style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#C084FC', border: '1px solid rgba(168, 85, 247, 0.4)', fontWeight: 'bold' }}>
-                                                        선등록 대기중
+                                                        {t('선등록 대기중')}
                                                     </span>
                                                 )}
 
@@ -769,14 +771,14 @@ const MembersTab = ({
                                                         border: '1px solid rgba(251, 146, 60, 0.4)', fontWeight: 'bold',
                                                         animation: 'pulse 2s infinite'
                                                     }}>
-                                                        ⏸️ 홀딩 중
+                                                        {t('⏸️ 홀딩 중')}
                                                     </span>
                                                 )}
                                                 
                                                 {/* [NEW] Today Registration Badges */}
                                                 {member.regDate === todayKstStr && (
                                                     <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10B981', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-                                                        신규
+                                                        {t('신규')}
                                                     </span>
                                                 )}
                                                 {/* Note: In MembersTab, we might not have todayReRegMemberIds prop yet. 
@@ -790,7 +792,7 @@ const MembersTab = ({
                                                  */}
                                                  {summary.todayReRegMemberIds && summary.todayReRegMemberIds.includes(member.id) && (
                                             <span className="badge" style={{ background: 'rgba(59, 130, 246, 0.25)', color: '#60A5FA', border: '1px solid rgba(59, 130, 246, 0.5)', fontWeight: 'bold' }}>
-                                                재등록
+                                                {t('재등록')}
                                             </span>
                                         )}
                                         {summary.multiAttendedMemberIds && summary.multiAttendedMemberIds.includes(member.id) && (
@@ -805,7 +807,7 @@ const MembersTab = ({
                                                 {filterType === 'dormant' && (() => {
                                                     let lastDateMs = member.lastAttendance ? new Date(member.lastAttendance).getTime() : (member.regDate ? new Date(member.regDate).getTime() : null);
 
-                                                    if (!lastDateMs) return <span className="badge" style={{ background: 'var(--gray-700)', color: '#bbb' }}>기록 없음</span>;
+                                                    if (!lastDateMs) return <span className="badge" style={{ background: 'var(--gray-700)', color: '#bbb' }}>{t('기록 없음')}</span>;
 
                                                     const diffTime = Math.abs(Date.now() - lastDateMs);
                                                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -855,7 +857,7 @@ const MembersTab = ({
                                                         padding: '2px 8px', borderRadius: '6px', fontSize: '0.7rem',
                                                         fontWeight: 'bold', border: '1px solid rgba(52, 211, 153, 0.2)'
                                                     }}>
-                                                        <BellRinging size={12} weight="fill" /> 푸시 ON
+                                                        <BellRinging size={12} weight="fill" /> {t('푸시 ON')}
                                                     </div>
                                                 ) : (
                                                     filterType === 'installed' && (
@@ -865,7 +867,7 @@ const MembersTab = ({
                                                             padding: '2px 8px', borderRadius: '6px', fontSize: '0.7rem',
                                                             border: '1px solid rgba(156, 163, 175, 0.2)'
                                                         }}>
-                                                            <BellRinging size={12} weight="regular" /> 알림 꺼짐
+                                                            <BellRinging size={12} weight="regular" /> {t('알림 꺼짐')}
                                                         </div>
                                                     )
                                                 )}

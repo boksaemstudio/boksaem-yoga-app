@@ -102,14 +102,23 @@ function generateManifest(config, roleType) {
             name: `${studioName} 출석체크`,
             shortName: '출석체크',
             description: `${studioName} 출석체크 대시보드`,
-            startUrl: '/',
-            scope: '/',
+            startUrl: '/checkin',
+            scope: '/checkin',
             display: 'fullscreen',
             orientation: 'landscape'
+        },
+        landing: {
+            name: `PassFlow AI | ${studioName}`,
+            shortName: 'PassFlow',
+            description: '스마트 출석·운영 기록 시스템',
+            startUrl: '/',
+            scope: '/',
+            display: 'standalone',
+            orientation: 'portrait'
         }
     };
     
-    const role = roleConfig[roleType] || roleConfig.checkin;
+    const role = roleConfig[roleType] || roleConfig.landing;
     
     // [핵심] icons src에 스튜디오 로고 URL 직접 삽입
     // Firebase Storage URL이든 로컬 경로든 그대로 사용
@@ -159,16 +168,17 @@ function resolveRoleFromPath(requestPath) {
         if (requestPath.includes('manifest-member')) return 'member';
         if (requestPath.includes('manifest-instructor')) return 'instructor';
         if (requestPath.includes('manifest-checkin')) return 'checkin';
-        // /manifest.json 범용 요청 → 기본값 checkin
-        return 'checkin';
+        // /manifest.json 범용 요청 → 기본값 landing
+        return 'landing';
     }
     
     // 일반 HTML 경로 해석용
     if (requestPath.startsWith('/admin')) return 'admin';
     if (requestPath.startsWith('/member')) return 'member';
     if (requestPath.startsWith('/instructor')) return 'instructor';
+    if (requestPath.startsWith('/checkin')) return 'checkin';
     
-    return 'checkin';
+    return 'landing';
 }
 
 // ──────────────────────────────────────────────────────────────

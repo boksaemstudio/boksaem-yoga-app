@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useLanguageStore } from '../../../stores/useLanguageStore';
 import { Upload, CheckCircle, XCircle, WarningCircle, FileText } from '@phosphor-icons/react';
 import { parseCSV } from '../../../utils/csvParser';
 import { storageService } from '../../../services/storage';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 
 export default function DataMigrationTab() {
+    const t = useLanguageStore(s => s.t);
     const { config } = useStudioConfig();
     const [migrationStatus, setMigrationStatus] = useState('idle'); // idle, uploading, processing, complete, error, cleaning
     const [progress, setProgress] = useState({ current: 0, total: 0, currentName: '' });
@@ -84,7 +86,7 @@ export default function DataMigrationTab() {
     return (
         <div style={{ padding: '20px', paddingBottom: '200px', maxWidth: '900px', margin: '0 auto' }}>
             <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '20px', color: 'var(--text-primary)' }}>
-                CSV 회원 데이터 마이그레이션
+                {t('CSV 회원 데이터 마이그레이션')}
             </h2>
 
             {/* Dry Run 모드 토글 */}
@@ -127,10 +129,10 @@ export default function DataMigrationTab() {
                 }}>
                     <Upload size={48} color="var(--primary-gold)" style={{ marginBottom: '16px' }} />
                     <p style={{ fontSize: '1rem', marginBottom: '8px', color: 'var(--text-primary)' }}>
-                        CSV 파일 업로드 (마이그레이션 실행)
+                        {t('CSV 파일 업로드 (마이그레이션 실행)')}
                     </p>
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-                        파일명: <code>회원현황_YYYYMMDD.csv</code>
+                        {t('파일명:')} <code>{t('회원현황_YYYYMMDD.csv')}</code>
                     </p>
                     <label style={{
                         display: 'inline-block',
@@ -141,7 +143,7 @@ export default function DataMigrationTab() {
                         cursor: 'pointer',
                         fontWeight: 'bold'
                     }}>
-                        파일 선택
+                        {t('파일 선택')}
                         <input
                             type="file"
                             accept=".csv"
@@ -210,19 +212,19 @@ export default function DataMigrationTab() {
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
                             <div style={{ padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', textAlign: 'center' }}>
                                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4CD964' }}>{results.success}</div>
-                                <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>성공</div>
+                                <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>{t('성공')}</div>
                             </div>
                             <div style={{ padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', textAlign: 'center' }}>
                                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#F43F5E' }}>{results.failed}</div>
-                                <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>실패</div>
+                                <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>{t('실패')}</div>
                             </div>
                             <div style={{ padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', textAlign: 'center' }}>
                                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#FFB800' }}>{results.skipped}</div>
-                                <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>건너뜀</div>
+                                <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>{t('건너뜀')}</div>
                             </div>
                             <div style={{ padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', textAlign: 'center' }}>
                                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary-gold)' }}>{results.sales.length}</div>
-                                <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>매출 기록</div>
+                                <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>{t('매출 기록')}</div>
                             </div>
                         </div>
                     </div>
@@ -269,7 +271,7 @@ export default function DataMigrationTab() {
                             width: '100%'
                         }}
                     >
-                        새 파일 업로드
+                        {t('새 파일 업로드')}
                     </button>
                 </div>
             )}
@@ -284,7 +286,7 @@ export default function DataMigrationTab() {
                     textAlign: 'center'
                 }}>
                     <XCircle size={48} color="#F43F5E" style={{ marginBottom: '16px' }} />
-                    <p style={{ fontSize: '1rem', marginBottom: '20px' }}>마이그레이션 중 오류가 발생했습니다.</p>
+                    <p style={{ fontSize: '1rem', marginBottom: '20px' }}>{t('마이그레이션 중 오류가 발생했습니다.')}</p>
                     <button
                         onClick={resetMigration}
                         style={{
@@ -297,7 +299,7 @@ export default function DataMigrationTab() {
                             cursor: 'pointer'
                         }}
                     >
-                        다시 시도
+                        {t('다시 시도')}
                     </button>
                 </div>
             )}
@@ -312,13 +314,13 @@ export default function DataMigrationTab() {
             }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
                     <FileText size={20} color="var(--primary-gold)" />
-                    <strong>사용 안내</strong>
+                    <strong>{t('사용 안내')}</strong>
                 </div>
                 <ul style={{ fontSize: '0.85rem', lineHeight: '1.6', paddingLeft: '28px', opacity: 0.9 }}>
-                    <li>먼저 <strong>검증 모드</strong>로 테스트하여 데이터를 확인하세요.</li>
-                    <li>검증 완료 후 <strong>실제 마이그레이션 모드</strong>로 전환하여 진행하세요.</li>
-                    <li>중복 전화번호가 있으면 기존 회원 데이터를 업데이트합니다.</li>
-                    <li>판매금액이 0이 아닌 경우 자동으로 매출 기록이 추가됩니다.</li>
+                    <li>{t('먼저')} <strong>{t('검증 모드')}</strong>{t('로 테스트하여 데이터를 확인하세요.')}</li>
+                    <li>{t('검증 완료 후')} <strong>{t('실제 마이그레이션 모드')}</strong>{t('로 전환하여 진행하세요.')}</li>
+                    <li>{t('중복 전화번호가 있으면 기존 회원 데이터를 업데이트합니다.')}</li>
+                    <li>{t('판매금액이 0이 아닌 경우 자동으로 매출 기록이 추가됩니다.')}</li>
                 </ul>
             </div>
         </div>

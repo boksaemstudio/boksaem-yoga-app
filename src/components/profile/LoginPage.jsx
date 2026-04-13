@@ -106,7 +106,7 @@ const LoginPage = ({ config, t, onLogin, loading }) => {
                     <button type="submit" disabled={loading} style={{ ...authButtonStyle, marginTop: '10px' }}>{t('checkRecordBtn')}</button>
                     
                     {/* SaaS Demo Quick Login Button */}
-                    {typeof window !== 'undefined' && window.location.hostname.includes('passflow-demo') && (
+                    {typeof window !== 'undefined' && window.location.hostname.includes('passflow') && (
                         <button type="button" onClick={(e) => {
                             e.preventDefault();
                             setName("김방문");

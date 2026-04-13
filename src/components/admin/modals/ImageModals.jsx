@@ -1,4 +1,5 @@
 import { useStudioConfig } from '../../../contexts/StudioContext';
+import { useLanguageStore } from '../../../stores/useLanguageStore';
 import { storageService } from '../../../services/storage';
 import { X, Plus } from '@phosphor-icons/react';
 // Assets loaded via STUDIO_CONFIG
@@ -39,6 +40,7 @@ const handleImageUpload = (e, target, setOptimisticImages) => {
 
 
 export const TimeTableModal = ({ isOpen, onClose, images, setOptimisticImages, optimisticImages }) => {
+    const t = useLanguageStore(s => s.t);
     const { config } = useStudioConfig();
     if (!isOpen) return null;
     const branches = config.BRANCHES || [];
@@ -48,7 +50,7 @@ export const TimeTableModal = ({ isOpen, onClose, images, setOptimisticImages, o
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '800px' }}>
                 <div className="modal-header">
-                    <h2 className="modal-title">시간표 확인 및 관리</h2>
+                    <h2 className="modal-title">{t('시간표 확인 및 관리')}</h2>
                     <button onClick={onClose}><X size={24} /></button>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: branches.length > 1 ? '1fr 1fr' : '1fr', gap: '20px', marginBottom: '30px' }}>
@@ -57,7 +59,7 @@ export const TimeTableModal = ({ isOpen, onClose, images, setOptimisticImages, o
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                                 <h3 style={{ margin: 0 }}>{branch.name} 시간표</h3>
                                 <button  style={{ background: 'var(--primary-gold)', color: 'var(--text-on-primary)', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}>
-                                    이미지 변경
+                                    {t('이미지 변경')}
                                 </button>
                             </div>
                             <img 
@@ -82,25 +84,25 @@ export const PriceTableModal = ({ isOpen, onClose, images, setOptimisticImages, 
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '800px' }}>
                 <div className="modal-header">
-                    <h2 className="modal-title">가격표 확인 및 관리</h2>
+                    <h2 className="modal-title">{t('가격표 확인 및 관리')}</h2>
                     <button onClick={onClose}><X size={24} /></button>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     <div style={{ textAlign: 'center', background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '12px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                            <h3 style={{ margin: 0 }}>가격표 1</h3>
+                            <h3 style={{ margin: 0 }}>{t('가격표 1')}</h3>
                             <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'price_table_1', setOptimisticImages)} style={{ display: 'none' }} id="up-price-1" />
-                            <label htmlFor="up-price-1" className="action-btn sm"><Plus size={16} /> 변경</label>
+                            <label htmlFor="up-price-1" className="action-btn sm"><Plus size={16} /> {t('변경')}</label>
                         </div>
-                        <img src={getImage('price_table_1', config.ASSETS?.LOGO?.WIDE)} alt="가격표 1" style={{ width: '100%', borderRadius: '12px' }} />
+                        <img src={getImage('price_table_1', config.ASSETS?.LOGO?.WIDE)} alt={t('가격표 1')} style={{ width: '100%', borderRadius: '12px' }} />
                     </div>
                     <div style={{ textAlign: 'center', background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '12px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                            <h3 style={{ margin: 0 }}>가격표 2</h3>
+                            <h3 style={{ margin: 0 }}>{t('가격표 2')}</h3>
                             <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'price_table_2', setOptimisticImages)} style={{ display: 'none' }} id="up-price-2" />
-                            <label htmlFor="up-price-2" className="action-btn sm"><Plus size={16} /> 변경</label>
+                            <label htmlFor="up-price-2" className="action-btn sm"><Plus size={16} /> {t('변경')}</label>
                         </div>
-                        <img src={getImage('price_table_2', config.ASSETS?.LOGO?.WIDE)} alt="가격표 2" style={{ width: '100%', borderRadius: '12px' }} />
+                        <img src={getImage('price_table_2', config.ASSETS?.LOGO?.WIDE)} alt={t('가격표 2')} style={{ width: '100%', borderRadius: '12px' }} />
                     </div>
                 </div>
             </div>

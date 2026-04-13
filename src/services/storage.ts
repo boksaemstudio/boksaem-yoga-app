@@ -27,6 +27,10 @@ import { migrationService, MigrationResult } from './migrationService';
 import type { Notice } from './noticeService';
 import type { DailyClass, DailyUpdate, ScheduleStatus, ScheduleBackup, WeeklyTemplateClass } from './scheduleService';
 
+// Added for Demo Localization
+import { useLanguageStore } from '../stores/useLanguageStore';
+import { getCurrentStudioId } from '../utils/resolveStudioId';
+
 // ── Types ──
 type EventType = 'members' | 'logs' | 'sales' | 'images' | 'notices' | 'general';
 type ListenerCallback = (eventType: string) => void;
@@ -207,7 +211,27 @@ export const storageService = {
     addNotice(title: string, content: string, images: string[] = [], sendPush = true) { return noticeService.addNotice(title, content, images, sendPush); },
     deleteNotice(noticeId: string) { return noticeService.deleteNotice(noticeId); },
     translateNotices(notices: Notice[], targetLang: string) { return noticeService.translateNotices(notices, targetLang); },
-    getNotices(): Notice[] { return [...cachedNotices].sort((a, b) => new Date(b.timestamp || '0').getTime() - new Date(a.timestamp || '0').getTime()); },
+    getNotices(): Notice[] { 
+        let notices = [...cachedNotices].sort((a, b) => new Date(b.timestamp || '0').getTime() - new Date(a.timestamp || '0').getTime());
+        if (typeof window !== 'undefined' && getCurrentStudioId() === 'demo-yoga') {
+            const { t, currentLanguage } = useLanguageStore.getState();
+            if (currentLanguage && currentLanguage !== 'ko') {
+                notices = notices.map((n, i) => {
+                    const noticeKeyTitle = `demoNotice${i+1}Title`;
+                    const noticeKeyContent = `demoNotice${i+1}Content`;
+                    const localizedTitle = t(noticeKeyTitle);
+                    const localizedContent = t(noticeKeyContent);
+                    return {
+                        ...n,
+                        title: localizedTitle !== noticeKeyTitle ? localizedTitle : n.title,
+                        content: localizedContent !== noticeKeyContent ? localizedContent : n.content,
+                        image: (n as any)[`image_${currentLanguage}`] || n.image
+                    };
+                });
+            }
+        }
+        return notices;
+    },
     async loadNotices() { if (cachedNotices.length > 0) return cachedNotices; return noticeService.loadNotices(); },
 
     // ═══ AI ═══
@@ -244,7 +268,18 @@ export const storageService = {
     getDailyClasses(branchId: string, instructorName: string | null = null, date: string | null = null) { return classService.getDailyClasses(branchId, instructorName, date); },
 
     // ═══ CONFIG ═══
-    getImages() { return configService.getImages(); },
+    getImages() { 
+        const imgs = { ...configService.getImages() };
+        if (typeof window !== 'undefined' && getCurrentStudioId() === 'demo-yoga') {
+            const lang = useLanguageStore.getState().currentLanguage;
+            if (lang && lang !== 'ko') {
+                ['timeTable1', 'timeTable2', 'priceTable1', 'priceTable2', 'memberBg'].forEach(key => {
+                    if (imgs[`${key}_${lang}`]) imgs[key] = imgs[`${key}_${lang}`];
+                });
+            }
+        }
+        return imgs;
+    },
     updateImage(id: string, base64: string) { return configService.updateImage(id, base64, notifyListeners); },
     getPricing() { return configService.getPricing(); },
     savePricing(pricingData: Record<string, unknown>) { return configService.savePricing(pricingData, notifyListeners); },

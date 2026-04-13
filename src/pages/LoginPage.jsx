@@ -55,7 +55,7 @@ const LoginPage = () => {
     };
 
     useEffect(() => {
-        if (typeof window !== 'undefined' && window.location.hostname.includes('passflow-demo')) {
+        if (typeof window !== 'undefined' && window.location.hostname.includes('passflow')) {
             if (!sessionStorage.getItem('demoAdminLogout') && !window.demoAdminLoginTriggered) {
                 window.demoAdminLoginTriggered = true;
                 setEmail('demo@passflow.kr');
@@ -68,7 +68,13 @@ const LoginPage = () => {
     }, []);
 
     const primaryColor = config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)';
-    const studioName = config.IDENTITY?.NAME || 'Studio';
+    
+    let studioName = config.IDENTITY?.NAME || 'Studio';
+    if (typeof window !== 'undefined' && window.location.hostname.includes('passflow')) {
+        if (t('demoStudioName') && t('demoStudioName') !== 'demoStudioName') {
+            studioName = t('demoStudioName');
+        }
+    }
 
     return (
         <div style={{
@@ -136,7 +142,14 @@ const LoginPage = () => {
                 ) : (
                     <h2 style={{ color: 'white', marginBottom: '2vh' }}>{studioName}</h2>
                 )}
-                <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', color: primaryColor, marginBottom: '1vh', letterSpacing: '-0.02em' }}>{config.IDENTITY?.SLOGAN || ''}</h1>
+                
+                {/* Dynamically fallback to localized loginTitle if on demo */}
+                <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', color: primaryColor, marginBottom: '1vh', letterSpacing: '-0.02em' }}>
+                    {typeof window !== 'undefined' && window.location.hostname.includes('passflow') 
+                        ? (t('loginTitle') && t('loginTitle') !== 'loginTitle' ? t('loginTitle') : (config.IDENTITY?.SLOGAN || ''))
+                        : (config.IDENTITY?.SLOGAN || '')}
+                </h1>
+                
                 <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', opacity: 0.8 }}>{studioName} {t('adminSystem')}</p>
             </div>
 
@@ -217,7 +230,7 @@ const LoginPage = () => {
                     </button>
                     
                     {/* SaaS Admin Demo Quick Login Button */}
-                    {typeof window !== 'undefined' && window.location.hostname.includes('passflow-demo') && (
+                    {typeof window !== 'undefined' && window.location.hostname.includes('passflow') && (
                         <button
                             type="button"
                             onClick={(e) => {
@@ -293,9 +306,9 @@ const LoginPage = () => {
                 </a>
 
                 <div style={{ marginTop: '8px', wordBreak: 'keep-all' }}>
-                    <p style={{ margin: '0' }}>상호명: 패스플로우 에이아이(Passflow AI) | 대표자: 김복순</p>
-                    <p style={{ margin: '0' }}>사업자등록번호: 789-66-00676</p>
-                    <p style={{ margin: '0' }}>주소: 서울특별시 마포구 서강로1길 61, 201호(창전동, 삼성코러스빌라)</p>
+                    <p style={{ margin: '0' }}>Company: PassFlow AI | CEO: Boksoon Kim</p>
+                    <p style={{ margin: '0' }}>Business Reg No: 789-66-00676</p>
+                    <p style={{ margin: '0' }}>Address: 201, 81 Seogang-ro 1-gil, Mapo-gu, Seoul, Republic of Korea</p>
                     <p style={{ margin: '8px 0 0 0', color: 'rgba(255,255,255,0.2)' }}>© {new Date().getFullYear()} PassFlow AI. All rights reserved.</p>
                 </div>
             </div>

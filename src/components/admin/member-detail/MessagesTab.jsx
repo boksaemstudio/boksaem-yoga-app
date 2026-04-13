@@ -127,7 +127,7 @@ const MessagesTab = ({ memberId, member, prefillMessage, onPrefillConsumed }) =>
     const handleSend = async () => {
         if (!message.trim() || !memberId) return;
         
-        const isDemoSite = window.location.hostname.includes('passflow-demo') || localStorage.getItem('lastStudioId') === 'demo-yoga';
+        const isDemoSite = window.location.hostname.includes('passflow') || localStorage.getItem('lastStudioId') === 'demo-yoga';
         if (isDemoSite) {
             alert('데모 환경에서는 메시지 발송 기능이 제한되어 있습니다.');
             return;

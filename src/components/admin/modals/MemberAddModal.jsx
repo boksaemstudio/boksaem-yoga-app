@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useLanguageStore } from '../../../stores/useLanguageStore';
 import { X } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 
 const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
+    const t = useLanguageStore(s => s.t);
     const { config } = useStudioConfig();
     const branches = config.BRANCHES || [];
     const [pricingConfig, setPricingConfig] = useState(config.PRICING || {});
@@ -266,23 +268,23 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                 borderRadius: 'min(24px, 5vw)'
             }}>
                 <div className="modal-header">
-                    <h2 className="modal-title">회원 등록</h2>
+                    <h2 className="modal-title">{t('회원 등록')}</h2>
                     <button onClick={onClose} style={{ color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <X size={24} weight="bold" />
                     </button>
                 </div>
                 <div className="form-group" style={{ marginBottom: '14px' }}>
-                    <label className="form-label" style={{ marginBottom: '6px' }}>이름</label>
-                    <input className="form-input" style={{ fontFamily: 'var(--font-main)', padding: '14px 18px', fontSize: '1.1rem' }} value={newMember.name} onChange={(e) => setNewMember({ ...newMember, name: e.target.value })} lang="ko" inputMode="text" autoComplete="name" spellCheck="false" autoCorrect="off" placeholder="회원 이름 입력" />
+                    <label className="form-label" style={{ marginBottom: '6px' }}>{t('이름')}</label>
+                    <input className="form-input" style={{ fontFamily: 'var(--font-main)', padding: '14px 18px', fontSize: '1.1rem' }} value={newMember.name} onChange={(e) => setNewMember({ ...newMember, name: e.target.value })} lang="ko" inputMode="text" autoComplete="name" spellCheck="false" autoCorrect="off" placeholder={t('회원 이름 입력')} />
                 </div>
                 <div className="form-group" style={{ marginBottom: '14px' }}>
-                    <label className="form-label" style={{ marginBottom: '6px' }}>전화번호</label>
+                    <label className="form-label" style={{ marginBottom: '6px' }}>{t('전화번호')}</label>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                         <span style={{ padding: '14px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', color: 'var(--text-secondary)', fontFamily: 'var(--font-main)', fontWeight: 'bold' }}>010</span>
                         <input
                             className="form-input"
                             style={{ flex: 1, fontFamily: 'var(--font-main)', padding: '14px 18px', fontSize: '1.1rem' }}
-                            placeholder="뒷자리 8자리 숫자"
+                            placeholder={t('뒷자리 8자리 숫자')}
                             maxLength={8}
                             inputMode="numeric"
                             value={newMember.phone.replace('010', '')}
@@ -294,7 +296,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                     </div>
                 </div>
                 <div className="form-group">
-                    <label className="form-label">지점</label>
+                    <label className="form-label">{t('지점')}</label>
                     <select
                         className="form-select"
                         style={{ fontFamily: 'var(--font-main)' }}
@@ -310,7 +312,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                     </select>
                 </div>
                 <div className="form-group">
-                    <label className="form-label">회원권 종류</label>
+                    <label className="form-label">{t('회원권 종류')}</label>
                     <select
                         className="form-select"
                         style={{ fontFamily: 'var(--font-main)' }}
@@ -331,7 +333,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                     </select>
                 </div>
                 <div className="form-group">
-                    <label className="form-label">세부 옵션</label>
+                    <label className="form-label">{t('세부 옵션')}</label>
                     <select
                         className="form-select"
                         style={{ fontFamily: 'var(--font-main)' }}
@@ -351,7 +353,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                     if (currentOption && currentOption.type === 'subscription') {
                         return (
                             <div className="form-group">
-                                <label className="form-label">등록 기간</label>
+                                <label className="form-label">{t('등록 기간')}</label>
                                 <div style={{ display: 'flex', gap: '8px' }}>
                                     {[1, 3, 6].map(m => (
                                         <button
@@ -372,7 +374,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                     <div className="form-group">
-                        <label className="form-label">등록일</label>
+                        <label className="form-label">{t('등록일')}</label>
                         <div style={{ position: 'relative' }}>
                             <input
                                 type="date"
@@ -386,7 +388,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                     </div>
                     <div className="form-group">
                         <label className="form-label" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span>수련 시작일</span>
+                            <span>{t('수련 시작일')}</span>
                         </label>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             <div style={{ display: 'flex', gap: '8px' }}>
@@ -416,7 +418,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                                             includeToday: e.target.checked ? false : newMember.includeToday
                                         })}
                                     />
-                                    첫 출석일 시작
+                                    {t('첫 출석일 시작')}
                                 </label>
                                 <label style={{
                                     flex: 1,
@@ -460,7 +462,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                                             });
                                         }}
                                     />
-                                    오늘 수련 포함
+                                    {t('오늘 수련 포함')}
                                 </label>
                             </div>
 
@@ -515,7 +517,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                                             }
                                         }}
                                     >
-                                        <option value="자율수련">자율수련 (-1회)</option>
+                                        <option value={t('자율수련')}>{t('자율수련 (-1회)')}</option>
                                         {dailyClasses.map((cls, idx) => {
                                             const title = cls.title || cls.className || '';
                                             const time = cls.time || '';
@@ -532,8 +534,8 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                             {/* 마감일(종료일) */}
                             <div className="fade-in" style={{ marginTop: '10px' }}>
                                 <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span>마감일(종료일)</span>
-                                    {newMember.autoStart && <span style={{ fontSize: '0.75rem', color: 'var(--primary-gold)' }}>*첫 출석 시 조정됨</span>}
+                                    <span>{t('마감일(종료일)')}</span>
+                                    {newMember.autoStart && <span style={{ fontSize: '0.75rem', color: 'var(--primary-gold)' }}>{t('*첫 출석 시 조정됨')}</span>}
                                 </label>
                                 <input
                                     type="date"
@@ -544,7 +546,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                                     onChange={e => setNewMember({ ...newMember, manualEndDate: e.target.value })}
                                 />
                                 <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
-                                    * 날짜 선택 시 수동 적용. 비우면 자동 계산.
+                                    {t('* 날짜 선택 시 수동 적용. 비우면 자동 계산.')}
                                 </div>
                             </div>
                         </div>
@@ -552,7 +554,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                 </div>
 
                 <div className="form-group">
-                    <label className="form-label">결제 방식</label>
+                    <label className="form-label">{t('결제 방식')}</label>
                     <div style={{ display: 'flex', gap: '10px' }}>
                         {[
                             { id: 'card', label: '카드' },
@@ -573,7 +575,7 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
 
                 <div className="form-group" style={{ background: 'rgba(var(--primary-rgb), 0.08)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(var(--primary-rgb), 0.2)', boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.2)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                        <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', fontWeight: 'bold' }}>결제 금액</span>
+                        <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', fontWeight: 'bold' }}>{t('결제 금액')}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                             <input
                                 className="form-input"
@@ -595,13 +597,13 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                                     setNewMember({ ...newMember, amount: Number(rawValue) });
                                 }}
                             />
-                            <span style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--primary-gold)' }}>원</span>
+                            <span style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--primary-gold)' }}>{t('원')}</span>
                         </div>
                     </div>
                     <div style={{ fontSize: '0.95rem', color: 'var(--text-primary)', marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px' }}>
-                        <span style={{ fontWeight: 600 }}>횟수</span>
+                        <span style={{ fontWeight: 600 }}>{t('횟수')}</span>
                         {newMember.credits > 200 ? (
-                            <span style={{ fontWeight: 600 }}>무제한</span>
+                            <span style={{ fontWeight: 600 }}>{t('무제한')}</span>
                         ) : (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <input
@@ -615,25 +617,25 @@ const MemberAddModal = ({ isOpen, onClose, onSuccess }) => {
                                     value={newMember.credits}
                                     onChange={(e) => setNewMember({ ...newMember, credits: Number(e.target.value) })}
                                 />
-                                <span style={{ fontWeight: 600 }}>회</span>
+                                <span style={{ fontWeight: 600 }}>{t('회')}</span>
                             </div>
                         )}
                     </div>
                 </div>
 
                 <div className="form-group" style={{ marginTop: '10px' }}>
-                    <label className="form-label" style={{ marginBottom: '6px' }}>원장 메모 (선택)</label>
+                    <label className="form-label" style={{ marginBottom: '6px' }}>{t('원장 메모 (선택)')}</label>
                     <textarea 
                         className="form-input" 
                         style={{ fontFamily: 'var(--font-main)', padding: '14px 18px', fontSize: '1rem', minHeight: '80px', resize: 'vertical' }} 
                         value={newMember.notes || ''} 
                         onChange={(e) => setNewMember({ ...newMember, notes: e.target.value })} 
-                        placeholder="특이사항이나 메모를 입력하세요" 
+                        placeholder={t('특이사항이나 메모를 입력하세요')} 
                     />
                 </div>
 
                 <div className="modal-actions" style={{ gap: '12px', marginTop: '10px' }}>
-                    <button onClick={onClose} style={{ flex: 1, padding: '18px 0', color: 'var(--text-secondary)', fontWeight: '600', fontSize: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '16px' }}>취소</button>
+                    <button onClick={onClose} style={{ flex: 1, padding: '18px 0', color: 'var(--text-secondary)', fontWeight: '600', fontSize: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '16px' }}>{t('취소')}</button>
                     <button onClick={handleAddMember} className="action-btn primary" style={{ flex: 2, padding: '18px 0', fontSize: '1.1rem', fontWeight: '800', borderRadius: '16px', boxShadow: '0 10px 20px rgba(var(--primary-rgb), 0.2)' }} disabled={isSubmitting}>
                         {isSubmitting ? '처리 중...' : '회원 등록 완료'}
                     </button>

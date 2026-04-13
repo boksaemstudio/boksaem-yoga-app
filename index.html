@@ -72,9 +72,13 @@
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     (function () {
       var path = window.location.pathname;
-      var manifestFile = '/manifest-checkin.json';
+      var isPlatform = window.location.hostname.indexOf('passflow') > -1 || window.location.hostname.indexOf('demo') > -1;
+      
+      var manifestFile = '/manifest.json'; // 기본값 (포트레이트 모드)
 
-      if (path.indexOf('/admin') === 0) {
+      if (path.indexOf('/checkin') === 0 || (path === '/' && !isPlatform)) {
+        manifestFile = '/manifest-checkin.json';
+      } else if (path.indexOf('/admin') === 0) {
         manifestFile = '/manifest-admin.json';
       } else if (path.indexOf('/member') === 0) {
         manifestFile = '/manifest-member.json';

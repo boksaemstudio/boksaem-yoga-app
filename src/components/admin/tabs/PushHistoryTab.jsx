@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useLanguageStore } from '../../../stores/useLanguageStore';
 import { BellRinging, User, Users, Clock, CheckCircle, WarningCircle, CaretLeft, CaretRight, FunnelSimple } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 import { useStudioConfig } from '../../../contexts/StudioContext';
@@ -6,6 +7,7 @@ import { useStudioConfig } from '../../../contexts/StudioContext';
 const PAGE_SIZE = 20;
 
 const PushHistoryTab = ({ onSelectMember, setActiveTab, pendingApprovals = [], onApprove, onReject }) => {
+    const t = useLanguageStore(s => s.t);
     const { config } = useStudioConfig();
     const primaryColor = config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)';
     const [history, setHistory] = useState([]);
@@ -61,15 +63,15 @@ const PushHistoryTab = ({ onSelectMember, setActiveTab, pendingApprovals = [], o
     const pagedHistory = filteredHistory.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
     if (isLoading) {
-        return <div style={{ textAlign: 'center', padding: '100px 0', opacity: 0.5 }}>로딩 중...</div>;
+        return <div style={{ textAlign: 'center', padding: '100px 0', opacity: 0.5 }}>{t('로딩 중...')}</div>;
     }
 
     return (
         <div className="dashboard-card shadow-lg" style={{ background: 'rgba(25,25,25,0.7)', border: '1px solid rgba(255,255,255,0.05)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                 <div>
-                    <h3 className="outfit-font" style={{ fontSize: '1.4rem', fontWeight: 700, margin: 0 }}>알림 발송 기록</h3>
-                    <p style={{ margin: '5px 0 0 0', opacity: 0.5, fontSize: '0.85rem' }}>단체 및 개별 푸시 알림 발송 이력입니다.</p>
+                    <h3 className="outfit-font" style={{ fontSize: '1.4rem', fontWeight: 700, margin: 0 }}>{t('알림 발송 기록')}</h3>
+                    <p style={{ margin: '5px 0 0 0', opacity: 0.5, fontSize: '0.85rem' }}>{t('단체 및 개별 푸시 알림 발송 이력입니다.')}</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: primaryColor }}>{filteredHistory.length}</div>
@@ -123,13 +125,13 @@ const PushHistoryTab = ({ onSelectMember, setActiveTab, pendingApprovals = [], o
                         padding: '4px 8px', borderRadius: '6px', fontSize: '0.7rem',
                         border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(239,68,68,0.1)',
                         color: '#EF4444', cursor: 'pointer'
-                    }}>날짜 초기화</button>
+                    }}>{t('날짜 초기화')}</button>
                 )}
 
                 {/* Search */}
                 <input
                     type="text"
-                    placeholder="회원명/내용 검색..."
+                    placeholder={t('회원명/내용 검색...')}
                     value={searchText}
                     onChange={e => setSearchText(e.target.value)}
                     style={{
@@ -184,14 +186,14 @@ const PushHistoryTab = ({ onSelectMember, setActiveTab, pendingApprovals = [], o
                                                 padding: '8px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)',
                                                 background: 'transparent', color: '#FFF', cursor: 'pointer'
                                             }}
-                                        >삭제</button>
+                                        >{t('삭제')}</button>
                                         <button 
                                             onClick={() => onApprove(item.id, item.title)}
                                             style={{
                                                 padding: '8px 20px', borderRadius: '8px', border: 'none',
                                                 background: '#FFC107', color: 'var(--text-on-primary)', fontWeight: 'bold', cursor: 'pointer'
                                             }}
-                                        >승인 및 발송</button>
+                                        >{t('승인 및 발송')}</button>
                                     </div>
                                 </div>
                             </div>
@@ -199,7 +201,7 @@ const PushHistoryTab = ({ onSelectMember, setActiveTab, pendingApprovals = [], o
                     </div>
                 )}
 
-                <h4 style={{ margin: '0 0 15px 0', opacity: 0.7 }}>발송 이력</h4>
+                <h4 style={{ margin: '0 0 15px 0', opacity: 0.7 }}>{t('발송 이력')}</h4>
                 {pagedHistory.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '60px 0', opacity: 0.5 }}>
                         <BellRinging size={48} style={{ marginBottom: '15px' }} />
@@ -317,7 +319,7 @@ const PushHistoryTab = ({ onSelectMember, setActiveTab, pendingApprovals = [], o
                                 color: currentPage === 1 ? '#52525b' : '#fff',
                                 cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
                             }}
-                        ><CaretLeft size={14} /> 이전</button>
+                        ><CaretLeft size={14} /> {t('이전')}</button>
 
                         <span style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>
                             <span style={{ color: primaryColor, fontWeight: 700 }}>{currentPage}</span> / {totalPages}
@@ -334,7 +336,7 @@ const PushHistoryTab = ({ onSelectMember, setActiveTab, pendingApprovals = [], o
                                 color: currentPage === totalPages ? '#52525b' : '#fff',
                                 cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
                             }}
-                        >다음 <CaretRight size={14} /></button>
+                        >{t('다음')} <CaretRight size={14} /></button>
                     </div>
                 )}
             </div>

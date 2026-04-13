@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useLanguageStore } from '../../../stores/useLanguageStore';
 import { UserFocus, Trash } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 
@@ -95,7 +96,7 @@ const LogListItem = memo(({
                     {log.facialMatched && (
                         <span className="status-badge status-badge--facial-match" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
                             <UserFocus size={10} weight="fill" />
-                            안면 일치
+                            {t('안면 일치')}
                         </span>
                     )}
                 </div>

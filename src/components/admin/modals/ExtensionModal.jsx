@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useLanguageStore } from '../../../stores/useLanguageStore';
 import { X } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 
 const ExtensionModal = ({ isOpen, onClose, member, onSuccess }) => {
+    const t = useLanguageStore(s => s.t);
     const [extendDuration, setExtendDuration] = useState(1);
     const [extendPayment, setExtendPayment] = useState('card');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,7 +40,7 @@ const ExtensionModal = ({ isOpen, onClose, member, onSuccess }) => {
                 borderRadius: 'min(24px, 5vw)'
             }}>
                 <div className="modal-header">
-                    <h2 className="modal-title">수강권 연장(재등록)</h2>
+                    <h2 className="modal-title">{t('수강권 연장(재등록)')}</h2>
                     <button onClick={onClose} style={{ color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <X size={24} weight="bold" />
                     </button>
@@ -51,7 +53,7 @@ const ExtensionModal = ({ isOpen, onClose, member, onSuccess }) => {
                 </div>
 
                 <div className="form-group">
-                    <label className="form-label">연장 기간</label>
+                    <label className="form-label">{t('연장 기간')}</label>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                         {[1, 3, 6].map(m => (
                             <button
@@ -67,7 +69,7 @@ const ExtensionModal = ({ isOpen, onClose, member, onSuccess }) => {
                 </div>
 
                 <div className="form-group">
-                    <label className="form-label">결제 방식</label>
+                    <label className="form-label">{t('결제 방식')}</label>
                     <div style={{ display: 'flex', gap: '10px' }}>
                         {['card', 'cash', 'transfer'].map(p => (
                             <button
@@ -83,7 +85,7 @@ const ExtensionModal = ({ isOpen, onClose, member, onSuccess }) => {
                 </div>
 
                 <div className="modal-actions">
-                    <button onClick={onClose} style={{ padding: '10px 20px', color: 'var(--text-secondary)' }}>취소</button>
+                    <button onClick={onClose} style={{ padding: '10px 20px', color: 'var(--text-secondary)' }}>{t('취소')}</button>
                     <button onClick={handleExtendMember} className="action-btn primary" disabled={isSubmitting}>
                         {isSubmitting ? '처리 중...' : '연장하기'}
                     </button>

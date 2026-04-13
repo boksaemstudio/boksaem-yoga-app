@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useLanguageStore } from '../../../stores/useLanguageStore';
 import { X, Plus } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
 
 const NoticeModal = ({ isOpen, onClose, onSuccess }) => {
+    const t = useLanguageStore(s => s.t);
     const [newNotice, setNewNotice] = useState({ title: '', content: '', images: [], sendPush: true });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -86,14 +88,14 @@ const NoticeModal = ({ isOpen, onClose, onSuccess }) => {
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
                 <div className="modal-header">
-                    <h2 className="modal-title">공지사항 작성</h2>
+                    <h2 className="modal-title">{t('공지사항 작성')}</h2>
                     <button onClick={onClose}><X size={24} /></button>
                 </div>
                 <div className="form-group">
-                    <label className="form-label">제목</label>
+                    <label className="form-label">{t('제목')}</label>
                     <input
                         className="form-input"
-                        placeholder="예: [안내] 동절기 수업 시간 변경"
+                        placeholder={t('예: [안내] 동절기 수업 시간 변경')}
                         value={newNotice.title}
                         onChange={e => setNewNotice({ ...newNotice, title: e.target.value })}
                         lang="ko"
@@ -101,11 +103,11 @@ const NoticeModal = ({ isOpen, onClose, onSuccess }) => {
                     />
                 </div>
                 <div className="form-group">
-                    <label className="form-label">내용</label>
+                    <label className="form-label">{t('내용')}</label>
                     <textarea
                         className="form-input"
                         style={{ height: '150px', resize: 'none', userSelect: 'text', WebkitUserSelect: 'text' }} // ✨ FIX: Enable copy/paste menu
-                        placeholder="공지할 내용을 상세히 입력해주세요."
+                        placeholder={t('공지할 내용을 상세히 입력해주세요.')}
                         value={newNotice.content}
                         onChange={e => setNewNotice({ ...newNotice, content: e.target.value })}
                         lang="ko"
@@ -114,7 +116,7 @@ const NoticeModal = ({ isOpen, onClose, onSuccess }) => {
                 
                 <div className="form-group">
                     <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span>이미지 첨부 <span style={{ color: '#ff6b6b', fontWeight: 700 }}>*필수</span></span>
+                        <span>{t('이미지 첨부')} <span style={{ color: '#ff6b6b', fontWeight: 700 }}>{t('*필수')}</span></span>
                         <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>{newNotice.images.length} / 4</span>
                     </label>
                     
@@ -145,7 +147,7 @@ const NoticeModal = ({ isOpen, onClose, onSuccess }) => {
                                 background: 'rgba(255,255,255,0.02)', flexShrink: 0
                             }}>
                                 <Plus size={24} style={{ marginBottom: '4px' }} />
-                                <span>추가하기</span>
+                                <span>{t('추가하기')}</span>
                                 <input type="file" accept="image/*" multiple onChange={handleImageUpload} style={{ display: 'none' }} />
                             </label>
                         )}
@@ -161,13 +163,13 @@ const NoticeModal = ({ isOpen, onClose, onSuccess }) => {
                             style={{ width: '18px', height: '18px', accentColor: 'var(--primary-gold)' }} 
                         />
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>전체 푸시 알림 보내기</span>
-                            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>체크 해제 시 알림 없이 조용히 등록됩니다.</span>
+                            <span style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{t('전체 푸시 알림 보내기')}</span>
+                            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>{t('체크 해제 시 알림 없이 조용히 등록됩니다.')}</span>
                         </div>
                     </label>
                 </div>
                 <div className="modal-actions">
-                    <button onClick={onClose} style={{ padding: '10px 20px', color: 'var(--text-secondary)' }}>취소</button>
+                    <button onClick={onClose} style={{ padding: '10px 20px', color: 'var(--text-secondary)' }}>{t('취소')}</button>
                     <button onClick={handleCreateNotice} className="action-btn primary" disabled={isSubmitting}>
                         {isSubmitting ? '저장 중...' : '등록하기'}
                     </button>

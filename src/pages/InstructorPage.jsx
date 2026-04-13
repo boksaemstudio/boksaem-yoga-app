@@ -81,7 +81,7 @@ const InstructorPage = () => {
                     setInstructors(insts);
                     
                     // [DEMO] 데모 사이트 첫 진입 시 실제 등록된 첫 번째 강사로 자동 로그인 (근본적 해결)
-                    const isDemoSite = window.location.hostname.includes('passflow-demo') || localStorage.getItem('lastStudioId') === 'demo-yoga';
+                    const isDemoSite = window.location.hostname.includes('passflow') || localStorage.getItem('lastStudioId') === 'demo-yoga';
                     if (isDemoSite && !localStorage.getItem('instructorName') && !sessionStorage.getItem('demoLogout')) {
                         const firstInst = typeof insts[0] === 'string' ? insts[0] : insts[0].name;
                         localStorage.setItem('instructorName', firstInst);
