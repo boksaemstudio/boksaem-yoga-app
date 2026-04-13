@@ -77,6 +77,7 @@ export const TimeTableModal = ({ isOpen, onClose, images, setOptimisticImages, o
 
 export const PriceTableModal = ({ isOpen, onClose, images, setOptimisticImages, optimisticImages }) => {
     const { config } = useStudioConfig();
+    const t = useLanguageStore(s => s.t);
     if (!isOpen) return null;
     const getImage = (key, fallback) => optimisticImages[key] || images[key] || fallback;
 
