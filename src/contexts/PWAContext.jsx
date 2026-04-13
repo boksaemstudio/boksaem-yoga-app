@@ -64,26 +64,40 @@ export const PWAProvider = ({ children }) => {
         
         let manifestFile = '/manifest.json'; // 기본값 (포트레이트 모드)
         const studioName = config?.IDENTITY?.NAME || "Studio";
+
+        // [i18n] Dynamic tab title based on language
+        const langParam = new URLSearchParams(location.search).get('lang') || 'ko';
+        const titleMap = {
+            checkin: { ko: '출석체크', en: 'Check-in', ja: '出席チェック', zh: '签到', es: 'Registro', de: 'Check-in', fr: 'Pointage', pt: 'Check-in', ru: 'Отметка' },
+            admin: { ko: '관리자', en: 'Admin', ja: '管理者', zh: '管理员', es: 'Admin', de: 'Admin', fr: 'Admin', pt: 'Admin', ru: 'Админ' },
+            member: { ko: '내요가', en: 'My Yoga', ja: 'マイヨガ', zh: '我的瑜伽', es: 'Mi Yoga', de: 'Mein Yoga', fr: 'Mon Yoga', pt: 'Meu Yoga', ru: 'Моя Йога' },
+            instructor: { ko: '선생님', en: 'Instructor', ja: 'インストラクター', zh: '讲师', es: 'Instructor', de: 'Trainer', fr: 'Instructeur', pt: 'Instrutor', ru: 'Тренер' },
+            login: { ko: '로그인', en: 'Login', ja: 'ログイン', zh: '登录', es: 'Iniciar sesión', de: 'Anmelden', fr: 'Connexion', pt: 'Login', ru: 'Вход' },
+            meditation: { ko: '명상', en: 'Meditation', ja: '瞑想', zh: '冥想', es: 'Meditación', de: 'Meditation', fr: 'Méditation', pt: 'Meditação', ru: 'Медитация' },
+            onboarding: { ko: '온보딩', en: 'Onboarding', ja: 'オンボーディング', zh: '入职', es: 'Incorporación', de: 'Onboarding', fr: 'Inscription', pt: 'Onboarding', ru: 'Онбординг' },
+        };
+        const getTitle = (key) => titleMap[key]?.[langParam] || titleMap[key]?.en || titleMap[key]?.ko;
+
         let appTitle = `PassFlow AI | ${studioName}`;
 
         if (path.startsWith('/checkin') || isCheckinRoot) {
             manifestFile = '/manifest-checkin.json';
-            appTitle = `${studioName} 출석체크`;
+            appTitle = `${studioName} ${getTitle('checkin')}`;
         } else if (path.startsWith('/admin')) {
             manifestFile = '/manifest-admin.json';
-            appTitle = `${studioName} 관리자`;
+            appTitle = `${studioName} ${getTitle('admin')}`;
         } else if (path.startsWith('/member')) {
             manifestFile = '/manifest-member.json';
-            appTitle = '내요가'; // This title is specific and not using studioName
+            appTitle = getTitle('member');
         } else if (path.startsWith('/instructor')) {
             manifestFile = '/manifest-instructor.json';
-            appTitle = `${studioName} 선생님`;
+            appTitle = `${studioName} ${getTitle('instructor')}`;
         } else if (path.includes('login')) {
-            appTitle = `${studioName} 로그인`;
+            appTitle = `${studioName} ${getTitle('login')}`;
         } else if (path.includes('meditation')) {
-            appTitle = `${studioName} 명상`;
+            appTitle = `${studioName} ${getTitle('meditation')}`;
         } else if (path.includes('onboarding')) {
-            appTitle = `PassFlow AI 온보딩`;
+            appTitle = `PassFlow AI ${getTitle('onboarding')}`;
         }
 
         // Update manifest link

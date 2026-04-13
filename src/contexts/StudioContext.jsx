@@ -201,11 +201,20 @@ export const StudioProvider = ({ children }) => {
                 }}>
                     <div className="pulse">
                         {(() => {
-                            if (typeof window === 'undefined') return '스튜디오 준비 중...';
-                            const lang = new URLSearchParams(window.location.search).get('lang');
-                            if (lang === 'en' || lang === 'us') return 'Loading Studio...';
-                            if (lang === 'ja' || lang === 'jp') return 'スタジオ準備中...';
-                            return '스튜디오 준비 중...';
+                            if (typeof window === 'undefined') return 'Loading Studio...';
+                            const lang = new URLSearchParams(window.location.search).get('lang') || 'ko';
+                            const loadingMap = {
+                                ko: '스튜디오 준비 중...',
+                                en: 'Loading Studio...',
+                                ja: 'スタジオ準備中...',
+                                zh: '工作室加载中...',
+                                es: 'Cargando estudio...',
+                                de: 'Studio wird geladen...',
+                                fr: 'Chargement du studio...',
+                                pt: 'Carregando estúdio...',
+                                ru: 'Загрузка студии...',
+                            };
+                            return loadingMap[lang] || loadingMap.en;
                         })()}
                     </div>
                 </div>
