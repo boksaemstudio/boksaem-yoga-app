@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { CaretDown, CaretUp } from '@phosphor-icons/react';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 /**
  * CollapsibleCard — 접기/펼치기 가능한 대시보드 카드 래퍼
@@ -17,144 +18,133 @@ import { CaretDown, CaretUp } from '@phosphor-icons/react';
  * @param {function} onClick - 카드 클릭 핸들러 (필터 토글 등)
  */
 const STORAGE_KEY = 'cardCollapseState';
-
 const getStoredState = () => {
-    try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    } catch { return {}; }
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  } catch {
+    return {};
+  }
 };
-
-const CollapsibleCard = ({ 
-    id, 
-    title, 
-    titleExtra,
-    defaultOpen = true, 
-    children, 
-    className = '', 
-    style = {},
-    onClick
+const CollapsibleCard = ({
+  id,
+  title,
+  titleExtra,
+  defaultOpen = true,
+  children,
+  className = '',
+  style = {},
+  onClick
 }) => {
-    // [DEMO] 데모 사이트에서는 모든 카드를 펼침 상태로 기본 설정
-    const isDemoSite = typeof window !== 'undefined' && window.location.hostname.includes('demo');
-    const effectiveDefaultOpen = isDemoSite ? true : defaultOpen;
+  const t = useLanguageStore(s => s.t);
+  // [DEMO] 데모 사이트에서는 모든 카드를 펼침 상태로 기본 설정
+  const isDemoSite = typeof window !== 'undefined' && window.location.hostname.includes('demo');
+  const effectiveDefaultOpen = isDemoSite ? true : defaultOpen;
+  const stored = getStoredState();
+  const initialOpen = stored[id] !== undefined ? stored[id] : effectiveDefaultOpen;
+  const [isOpen, setIsOpen] = useState(initialOpen);
+  const contentRef = useRef(null);
 
-    const stored = getStoredState();
-    const initialOpen = stored[id] !== undefined ? stored[id] : effectiveDefaultOpen;
-    const [isOpen, setIsOpen] = useState(initialOpen);
-    const contentRef = useRef(null);
-
-    // defaultOpen이 변경되면(간편↔전체 전환) 사용자가 명시 설정 안 한 것은 따라감
-    useEffect(() => {
-        const s = getStoredState();
-        if (s[id] === undefined) {
-            setIsOpen(effectiveDefaultOpen);
-        }
-    }, [effectiveDefaultOpen, id]);
-
-    useEffect(() => {
-        const handler = (e) => {
-            const next = e.detail;
-            setIsOpen(next);
-            const s = getStoredState();
-            s[id] = next;
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
-        };
-        window.addEventListener('toggleAllCards', handler);
-        return () => window.removeEventListener('toggleAllCards', handler);
-    }, [id]);
-
-    const handleToggle = (e) => {
-        e.stopPropagation();
-        const next = !isOpen;
-        setIsOpen(next);
-        const s = getStoredState();
-        s[id] = next;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  // defaultOpen이 변경되면(간편↔전체 전환) 사용자가 명시 설정 안 한 것은 따라감
+  useEffect(() => {
+    const s = getStoredState();
+    if (s[id] === undefined) {
+      setIsOpen(effectiveDefaultOpen);
+    }
+  }, [effectiveDefaultOpen, id]);
+  useEffect(() => {
+    const handler = e => {
+      const next = e.detail;
+      setIsOpen(next);
+      const s = getStoredState();
+      s[id] = next;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
     };
-
-    return (
-        <div 
-            className={`dashboard-card ${className}`} 
-            style={{ ...style, overflow: 'hidden', transition: 'all 0.3s ease' }}
-            onClick={onClick}
-        >
+    window.addEventListener('toggleAllCards', handler);
+    return () => window.removeEventListener('toggleAllCards', handler);
+  }, [id]);
+  const handleToggle = e => {
+    e.stopPropagation();
+    const next = !isOpen;
+    setIsOpen(next);
+    const s = getStoredState();
+    s[id] = next;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  };
+  return <div className={`dashboard-card ${className}`} style={{
+    ...style,
+    overflow: 'hidden',
+    transition: 'all 0.3s ease'
+  }} onClick={onClick}>
             {/* 헤더 (항상 보임) */}
-            <div 
-                style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                    minHeight: '28px'
-                }}
-            >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
-                    <span className="card-label" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      cursor: 'pointer',
+      userSelect: 'none',
+      minHeight: '28px'
+    }}>
+                <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        flex: 1,
+        minWidth: 0
+      }}>
+                    <span className="card-label" style={{
+          margin: 0,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
+        }}>
                         {title}
                     </span>
                     {/* 접힌 상태에서 핵심 값 요약 표시 */}
-                    {!isOpen && titleExtra && (
-                        <span style={{ 
-                            fontSize: '1rem', fontWeight: '700', 
-                            color: 'var(--primary-gold)',
-                            marginLeft: '4px'
-                        }}>
+                    {!isOpen && titleExtra && <span style={{
+          fontSize: '1rem',
+          fontWeight: '700',
+          color: 'var(--primary-gold)',
+          marginLeft: '4px'
+        }}>
                             {titleExtra}
-                        </span>
-                    )}
+                        </span>}
                 </div>
-                <button
-                    onClick={handleToggle}
-                    style={{
-                        background: 'rgba(255,255,255,0.06)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: '6px',
-                        padding: '3px 8px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '3px',
-                        color: 'var(--text-secondary)',
-                        fontSize: '0.7rem',
-                        fontWeight: '600',
-                        transition: 'all 0.2s',
-                        flexShrink: 0
-                    }}
-                    title={isOpen ? '접기' : '펼치기'}
-                >
-                    {isOpen ? (
-                        <><CaretUp size={12} weight="bold" /> 접기</>
-                    ) : (
-                        <><CaretDown size={12} weight="bold" /> 펼치기</>
-                    )}
+                <button onClick={handleToggle} style={{
+        background: 'rgba(255,255,255,0.06)',
+        border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: '6px',
+        padding: '3px 8px',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '3px',
+        color: 'var(--text-secondary)',
+        fontSize: '0.7rem',
+        fontWeight: '600',
+        transition: 'all 0.2s',
+        flexShrink: 0
+      }} title={isOpen ? t('collapse') : t('expand')}>
+                    {isOpen ? <><CaretUp size={12} weight="bold" /> {t('collapse')}</> : <><CaretDown size={12} weight="bold" /> {t('expand')}</>}
                 </button>
             </div>
 
             {/* 내용 (접기/펼치기 애니메이션) */}
-            <div 
-                ref={contentRef}
-                style={{
-                    maxHeight: isOpen ? '2000px' : '0px',
-                    opacity: isOpen ? 1 : 0,
-                    overflow: 'hidden',
-                    transition: isOpen 
-                        ? 'max-height 0.4s ease-in, opacity 0.3s ease-in 0.1s' 
-                        : 'max-height 0.3s ease-out, opacity 0.15s ease-out',
-                    marginTop: isOpen ? '12px' : '0px'
-                }}
-            >
+            <div ref={contentRef} style={{
+      maxHeight: isOpen ? '2000px' : '0px',
+      opacity: isOpen ? 1 : 0,
+      overflow: 'hidden',
+      transition: isOpen ? 'max-height 0.4s ease-in, opacity 0.3s ease-in 0.1s' : 'max-height 0.3s ease-out, opacity 0.15s ease-out',
+      marginTop: isOpen ? '12px' : '0px'
+    }}>
                 {children}
             </div>
-        </div>
-    );
+        </div>;
 };
-
 export default CollapsibleCard;
 
 /**
  * 간편/전체 전환 시 모든 카드 접기 상태 초기화 유틸
  */
 export const resetAllCardStates = () => {
-    localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(STORAGE_KEY);
 };

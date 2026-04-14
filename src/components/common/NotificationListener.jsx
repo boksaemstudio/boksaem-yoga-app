@@ -2,85 +2,102 @@ import { useEffect, useState } from 'react';
 import { onMessage } from 'firebase/messaging';
 import { messaging } from '../../firebase';
 import { BellRinging, X } from '@phosphor-icons/react';
-
 const NotificationListener = () => {
-    const [toast, setToast] = useState(null);
-
-    useEffect(() => {
-        // [FOREGROUND] Handle incoming messages while app is open
-        const unsubscribe = onMessage(messaging, (payload) => {
-
-            // 1. Show custom Toast
-            // 데이터 전용(data-only) 메시지 대비 (events.js에서 notification 필드 제거 시 대응)
-            const notification = payload.notification || payload.data || {};
-            const { title, body } = notification;
-            if (title) {
-                const url = payload.data?.url;
-                setToast({ title, body, url, visible: true });
-
-                // Hide after 5 seconds
-                setTimeout(() => {
-                    setToast(null);
-                }, 5000);
-            }
-
-            // 2. Set App Badge if supported
-            if (navigator.setAppBadge) {
-                navigator.setAppBadge(1).catch(e => console.warn('Badge failed', e));
-            }
+  const t = useLanguageStore(s => s.t);
+  const [toast, setToast] = useState(null);
+  useEffect(() => {
+    // [FOREGROUND] Handle incoming messages while app is open
+    const unsubscribe = onMessage(messaging, payload => {
+      // 1. Show custom Toast
+      // 데이터 전용(data-only) 메시지 대비 (events.js에서 notification 필드 제거 시 대응)
+      const notification = payload.notification || payload.data || {};
+      const {
+        title,
+        body
+      } = notification;
+      if (title) {
+        const url = payload.data?.url;
+        setToast({
+          title,
+          body,
+          url,
+          visible: true
         });
 
-        // Clear badge on mount
-        if (navigator.clearAppBadge) {
-            navigator.clearAppBadge().catch(e => console.warn('Clear badge failed', e));
-        }
+        // Hide after 5 seconds
+        setTimeout(() => {
+          setToast(null);
+        }, 5000);
+      }
 
-        return () => {
-            if (unsubscribe) unsubscribe();
-        };
-    }, []);
+      // 2. Set App Badge if supported
+      if (navigator.setAppBadge) {
+        navigator.setAppBadge(1).catch(e => console.warn('Badge failed', e));
+      }
+    });
 
-    if (!toast) return null;
-
-    return (
-        <div style={{
-            position: 'fixed',
-            top: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'rgba(30, 30, 30, 0.95)',
-            color: 'white',
-            padding: '16px 20px',
-            borderRadius: '12px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-            zIndex: 10000,
-            display: 'flex',
-            alignItems: 'start',
-            gap: '12px',
-            minWidth: '320px',
-            maxWidth: '90vw',
-            border: '1px solid rgba(255,215,0,0.3)',
-            animation: 'slideDown 0.3s ease-out'
-        }}>
-            <BellRinging size={28} color="var(--primary-gold)" weight="fill" style={{ marginTop: '2px', flexShrink: 0 }} />
-            <div
-                onClick={() => {
-                    if (toast.url) window.location.href = toast.url;
-                    setToast(null);
-                }}
-                style={{ flex: 1, cursor: toast.url ? 'pointer' : 'default' }}
-            >
-                <h4 style={{ margin: '0 0 4px 0', fontSize: '0.95rem', fontWeight: 'bold', color: 'var(--primary-gold)' }}>{toast.title}</h4>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)', lineHeight: '1.4' }}>{toast.body}</p>
+    // Clear badge on mount
+    if (navigator.clearAppBadge) {
+      navigator.clearAppBadge().catch(e => console.warn('Clear badge failed', e));
+    }
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
+  if (!toast) return null;
+  return <div style={{
+    position: 'fixed',
+    top: '20px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    background: 'rgba(30, 30, 30, 0.95)',
+    color: 'white',
+    padding: '16px 20px',
+    borderRadius: '12px',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+    zIndex: 10000,
+    display: 'flex',
+    alignItems: 'start',
+    gap: '12px',
+    minWidth: '320px',
+    maxWidth: '90vw',
+    border: '1px solid rgba(255,215,0,0.3)',
+    animation: 'slideDown 0.3s ease-out'
+  }}>
+            <BellRinging size={28} color="var(--primary-gold)" weight="fill" style={{
+      marginTop: '2px',
+      flexShrink: 0
+    }} />
+            <div onClick={() => {
+      if (toast.url) window.location.href = toast.url;
+      setToast(null);
+    }} style={{
+      flex: 1,
+      cursor: toast.url ? 'pointer' : 'default'
+    }}>
+                <h4 style={{
+        margin: '0 0 4px 0',
+        fontSize: '0.95rem',
+        fontWeight: 'bold',
+        color: 'var(--primary-gold)'
+      }}>{toast.title}</h4>
+                <p style={{
+        margin: 0,
+        fontSize: '0.9rem',
+        color: 'rgba(255,255,255,0.9)',
+        lineHeight: '1.4'
+      }}>{toast.body}</p>
             </div>
-            <button
-                onClick={(e) => {
-                    e.stopPropagation();
-                    setToast(null);
-                }}
-                aria-label="Close notification"
-                style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', padding: '4px', cursor: 'pointer' }}
-            >
+            <button onClick={e => {
+      e.stopPropagation();
+      setToast(null);
+    }} aria-label="Close notification" style={{
+      background: 'none',
+      border: 'none',
+      color: 'rgba(255,255,255,0.5)',
+      padding: '4px',
+      cursor: 'pointer'
+    }}>
                 <X size={20} />
             </button>
             <style>
@@ -91,8 +108,6 @@ const NotificationListener = () => {
                 }
                 `}
             </style>
-        </div>
-    );
+        </div>;
 };
-
 export default NotificationListener;

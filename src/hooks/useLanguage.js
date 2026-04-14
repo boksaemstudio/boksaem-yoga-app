@@ -7,5 +7,5 @@ import { useLanguageStore } from '../stores/useLanguageStore';
  * 내부적으로 Zustand useLanguageStore를 사용.
  */
 export const useLanguage = () => {
-    return useLanguageStore();
+  return useLanguageStore();
 };

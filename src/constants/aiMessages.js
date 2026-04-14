@@ -1,96 +1,27 @@
+import { useLanguageStore } from '../stores/useLanguageStore';
 // src/constants/aiMessages.js
 
-export const FALLBACK_MESSAGE_OUTSIDE_BUSINESS_HOURS = "오늘도 매트 위에서 나를 만나는 소중한 시간입니다.";
-
-export const RAIN_MESSAGES = [
-    "비 오는 날, 매트 위에서 차분함을 느껴보세요.",
-    "빗소리와 함께 내면의 소리에 귀 기울여 보세요.",
-    "촉촉한 공기가 수련의 깊이를 더해줍니다.",
-    "흐린 날일수록 마음의 빛은 더 선명해집니다.",
-    "비에 씻겨나가듯, 걱정도 내려놓으세요."
-];
-
-export const SNOW_MESSAGES = [
-    "눈 내리는 날, 고요한 수련을 시작합니다.",
-    "차가운 공기 속, 몸의 온기를 채워보세요.",
-    "하얀 세상처럼 마음도 깨끗하게 비워내는 시간.",
-    "포근한 스튜디오에서 겨울의 낭만을 즐기세요."
-];
-
+export const FALLBACK_MESSAGE_OUTSIDE_BUSINESS_HOURS = t("g_e2063f") || "\uC624\uB298\uB3C4 \uB9E4\uD2B8 \uC704\uC5D0\uC11C \uB098\uB97C \uB9CC\uB098\uB294 \uC18C\uC911\uD55C \uC2DC\uAC04\uC785\uB2C8\uB2E4.";
+export const RAIN_MESSAGES = [t("g_ad0321") || "\uBE44 \uC624\uB294 \uB0A0, \uB9E4\uD2B8 \uC704\uC5D0\uC11C \uCC28\uBD84\uD568\uC744 \uB290\uAEF4\uBCF4\uC138\uC694.", t("g_ceac08") || "\uBE57\uC18C\uB9AC\uC640 \uD568\uAED8 \uB0B4\uBA74\uC758 \uC18C\uB9AC\uC5D0 \uADC0 \uAE30\uC6B8\uC5EC \uBCF4\uC138\uC694.", t("g_1da0dd") || "\uCD09\uCD09\uD55C \uACF5\uAE30\uAC00 \uC218\uB828\uC758 \uAE4A\uC774\uB97C \uB354\uD574\uC90D\uB2C8\uB2E4.", t("g_ee381a") || "\uD750\uB9B0 \uB0A0\uC77C\uC218\uB85D \uB9C8\uC74C\uC758 \uBE5B\uC740 \uB354 \uC120\uBA85\uD574\uC9D1\uB2C8\uB2E4.", t("g_9c2018") || "\uBE44\uC5D0 \uC53B\uACA8\uB098\uAC00\uB4EF, \uAC71\uC815\uB3C4 \uB0B4\uB824\uB193\uC73C\uC138\uC694."];
+export const SNOW_MESSAGES = [t("g_c8e53d") || "\uB208 \uB0B4\uB9AC\uB294 \uB0A0, \uACE0\uC694\uD55C \uC218\uB828\uC744 \uC2DC\uC791\uD569\uB2C8\uB2E4.", t("g_394973") || "\uCC28\uAC00\uC6B4 \uACF5\uAE30 \uC18D, \uBAB8\uC758 \uC628\uAE30\uB97C \uCC44\uC6CC\uBCF4\uC138\uC694.", t("g_07e30b") || "\uD558\uC580 \uC138\uC0C1\uCC98\uB7FC \uB9C8\uC74C\uB3C4 \uAE68\uB057\uD558\uAC8C \uBE44\uC6CC\uB0B4\uB294 \uC2DC\uAC04.", t("g_eb1d61") || "\uD3EC\uADFC\uD55C \uC2A4\uD29C\uB514\uC624\uC5D0\uC11C \uACA8\uC6B8\uC758 \uB0AD\uB9CC\uC744 \uC990\uAE30\uC138\uC694."];
 export const CLASS_TYPES = {
-    FLYING: [
-        "중력을 거스르며 자유로움을 느끼는 시간.",
-        "해먹에 몸을 맡기고 척추의 편안함을 찾으세요.",
-        "날개를 펴듯, 몸과 마음을 활짝 열어보세요.",
-        "공중에서의 휴식, 플라잉 요가가 기다립니다."
-    ],
-    HEALING: [
-        "지친 몸을 위로하는 치유의 시간입니다.",
-        "부드러운 움직임으로 긴장을 풀어주세요.",
-        "나를 돌보는 가장 따뜻한 방법, 테라피 요가.",
-        "오늘 하루 수고한 몸에게 휴식을 선물하세요."
-    ],
-    FLOW: [
-        "호흡과 움직임이 하나 되는 몰입의 순간.",
-        "흐르는 땀방울만큼 마음은 맑아집니다.",
-        "움직임 속에서 정적인 평화를 찾아보세요.",
-        "나만의 리듬을 찾아가는 여정이 시작됩니다."
-    ]
+  FLYING: [t("g_bee920") || "\uC911\uB825\uC744 \uAC70\uC2A4\uB974\uBA70 \uC790\uC720\uB85C\uC6C0\uC744 \uB290\uB07C\uB294 \uC2DC\uAC04.", t("g_375c92") || "\uD574\uBA39\uC5D0 \uBAB8\uC744 \uB9E1\uAE30\uACE0 \uCC99\uCD94\uC758 \uD3B8\uC548\uD568\uC744 \uCC3E\uC73C\uC138\uC694.", t("g_781e06") || "\uB0A0\uAC1C\uB97C \uD3B4\uB4EF, \uBAB8\uACFC \uB9C8\uC74C\uC744 \uD65C\uC9DD \uC5F4\uC5B4\uBCF4\uC138\uC694.", t("g_847785") || "\uACF5\uC911\uC5D0\uC11C\uC758 \uD734\uC2DD, \uD50C\uB77C\uC789 \uC694\uAC00\uAC00 \uAE30\uB2E4\uB9BD\uB2C8\uB2E4."],
+  HEALING: [t("g_d96eca") || "\uC9C0\uCE5C \uBAB8\uC744 \uC704\uB85C\uD558\uB294 \uCE58\uC720\uC758 \uC2DC\uAC04\uC785\uB2C8\uB2E4.", t("g_c2d225") || "\uBD80\uB4DC\uB7EC\uC6B4 \uC6C0\uC9C1\uC784\uC73C\uB85C \uAE34\uC7A5\uC744 \uD480\uC5B4\uC8FC\uC138\uC694.", t("g_c6b2dc") || "\uB098\uB97C \uB3CC\uBCF4\uB294 \uAC00\uC7A5 \uB530\uB73B\uD55C \uBC29\uBC95, \uD14C\uB77C\uD53C \uC694\uAC00.", t("g_84b426") || "\uC624\uB298 \uD558\uB8E8 \uC218\uACE0\uD55C \uBAB8\uC5D0\uAC8C \uD734\uC2DD\uC744 \uC120\uBB3C\uD558\uC138\uC694."],
+  FLOW: [t("g_b4ef34") || "\uD638\uD761\uACFC \uC6C0\uC9C1\uC784\uC774 \uD558\uB098 \uB418\uB294 \uBAB0\uC785\uC758 \uC21C\uAC04.", t("g_f60fdb") || "\uD750\uB974\uB294 \uB540\uBC29\uC6B8\uB9CC\uD07C \uB9C8\uC74C\uC740 \uB9D1\uC544\uC9D1\uB2C8\uB2E4.", t("g_b98a40") || "\uC6C0\uC9C1\uC784 \uC18D\uC5D0\uC11C \uC815\uC801\uC778 \uD3C9\uD654\uB97C \uCC3E\uC544\uBCF4\uC138\uC694.", t("g_feb30c") || "\uB098\uB9CC\uC758 \uB9AC\uB4EC\uC744 \uCC3E\uC544\uAC00\uB294 \uC5EC\uC815\uC774 \uC2DC\uC791\uB429\uB2C8\uB2E4."]
 };
-
 export const TIME_BASED_MESSAGES = {
-    MORNING: [
-        "상쾌한 아침, 건강한 에너지를 깨우세요.",
-        "새로운 하루, 매트 위에서 시작하는 다짐.",
-        "아침의 고요함이 하루의 균형을 잡아줍니다.",
-        "오늘 당신의 하루는 빛날 것입니다.",
-        "맑은 정신으로 맞이하는 아침 수련.",
-        "가장 먼저 나를 만나는 이 시간이 소중합니다."
-    ],
-    LUNCH: [
-        "오후를 위한 활력, 잠시 쉬어가세요.",
-        "나른함을 깨우고 몸에 생기를 불어넣습니다.",
-        "바쁜 일상 속, 나를 위한 작은 쉼표.",
-        "점심 시간, 짧지만 깊은 충전의 시간입니다.",
-        "몸을 가볍게 비우고 마음을 채우세요."
-    ],
-    AFTERNOON: [
-        "오후의 햇살처럼 따뜻한 에너지를 만드세요.",
-        "지친 오후, 굳은 어깨와 마음을 활짝 펴세요.",
-        "남은 하루를 완주할 힘을 얻어가는 시간.",
-        "지금 이 순간, 오롯이 나에게 집중합니다.",
-        "긴장을 풀고 호흡 깊이 들이마시세요."
-    ],
-    EVENING: [
-        "오늘 하루의 무게를 매트에 내려놓으세요.",
-        "수고한 당신, 이제 온전히 쉴 시간입니다.",
-        "복잡한 생각은 비우고 내면을 채우세요.",
-        "하루를 마무리하는 가장 아름다운 의식.",
-        "고요한 저녁, 나를 다독이는 따뜻한 수련.",
-        "오늘도 잘 견뎌낸 나에게 감사를 전합니다."
-    ],
-    NIGHT: [
-        "깊은 밤, 달빛처럼 은은한 평화를 찾으세요.",
-        "하루의 끝, 내일의 나를 위한 재충전.",
-        "편안한 잠을 위한 깊은 이완의 시간.",
-        "도시의 소음은 잊고 내 숨소리에 집중하세요.",
-        "고요함 속에서 만나는 진정한 휴식."
-    ]
+  MORNING: [t("g_0781a6") || "\uC0C1\uCF8C\uD55C \uC544\uCE68, \uAC74\uAC15\uD55C \uC5D0\uB108\uC9C0\uB97C \uAE68\uC6B0\uC138\uC694.", t("g_d6b036") || "\uC0C8\uB85C\uC6B4 \uD558\uB8E8, \uB9E4\uD2B8 \uC704\uC5D0\uC11C \uC2DC\uC791\uD558\uB294 \uB2E4\uC9D0.", t("g_c8e607") || "\uC544\uCE68\uC758 \uACE0\uC694\uD568\uC774 \uD558\uB8E8\uC758 \uADE0\uD615\uC744 \uC7A1\uC544\uC90D\uB2C8\uB2E4.", t("g_7569b7") || "\uC624\uB298 \uB2F9\uC2E0\uC758 \uD558\uB8E8\uB294 \uBE5B\uB0A0 \uAC83\uC785\uB2C8\uB2E4.", t("g_3a57ff") || "\uB9D1\uC740 \uC815\uC2E0\uC73C\uB85C \uB9DE\uC774\uD558\uB294 \uC544\uCE68 \uC218\uB828.", t("g_8bf513") || "\uAC00\uC7A5 \uBA3C\uC800 \uB098\uB97C \uB9CC\uB098\uB294 \uC774 \uC2DC\uAC04\uC774 \uC18C\uC911\uD569\uB2C8\uB2E4."],
+  LUNCH: [t("g_bebf9c") || "\uC624\uD6C4\uB97C \uC704\uD55C \uD65C\uB825, \uC7A0\uC2DC \uC26C\uC5B4\uAC00\uC138\uC694.", t("g_cad446") || "\uB098\uB978\uD568\uC744 \uAE68\uC6B0\uACE0 \uBAB8\uC5D0 \uC0DD\uAE30\uB97C \uBD88\uC5B4\uB123\uC2B5\uB2C8\uB2E4.", t("g_987771") || "\uBC14\uC05C \uC77C\uC0C1 \uC18D, \uB098\uB97C \uC704\uD55C \uC791\uC740 \uC27C\uD45C.", t("g_dbf1d9") || "\uC810\uC2EC \uC2DC\uAC04, \uC9E7\uC9C0\uB9CC \uAE4A\uC740 \uCDA9\uC804\uC758 \uC2DC\uAC04\uC785\uB2C8\uB2E4.", t("g_1abcf1") || "\uBAB8\uC744 \uAC00\uBCCD\uAC8C \uBE44\uC6B0\uACE0 \uB9C8\uC74C\uC744 \uCC44\uC6B0\uC138\uC694."],
+  AFTERNOON: [t("g_dc016e") || "\uC624\uD6C4\uC758 \uD587\uC0B4\uCC98\uB7FC \uB530\uB73B\uD55C \uC5D0\uB108\uC9C0\uB97C \uB9CC\uB4DC\uC138\uC694.", t("g_1d7bbd") || "\uC9C0\uCE5C \uC624\uD6C4, \uAD73\uC740 \uC5B4\uAE68\uC640 \uB9C8\uC74C\uC744 \uD65C\uC9DD \uD3B4\uC138\uC694.", t("g_c76d1e") || "\uB0A8\uC740 \uD558\uB8E8\uB97C \uC644\uC8FC\uD560 \uD798\uC744 \uC5BB\uC5B4\uAC00\uB294 \uC2DC\uAC04.", t("g_d1372e") || "\uC9C0\uAE08 \uC774 \uC21C\uAC04, \uC624\uB86F\uC774 \uB098\uC5D0\uAC8C \uC9D1\uC911\uD569\uB2C8\uB2E4.", t("g_07e64d") || "\uAE34\uC7A5\uC744 \uD480\uACE0 \uD638\uD761 \uAE4A\uC774 \uB4E4\uC774\uB9C8\uC2DC\uC138\uC694."],
+  EVENING: [t("g_1d7147") || "\uC624\uB298 \uD558\uB8E8\uC758 \uBB34\uAC8C\uB97C \uB9E4\uD2B8\uC5D0 \uB0B4\uB824\uB193\uC73C\uC138\uC694.", t("g_c865cb") || "\uC218\uACE0\uD55C \uB2F9\uC2E0, \uC774\uC81C \uC628\uC804\uD788 \uC274 \uC2DC\uAC04\uC785\uB2C8\uB2E4.", t("g_65b687") || "\uBCF5\uC7A1\uD55C \uC0DD\uAC01\uC740 \uBE44\uC6B0\uACE0 \uB0B4\uBA74\uC744 \uCC44\uC6B0\uC138\uC694.", t("g_5d131e") || "\uD558\uB8E8\uB97C \uB9C8\uBB34\uB9AC\uD558\uB294 \uAC00\uC7A5 \uC544\uB984\uB2E4\uC6B4 \uC758\uC2DD.", t("g_f54526") || "\uACE0\uC694\uD55C \uC800\uB141, \uB098\uB97C \uB2E4\uB3C5\uC774\uB294 \uB530\uB73B\uD55C \uC218\uB828.", t("g_2e6993") || "\uC624\uB298\uB3C4 \uC798 \uACAC\uB38C\uB0B8 \uB098\uC5D0\uAC8C \uAC10\uC0AC\uB97C \uC804\uD569\uB2C8\uB2E4."],
+  NIGHT: [t("g_756002") || "\uAE4A\uC740 \uBC24, \uB2EC\uBE5B\uCC98\uB7FC \uC740\uC740\uD55C \uD3C9\uD654\uB97C \uCC3E\uC73C\uC138\uC694.", t("g_bd800d") || "\uD558\uB8E8\uC758 \uB05D, \uB0B4\uC77C\uC758 \uB098\uB97C \uC704\uD55C \uC7AC\uCDA9\uC804.", t("g_987882") || "\uD3B8\uC548\uD55C \uC7A0\uC744 \uC704\uD55C \uAE4A\uC740 \uC774\uC644\uC758 \uC2DC\uAC04.", t("g_14bd74") || "\uB3C4\uC2DC\uC758 \uC18C\uC74C\uC740 \uC78A\uACE0 \uB0B4 \uC228\uC18C\uB9AC\uC5D0 \uC9D1\uC911\uD558\uC138\uC694.", t("g_399ff4") || "\uACE0\uC694\uD568 \uC18D\uC5D0\uC11C \uB9CC\uB098\uB294 \uC9C4\uC815\uD55C \uD734\uC2DD."]
 };
-
-export const CHECKIN_SUCCESS_FALLBACKS = [
-    "호흡에 집중하며 나를 만나는 시간입니다.",
-    "매트 위에서 평온함을 찾으시길 바랍니다.",
-    "오늘도 건강한 하루 되세요.",
-    "몸과 마음이 하나되는 순간입니다.",
-    "수련을 통해 내면의 평화를 느껴보세요."
-];
-
+export const CHECKIN_SUCCESS_FALLBACKS = [t("g_8fef48") || "\uD638\uD761\uC5D0 \uC9D1\uC911\uD558\uBA70 \uB098\uB97C \uB9CC\uB098\uB294 \uC2DC\uAC04\uC785\uB2C8\uB2E4.", t("g_2b7f3c") || "\uB9E4\uD2B8 \uC704\uC5D0\uC11C \uD3C9\uC628\uD568\uC744 \uCC3E\uC73C\uC2DC\uAE38 \uBC14\uB78D\uB2C8\uB2E4.", t("g_d719f0") || "\uC624\uB298\uB3C4 \uAC74\uAC15\uD55C \uD558\uB8E8 \uB418\uC138\uC694.", t("g_446857") || "\uBAB8\uACFC \uB9C8\uC74C\uC774 \uD558\uB098\uB418\uB294 \uC21C\uAC04\uC785\uB2C8\uB2E4.", t("g_c031f6") || "\uC218\uB828\uC744 \uD1B5\uD574 \uB0B4\uBA74\uC758 \uD3C9\uD654\uB97C \uB290\uAEF4\uBCF4\uC138\uC694."];
 export const AIMessages = {
-    FALLBACK_MESSAGE_OUTSIDE_BUSINESS_HOURS,
-    RAIN_MESSAGES,
-    SNOW_MESSAGES,
-    CLASS_TYPES,
-    TIME_BASED_MESSAGES,
-    CHECKIN_SUCCESS_FALLBACKS
+  FALLBACK_MESSAGE_OUTSIDE_BUSINESS_HOURS,
+  RAIN_MESSAGES,
+  SNOW_MESSAGES,
+  CLASS_TYPES,
+  TIME_BASED_MESSAGES,
+  CHECKIN_SUCCESS_FALLBACKS
 };

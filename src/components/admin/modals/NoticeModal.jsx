@@ -2,181 +2,252 @@ import { useState } from 'react';
 import { useLanguageStore } from '../../../stores/useLanguageStore';
 import { X, Plus } from '@phosphor-icons/react';
 import { storageService } from '../../../services/storage';
+const NoticeModal = ({
+  isOpen,
+  onClose,
+  onSuccess
+}) => {
+  const t = useLanguageStore(s => s.t);
+  const [newNotice, setNewNotice] = useState({
+    title: '',
+    content: '',
+    images: [],
+    sendPush: true
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  if (!isOpen) return null;
+  const handleCreateNotice = async () => {
+    if (!newNotice.title || !newNotice.content) return;
+    if (newNotice.images.length === 0) {
+      alert(t("g_eb79f5") || t("g_eb79f5") || t("g_eb79f5") || t("g_eb79f5") || t("g_eb79f5") || "\uC774\uBBF8\uC9C0\uB97C 1\uAC1C \uC774\uC0C1 \uCCA8\uBD80\uD574\uC8FC\uC138\uC694.");
+      return;
+    }
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await storageService.addNotice(newNotice.title, newNotice.content, newNotice.images, newNotice.sendPush);
+      setNewNotice({
+        title: '',
+        content: '',
+        images: [],
+        sendPush: true
+      });
+      alert(t("g_78cd7e") || t("g_78cd7e") || t("g_78cd7e") || t("g_78cd7e") || t("g_78cd7e") || "\uACF5\uC9C0\uC0AC\uD56D\uC774 \uB4F1\uB85D\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+      onSuccess();
+      onClose();
+    } catch (err) {
+      console.error('Error creating notice:', err);
+      alert(t("g_37e42e") || t("g_37e42e") || t("g_37e42e") || t("g_37e42e") || t("g_37e42e") || "\uACF5\uC9C0\uC0AC\uD56D \uB4F1\uB85D \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  const handleImageUpload = e => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    if (newNotice.images.length + files.length > 4) {
+      alert(t("g_764e5d") || t("g_764e5d") || t("g_764e5d") || t("g_764e5d") || t("g_764e5d") || "\uC774\uBBF8\uC9C0\uB294 \uCD5C\uB300 4\uC7A5\uAE4C\uC9C0\uB9CC \uCCA8\uBD80\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.");
+      return;
+    }
+    files.forEach(file => {
+      // ⚡ [FIX] 용량 제한 제거: "알아서 압축하면 되잖아" (사용자 요청)
+      // 5MB 체크 로직 삭제 -> Canvas 압축 후 Storage 업로드로 처리
 
-const NoticeModal = ({ isOpen, onClose, onSuccess }) => {
-    const t = useLanguageStore(s => s.t);
-    const [newNotice, setNewNotice] = useState({ title: '', content: '', images: [], sendPush: true });
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    if (!isOpen) return null;
-
-    const handleCreateNotice = async () => {
-        if (!newNotice.title || !newNotice.content) return;
-        if (newNotice.images.length === 0) {
-            alert('이미지를 1개 이상 첨부해주세요.');
-            return;
-        }
-        if (isSubmitting) return;
-
-        setIsSubmitting(true);
-        try {
-            await storageService.addNotice(newNotice.title, newNotice.content, newNotice.images, newNotice.sendPush);
-            setNewNotice({ title: '', content: '', images: [], sendPush: true });
-            alert('공지사항이 등록되었습니다.');
-            onSuccess();
-            onClose();
-        } catch (err) {
-            console.error('Error creating notice:', err);
-            alert('공지사항 등록 중 오류가 발생했습니다.');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const handleImageUpload = (e) => {
-        const files = Array.from(e.target.files);
-        if (files.length === 0) return;
-
-        if (newNotice.images.length + files.length > 4) {
-            alert('이미지는 최대 4장까지만 첨부할 수 있습니다.');
-            return;
-        }
-
-        files.forEach(file => {
-            // ⚡ [FIX] 용량 제한 제거: "알아서 압축하면 되잖아" (사용자 요청)
-            // 5MB 체크 로직 삭제 -> Canvas 압축 후 Storage 업로드로 처리
-            
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 900;
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > MAX_WIDTH) {
-                        height *= MAX_WIDTH / width;
-                        width = MAX_WIDTH;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    const compressedBase64 = canvas.toDataURL('image/webp', 0.5);
-                    setNewNotice(prev => ({ ...prev, images: [...prev.images, compressedBase64] }));
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
-        });
-        
-        // Reset input so same file can be selected again if needed
-        e.target.value = '';
-    };
-
-    const removeImage = (index) => {
-        setNewNotice(prev => ({
+      const reader = new FileReader();
+      reader.onload = event => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 900;
+          let width = img.width;
+          let height = img.height;
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedBase64 = canvas.toDataURL('image/webp', 0.5);
+          setNewNotice(prev => ({
             ...prev,
-            images: prev.images.filter((_, i) => i !== index)
-        }));
-    };
+            images: [...prev.images, compressedBase64]
+          }));
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
 
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+    // Reset input so same file can be selected again if needed
+    e.target.value = '';
+  };
+  const removeImage = index => {
+    setNewNotice(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+  };
+  return <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" onClick={e => e.stopPropagation()} style={{
+      maxWidth: '600px',
+      maxHeight: '90vh',
+      overflowY: 'auto'
+    }}>
                 <div className="modal-header">
                     <h2 className="modal-title">{t('공지사항 작성')}</h2>
                     <button onClick={onClose}><X size={24} /></button>
                 </div>
                 <div className="form-group">
                     <label className="form-label">{t('제목')}</label>
-                    <input
-                        className="form-input"
-                        placeholder={t('예: [안내] 동절기 수업 시간 변경')}
-                        value={newNotice.title}
-                        onChange={e => setNewNotice({ ...newNotice, title: e.target.value })}
-                        lang="ko"
-                        style={{ userSelect: 'text', WebkitUserSelect: 'text' }} // ✨ FIX: Enable copy/paste menu
-                    />
+                    <input className="form-input" placeholder={t('예: [안내] 동절기 수업 시간 변경')} value={newNotice.title} onChange={e => setNewNotice({
+          ...newNotice,
+          title: e.target.value
+        })} lang="ko" style={{
+          userSelect: 'text',
+          WebkitUserSelect: 'text'
+        }} // ✨ FIX: Enable copy/paste menu
+        />
                 </div>
                 <div className="form-group">
                     <label className="form-label">{t('내용')}</label>
-                    <textarea
-                        className="form-input"
-                        style={{ height: '150px', resize: 'none', userSelect: 'text', WebkitUserSelect: 'text' }} // ✨ FIX: Enable copy/paste menu
-                        placeholder={t('공지할 내용을 상세히 입력해주세요.')}
-                        value={newNotice.content}
-                        onChange={e => setNewNotice({ ...newNotice, content: e.target.value })}
-                        lang="ko"
-                    />
+                    <textarea className="form-input" style={{
+          height: '150px',
+          resize: 'none',
+          userSelect: 'text',
+          WebkitUserSelect: 'text'
+        }} // ✨ FIX: Enable copy/paste menu
+        placeholder={t('공지할 내용을 상세히 입력해주세요.')} value={newNotice.content} onChange={e => setNewNotice({
+          ...newNotice,
+          content: e.target.value
+        })} lang="ko" />
                 </div>
                 
                 <div className="form-group">
-                    <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span>{t('이미지 첨부')} <span style={{ color: '#ff6b6b', fontWeight: 700 }}>{t('*필수')}</span></span>
-                        <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>{newNotice.images.length} / 4</span>
+                    <label className="form-label" style={{
+          display: 'flex',
+          justifyContent: 'space-between'
+        }}>
+                        <span>{t('이미지 첨부')} <span style={{
+              color: '#ff6b6b',
+              fontWeight: 700
+            }}>{t('*필수')}</span></span>
+                        <span style={{
+            fontSize: '0.8rem',
+            opacity: 0.7
+          }}>{newNotice.images.length} / 4</span>
                     </label>
                     
-                    <div style={{ display: 'flex', gap: '10px', marginBottom: '10px', overflowX: 'auto', paddingBottom: '5px' }}>
-                        {newNotice.images.map((imgSrc, idx) => (
-                            <div key={idx} style={{ position: 'relative', flexShrink: 0, width: '100px', height: '100px' }}>
-                                <img src={imgSrc} alt={`공지사항 첨부 이미지 ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }} />
-                                <button 
-                                    onClick={() => removeImage(idx)}
-                                    style={{ 
-                                        position: 'absolute', top: '-5px', right: '-5px', 
-                                        background: 'rgba(255, 71, 87, 0.9)', borderRadius: '50%', 
-                                        color: 'white', border: 'none', padding: '4px', cursor: 'pointer',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                    }}
-                                >
+                    <div style={{
+          display: 'flex',
+          gap: '10px',
+          marginBottom: '10px',
+          overflowX: 'auto',
+          paddingBottom: '5px'
+        }}>
+                        {newNotice.images.map((imgSrc, idx) => <div key={idx} style={{
+            position: 'relative',
+            flexShrink: 0,
+            width: '100px',
+            height: '100px'
+          }}>
+                                <img src={imgSrc} alt={`공지사항 첨부 이미지 ${idx + 1}`} style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: '8px',
+              border: '1px solid rgba(255,255,255,0.1)'
+            }} />
+                                <button onClick={() => removeImage(idx)} style={{
+              position: 'absolute',
+              top: '-5px',
+              right: '-5px',
+              background: 'rgba(255, 71, 87, 0.9)',
+              borderRadius: '50%',
+              color: 'white',
+              border: 'none',
+              padding: '4px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
                                     <X size={12} weight="bold" />
                                 </button>
-                            </div>
-                        ))}
+                            </div>)}
                         
-                        {newNotice.images.length < 4 && (
-                            <label style={{ 
-                                width: '100px', height: '100px', 
-                                border: '2px dashed rgba(255,255,255,0.2)', borderRadius: '8px',
-                                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                                cursor: 'pointer', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem',
-                                background: 'rgba(255,255,255,0.02)', flexShrink: 0
-                            }}>
-                                <Plus size={24} style={{ marginBottom: '4px' }} />
+                        {newNotice.images.length < 4 && <label style={{
+            width: '100px',
+            height: '100px',
+            border: '2px dashed rgba(255,255,255,0.2)',
+            borderRadius: '8px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            color: 'rgba(255,255,255,0.5)',
+            fontSize: '0.8rem',
+            background: 'rgba(255,255,255,0.02)',
+            flexShrink: 0
+          }}>
+                                <Plus size={24} style={{
+              marginBottom: '4px'
+            }} />
                                 <span>{t('추가하기')}</span>
-                                <input type="file" accept="image/*" multiple onChange={handleImageUpload} style={{ display: 'none' }} />
-                            </label>
-                        )}
+                                <input type="file" accept="image/*" multiple onChange={handleImageUpload} style={{
+              display: 'none'
+            }} />
+                            </label>}
                     </div>
                 </div>
 
-                <div className="form-group" style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '8px' }}>
-                        <input 
-                            type="checkbox" 
-                            checked={newNotice.sendPush} 
-                            onChange={e => setNewNotice({ ...newNotice, sendPush: e.target.checked })}
-                            style={{ width: '18px', height: '18px', accentColor: 'var(--primary-gold)' }} 
-                        />
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{t('전체 푸시 알림 보내기')}</span>
-                            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>{t('체크 해제 시 알림 없이 조용히 등록됩니다.')}</span>
+                <div className="form-group" style={{
+        marginBottom: '20px'
+      }}>
+                    <label style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          cursor: 'pointer',
+          background: 'rgba(255,255,255,0.05)',
+          padding: '12px',
+          borderRadius: '8px'
+        }}>
+                        <input type="checkbox" checked={newNotice.sendPush} onChange={e => setNewNotice({
+            ...newNotice,
+            sendPush: e.target.checked
+          })} style={{
+            width: '18px',
+            height: '18px',
+            accentColor: 'var(--primary-gold)'
+          }} />
+                        <div style={{
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+                            <span style={{
+              fontWeight: 'bold',
+              fontSize: '0.95rem'
+            }}>{t('전체 푸시 알림 보내기')}</span>
+                            <span style={{
+              fontSize: '0.8rem',
+              color: 'rgba(255,255,255,0.5)'
+            }}>{t('체크 해제 시 알림 없이 조용히 등록됩니다.')}</span>
                         </div>
                     </label>
                 </div>
                 <div className="modal-actions">
-                    <button onClick={onClose} style={{ padding: '10px 20px', color: 'var(--text-secondary)' }}>{t('취소')}</button>
+                    <button onClick={onClose} style={{
+          padding: '10px 20px',
+          color: 'var(--text-secondary)'
+        }}>{t('취소')}</button>
                     <button onClick={handleCreateNotice} className="action-btn primary" disabled={isSubmitting}>
-                        {isSubmitting ? '저장 중...' : '등록하기'}
+                        {isSubmitting ? t("g_923cf9") || t("g_923cf9") || t("g_923cf9") || t("g_923cf9") || t("g_923cf9") || "\uC800\uC7A5 \uC911..." : t("g_195802") || t("g_195802") || t("g_195802") || t("g_195802") || t("g_195802") || "\uB4F1\uB85D\uD558\uAE30"}
                     </button>
                 </div>
             </div>
-        </div>
-    );
+        </div>;
 };
-
 export default NoticeModal;

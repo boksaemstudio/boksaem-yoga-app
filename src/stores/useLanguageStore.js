@@ -40,7 +40,7 @@ export const useLanguageStore = create((set, get) => ({
 
     t: (key, params = {}) => {
         const { language } = get();
-        let text = translations[language]?.[key] || translations['ko']?.[key] || key;
+        let text = translations[language]?.[key] || translations['en']?.[key] || translations['ko']?.[key] || key;
 
         Object.keys(params).forEach(param => {
             text = text.replace(new RegExp(`{${param}}`, 'g'), params[param]);

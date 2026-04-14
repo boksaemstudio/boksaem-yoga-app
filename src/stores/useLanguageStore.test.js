@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useLanguageStore } from './useLanguageStore';
+import { useLanguageStore } from '../stores/useLanguageStore';
 
 describe('useLanguageStore', () => {
     beforeEach(() => {
