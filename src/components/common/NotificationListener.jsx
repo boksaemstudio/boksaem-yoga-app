@@ -3,7 +3,6 @@ import { onMessage } from 'firebase/messaging';
 import { messaging } from '../../firebase';
 import { BellRinging, X } from '@phosphor-icons/react';
 const NotificationListener = () => {
-  const t = useLanguageStore(s => s.t);
   const [toast, setToast] = useState(null);
   useEffect(() => {
     // [FOREGROUND] Handle incoming messages while app is open

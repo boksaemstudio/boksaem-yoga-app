@@ -27,73 +27,73 @@ const TrashTab = () => {
     loadDeletedItems();
   }, [loadDeletedItems]);
   const handleRestoreSales = async id => {
-    if (!confirm(t("g_a85bc1") || t("g_a85bc1") || t("g_a85bc1") || t("g_a85bc1") || t("g_a85bc1") || "\uC774 \uB9E4\uCD9C \uAE30\uB85D\uC744 \uBCF5\uC6D0\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) return;
+    if (!confirm(t("g_a85bc1") || "\uC774 \uB9E4\uCD9C \uAE30\uB85D\uC744 \uBCF5\uC6D0\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) return;
     setRestoringId(id);
     try {
       await storageService.restoreSalesRecord(id);
       setDeletedSales(prev => prev.filter(s => s.id !== id));
     } catch (e) {
-      alert((t("g_5dd886") || t("g_5dd886") || t("g_5dd886") || t("g_5dd886") || t("g_5dd886") || "\uBCF5\uC6D0 \uC2E4\uD328: ") + e.message);
+      alert((t("g_5dd886") || "\uBCF5\uC6D0 \uC2E4\uD328: ") + e.message);
     } finally {
       setRestoringId(null);
     }
   };
   const handleRestoreAttendance = async id => {
-    if (!confirm(t("g_2604f8") || t("g_2604f8") || t("g_2604f8") || t("g_2604f8") || t("g_2604f8") || "\uC774 \uCD9C\uC11D \uAE30\uB85D\uC744 \uBCF5\uC6D0\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?\n(\uD06C\uB808\uB527\uC774 \uB2E4\uC2DC \uCC28\uAC10\uB429\uB2C8\uB2E4)")) return;
+    if (!confirm(t("g_2604f8") || "\uC774 \uCD9C\uC11D \uAE30\uB85D\uC744 \uBCF5\uC6D0\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?\n(\uD06C\uB808\uB527\uC774 \uB2E4\uC2DC \uCC28\uAC10\uB429\uB2C8\uB2E4)")) return;
     setRestoringId(id);
     try {
       await storageService.restoreAttendance(id);
       setDeletedAttendance(prev => prev.filter(a => a.id !== id));
     } catch (e) {
-      alert((t("g_5dd886") || t("g_5dd886") || t("g_5dd886") || t("g_5dd886") || t("g_5dd886") || "\uBCF5\uC6D0 \uC2E4\uD328: ") + e.message);
+      alert((t("g_5dd886") || "\uBCF5\uC6D0 \uC2E4\uD328: ") + e.message);
     } finally {
       setRestoringId(null);
     }
   };
   const handleRestoreMember = async id => {
-    if (!confirm(t("g_96f93d") || t("g_96f93d") || t("g_96f93d") || t("g_96f93d") || t("g_96f93d") || "\uC774 \uD68C\uC6D0\uC744 \uBCF5\uC6D0\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?\n\uBCF5\uC6D0\uB41C \uD68C\uC6D0\uC740 \uD68C\uC6D0 \uBAA9\uB85D\uC5D0 \uB2E4\uC2DC \uB098\uD0C0\uB0A9\uB2C8\uB2E4.")) return;
+    if (!confirm(t("g_96f93d") || "\uC774 \uD68C\uC6D0\uC744 \uBCF5\uC6D0\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?\n\uBCF5\uC6D0\uB41C \uD68C\uC6D0\uC740 \uD68C\uC6D0 \uBAA9\uB85D\uC5D0 \uB2E4\uC2DC \uB098\uD0C0\uB0A9\uB2C8\uB2E4.")) return;
     setRestoringId(id);
     try {
       await storageService.restoreMember(id);
       setDeletedMembers(prev => prev.filter(m => m.id !== id));
     } catch (e) {
-      alert((t("g_5dd886") || t("g_5dd886") || t("g_5dd886") || t("g_5dd886") || t("g_5dd886") || "\uBCF5\uC6D0 \uC2E4\uD328: ") + e.message);
+      alert((t("g_5dd886") || "\uBCF5\uC6D0 \uC2E4\uD328: ") + e.message);
     } finally {
       setRestoringId(null);
     }
   };
   const handlePermanentDeleteSales = async id => {
-    if (!confirm(t("g_5c32c2") || t("g_5c32c2") || t("g_5c32c2") || t("g_5c32c2") || t("g_5c32c2") || "\uACBD\uACE0: \uC774 \uD56D\uBAA9\uC744 \uC601\uAD6C\uC801\uC73C\uB85C \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?\n\uC774 \uC791\uC5C5\uC740 \uB418\uB3CC\uB9B4 \uC218 \uC5C6\uC73C\uBA70, \uBAA8\uB4E0 \uB370\uC774\uD130\uBCA0\uC774\uC2A4\uC5D0\uC11C \uC644\uC804\uD788 \uC0AD\uC81C\uB429\uB2C8\uB2E4.")) return;
+    if (!confirm(t("g_5c32c2") || "\uACBD\uACE0: \uC774 \uD56D\uBAA9\uC744 \uC601\uAD6C\uC801\uC73C\uB85C \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?\n\uC774 \uC791\uC5C5\uC740 \uB418\uB3CC\uB9B4 \uC218 \uC5C6\uC73C\uBA70, \uBAA8\uB4E0 \uB370\uC774\uD130\uBCA0\uC774\uC2A4\uC5D0\uC11C \uC644\uC804\uD788 \uC0AD\uC81C\uB429\uB2C8\uB2E4.")) return;
     setRestoringId(id); // Use the same loading state
     try {
       await storageService.permanentDeleteSalesRecord(id);
       setDeletedSales(prev => prev.filter(s => s.id !== id));
     } catch (e) {
-      alert((t("g_9daa95") || t("g_9daa95") || t("g_9daa95") || t("g_9daa95") || t("g_9daa95") || "\uC601\uAD6C \uC0AD\uC81C \uC2E4\uD328: ") + e.message);
+      alert((t("g_9daa95") || "\uC601\uAD6C \uC0AD\uC81C \uC2E4\uD328: ") + e.message);
     } finally {
       setRestoringId(null);
     }
   };
   const handlePermanentDeleteAttendance = async id => {
-    if (!confirm(t("g_5c32c2") || t("g_5c32c2") || t("g_5c32c2") || t("g_5c32c2") || t("g_5c32c2") || "\uACBD\uACE0: \uC774 \uD56D\uBAA9\uC744 \uC601\uAD6C\uC801\uC73C\uB85C \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?\n\uC774 \uC791\uC5C5\uC740 \uB418\uB3CC\uB9B4 \uC218 \uC5C6\uC73C\uBA70, \uBAA8\uB4E0 \uB370\uC774\uD130\uBCA0\uC774\uC2A4\uC5D0\uC11C \uC644\uC804\uD788 \uC0AD\uC81C\uB429\uB2C8\uB2E4.")) return;
+    if (!confirm(t("g_5c32c2") || "\uACBD\uACE0: \uC774 \uD56D\uBAA9\uC744 \uC601\uAD6C\uC801\uC73C\uB85C \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?\n\uC774 \uC791\uC5C5\uC740 \uB418\uB3CC\uB9B4 \uC218 \uC5C6\uC73C\uBA70, \uBAA8\uB4E0 \uB370\uC774\uD130\uBCA0\uC774\uC2A4\uC5D0\uC11C \uC644\uC804\uD788 \uC0AD\uC81C\uB429\uB2C8\uB2E4.")) return;
     setRestoringId(id);
     try {
       await storageService.permanentDeleteAttendance(id);
       setDeletedAttendance(prev => prev.filter(a => a.id !== id));
     } catch (e) {
-      alert((t("g_9daa95") || t("g_9daa95") || t("g_9daa95") || t("g_9daa95") || t("g_9daa95") || "\uC601\uAD6C \uC0AD\uC81C \uC2E4\uD328: ") + e.message);
+      alert((t("g_9daa95") || "\uC601\uAD6C \uC0AD\uC81C \uC2E4\uD328: ") + e.message);
     } finally {
       setRestoringId(null);
     }
   };
   const handlePermanentDeleteMember = async id => {
-    if (!confirm(t("g_e590f2") || t("g_e590f2") || t("g_e590f2") || t("g_e590f2") || t("g_e590f2") || "\uD83D\uDEA8 \uCD5C\uC885 \uACBD\uACE0: \uC774 \uD68C\uC6D0\uC744 \uC601\uAD6C\uC801\uC73C\uB85C \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?\n\uD68C\uC6D0 \uC815\uBCF4\uAC00 \uB370\uC774\uD130\uBCA0\uC774\uC2A4\uC5D0\uC11C \uD754\uC801 \uC5C6\uC774 \uC644\uC804\uD788 \uC0AD\uC81C\uB418\uBA70 \uC808\uB300 \uBCF5\uAD6C\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.")) return;
+    if (!confirm(t("g_e590f2") || "\uD83D\uDEA8 \uCD5C\uC885 \uACBD\uACE0: \uC774 \uD68C\uC6D0\uC744 \uC601\uAD6C\uC801\uC73C\uB85C \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?\n\uD68C\uC6D0 \uC815\uBCF4\uAC00 \uB370\uC774\uD130\uBCA0\uC774\uC2A4\uC5D0\uC11C \uD754\uC801 \uC5C6\uC774 \uC644\uC804\uD788 \uC0AD\uC81C\uB418\uBA70 \uC808\uB300 \uBCF5\uAD6C\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.")) return;
     setRestoringId(id);
     try {
       await storageService.permanentDeleteMember(id);
       setDeletedMembers(prev => prev.filter(m => m.id !== id));
     } catch (e) {
-      alert((t("g_9daa95") || t("g_9daa95") || t("g_9daa95") || t("g_9daa95") || t("g_9daa95") || "\uC601\uAD6C \uC0AD\uC81C \uC2E4\uD328: ") + e.message);
+      alert((t("g_9daa95") || "\uC601\uAD6C \uC0AD\uC81C \uC2E4\uD328: ") + e.message);
     } finally {
       setRestoringId(null);
     }
@@ -106,7 +106,7 @@ const TrashTab = () => {
   };
   const formatAmount = amount => {
     if (!amount) return '-';
-    return Number(amount).toLocaleString() + (t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || "\uC6D0");
+    return Number(amount).toLocaleString() + (t("g_771dc3") || "\uC6D0");
   };
   const totalCount = deletedSales.length + deletedAttendance.length + deletedMembers.length;
   const filteredSales = activeSection === 'attendance' || activeSection === 'members' ? [] : deletedSales;
@@ -149,12 +149,12 @@ const TrashTab = () => {
           margin: 0,
           fontSize: '1.2rem',
           color: 'var(--text-primary)'
-        }}>{t("g_135a45") || t("g_135a45") || t("g_135a45") || t("g_135a45") || t("g_135a45") || "\uD734\uC9C0\uD1B5"}{totalCount > 0 && <span style={{
+        }}>{t("g_135a45") || "\uD734\uC9C0\uD1B5"}{totalCount > 0 && <span style={{
             fontSize: '0.85rem',
             color: 'var(--text-secondary)',
             marginLeft: '8px',
             fontWeight: 400
-          }}>{totalCount}{t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || "\uAC74"}</span>}
+          }}>{totalCount}{t("g_230561") || "\uAC74"}</span>}
                     </h2>
                 </div>
                 <button onClick={loadDeletedItems} className="action-btn sm" style={{
@@ -178,21 +178,21 @@ const TrashTab = () => {
     }}>
                 {[{
         key: 'all',
-        label: t("g_d1d0de") || t("g_d1d0de") || t("g_d1d0de") || t("g_d1d0de") || t("g_d1d0de") || "\uC804\uCCB4",
+        label: t("g_d1d0de") || "\uC804\uCCB4",
         count: totalCount
       }, {
         key: 'members',
-        label: t("g_6745df") || t("g_6745df") || t("g_6745df") || t("g_6745df") || t("g_6745df") || "\uD68C\uC6D0",
+        label: t("g_6745df") || "\uD68C\uC6D0",
         count: deletedMembers.length,
         icon: <Users size={14} />
       }, {
         key: 'attendance',
-        label: t("g_b31acb") || t("g_b31acb") || t("g_b31acb") || t("g_b31acb") || t("g_b31acb") || "\uCD9C\uC11D",
+        label: t("g_b31acb") || "\uCD9C\uC11D",
         count: deletedAttendance.length,
         icon: <ClockCounterClockwise size={14} />
       }, {
         key: 'sales',
-        label: t("g_69735f") || t("g_69735f") || t("g_69735f") || t("g_69735f") || t("g_69735f") || "\uB9E4\uCD9C",
+        label: t("g_69735f") || "\uB9E4\uCD9C",
         count: deletedSales.length,
         icon: <CurrencyKrw size={14} />
       }].map(tab => <button key={tab.key} onClick={() => setActiveSection(tab.key)} style={{
@@ -245,7 +245,7 @@ const TrashTab = () => {
       }}>
                         <Users size={18} weight="fill" style={{
           color: '#f43f5e'
-        }} />{t("g_3328a4") || t("g_3328a4") || t("g_3328a4") || t("g_3328a4") || t("g_3328a4") || "\uC0AD\uC81C\uB41C \uD68C\uC6D0 ("}{deletedMembers.length}{t("g_df355c") || t("g_df355c") || t("g_df355c") || t("g_df355c") || t("g_df355c") || "\uBA85)"}</h3>
+        }} />{t("g_3328a4") || "\uC0AD\uC81C\uB41C \uD68C\uC6D0 ("}{deletedMembers.length}{t("g_df355c") || "\uBA85)"}</h3>
                     <div style={{
         display: 'flex',
         flexDirection: 'column',
@@ -276,7 +276,7 @@ const TrashTab = () => {
                 fontWeight: 700,
                 color: 'white'
               }}>
-                                            {member.name || t("g_7f2b08") || t("g_7f2b08") || t("g_7f2b08") || t("g_7f2b08") || t("g_7f2b08") || "\uC774\uB984\uC5C6\uC74C"}
+                                            {member.name || t("g_7f2b08") || "\uC774\uB984\uC5C6\uC74C"}
                                         </span>
                                         {member.phone && <span style={{
                 fontSize: '0.75rem',
@@ -301,7 +301,7 @@ const TrashTab = () => {
               fontSize: '0.75rem',
               color: 'var(--text-muted)',
               marginTop: '4px'
-            }}>{t("g_34c1e0") || t("g_34c1e0") || t("g_34c1e0") || t("g_34c1e0") || t("g_34c1e0") || "\uC794\uC5EC"}{member.credits || 0}{t("g_c31d4c") || t("g_c31d4c") || t("g_c31d4c") || t("g_c31d4c") || t("g_c31d4c") || "\uD68C \xB7 \uCD9C\uC11D"}{member.attendanceCount || 0}{t("g_a0d062") || t("g_a0d062") || t("g_a0d062") || t("g_a0d062") || t("g_a0d062") || "\uD68C \xB7 \uC0AD\uC81C:"}{formatDate(member.deletedAt)}
+            }}>{t("g_34c1e0") || "\uC794\uC5EC"}{member.credits || 0}{t("g_c31d4c") || "\uD68C \xB7 \uCD9C\uC11D"}{member.attendanceCount || 0}{t("g_a0d062") || "\uD68C \xB7 \uC0AD\uC81C:"}{formatDate(member.deletedAt)}
                                     </div>
                                 </div>
                                 <div style={{
@@ -323,7 +323,7 @@ const TrashTab = () => {
               transition: 'all 0.2s',
               whiteSpace: 'nowrap'
             }}>
-                                        {restoringId === member.id ? <Spinner size={12} className="spin" /> : <ArrowCounterClockwise size={12} />}{t("g_a45357") || t("g_a45357") || t("g_a45357") || t("g_a45357") || t("g_a45357") || "\uBCF5\uC6D0"}</button>
+                                        {restoringId === member.id ? <Spinner size={12} className="spin" /> : <ArrowCounterClockwise size={12} />}{t("g_a45357") || "\uBCF5\uC6D0"}</button>
                                     <button onClick={() => handlePermanentDeleteMember(member.id)} disabled={restoringId === member.id} style={{
               padding: '6px 12px',
               borderRadius: '8px',
@@ -362,7 +362,7 @@ const TrashTab = () => {
       }}>
                         <ClockCounterClockwise size={18} weight="fill" style={{
           color: '#60a5fa'
-        }} />{t("g_2c0aac") || t("g_2c0aac") || t("g_2c0aac") || t("g_2c0aac") || t("g_2c0aac") || "\uC0AD\uC81C\uB41C \uCD9C\uC11D ("}{deletedAttendance.length}{t("g_bcbcd4") || t("g_bcbcd4") || t("g_bcbcd4") || t("g_bcbcd4") || t("g_bcbcd4") || "\uAC74)"}</h3>
+        }} />{t("g_2c0aac") || "\uC0AD\uC81C\uB41C \uCD9C\uC11D ("}{deletedAttendance.length}{t("g_bcbcd4") || "\uAC74)"}</h3>
                     <div style={{
         display: 'flex',
         flexDirection: 'column',
@@ -393,7 +393,7 @@ const TrashTab = () => {
                 fontWeight: 600,
                 color: 'var(--text-primary)'
               }}>
-                                            {log.memberName || t("g_6745df") || t("g_6745df") || t("g_6745df") || t("g_6745df") || t("g_6745df") || "\uD68C\uC6D0"}
+                                            {log.memberName || t("g_6745df") || "\uD68C\uC6D0"}
                                         </span>
                                         <span style={{
                 fontSize: '0.75rem',
@@ -402,7 +402,7 @@ const TrashTab = () => {
                 padding: '2px 6px',
                 borderRadius: '4px'
               }}>
-                                            {log.className || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || "\uC77C\uBC18"}
+                                            {log.className || t("g_8209e5") || "\uC77C\uBC18"}
                                         </span>
                                         {log.branchId && <span style={{
                 fontSize: '0.7rem',
@@ -413,7 +413,7 @@ const TrashTab = () => {
               fontSize: '0.75rem',
               color: 'var(--text-muted)',
               marginTop: '4px'
-            }}>{t("g_ffe5ed") || t("g_ffe5ed") || t("g_ffe5ed") || t("g_ffe5ed") || t("g_ffe5ed") || "\uCD9C\uC11D\uC77C:"}{log.date || '-'}{t("g_6b107c") || t("g_6b107c") || t("g_6b107c") || t("g_6b107c") || t("g_6b107c") || "\xB7 \uC0AD\uC81C:"}{formatDate(log.deletedAt)}
+            }}>{t("g_ffe5ed") || "\uCD9C\uC11D\uC77C:"}{log.date || '-'}{t("g_6b107c") || "\xB7 \uC0AD\uC81C:"}{formatDate(log.deletedAt)}
                                     </div>
                                 </div>
                                 <div style={{
@@ -435,7 +435,7 @@ const TrashTab = () => {
               transition: 'all 0.2s',
               whiteSpace: 'nowrap'
             }}>
-                                        {restoringId === log.id ? <Spinner size={12} className="spin" /> : <ArrowCounterClockwise size={12} />}{t("g_a45357") || t("g_a45357") || t("g_a45357") || t("g_a45357") || t("g_a45357") || "\uBCF5\uC6D0"}</button>
+                                        {restoringId === log.id ? <Spinner size={12} className="spin" /> : <ArrowCounterClockwise size={12} />}{t("g_a45357") || "\uBCF5\uC6D0"}</button>
                                     <button onClick={() => handlePermanentDeleteAttendance(log.id)} disabled={restoringId === log.id} style={{
               padding: '6px 12px',
               borderRadius: '8px',
@@ -474,7 +474,7 @@ const TrashTab = () => {
       }}>
                         <CurrencyKrw size={18} weight="fill" style={{
           color: '#d4af37'
-        }} />{t("g_9d4f1b") || t("g_9d4f1b") || t("g_9d4f1b") || t("g_9d4f1b") || t("g_9d4f1b") || "\uC0AD\uC81C\uB41C \uB9E4\uCD9C ("}{deletedSales.length}{t("g_bcbcd4") || t("g_bcbcd4") || t("g_bcbcd4") || t("g_bcbcd4") || t("g_bcbcd4") || "\uAC74)"}</h3>
+        }} />{t("g_9d4f1b") || "\uC0AD\uC81C\uB41C \uB9E4\uCD9C ("}{deletedSales.length}{t("g_bcbcd4") || "\uAC74)"}</h3>
                     <div style={{
         display: 'flex',
         flexDirection: 'column',
@@ -505,7 +505,7 @@ const TrashTab = () => {
                 fontWeight: 600,
                 color: 'var(--text-primary)'
               }}>
-                                            {sale.memberName || t("g_6745df") || t("g_6745df") || t("g_6745df") || t("g_6745df") || t("g_6745df") || "\uD68C\uC6D0"}
+                                            {sale.memberName || t("g_6745df") || "\uD68C\uC6D0"}
                                         </span>
                                         <span style={{
                 fontSize: '0.75rem',
@@ -514,7 +514,7 @@ const TrashTab = () => {
                 padding: '2px 6px',
                 borderRadius: '4px'
               }}>
-                                            {sale.planLabel || sale.type || t("g_974537") || t("g_974537") || t("g_974537") || t("g_974537") || t("g_974537") || "\uD68C\uC6D0\uAD8C"}
+                                            {sale.planLabel || sale.type || t("g_974537") || "\uD68C\uC6D0\uAD8C"}
                                         </span>
                                         <span style={{
                 fontSize: '0.9rem',
@@ -528,7 +528,7 @@ const TrashTab = () => {
               fontSize: '0.75rem',
               color: 'var(--text-muted)',
               marginTop: '4px'
-            }}>{t("g_be0577") || t("g_be0577") || t("g_be0577") || t("g_be0577") || t("g_be0577") || "\uACB0\uC81C\uC77C:"}{formatDate(sale.date || sale.timestamp)}{t("g_6b107c") || t("g_6b107c") || t("g_6b107c") || t("g_6b107c") || t("g_6b107c") || "\xB7 \uC0AD\uC81C:"}{formatDate(sale.deletedAt)}
+            }}>{t("g_be0577") || "\uACB0\uC81C\uC77C:"}{formatDate(sale.date || sale.timestamp)}{t("g_6b107c") || "\xB7 \uC0AD\uC81C:"}{formatDate(sale.deletedAt)}
                                     </div>
                                 </div>
                                 <div style={{
@@ -550,7 +550,7 @@ const TrashTab = () => {
               transition: 'all 0.2s',
               whiteSpace: 'nowrap'
             }}>
-                                        {restoringId === sale.id ? <Spinner size={12} className="spin" /> : <ArrowCounterClockwise size={12} />}{t("g_a45357") || t("g_a45357") || t("g_a45357") || t("g_a45357") || t("g_a45357") || "\uBCF5\uC6D0"}</button>
+                                        {restoringId === sale.id ? <Spinner size={12} className="spin" /> : <ArrowCounterClockwise size={12} />}{t("g_a45357") || "\uBCF5\uC6D0"}</button>
                                     <button onClick={() => handlePermanentDeleteSales(sale.id)} disabled={restoringId === sale.id} style={{
               padding: '6px 12px',
               borderRadius: '8px',

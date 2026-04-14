@@ -19,6 +19,7 @@ const AdminHeader = ({
   handleToggleAllCards
 }) => {
     const language = useLanguageStore(s => s.language);
+    const t = useLanguageStore(s => s.t);
 
   // [i18n] Studio name: use NAME_ENGLISH for non-ko languages, fallback to NAME
   const studioDisplayName = language !== 'ko' && config.IDENTITY?.NAME_ENGLISH ? config.IDENTITY.NAME_ENGLISH : config.IDENTITY?.NAME || '';

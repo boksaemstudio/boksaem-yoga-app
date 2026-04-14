@@ -21,7 +21,7 @@ const LoginPage = ({
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [langLabelIndex, setLangLabelIndex] = useState(0);
-  const langLabels = [t("g_23eb27") || t("g_23eb27") || t("g_23eb27") || "\uC5B8\uC5B4", "Language", "Язык", "语言", "言語"];
+  const langLabels = [t("g_23eb27") || "\uC5B8\uC5B4", "Language", "Язык", "语言", "言語"];
   useEffect(() => {
     const interval = setInterval(() => {
       setLangLabelIndex(prev => (prev + 1) % langLabels.length);
@@ -188,10 +188,10 @@ const LoginPage = ({
                     {/* SaaS Demo Quick Login Button */}
                     {typeof window !== 'undefined' && window.location.hostname.includes('passflow') && <button type="button" onClick={e => {
           e.preventDefault();
-          setName(t("g_a484b5") || t("g_a484b5") || t("g_a484b5") || "\uAE40\uBC29\uBB38");
+          setName(t("g_a484b5") || "\uAE40\uBC29\uBB38");
           setPhone("1234");
           setTimeout(() => {
-            onLogin(t("g_a484b5") || t("g_a484b5") || t("g_a484b5") || "\uAE40\uBC29\uBB38", "1234");
+            onLogin(t("g_a484b5") || "\uAE40\uBC29\uBB38", "1234");
           }, 100);
         }} disabled={loading} style={{
           ...authButtonStyle,
@@ -199,7 +199,7 @@ const LoginPage = ({
           background: 'rgba(212, 175, 55, 0.15)',
           border: '1px solid rgba(212, 175, 55, 0.4)',
           color: 'var(--primary-gold)'
-        }}>{t("g_f52787") || t("g_f52787") || t("g_f52787") || "\uD83D\uDE80 \uB370\uBAA8 \uACC4\uC815 \uAC04\uD3B8 \uC2DC\uC791"}</button>}
+        }}>{t("g_f52787") || "\uD83D\uDE80 \uB370\uBAA8 \uACC4\uC815 \uAC04\uD3B8 \uC2DC\uC791"}</button>}
                 </form>
                 <p style={{
         marginTop: '30px',

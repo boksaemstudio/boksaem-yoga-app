@@ -2,6 +2,7 @@ import { useLanguageStore } from '../stores/useLanguageStore';
 import { useState, useCallback } from 'react';
 import { WEATHER_OPTIONS } from '../constants/meditationConstants';
 export const useWeatherAwareness = () => {
+  const t = useLanguageStore(s => s.t);
   const [weatherContext, setWeatherContext] = useState(null);
   const detectWeather = useCallback(async () => {
     try {
@@ -33,7 +34,7 @@ export const useWeatherAwareness = () => {
               windSpeed: Math.round((data.wind?.speed || 0) * 3.6),
               description: weatherDesc,
               feelsLike: Math.round(data.main?.feels_like) || 20,
-              city: data.name || t("g_d50fb2") || t("g_d50fb2") || t("g_d50fb2") || t("g_d50fb2") || t("g_d50fb2") || "\uC11C\uC6B8" // 기본값 서울
+              city: data.name || t("g_d50fb2") || "\uC11C\uC6B8" // 기본값 서울
             };
             setWeatherContext(fullWeatherData);
             console.log('🌤️ Full Weather:', fullWeatherData);

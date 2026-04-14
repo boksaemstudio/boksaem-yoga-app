@@ -119,7 +119,7 @@ const MemberScheduleCalendar = ({
       }
     } catch (e) {
       console.error('[Booking] Error:', e);
-      alert(`예약 실패: ${e.message || t("g_053d5f") || t("g_053d5f") || t("g_053d5f") || "\uC54C \uC218 \uC5C6\uB294 \uC624\uB958"}`);
+      alert(`예약 실패: ${e.message || t("g_053d5f") || "\uC54C \uC218 \uC5C6\uB294 \uC624\uB958"}`);
     }
     setBookingLoading(false);
   };
@@ -134,7 +134,7 @@ const MemberScheduleCalendar = ({
       }
     } catch (e) {
       console.error('[Booking] Cancel Error:', e);
-      alert(t("g_6bd40e") || t("g_6bd40e") || t("g_6bd40e") || "\uCDE8\uC18C \uCC98\uB9AC \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4");
+      alert(t("g_6bd40e") || "\uCDE8\uC18C \uCC98\uB9AC \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4");
     }
     setBookingLoading(false);
   };
@@ -294,7 +294,7 @@ const BookingModal = ({
           color: 'white',
           fontWeight: 800
         }}>
-                        {classInfo?.title || classInfo?.name || t("g_774943") || t("g_774943") || t("g_774943") || "\uC218\uC5C5"}
+                        {classInfo?.title || classInfo?.name || t("g_774943") || "\uC218\uC5C5"}
                     </h3>
                     {classInfo?.instructor && <div style={{
           fontSize: '0.85rem',
@@ -316,12 +316,12 @@ const BookingModal = ({
         }}>
                         <span style={{
             color: 'rgba(255,255,255,0.5)'
-          }}>{t("g_3d567c") || t("g_3d567c") || t("g_3d567c") || "\uC815\uC6D0"}</span>
+          }}>{t("g_3d567c") || "\uC815\uC6D0"}</span>
                         <span style={{
             color: isFull ? '#ff6b6b' : 'var(--primary-gold)',
             fontWeight: 'bold'
           }}>
-                            {confirmedCount} / {capacity}{t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || "\uBA85"}</span>
+                            {confirmedCount} / {capacity}{t("g_7b3c6e") || "\uBA85"}</span>
                     </div>
                     <div style={{
           height: '6px',
@@ -354,7 +354,7 @@ const BookingModal = ({
           fontSize: '0.9rem',
           fontWeight: 'bold',
           cursor: 'pointer'
-        }}>{t("g_218e2a") || t("g_218e2a") || t("g_218e2a") || "\uB2EB\uAE30"}</button>
+        }}>{t("g_218e2a") || "\uB2EB\uAE30"}</button>
                     
                     {isBooked ? <button onClick={onCancel} disabled={bookingLoading} style={{
           flex: 2,
@@ -367,7 +367,7 @@ const BookingModal = ({
           fontWeight: 'bold',
           cursor: bookingLoading ? 'wait' : 'pointer',
           opacity: bookingLoading ? 0.5 : 1
-        }}>{bookingLoading ? t("g_a8d064") || t("g_a8d064") || t("g_a8d064") || "\uCC98\uB9AC \uC911..." : isWaitlisted ? t("g_113305") || t("g_113305") || t("g_113305") || "\uB300\uAE30 \uCDE8\uC18C" : t("g_23eec8") || t("g_23eec8") || t("g_23eec8") || "\uC608\uC57D \uCDE8\uC18C"}</button> : <button onClick={onBook} disabled={bookingLoading} style={{
+        }}>{bookingLoading ? t("g_a8d064") || "\uCC98\uB9AC \uC911..." : isWaitlisted ? t("g_113305") || "\uB300\uAE30 \uCDE8\uC18C" : t("g_23eec8") || "\uC608\uC57D \uCDE8\uC18C"}</button> : <button onClick={onBook} disabled={bookingLoading} style={{
           flex: 2,
           padding: '12px',
           borderRadius: '12px',
@@ -378,7 +378,7 @@ const BookingModal = ({
           fontWeight: 'bold',
           cursor: isFull && !rules.enableWaitlist ? 'not-allowed' : bookingLoading ? 'wait' : 'pointer',
           opacity: bookingLoading ? 0.5 : 1
-        }}>{bookingLoading ? t("g_a8d064") || t("g_a8d064") || t("g_a8d064") || "\uCC98\uB9AC \uC911..." : isFull ? rules.enableWaitlist ? t("g_6c3916") || t("g_6c3916") || t("g_6c3916") || "\uB300\uAE30 \uB4F1\uB85D" : t("g_dc1a38") || t("g_dc1a38") || t("g_dc1a38") || "\uC815\uC6D0 \uB9C8\uAC10" : t("g_6b1b37") || t("g_6b1b37") || t("g_6b1b37") || "\uC608\uC57D\uD558\uAE30"}</button>}
+        }}>{bookingLoading ? t("g_a8d064") || "\uCC98\uB9AC \uC911..." : isFull ? rules.enableWaitlist ? t("g_6c3916") || "\uB300\uAE30 \uB4F1\uB85D" : t("g_dc1a38") || "\uC815\uC6D0 \uB9C8\uAC10" : t("g_6b1b37") || "\uC608\uC57D\uD558\uAE30"}</button>}
                 </div>
             </div>
         </div>;
@@ -533,7 +533,7 @@ const CalendarCell = memo(({
             borderRadius: '4px',
             padding: '1px 3px'
           }}>
-                                    {myBooking.status === 'waitlisted' ? t("g_65905a") || t("g_65905a") || t("g_65905a") || "\uB300\uAE30" : t("g_0b3bf0") || t("g_0b3bf0") || t("g_0b3bf0") || "\uC608\uC57D"}
+                                    {myBooking.status === 'waitlisted' ? t("g_65905a") || "\uB300\uAE30" : t("g_0b3bf0") || "\uC608\uC57D"}
                                 </div>}
                             {isMatched && !myBooking && <div style={{
             position: 'absolute',
@@ -593,7 +593,7 @@ const CalendarCell = memo(({
           minute: '2-digit',
           hour12: false
         })}
-                        {' '}{log.className === (t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || "\uC790\uC728\uC218\uB828") || log.className === (t("g_eda473") || t("g_eda473") || t("g_eda473") || "\uC790\uC728\uC218\uC5C5") ? t('auto_practice') : getTranslatedClass(log.className, t)}
+                        {' '}{log.className === (t("g_2b3da3") || "\uC790\uC728\uC218\uB828") || log.className === (t("g_eda473") || "\uC790\uC728\uC218\uC5C5") ? t('auto_practice') : getTranslatedClass(log.className, t)}
                     </div>)}
 
                 {classes.length === 0 && !isAllCancelled && <span style={{
@@ -705,7 +705,7 @@ const ColorLegend = memo(({
       borderRadius: '3px',
       border: '2px solid var(--primary-gold)',
       background: 'rgba(var(--primary-rgb), 0.15)'
-    }}></div>{t("g_2ee446") || t("g_2ee446") || t("g_2ee446") || "\uB0B4 \uC608\uC57D"}</div>}
+    }}></div>{t("g_2ee446") || "\uB0B4 \uC608\uC57D"}</div>}
     </div>);
 ColorLegend.displayName = 'ColorLegend';
 

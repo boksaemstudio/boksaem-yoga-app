@@ -83,7 +83,7 @@ export const FeedbackView = ({
             fontWeight: 600,
             marginBottom: '10px'
           }}>
-                        {t('med_feedback_title') || t("g_d5a419") || t("g_d5a419") || t("g_d5a419") || t("g_d5a419") || t("g_d5a419") || "\uBA85\uC0C1 \uC218\uB828 \uC644\uB8CC"}
+                        {t('med_feedback_title') || t("g_d5a419") || "\uBA85\uC0C1 \uC218\uB828 \uC644\uB8CC"}
                     </h2>
                 </div>
 
@@ -106,7 +106,7 @@ export const FeedbackView = ({
               fontWeight: 500,
               margin: 0
             }}>
-                                {t('med_feedback_ai_log') || t("g_b2513d") || t("g_b2513d") || t("g_b2513d") || t("g_b2513d") || t("g_b2513d") || "AI\uC758 \uB9C8\uC74C \uAD00\uCC30 \uC77C\uC9C0"}
+                                {t('med_feedback_ai_log') || t("g_b2513d") || "AI\uC758 \uB9C8\uC74C \uAD00\uCC30 \uC77C\uC9C0"}
                             </h3>
                         </div>
                         
@@ -143,7 +143,7 @@ export const FeedbackView = ({
                                 </ul> : !feedbackData.message && <p style={{
               color: 'rgba(255,255,255,0.5)',
               fontStyle: 'italic'
-            }}>{t('med_feedback_no_log') || t("g_dd4eb6") || t("g_dd4eb6") || t("g_dd4eb6") || t("g_dd4eb6") || t("g_dd4eb6") || "\uBA85\uC0C1 \uB370\uC774\uD130 \uBD84\uC11D \uB0B4\uC6A9\uC744 \uC694\uC57D\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4."}</p>}
+            }}>{t('med_feedback_no_log') || t("g_dd4eb6") || "\uBA85\uC0C1 \uB370\uC774\uD130 \uBD84\uC11D \uB0B4\uC6A9\uC744 \uC694\uC57D\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4."}</p>}
                         </div>
                         
                         {feedbackData.analysis && <div style={{
@@ -164,7 +164,7 @@ export const FeedbackView = ({
                 color: 'rgba(255,255,255,0.5)',
                 fontSize: '0.85rem',
                 marginBottom: '5px'
-              }}>{t('med_feedback_stability') || t("g_6bbc46") || t("g_6bbc46") || t("g_6bbc46") || t("g_6bbc46") || t("g_6bbc46") || "\uD638\uD761 \uC548\uC815\uB3C4"}</span>
+              }}>{t('med_feedback_stability') || t("g_6bbc46") || "\uD638\uD761 \uC548\uC815\uB3C4"}</span>
                                     <span style={{
                 color: 'white',
                 fontSize: '1.2rem',
@@ -181,7 +181,7 @@ export const FeedbackView = ({
                 color: 'rgba(255,255,255,0.5)',
                 fontSize: '0.85rem',
                 marginBottom: '5px'
-              }}>{t('med_feedback_energy') || t("g_158512") || t("g_158512") || t("g_158512") || t("g_158512") || t("g_158512") || "\uC5D0\uB108\uC9C0 \uBCC0\uD654"}</span>
+              }}>{t('med_feedback_energy') || t("g_158512") || "\uC5D0\uB108\uC9C0 \uBCC0\uD654"}</span>
                                     <span style={{
                 color: 'white',
                 fontSize: '1.1rem',
@@ -202,7 +202,7 @@ export const FeedbackView = ({
           }} />
                         <p style={{
             color: 'rgba(255,255,255,0.6)'
-          }}>{t('med_feedback_analyzing') || t("g_a399c4") || t("g_a399c4") || t("g_a399c4") || t("g_a399c4") || t("g_a399c4") || "\uBA85\uC0C1 \uB370\uC774\uD130\uB97C \uBD84\uC11D\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4..."}</p>
+          }}>{t('med_feedback_analyzing') || t("g_a399c4") || "\uBA85\uC0C1 \uB370\uC774\uD130\uB97C \uBD84\uC11D\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4..."}</p>
                     </div>}
 
                 {/* ✅ [FIX 1] 버튼이 검은색 배경에 묻히지 않도록 기본 Fallback Color 적용 */}
@@ -219,7 +219,7 @@ export const FeedbackView = ({
           cursor: 'pointer',
           boxShadow: `0 10px 30px ${activeMode?.color || config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'}40`
         }}>
-                    {t('med_feedback_btn_close') || t("g_3a6f82") || t("g_3a6f82") || t("g_3a6f82") || t("g_3a6f82") || t("g_3a6f82") || "\uB9C8\uC74C \uCC59\uAE40 \uB9C8\uCE58\uACE0 \uB3CC\uC544\uAC00\uAE30"}
+                    {t('med_feedback_btn_close') || t("g_3a6f82") || "\uB9C8\uC74C \uCC59\uAE40 \uB9C8\uCE58\uACE0 \uB3CC\uC544\uAC00\uAE30"}
                 </button>
             </div>
             </div>

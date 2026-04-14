@@ -172,7 +172,7 @@ const CheckInInfoSection = memo(({
             backdropFilter: 'blur(4px)',
             fontWeight: 600,
             border: '1px solid rgba(255, 215, 0, 0.3)'
-          }}>{t('kiosk_info_auto_checkin') || t("g_28e145") || t("g_28e145") || t("g_28e145") || t("g_28e145") || t("g_28e145") || "\uD83D\uDCF8 \uC5BC\uAD74\uC744 \uBE44\uCD94\uBA74 \uC790\uB3D9 \uCD9C\uC11D"}</div>}
+          }}>{t('kiosk_info_auto_checkin') || t("g_28e145") || "\uD83D\uDCF8 \uC5BC\uAD74\uC744 \uBE44\uCD94\uBA74 \uC790\uB3D9 \uCD9C\uC11D"}</div>}
                             {!faceRecognitionEnabled && <div style={{
             position: 'absolute',
             bottom: '8px',
@@ -187,7 +187,7 @@ const CheckInInfoSection = memo(({
             backdropFilter: 'blur(4px)',
             fontWeight: 500,
             border: '1px solid rgba(255, 255, 255, 0.15)'
-          }}>{t('kiosk_info_touch_to_register') || t("g_1c762f") || t("g_1c762f") || t("g_1c762f") || t("g_1c762f") || t("g_1c762f") || "\uD83D\uDCF8 \uD130\uCE58\uD558\uC5EC \uC5BC\uAD74 \uB4F1\uB85D"}</div>}
+          }}>{t('kiosk_info_touch_to_register') || t("g_1c762f") || "\uD83D\uDCF8 \uD130\uCE58\uD558\uC5EC \uC5BC\uAD74 \uB4F1\uB85D"}</div>}
                         </div>
                         <div style={{
           fontSize: 'clamp(0.5rem, 0.8vw, 0.65rem)',
@@ -195,7 +195,7 @@ const CheckInInfoSection = memo(({
           textAlign: 'center',
           lineHeight: 1.3
         }}>
-                            {t('kiosk_info_privacy_mini') || t("g_86bcbc") || t("g_86bcbc") || t("g_86bcbc") || t("g_86bcbc") || t("g_86bcbc") || "\uD83D\uDD10 \uC0AC\uC9C4 \uBBF8\uC800\uC7A5 \xB7 \uC554\uD638\uD654 128\uC22B\uC790 \uBCC0\uD658 \xB7 \uBD88\uAC00\uC5ED\uC801"}
+                            {t('kiosk_info_privacy_mini') || t("g_86bcbc") || "\uD83D\uDD10 \uC0AC\uC9C4 \uBBF8\uC800\uC7A5 \xB7 \uC554\uD638\uD654 128\uC22B\uC790 \uBCC0\uD658 \xB7 \uBD88\uAC00\uC5ED\uC801"}
                         </div>
                     </div>}
 
@@ -252,7 +252,7 @@ const CheckInInfoSection = memo(({
                 fontWeight: 500,
                 animation: 'pulse 1.5s ease-in-out infinite'
               }}>
-                                            {t('kiosk_info_ai_preparing') || t("g_1a3f09") || t("g_1a3f09") || t("g_1a3f09") || t("g_1a3f09") || t("g_1a3f09") || "AI\uAC00 \uC624\uB298\uC758 \uBA54\uC2DC\uC9C0\uB97C \uC900\uBE44\uD558\uACE0 \uC788\uC5B4\uC694"}
+                                            {t('kiosk_info_ai_preparing') || t("g_1a3f09") || "AI\uAC00 \uC624\uB298\uC758 \uBA54\uC2DC\uC9C0\uB97C \uC900\uBE44\uD558\uACE0 \uC788\uC5B4\uC694"}
                                         </span>
                                         <div style={{
                 display: 'flex',
@@ -286,7 +286,7 @@ const CheckInInfoSection = memo(({
               fontWeight: 'bold',
               marginTop: '10px'
             }}>
-                                        {t('kiosk_info_checking') || t("g_5fc32f") || t("g_5fc32f") || t("g_5fc32f") || t("g_5fc32f") || t("g_5fc32f") || "\uC218\uB828 \uC815\uBCF4\uB97C \uD655\uC778\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4..."}
+                                        {t('kiosk_info_checking') || t("g_5fc32f") || "\uC218\uB828 \uC815\uBCF4\uB97C \uD655\uC778\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4..."}
                                     </div>}
                             </div> : <div style={{
             opacity: 0.5,
@@ -368,7 +368,7 @@ const CheckInInfoSection = memo(({
             borderRadius: '10px',
             whiteSpace: 'nowrap',
             fontWeight: 600
-          }}>{t('kiosk_info_auto_checkin_short') || t("g_e10e98") || t("g_e10e98") || t("g_e10e98") || t("g_e10e98") || t("g_e10e98") || "\uD83D\uDCF8 \uC790\uB3D9 \uCD9C\uC11D"}</div>}
+          }}>{t('kiosk_info_auto_checkin_short') || t("g_e10e98") || "\uD83D\uDCF8 \uC790\uB3D9 \uCD9C\uC11D"}</div>}
                             {!faceRecognitionEnabled && <div style={{
             position: 'absolute',
             bottom: '4px',
@@ -381,7 +381,7 @@ const CheckInInfoSection = memo(({
             borderRadius: '10px',
             whiteSpace: 'nowrap',
             fontWeight: 500
-          }}>{t('kiosk_info_touch_to_register_short') || t("g_d840f4") || t("g_d840f4") || t("g_d840f4") || t("g_d840f4") || t("g_d840f4") || "\uD83D\uDCF8 \uC5BC\uAD74 \uB4F1\uB85D"}</div>}
+          }}>{t('kiosk_info_touch_to_register_short') || t("g_d840f4") || "\uD83D\uDCF8 \uC5BC\uAD74 \uB4F1\uB85D"}</div>}
                         </div>
                     </div>}
                 <div className="qr-box" style={{
@@ -444,7 +444,7 @@ const CheckInInfoSection = memo(({
               alignItems: 'center',
               gap: '8px',
               lineHeight: 1.1
-            }}>{t('kiosk_info_check_credits') || t("g_b29e5a") || t("g_b29e5a") || t("g_b29e5a") || t("g_b29e5a") || t("g_b29e5a") || "\u2713 \uC794\uC5EC \uD69F\uC218 \uD655\uC778"}</li>
+            }}>{t('kiosk_info_check_credits') || t("g_b29e5a") || "\u2713 \uC794\uC5EC \uD69F\uC218 \uD655\uC778"}</li>
                             <li style={{
               fontSize: 'clamp(1.0rem, 2vh, 1.2rem)',
               color: 'rgba(255, 255, 255, 0.95)',
@@ -452,7 +452,7 @@ const CheckInInfoSection = memo(({
               alignItems: 'center',
               gap: '8px',
               lineHeight: 1.1
-            }}>{t('kiosk_info_view_schedule') || t("g_985fe9") || t("g_985fe9") || t("g_985fe9") || t("g_985fe9") || t("g_985fe9") || "\u2713 \uC218\uC5C5 \uC77C\uC815 \uBCF4\uAE30"}</li>
+            }}>{t('kiosk_info_view_schedule') || t("g_985fe9") || "\u2713 \uC218\uC5C5 \uC77C\uC815 \uBCF4\uAE30"}</li>
                             <li style={{
               fontSize: 'clamp(1.0rem, 2vh, 1.2rem)',
               color: 'rgba(255, 255, 255, 0.95)',
@@ -460,7 +460,7 @@ const CheckInInfoSection = memo(({
               alignItems: 'center',
               gap: '8px',
               lineHeight: 1.1
-            }}>{t('kiosk_info_get_notifications') || t("g_66b841") || t("g_66b841") || t("g_66b841") || t("g_66b841") || t("g_66b841") || "\u2713 \uB9DE\uCDA4 \uC54C\uB9BC \uBC1B\uAE30"}</li>
+            }}>{t('kiosk_info_get_notifications') || t("g_66b841") || "\u2713 \uB9DE\uCDA4 \uC54C\uB9BC \uBC1B\uAE30"}</li>
                         </ul>
                     </div>
                 </div>

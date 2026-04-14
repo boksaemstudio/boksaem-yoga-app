@@ -1,3 +1,5 @@
+import { useLanguageStore } from '../stores/useLanguageStore';
+const t = (key) => { try { return useLanguageStore.getState().t(key); } catch(e) { return key; } };
 export const classNameMap: Record<string, string> = {
     "하타": "hatha",
     "아쉬탕가": "ashtanga",

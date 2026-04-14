@@ -105,7 +105,7 @@ export const IntentionView = ({
             fontSize: '1.1rem',
             fontWeight: 700,
             color: 'white'
-          }}>{t('med_intent_title_today') || t("g_e4bed8") || t("g_e4bed8") || t("g_e4bed8") || t("g_e4bed8") || t("g_e4bed8") || "\uC624\uB298\uC758 \uBA85\uC0C1"}</span>
+          }}>{t('med_intent_title_today') || t("g_e4bed8") || "\uC624\uB298\uC758 \uBA85\uC0C1"}</span>
                     </div>
                     <button onClick={() => {
           stopAllAudio();
@@ -123,7 +123,7 @@ export const IntentionView = ({
           alignItems: 'center',
           gap: '6px'
         }}>
-                        <span>{t('med_intent_btn_exit') || t("g_c0a38f") || t("g_c0a38f") || t("g_c0a38f") || t("g_c0a38f") || t("g_c0a38f") || "\uB098\uAC00\uAE30"}</span>
+                        <span>{t('med_intent_btn_exit') || t("g_c0a38f") || "\uB098\uAC00\uAE30"}</span>
                         <X size={16} weight="bold" />
                     </button>
                 </div>
@@ -149,12 +149,12 @@ export const IntentionView = ({
             marginBottom: '15px',
             lineHeight: 1.4
           }} dangerouslySetInnerHTML={{
-            __html: t('med_intent_q1_html') || t("g_a12a8e") || t("g_a12a8e") || t("g_a12a8e") || t("g_a12a8e") || t("g_a12a8e") || "\uC9C0\uAE08 \uB2F9\uC2E0\uC758 \uB9C8\uC74C\uC740<br/>\uC5B4\uB514\uB97C \uD5A5\uD558\uACE0 \uC788\uB098\uC694?"
+            __html: t('med_intent_q1_html') || t("g_a12a8e") || "\uC9C0\uAE08 \uB2F9\uC2E0\uC758 \uB9C8\uC74C\uC740<br/>\uC5B4\uB514\uB97C \uD5A5\uD558\uACE0 \uC788\uB098\uC694?"
           }} />
                         <p style={{
             fontSize: '0.9rem',
             color: 'rgba(255,255,255,0.5)'
-          }}>{t('med_intent_desc1') || t("g_e36318") || t("g_e36318") || t("g_e36318") || t("g_e36318") || t("g_e36318") || "\uC624\uB298 \uBA85\uC0C1\uC758 \uD070 \uBC29\uD5A5\uC744 \uC120\uD0DD\uD574\uBCF4\uC138\uC694"}</p>
+          }}>{t('med_intent_desc1') || t("g_e36318") || "\uC624\uB298 \uBA85\uC0C1\uC758 \uD070 \uBC29\uD5A5\uC744 \uC120\uD0DD\uD574\uBCF4\uC138\uC694"}</p>
                     </div>
 
                     <div style={{
@@ -278,7 +278,7 @@ export const IntentionView = ({
             fontWeight: 600,
             color: config.THEME?.PRIMARY_COLOR || '#4c9bfb',
             marginBottom: '10px'
-          }}>{t('med_intent_q2') || t("g_17beab") || t("g_17beab") || t("g_17beab") || t("g_17beab") || t("g_17beab") || "\uC870\uAE08 \uB354 \uAD6C\uCCB4\uC801\uC73C\uB85C \uB4E4\uC5EC\uB2E4\uBCFC\uAE4C\uC694?"}</h2>
+          }}>{t('med_intent_q2') || t("g_17beab") || "\uC870\uAE08 \uB354 \uAD6C\uCCB4\uC801\uC73C\uB85C \uB4E4\uC5EC\uB2E4\uBCFC\uAE4C\uC694?"}</h2>
                         <p style={{
             fontSize: '0.9rem',
             color: 'rgba(255,255,255,0.6)',

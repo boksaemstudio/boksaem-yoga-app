@@ -89,7 +89,7 @@ const AdminAIAssistant = () => {
   }, []);
   const toggleListening = () => {
     if (!recognitionRef.current) {
-      alert(t("g_d2d64f") || t("g_d2d64f") || t("g_d2d64f") || t("g_d2d64f") || t("g_d2d64f") || "\uC774 \uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C\uB294 \uC74C\uC131 \uC785\uB825\uC744 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_d2d64f") || "\uC774 \uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C\uB294 \uC74C\uC131 \uC785\uB825\uC744 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.");
       return;
     }
     if (isListening) {
@@ -130,8 +130,8 @@ const AdminAIAssistant = () => {
       setMessages(prev => [...prev, assistantMsg]);
       if (result.quota) setQuota(result.quota);
     } catch (error) {
-      const errMsg = error?.message || t("g_8de26e") || t("g_8de26e") || t("g_8de26e") || t("g_8de26e") || t("g_8de26e") || "\uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.";
-      const isQuotaError = errMsg.includes(t("g_a3d293") || t("g_a3d293") || t("g_a3d293") || t("g_a3d293") || t("g_a3d293") || "\uD55C\uB3C4") || errMsg.includes('resource-exhausted');
+      const errMsg = error?.message || t("g_8de26e") || "\uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.";
+      const isQuotaError = errMsg.includes(t("g_a3d293") || "\uD55C\uB3C4") || errMsg.includes('resource-exhausted');
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: isQuotaError ? `⚠️ 오늘의 AI 비서 사용 한도(${quota.limit}회)를 모두 사용했습니다. 내일 다시 이용해주세요.` : `죄송합니다, 일시적인 오류가 발생했습니다. 다시 시도해주세요.\n\n(${errMsg})`,
@@ -177,34 +177,34 @@ const AdminAIAssistant = () => {
     }
   };
   const getCategoryBadge = category => {
-    const t = useLanguageStore(s => s.t);
+
     const map = {
       member: {
-        label: t("g_6745df") || t("g_6745df") || t("g_6745df") || t("g_6745df") || t("g_6745df") || "\uD68C\uC6D0",
+        label: t("g_6745df") || "\uD68C\uC6D0",
         color: '#3B82F6'
       },
       attendance: {
-        label: t("g_b31acb") || t("g_b31acb") || t("g_b31acb") || t("g_b31acb") || t("g_b31acb") || "\uCD9C\uC11D",
+        label: t("g_b31acb") || "\uCD9C\uC11D",
         color: '#10B981'
       },
       revenue: {
-        label: t("g_69735f") || t("g_69735f") || t("g_69735f") || t("g_69735f") || t("g_69735f") || "\uB9E4\uCD9C",
+        label: t("g_69735f") || "\uB9E4\uCD9C",
         color: '#F59E0B'
       },
       schedule: {
-        label: t("g_b3a59d") || t("g_b3a59d") || t("g_b3a59d") || t("g_b3a59d") || t("g_b3a59d") || "\uC2A4\uCF00\uC904",
+        label: t("g_b3a59d") || "\uC2A4\uCF00\uC904",
         color: '#8B5CF6'
       },
       strategy: {
-        label: t("g_d8de88") || t("g_d8de88") || t("g_d8de88") || t("g_d8de88") || t("g_d8de88") || "\uC804\uB7B5",
+        label: t("g_d8de88") || "\uC804\uB7B5",
         color: '#EC4899'
       },
       general: {
-        label: t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || "\uC77C\uBC18",
+        label: t("g_8209e5") || "\uC77C\uBC18",
         color: '#6B7280'
       },
       error: {
-        label: t("g_08ffab") || t("g_08ffab") || t("g_08ffab") || t("g_08ffab") || t("g_08ffab") || "\uC624\uB958",
+        label: t("g_08ffab") || "\uC624\uB958",
         color: '#EF4444'
       }
     };
@@ -259,11 +259,11 @@ const AdminAIAssistant = () => {
             fontWeight: '800',
             fontSize: '1rem',
             color: 'var(--text-primary)'
-          }}>{t("g_604976") || t("g_604976") || t("g_604976") || t("g_604976") || t("g_604976") || "AI \uBE44\uC11C"}</div>
+          }}>{t("g_604976") || "AI \uBE44\uC11C"}</div>
                         <div style={{
             fontSize: '0.65rem',
             color: 'var(--text-tertiary)'
-          }}>{t("g_e1e8a7") || t("g_e1e8a7") || t("g_e1e8a7") || t("g_e1e8a7") || t("g_e1e8a7") || "\uC624\uB298"}{quota.used}/{quota.limit}{t("g_ef75c9") || t("g_ef75c9") || t("g_ef75c9") || t("g_ef75c9") || t("g_ef75c9") || "\uD68C \uC0AC\uC6A9"}</div>
+          }}>{t("g_e1e8a7") || "\uC624\uB298"}{quota.used}/{quota.limit}{t("g_ef75c9") || "\uD68C \uC0AC\uC6A9"}</div>
                     </div>
                 </div>
                 <div style={{
@@ -283,7 +283,7 @@ const AdminAIAssistant = () => {
           alignItems: 'center',
           gap: '4px'
         }}>
-                        <Clock size={14} />{t("g_dc3ab9") || t("g_dc3ab9") || t("g_dc3ab9") || t("g_dc3ab9") || t("g_dc3ab9") || "\uB300\uD654\uAE30\uB85D"}</button>
+                        <Clock size={14} />{t("g_dc3ab9") || "\uB300\uD654\uAE30\uB85D"}</button>
                     <button onClick={handleNewConversation} style={{
           padding: '6px 12px',
           borderRadius: '8px',
@@ -297,7 +297,7 @@ const AdminAIAssistant = () => {
           alignItems: 'center',
           gap: '4px'
         }}>
-                        <ArrowClockwise size={14} />{t("g_558a0c") || t("g_558a0c") || t("g_558a0c") || t("g_558a0c") || t("g_558a0c") || "\uC0C8 \uB300\uD654"}</button>
+                        <ArrowClockwise size={14} />{t("g_558a0c") || "\uC0C8 \uB300\uD654"}</button>
                 </div>
             </div>
 
@@ -319,21 +319,21 @@ const AdminAIAssistant = () => {
           fontSize: '0.75rem',
           fontWeight: 'bold',
           color: 'var(--text-secondary)'
-        }}>{t("g_e6fbc5") || t("g_e6fbc5") || t("g_e6fbc5") || t("g_e6fbc5") || t("g_e6fbc5") || "\uD83D\uDCCB \uACFC\uAC70 \uB300\uD654 \uAE30\uB85D"}</span>
+        }}>{t("g_e6fbc5") || "\uD83D\uDCCB \uACFC\uAC70 \uB300\uD654 \uAE30\uB85D"}</span>
                         <button onClick={() => setShowHistory(false)} style={{
           background: 'none',
           border: 'none',
           color: 'var(--text-tertiary)',
           cursor: 'pointer',
           fontSize: '0.75rem'
-        }}>{t("g_972cfb") || t("g_972cfb") || t("g_972cfb") || t("g_972cfb") || t("g_972cfb") || "\uB2EB\uAE30 \u2715"}</button>
+        }}>{t("g_972cfb") || "\uB2EB\uAE30 \u2715"}</button>
                     </div>
                     {history.length === 0 ? <div style={{
         textAlign: 'center',
         color: 'var(--text-tertiary)',
         fontSize: '0.8rem',
         padding: '20px 0'
-      }}>{t("g_1d78a0") || t("g_1d78a0") || t("g_1d78a0") || t("g_1d78a0") || t("g_1d78a0") || "\uC544\uC9C1 \uB300\uD654 \uAE30\uB85D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4"}</div> : history.map((item, idx) => <div key={item.id || idx} style={{
+      }}>{t("g_1d78a0") || "\uC544\uC9C1 \uB300\uD654 \uAE30\uB85D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4"}</div> : history.map((item, idx) => <div key={item.id || idx} style={{
         padding: '10px 12px',
         borderRadius: '8px',
         background: 'rgba(255,255,255,0.02)',
@@ -419,21 +419,21 @@ const AdminAIAssistant = () => {
             fontWeight: '800',
             color: 'var(--text-primary)',
             marginBottom: '8px'
-          }}>{t("g_41896d") || t("g_41896d") || t("g_41896d") || t("g_41896d") || t("g_41896d") || "\uBB34\uC5C7\uC774\uB4E0 \uBB3C\uC5B4\uBCF4\uC138\uC694"}</div>
+          }}>{t("g_41896d") || "\uBB34\uC5C7\uC774\uB4E0 \uBB3C\uC5B4\uBCF4\uC138\uC694"}</div>
                             <div style={{
             fontSize: '0.8rem',
             color: 'var(--text-tertiary)',
             lineHeight: '1.6'
-          }}>{t("g_e63137") || t("g_e63137") || t("g_e63137") || t("g_e63137") || t("g_e63137") || "\uC774\uB984\xB7\uC804\uD654\uBC88\uD638\xB7\uC885\uBAA9\uC73C\uB85C \uD68C\uC6D0 \uAC80\uC0C9, \uCD9C\uC11D\xB7\uB9E4\uCD9C \uBD84\uC11D\uAE4C\uC9C0"}<br />{t("g_d0e817") || t("g_d0e817") || t("g_d0e817") || t("g_d0e817") || t("g_d0e817") || "\uC2A4\uD29C\uB514\uC624\uC758"}<span style={{
+          }}>{t("g_e63137") || "\uC774\uB984\xB7\uC804\uD654\uBC88\uD638\xB7\uC885\uBAA9\uC73C\uB85C \uD68C\uC6D0 \uAC80\uC0C9, \uCD9C\uC11D\xB7\uB9E4\uCD9C \uBD84\uC11D\uAE4C\uC9C0"}<br />{t("g_d0e817") || "\uC2A4\uD29C\uB514\uC624\uC758"}<span style={{
               color: 'var(--primary-gold)',
               fontWeight: 'bold'
-            }}>{t("g_1b17a5") || t("g_1b17a5") || t("g_1b17a5") || t("g_1b17a5") || t("g_1b17a5") || "\uBAA8\uB4E0 \uB370\uC774\uD130"}</span>{t("g_cdc40d") || t("g_cdc40d") || t("g_cdc40d") || t("g_cdc40d") || t("g_cdc40d") || "\uB97C \uAE30\uBC18\uC73C\uB85C \uB2F5\uBCC0\uD569\uB2C8\uB2E4."}<br />
+            }}>{t("g_1b17a5") || "\uBAA8\uB4E0 \uB370\uC774\uD130"}</span>{t("g_cdc40d") || "\uB97C \uAE30\uBC18\uC73C\uB85C \uB2F5\uBCC0\uD569\uB2C8\uB2E4."}<br />
                                 <span style={{
               color: '#10B981',
               fontWeight: 'bold',
               display: 'inline-block',
               marginTop: '4px'
-            }}>{t("g_78b1ac") || t("g_78b1ac") || t("g_78b1ac") || t("g_78b1ac") || t("g_78b1ac") || "\u2728 \uC6B4\uC601\uC744 \uD560\uC218\uB85D \uB370\uC774\uD130\uAC00 \uC313\uC5EC \uB9DE\uCDA4\uD615 \uC870\uC5B8\uC774 \uAC00\uB2A5\uD569\uB2C8\uB2E4."}</span>
+            }}>{t("g_78b1ac") || "\u2728 \uC6B4\uC601\uC744 \uD560\uC218\uB85D \uB370\uC774\uD130\uAC00 \uC313\uC5EC \uB9DE\uCDA4\uD615 \uC870\uC5B8\uC774 \uAC00\uB2A5\uD569\uB2C8\uB2E4."}</span>
                             </div>
                         </div>
                         <div style={{
@@ -443,7 +443,7 @@ const AdminAIAssistant = () => {
           justifyContent: 'center',
           maxWidth: '420px'
         }}>
-                            {[t("g_b14583") || t("g_b14583") || t("g_b14583") || t("g_b14583") || t("g_b14583") || "\uD64D\uAE38\uB3D9 \uD68C\uC6D0 \uC815\uBCF4 \uC54C\uB824\uC918", t("g_29fd1d") || t("g_29fd1d") || t("g_29fd1d") || t("g_29fd1d") || t("g_29fd1d") || "\uC624\uB298 \uCD9C\uC11D \uD604\uD669", t("g_3763b1") || t("g_3763b1") || t("g_3763b1") || t("g_3763b1") || t("g_3763b1") || "\uC774\uBC88 \uB2EC \uB9E4\uCD9C \uBD84\uC11D", t("g_67dd37") || t("g_67dd37") || t("g_67dd37") || t("g_67dd37") || t("g_67dd37") || "\uB9CC\uB8CC \uC784\uBC15 \uD68C\uC6D0 \uB204\uAD6C\uC57C", t("g_18b533") || t("g_18b533") || t("g_18b533") || t("g_18b533") || t("g_18b533") || "\uD69F\uC218 \uBD80\uC871\uD55C \uD68C\uC6D0 \uC54C\uB824\uC918", t("g_566ead") || t("g_566ead") || t("g_566ead") || t("g_566ead") || t("g_566ead") || "\uB9C8\uCF00\uD305 \uC544\uC774\uB514\uC5B4 \uC918"].map(q => <button key={q} onClick={() => {
+                            {[t("g_b14583") || "\uD64D\uAE38\uB3D9 \uD68C\uC6D0 \uC815\uBCF4 \uC54C\uB824\uC918", t("g_29fd1d") || "\uC624\uB298 \uCD9C\uC11D \uD604\uD669", t("g_3763b1") || "\uC774\uBC88 \uB2EC \uB9E4\uCD9C \uBD84\uC11D", t("g_67dd37") || "\uB9CC\uB8CC \uC784\uBC15 \uD68C\uC6D0 \uB204\uAD6C\uC57C", t("g_18b533") || "\uD69F\uC218 \uBD80\uC871\uD55C \uD68C\uC6D0 \uC54C\uB824\uC918", t("g_566ead") || "\uB9C8\uCF00\uD305 \uC544\uC774\uB514\uC5B4 \uC918"].map(q => <button key={q} onClick={() => {
             setInput(q);
             setTimeout(() => {
               handleSend();
@@ -594,7 +594,7 @@ const AdminAIAssistant = () => {
                             <span style={{
             fontSize: '0.75rem',
             color: 'var(--text-tertiary)'
-          }}>{t("g_1a7678") || t("g_1a7678") || t("g_1a7678") || t("g_1a7678") || t("g_1a7678") || "\uB370\uC774\uD130 \uBD84\uC11D \uC911..."}</span>
+          }}>{t("g_1a7678") || "\uB370\uC774\uD130 \uBD84\uC11D \uC911..."}</span>
                         </div>
                     </div>}
 
@@ -635,7 +635,7 @@ const AdminAIAssistant = () => {
           transition: 'all 0.2s',
           flexShrink: 0,
           animation: isListening ? 'pulse 1.5s ease-in-out infinite' : 'none'
-        }} title={isListening ? t("g_07ded6") || t("g_07ded6") || t("g_07ded6") || t("g_07ded6") || t("g_07ded6") || "\uC74C\uC131 \uC785\uB825 \uC911\uC9C0" : t("g_2ff919") || t("g_2ff919") || t("g_2ff919") || t("g_2ff919") || t("g_2ff919") || "\uC74C\uC131\uC73C\uB85C \uC9C8\uBB38\uD558\uAE30"}>
+        }} title={isListening ? t("g_07ded6") || "\uC74C\uC131 \uC785\uB825 \uC911\uC9C0" : t("g_2ff919") || "\uC74C\uC131\uC73C\uB85C \uC9C8\uBB38\uD558\uAE30"}>
                         <Microphone size={20} weight={isListening ? 'fill' : 'regular'} />
                     </button>
 
@@ -645,7 +645,7 @@ const AdminAIAssistant = () => {
           e.target.style.height = '1.5em'; // reset before calc
           const scrollHeight = e.target.scrollHeight;
           e.target.style.height = `${Math.min(scrollHeight, 120)}px`;
-        }} onKeyDown={handleKeyDown} placeholder={isListening ? t("g_a591df") || t("g_a591df") || t("g_a591df") || t("g_a591df") || t("g_a591df") || "\uD83C\uDFA4 \uB9D0\uC500\uD558\uC138\uC694..." : t("g_cf8bc0") || t("g_cf8bc0") || t("g_cf8bc0") || t("g_cf8bc0") || t("g_cf8bc0") || "\uC9C8\uBB38\uC744 \uC785\uB825\uD558\uC138\uC694..."} rows={1} style={{
+        }} onKeyDown={handleKeyDown} placeholder={isListening ? t("g_a591df") || "\uD83C\uDFA4 \uB9D0\uC500\uD558\uC138\uC694..." : t("g_cf8bc0") || "\uC9C8\uBB38\uC744 \uC785\uB825\uD558\uC138\uC694..."} rows={1} style={{
           flex: 1,
           border: 'none',
           background: 'transparent',
@@ -681,7 +681,7 @@ const AdminAIAssistant = () => {
           flexShrink: 0,
           opacity: loading ? 0.5 : 1,
           boxShadow: input.trim() ? '0 4px 12px rgba(var(--primary-rgb), 0.3)' : 'none'
-        }} title={t("g_f235c8") || t("g_f235c8") || t("g_f235c8") || t("g_f235c8") || t("g_f235c8") || "\uC804\uC1A1"}>
+        }} title={t("g_f235c8") || "\uC804\uC1A1"}>
                         <PaperPlaneRight size={18} weight="fill" />
                     </button>
                 </div>
@@ -703,7 +703,7 @@ const AdminAIAssistant = () => {
           borderRadius: '50%',
           background: '#EF4444',
           animation: 'pulse 1s ease-in-out infinite'
-        }} />{t("g_fba54b") || t("g_fba54b") || t("g_fba54b") || t("g_fba54b") || t("g_fba54b") || "\uC74C\uC131 \uC785\uB825 \uC911... \uB9D0\uC500\uC774 \uB05D\uB098\uBA74 \uC790\uB3D9\uC73C\uB85C \uC785\uB825\uB429\uB2C8\uB2E4"}</div>}
+        }} />{t("g_fba54b") || "\uC74C\uC131 \uC785\uB825 \uC911... \uB9D0\uC500\uC774 \uB05D\uB098\uBA74 \uC790\uB3D9\uC73C\uB85C \uC785\uB825\uB429\uB2C8\uB2E4"}</div>}
             </div>
 
             <style>{`

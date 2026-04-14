@@ -22,28 +22,28 @@ const SuccessDetails = memo(({
     return `(${parts[0].slice(2)}.${parts[1]}.${parts[2]})`;
   };
   const renderDaysRemaining = () => {
-    const t = useLanguageStore(s => s.t);
+
     if (!member.endDate || member.endDate === 'TBD') {
       return <div style={{
         fontSize: '2.4rem',
         marginTop: '10px'
-      }}>{t('kiosk_success_tbd') || t("g_000db4") || t("g_000db4") || t("g_000db4") || t("g_000db4") || t("g_000db4") || "\uD655\uC815 \uC804"}</div>;
+      }}>{t('kiosk_success_tbd') || t("g_000db4") || "\uD655\uC815 \uC804"}</div>;
     }
     if (member.endDate === 'unlimited') {
       return <div style={{
         fontSize: '2.4rem',
         marginTop: '10px'
-      }}>{t('kiosk_success_unlimited') || t("g_7fe271") || t("g_7fe271") || t("g_7fe271") || t("g_7fe271") || t("g_7fe271") || "\uBB34\uC81C\uD55C"}</div>;
+      }}>{t('kiosk_success_unlimited') || t("g_7fe271") || "\uBB34\uC81C\uD55C"}</div>;
     }
     const days = getDaysRemaining(member.endDate);
     if (days === null) return <div style={{
       fontSize: '2.4rem',
       marginTop: '10px'
-    }}>{t('kiosk_success_tbd') || t("g_000db4") || t("g_000db4") || t("g_000db4") || t("g_000db4") || t("g_000db4") || "\uD655\uC815 \uC804"}</div>;
+    }}>{t('kiosk_success_tbd') || t("g_000db4") || "\uD655\uC815 \uC804"}</div>;
     if (days < 0) return <div style={{
       color: '#FF5252',
       marginTop: '10px'
-    }}>{t('kiosk_success_expired') || t("g_0c9d60") || t("g_0c9d60") || t("g_0c9d60") || t("g_0c9d60") || t("g_0c9d60") || "\uB9CC\uB8CC"}</div>;
+    }}>{t('kiosk_success_expired') || t("g_0c9d60") || "\uB9CC\uB8CC"}</div>;
     return <div style={{
       display: 'flex',
       flexDirection: 'column',
@@ -83,7 +83,7 @@ const SuccessDetails = memo(({
           fontSize: '1.4rem',
           opacity: 0.6,
           marginBottom: '10px'
-        }}>{t('kiosk_success_credits_title') || t("g_386745") || t("g_386745") || t("g_386745") || t("g_386745") || t("g_386745") || "\uC794\uC5EC \uD69F\uC218"}</div>
+        }}>{t('kiosk_success_credits_title') || t("g_386745") || "\uC794\uC5EC \uD69F\uC218"}</div>
                     <div style={{
           fontSize: '3.6rem',
           fontWeight: 800,
@@ -108,7 +108,7 @@ const SuccessDetails = memo(({
           fontSize: '1.4rem',
           opacity: 0.6,
           marginBottom: '10px'
-        }}>{t('kiosk_success_days_title') || t("g_63696e") || t("g_63696e") || t("g_63696e") || t("g_63696e") || t("g_63696e") || "\uC794\uC5EC \uC77C\uC218"}</div>
+        }}>{t('kiosk_success_days_title') || t("g_63696e") || "\uC794\uC5EC \uC77C\uC218"}</div>
                     <div style={{
           fontSize: '3.6rem',
           fontWeight: 800,
@@ -147,7 +147,7 @@ const SuccessDetails = memo(({
         minWidth: '150px',
         marginLeft: '15px'
       }}>
-                    {t('kiosk_success_confirm_btn') || t("g_3ce813") || t("g_3ce813") || t("g_3ce813") || t("g_3ce813") || t("g_3ce813") || "\uD655\uC778"}
+                    {t('kiosk_success_confirm_btn') || t("g_3ce813") || "\uD655\uC778"}
                 </button>
             </div>
         </div>;

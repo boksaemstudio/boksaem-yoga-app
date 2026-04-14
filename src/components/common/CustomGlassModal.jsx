@@ -5,7 +5,9 @@ const CustomGlassModal = ({
   isConfirm,
   onConfirm,
   onCancel
-}) => <div style={{
+}) => {
+  const t = useLanguageStore(s => s.t);
+  return <div style={{
   position: 'fixed',
   top: 0,
   left: 0,
@@ -66,4 +68,5 @@ const CustomGlassModal = ({
            </div>
         </div>
     </div>;
+};
 export default CustomGlassModal;

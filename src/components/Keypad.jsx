@@ -6,6 +6,7 @@ const Keypad = memo(({
   onClear,
   disabled
 }) => {
+  const t = useLanguageStore(s => s.t);
   return <div className="keypad-grid">
             {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(key => <KeyButton key={key} value={key} onPress={onKeyPress} disabled={disabled}>
                     {key}
@@ -21,7 +22,7 @@ const Keypad = memo(({
                 <div style={{
         fontSize: '2.5rem',
         fontWeight: 'bold'
-      }}>{t("g_63aeb2") || t("g_63aeb2") || t("g_63aeb2") || t("g_63aeb2") || t("g_63aeb2") || "\uC9C0\uC6C0"}</div>
+      }}>{t("g_63aeb2") || "\uC9C0\uC6C0"}</div>
             </KeyButton>
         </div>;
 });

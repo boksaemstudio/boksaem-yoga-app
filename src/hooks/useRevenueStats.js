@@ -2,6 +2,7 @@ import { useLanguageStore } from '../stores/useLanguageStore';
 import { useMemo } from 'react';
 import { getHolidayName } from '../utils/holidays';
 export const useRevenueStats = (sales, members, currentDate, currentBranch, revenueStats) => {
+  const t = useLanguageStore(s => s.t);
   return useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth() + 1;
@@ -114,7 +115,7 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch, reve
           amount: amt,
           name: m.name,
           type: 'legacy',
-          item: m.subject || t("g_b2719c") || t("g_b2719c") || t("g_b2719c") || t("g_b2719c") || t("g_b2719c") || "\uC218\uAC15\uAD8C",
+          item: m.subject || t("g_b2719c") || "\uC218\uAC15\uAD8C",
           isNew: true,
           branchId: m.homeBranch || 'unknown'
         });
@@ -163,19 +164,19 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch, reve
 
     // Simple mapping for display
     const holidayMap = {
-      'holiday_new_year': t("g_b28fbe") || t("g_b28fbe") || t("g_b28fbe") || t("g_b28fbe") || t("g_b28fbe") || "\uC2E0\uC815",
-      'holiday_lunar_new_year': t("g_980e4b") || t("g_980e4b") || t("g_980e4b") || t("g_980e4b") || t("g_980e4b") || "\uC124\uB0A0",
-      'holiday_samiljeol': t("g_81e731") || t("g_81e731") || t("g_81e731") || t("g_81e731") || t("g_81e731") || "\uC0BC\uC77C\uC808",
-      'holiday_childrens_day': t("g_3119a6") || t("g_3119a6") || t("g_3119a6") || t("g_3119a6") || t("g_3119a6") || "\uC5B4\uB9B0\uC774\uB0A0",
-      'holiday_buddha': t("g_3b47f2") || t("g_3b47f2") || t("g_3b47f2") || t("g_3b47f2") || t("g_3b47f2") || "\uC11D\uAC00\uD0C4\uC2E0\uC77C",
-      'holiday_memorial': t("g_08bae5") || t("g_08bae5") || t("g_08bae5") || t("g_08bae5") || t("g_08bae5") || "\uD604\uCDA9\uC77C",
-      'holiday_liberation': t("g_0fdbee") || t("g_0fdbee") || t("g_0fdbee") || t("g_0fdbee") || t("g_0fdbee") || "\uAD11\uBCF5\uC808",
-      'holiday_chuseok': t("g_745828") || t("g_745828") || t("g_745828") || t("g_745828") || t("g_745828") || "\uCD94\uC11D",
-      'holiday_foundation': t("g_afbf29") || t("g_afbf29") || t("g_afbf29") || t("g_afbf29") || t("g_afbf29") || "\uAC1C\uCC9C\uC808",
-      'holiday_hangul': t("g_5a4f32") || t("g_5a4f32") || t("g_5a4f32") || t("g_5a4f32") || t("g_5a4f32") || "\uD55C\uAE00\uB0A0",
-      'holiday_christmas': t("g_3c0b20") || t("g_3c0b20") || t("g_3c0b20") || t("g_3c0b20") || t("g_3c0b20") || "\uD06C\uB9AC\uC2A4",
+      'holiday_new_year': t("g_b28fbe") || "\uC2E0\uC815",
+      'holiday_lunar_new_year': t("g_980e4b") || "\uC124\uB0A0",
+      'holiday_samiljeol': t("g_81e731") || "\uC0BC\uC77C\uC808",
+      'holiday_childrens_day': t("g_3119a6") || "\uC5B4\uB9B0\uC774\uB0A0",
+      'holiday_buddha': t("g_3b47f2") || "\uC11D\uAC00\uD0C4\uC2E0\uC77C",
+      'holiday_memorial': t("g_08bae5") || "\uD604\uCDA9\uC77C",
+      'holiday_liberation': t("g_0fdbee") || "\uAD11\uBCF5\uC808",
+      'holiday_chuseok': t("g_745828") || "\uCD94\uC11D",
+      'holiday_foundation': t("g_afbf29") || "\uAC1C\uCC9C\uC808",
+      'holiday_hangul': t("g_5a4f32") || "\uD55C\uAE00\uB0A0",
+      'holiday_christmas': t("g_3c0b20") || "\uD06C\uB9AC\uC2A4",
       // Shortened for space
-      'holiday_election': t("g_850a5a") || t("g_850a5a") || t("g_850a5a") || t("g_850a5a") || t("g_850a5a") || "\uC120\uAC70\uC77C"
+      'holiday_election': t("g_850a5a") || "\uC120\uAC70\uC77C"
     };
     let monthlyTotal = 0;
     let monthlyNew = 0;
@@ -208,7 +209,7 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch, reve
         salesList: dayData.salesList,
         isSunday: dayOfWeek === 0,
         isSaturday: dayOfWeek === 6,
-        holidayName: holidayRaw ? holidayMap[holidayRaw] || t("g_acbb66") || t("g_acbb66") || t("g_acbb66") || t("g_acbb66") || t("g_acbb66") || "\uACF5\uD734\uC77C" : null
+        holidayName: holidayRaw ? holidayMap[holidayRaw] || t("g_acbb66") || "\uACF5\uD734\uC77C" : null
       };
       monthlyTotal += dayData.amount;
       monthlyNew += dayData.amountNew;
@@ -301,7 +302,7 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch, reve
     const membershipMap = new Map();
     finalItems.forEach(item => {
       if (!item.date.startsWith(monthStr)) return;
-      const key = item.item || t("g_b2719c") || t("g_b2719c") || t("g_b2719c") || t("g_b2719c") || t("g_b2719c") || "\uC218\uAC15\uAD8C";
+      const key = item.item || t("g_b2719c") || "\uC218\uAC15\uAD8C";
       const current = membershipMap.get(key) || {
         name: key,
         count: 0,

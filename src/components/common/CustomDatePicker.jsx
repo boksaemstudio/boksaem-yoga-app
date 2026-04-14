@@ -53,7 +53,7 @@ const CustomDatePicker = ({
     setIsOpen(false);
   };
   const renderCalendar = () => {
-    const t = useLanguageStore(s => s.t);
+
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
     const firstDay = new Date(year, month, 1).getDay();

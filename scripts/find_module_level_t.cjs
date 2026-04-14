@@ -1,30 +1,52 @@
 const fs = require('fs');
 const path = require('path');
 
-const dir = './dist/assets';
-const files = fs.readdirSync(dir).filter(f => f.endsWith('.js') && !f.includes('legacy') && !f.endsWith('.map'));
+function scanDir(dir) {
+  const files = [];
+  for (const f of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, f.name);
+    if (f.isDirectory() && !f.name.includes('node_modules') && !f.name.includes('dist')) {
+      files.push(...scanDir(p));
+    } else if (f.isFile() && (f.name.endsWith('.jsx') || f.name.endsWith('.js')) && !f.name.includes('.test.')) {
+      files.push(p);
+    }
+  }
+  return files;
+}
 
-// Check ALL non-legacy bundles
-for (const file of files) {
-  const content = fs.readFileSync(path.join(dir, file), 'utf8');
-  const re = /[^a-zA-Z0-9_$.]t\(["']g_[a-f0-9]+["']\)/g;
-  const matches = [...content.matchAll(re)];
-  if (matches.length > 0) {
-    console.log(`${file}: ${matches.length} orphaned t("g_") calls`);
+const allFiles = scanDir('src');
+
+// Find files where t() is called at MODULE LEVEL (outside any function body)
+for (const f of allFiles) {
+  const c = fs.readFileSync(f, 'utf8');
+  const lines = c.split('\n');
+  
+  let depth = 0; // Track { } nesting
+  let inFunction = false;
+  const moduleLevelTCalls = [];
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    
+    // Count braces (rough heuristic)
+    for (const ch of line) {
+      if (ch === '{') depth++;
+      if (ch === '}') depth--;
+    }
+    
+    // Module level = depth 0 or 1 (for const X = { ... })
+    // We look for t("g_ pattern specifically at low nesting depth
+    if (depth <= 1 && /t\s*\(\s*["'`]g_/.test(line)) {
+      moduleLevelTCalls.push({ line: i + 1, content: line.trim().substring(0, 120) });
+    }
+  }
+  
+  if (moduleLevelTCalls.length > 0) {
+    console.log(`\n❌ ${f.replace(/\\/g, '/')}`);
+    moduleLevelTCalls.forEach(m => {
+      console.log(`   L${m.line}: ${m.content}`);
+    });
   }
 }
 
-// Also check for bare 't(' that's not '.t(' or 'nt(' etc — more aggressive search
-console.log('\n--- Checking for module-level t() that would crash on load ---');
-for (const file of files) {
-  const content = fs.readFileSync(path.join(dir, file), 'utf8');
-  // Find t("g_ at the very start of module init (not inside a function)
-  // Look for patterns like: const X = t("g_ or var X = t("g_  or = [t("g_
-  const dangerousPatterns = content.match(/(?:const|var|let|export)\s+\w+\s*=\s*(?:\[?)t\(["']g_/g);
-  if (dangerousPatterns && dangerousPatterns.length > 0) {
-    console.log(`⚠️ ${file}: ${dangerousPatterns.length} MODULE-LEVEL t() calls!`);
-    dangerousPatterns.slice(0, 3).forEach(p => console.log(`  ${p}`));
-  }
-}
-
-console.log('\nDone');
+console.log('\n--- Module-level t() scan complete ---');

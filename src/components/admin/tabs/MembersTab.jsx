@@ -165,7 +165,7 @@ const MembersTab = ({
     padding: '20px',
     textAlign: 'center',
     color: 'var(--text-secondary)'
-  }}>{t(t('admin_members_loading') || t("g_c5bd7c") || t("g_c5bd7c") || t("g_c5bd7c") || t("g_c5bd7c") || t("g_c5bd7c") || "\uB370\uC774\uD130 \uB85C\uB529 \uC911...")}</div>;
+  }}>{t('admin_members_loading') || t("g_c5bd7c" || "\uB370\uC774\uD130 \uB85C\uB529 \uC911...")}</div>;
   return <div className="members-tab-container">
 
             <div style={{
@@ -187,7 +187,7 @@ const MembersTab = ({
         justifyContent: 'center',
         gap: '8px'
       }}>
-                    <Plus size={24} weight="bold" /> {t(t('admin_members_btn_add') || t("g_1b019f") || t("g_1b019f") || t("g_1b019f") || t("g_1b019f") || t("g_1b019f") || "\uC2E0\uADDC \uD68C\uC6D0 \uB4F1\uB85D\uD558\uAE30")}
+                    <Plus size={24} weight="bold" /> {t('admin_members_btn_add') || t("g_1b019f" || "\uC2E0\uADDC \uD68C\uC6D0 \uB4F1\uB85D\uD558\uAE30")}
                 </button>
             </div>
 
@@ -209,12 +209,12 @@ const MembersTab = ({
           fontSize: '0.8rem',
           color: 'var(--text-secondary)',
           marginBottom: '4px'
-        }}>{t(t('admin_members_stat_active') || t("g_ed2992") || t("g_ed2992") || t("g_ed2992") || t("g_ed2992") || t("g_ed2992") || "\uD65C\uB3D9\uC911\uC778 \uD68C\uC6D0")}</div>
+        }}>{t('admin_members_stat_active') || t("g_ed2992" || "\uD65C\uB3D9\uC911\uC778 \uD68C\uC6D0")}</div>
                             <div style={{
           fontSize: '1.6rem',
           fontWeight: 800,
           color: 'var(--primary-theme-color)'
-        }}>{summary.activeMembers}{t('단위_명') || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || "\uBA85"}</div>
+        }}>{summary.activeMembers}{t('단위_명') || t("g_7b3c6e") || "\uBA85"}</div>
                         </div>
 
                         {/* 2. 오늘 등록 (성장 지표) */}
@@ -229,12 +229,12 @@ const MembersTab = ({
           color: '#10B981',
           marginBottom: '4px',
           fontWeight: 'bold'
-        }}>{t(t('admin_members_stat_today_reg') || t("g_e8a5fd") || t("g_e8a5fd") || t("g_e8a5fd") || t("g_e8a5fd") || t("g_e8a5fd") || "\uC624\uB298 \uB4F1\uB85D\xB7\uACB0\uC81C")}</div>
+        }}>{t('admin_members_stat_today_reg') || t("g_e8a5fd" || "\uC624\uB298 \uB4F1\uB85D\xB7\uACB0\uC81C")}</div>
                             <div style={{
           fontSize: '1.6rem',
           fontWeight: 800,
           color: '#10B981'
-        }}>{summary.todayRegistration}{t('단위_명') || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || "\uBA85"}</div>
+        }}>{summary.todayRegistration}{t('단위_명') || t("g_7b3c6e") || "\uBA85"}</div>
                         </div>
 
                         {/* 3. AI 이탈 (행동 처방) */}
@@ -260,12 +260,12 @@ const MembersTab = ({
               color: '#EF4444',
               marginBottom: '4px',
               fontWeight: 'bold'
-            }}>{t(t('admin_members_stat_churn_warn') || t("g_1fda9a") || t("g_1fda9a") || t("g_1fda9a") || t("g_1fda9a") || t("g_1fda9a") || "AI \uC774\uD0C8 \uACBD\uACE0")}</div>
+            }}>{t('admin_members_stat_churn_warn') || t("g_1fda9a" || "AI \uC774\uD0C8 \uACBD\uACE0")}</div>
                                         <div style={{
               fontSize: '1.6rem',
               fontWeight: 800,
               color: '#EF4444'
-            }}>{riskCount}{t('단위_명') || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || "\uBA85"}</div>
+            }}>{riskCount}{t('단위_명') || t("g_7b3c6e") || "\uBA85"}</div>
                                     </div>;
         }
         return null;
@@ -283,12 +283,12 @@ const MembersTab = ({
           color: '#60A5FA',
           marginBottom: '4px',
           fontWeight: 'bold'
-        }}>{t(t('admin_members_stat_bio_missing') || t("g_4a6c4a") || t("g_4a6c4a") || t("g_4a6c4a") || t("g_4a6c4a") || t("g_4a6c4a") || "\uC5BC\uAD74 \uBBF8\uB4F1\uB85D")}</div>
+        }}>{t('admin_members_stat_bio_missing') || t("g_4a6c4a" || "\uC5BC\uAD74 \uBBF8\uB4F1\uB85D")}</div>
                                 <div style={{
           fontSize: '1.6rem',
           fontWeight: 800,
           color: '#60A5FA'
-        }}>{summary.bioMissingCount}{t('단위_명') || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || "\uBA85"}</div>
+        }}>{summary.bioMissingCount}{t('단위_명') || t("g_7b3c6e") || "\uBA85"}</div>
                             </div>}
                     
                 <div className={`dashboard-card interactive ${filterType === 'registration' ? 'highlight' : ''}`} onClick={() => handleToggleFilter('registration')}>
@@ -303,13 +303,13 @@ const MembersTab = ({
             alignItems: 'center',
             gap: '6px'
           }}>
-                            {t(t('admin_members_today_total') || t("g_824501") || t("g_824501") || t("g_824501") || t("g_824501") || t("g_824501") || "\uC624\uB298 \uC804\uCCB4 \uB4F1\uB85D")}
+                            {t('admin_members_today_total') || t("g_824501" || "\uC624\uB298 \uC804\uCCB4 \uB4F1\uB85D")}
                             <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                                 <Info size={14} style={{
                 opacity: 0.7
               }} />
                                 <span className="tooltip-text">
-                                    {t(t('admin_members_today_desc1') || t("g_8f1334") || t("g_8f1334") || t("g_8f1334") || t("g_8f1334") || t("g_8f1334") || "\uC624\uB298 \uC0C8\uB85C \uB4F1\uB85D\uD558\uAC70\uB098")}<br />{t(t('admin_members_today_desc2') || t("g_c024d9") || t("g_c024d9") || t("g_c024d9") || t("g_c024d9") || t("g_c024d9") || "\uC218\uAC15\uAD8C\uC744 \uC7AC\uACB0\uC81C\uD55C \uD68C\uC6D0")}
+                                    {t('admin_members_today_desc1') || t("g_8f1334" || "\uC624\uB298 \uC0C8\uB85C \uB4F1\uB85D\uD558\uAC70\uB098")}<br />{t('admin_members_today_desc2') || t("g_c024d9" || "\uC218\uAC15\uAD8C\uC744 \uC7AC\uACB0\uC81C\uD55C \uD68C\uC6D0")}
                                 </span>
                             </div>
                         </div>
@@ -328,13 +328,13 @@ const MembersTab = ({
             transition: 'all 0.2s',
             flexShrink: 0
           }}>
-                            {expandedCards.reg ? <><CaretUp size={12} weight="bold" /> {t(t('admin_btn_collapse') || t("g_365ca4") || t("g_365ca4") || t("g_365ca4") || t("g_365ca4") || t("g_365ca4") || "\uC811\uAE30")}</> : <><CaretDown size={12} weight="bold" /> {t(t('admin_btn_expand') || t("g_bc6eea") || t("g_bc6eea") || t("g_bc6eea") || t("g_bc6eea") || t("g_bc6eea") || "\uD3BC\uCE58\uAE30")}</>}
+                            {expandedCards.reg ? <><CaretUp size={12} weight="bold" /> {t('admin_btn_collapse') || t("g_365ca4" || "\uC811\uAE30")}</> : <><CaretDown size={12} weight="bold" /> {t('admin_btn_expand') || t("g_bc6eea" || "\uD3BC\uCE58\uAE30")}</>}
                         </button>
                     </div>
                     <div className="card-value success" style={{
           fontSize: '1.8rem'
         }}>
-                        {summary.todayRegistration}{t('단위_명') || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || "\uBA85"}
+                        {summary.todayRegistration}{t('단위_명') || t("g_7b3c6e") || "\uBA85"}
                     </div>
 
                     <div style={{
@@ -351,11 +351,11 @@ const MembersTab = ({
             gap: '8px',
             fontWeight: 'bold'
           }}>
-                            <span>{t('admin_tab_new') || t("g_5a601c") || t("g_5a601c") || t("g_5a601c") || t("g_5a601c") || t("g_5a601c") || "\uC2E0\uADDC"} {summary.todayNewCount || 0}</span>
+                            <span>{t('admin_tab_new') || t("g_5a601c") || "\uC2E0\uADDC"} {summary.todayNewCount || 0}</span>
                             <span style={{
               opacity: 0.4
             }}>|</span>
-                            <span>{t('admin_tab_rereg') || t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || "\uC7AC\uB4F1\uB85D"} {summary.todayReRegCount || 0}</span>
+                            <span>{t('admin_tab_rereg') || t("g_763e2b") || "\uC7AC\uB4F1\uB85D"} {summary.todayReRegCount || 0}</span>
                         </div>
 
                     {/* 재등록률 */}
@@ -373,7 +373,7 @@ const MembersTab = ({
                             <span style={{
                 fontSize: '0.85rem',
                 color: '#a1a1aa'
-              }}>{t(t('admin_tab_rereg_rate') || t("g_7e95d6") || t("g_7e95d6") || t("g_7e95d6") || t("g_7e95d6") || t("g_7e95d6") || "\uB204\uC801 \uC7AC\uB4F1\uB85D\uB960")}</span>
+              }}>{t('admin_tab_rereg_rate') || t("g_7e95d6" || "\uB204\uC801 \uC7AC\uB4F1\uB85D\uB960")}</span>
                             <span style={{
                 fontSize: '1.1rem',
                 fontWeight: '800',
@@ -403,8 +403,8 @@ const MembersTab = ({
               fontSize: '0.8rem',
               color: '#71717a'
             }}>
-                            <span>{t('admin_tab_rereg') || t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || "\uC7AC\uB4F1\uB85D"} {summary.membersReRegistered || 0}{t('명')} / {t('admin_tab_paid_members') || t("g_4726dd") || t("g_4726dd") || t("g_4726dd") || t("g_4726dd") || t("g_4726dd") || "\uACB0\uC81C \uD68C\uC6D0"} {summary.membersWithSales || 0}{t('명')}</span>
-                            <span>{t('admin_tab_recent_3m') || t("g_3003a9") || t("g_3003a9") || t("g_3003a9") || t("g_3003a9") || t("g_3003a9") || "\uCD5C\uADFC3\uAC1C\uC6D4"} {summary.recentReRegRate || 0}% ({summary.recentReRegisteredCount || 0}/{summary.recentExpiredCount || 0})</span>
+                            <span>{t('admin_tab_rereg') || t("g_763e2b") || "\uC7AC\uB4F1\uB85D"} {summary.membersReRegistered || 0}{t('명')} / {t('admin_tab_paid_members') || t("g_4726dd") || "\uACB0\uC81C \uD68C\uC6D0"} {summary.membersWithSales || 0}{t('명')}</span>
+                            <span>{t('admin_tab_recent_3m') || t("g_3003a9") || "\uCD5C\uADFC3\uAC1C\uC6D4"} {summary.recentReRegRate || 0}% ({summary.recentReRegisteredCount || 0}/{summary.recentExpiredCount || 0})</span>
                         </div>
                     </div>
                  </div>
@@ -426,7 +426,7 @@ const MembersTab = ({
             alignItems: 'center',
             gap: '6px'
           }}>
-                            {t(t('admin_tab_ai_churn') || t("g_0e2213") || t("g_0e2213") || t("g_0e2213") || t("g_0e2213") || t("g_0e2213") || "\uD83E\uDDE0 AI \uC774\uD0C8 \uC608\uCE21")}
+                            {t('admin_tab_ai_churn') || t("g_0e2213" || "\uD83E\uDDE0 AI \uC774\uD0C8 \uC608\uCE21")}
                             <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                                 <Info size={14} style={{
                 opacity: 0.7
@@ -434,12 +434,12 @@ const MembersTab = ({
                                 <span className="tooltip-text" style={{
                 width: '260px'
               }}>
-                                    <strong>{t(t('admin_tab_churn_what') || t("g_111824") || t("g_111824") || t("g_111824") || t("g_111824") || t("g_111824") || "AI \uC774\uD0C8 \uC608\uCE21\uC774\uB780?")}</strong><br />
-                                    {t(t('admin_tab_churn_desc1') || t("g_a863cf") || t("g_a863cf") || t("g_a863cf") || t("g_a863cf") || t("g_a863cf") || "\uD65C\uC131 \uD68C\uC6D0 \uC911 \uCD5C\uADFC \uCD9C\uC11D\uC774 \uC5C6\uB294")}<br />{t(t('admin_tab_churn_desc2') || t("g_bb86ad") || t("g_bb86ad") || t("g_bb86ad") || t("g_bb86ad") || t("g_bb86ad") || "\uD68C\uC6D0\uC744 \uC704\uD5D8\uB3C4\uBCC4\uB85C \uBD84\uB958\uD569\uB2C8\uB2E4.")}<br /><br />
-                                    <strong>{t(t('admin_tab_churn_critical') || t("g_d31e5c") || t("g_d31e5c") || t("g_d31e5c") || t("g_d31e5c") || t("g_d31e5c") || "\u26A0 \uC704\uD5D8")}</strong>{t(t('admin_tab_churn_critical_desc1') || t("g_caf382") || t("g_caf382") || t("g_caf382") || t("g_caf382") || t("g_caf382") || ": 30\uC77C+ \uBBF8\uCD9C\uC11D \uB610\uB294")}<br />{t(t('admin_tab_churn_critical_desc2') || t("g_48b6ef") || t("g_48b6ef") || t("g_48b6ef") || t("g_48b6ef") || t("g_48b6ef") || "\uC794\uC5EC 1\uD68C \uC774\uD558 + 14\uC77C+ \uBBF8\uCD9C\uC11D")}<br />
-                                    <strong>{t(t('admin_tab_churn_high') || t("g_3c19bc") || t("g_3c19bc") || t("g_3c19bc") || t("g_3c19bc") || t("g_3c19bc") || "\uD83D\uDD36 \uC8FC\uC758")}</strong>{t(t('admin_tab_churn_high_desc') || t("g_3078c2") || t("g_3078c2") || t("g_3078c2") || t("g_3078c2") || t("g_3078c2") || ": 21~29\uC77C \uBBF8\uCD9C\uC11D")}<br />
-                                    <strong>{t(t('admin_tab_churn_medium') || t("g_532784") || t("g_532784") || t("g_532784") || t("g_532784") || t("g_532784") || "\uD83D\uDCA4 \uAD00\uCC30")}</strong>{t(t('admin_tab_churn_medium_desc') || t("g_867880") || t("g_867880") || t("g_867880") || t("g_867880") || t("g_867880") || ": 14~20\uC77C \uBBF8\uCD9C\uC11D")}<br /><br />
-                                    {t(t('admin_tab_churn_tip1') || t("g_1ac9ea") || t("g_1ac9ea") || t("g_1ac9ea") || t("g_1ac9ea") || t("g_1ac9ea") || "\uCE74\uB4DC\uB97C \uD130\uCE58\uD558\uBA74 \uC0C1\uC138 \uBAA9\uB85D\uACFC")}<br />{t(t('admin_tab_churn_tip2') || t("g_069718") || t("g_069718") || t("g_069718") || t("g_069718") || t("g_069718") || "\uB9DE\uCDA4 \uC548\uBD80 \uBA54\uC2DC\uC9C0 \uC804\uC1A1 \uAE30\uB2A5\uC744")}<br />{t(t('admin_tab_churn_tip3') || t("g_17ca61") || t("g_17ca61") || t("g_17ca61") || t("g_17ca61") || t("g_17ca61") || "\uC0AC\uC6A9\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.")}
+                                    <strong>{t('admin_tab_churn_what') || t("g_111824" || "AI \uC774\uD0C8 \uC608\uCE21\uC774\uB780?")}</strong><br />
+                                    {t('admin_tab_churn_desc1') || t("g_a863cf" || "\uD65C\uC131 \uD68C\uC6D0 \uC911 \uCD5C\uADFC \uCD9C\uC11D\uC774 \uC5C6\uB294")}<br />{t('admin_tab_churn_desc2') || t("g_bb86ad" || "\uD68C\uC6D0\uC744 \uC704\uD5D8\uB3C4\uBCC4\uB85C \uBD84\uB958\uD569\uB2C8\uB2E4.")}<br /><br />
+                                    <strong>{t('admin_tab_churn_critical') || t("g_d31e5c" || "\u26A0 \uC704\uD5D8")}</strong>{t('admin_tab_churn_critical_desc1') || t("g_caf382" || ": 30\uC77C+ \uBBF8\uCD9C\uC11D \uB610\uB294")}<br />{t('admin_tab_churn_critical_desc2') || t("g_48b6ef" || "\uC794\uC5EC 1\uD68C \uC774\uD558 + 14\uC77C+ \uBBF8\uCD9C\uC11D")}<br />
+                                    <strong>{t('admin_tab_churn_high') || t("g_3c19bc" || "\uD83D\uDD36 \uC8FC\uC758")}</strong>{t('admin_tab_churn_high_desc') || t("g_3078c2" || ": 21~29\uC77C \uBBF8\uCD9C\uC11D")}<br />
+                                    <strong>{t('admin_tab_churn_medium') || t("g_532784" || "\uD83D\uDCA4 \uAD00\uCC30")}</strong>{t('admin_tab_churn_medium_desc') || t("g_867880" || ": 14~20\uC77C \uBBF8\uCD9C\uC11D")}<br /><br />
+                                    {t('admin_tab_churn_tip1') || t("g_1ac9ea" || "\uCE74\uB4DC\uB97C \uD130\uCE58\uD558\uBA74 \uC0C1\uC138 \uBAA9\uB85D\uACFC")}<br />{t('admin_tab_churn_tip2') || t("g_069718" || "\uB9DE\uCDA4 \uC548\uBD80 \uBA54\uC2DC\uC9C0 \uC804\uC1A1 \uAE30\uB2A5\uC744")}<br />{t('admin_tab_churn_tip3') || t("g_17ca61" || "\uC0AC\uC6A9\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.")}
                                 </span>
                             </div>
                         </div>
@@ -458,7 +458,7 @@ const MembersTab = ({
             transition: 'all 0.2s',
             flexShrink: 0
           }}>
-                            {expandedCards.churn ? <><CaretUp size={12} weight="bold" /> {t(t('admin_btn_collapse') || t("g_365ca4") || t("g_365ca4") || t("g_365ca4") || t("g_365ca4") || t("g_365ca4") || "\uC811\uAE30")}</> : <><CaretDown size={12} weight="bold" /> {t(t('admin_btn_expand') || t("g_bc6eea") || t("g_bc6eea") || t("g_bc6eea") || t("g_bc6eea") || t("g_bc6eea") || "\uD3BC\uCE58\uAE30")}</>}
+                            {expandedCards.churn ? <><CaretUp size={12} weight="bold" /> {t('admin_btn_collapse') || t("g_365ca4" || "\uC811\uAE30")}</> : <><CaretDown size={12} weight="bold" /> {t('admin_btn_expand') || t("g_bc6eea" || "\uD3BC\uCE58\uAE30")}</>}
                         </button>
                     </div>
                     {(() => {
@@ -476,8 +476,8 @@ const MembersTab = ({
                 name: m.name,
                 daysSince: risk.daysSince,
                 credits: Number(m.credits || 0),
-                subject: m.subject || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || "\uC77C\uBC18",
-                level: risk.level === 'critical' ? t("g_be3a65") || t("g_be3a65") || t("g_be3a65") || t("g_be3a65") || t("g_be3a65") || "\uC704\uD5D8" : risk.level === 'high' ? t("g_e0898a") || t("g_e0898a") || t("g_e0898a") || t("g_e0898a") || t("g_e0898a") || "\uC8FC\uC758" : t("g_cc1ca7") || t("g_cc1ca7") || t("g_cc1ca7") || t("g_cc1ca7") || t("g_cc1ca7") || "\uAD00\uCC30"
+                subject: m.subject || t("g_8209e5") || "\uC77C\uBC18",
+                level: risk.level === 'critical' ? t("g_be3a65") || "\uC704\uD5D8" : risk.level === 'high' ? t("g_e0898a") || "\uC8FC\uC758" : t("g_cc1ca7") || "\uAD00\uCC30"
               });
             });
           }
@@ -488,7 +488,7 @@ const MembersTab = ({
             churnAiCalledRef.current = true;
             setChurnAiLoading(true);
             getChurnAnalysis({
-              branch: t("g_d1d0de") || t("g_d1d0de") || t("g_d1d0de") || t("g_d1d0de") || t("g_d1d0de") || "\uC804\uCCB4",
+              branch: t("g_d1d0de") || "\uC804\uCCB4",
               activeCount: summary.activeMembers || 0,
               totalMembers: summary.totalMembers || 0,
               criticalCount,
@@ -504,7 +504,7 @@ const MembersTab = ({
             });
           }
           return <>
-                                <div className="card-value error">{totalCount}{t('단위_명') || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || "\uBA85"}</div>
+                                <div className="card-value error">{totalCount}{t('단위_명') || t("g_7b3c6e") || "\uBA85"}</div>
                                 <div style={{
               maxHeight: expandedCards.churn ? '500px' : '0px',
               opacity: expandedCards.churn ? 1 : 0,
@@ -524,7 +524,7 @@ const MembersTab = ({
                   color: '#EF4444',
                   fontWeight: '700'
                 }}>
-                                            {t(t('admin_tab_churn_critical') || t("g_d31e5c") || t("g_d31e5c") || t("g_d31e5c") || t("g_d31e5c") || t("g_d31e5c") || "\u26A0 \uC704\uD5D8")} {criticalCount}
+                                            {t('admin_tab_churn_critical') || t("g_d31e5c" || "\u26A0 \uC704\uD5D8")} {criticalCount}
                                         </span>
                                         <span style={{
                   fontSize: '0.8rem',
@@ -533,7 +533,7 @@ const MembersTab = ({
                   background: 'rgba(245,158,11,0.15)',
                   color: '#F59E0B',
                   fontWeight: '700'
-                }}>{t("g_3c19bc") || t("g_3c19bc") || t("g_3c19bc") || t("g_3c19bc") || t("g_3c19bc") || "\uD83D\uDD36 \uC8FC\uC758"}{highCount}
+                }}>{t("g_3c19bc") || "\uD83D\uDD36 \uC8FC\uC758"}{highCount}
                                         </span>
                                         <span style={{
                   fontSize: '0.8rem',
@@ -543,7 +543,7 @@ const MembersTab = ({
                   color: '#60A5FA',
                   fontWeight: '700'
                 }}>
-                                            {t(t('admin_tab_churn_medium') || t("g_532784") || t("g_532784") || t("g_532784") || t("g_532784") || t("g_532784") || "\uD83D\uDCA4 \uAD00\uCC30")} {mediumCount}
+                                            {t('admin_tab_churn_medium') || t("g_532784" || "\uD83D\uDCA4 \uAD00\uCC30")} {mediumCount}
                                         </span>
                                     </div>
                                     <div style={{
@@ -571,8 +571,8 @@ const MembersTab = ({
                                                 <span style={{
                     color: '#A855F7',
                     fontSize: '0.78rem'
-                  }}>{t(t('admin_tab_churn_analyzing') || t("g_cdda9e") || t("g_cdda9e") || t("g_cdda9e") || t("g_cdda9e") || t("g_cdda9e") || "AI\uAC00 \uD68C\uC6D0 \uB370\uC774\uD130\uB97C \uBD84\uC11D\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4...")}</span>
-                                            </div> : churnAiMessage ? <span>{churnAiMessage}</span> : totalCount === 0 ? <span>{t(t('admin_tab_churn_all_good') || t("g_58f536") || t("g_58f536") || t("g_58f536") || t("g_58f536") || t("g_58f536") || "\u2728 \uBAA8\uB4E0 \uD68C\uC6D0\uC774 \uAFB8\uC900\uD788 \uCD9C\uC11D \uC911\uC785\uB2C8\uB2E4.")}</span> : <span>📊 {t(t('admin_tab_churn_risk_members') || t("g_5e568d") || t("g_5e568d") || t("g_5e568d") || t("g_5e568d") || t("g_5e568d") || "\uC774\uD0C8 \uC704\uD5D8 \uD68C\uC6D0")} {totalCount}{t('admin_tab_churn_detected') || t("g_a4eb96") || t("g_a4eb96") || t("g_a4eb96") || t("g_a4eb96") || t("g_a4eb96") || "\uBA85 \uAC10\uC9C0\uB428"}</span>}
+                  }}>{t('admin_tab_churn_analyzing') || t("g_cdda9e" || "AI\uAC00 \uD68C\uC6D0 \uB370\uC774\uD130\uB97C \uBD84\uC11D\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4...")}</span>
+                                            </div> : churnAiMessage ? <span>{churnAiMessage}</span> : totalCount === 0 ? <span>{t('admin_tab_churn_all_good') || t("g_58f536" || "\u2728 \uBAA8\uB4E0 \uD68C\uC6D0\uC774 \uAFB8\uC900\uD788 \uCD9C\uC11D \uC911\uC785\uB2C8\uB2E4.")}</span> : <span>📊 {t('admin_tab_churn_risk_members') || t("g_5e568d" || "\uC774\uD0C8 \uC704\uD5D8 \uD68C\uC6D0")} {totalCount}{t('admin_tab_churn_detected') || t("g_a4eb96") || "\uBA85 \uAC10\uC9C0\uB428"}</span>}
                                     </div>
                                 </div>
                             </>;
@@ -591,13 +591,13 @@ const MembersTab = ({
             alignItems: 'center',
             gap: '6px'
           }}>
-                            <BellRinging size={16} weight="fill" /> {t(t('admin_tab_push_enabled') || t("g_8029c1") || t("g_8029c1") || t("g_8029c1") || t("g_8029c1") || t("g_8029c1") || "\uC54C\uB9BC \uC218\uC2E0 \uAC00\uB2A5")}
+                            <BellRinging size={16} weight="fill" /> {t('admin_tab_push_enabled') || t("g_8029c1" || "\uC54C\uB9BC \uC218\uC2E0 \uAC00\uB2A5")}
                             <div className="tooltip-container">
                                 <Info size={14} style={{
                 opacity: 0.7
               }} />
                                 <span className="tooltip-text">
-                                    {t(t('admin_tab_push_desc1') || t("g_9cba72") || t("g_9cba72") || t("g_9cba72") || t("g_9cba72") || t("g_9cba72") || "\uC571 \uC124\uCE58 + \uC54C\uB9BC \uCF1C\uC9D0 \uC0C1\uD0DC\uB85C")}<br />{t(t('admin_tab_push_desc2') || t("g_5b6e04") || t("g_5b6e04") || t("g_5b6e04") || t("g_5b6e04") || t("g_5b6e04") || "\uBA54\uC2DC\uC9C0\uB97C \uBC1B\uC744 \uC218 \uC788\uB294 \uC778\uC6D0")}
+                                    {t('admin_tab_push_desc1') || t("g_9cba72" || "\uC571 \uC124\uCE58 + \uC54C\uB9BC \uCF1C\uC9D0 \uC0C1\uD0DC\uB85C")}<br />{t('admin_tab_push_desc2') || t("g_5b6e04" || "\uBA54\uC2DC\uC9C0\uB97C \uBC1B\uC744 \uC218 \uC788\uB294 \uC778\uC6D0")}
                                 </span>
                             </div>
                         </div>
@@ -616,7 +616,7 @@ const MembersTab = ({
             transition: 'all 0.2s',
             flexShrink: 0
           }}>
-                            {expandedCards.push ? <><CaretUp size={12} weight="bold" /> {t(t('admin_btn_collapse') || t("g_365ca4") || t("g_365ca4") || t("g_365ca4") || t("g_365ca4") || t("g_365ca4") || "\uC811\uAE30")}</> : <><CaretDown size={12} weight="bold" /> {t(t('admin_btn_expand') || t("g_bc6eea") || t("g_bc6eea") || t("g_bc6eea") || t("g_bc6eea") || t("g_bc6eea") || "\uD3BC\uCE58\uAE30")}</>}
+                            {expandedCards.push ? <><CaretUp size={12} weight="bold" /> {t('admin_btn_collapse') || t("g_365ca4" || "\uC811\uAE30")}</> : <><CaretDown size={12} weight="bold" /> {t('admin_btn_expand') || t("g_bc6eea" || "\uD3BC\uCE58\uAE30")}</>}
                         </button>
                     </div>
                     <div style={{
@@ -633,11 +633,11 @@ const MembersTab = ({
               fontSize: '0.9rem',
               color: '#A7F3D0',
               fontWeight: 'bold'
-            }}>{t('admin_label_member') || t('admin_label_member') || t("g_6745df") || t("g_6745df") || t("g_6745df") || t("g_6745df") || t("g_6745df") || "\uD68C\uC6D0"}</span>
+            }}>{t('admin_label_member') || t("g_6745df") || "\uD68C\uC6D0"}</span>
                             <div className="card-value success" style={{
               fontSize: '1.4rem'
             }}>
-                                {summary.pushEnabledCount}{t('단위_명') || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || "\uBA85"}
+                                {summary.pushEnabledCount}{t('단위_명') || t("g_7b3c6e") || "\uBA85"}
                             </div>
                             <span style={{
               fontSize: '0.85rem',
@@ -655,11 +655,11 @@ const MembersTab = ({
               fontSize: '0.9rem',
               color: '#FDE047',
               fontWeight: 'bold'
-            }}>{t('admin_label_instructor') || t('admin_label_instructor') || t("g_9564f6") || t("g_9564f6") || t("g_9564f6") || t("g_9564f6") || t("g_9564f6") || "\uC120\uC0DD\uB2D8"}</span>
+            }}>{t('admin_label_instructor') || t("g_9564f6") || "\uC120\uC0DD\uB2D8"}</span>
                             <div className="card-value gold" style={{
               fontSize: '1.4rem'
             }}>
-                                {summary.instructorPushCount || 0}{t('단위_명') || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || "\uBA85"}
+                                {summary.instructorPushCount || 0}{t('단위_명') || t("g_7b3c6e") || "\uBA85"}
                             </div>
                         </div>
                         <div style={{
@@ -678,7 +678,7 @@ const MembersTab = ({
                                 <span style={{
                 color: '#93C5FD',
                 fontSize: '0.85rem'
-              }}>{t(t('admin_tab_push_installed') || t('admin_tab_installed_member') || t("g_0d3e15") || t("g_0d3e15") || t("g_0d3e15") || t("g_0d3e15") || t("g_0d3e15") || "\uC571 \uC124\uCE58 \uD68C\uC6D0")} {summary.installedCount}{t('명')} ({summary.installRatio}%)</span>
+              }}>{t('admin_tab_push_installed') || t('admin_tab_installed_member' || t("g_0d3e15") || "\uC571 \uC124\uCE58 \uD68C\uC6D0")} {summary.installedCount}{t('명')} ({summary.installRatio}%)</span>
                                 <span style={{
                 margin: '0 4px',
                 opacity: 0.3
@@ -698,13 +698,13 @@ const MembersTab = ({
           alignItems: 'center',
           gap: '6px'
         }}>
-                        <UserFocus size={16} weight="fill" color="#60A5FA" /> {t(t('admin_tab_bio_missing') || t("g_9ba4ab") || t("g_9ba4ab") || t("g_9ba4ab") || t("g_9ba4ab") || t("g_9ba4ab") || "\uC548\uBA74 \uBBF8\uB4F1\uB85D \uD68C\uC6D0")}
+                        <UserFocus size={16} weight="fill" color="#60A5FA" /> {t('admin_tab_bio_missing') || t("g_9ba4ab" || "\uC548\uBA74 \uBBF8\uB4F1\uB85D \uD68C\uC6D0")}
                         <div className="tooltip-container" onClick={e => e.stopPropagation()}>
                             <Info size={14} style={{
               opacity: 0.7
             }} />
                             <span className="tooltip-text">
-                                {t(t('admin_tab_bio_desc1') || t("g_d5bdf4") || t("g_d5bdf4") || t("g_d5bdf4") || t("g_d5bdf4") || t("g_d5bdf4") || "\uD0A4\uC624\uC2A4\uD06C \uC5BC\uAD74\uC778\uC2DD \uCD9C\uC11D\uC744")}<br />{t(t('admin_tab_bio_desc2') || t("g_b85aeb") || t("g_b85aeb") || t("g_b85aeb") || t("g_b85aeb") || t("g_b85aeb") || "\uC704\uD574 \uC5BC\uAD74 \uB4F1\uB85D\uC774 \uC544\uC9C1")}<br />{t(t('admin_tab_bio_desc3') || t("g_91674a") || t("g_91674a") || t("g_91674a") || t("g_91674a") || t("g_91674a") || "\uC548 \uB41C \uD65C\uC131 \uD68C\uC6D0 \uC218")}
+                                {t('admin_tab_bio_desc1') || t("g_d5bdf4" || "\uD0A4\uC624\uC2A4\uD06C \uC5BC\uAD74\uC778\uC2DD \uCD9C\uC11D\uC744")}<br />{t('admin_tab_bio_desc2') || t("g_b85aeb" || "\uC704\uD574 \uC5BC\uAD74 \uB4F1\uB85D\uC774 \uC544\uC9C1")}<br />{t('admin_tab_bio_desc3') || t("g_91674a" || "\uC548 \uB41C \uD65C\uC131 \uD68C\uC6D0 \uC218")}
                             </span>
                         </div>
                     </div>
@@ -744,7 +744,7 @@ const MembersTab = ({
       const day = now.getDate();
       const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
       const progressPct = Math.round(day / daysInMonth * 100);
-      return <CollapsibleCard id="members-revenue" title={`💰 ${month}${t('admin_tab_monthly_revenue') || t("g_10c4f9") || t("g_10c4f9") || t("g_10c4f9") || t("g_10c4f9") || t("g_10c4f9") || "\uC6D4 \uB9E4\uCD9C \uD604\uD669"}`} titleExtra={`${summary.monthlyRevenue.toLocaleString()}${t('단위_원') || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || "\uC6D0"}`} defaultOpen={false} className="interactive animated-show" style={{
+      return <CollapsibleCard id="members-revenue" title={`💰 ${month}${t('admin_tab_monthly_revenue') || t("g_10c4f9") || "\uC6D4 \uB9E4\uCD9C \uD604\uD669"}`} titleExtra={`${summary.monthlyRevenue.toLocaleString()}${t('단위_원') || t("g_771dc3") || "\uC6D0"}`} defaultOpen={false} className="interactive animated-show" style={{
         marginBottom: '24px',
         cursor: 'pointer'
       }} onClick={() => setActiveTab('revenue')}>
@@ -759,7 +759,7 @@ const MembersTab = ({
               letterSpacing: '0.1em',
               fontSize: '0.8rem'
             }}>
-                                    {month}/{day} {t(t('admin_tab_current_revenue') || t("g_d70827") || t("g_d70827") || t("g_d70827") || t("g_d70827") || t("g_d70827") || "\uD604\uC7AC \uB9E4\uCD9C")}
+                                    {month}/{day} {t('admin_tab_current_revenue') || t("g_d70827" || "\uD604\uC7AC \uB9E4\uCD9C")}
                                 </span>
                                 <div className="outfit-font" style={{
               fontSize: '1.6rem',
@@ -767,14 +767,14 @@ const MembersTab = ({
               color: 'var(--primary-gold)',
               textShadow: '0 0 20px var(--primary-gold-glow)'
             }}>
-                                    {summary.monthlyRevenue.toLocaleString()}{t('단위_원') || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || "\uC6D0"}
+                                    {summary.monthlyRevenue.toLocaleString()}{t('단위_원') || t("g_771dc3") || "\uC6D0"}
                                 </div>
                             </div>
                             <div style={{
             fontSize: '0.9rem',
             color: 'var(--text-secondary)'
           }}>
-                                {t('오늘')}: {summary.totalRevenueToday.toLocaleString()}{t('단위_원') || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || "\uC6D0"}
+                                {t('오늘')}: {summary.totalRevenueToday.toLocaleString()}{t('단위_원') || t("g_771dc3") || "\uC6D0"}
                             </div>
                         </div>
                         <div style={{
@@ -790,12 +790,12 @@ const MembersTab = ({
               fontSize: '0.85rem',
               color: 'var(--text-secondary)',
               fontWeight: '600'
-            }}>{day}{t('admin_tab_days_passed') || t("g_1e2a24") || t("g_1e2a24") || t("g_1e2a24") || t("g_1e2a24") || t("g_1e2a24") || "\uC77C \uACBD\uACFC"}</span>
+            }}>{day}{t('admin_tab_days_passed') || t("g_1e2a24") || "\uC77C \uACBD\uACFC"}</span>
                                 <span style={{
               fontSize: '0.85rem',
               color: 'var(--text-secondary)',
               fontWeight: '600'
-            }}>{t('admin_tab_days_left') || t("g_34c1e0") || t("g_34c1e0") || t("g_34c1e0") || t("g_34c1e0") || t("g_34c1e0") || "\uC794\uC5EC"} {daysInMonth - day}{t('단위_일') || t("g_95e431") || t("g_95e431") || t("g_95e431") || t("g_95e431") || t("g_95e431") || "\uC77C"}</span>
+            }}>{t('admin_tab_days_left') || t("g_34c1e0") || "\uC794\uC5EC"} {daysInMonth - day}{t('단위_일') || t("g_95e431") || "\uC77C"}</span>
                             </div>
                             <div style={{
             position: 'relative',
@@ -836,7 +836,7 @@ const MembersTab = ({
     })()}
 
             {/* 월별 재등록 추이 (매출 카드 아래, 검색 위) — 접기/펼치기 적용 */}
-            {filterType === 'registration' && summary.monthlyReRegTrend && <CollapsibleCard id="members-rereg-trend" title={t(t('admin_tab_monthly_rereg_trend') || t("g_23b8f6") || t("g_23b8f6") || t("g_23b8f6") || t("g_23b8f6") || t("g_23b8f6") || "\uD83D\uDCCA \uC6D4\uBCC4 \uC7AC\uB4F1\uB85D \uCD94\uC774 (\uCD5C\uADFC 6\uAC1C\uC6D4)")} titleExtra={`재등록률 ${summary.reRegistrationRate || 0}%`} defaultOpen={false} className="animated-show" style={{
+            {filterType === 'registration' && summary.monthlyReRegTrend && <CollapsibleCard id="members-rereg-trend" title={t('admin_tab_monthly_rereg_trend') || t("g_23b8f6" || "\uD83D\uDCCA \uC6D4\uBCC4 \uC7AC\uB4F1\uB85D \uCD94\uC774 (\uCD5C\uADFC 6\uAC1C\uC6D4)")} titleExtra={`재등록률 ${summary.reRegistrationRate || 0}%`} defaultOpen={false} className="animated-show" style={{
       marginBottom: '24px',
       overflow: 'visible'
     }}>
@@ -849,7 +849,7 @@ const MembersTab = ({
         paddingTop: '20px'
       }}>
                         {summary.monthlyReRegTrend.map((m, i) => {
-          const maxTotal = Math.max(...summary.monthlyReRegTrend.map(t => t.total), 1);
+          const maxTotal = Math.max(...summary.monthlyReRegTrend.map(item => item.total), 1);
           const hasData = m.total > 0;
           const totalH = hasData ? Math.max(m.total / maxTotal * 70, 6) : 0;
           const reRegH = hasData ? m.reReg / m.total * totalH : 0;
@@ -931,7 +931,7 @@ const MembersTab = ({
             borderRadius: '2px',
             background: '#10b981',
             display: 'inline-block'
-          }} /> {t('admin_tab_rereg') || t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || "\uC7AC\uB4F1\uB85D"}</span>
+          }} /> {t('admin_tab_rereg') || t("g_763e2b") || "\uC7AC\uB4F1\uB85D"}</span>
                         <span style={{
           display: 'flex',
           alignItems: 'center',
@@ -942,7 +942,7 @@ const MembersTab = ({
             borderRadius: '2px',
             background: 'rgba(255,255,255,0.08)',
             display: 'inline-block'
-          }} /> {t(t('admin_tab_expired_member') || t("g_8ffb9b") || t("g_8ffb9b") || t("g_8ffb9b") || t("g_8ffb9b") || t("g_8ffb9b") || "\uB9CC\uB8CC \uD68C\uC6D0")}</span>
+          }} /> {t('admin_tab_expired_member') || t("g_8ffb9b" || "\uB9CC\uB8CC \uD68C\uC6D0")}</span>
                     </div>
                 </CollapsibleCard>}
 
@@ -962,7 +962,7 @@ const MembersTab = ({
         flex: 1,
         minWidth: '200px'
       }}>
-                    <input type="text" className="search-input" placeholder={t(t('admin_tab_search_ph') || t("g_a96ec1") || t("g_a96ec1") || t("g_a96ec1") || t("g_a96ec1") || t("g_a96ec1") || "\uD83D\uDD0D \uC774\uB984 \uB610\uB294 \uC804\uD654\uBC88\uD638 \uAC80\uC0C9...")} value={searchTerm} onChange={e => {
+                    <input type="text" className="search-input" placeholder={t('admin_tab_search_ph') || t("g_a96ec1" || "\uD83D\uDD0D \uC774\uB984 \uB610\uB294 \uC804\uD654\uBC88\uD638 \uAC80\uC0C9...")} value={searchTerm} onChange={e => {
           setSearchTerm(e.target.value);
           setCurrentPage(1);
         }} style={{
@@ -984,24 +984,24 @@ const MembersTab = ({
       gap: '10px'
     }}>
                 <div>
-                    {t(t('admin_tab_curr') || t("g_e7755c") || t("g_e7755c") || t("g_e7755c") || t("g_e7755c") || t("g_e7755c") || "\uD604\uC7AC")} <strong style={{
+                    {t('admin_tab_curr') || t("g_e7755c" || "\uD604\uC7AC")} <strong style={{
           color: 'var(--primary-gold)'
         }}>
-                        {filterType === 'all' && (t('admin_tab_all_member') || t("g_339693") || t("g_339693") || t("g_339693") || t("g_339693") || t("g_339693") || "\uC804\uCCB4 \uD68C\uC6D0")}
-                        {filterType === 'active' && (t('admin_tab_active_member') || t("g_f7c87d") || t("g_f7c87d") || t("g_f7c87d") || t("g_f7c87d") || t("g_f7c87d") || "\uD65C\uC131 \uD68C\uC6D0")}
-                        {filterType === 'attendance' && (t('admin_tab_today_att_member') || t("g_034d35") || t("g_034d35") || t("g_034d35") || t("g_034d35") || t("g_034d35") || "\uC624\uB298 \uCD9C\uC11D \uD68C\uC6D0")}
-                        {filterType === 'registration' && (t('admin_tab_today_reg_member') || t("g_f8da43") || t("g_f8da43") || t("g_f8da43") || t("g_f8da43") || t("g_f8da43") || "\uC624\uB298 \uB4F1\uB85D \uD68C\uC6D0")}
-                        {filterType === 'expiring' && (t('admin_tab_expiring_member') || t("g_2a9293") || t("g_2a9293") || t("g_2a9293") || t("g_2a9293") || t("g_2a9293") || "\uB9CC\uB8CC/\uD69F\uC218 \uC784\uBC15 \uD68C\uC6D0")}
-                        {filterType === 'dormant' && (t('admin_tab_dormant_member') || t("g_f3204f") || t("g_f3204f") || t("g_f3204f") || t("g_f3204f") || t("g_f3204f") || "\uC7A0\uB4E0 \uD68C\uC6D0")}
-                        {filterType === 'churn' && (t('admin_tab_ai_risk_member') || t("g_593018") || t("g_593018") || t("g_593018") || t("g_593018") || t("g_593018") || "AI \uC774\uD0C8 \uC608\uCE21 \uD68C\uC6D0")}
-                        {filterType === 'installed' && (t('admin_tab_push_installed') || t('admin_tab_installed_member') || t("g_0d3e15") || t("g_0d3e15") || t("g_0d3e15") || t("g_0d3e15") || t("g_0d3e15") || "\uC571 \uC124\uCE58 \uD68C\uC6D0")}
-                        {filterType === 'bio_missing' && (t('admin_tab_bio_missing') || t("g_9ba4ab") || t("g_9ba4ab") || t("g_9ba4ab") || t("g_9ba4ab") || t("g_9ba4ab") || "\uC548\uBA74 \uBBF8\uB4F1\uB85D \uD68C\uC6D0")}
-                    </strong>{t("g_384a99") || t("g_384a99") || t("g_384a99") || t("g_384a99") || t("g_384a99") || "\uBAA9\uB85D\uC744"}{' '}
+                        {filterType === 'all' && (t('admin_tab_all_member') || t("g_339693") || "\uC804\uCCB4 \uD68C\uC6D0")}
+                        {filterType === 'active' && (t('admin_tab_active_member') || t("g_f7c87d") || "\uD65C\uC131 \uD68C\uC6D0")}
+                        {filterType === 'attendance' && (t('admin_tab_today_att_member') || t("g_034d35") || "\uC624\uB298 \uCD9C\uC11D \uD68C\uC6D0")}
+                        {filterType === 'registration' && (t('admin_tab_today_reg_member') || t("g_f8da43") || "\uC624\uB298 \uB4F1\uB85D \uD68C\uC6D0")}
+                        {filterType === 'expiring' && (t('admin_tab_expiring_member') || t("g_2a9293") || "\uB9CC\uB8CC/\uD69F\uC218 \uC784\uBC15 \uD68C\uC6D0")}
+                        {filterType === 'dormant' && (t('admin_tab_dormant_member') || t("g_f3204f") || "\uC7A0\uB4E0 \uD68C\uC6D0")}
+                        {filterType === 'churn' && (t('admin_tab_ai_risk_member') || t("g_593018") || "AI \uC774\uD0C8 \uC608\uCE21 \uD68C\uC6D0")}
+                        {filterType === 'installed' && (t('admin_tab_push_installed') || t('admin_tab_installed_member') || t("g_0d3e15") || "\uC571 \uC124\uCE58 \uD68C\uC6D0")}
+                        {filterType === 'bio_missing' && (t('admin_tab_bio_missing') || t("g_9ba4ab") || "\uC548\uBA74 \uBBF8\uB4F1\uB85D \uD68C\uC6D0")}
+                    </strong>{t("g_384a99") || "\uBAA9\uB85D\uC744"}{' '}
                     <strong style={{
           color: 'var(--text-secondary)'
         }}>
-                        {localSort === 'default' ? filterType === 'attendance' ? t('admin_tab_sort_latest_att') || t("g_8b7e78") || t("g_8b7e78") || t("g_8b7e78") || t("g_8b7e78") || t("g_8b7e78") || "\uCD5C\uC2E0 \uCD9C\uC11D \uC21C" : filterType === 'installed' ? t('admin_tab_sort_latest_inst') || t("g_6a1e60") || t("g_6a1e60") || t("g_6a1e60") || t("g_6a1e60") || t("g_6a1e60") || "\uCD5C\uC2E0 \uC124\uCE58 \uC21C" : filterType === 'registration' ? t('admin_tab_sort_latest_reg') || t("g_113686") || t("g_113686") || t("g_113686") || t("g_113686") || t("g_113686") || "\uCD5C\uC2E0 \uB4F1\uB85D\uC21C" : t('admin_tab_sort_name') || t("g_e046a9") || t("g_e046a9") || t("g_e046a9") || t("g_e046a9") || t("g_e046a9") || "\uC774\uB984\uC744 \uAC00\uB098\uB2E4\uC21C" : localSort === 'credits_asc' ? t('admin_tab_sort_credit_asc') || t("g_2a5309") || t("g_2a5309") || t("g_2a5309") || t("g_2a5309") || t("g_2a5309") || "\uC794\uC5EC \uD69F\uC218 \uC801\uC740 \uC21C" : localSort === 'credits_desc' ? t('admin_tab_sort_credit_desc') || t("g_3671b4") || t("g_3671b4") || t("g_3671b4") || t("g_3671b4") || t("g_3671b4") || "\uC794\uC5EC \uD69F\uC218 \uB9CE\uC740 \uC21C" : localSort === 'enddate_asc' ? t('admin_tab_sort_end_asc') || t("g_11abf7") || t("g_11abf7") || t("g_11abf7") || t("g_11abf7") || t("g_11abf7") || "\uB9C8\uAC10\uC77C \uC784\uBC15 \uC21C" : t('admin_tab_sort_end_desc') || t("g_ab4449") || t("g_ab4449") || t("g_ab4449") || t("g_ab4449") || t("g_ab4449") || "\uB9C8\uAC10\uC77C \uC5EC\uC720 \uC21C"}
-                    </strong>{t(t('admin_tab_viewing_msg') || t("g_dda7cf") || t("g_dda7cf") || t("g_dda7cf") || t("g_dda7cf") || t("g_dda7cf") || "\uC73C\uB85C \uBCF4\uACE0 \uACC4\uC2ED\uB2C8\uB2E4.")}
+                        {localSort === 'default' ? filterType === 'attendance' ? t('admin_tab_sort_latest_att') || t("g_8b7e78") || "\uCD5C\uC2E0 \uCD9C\uC11D \uC21C" : filterType === 'installed' ? t('admin_tab_sort_latest_inst') || t("g_6a1e60") || "\uCD5C\uC2E0 \uC124\uCE58 \uC21C" : filterType === 'registration' ? t('admin_tab_sort_latest_reg') || t("g_113686") || "\uCD5C\uC2E0 \uB4F1\uB85D\uC21C" : t('admin_tab_sort_name') || t("g_e046a9") || "\uC774\uB984\uC744 \uAC00\uB098\uB2E4\uC21C" : localSort === 'credits_asc' ? t('admin_tab_sort_credit_asc') || t("g_2a5309") || "\uC794\uC5EC \uD69F\uC218 \uC801\uC740 \uC21C" : localSort === 'credits_desc' ? t('admin_tab_sort_credit_desc') || t("g_3671b4") || "\uC794\uC5EC \uD69F\uC218 \uB9CE\uC740 \uC21C" : localSort === 'enddate_asc' ? t('admin_tab_sort_end_asc') || t("g_11abf7") || "\uB9C8\uAC10\uC77C \uC784\uBC15 \uC21C" : t('admin_tab_sort_end_desc') || t("g_ab4449") || "\uB9C8\uAC10\uC77C \uC5EC\uC720 \uC21C"}
+                    </strong>{t('admin_tab_viewing_msg') || t("g_dda7cf" || "\uC73C\uB85C \uBCF4\uACE0 \uACC4\uC2ED\uB2C8\uB2E4.")}
                 </div>
 
                 {/* Legend removed per user request */}
@@ -1021,23 +1021,23 @@ const MembersTab = ({
                     <option value="default" style={{
           color: 'white',
           background: '#333'
-        }}>{t(t('admin_tab_sort_default') || t("g_1cfe63") || t("g_1cfe63") || t("g_1cfe63") || t("g_1cfe63") || t("g_1cfe63") || "\uAE30\uBCF8 \uC815\uB82C")}</option>
+        }}>{t('admin_tab_sort_default') || t("g_1cfe63" || "\uAE30\uBCF8 \uC815\uB82C")}</option>
                     <option value="credits_asc" style={{
           color: 'white',
           background: '#333'
-        }}>{t(t('admin_tab_sort_credit_asc') || t("g_2a5309") || t("g_2a5309") || t("g_2a5309") || t("g_2a5309") || t("g_2a5309") || "\uC794\uC5EC \uD69F\uC218 \uC801\uC740 \uC21C")}</option>
+        }}>{t('admin_tab_sort_credit_asc') || t("g_2a5309" || "\uC794\uC5EC \uD69F\uC218 \uC801\uC740 \uC21C")}</option>
                     <option value="credits_desc" style={{
           color: 'white',
           background: '#333'
-        }}>{t(t('admin_tab_sort_credit_desc') || t("g_3671b4") || t("g_3671b4") || t("g_3671b4") || t("g_3671b4") || t("g_3671b4") || "\uC794\uC5EC \uD69F\uC218 \uB9CE\uC740 \uC21C")}</option>
+        }}>{t('admin_tab_sort_credit_desc') || t("g_3671b4" || "\uC794\uC5EC \uD69F\uC218 \uB9CE\uC740 \uC21C")}</option>
                     <option value="enddate_asc" style={{
           color: 'white',
           background: '#333'
-        }}>{t(t('admin_tab_sort_end_asc') || t("g_11abf7") || t("g_11abf7") || t("g_11abf7") || t("g_11abf7") || t("g_11abf7") || "\uB9C8\uAC10\uC77C \uC784\uBC15 \uC21C")}</option>
+        }}>{t('admin_tab_sort_end_asc') || t("g_11abf7" || "\uB9C8\uAC10\uC77C \uC784\uBC15 \uC21C")}</option>
                     <option value="enddate_desc" style={{
           color: 'white',
           background: '#333'
-        }}>{t(t('admin_tab_sort_end_desc') || t("g_ab4449") || t("g_ab4449") || t("g_ab4449") || t("g_ab4449") || t("g_ab4449") || "\uB9C8\uAC10\uC77C \uC5EC\uC720 \uC21C")}</option>
+        }}>{t('admin_tab_sort_end_desc') || t("g_ab4449" || "\uB9C8\uAC10\uC77C \uC5EC\uC720 \uC21C")}</option>
                 </select>
             </div>
 
@@ -1074,7 +1074,7 @@ const MembersTab = ({
               }}>
                                         {finalFiltered.length > 0 && finalFiltered.every(m => selectedMemberIds.includes(m.id)) && <Check size={10} color="#000" weight="bold" />}
                                     </div>
-                                    {t('admin_tab_select_all') || t("g_73743f") || t("g_73743f") || t("g_73743f") || t("g_73743f") || t("g_73743f") || "\uC804\uCCB4 \uC120\uD0DD"} ({finalFiltered.length}{t('단위_명') || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || "\uBA85"})
+                                    {t('admin_tab_select_all') || t("g_73743f") || "\uC804\uCCB4 \uC120\uD0DD"} ({finalFiltered.length}{t('단위_명') || t("g_7b3c6e") || "\uBA85"})
                                 </div>
                                 
                                 {/* [NEW] Bulk Action Button */}
@@ -1092,10 +1092,10 @@ const MembersTab = ({
               gap: '4px'
             }}>
                                         <PaperPlaneTilt weight="fill" />
-                                        {t('admin_tab_btn_send_msg') || t("g_35c97a") || t("g_35c97a") || t("g_35c97a") || t("g_35c97a") || t("g_35c97a") || "\uBA54\uC2DC\uC9C0 \uBCF4\uB0B4\uAE30"} ({selectedMemberIds.length})
+                                        {t('admin_tab_btn_send_msg') || t("g_35c97a") || "\uBA54\uC2DC\uC9C0 \uBCF4\uB0B4\uAE30"} ({selectedMemberIds.length})
                                     </button>}
 
-                                <div>{t('admin_tab_page') || t("g_8e2110") || t("g_8e2110") || t("g_8e2110") || t("g_8e2110") || t("g_8e2110") || "\uD398\uC774\uC9C0"} {currentPage} / {totalPages || 1}</div>
+                                <div>{t('admin_tab_page') || t("g_8e2110") || "\uD398\uC774\uC9C0"} {currentPage} / {totalPages || 1}</div>
                             </div>
 
                             {paginated.length === 0 ? <div style={{
@@ -1103,7 +1103,7 @@ const MembersTab = ({
             padding: '60px 0',
             opacity: 0.5
           }}>
-                                    {t(t('admin_tab_empty_result') || t("g_9ec1ed") || t("g_9ec1ed") || t("g_9ec1ed") || t("g_9ec1ed") || t("g_9ec1ed") || "\uAC80\uC0C9 \uACB0\uACFC\uAC00 \uC5C6\uAC70\uB098 \uD68C\uC6D0\uC744 \uB4F1\uB85D\uD574\uC8FC\uC138\uC694.")}
+                                    {t('admin_tab_empty_result') || t("g_9ec1ed" || "\uAC80\uC0C9 \uACB0\uACFC\uAC00 \uC5C6\uAC70\uB098 \uD68C\uC6D0\uC744 \uB4F1\uB85D\uD574\uC8FC\uC138\uC694.")}
                                 </div> : paginated.map(member => <div key={member.logId || member.id} className="member-list-item" onClick={() => handleOpenEdit(member)} style={{
             cursor: 'pointer'
           }}>
@@ -1137,7 +1137,7 @@ const MembersTab = ({
                   alignItems: 'center',
                   gap: '3px'
                 }}>
-                                                            {t(t('admin_badge_bio') || t("g_d233b5") || t("g_d233b5") || t("g_d233b5") || t("g_d233b5") || t("g_d233b5") || "\uD83E\uDDE0 \uC548\uBA74\uC778\uC2DD")}
+                                                            {t('admin_badge_bio') || t("g_d233b5" || "\uD83E\uDDE0 \uC548\uBA74\uC778\uC2DD")}
                                                         </span>}
                                                     {filterType === 'installed' && <span className="badge" style={{
                   fontSize: '0.7rem',
@@ -1146,7 +1146,7 @@ const MembersTab = ({
                   border: member.role === 'instructor' ? '1px solid rgba(251, 191, 36, 0.4)' : '1px solid rgba(16, 185, 129, 0.4)',
                   padding: '2px 6px'
                 }}>
-                                                            {member.role === 'instructor' ? t('admin_label_instructor') || t("g_9564f6") || t("g_9564f6") || t("g_9564f6") || t("g_9564f6") || t("g_9564f6") || "\uC120\uC0DD\uB2D8" : t('admin_label_member') || t("g_6745df") || t("g_6745df") || t("g_6745df") || t("g_6745df") || t("g_6745df") || "\uD68C\uC6D0"}
+                                                            {member.role === 'instructor' ? t('admin_label_instructor') || t("g_9564f6") || "\uC120\uC0DD\uB2D8" : t('admin_label_member') || t("g_6745df") || "\uD68C\uC6D0"}
                                                         </span>}
                                                     <span style={{
                   fontSize: '0.8rem',
@@ -1164,7 +1164,7 @@ const MembersTab = ({
                   alignItems: 'center',
                   padding: '4px',
                   marginLeft: 'auto'
-                }} title={t(t('admin_tt_memo') || t("g_4de4b6") || t("g_4de4b6") || t("g_4de4b6") || t("g_4de4b6") || t("g_4de4b6") || "\uBA54\uBAA8 \uC791\uC131/\uC218\uC815")}>
+                }} title={t('admin_tt_memo') || t("g_4de4b6" || "\uBA54\uBAA8 \uC791\uC131/\uC218\uC815")}>
                                                         <NotePencil size={18} weight={member.notes ? "fill" : "regular"} />
                                                     </button>}
                                                 </div>
@@ -1183,7 +1183,7 @@ const MembersTab = ({
                       background: 'rgba(16, 185, 129, 0.2)',
                       color: '#34D399',
                       border: '1px solid rgba(16, 185, 129, 0.4)'
-                    }}>{t(t('admin_badge_active') || t("g_0b92a7") || t("g_0b92a7") || t("g_0b92a7") || t("g_0b92a7") || t("g_0b92a7") || "\uD65C\uB3D9\uC911")}</span>;
+                    }}>{t('admin_badge_active') || t("g_0b92a7" || "\uD65C\uB3D9\uC911")}</span>;
                   }
                   const isCurrentExhausted = member.credits <= 0 || member.endDate && member.endDate !== 'TBD' && member.endDate !== 'unlimited' && new Date(member.endDate).getTime() < todayStartMs;
                   if (isCurrentExhausted && member.upcomingMembership && member.upcomingMembership.startDate === 'TBD') {
@@ -1191,7 +1191,7 @@ const MembersTab = ({
                       background: 'rgba(56, 189, 248, 0.15)',
                       color: '#38bdf8',
                       border: '1px solid rgba(56, 189, 248, 0.3)'
-                    }}>{t(t('admin_badge_pending_start') || t("g_51d234") || t("g_51d234") || t("g_51d234") || t("g_51d234") || t("g_51d234") || "\uC2DC\uC791 \uB300\uAE30\uC911")}</span>;
+                    }}>{t('admin_badge_pending_start') || t("g_51d234" || "\uC2DC\uC791 \uB300\uAE30\uC911")}</span>;
                   }
                   if (!member.endDate || member.endDate === 'TBD' || member.endDate === 'unlimited') {
                     if (member.credits > 0 || member.credits === 9999) {
@@ -1199,14 +1199,14 @@ const MembersTab = ({
                         background: 'rgba(16, 185, 129, 0.2)',
                         color: '#34D399',
                         border: '1px solid rgba(16, 185, 129, 0.4)'
-                      }}>{t(t('admin_badge_active') || t("g_0b92a7") || t("g_0b92a7") || t("g_0b92a7") || t("g_0b92a7") || t("g_0b92a7") || "\uD65C\uB3D9\uC911")}</span>;
+                      }}>{t('admin_badge_active') || t("g_0b92a7" || "\uD65C\uB3D9\uC911")}</span>;
                     }
                     if (isCurrentExhausted && !member.upcomingMembership) {
                       return <span className="badge" style={{
                         background: 'rgba(255, 59, 48, 0.15)',
                         color: '#FF3B30',
                         border: '1px solid rgba(255, 59, 48, 0.3)'
-                      }}>{t(t('admin_badge_expired') || t("g_e8351c") || t("g_e8351c") || t("g_e8351c") || t("g_e8351c") || t("g_e8351c") || "\uB9CC\uB8CC/\uC18C\uC9C4")}</span>;
+                      }}>{t('admin_badge_expired') || t("g_e8351c" || "\uB9CC\uB8CC/\uC18C\uC9C4")}</span>;
                     }
                     return null;
                   }
@@ -1217,7 +1217,7 @@ const MembersTab = ({
                       background: 'rgba(255, 59, 48, 0.15)',
                       color: '#FF3B30',
                       border: '1px solid rgba(255, 59, 48, 0.3)'
-                    }}>{t(t('admin_badge_expired') || t("g_e8351c") || t("g_e8351c") || t("g_e8351c") || t("g_e8351c") || t("g_e8351c") || "\uB9CC\uB8CC/\uC18C\uC9C4")}</span>;
+                    }}>{t('admin_badge_expired') || t("g_e8351c" || "\uB9CC\uB8CC/\uC18C\uC9C4")}</span>;
                   } else if (diff <= 7 || member.credits <= 2) {
                     return <span className="badge" style={{
                       background: 'rgba(245, 158, 11, 0.2)',
@@ -1229,7 +1229,7 @@ const MembersTab = ({
                       background: 'rgba(16, 185, 129, 0.2)',
                       color: '#34D399',
                       border: '1px solid rgba(16, 185, 129, 0.4)'
-                    }}>{t(t('admin_badge_active') || t("g_0b92a7") || t("g_0b92a7") || t("g_0b92a7") || t("g_0b92a7") || t("g_0b92a7") || "\uD65C\uB3D9\uC911")}</span>;
+                    }}>{t('admin_badge_active') || t("g_0b92a7" || "\uD65C\uB3D9\uC911")}</span>;
                   }
                 })()}
 
@@ -1240,7 +1240,7 @@ const MembersTab = ({
                   border: '1px solid rgba(168, 85, 247, 0.4)',
                   fontWeight: 'bold'
                 }}>
-                                                        {t(t('admin_badge_pre_reg') || t("g_d445d7") || t("g_d445d7") || t("g_d445d7") || t("g_d445d7") || t("g_d445d7") || "\uC120\uB4F1\uB85D \uB300\uAE30\uC911")}
+                                                        {t('admin_badge_pre_reg') || t("g_d445d7" || "\uC120\uB4F1\uB85D \uB300\uAE30\uC911")}
                                                     </span>}
 
                                                 {/* [NEW] Hold Status Badge */}
@@ -1251,7 +1251,7 @@ const MembersTab = ({
                   fontWeight: 'bold',
                   animation: 'pulse 2s infinite'
                 }}>
-                                                        {t(t('admin_badge_holding') || t("g_1aeeda") || t("g_1aeeda") || t("g_1aeeda") || t("g_1aeeda") || t("g_1aeeda") || "\u23F8\uFE0F \uD640\uB529 \uC911")}
+                                                        {t('admin_badge_holding') || t("g_1aeeda" || "\u23F8\uFE0F \uD640\uB529 \uC911")}
                                                     </span>}
                                                 
                                                 {/* [NEW] Today Registration Badges */}
@@ -1260,7 +1260,7 @@ const MembersTab = ({
                   color: '#10B981',
                   border: '1px solid rgba(16, 185, 129, 0.3)'
                 }}>
-                                                        {t('admin_tab_new') || t("g_5a601c") || t("g_5a601c") || t("g_5a601c") || t("g_5a601c") || t("g_5a601c") || "\uC2E0\uADDC"}
+                                                        {t('admin_tab_new') || t("g_5a601c") || "\uC2E0\uADDC"}
                                                     </span>}
                                                 {/* Note: In MembersTab, we might not have todayReRegMemberIds prop yet. 
                                                     Let's use summary or pass it down. 
@@ -1277,14 +1277,14 @@ const MembersTab = ({
                   border: '1px solid rgba(59, 130, 246, 0.5)',
                   fontWeight: 'bold'
                 }}>
-                                                {t('admin_tab_rereg') || t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || "\uC7AC\uB4F1\uB85D"}
+                                                {t('admin_tab_rereg') || t("g_763e2b") || "\uC7AC\uB4F1\uB85D"}
                                             </span>}
                                         {summary.multiAttendedMemberIds && summary.multiAttendedMemberIds.includes(member.id) && <span className="badge" style={{
                   background: 'rgba(245, 158, 11, 0.25)',
                   color: '#FBBF24',
                   border: '1px solid rgba(245, 158, 11, 0.5)',
                   fontWeight: 'bold'
-                }}>{t("g_e1e8a7") || t("g_e1e8a7") || t("g_e1e8a7") || t("g_e1e8a7") || t("g_e1e8a7") || "\uC624\uB298"}{summary?.attendanceCountMap?.[member.id] || 2}{t("g_64b9a5") || t("g_64b9a5") || t("g_64b9a5") || t("g_64b9a5") || t("g_64b9a5") || "\uD68C \uCD9C\uC11D \uD83D\uDD25"}</span>}
+                }}>{t("g_e1e8a7") || "\uC624\uB298"}{summary?.attendanceCountMap?.[member.id] || 2}{t("g_64b9a5") || "\uD68C \uCD9C\uC11D \uD83D\uDD25"}</span>}
                                                 {/* Status Context Badges */}
                                                 {filterType === 'dormant' && (() => {
                   let lastDateMs = member.lastAttendance ? new Date(member.lastAttendance).getTime() : member.regDate ? new Date(member.regDate).getTime() : null;
@@ -1300,7 +1300,7 @@ const MembersTab = ({
                     border: '1px solid rgba(255, 59, 48, 0.3)',
                     fontSize: '0.75rem'
                   }}>
-                                                            {diffDays}{t("g_1c96cb") || t("g_1c96cb") || t("g_1c96cb") || t("g_1c96cb") || t("g_1c96cb") || "\uC77C\uC9F8 \uBBF8\uCD9C\uC11D"}</span>;
+                                                            {diffDays}{t("g_1c96cb") || "\uC77C\uC9F8 \uBBF8\uCD9C\uC11D"}</span>;
                 })()}
                                                 {/* [NEW] Install Date Badge (Show only when filtered by installed) */}
                                                 {filterType === 'installed' && member.installedAt && (() => {
@@ -1313,7 +1313,7 @@ const MembersTab = ({
                     color: isToday ? '#4CD964' : '#60A5FA',
                     border: isToday ? '1px solid rgba(76, 217, 100, 0.4)' : '1px solid rgba(96, 165, 250, 0.3)'
                   }}>
-                                                            {isToday ? t("g_ff329e") || t("g_ff329e") || t("g_ff329e") || t("g_ff329e") || t("g_ff329e") || "\uC624\uB298 \uC124\uCE58" : `${installDateStr.slice(2)} 설치`}
+                                                            {isToday ? t("g_ff329e") || "\uC624\uB298 \uC124\uCE58" : `${installDateStr.slice(2)} 설치`}
                                                         </span>;
                 })()}
 
@@ -1331,7 +1331,7 @@ const MembersTab = ({
                 }}>
                                                     {getBranchName(member.homeBranch)}
                                                 </span>
-                                                {member.pushEnabled !== false && pushTokens.some(t => t.memberId === member.id) ? <div style={{
+                                                {member.pushEnabled !== false && pushTokens.some(tk => tk.memberId === member.id) ? <div style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
@@ -1368,7 +1368,7 @@ const MembersTab = ({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px'
-                }}>{t("g_b6fead") || t("g_b6fead") || t("g_b6fead") || t("g_b6fead") || t("g_b6fead") || "\u26D4 \uCD9C\uC11D\uAC70\uBD80 ("}{member.denialReason === 'expired' ? t("g_7bc7c5") || t("g_7bc7c5") || t("g_7bc7c5") || t("g_7bc7c5") || t("g_7bc7c5") || "\uAE30\uAC04" : t("g_705bfc") || t("g_705bfc") || t("g_705bfc") || t("g_705bfc") || t("g_705bfc") || "\uD69F\uC218"})
+                }}>{t("g_b6fead") || "\u26D4 \uCD9C\uC11D\uAC70\uBD80 ("}{member.denialReason === 'expired' ? t("g_7bc7c5") || "\uAE30\uAC04" : t("g_705bfc") || "\uD69F\uC218"})
                                                         </span> : <span style={{
                   fontSize: '0.75rem',
                   color: 'rgba(0,0,0,0.85)',
@@ -1390,7 +1390,7 @@ const MembersTab = ({
                 gap: '8px',
                 alignItems: 'center'
               }}>
-                                                <span>{member.subject || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || "\uC77C\uBC18"}</span>
+                                                <span>{member.subject || t("g_8209e5") || "\uC77C\uBC18"}</span>
                                                 <span style={{
                   opacity: 0.3
                 }}>|</span>
@@ -1402,7 +1402,7 @@ const MembersTab = ({
                                                                 <span style={{
                         color: 'var(--text-primary)',
                         fontWeight: 'bold'
-                      }}>{t("g_8c4dbd") || t("g_8c4dbd") || t("g_8c4dbd") || t("g_8c4dbd") || t("g_8c4dbd") || "\uC120\uACB0\uC81C \uC794\uC5EC"}{up.credits === 9999 ? t("g_7fe271") || t("g_7fe271") || t("g_7fe271") || t("g_7fe271") || t("g_7fe271") || "\uBB34\uC81C\uD55C" : `${up.credits}회`}
+                      }}>{t("g_8c4dbd") || "\uC120\uACB0\uC81C \uC794\uC5EC"}{up.credits === 9999 ? t("g_7fe271") || "\uBB34\uC81C\uD55C" : `${up.credits}회`}
                                                                 </span>
                                                                 <span style={{
                         opacity: 0.3
@@ -1410,7 +1410,7 @@ const MembersTab = ({
                                                                 <span style={{
                         color: 'var(--text-tertiary)',
                         fontSize: '0.85rem'
-                      }}>{t("g_9b6dbc") || t("g_9b6dbc") || t("g_9b6dbc") || t("g_9b6dbc") || t("g_9b6dbc") || "\uC885\uB8CC\uC77C:"}{up.startDate === 'TBD' || up.endDate === 'TBD' ? t("g_b8e060") || t("g_b8e060") || t("g_b8e060") || t("g_b8e060") || t("g_b8e060") || "\uCCAB \uCD9C\uC11D \uC2DC \uD655\uC815" : up.endDate || t("g_7fe271") || t("g_7fe271") || t("g_7fe271") || t("g_7fe271") || t("g_7fe271") || "\uBB34\uC81C\uD55C"}
+                      }}>{t("g_9b6dbc") || "\uC885\uB8CC\uC77C:"}{up.startDate === 'TBD' || up.endDate === 'TBD' ? t("g_b8e060") || "\uCCAB \uCD9C\uC11D \uC2DC \uD655\uC815" : up.endDate || t("g_7fe271") || "\uBB34\uC81C\uD55C"}
                                                                 </span>
                                                             </>;
                   }
@@ -1418,7 +1418,7 @@ const MembersTab = ({
                                                             <span style={{
                       color: member.credits <= 0 ? 'var(--accent-error)' : member.credits <= 2 ? '#f59e0b' : 'var(--text-primary)',
                       fontWeight: 'bold'
-                    }}>{t("g_34c1e0") || t("g_34c1e0") || t("g_34c1e0") || t("g_34c1e0") || t("g_34c1e0") || "\uC794\uC5EC"}{member.credits}{t("g_8a602f") || t("g_8a602f") || t("g_8a602f") || t("g_8a602f") || t("g_8a602f") || "\uD68C"}</span>
+                    }}>{t("g_34c1e0") || "\uC794\uC5EC"}{member.credits}{t("g_8a602f") || "\uD68C"}</span>
                                                             <span style={{
                       opacity: 0.3
                     }}>|</span>
@@ -1432,7 +1432,7 @@ const MembersTab = ({
                         return 'var(--text-tertiary)';
                       })(),
                       fontSize: '0.85rem'
-                    }}>{t("g_9b6dbc") || t("g_9b6dbc") || t("g_9b6dbc") || t("g_9b6dbc") || t("g_9b6dbc") || "\uC885\uB8CC\uC77C:"}{member.endDate === 'TBD' ? t("g_b8e060") || t("g_b8e060") || t("g_b8e060") || t("g_b8e060") || t("g_b8e060") || "\uCCAB \uCD9C\uC11D \uC2DC \uD655\uC815" : member.endDate || t("g_7fe271") || t("g_7fe271") || t("g_7fe271") || t("g_7fe271") || t("g_7fe271") || "\uBB34\uC81C\uD55C"}
+                    }}>{t("g_9b6dbc") || "\uC885\uB8CC\uC77C:"}{member.endDate === 'TBD' ? t("g_b8e060") || "\uCCAB \uCD9C\uC11D \uC2DC \uD655\uC815" : member.endDate || t("g_7fe271") || "\uBB34\uC81C\uD55C"}
                                                             </span>
                                                         </>;
                 })()}

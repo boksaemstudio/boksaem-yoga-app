@@ -72,7 +72,7 @@ const ScheduleClassEditor = ({
           paddingRight: '20px',
           fontWeight: '700'
         }}>
-                        {hours.map(h => <option key={h} value={h}>{h}{t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || "\uC2DC"}</option>)}
+                        {hours.map(h => <option key={h} value={h}>{h}{t("g_1ab611") || "\uC2DC"}</option>)}
                     </select>
                     <span style={{
           color: 'var(--text-secondary)',
@@ -85,7 +85,7 @@ const ScheduleClassEditor = ({
           paddingRight: '20px',
           fontWeight: '700'
         }}>
-                        {minutes.map(m => <option key={m} value={m}>{m}{t("g_778ec4") || t("g_778ec4") || t("g_778ec4") || t("g_778ec4") || t("g_778ec4") || "\uBD84"}</option>)}
+                        {minutes.map(m => <option key={m} value={m}>{m}{t("g_778ec4") || "\uBD84"}</option>)}
                     </select>
                 </div>
                 <select value={cls.title} onChange={e => {
@@ -116,8 +116,8 @@ const ScheduleClassEditor = ({
         flex: 1.5,
         minWidth: '100px'
       }}>
-                    <option value="">{t("g_9564f6") || t("g_9564f6") || t("g_9564f6") || t("g_9564f6") || t("g_9564f6") || "\uC120\uC0DD\uB2D8"}</option>
-                    {cls.instructor && !instructors.some(i => (typeof i === 'string' ? i : i.name) === cls.instructor) && <option value={cls.instructor}>{t("g_42b3cf") || t("g_42b3cf") || t("g_42b3cf") || t("g_42b3cf") || t("g_42b3cf") || "\uBBF8\uB4F1\uB85D"}</option>}
+                    <option value="">{t("g_9564f6") || "\uC120\uC0DD\uB2D8"}</option>
+                    {cls.instructor && !instructors.some(i => (typeof i === 'string' ? i : i.name) === cls.instructor) && <option value={cls.instructor}>{t("g_42b3cf") || "\uBBF8\uB4F1\uB85D"}</option>}
                     {instructors.map(inst => {
           const name = typeof inst === 'string' ? inst : inst.name;
           return <option key={name} value={name}>{name}</option>;
@@ -132,7 +132,7 @@ const ScheduleClassEditor = ({
         flex: 1,
         minWidth: '85px'
       }}>
-                        <option value="">{t("g_c2f940") || t("g_c2f940") || t("g_c2f940") || t("g_c2f940") || t("g_c2f940") || "\uB808\uBCA8"}</option>
+                        <option value="">{t("g_c2f940") || "\uB808\uBCA8"}</option>
                         {classLevels?.map(level => <option key={level} value={level}>Lv.{level}</option>)}
                     </select>}
                 <select value={cls.status} onChange={e => {
@@ -144,9 +144,9 @@ const ScheduleClassEditor = ({
         flex: 1,
         minWidth: '80px'
       }}>
-                    <option value="normal">{t("g_c9825e") || t("g_c9825e") || t("g_c9825e") || t("g_c9825e") || t("g_c9825e") || "\uC815\uC0C1"}</option>
-                    <option value="cancelled">{t("g_15c491") || t("g_15c491") || t("g_15c491") || t("g_15c491") || t("g_15c491") || "\uD734\uAC15"}</option>
-                    <option value="changed">{t("g_9be281") || t("g_9be281") || t("g_9be281") || t("g_9be281") || t("g_9be281") || "\uBCC0\uACBD"}</option>
+                    <option value="normal">{t("g_c9825e") || "\uC815\uC0C1"}</option>
+                    <option value="cancelled">{t("g_15c491") || "\uD734\uAC15"}</option>
+                    <option value="changed">{t("g_9be281") || "\uBCC0\uACBD"}</option>
                 </select>
                 <button onClick={() => {
         const newClasses = dayClasses.filter((_, i) => i !== idx);
@@ -253,7 +253,7 @@ const SettingsModal = ({
             margin: 0,
             fontSize: '1.25rem',
             fontWeight: '600'
-          }}>{t("g_0343c2") || t("g_0343c2") || t("g_0343c2") || t("g_0343c2") || t("g_0343c2") || "\uC120\uC0DD\uB2D8 & \uC218\uC5C5 \uC885\uB958 \uAD00\uB9AC"}</h3>
+          }}>{t("g_0343c2") || "\uC120\uC0DD\uB2D8 & \uC218\uC5C5 \uC885\uB958 \uAD00\uB9AC"}</h3>
                     </div>
                     <button onClick={onClose} style={closeButtonStyle} onMouseEnter={e => e.target.style.background = 'rgba(255,255,255,0.1)'} onMouseLeave={e => e.target.style.background = 'transparent'}>
                         <X size={22} color="var(--text-secondary)" />
@@ -277,7 +277,7 @@ const SettingsModal = ({
                 margin: 0,
                 color: config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)',
                 fontWeight: '600'
-              }}>{t("g_d33241") || t("g_d33241") || t("g_d33241") || t("g_d33241") || t("g_d33241") || "\uC120\uC0DD\uB2D8 \uBAA9\uB85D"}</h4>
+              }}>{t("g_d33241") || "\uC120\uC0DD\uB2D8 \uBAA9\uB85D"}</h4>
                                 <span style={{
                 background: 'rgba(var(--primary-rgb), 0.2)',
                 color: config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)',
@@ -285,16 +285,16 @@ const SettingsModal = ({
                 borderRadius: '12px',
                 fontSize: '0.75rem',
                 fontWeight: '600'
-              }}>{normalizedInstructors.length}{t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || "\uBA85"}</span>
+              }}>{normalizedInstructors.length}{t("g_7b3c6e") || "\uBA85"}</span>
                             </div>
                         </div>
-                        <p style={hintTextStyle}>{t("g_333fd9") || t("g_333fd9") || t("g_333fd9") || t("g_333fd9") || t("g_333fd9") || "\uD83D\uDCA1 \uC120\uC0DD\uB2D8\uC744 \uD074\uB9AD\uD558\uBA74 \uC804\uD654\uBC88\uD638\uB97C \uD3B8\uC9D1\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4"}</p>
+                        <p style={hintTextStyle}>{t("g_333fd9") || "\uD83D\uDCA1 \uC120\uC0DD\uB2D8\uC744 \uD074\uB9AD\uD558\uBA74 \uC804\uD654\uBC88\uD638\uB97C \uD3B8\uC9D1\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4"}</p>
                         <div style={inputRowStyle}>
-                            <input type="text" value={newInstructor} onChange={e => setNewInstructor(e.target.value)} placeholder={t("g_b9af90") || t("g_b9af90") || t("g_b9af90") || t("g_b9af90") || t("g_b9af90") || "\uC120\uC0DD\uB2D8 \uC774\uB984"} style={{
+                            <input type="text" value={newInstructor} onChange={e => setNewInstructor(e.target.value)} placeholder={t("g_b9af90") || "\uC120\uC0DD\uB2D8 \uC774\uB984"} style={{
               ...improvedInputStyle,
               flex: 1
             }} onKeyDown={e => e.key === 'Enter' && newInstructor.trim() && document.getElementById('add-instructor-btn')?.click()} />
-                            <input type="tel" value={newPhone} onChange={e => setNewPhone(e.target.value)} placeholder={t("g_35e38b") || t("g_35e38b") || t("g_35e38b") || t("g_35e38b") || t("g_35e38b") || "\uC804\uD654\uBC88\uD638 (\uC120\uD0DD)"} style={{
+                            <input type="tel" value={newPhone} onChange={e => setNewPhone(e.target.value)} placeholder={t("g_35e38b") || "\uC804\uD654\uBC88\uD638 (\uC120\uD0DD)"} style={{
               ...improvedInputStyle,
               flex: 1
             }} />
@@ -311,11 +311,11 @@ const SettingsModal = ({
                   setNewPhone('');
                 } catch (e) {
                   console.error('Failed to add instructor:', e);
-                  alert(t("g_ed6e9b") || t("g_ed6e9b") || t("g_ed6e9b") || t("g_ed6e9b") || t("g_ed6e9b") || "\uC120\uC0DD\uB2D8 \uCD94\uAC00 \uC2E4\uD328");
+                  alert(t("g_ed6e9b") || "\uC120\uC0DD\uB2D8 \uCD94\uAC00 \uC2E4\uD328");
                 }
               }
             }} style={improvedActionBtnStyle}>
-                                <Plus size={18} weight="bold" />{t("g_ebe4aa") || t("g_ebe4aa") || t("g_ebe4aa") || t("g_ebe4aa") || t("g_ebe4aa") || "\uCD94\uAC00"}</button>
+                                <Plus size={18} weight="bold" />{t("g_ebe4aa") || "\uCD94\uAC00"}</button>
                         </div>
                         <div style={tagContainerStyle}>
                             {normalizedInstructors.map((inst, idx) => <div key={inst.name} style={getTagStyle('instructor', `inst-${idx}`, !!inst.phone)} onMouseEnter={() => setHoveredTag(`inst-${idx}`)} onMouseLeave={() => setHoveredTag(null)}>
@@ -324,7 +324,7 @@ const SettingsModal = ({
                   fontWeight: '600',
                   color: config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'
                 }}>{inst.name}</span>
-                                            <input type="tel" value={editPhone} onChange={e => setEditPhone(e.target.value)} placeholder={t("g_ba8df0") || t("g_ba8df0") || t("g_ba8df0") || t("g_ba8df0") || t("g_ba8df0") || "\uC804\uD654\uBC88\uD638"} style={{
+                                            <input type="tel" value={editPhone} onChange={e => setEditPhone(e.target.value)} placeholder={t("g_ba8df0") || "\uC804\uD654\uBC88\uD638"} style={{
                   ...improvedInputStyle,
                   width: '110px',
                   padding: '4px 10px',
@@ -342,7 +342,7 @@ const SettingsModal = ({
                     setEditingIdx(null);
                   } catch (e) {
                     console.error('Failed to save phone:', e);
-                    alert(t("g_81cafb") || t("g_81cafb") || t("g_81cafb") || t("g_81cafb") || t("g_81cafb") || "\uC804\uD654\uBC88\uD638 \uC800\uC7A5 \uC2E4\uD328");
+                    alert(t("g_81cafb") || "\uC804\uD654\uBC88\uD638 \uC800\uC7A5 \uC2E4\uD328");
                   }
                 }} style={{
                   background: `linear-gradient(135deg, ${config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'} 0%, #c9a227 100%)`,
@@ -353,14 +353,14 @@ const SettingsModal = ({
                   borderRadius: '6px',
                   fontWeight: '600',
                   fontSize: '0.85rem'
-                }}>{t("g_9d0a47") || t("g_9d0a47") || t("g_9d0a47") || t("g_9d0a47") || t("g_9d0a47") || "\uC800\uC7A5"}</button>
+                }}>{t("g_9d0a47") || "\uC800\uC7A5"}</button>
                                         </> : <>
                                             <span onClick={() => {
                   setEditingIdx(idx);
                   setEditPhone(inst.phone || '');
                 }} style={{
                   fontWeight: '500'
-                }} title={inst.phone ? `📞 ${inst.phone}` : t("g_ba8164") || t("g_ba8164") || t("g_ba8164") || t("g_ba8164") || t("g_ba8164") || "\uD074\uB9AD\uD558\uC5EC \uC804\uD654\uBC88\uD638 \uC785\uB825"}>
+                }} title={inst.phone ? `📞 ${inst.phone}` : t("g_ba8164") || "\uD074\uB9AD\uD558\uC5EC \uC804\uD654\uBC88\uD638 \uC785\uB825"}>
                                                 {inst.name}
                                                 {inst.phone && <span style={{
                     fontSize: '0.75rem',
@@ -377,7 +377,7 @@ const SettingsModal = ({
                       setInstructors(updated);
                     } catch (e) {
                       console.error('Failed to delete instructor:', e);
-                      alert(t("g_b1bb7c") || t("g_b1bb7c") || t("g_b1bb7c") || t("g_b1bb7c") || t("g_b1bb7c") || "\uC120\uC0DD\uB2D8 \uC0AD\uC81C \uC2E4\uD328");
+                      alert(t("g_b1bb7c") || "\uC120\uC0DD\uB2D8 \uC0AD\uC81C \uC2E4\uD328");
                     }
                   }
                 }} style={deleteIconBtnStyle}>
@@ -403,7 +403,7 @@ const SettingsModal = ({
                 margin: 0,
                 color: '#00cec9',
                 fontWeight: '600'
-              }}>{t("g_c3c153") || t("g_c3c153") || t("g_c3c153") || t("g_c3c153") || t("g_c3c153") || "\uC218\uC5C5 \uC885\uB958"}</h4>
+              }}>{t("g_c3c153") || "\uC218\uC5C5 \uC885\uB958"}</h4>
                                 <span style={{
                 padding: '4px 10px',
                 borderRadius: '12px',
@@ -411,11 +411,11 @@ const SettingsModal = ({
                 fontWeight: '600',
                 background: 'rgba(0,206,201,0.2)',
                 color: '#00cec9'
-              }}>{classTypes.length}{t("g_1f31b2") || t("g_1f31b2") || t("g_1f31b2") || t("g_1f31b2") || t("g_1f31b2") || "\uAC1C"}</span>
+              }}>{classTypes.length}{t("g_1f31b2") || "\uAC1C"}</span>
                             </div>
                         </div>
                         <div style={inputRowStyle}>
-                            <input type="text" value={newClassType} onChange={e => setNewClassType(e.target.value)} placeholder={t("g_f40514") || t("g_f40514") || t("g_f40514") || t("g_f40514") || t("g_f40514") || "\uC218\uC5C5 \uC885\uB958 \uC785\uB825"} style={{
+                            <input type="text" value={newClassType} onChange={e => setNewClassType(e.target.value)} placeholder={t("g_f40514") || "\uC218\uC5C5 \uC885\uB958 \uC785\uB825"} style={{
               ...improvedInputStyle,
               flex: 1
             }} onKeyDown={e => e.key === 'Enter' && newClassType.trim() && document.getElementById('add-classtype-btn')?.click()} />
@@ -428,14 +428,14 @@ const SettingsModal = ({
                   setNewClassType('');
                 } catch (e) {
                   console.error('Failed to add class type:', e);
-                  alert(t("g_bc7734") || t("g_bc7734") || t("g_bc7734") || t("g_bc7734") || t("g_bc7734") || "\uC218\uC5C5 \uC885\uB958 \uCD94\uAC00 \uC2E4\uD328");
+                  alert(t("g_bc7734") || "\uC218\uC5C5 \uC885\uB958 \uCD94\uAC00 \uC2E4\uD328");
                 }
               }
             }} style={{
               ...improvedActionBtnStyle,
               background: '#00cec9'
             }}>
-                                <Plus size={18} weight="bold" />{t("g_ebe4aa") || t("g_ebe4aa") || t("g_ebe4aa") || t("g_ebe4aa") || t("g_ebe4aa") || "\uCD94\uAC00"}</button>
+                                <Plus size={18} weight="bold" />{t("g_ebe4aa") || "\uCD94\uAC00"}</button>
                         </div>
                         <div style={tagContainerStyle}>
                             {classTypes.map((ct, idx) => <div key={ct} style={getTagStyle('classType', `ct-${idx}`)} onMouseEnter={() => setHoveredTag(`ct-${idx}`)} onMouseLeave={() => setHoveredTag(null)}>
@@ -450,7 +450,7 @@ const SettingsModal = ({
                     setClassTypes(updated);
                   } catch (e) {
                     console.error('Failed to delete class type:', e);
-                    alert(t("g_c28e68") || t("g_c28e68") || t("g_c28e68") || t("g_c28e68") || t("g_c28e68") || "\uC218\uC5C5 \uC885\uB958 \uC0AD\uC81C \uC2E4\uD328");
+                    alert(t("g_c28e68") || "\uC218\uC5C5 \uC885\uB958 \uC0AD\uC81C \uC2E4\uD328");
                   }
                 }
               }} style={deleteIconBtnStyle}>
@@ -475,7 +475,7 @@ const SettingsModal = ({
                 margin: 0,
                 color: '#9b59b6',
                 fontWeight: '600'
-              }}>{t("g_7fc76d") || t("g_7fc76d") || t("g_7fc76d") || t("g_7fc76d") || t("g_7fc76d") || "\uC218\uC5C5 \uB808\uBCA8"}</h4>
+              }}>{t("g_7fc76d") || "\uC218\uC5C5 \uB808\uBCA8"}</h4>
                                 <span style={{
                 padding: '4px 10px',
                 borderRadius: '12px',
@@ -483,15 +483,15 @@ const SettingsModal = ({
                 fontWeight: '600',
                 background: 'rgba(155,89,182,0.2)',
                 color: '#9b59b6'
-              }}>{classLevels?.length || 0}{t("g_1f31b2") || t("g_1f31b2") || t("g_1f31b2") || t("g_1f31b2") || t("g_1f31b2") || "\uAC1C"}</span>
+              }}>{classLevels?.length || 0}{t("g_1f31b2") || "\uAC1C"}</span>
                             </div>
                             <span style={{
               fontSize: '0.8rem',
               color: 'var(--text-secondary)'
-            }}>{t("g_bba7f6") || t("g_bba7f6") || t("g_bba7f6") || t("g_bba7f6") || t("g_bba7f6") || "\uB808\uBCA8\uC774 \uC788\uB294 \uC218\uC5C5\uC6A9"}</span>
+            }}>{t("g_bba7f6") || "\uB808\uBCA8\uC774 \uC788\uB294 \uC218\uC5C5\uC6A9"}</span>
                         </div>
                             <div style={inputRowStyle}>
-                                <input type="text" value={newClassLevel} onChange={e => setNewClassLevel(e.target.value)} placeholder={t("g_b38547") || t("g_b38547") || t("g_b38547") || t("g_b38547") || t("g_b38547") || "\uB808\uBCA8 \uC785\uB825 (\uC608: 0, 0.5, 1)"} style={{
+                                <input type="text" value={newClassLevel} onChange={e => setNewClassLevel(e.target.value)} placeholder={t("g_b38547") || "\uB808\uBCA8 \uC785\uB825 (\uC608: 0, 0.5, 1)"} style={{
               ...improvedInputStyle,
               flex: 1
             }} onKeyDown={e => e.key === 'Enter' && newClassLevel.trim() && document.getElementById('add-level-btn')?.click()} />
@@ -499,7 +499,7 @@ const SettingsModal = ({
               const val = newClassLevel.trim();
               if (val) {
                 if (classLevels?.includes(val)) {
-                  alert(t("g_f5fbc9") || t("g_f5fbc9") || t("g_f5fbc9") || t("g_f5fbc9") || t("g_f5fbc9") || "\uC774\uBBF8 \uC874\uC7AC\uD558\uB294 \uB808\uBCA8\uC785\uB2C8\uB2E4.");
+                  alert(t("g_f5fbc9") || "\uC774\uBBF8 \uC874\uC7AC\uD558\uB294 \uB808\uBCA8\uC785\uB2C8\uB2E4.");
                   return;
                 }
                 try {
@@ -509,7 +509,7 @@ const SettingsModal = ({
                   setNewClassLevel('');
                 } catch (e) {
                   console.error('Failed to add class level:', e);
-                  alert(t("g_1e2700") || t("g_1e2700") || t("g_1e2700") || t("g_1e2700") || t("g_1e2700") || "\uC218\uC5C5 \uB808\uBCA8 \uCD94\uAC00 \uC2E4\uD328");
+                  alert(t("g_1e2700") || "\uC218\uC5C5 \uB808\uBCA8 \uCD94\uAC00 \uC2E4\uD328");
                 }
               }
             }} style={{
@@ -517,7 +517,7 @@ const SettingsModal = ({
               background: '#9b59b6',
               color: 'white'
             }}>
-                                    <Plus size={18} weight="bold" />{t("g_ebe4aa") || t("g_ebe4aa") || t("g_ebe4aa") || t("g_ebe4aa") || t("g_ebe4aa") || "\uCD94\uAC00"}</button>
+                                    <Plus size={18} weight="bold" />{t("g_ebe4aa") || "\uCD94\uAC00"}</button>
                             </div>
                         <div style={tagContainerStyle}>
                             {classLevels?.map((level, idx) => <div key={level} style={getTagStyle('level', `lv-${idx}`)} onMouseEnter={() => setHoveredTag(`lv-${idx}`)} onMouseLeave={() => setHoveredTag(null)}>
@@ -532,7 +532,7 @@ const SettingsModal = ({
                     setClassLevels(updated);
                   } catch (e) {
                     console.error('Failed to delete class level:', e);
-                    alert(t("g_ad28ef") || t("g_ad28ef") || t("g_ad28ef") || t("g_ad28ef") || t("g_ad28ef") || "\uC218\uC5C5 \uB808\uBCA8 \uC0AD\uC81C \uC2E4\uD328");
+                    alert(t("g_ad28ef") || "\uC218\uC5C5 \uB808\uBCA8 \uC0AD\uC81C \uC2E4\uD328");
                   }
                 }
               }} style={deleteIconBtnStyle}>

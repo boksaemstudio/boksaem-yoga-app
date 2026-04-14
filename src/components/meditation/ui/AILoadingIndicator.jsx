@@ -2,7 +2,13 @@ import { useLanguageStore } from '../../../stores/useLanguageStore';
 import { useState, useEffect } from 'react';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 import { Brain } from '../../../components/CommonIcons';
-const AI_LOADING_MESSAGES = [t("g_68da3c") || "\uB9C8\uC74C\uC744 \uC5F0\uACB0\uD558\uACE0 \uC788\uC5B4\uC694...", t("g_6f2ccd") || "\uAE4A\uC774 \uBD84\uC11D \uC911\uC785\uB2C8\uB2E4...", t("g_5c80ae") || "\uC624\uB298\uC758 \uB2F9\uC2E0\uC744 \uC774\uD574\uD558\uACE0 \uC788\uC5B4\uC694...", t("g_641da3") || "\uD638\uD761\uC5D0 \uC9D1\uC911\uD574 \uBCF4\uC138\uC694...", t("g_c80a0c") || "\uC7A0\uC2DC, \uACE0\uC694\uD568 \uC18D\uC5D0 \uBA38\uBB3C\uB7EC\uC694..."];
+const AI_LOADING_MESSAGES = [
+  { key: "g_68da3c", fallback: "\uB9C8\uC74C\uC744 \uC5F0\uACB0\uD558\uACE0 \uC788\uC5B4\uC694..." },
+  { key: "g_6f2ccd", fallback: "\uAE4A\uC774 \uBD84\uC11D \uC911\uC785\uB2C8\uB2E4..." },
+  { key: "g_5c80ae", fallback: "\uC624\uB298\uC758 \uB2F9\uC2E0\uC744 \uC774\uD574\uD558\uACE0 \uC788\uC5B4\uC694..." },
+  { key: "g_641da3", fallback: "\uD638\uD761\uC5D0 \uC9D1\uC911\uD574 \uBCF4\uC138\uC694..." },
+  { key: "g_c80a0c", fallback: "\uC7A0\uC2DC, \uACE0\uC694\uD568 \uC18D\uC5D0 \uBA38\uBB3C\uB7EC\uC694..." }
+];
 export const AILoadingIndicator = ({
   compact = false,
   message = null
@@ -19,7 +25,8 @@ export const AILoadingIndicator = ({
     }, 2500);
     return () => clearInterval(interval);
   }, [message]);
-  const displayMessage = message || AI_LOADING_MESSAGES[msgIndex];
+  const currentMsg = AI_LOADING_MESSAGES[msgIndex];
+  const displayMessage = message || (t(currentMsg.key) || currentMsg.fallback);
   if (compact) {
     return <div style={{
       display: 'flex',

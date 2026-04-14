@@ -141,7 +141,7 @@ const HomeYogaSection = ({
           padding: '10px',
           textAlign: 'center'
         }}>
-                        🧘 {localT('aiRecommendLoading') || t("g_f33ee1") || t("g_f33ee1") || t("g_f33ee1") || "AI \uCD94\uCC9C \uB85C\uB529 \uC911..."}
+                        🧘 {localT('aiRecommendLoading') || t("g_f33ee1") || "AI \uCD94\uCC9C \uB85C\uB529 \uC911..."}
                     </div>
                 </div>
             </div>;
@@ -155,7 +155,7 @@ const HomeYogaSection = ({
     icon: '🧬'
   });
   if (weatherInfo.weather) {
-    const weatherEmoji = weatherInfo.weather.includes(t("g_f228b5") || t("g_f228b5") || t("g_f228b5") || "\uD750\uB9BC") || weatherInfo.weather.includes('cloud') ? '☁️' : weatherInfo.weather.includes(t("g_7120b7") || t("g_7120b7") || t("g_7120b7") || "\uBE44") || weatherInfo.weather.includes('rain') ? '🌧️' : weatherInfo.weather.includes(t("g_0726db") || t("g_0726db") || t("g_0726db") || "\uB208") || weatherInfo.weather.includes('snow') ? '❄️' : '☀️';
+    const weatherEmoji = weatherInfo.weather.includes(t("g_f228b5") || "\uD750\uB9BC") || weatherInfo.weather.includes('cloud') ? '☁️' : weatherInfo.weather.includes(t("g_7120b7") || "\uBE44") || weatherInfo.weather.includes('rain') ? '🌧️' : weatherInfo.weather.includes(t("g_0726db") || "\uB208") || weatherInfo.weather.includes('snow') ? '❄️' : '☀️';
     const tempStr = weatherInfo.temp ? `${Math.round(weatherInfo.temp)}°` : '';
     contextBadges.push({
       label: `${weatherEmoji} ${tempStr}`,
@@ -193,7 +193,7 @@ const HomeYogaSection = ({
           alignItems: 'center',
           gap: '6px'
         }}>
-                        🧘 {t('homeYogaTitle') || t("g_507b55") || t("g_507b55") || t("g_507b55") || "\uC624\uB298\uC758 3\uBD84 \uD648\uD2B8"}
+                        🧘 {t('homeYogaTitle') || t("g_507b55") || "\uC624\uB298\uC758 3\uBD84 \uD648\uD2B8"}
                     </h3>
                     {/* Context badges */}
                     <div style={{

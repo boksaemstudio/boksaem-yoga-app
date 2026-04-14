@@ -110,7 +110,7 @@ const InstructorHome = ({
     setPushMessage('');
     try {
       if (!('Notification' in window)) {
-        setPushMessage((t("g_2d9077") || t("g_2d9077") || t("g_2d9077") || "\u274C \uC774 \uBE0C\uB77C\uC6B0\uC800\uB294 \uC54C\uB9BC\uC744 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. ") + (deviceOS === 'ios' ? t("g_be69b5") || t("g_be69b5") || t("g_be69b5") || "\uC544\uC774\uD3F0\uC740 '\uD648 \uD654\uBA74\uC5D0 \uCD94\uAC00'\uB97C \uD1B5\uD574 \uC571\uC744 \uC124\uCE58\uD574\uC57C \uC54C\uB9BC \uC124\uC815\uC774 \uAC00\uB2A5\uD569\uB2C8\uB2E4." : t("g_759086") || t("g_759086") || t("g_759086") || "\uD06C\uB86C \uB4F1 \uCD5C\uC2E0 \uBE0C\uB77C\uC6B0\uC800\uB97C \uC0AC\uC6A9\uD574 \uC8FC\uC138\uC694."));
+        setPushMessage((t("g_2d9077") || "\u274C \uC774 \uBE0C\uB77C\uC6B0\uC800\uB294 \uC54C\uB9BC\uC744 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. ") + (deviceOS === 'ios' ? t("g_be69b5") || "\uC544\uC774\uD3F0\uC740 '\uD648 \uD654\uBA74\uC5D0 \uCD94\uAC00'\uB97C \uD1B5\uD574 \uC571\uC744 \uC124\uCE58\uD574\uC57C \uC54C\uB9BC \uC124\uC815\uC774 \uAC00\uB2A5\uD569\uB2C8\uB2E4." : t("g_759086") || "\uD06C\uB86C \uB4F1 \uCD5C\uC2E0 \uBE0C\uB77C\uC6B0\uC800\uB97C \uC0AC\uC6A9\uD574 \uC8FC\uC138\uC694."));
         return;
       }
       const permission = await window.Notification.requestPermission();
@@ -124,23 +124,23 @@ const InstructorHome = ({
         if (token) {
           await storageService.saveInstructorToken(token, instructorName);
           setPushEnabled(true);
-          setPushMessage(t("g_7a9efe") || t("g_7a9efe") || t("g_7a9efe") || "\u2705 \uC54C\uB9BC\uC774 \uD65C\uC131\uD654\uB418\uC5C8\uC2B5\uB2C8\uB2E4!");
+          setPushMessage(t("g_7a9efe") || "\u2705 \uC54C\uB9BC\uC774 \uD65C\uC131\uD654\uB418\uC5C8\uC2B5\uB2C8\uB2E4!");
           console.log('[InstructorHome] ✅ Push enabled for:', instructorName, 'token:', token.substring(0, 20) + '...');
         } else {
-          setPushMessage(t("g_9f214f") || t("g_9f214f") || t("g_9f214f") || "\u274C \uD1A0\uD070\uC744 \uAC00\uC838\uC62C \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.");
+          setPushMessage(t("g_9f214f") || "\u274C \uD1A0\uD070\uC744 \uAC00\uC838\uC62C \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.");
         }
       } else if (permission === 'denied') {
-        setPushMessage(t("g_5fdb6b") || t("g_5fdb6b") || t("g_5fdb6b") || "\u274C \uC54C\uB9BC\uC774 \uCC28\uB2E8\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uBE0C\uB77C\uC6B0\uC800 \uC124\uC815\uC5D0\uC11C \uD5C8\uC6A9\uD574\uC8FC\uC138\uC694.");
+        setPushMessage(t("g_5fdb6b") || "\u274C \uC54C\uB9BC\uC774 \uCC28\uB2E8\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uBE0C\uB77C\uC6B0\uC800 \uC124\uC815\uC5D0\uC11C \uD5C8\uC6A9\uD574\uC8FC\uC138\uC694.");
       }
     } catch (e) {
       console.error('Push setup failed:', e);
-      setPushMessage((t("g_c59205") || t("g_c59205") || t("g_c59205") || "\u274C \uC54C\uB9BC \uC124\uC815 \uC2E4\uD328: ") + e.message);
+      setPushMessage((t("g_c59205") || "\u274C \uC54C\uB9BC \uC124\uC815 \uC2E4\uD328: ") + e.message);
     } finally {
       setPushLoading(false);
     }
   };
   const handleDisablePush = () => {
-    setPushMessage(t("g_69531a") || t("g_69531a") || t("g_69531a") || "\u2139\uFE0F \uBE0C\uB77C\uC6B0\uC800 \uC124\uC815\uC5D0\uC11C \uC54C\uB9BC\uC744 \uB04C \uC218 \uC788\uC2B5\uB2C8\uB2E4.\n\uC0AC\uC774\uD2B8 \uC124\uC815 > \uC54C\uB9BC > \uCC28\uB2E8");
+    setPushMessage(t("g_69531a") || "\u2139\uFE0F \uBE0C\uB77C\uC6B0\uC800 \uC124\uC815\uC5D0\uC11C \uC54C\uB9BC\uC744 \uB04C \uC218 \uC788\uC2B5\uB2C8\uB2E4.\n\uC0AC\uC774\uD2B8 \uC124\uC815 > \uC54C\uB9BC > \uCC28\uB2E8");
   };
   const handleInstallPWA = async () => {
     if (deferredPrompt) {
@@ -159,11 +159,11 @@ const InstructorHome = ({
     } else {
       // Manual Guide
       if (deviceOS === 'ios') {
-        setPushMessage(t("g_f8cdf6") || t("g_f8cdf6") || t("g_f8cdf6") || "\u2139\uFE0F \uC544\uC774\uD3F0: Safari \uD558\uB2E8 \uACF5\uC720(\u2191) \uD074\uB9AD > \"\uD648 \uD654\uBA74\uC5D0 \uCD94\uAC00\"");
+        setPushMessage(t("g_f8cdf6") || "\u2139\uFE0F \uC544\uC774\uD3F0: Safari \uD558\uB2E8 \uACF5\uC720(\u2191) \uD074\uB9AD > \"\uD648 \uD654\uBA74\uC5D0 \uCD94\uAC00\"");
       } else if (deviceOS === 'android') {
-        setPushMessage(t("g_73c178") || t("g_73c178") || t("g_73c178") || "\u2139\uFE0F \uC548\uB4DC\uB85C\uC774\uB4DC: \uBE0C\uB77C\uC6B0\uC800 \uBA54\uB274(\u22EE) \uD074\uB9AD > \"\uC571 \uC124\uCE58\" \uB610\uB294 \"\uD648 \uD654\uBA74\uC5D0 \uCD94\uAC00\"");
+        setPushMessage(t("g_73c178") || "\u2139\uFE0F \uC548\uB4DC\uB85C\uC774\uB4DC: \uBE0C\uB77C\uC6B0\uC800 \uBA54\uB274(\u22EE) \uD074\uB9AD > \"\uC571 \uC124\uCE58\" \uB610\uB294 \"\uD648 \uD654\uBA74\uC5D0 \uCD94\uAC00\"");
       } else {
-        setPushMessage(t("g_f8b7a8") || t("g_f8b7a8") || t("g_f8b7a8") || "\u2139\uFE0F \uBE0C\uB77C\uC6B0\uC800 \uBA54\uB274\uC5D0\uC11C \"\uC571 \uC124\uCE58\"\uB97C \uCC3E\uC544\uC8FC\uC138\uC694.");
+        setPushMessage(t("g_f8b7a8") || "\u2139\uFE0F \uBE0C\uB77C\uC6B0\uC800 \uBA54\uB274\uC5D0\uC11C \"\uC571 \uC124\uCE58\"\uB97C \uCC3E\uC544\uC8FC\uC138\uC694.");
       }
     }
   };
@@ -178,7 +178,7 @@ const InstructorHome = ({
     return acc;
   }, {});
   const renderAttendanceList = (list, title, color, branchId) => {
-    const t = useLanguageStore(s => s.t);
+
     const branchClasses = instructorClasses.filter(c => c.branchId === branchId);
 
     // Hide only if both attendance AND classes are empty
@@ -189,15 +189,15 @@ const InstructorHome = ({
       const start = h * 60 + m;
       const end = start + duration;
       if (currentMinutes < start) return {
-        label: t("g_72cd53") || t("g_72cd53") || t("g_72cd53") || "\uC608\uC815",
+        label: t("g_72cd53") || "\uC608\uC815",
         color: '#FFD93D'
       };
       if (currentMinutes >= start && currentMinutes < end) return {
-        label: t("g_df4a7e") || t("g_df4a7e") || t("g_df4a7e") || "\uC9C4\uD589 \uC911",
+        label: t("g_df4a7e") || "\uC9C4\uD589 \uC911",
         color: '#4CAF50'
       };
       return {
-        label: t("g_36b7d7") || t("g_36b7d7") || t("g_36b7d7") || "\uC885\uB8CC",
+        label: t("g_36b7d7") || "\uC885\uB8CC",
         color: 'gray'
       };
     };
@@ -233,7 +233,7 @@ const InstructorHome = ({
           opacity: 0.6,
           fontSize: '0.8rem',
           fontWeight: 'normal'
-        }}>{t("g_97dfc6") || t("g_97dfc6") || t("g_97dfc6") || "\uCD1D"}{list.length}{t("g_46b3c1") || t("g_46b3c1") || t("g_46b3c1") || "\uBA85 \uCD9C\uC11D"}</span>
+        }}>{t("g_97dfc6") || "\uCD1D"}{list.length}{t("g_46b3c1") || "\uBA85 \uCD9C\uC11D"}</span>
                 </h4>
 
                 {/* 오늘 수업 목록 */}
@@ -339,7 +339,7 @@ const InstructorHome = ({
                   padding: '1px 6px',
                   borderRadius: '4px',
                   fontWeight: 'bold'
-                }}>{t("g_5a601c") || t("g_5a601c") || t("g_5a601c") || "\uC2E0\uADDC"}</span>;
+                }}>{t("g_5a601c") || "\uC2E0\uADDC"}</span>;
                 return null;
               })()}
                                         {record.facialMatched && <span style={{
@@ -354,7 +354,7 @@ const InstructorHome = ({
                 gap: '3px',
                 border: '1px solid rgba(59, 130, 246, 0.3)'
               }}>
-                                                <UserFocus size={10} weight="fill" />{t("g_ae8632") || t("g_ae8632") || t("g_ae8632") || "\uC548\uBA74\uC77C\uCE58"}</span>}
+                                                <UserFocus size={10} weight="fill" />{t("g_ae8632") || "\uC548\uBA74\uC77C\uCE58"}</span>}
                                         {/* 안면인식 등록 상태 뱃지 */}
                                         {(() => {
                 const memberData = record.memberId ? memberService.getMemberById(record.memberId) : null;
@@ -366,11 +366,11 @@ const InstructorHome = ({
                   setDeletingFaceMemberId(record.memberId);
                   memberService.deleteFaceDescriptor(record.memberId).then(result => {
                     if (result.success) {
-                      alert(t("g_c801e1") || t("g_c801e1") || t("g_c801e1") || "\uC548\uBA74 \uC778\uC2DD \uB370\uC774\uD130\uAC00 \uC0AD\uC81C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+                      alert(t("g_c801e1") || "\uC548\uBA74 \uC778\uC2DD \uB370\uC774\uD130\uAC00 \uC0AD\uC81C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
                     } else {
-                      alert((t("g_51acf1") || t("g_51acf1") || t("g_51acf1") || "\uC0AD\uC81C \uC2E4\uD328: ") + (result.error || t("g_053d5f") || t("g_053d5f") || t("g_053d5f") || "\uC54C \uC218 \uC5C6\uB294 \uC624\uB958"));
+                      alert((t("g_51acf1") || "\uC0AD\uC81C \uC2E4\uD328: ") + (result.error || t("g_053d5f") || "\uC54C \uC218 \uC5C6\uB294 \uC624\uB958"));
                     }
-                  }).catch(() => alert(t("g_54e78b") || t("g_54e78b") || t("g_54e78b") || "\uC0AD\uC81C \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.")).finally(() => setDeletingFaceMemberId(null));
+                  }).catch(() => alert(t("g_54e78b") || "\uC0AD\uC81C \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.")).finally(() => setDeletingFaceMemberId(null));
                 }} style={{
                   fontSize: '0.65rem',
                   background: 'rgba(99, 102, 241, 0.15)',
@@ -384,7 +384,7 @@ const InstructorHome = ({
                   border: '1px solid rgba(99, 102, 241, 0.3)',
                   cursor: 'pointer',
                   opacity: deletingFaceMemberId === record.memberId ? 0.5 : 1
-                }} title={t("g_899a75") || t("g_899a75") || t("g_899a75") || "\uD074\uB9AD\uD558\uC5EC \uC548\uBA74 \uB370\uC774\uD130 \uC0AD\uC81C"}>{t("g_b6f5d5") || t("g_b6f5d5") || t("g_b6f5d5") || "\uD83E\uDDE0 \uC548\uBA74\uB4F1\uB85D \u2715"}</span> : null;
+                }} title={t("g_899a75") || "\uD074\uB9AD\uD558\uC5EC \uC548\uBA74 \uB370\uC774\uD130 \uC0AD\uC81C"}>{t("g_b6f5d5") || "\uD83E\uDDE0 \uC548\uBA74\uB4F1\uB85D \u2715"}</span> : null;
               })()}
                                     </div>
                                     <div style={{
@@ -423,7 +423,7 @@ const InstructorHome = ({
         textAlign: 'center',
         border: '1px dashed rgba(255,255,255,0.1)',
         borderRadius: '6px'
-      }}>{t("g_240ef3") || t("g_240ef3") || t("g_240ef3") || "\uCD9C\uC11D \uB370\uC774\uD130\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4"}</div>}
+      }}>{t("g_240ef3") || "\uCD9C\uC11D \uB370\uC774\uD130\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4"}</div>}
             </div>;
   };
   return <div style={{
@@ -446,18 +446,18 @@ const InstructorHome = ({
                     <h3 style={{
           margin: 0,
           fontSize: '1rem'
-        }}>{t("g_904625") || t("g_904625") || t("g_904625") || "\uD83D\uDCCB \uC624\uB298 \uB098\uC758 \uC218\uC5C5 \uCD9C\uC11D \uD604\uD669"}</h3>
+        }}>{t("g_904625") || "\uD83D\uDCCB \uC624\uB298 \uB098\uC758 \uC218\uC5C5 \uCD9C\uC11D \uD604\uD669"}</h3>
                     <span style={{
           fontSize: '0.8rem',
           color: 'var(--text-secondary)'
-        }}>{todayStr} ({attendance.length}{t("g_df355c") || t("g_df355c") || t("g_df355c") || "\uBA85)"}</span>
+        }}>{todayStr} ({attendance.length}{t("g_df355c") || "\uBA85)"}</span>
                 </div>
                 
                 {attendanceLoading ? <div style={{
         textAlign: 'center',
         color: 'var(--text-secondary)',
         padding: '20px'
-      }}>{t("g_06057f") || t("g_06057f") || t("g_06057f") || "\uB85C\uB529 \uC911..."}</div> : <>
+      }}>{t("g_06057f") || "\uB85C\uB529 \uC911..."}</div> : <>
                         {attendance.length === 0 && instructorClasses.length === 0 ? <div style={{
           textAlign: 'center',
           padding: '40px 20px',
@@ -476,12 +476,12 @@ const InstructorHome = ({
             fontWeight: 'bold',
             color: 'white',
             marginBottom: '4px'
-          }}>{t("g_c7ecc2") || t("g_c7ecc2") || t("g_c7ecc2") || "\uC624\uB298\uC740 \uC218\uC5C5 \uC77C\uC815\uC774 \uC5C6\uC2B5\uB2C8\uB2E4"}</div>
+          }}>{t("g_c7ecc2") || "\uC624\uB298\uC740 \uC218\uC5C5 \uC77C\uC815\uC774 \uC5C6\uC2B5\uB2C8\uB2E4"}</div>
                                 <div style={{
             fontSize: '0.85rem',
             opacity: 0.7
-          }}>{t("g_922fd2") || t("g_922fd2") || t("g_922fd2") || "\uD3B8\uC548\uD55C \uD734\uC2DD\uACFC \uCDA9\uC804\uC758 \uC2DC\uAC04 \uB418\uC2DC\uAE38 \uBC14\uB78D\uB2C8\uB2E4!"}</div>
-                            </div> : (config.BRANCHES || []).map(branch => renderAttendanceList(attendanceByBranch[branch.id] || [], config.BRANCHES?.length > 1 ? branch.name : t("g_3430e8") || t("g_3430e8") || t("g_3430e8") || "\uCD9C\uC11D \uD604\uD669", branch.color, branch.id))}
+          }}>{t("g_922fd2") || "\uD3B8\uC548\uD55C \uD734\uC2DD\uACFC \uCDA9\uC804\uC758 \uC2DC\uAC04 \uB418\uC2DC\uAE38 \uBC14\uB78D\uB2C8\uB2E4!"}</div>
+                            </div> : (config.BRANCHES || []).map(branch => renderAttendanceList(attendanceByBranch[branch.id] || [], config.BRANCHES?.length > 1 ? branch.name : t("g_3430e8") || "\uCD9C\uC11D \uD604\uD669", branch.color, branch.id))}
                     </>}
             </div>
 
@@ -505,12 +505,12 @@ const InstructorHome = ({
                         <h3 style={{
             margin: 0,
             fontSize: '1rem'
-          }}>{t("g_03bd79") || t("g_03bd79") || t("g_03bd79") || "\uB098\uC758 \uC218\uC5C5 \uCD9C\uC11D\uD68C\uC6D0 \uC54C\uB9BC"}</h3>
+          }}>{t("g_03bd79") || "\uB098\uC758 \uC218\uC5C5 \uCD9C\uC11D\uD68C\uC6D0 \uC54C\uB9BC"}</h3>
                         <div style={{
             margin: '2px 0 0',
             fontSize: '0.8rem',
             color: 'var(--text-secondary)'
-          }}>{t("g_0a7c39") || t("g_0a7c39") || t("g_0a7c39") || "\uD68C\uC6D0 \uCD9C\uC11D \uC2DC \uC54C\uB9BC \uBC1B\uAE30"}</div>
+          }}>{t("g_0a7c39") || "\uD68C\uC6D0 \uCD9C\uC11D \uC2DC \uC54C\uB9BC \uBC1B\uAE30"}</div>
                     </div>
                     {/* Toggle Switch */}
                     <div onClick={() => pushEnabled ? handleDisablePush() : handleEnablePush()} style={{
@@ -553,11 +553,11 @@ const InstructorHome = ({
           fontWeight: 'bold',
           fontSize: '1rem',
           marginBottom: '4px'
-        }}>{t("g_1cf93b") || t("g_1cf93b") || t("g_1cf93b") || "\uC54C\uB9BC \uC124\uC815\uC774 \uCF1C\uC838 \uC788\uC2B5\uB2C8\uB2E4"}</div>
+        }}>{t("g_1cf93b") || "\uC54C\uB9BC \uC124\uC815\uC774 \uCF1C\uC838 \uC788\uC2B5\uB2C8\uB2E4"}</div>
                         <div style={{
           color: 'var(--text-secondary)',
           fontSize: '0.8rem'
-        }}>{t("g_d1ef65") || t("g_d1ef65") || t("g_d1ef65") || "\uD1A0\uAE00\uC744 \uB20C\uB7EC \uC54C\uB9BC\uC744 \uB04C \uC218 \uC788\uC2B5\uB2C8\uB2E4."}</div>
+        }}>{t("g_d1ef65") || "\uD1A0\uAE00\uC744 \uB20C\uB7EC \uC54C\uB9BC\uC744 \uB04C \uC218 \uC788\uC2B5\uB2C8\uB2E4."}</div>
                     </div> : <button onClick={handleEnablePush} disabled={pushLoading} style={{
         width: '100%',
         padding: '14px',
@@ -583,7 +583,7 @@ const InstructorHome = ({
             borderTop: '2px solid var(--text-secondary)',
             borderRadius: '50%',
             animation: 'spin 1s linear infinite'
-          }} />{t("g_22f510") || t("g_22f510") || t("g_22f510") || "\uC124\uC815 \uC911... \uD31D\uC5C5\uC744 \uD655\uC778\uD574\uC8FC\uC138\uC694"}</> : t("g_94714a") || t("g_94714a") || t("g_94714a") || "\uD83D\uDD14 \uC54C\uB9BC \uAD8C\uD55C \uD5C8\uC6A9\uD558\uAE30"}
+          }} />{t("g_22f510") || "\uC124\uC815 \uC911... \uD31D\uC5C5\uC744 \uD655\uC778\uD574\uC8FC\uC138\uC694"}</> : t("g_94714a") || "\uD83D\uDD14 \uC54C\uB9BC \uAD8C\uD55C \uD5C8\uC6A9\uD558\uAE30"}
                     </button>}
                 
                 {pushMessage && <div style={{
@@ -646,13 +646,13 @@ const InstructorHome = ({
             margin: 0,
             fontSize: '1.05rem',
             color: 'white'
-          }}>{t("g_ef6889") || t("g_ef6889") || t("g_ef6889") || "\uD654\uBA74\uC5D0 \uC571 \uBCF4\uAD00\uD558\uAE30"}</h3>
+          }}>{t("g_ef6889") || "\uD654\uBA74\uC5D0 \uC571 \uBCF4\uAD00\uD558\uAE30"}</h3>
                             <div style={{
             margin: '4px 0 0',
             fontSize: '0.85rem',
             color: 'var(--text-secondary)'
           }}>
-                                {deviceOS === 'ios' ? t("g_2a915f") || t("g_2a915f") || t("g_2a915f") || "\uC0AC\uD30C\uB9AC(Safari)\uC5D0\uC11C \uD648 \uD654\uBA74\uC5D0 \uCD94\uAC00\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4." : t("g_97ccf6") || t("g_97ccf6") || t("g_97ccf6") || "\uD558\uB2E8\uC758 \uBC84\uD2BC\uC744 \uB204\uB974\uAC70\uB098 \uC124\uCE58 \uD31D\uC5C5\uC744 \uD655\uC778\uD558\uC138\uC694."}
+                                {deviceOS === 'ios' ? t("g_2a915f") || "\uC0AC\uD30C\uB9AC(Safari)\uC5D0\uC11C \uD648 \uD654\uBA74\uC5D0 \uCD94\uAC00\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4." : t("g_97ccf6") || "\uD558\uB2E8\uC758 \uBC84\uD2BC\uC744 \uB204\uB974\uAC70\uB098 \uC124\uCE58 \uD31D\uC5C5\uC744 \uD655\uC778\uD558\uC138\uC694."}
                             </div>
                         </div>
                     </div>
@@ -684,10 +684,10 @@ const InstructorHome = ({
           }}>1</span>
                                 <span style={{
             color: '#e0e0e0'
-          }}>{t("g_556228") || t("g_556228") || t("g_556228") || "\uD558\uB2E8"}<Share size={18} weight="bold" style={{
+          }}>{t("g_556228") || "\uD558\uB2E8"}<Share size={18} weight="bold" style={{
               verticalAlign: 'middle',
               margin: '0 2px'
-            }} /> <strong>{t("g_9e553a") || t("g_9e553a") || t("g_9e553a") || "\uACF5\uC720 \uBC84\uD2BC"}</strong>{t("g_3630e7") || t("g_3630e7") || t("g_3630e7") || "\uC744 \uD074\uB9AD\uD558\uC138\uC694."}</span>
+            }} /> <strong>{t("g_9e553a") || "\uACF5\uC720 \uBC84\uD2BC"}</strong>{t("g_3630e7") || "\uC744 \uD074\uB9AD\uD558\uC138\uC694."}</span>
                              </div>
                              <div style={{
           display: 'flex',
@@ -712,7 +712,7 @@ const InstructorHome = ({
           }}><PlusSquare size={18} weight="bold" style={{
               verticalAlign: 'middle',
               margin: '0 2px'
-            }} /> <strong>{t("g_e1557e") || t("g_e1557e") || t("g_e1557e") || "\uD648 \uD654\uBA74\uC5D0 \uCD94\uAC00"}</strong>{t("g_866e97") || t("g_866e97") || t("g_866e97") || "\uB97C \uC120\uD0DD\uD558\uC138\uC694."}</span>
+            }} /> <strong>{t("g_e1557e") || "\uD648 \uD654\uBA74\uC5D0 \uCD94\uAC00"}</strong>{t("g_866e97") || "\uB97C \uC120\uD0DD\uD558\uC138\uC694."}</span>
                              </div>
                         </div> : <button onClick={handleInstallPWA} style={{
         width: '100%',
@@ -732,7 +732,7 @@ const InstructorHome = ({
       }}>
                             <SignOut size={20} style={{
           transform: 'rotate(-90deg)'
-        }} />{t("g_7aad57") || t("g_7aad57") || t("g_7aad57") || "\uD3F0\uC5D0 \uC571 \uC124\uCE58\uD558\uAE30"}</button>}
+        }} />{t("g_7aad57") || "\uD3F0\uC5D0 \uC571 \uC124\uCE58\uD558\uAE30"}</button>}
                 </div>}
 
 

@@ -14,6 +14,7 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
   onClose,
   pricingConfig
 }) => {
+  const t = useLanguageStore(s => s.t);
   const [localMember, setLocalMember] = useState(initialMember);
   const member = localMember || initialMember;
 
@@ -171,7 +172,7 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
       if (isMounted) setAiAnalysis(a);
     }).catch(() => {
       if (isMounted) setAiAnalysis({
-        message: t("g_3ef6a5") || t("g_3ef6a5") || t("g_3ef6a5") || t("g_3ef6a5") || t("g_3ef6a5") || "\uB370\uC774\uD130 \uBD84\uC11D \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.",
+        message: t("g_3ef6a5") || "\uB370\uC774\uD130 \uBD84\uC11D \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.",
         isError: true
       });
     });
@@ -182,16 +183,16 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
 
   // ─── Field Labels ───
   const FIELD_LABELS = {
-    name: t("g_6eb5cd") || t("g_6eb5cd") || t("g_6eb5cd") || t("g_6eb5cd") || t("g_6eb5cd") || "\uC774\uB984",
-    phone: t("g_ba8df0") || t("g_ba8df0") || t("g_ba8df0") || t("g_ba8df0") || t("g_ba8df0") || "\uC804\uD654\uBC88\uD638",
-    membershipType: t("g_c4edbb") || t("g_c4edbb") || t("g_c4edbb") || t("g_c4edbb") || t("g_c4edbb") || "\uD68C\uC6D0\uAD8C \uAD6C\uBD84",
-    subject: t("g_af273f") || t("g_af273f") || t("g_af273f") || t("g_af273f") || t("g_af273f") || "\uC138\uBD80 \uC774\uC6A9\uAD8C",
-    regDate: t("g_252d4d") || t("g_252d4d") || t("g_252d4d") || t("g_252d4d") || t("g_252d4d") || "\uB4F1\uB85D\uC77C",
-    startDate: t("g_69faaa") || t("g_69faaa") || t("g_69faaa") || t("g_69faaa") || t("g_69faaa") || "\uC218\uAC15 \uC2DC\uC791\uC77C",
-    endDate: t("g_42003a") || t("g_42003a") || t("g_42003a") || t("g_42003a") || t("g_42003a") || "\uC885\uB8CC\uC77C",
-    credits: t("g_386745") || t("g_386745") || t("g_386745") || t("g_386745") || t("g_386745") || "\uC794\uC5EC \uD69F\uC218",
-    price: t("g_ada266") || t("g_ada266") || t("g_ada266") || t("g_ada266") || t("g_ada266") || "\uACB0\uC81C \uAE08\uC561",
-    notes: t("g_f3720a") || t("g_f3720a") || t("g_f3720a") || t("g_f3720a") || t("g_f3720a") || "\uBA54\uBAA8"
+    name: t("g_6eb5cd") || "\uC774\uB984",
+    phone: t("g_ba8df0") || "\uC804\uD654\uBC88\uD638",
+    membershipType: t("g_c4edbb") || "\uD68C\uC6D0\uAD8C \uAD6C\uBD84",
+    subject: t("g_af273f") || "\uC138\uBD80 \uC774\uC6A9\uAD8C",
+    regDate: t("g_252d4d") || "\uB4F1\uB85D\uC77C",
+    startDate: t("g_69faaa") || "\uC218\uAC15 \uC2DC\uC791\uC77C",
+    endDate: t("g_42003a") || "\uC885\uB8CC\uC77C",
+    credits: t("g_386745") || "\uC794\uC5EC \uD69F\uC218",
+    price: t("g_ada266") || "\uACB0\uC81C \uAE08\uC561",
+    notes: t("g_f3720a") || "\uBA54\uBAA8"
   };
   const getChangedFields = useCallback(() => {
     const changes = [];
@@ -222,14 +223,14 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
   const handlePreSave = useCallback(() => {
     const changes = getChangedFields();
     if (changes.length === 0) {
-      alert(t("g_ded1d4") || t("g_ded1d4") || t("g_ded1d4") || t("g_ded1d4") || t("g_ded1d4") || "\uBCC0\uACBD \uC0AC\uD56D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_ded1d4") || "\uBCC0\uACBD \uC0AC\uD56D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.");
       return;
     }
     const revenueRelatedKeys = ['startDate', 'endDate', 'credits'];
     const hasRevenueRelated = changes.some(c => revenueRelatedKeys.includes(c.key));
     if (changes.length === 1) {
       const change = changes[0];
-      const extra = hasRevenueRelated ? t("g_8cb3c0") || t("g_8cb3c0") || t("g_8cb3c0") || t("g_8cb3c0") || t("g_8cb3c0") || "\n\n\u203B \uB9E4\uCD9C \uAE30\uB85D\uC740 \uBCC4\uB3C4\uB85C \uAD00\uB9AC\uB418\uBBC0\uB85C \uC601\uD5A5\uBC1B\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4." : '';
+      const extra = hasRevenueRelated ? t("g_8cb3c0") || "\n\n\u203B \uB9E4\uCD9C \uAE30\uB85D\uC740 \uBCC4\uB3C4\uB85C \uAD00\uB9AC\uB418\uBBC0\uB85C \uC601\uD5A5\uBC1B\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4." : '';
       if (confirm(`${change.label}을(를) "${change.oldValue}"에서 "${change.newValue}"(으)로 변경하시겠습니까?${extra}`)) {
         handleFinalSave({
           [change.key]: editData[change.key]
@@ -260,7 +261,7 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
           }
         } catch {}
       }
-      alert(t("g_0c47ff") || t("g_0c47ff") || t("g_0c47ff") || t("g_0c47ff") || t("g_0c47ff") || "\uC800\uC7A5\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_0c47ff") || "\uC800\uC7A5\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
       setIsDirtyByUser(false);
       setShowChangeModal(false);
       onClose();
@@ -271,7 +272,7 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
   const handleSafeClose = useCallback(() => {
     const changes = getChangedFields();
     if (isDirtyByUser && changes.length > 0) {
-      if (!confirm(t("g_bb11d4") || t("g_bb11d4") || t("g_bb11d4") || t("g_bb11d4") || t("g_bb11d4") || "\uC800\uC7A5\uD558\uC9C0 \uC54A\uC740 \uBCC0\uACBD \uC0AC\uD56D\uC774 \uC788\uC2B5\uB2C8\uB2E4. \uBCC0\uACBD\uC744 \uCDE8\uC18C\uD558\uACE0 \uCC3D\uC744 \uB2EB\uC73C\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) return;
+      if (!confirm(t("g_bb11d4") || "\uC800\uC7A5\uD558\uC9C0 \uC54A\uC740 \uBCC0\uACBD \uC0AC\uD56D\uC774 \uC788\uC2B5\uB2C8\uB2E4. \uBCC0\uACBD\uC744 \uCDE8\uC18C\uD558\uACE0 \uCC3D\uC744 \uB2EB\uC73C\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) return;
     }
     onClose();
   }, [getChangedFields, isDirtyByUser, onClose]);
@@ -289,7 +290,7 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
         const [hh, mm] = timeStr.split(':');
         combinedDateStr = `${dateStr}T${hh}:${mm}:00+09:00`;
       }
-      const result = await storageService.addManualAttendance(member.id, combinedDateStr, branchId, className || t("g_5af740") || t("g_5af740") || t("g_5af740") || t("g_5af740") || t("g_5af740") || "\uC218\uB3D9 \uD655\uC778", instructorName || t("g_0cb522") || t("g_0cb522") || t("g_0cb522") || t("g_0cb522") || t("g_0cb522") || "\uAD00\uB9AC\uC790");
+      const result = await storageService.addManualAttendance(member.id, combinedDateStr, branchId, className || t("g_5af740") || "\uC218\uB3D9 \uD655\uC778", instructorName || t("g_0cb522") || "\uAD00\uB9AC\uC790");
       if (result.success) {
         if (member.startDate === 'TBD') {
           const startDateStr = dateStr;
@@ -328,13 +329,13 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
             }));
           } catch {}
         }
-        alert(t("g_85eb30") || t("g_85eb30") || t("g_85eb30") || t("g_85eb30") || t("g_85eb30") || "\uC218\uB3D9 \uCD9C\uC11D\uCC98\uB9AC\uAC00 \uC644\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+        alert(t("g_85eb30") || "\uC218\uB3D9 \uCD9C\uC11D\uCC98\uB9AC\uAC00 \uC644\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
       } else {
-        alert((t("g_b1b1d6") || t("g_b1b1d6") || t("g_b1b1d6") || t("g_b1b1d6") || t("g_b1b1d6") || "\uCD9C\uC11D \uCC98\uB9AC\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4: ") + (result.message || t("g_053d5f") || t("g_053d5f") || t("g_053d5f") || t("g_053d5f") || t("g_053d5f") || "\uC54C \uC218 \uC5C6\uB294 \uC624\uB958"));
+        alert((t("g_b1b1d6") || "\uCD9C\uC11D \uCC98\uB9AC\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4: ") + (result.message || t("g_053d5f") || "\uC54C \uC218 \uC5C6\uB294 \uC624\uB958"));
       }
     } catch (e) {
       console.error(e);
-      alert(t("g_7b4a71") || t("g_7b4a71") || t("g_7b4a71") || t("g_7b4a71") || t("g_7b4a71") || "\uCD9C\uC11D \uCC98\uB9AC\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_7b4a71") || "\uCD9C\uC11D \uCC98\uB9AC\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");
     } finally {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
@@ -344,7 +345,7 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
   // ─── Delete Attendance ───
   const handleDeleteAttendance = useCallback(async logId => {
     if (isSubmitting) return;
-    if (!confirm(t("g_afb8e4") || t("g_afb8e4") || t("g_afb8e4") || t("g_afb8e4") || t("g_afb8e4") || "\uC815\uB9D0 \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) return;
+    if (!confirm(t("g_afb8e4") || "\uC815\uB9D0 \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) return;
     isSubmittingRef.current = true;
     setIsSubmitting(true);
     try {
@@ -355,7 +356,7 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
           storageService.notifyListeners('members');
         }, 500);
       } else {
-        throw new Error(result.message || t("g_ab8524") || t("g_ab8524") || t("g_ab8524") || t("g_ab8524") || t("g_ab8524") || "\uC0AD\uC81C \uC2E4\uD328");
+        throw new Error(result.message || t("g_ab8524") || "\uC0AD\uC81C \uC2E4\uD328");
       }
     } catch (e) {
       console.error(e);

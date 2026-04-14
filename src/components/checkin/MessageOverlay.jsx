@@ -1,29 +1,54 @@
-import { memo } from 'react';
+import { memo, useState, useEffect, useCallback } from 'react';
 import SuccessDetails from './SuccessDetails';
 import { useLanguageStore } from '../../stores/useLanguageStore';
 
 /**
  * [ULTRA-MODULAR] MessageOverlay Component
- * Displays success/error messages and handles automatic closing.
+ * Displays success/error messages with countdown timer and auto-close.
  */
+const AUTO_CLOSE_SECONDS = 15; // 에러 모달 자동 닫힘 시간
+
 const MessageOverlay = memo(({
   message,
   onClose,
   aiExperience
 }) => {
   const t = useLanguageStore(s => s.t);
+  const [countdown, setCountdown] = useState(AUTO_CLOSE_SECONDS);
+
+  // Auto-close countdown for error messages
+  useEffect(() => {
+    if (!message || message.type === 'success') return;
+    setCountdown(AUTO_CLOSE_SECONDS);
+    const interval = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          onClose();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [message, onClose]);
+
   if (!message) return null;
+
+  const isError = message.type === 'error';
+  const isSuccess = message.type === 'success';
+
   return <div className="modal-overlay" style={{
     zIndex: 2500,
-    background: 'rgba(0,0,0,0.85)',
+    background: 'rgba(0,0,0,0.88)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backdropFilter: 'blur(8px)',
+    backdropFilter: 'blur(12px)',
     animation: 'fadeIn 0.3s ease-out',
-    cursor: 'pointer' // [UX] Whole overlay is clickable
+    cursor: 'pointer'
   }} onClick={onClose}>
-            <div className={`message-box ${message.type}`} style={{
+    <div className={`message-box ${message.type}`} style={{
       maxWidth: '900px',
       width: '92%',
       height: 'auto',
@@ -32,37 +57,74 @@ const MessageOverlay = memo(({
       flexDirection: 'column',
       padding: 'clamp(30px, 4vh, 60px)',
       borderRadius: '40px',
-      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+      boxShadow: isError
+        ? '0 25px 60px -12px rgba(255, 50, 50, 0.3), inset 0 1px 0 rgba(255,255,255,0.05)'
+        : '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
       position: 'relative',
       overflow: 'hidden',
-      border: message.type === 'error' ? '2px solid rgba(255, 107, 107, 0.4)' : '1px solid rgba(255,255,255,0.1)'
-    }} onClick={e => e.stopPropagation()} // Box 내부 클릭시 닫히지 않음 (버튼 사용 유도)
-    >
-                <div className="message-content" style={{
+      border: isError ? '2px solid rgba(255, 107, 107, 0.4)' : '1px solid rgba(255,255,255,0.1)'
+    }} onClick={e => e.stopPropagation()}>
+
+      {/* Countdown Progress Bar */}
+      {isError && <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '4px',
+        background: 'rgba(255,255,255,0.05)',
+        overflow: 'hidden',
+        borderRadius: '40px 40px 0 0'
+      }}>
+        <div style={{
+          height: '100%',
+          width: `${(countdown / AUTO_CLOSE_SECONDS) * 100}%`,
+          background: 'linear-gradient(90deg, #FF6B6B, #ff4444)',
+          transition: 'width 1s linear',
+          borderRadius: '4px'
+        }} />
+      </div>}
+
+      <div className="message-content" style={{
         textAlign: 'center'
       }}>
-                    <div className="message-text" style={{
-          fontSize: 'clamp(2.2rem, 6vh, 4rem)',
-          fontWeight: '900',
-          marginBottom: '20px',
-          letterSpacing: '-1.5px',
-          color: message.type === 'error' ? '#FF6B6B' : 'inherit'
+        {/* Error Icon */}
+        {isError && <div style={{
+          fontSize: 'clamp(3rem, 8vh, 5rem)',
+          marginBottom: '16px',
+          animation: 'bounceIn 0.5s ease-out'
         }}>
-                        {message.text}
-                    </div>
-                    
-                    {message.subText && <div className="message-subtext" style={{
-          marginBottom: '40px',
-          whiteSpace: 'pre-wrap',
-          lineHeight: '1.4',
-          fontSize: 'clamp(1.2rem, 3vh, 1.8rem)',
-          opacity: 0.9
-        }}>
-                            {message.subText}
-                        </div>}
+          {message.text?.includes('만료') || message.text?.includes('⏳') ? '⏳' :
+           message.text?.includes('시스템') || message.text?.includes('⚠') ? '⚠️' :
+           message.text?.includes('실패') || message.text?.includes('❌') ? '❌' : '😔'}
+        </div>}
 
-                    {/* [AI] Personalized Feedback */}
-                    {message.type === 'success' && aiExperience?.subMessage && <div className="ai-sub-message" style={{
+        {/* Title Text */}
+        <div className="message-text" style={{
+          fontSize: isError ? 'clamp(1.8rem, 5vh, 3rem)' : 'clamp(2.2rem, 6vh, 4rem)',
+          fontWeight: '900',
+          marginBottom: isError ? '16px' : '20px',
+          letterSpacing: '-1.5px',
+          color: isError ? '#FF6B6B' : 'inherit',
+          lineHeight: 1.2
+        }}>
+          {message.text}
+        </div>
+        
+        {/* Sub Text (Description) */}
+        {message.subText && <div className="message-subtext" style={{
+          marginBottom: '30px',
+          whiteSpace: 'pre-wrap',
+          lineHeight: '1.5',
+          fontSize: isError ? 'clamp(1rem, 2.5vh, 1.5rem)' : 'clamp(1.2rem, 3vh, 1.8rem)',
+          opacity: 0.85,
+          color: isError ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.9)'
+        }}>
+          {message.subText}
+        </div>}
+
+        {/* [AI] Personalized Feedback */}
+        {isSuccess && aiExperience?.subMessage && <div className="ai-sub-message" style={{
           marginTop: '10px',
           padding: '24px',
           background: 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.15), rgba(var(--primary-rgb), 0.05))',
@@ -76,13 +138,14 @@ const MessageOverlay = memo(({
           textAlign: 'left',
           boxShadow: 'inset 0 0 20px rgba(0,0,0,0.2)'
         }}>
-                            "{aiExperience.subMessage}"
-                        </div>}
+          "{aiExperience.subMessage}"
+        </div>}
 
-                    {/* [SUCCESS DETAILS] Grid for credits and days remaining */}
-                    {message.type === 'success' && <SuccessDetails member={message.member} onClose={onClose} />}
-                    
-                    {message.type !== 'success' && <button onClick={e => {
+        {/* [SUCCESS DETAILS] Grid for credits and days remaining */}
+        {isSuccess && <SuccessDetails member={message.member} onClose={onClose} />}
+        
+        {/* Close Button with Countdown */}
+        {!isSuccess && <button onClick={e => {
           e.stopPropagation();
           onClose();
         }} onTouchEnd={e => {
@@ -90,9 +153,13 @@ const MessageOverlay = memo(({
           e.stopPropagation();
           onClose();
         }} style={{
-          marginTop: '20px',
-          background: 'rgba(255,255,255,0.15)',
-          border: '2px solid rgba(255,255,255,0.25)',
+          marginTop: '24px',
+          background: isError
+            ? 'linear-gradient(145deg, rgba(255,107,107,0.2), rgba(255,60,60,0.1))'
+            : 'rgba(255,255,255,0.15)',
+          border: isError
+            ? '2px solid rgba(255,107,107,0.4)'
+            : '2px solid rgba(255,255,255,0.25)',
           color: 'white',
           padding: 'clamp(15px, 2.5vh, 25px) clamp(40px, 5vw, 100px)',
           borderRadius: '24px',
@@ -100,24 +167,43 @@ const MessageOverlay = memo(({
           fontWeight: 'bold',
           cursor: 'pointer',
           width: '100%',
-          // Jumbo Button
           transition: 'all 0.2s ease',
-          boxShadow: '0 8px 16px rgba(0,0,0,0.2)'
+          boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '12px'
         }}>
-                            {t('kiosk_overlay_close') || t("g_218e2a") || t("g_218e2a") || t("g_218e2a") || t("g_218e2a") || t("g_218e2a") || "\uB2EB\uAE30"}
-                        </button>}
+          {t('kiosk_overlay_close') || t("g_218e2a") || "닫기"}
+          {/* Countdown Badge */}
+          <span style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '36px',
+            height: '36px',
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.15)',
+            fontSize: '0.9rem',
+            fontWeight: '800',
+            fontFamily: 'var(--font-mono, monospace)',
+            opacity: 0.8
+          }}>
+            {countdown}
+          </span>
+        </button>}
 
-                    <div style={{
-          marginTop: '35px',
-          opacity: 0.6,
-          fontSize: '1.2rem',
+        <div style={{
+          marginTop: '28px',
+          opacity: 0.5,
+          fontSize: '1.1rem',
           fontWeight: 500
         }}>
-                        {t('kiosk_overlay_touch_to_return') || t("g_bbcb03") || t("g_bbcb03") || t("g_bbcb03") || t("g_bbcb03") || t("g_bbcb03") || "\uD654\uBA74\uC744 \uD130\uCE58\uD558\uBA74 \uCD9C\uC11D \uD654\uBA74\uC73C\uB85C \uB3CC\uC544\uAC11\uB2C8\uB2E4"}
-                    </div>
-                </div>
-            </div>
-        </div>;
+          {t('kiosk_overlay_touch_to_return') || t("g_bbcb03") || "화면을 터치하면 출석 화면으로 돌아갑니다"}
+        </div>
+      </div>
+    </div>
+  </div>;
 });
 MessageOverlay.displayName = 'MessageOverlay';
 export default MessageOverlay;

@@ -10,6 +10,7 @@ import { useMemo } from 'react';
  * @returns {Object} 통계 객체
  */
 export const useAttendanceStats = (attendanceLogs = [], memberId = null) => {
+  const t = useLanguageStore(s => s.t);
   const stats = useMemo(() => {
     if (!attendanceLogs || attendanceLogs.length === 0) {
       return {
@@ -31,7 +32,7 @@ export const useAttendanceStats = (attendanceLogs = [], memberId = null) => {
     // Count by class type
     const byClass = {};
     logs.forEach(log => {
-      const className = log.className || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || "\uC790\uC728\uC218\uB828";
+      const className = log.className || t("g_2b3da3") || "\uC790\uC728\uC218\uB828";
       byClass[className] = (byClass[className] || 0) + 1;
     });
 

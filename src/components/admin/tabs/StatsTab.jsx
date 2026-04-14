@@ -122,12 +122,12 @@ const StatsTab = ({
             fontSize: '0.9rem',
             fontWeight: 'bold',
             color: '#34D399'
-          }}>{summary.todayFacialMatchCount}{t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || "\uAC74"}</span>
+          }}>{summary.todayFacialMatchCount}{t("g_230561") || "\uAC74"}</span>
                             <span style={{
             fontSize: '0.75rem',
             opacity: 0.6,
             marginLeft: '6px'
-          }}>{t("g_becee3") || t("g_becee3") || t("g_becee3") || t("g_becee3") || t("g_becee3") || "(\uC804\uCCB4 \uCD9C\uC11D\uC758"}{summary.todayFacialRatio}%)</span>
+          }}>{t("g_becee3") || "(\uC804\uCCB4 \uCD9C\uC11D\uC758"}{summary.todayFacialRatio}%)</span>
                         </div>
                     </div>}
             </div>

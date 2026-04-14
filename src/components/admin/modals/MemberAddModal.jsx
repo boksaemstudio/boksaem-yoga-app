@@ -115,6 +115,11 @@ const MemberAddModal = ({
     let c = 0;
     let months = duration;
     let label = option.label;
+    let fallbackMonths = 1;
+    if (option.label) {
+      const match = option.label.match(/(\d+)개월/);
+      if (match) fallbackMonths = parseInt(match[1], 10);
+    }
 
     // Price Calculation with Cash/Transfer Price support
     // [FIX] 이체(transfer)도 현금과 동일한 가격 적용
@@ -123,15 +128,15 @@ const MemberAddModal = ({
       p = option.cashPrice;
       // [FIX] Preserve credits for cash payments if option defines it
       c = option.credits === 9999 ? 9999 : option.credits * duration;
-      months = duration * (option.months || 1);
+      months = duration * (option.months && option.months > 1 ? option.months : fallbackMonths);
     } else {
       if (option.type === 'ticket') {
         p = option.basePrice;
         c = option.credits;
-        months = option.months || 3;
+        months = option.months || fallbackMonths > 1 ? fallbackMonths : 3;
       } else {
         c = option.credits === 9999 ? 9999 : option.credits * duration;
-        months = duration * (option.months || 1);
+        months = duration * (option.months && option.months > 1 ? option.months : fallbackMonths);
         if (duration === 1) p = option.basePrice;else if (duration === 3) p = isCashLike && option.cashDiscount3 ? option.cashDiscount3 : option.discount3 || option.basePrice * 3;else if (duration === 6) p = isCashLike && option.cashDiscount6 ? option.cashDiscount6 : option.discount6 || option.basePrice * 6;else p = option.basePrice * duration;
       }
       if (isCashLike && duration >= 3 && p > 0 && !option.cashPrice && !option.cashDiscount3 && !option.cashDiscount6) {
@@ -153,7 +158,7 @@ const MemberAddModal = ({
     return {
       calculatedPrice: p,
       calculatedCredits: c,
-      calculatedEndDate: newMember.autoStart ? t("g_b8e060") || t("g_b8e060") || t("g_b8e060") || t("g_b8e060") || t("g_b8e060") || "\uCCAB \uCD9C\uC11D \uC2DC \uD655\uC815" : newMember.manualEndDate ? newMember.manualEndDate : realEnd,
+      calculatedEndDate: newMember.autoStart ? t("g_b8e060") || "\uCCAB \uCD9C\uC11D \uC2DC \uD655\uC815" : newMember.manualEndDate ? newMember.manualEndDate : realEnd,
       calculatedRealEndDate: newMember.manualEndDate ? newMember.manualEndDate : realEnd,
       calculatedProductName: `${label} ${duration > 1 && option.type !== 'ticket' ? `(${duration}개월)` : ''}`,
       durationMonths: months // [FIX] 실제 계산된 유효기간(개월) — ticket/subscription 무관하게 정확한 값
@@ -213,7 +218,7 @@ const MemberAddModal = ({
   }, [newMember.branch, newMember.membershipType, newMember.selectedOption, isOpen, pricingConfig]);
   const handleAddMember = async () => {
     if (!newMember.name || !newMember.phone) {
-      alert(t("g_e53e44") || t("g_e53e44") || t("g_e53e44") || t("g_e53e44") || t("g_e53e44") || "\uC774\uB984\uACFC \uC804\uD654\uBC88\uD638\uB294 \uD544\uC218\uC785\uB2C8\uB2E4.");
+      alert(t("g_e53e44") || "\uC774\uB984\uACFC \uC804\uD654\uBC88\uD638\uB294 \uD544\uC218\uC785\uB2C8\uB2E4.");
       return;
     }
     if (isSubmitting) return;
@@ -260,7 +265,7 @@ const MemberAddModal = ({
         const todayDateStr = new Date().toLocaleDateString('sv-SE', {
           timeZone: 'Asia/Seoul'
         });
-        await storageService.addManualAttendance(res.id, todayDateStr, newMember.branch, newMember.todayClass?.title || t("g_e7056c") || t("g_e7056c") || t("g_e7056c") || t("g_e7056c") || t("g_e7056c") || "\uB4F1\uB85D \uB2F9\uC77C \uC218\uB828", newMember.todayClass?.instructor || t("g_019a25") || t("g_019a25") || t("g_019a25") || t("g_019a25") || t("g_019a25") || "\uC2DC\uC2A4\uD15C \uC790\uB3D9", {
+        await storageService.addManualAttendance(res.id, todayDateStr, newMember.branch, newMember.todayClass?.title || t("g_e7056c") || "\uB4F1\uB85D \uB2F9\uC77C \uC218\uB828", newMember.todayClass?.instructor || t("g_019a25") || "\uC2DC\uC2A4\uD15C \uC790\uB3D9", {
           skipCreditDeduction: true
         } // [FIX] 이미 credits 계산 시 1회 차감됨, 이중 차감 방지
         );
@@ -294,7 +299,7 @@ const MemberAddModal = ({
       });
     } catch (err) {
       console.error('Error adding member:', err);
-      alert(t("g_7117f4") || t("g_7117f4") || t("g_7117f4") || t("g_7117f4") || t("g_7117f4") || "\uD68C\uC6D0 \uB4F1\uB85D \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_7117f4") || "\uD68C\uC6D0 \uB4F1\uB85D \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.");
     } finally {
       setIsSubmitting(false);
       isSubmittingRef.current = false;
@@ -435,7 +440,7 @@ const MemberAddModal = ({
                 ...newMember,
                 duration: m
               })}>
-                                            {m}{t("g_f667f2") || t("g_f667f2") || t("g_f667f2") || t("g_f667f2") || t("g_f667f2") || "\uAC1C\uC6D4"}</button>)}
+                                            {m}{t("g_f667f2") || "\uAC1C\uC6D4"}</button>)}
                                 </div>
                             </div>;
         }
@@ -576,12 +581,12 @@ const MemberAddModal = ({
                 cursor: 'pointer'
               }} value={(() => {
                 const cls = newMember.todayClass;
-                if (!cls) return t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || "\uC790\uC728\uC218\uB828";
+                if (!cls) return t("g_2b3da3") || "\uC790\uC728\uC218\uB828";
                 // [FIX] 고유키(time__title) 사용하여 동일 수업명 중복 시에도 정확한 선택 보장
-                return cls._key || cls.title || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || "\uC790\uC728\uC218\uB828";
+                return cls._key || cls.title || t("g_2b3da3") || "\uC790\uC728\uC218\uB828";
               })()} onChange={e => {
                 const selectedKey = e.target.value;
-                if (selectedKey === (t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || "\uC790\uC728\uC218\uB828")) {
+                if (selectedKey === (t("g_2b3da3") || "\uC790\uC728\uC218\uB828")) {
                   setNewMember({
                     ...newMember,
                     todayClass: null
@@ -589,9 +594,9 @@ const MemberAddModal = ({
                 } else {
                   // [FIX] 고유키(time__title)로 매칭하여 정확한 수업 정보 반영
                   const matched = dailyClasses.find(c => {
-                    const t = c.title || c.className || '';
+                    const cTitle = c.title || c.className || '';
                     const tm = c.time || '';
-                    return `${tm}__${t}` === selectedKey;
+                    return `${tm}__${cTitle}` === selectedKey;
                   });
                   setNewMember({
                     ...newMember,
@@ -611,7 +616,7 @@ const MemberAddModal = ({
                   const title = cls.title || cls.className || '';
                   const time = cls.time || '';
                   const instructor = cls.instructor || '';
-                  const label = [time, title, instructor].filter(Boolean).join(' ') + (t("g_ab216c") || t("g_ab216c") || t("g_ab216c") || t("g_ab216c") || t("g_ab216c") || " (-1\uD68C)");
+                  const label = [time, title, instructor].filter(Boolean).join(' ') + (t("g_ab216c") || " (-1\uD68C)");
                   // [FIX] 고유키(time__title) — 같은 수업이 다른 시간대에 있어도 구분 가능
                   const uniqueKey = `${time}__${title}`;
                   return <option key={uniqueKey} value={uniqueKey}>{label}</option>;
@@ -661,13 +666,13 @@ const MemberAddModal = ({
         }}>
                         {[{
             id: 'card',
-            label: t("g_7e9cf3") || t("g_7e9cf3") || t("g_7e9cf3") || t("g_7e9cf3") || t("g_7e9cf3") || "\uCE74\uB4DC"
+            label: t("g_7e9cf3") || "\uCE74\uB4DC"
           }, {
             id: 'cash',
-            label: t("g_948cb2") || t("g_948cb2") || t("g_948cb2") || t("g_948cb2") || t("g_948cb2") || "\uD604\uAE08"
+            label: t("g_948cb2") || "\uD604\uAE08"
           }, {
             id: 'transfer',
-            label: t("g_0b2312") || t("g_0b2312") || t("g_0b2312") || t("g_0b2312") || t("g_0b2312") || "\uC774\uCCB4"
+            label: t("g_0b2312") || "\uC774\uCCB4"
           }].map(p => <button key={p.id} className={`action-btn ${newMember.paymentMethod === p.id ? 'primary' : ''}`} style={{
             flex: 1,
             padding: '14px 0',
@@ -809,7 +814,7 @@ const MemberAddModal = ({
           borderRadius: '16px',
           boxShadow: '0 10px 20px rgba(var(--primary-rgb), 0.2)'
         }} disabled={isSubmitting}>
-                        {isSubmitting ? t("g_a8d064") || t("g_a8d064") || t("g_a8d064") || t("g_a8d064") || t("g_a8d064") || "\uCC98\uB9AC \uC911..." : t("g_bcf353") || t("g_bcf353") || t("g_bcf353") || t("g_bcf353") || t("g_bcf353") || "\uD68C\uC6D0 \uB4F1\uB85D \uC644\uB8CC"}
+                        {isSubmitting ? t("g_a8d064") || "\uCC98\uB9AC \uC911..." : t("g_bcf353") || "\uD68C\uC6D0 \uB4F1\uB85D \uC644\uB8CC"}
                     </button>
                 </div>
             </div>

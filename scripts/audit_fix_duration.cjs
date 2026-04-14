@@ -71,11 +71,49 @@ async function auditStudio(studioId) {
             if (!matched) {
                 matched = cat.options.find(opt => opt.credits === totalCredits && opt.type === 'ticket');
             }
-            if (matched?.months) correctMonths = matched.months;
+            if (matched) {
+                if (matched.type === 'ticket') {
+                    correctMonths = matched.months || 3;
+                } else {
+                    const base = matched.months || 1;
+                    // subject에 '(N개월)'이 명시된 경우 dur 무시하고 N개월 적용
+                    let explicitMonths = null;
+                    if (subject) {
+                        const m = subject.match(/\((\d+)개월\)/);
+                        if (m) explicitMonths = parseInt(m[1], 10);
+                    }
+                    correctMonths = explicitMonths || (base * (dur > 0 ? dur : 1));
+                }
+            }
         }
 
-        // duration 문제 감지
-        if (correctMonths && correctMonths > 1 && dur <= 1) {
+        // 3. duration 또는 endDate 문제 감지
+        const targetMonths = correctMonths || dur; // 우선 올바른 months 기준, 없으면 현재 설정된 duration 사용
+        
+        let hasDurationIssue = correctMonths && correctMonths > 1 && dur !== correctMonths;
+        let hasEndDateIssue = false;
+        let correctEndStr = null;
+
+        if (targetMonths > 0 && m.startDate && m.startDate !== 'TBD' && m.endDate && m.endDate !== 'TBD') {
+            const startStr = m.startDate.includes('T') ? m.startDate : m.startDate + 'T00:00:00+09:00';
+            const start = new Date(startStr);
+            const correctEnd = new Date(start);
+            correctEnd.setMonth(correctEnd.getMonth() + targetMonths);
+            correctEnd.setDate(correctEnd.getDate() - 1);
+            correctEndStr = correctEnd.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+
+            if (m.endDate !== correctEndStr) {
+                // 종료일이 5일 이내 차이면 달력/수동조정 오차로 보고 패스할 수도 있지만,
+                // 여기서는 14일 이상 차이날 경우에만 명확한 버그로 분류 (월 단위 오류)
+                const end = new Date(m.endDate + 'T00:00:00+09:00');
+                const diffDays = Math.abs((end - correctEnd) / (1000 * 60 * 60 * 24));
+                if (diffDays > 14) {
+                    hasEndDateIssue = true;
+                }
+            }
+        }
+
+        if (hasDurationIssue || hasEndDateIssue) {
             issues++;
             const problem = {
                 memberId: doc.id,
@@ -84,31 +122,22 @@ async function auditStudio(studioId) {
                 memberType,
                 subject,
                 currentDuration: dur,
-                correctMonths,
+                correctMonths: targetMonths,
                 startDate: m.startDate,
-                endDate: m.endDate,
+                currentEndDate: m.endDate,
+                correctEndDate: correctEndStr,
                 credits: m.credits
             };
             problems.push(problem);
-            console.log(`  ❌ ${m.name} (${m.phone}) — duration=${dur} → 올바른 값: ${correctMonths}개월 [${subject}]`);
-
-            // endDate 보정 필요 여부
-            if (m.startDate && m.startDate !== 'TBD' && m.endDate && m.endDate !== 'TBD') {
-                const start = new Date(m.startDate + 'T00:00:00+09:00');
-                const correctEnd = new Date(start);
-                correctEnd.setMonth(correctEnd.getMonth() + correctMonths);
-                correctEnd.setDate(correctEnd.getDate() - 1);
-                const correctEndStr = correctEnd.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-
-                if (m.endDate !== correctEndStr) {
-                    console.log(`     📅 endDate도 잘못됨: ${m.endDate} → ${correctEndStr}`);
-                    problem.correctEndDate = correctEndStr;
-                }
-            }
+            
+            console.log(`\n  ❌ [${m.name} / ${m.phone}] ${subject}`);
+            if (hasDurationIssue) console.log(`     - duration 오류: ${dur} → ${targetMonths}개월`);
+            if (hasEndDateIssue) console.log(`     - endDate 오류: ${m.endDate} → ${correctEndStr} (차이 큼)`);
 
             if (shouldFix) {
-                const updates = { duration: correctMonths };
-                if (problem.correctEndDate) updates.endDate = problem.correctEndDate;
+                const updates = {};
+                if (hasDurationIssue) updates.duration = targetMonths;
+                if (hasEndDateIssue && correctEndStr) updates.endDate = correctEndStr;
                 await db.doc(`studios/${studioId}/members/${doc.id}`).update(updates);
                 console.log(`     ✅ 수정 완료`);
                 fixed++;

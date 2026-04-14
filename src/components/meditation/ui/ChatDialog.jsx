@@ -113,7 +113,7 @@ export const ChatDialog = ({
             boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
             border: '1px solid rgba(255,255,255,0.15)',
             backdropFilter: 'blur(10px)'
-          }}>{currentAIChat.message || currentAIChat.question || t('med_chat_default_greeting') || t("g_6c87b3") || t("g_6c87b3") || t("g_6c87b3") || t("g_6c87b3") || t("g_6c87b3") || "\uC624\uB298 \uD558\uB8E8\uB294 \uC5B4\uB5A0\uC168\uB098\uC694?"}</div>
+          }}>{currentAIChat.message || currentAIChat.question || t('med_chat_default_greeting') || t("g_6c87b3") || "\uC624\uB298 \uD558\uB8E8\uB294 \uC5B4\uB5A0\uC168\uB098\uC694?"}</div>
                             <span style={{
             fontSize: '0.7rem',
             color: 'rgba(255,255,255,0.4)',
@@ -174,13 +174,13 @@ export const ChatDialog = ({
           justifyContent: 'center',
           gap: '8px',
           boxShadow: '0 10px 20px rgba(var(--primary-rgb), 0.3)'
-        }}>🧘 {t('med_chat_btn_start') || t("g_747d3d") || t("g_747d3d") || t("g_747d3d") || t("g_747d3d") || t("g_747d3d") || "\uBA85\uC0C1 \uC2DC\uC791\uD558\uAE30"}</button>
+        }}>🧘 {t('med_chat_btn_start') || t("g_747d3d") || "\uBA85\uC0C1 \uC2DC\uC791\uD558\uAE30"}</button>
                         <p style={{
           textAlign: 'center',
           fontSize: '0.8rem',
           color: 'rgba(255,255,255,0.4)'
         }}>
-                            {t('med_chat_prepared_desc') || t("g_ff9f7e") || t("g_ff9f7e") || t("g_ff9f7e") || t("g_ff9f7e") || t("g_ff9f7e") || "\uB2F9\uC2E0\uC5D0\uAC8C \uB9DE\uB294 \uBA85\uC0C1\uC744 \uC900\uBE44\uD588\uC5B4\uC694"}
+                            {t('med_chat_prepared_desc') || t("g_ff9f7e") || "\uB2F9\uC2E0\uC5D0\uAC8C \uB9DE\uB294 \uBA85\uC0C1\uC744 \uC900\uBE44\uD588\uC5B4\uC694"}
                         </p>
                     </div>}
 
@@ -238,7 +238,7 @@ export const ChatDialog = ({
           display: 'flex',
           alignItems: 'center'
         }}>
-                            <input type="text" value={manualInput} onChange={e => setManualInput(e.target.value)} placeholder={t('med_chat_input_placeholder') || t("g_8ea51b") || t("g_8ea51b") || t("g_8ea51b") || t("g_8ea51b") || t("g_8ea51b") || "\uC9C1\uC811 \uB9C8\uC74C \uC0C1\uD0DC\uB97C \uC785\uB825\uD558\uC138\uC694..."} disabled={isAILoading} style={{
+                            <input type="text" value={manualInput} onChange={e => setManualInput(e.target.value)} placeholder={t('med_chat_input_placeholder') || t("g_8ea51b") || "\uC9C1\uC811 \uB9C8\uC74C \uC0C1\uD0DC\uB97C \uC785\uB825\uD558\uC138\uC694..."} disabled={isAILoading} style={{
             width: '100%',
             height: '100%',
             background: 'rgba(255,255,255,0.05)',

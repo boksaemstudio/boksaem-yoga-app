@@ -94,7 +94,7 @@ const MemberProfile = () => {
 
   // ─── Language Label Animation ───
   const [langLabelIndex, setLangLabelIndex] = useState(0);
-  const langLabels = [t("g_23eb27") || t("g_23eb27") || t("g_23eb27") || "\uC5B8\uC5B4", "Language", "Язык", "语言", "言語"];
+  const langLabels = [t("g_23eb27") || "\uC5B8\uC5B4", "Language", "Язык", "语言", "言語"];
   useEffect(() => {
     const interval = setInterval(() => setLangLabelIndex(p => (p + 1) % langLabels.length), 3000);
     return () => clearInterval(interval);
@@ -110,48 +110,48 @@ const MemberProfile = () => {
 
   // ─── MBTI State ───
   const MBTI_STEPS = [{
-    label: t('member_mbti_step1_label') || t("g_b2dfa4") || t("g_b2dfa4") || t("g_b2dfa4") || "\uC5D0\uB108\uC9C0 \uBC29\uD5A5",
+    label: t('member_mbti_step1_label') || t("g_b2dfa4") || "\uC5D0\uB108\uC9C0 \uBC29\uD5A5",
     options: [{
       letter: 'E',
-      title: t('member_mbti_step1_opt1_title') || t("g_948092") || t("g_948092") || t("g_948092") || "\uC678\uD5A5",
-      desc: t('member_mbti_step1_opt1_desc') || t("g_cc7f1e") || t("g_cc7f1e") || t("g_cc7f1e") || "\uC0AC\uB78C\uB4E4\uACFC \uC5B4\uC6B8\uB9AC\uBA70 \uC5D0\uB108\uC9C0 \uCDA9\uC804"
+      title: t('member_mbti_step1_opt1_title') || t("g_948092") || "\uC678\uD5A5",
+      desc: t('member_mbti_step1_opt1_desc') || t("g_cc7f1e") || "\uC0AC\uB78C\uB4E4\uACFC \uC5B4\uC6B8\uB9AC\uBA70 \uC5D0\uB108\uC9C0 \uCDA9\uC804"
     }, {
       letter: 'I',
-      title: t('member_mbti_step1_opt2_title') || t("g_326663") || t("g_326663") || t("g_326663") || "\uB0B4\uD5A5",
-      desc: t('member_mbti_step1_opt2_desc') || t("g_c31caf") || t("g_c31caf") || t("g_c31caf") || "\uD63C\uC790\uB9CC\uC758 \uC2DC\uAC04\uC73C\uB85C \uC5D0\uB108\uC9C0 \uCDA9\uC804"
+      title: t('member_mbti_step1_opt2_title') || t("g_326663") || "\uB0B4\uD5A5",
+      desc: t('member_mbti_step1_opt2_desc') || t("g_c31caf") || "\uD63C\uC790\uB9CC\uC758 \uC2DC\uAC04\uC73C\uB85C \uC5D0\uB108\uC9C0 \uCDA9\uC804"
     }]
   }, {
-    label: t('member_mbti_step2_label') || t("g_d4f935") || t("g_d4f935") || t("g_d4f935") || "\uC778\uC2DD \uAE30\uB2A5",
+    label: t('member_mbti_step2_label') || t("g_d4f935") || "\uC778\uC2DD \uAE30\uB2A5",
     options: [{
       letter: 'S',
-      title: t('member_mbti_step2_opt1_title') || t("g_1c0c79") || t("g_1c0c79") || t("g_1c0c79") || "\uAC10\uAC01",
-      desc: t('member_mbti_step2_opt1_desc') || t("g_b45ef6") || t("g_b45ef6") || t("g_b45ef6") || "\uD604\uC2E4\uC801, \uAD6C\uCCB4\uC801 \uC0AC\uC2E4 \uC911\uC2DC"
+      title: t('member_mbti_step2_opt1_title') || t("g_1c0c79") || "\uAC10\uAC01",
+      desc: t('member_mbti_step2_opt1_desc') || t("g_b45ef6") || "\uD604\uC2E4\uC801, \uAD6C\uCCB4\uC801 \uC0AC\uC2E4 \uC911\uC2DC"
     }, {
       letter: 'N',
-      title: t('member_mbti_step2_opt2_title') || t("g_50a1d5") || t("g_50a1d5") || t("g_50a1d5") || "\uC9C1\uAD00",
-      desc: t('member_mbti_step2_opt2_desc') || t("g_f7e4e2") || t("g_f7e4e2") || t("g_f7e4e2") || "\uAC00\uB2A5\uC131\uACFC \uC544\uC774\uB514\uC5B4 \uC911\uC2DC"
+      title: t('member_mbti_step2_opt2_title') || t("g_50a1d5") || "\uC9C1\uAD00",
+      desc: t('member_mbti_step2_opt2_desc') || t("g_f7e4e2") || "\uAC00\uB2A5\uC131\uACFC \uC544\uC774\uB514\uC5B4 \uC911\uC2DC"
     }]
   }, {
-    label: t('member_mbti_step3_label') || t("g_128658") || t("g_128658") || t("g_128658") || "\uD310\uB2E8 \uAE30\uB2A5",
+    label: t('member_mbti_step3_label') || t("g_128658") || "\uD310\uB2E8 \uAE30\uB2A5",
     options: [{
       letter: 'T',
-      title: t('member_mbti_step3_opt1_title') || t("g_f1aa9d") || t("g_f1aa9d") || t("g_f1aa9d") || "\uC0AC\uACE0",
-      desc: t('member_mbti_step3_opt1_desc') || t("g_04926b") || t("g_04926b") || t("g_04926b") || "\uB17C\uB9AC\uC640 \uC6D0\uCE59\uC73C\uB85C \uD310\uB2E8"
+      title: t('member_mbti_step3_opt1_title') || t("g_f1aa9d") || "\uC0AC\uACE0",
+      desc: t('member_mbti_step3_opt1_desc') || t("g_04926b") || "\uB17C\uB9AC\uC640 \uC6D0\uCE59\uC73C\uB85C \uD310\uB2E8"
     }, {
       letter: 'F',
-      title: t('member_mbti_step3_opt2_title') || t("g_519521") || t("g_519521") || t("g_519521") || "\uAC10\uC815",
-      desc: t('member_mbti_step3_opt2_desc') || t("g_8875c3") || t("g_8875c3") || t("g_8875c3") || "\uC0AC\uB78C\uACFC \uAD00\uACC4\uB97C \uBA3C\uC800 \uACE0\uB824"
+      title: t('member_mbti_step3_opt2_title') || t("g_519521") || "\uAC10\uC815",
+      desc: t('member_mbti_step3_opt2_desc') || t("g_8875c3") || "\uC0AC\uB78C\uACFC \uAD00\uACC4\uB97C \uBA3C\uC800 \uACE0\uB824"
     }]
   }, {
-    label: t('member_mbti_step4_label') || t("g_29cf93") || t("g_29cf93") || t("g_29cf93") || "\uC0DD\uD65C \uC591\uC2DD",
+    label: t('member_mbti_step4_label') || t("g_29cf93") || "\uC0DD\uD65C \uC591\uC2DD",
     options: [{
       letter: 'J',
-      title: t('member_mbti_step4_opt1_title') || t("g_88d56b") || t("g_88d56b") || t("g_88d56b") || "\uD310\uB2E8",
-      desc: t('member_mbti_step4_opt1_desc') || t("g_42f541") || t("g_42f541") || t("g_42f541") || "\uACC4\uD68D\uC801\uC774\uACE0 \uCCB4\uACC4\uC801\uC778 \uC0DD\uD65C"
+      title: t('member_mbti_step4_opt1_title') || t("g_88d56b") || "\uD310\uB2E8",
+      desc: t('member_mbti_step4_opt1_desc') || t("g_42f541") || "\uACC4\uD68D\uC801\uC774\uACE0 \uCCB4\uACC4\uC801\uC778 \uC0DD\uD65C"
     }, {
       letter: 'P',
-      title: t('member_mbti_step4_opt2_title') || t("g_e4b268") || t("g_e4b268") || t("g_e4b268") || "\uC778\uC2DD",
-      desc: t('member_mbti_step4_opt2_desc') || t("g_d093ac") || t("g_d093ac") || t("g_d093ac") || "\uC720\uC5F0\uD558\uACE0 \uC790\uC720\uB85C\uC6B4 \uC0DD\uD65C"
+      title: t('member_mbti_step4_opt2_title') || t("g_e4b268") || "\uC778\uC2DD",
+      desc: t('member_mbti_step4_opt2_desc') || t("g_d093ac") || "\uC720\uC5F0\uD558\uACE0 \uC790\uC720\uB85C\uC6B4 \uC0DD\uD65C"
     }]
   }];
   const [mbti, setMbti] = useState(() => localStorage.getItem('member_mbti') || member?.mbti || '');
@@ -406,7 +406,7 @@ const MemberProfile = () => {
                     color: pushLoading ? 'var(--primary-gold)' : pushStatus === 'granted' ? 'var(--primary-gold)' : 'rgba(255,255,255,0.4)',
                     transition: 'color 0.3s'
                   }}>
-                                                {pushLoading ? t("g_d98339") || t("g_d98339") || t("g_d98339") || "\uC124\uC815 \uC911..." : pushStatus === 'granted' ? t('pushOnLabel') : t('pushOffLabel')}
+                                                {pushLoading ? t("g_d98339") || "\uC124\uC815 \uC911..." : pushStatus === 'granted' ? t('pushOnLabel') : t('pushOffLabel')}
                                             </span>
                                         </div>
                                     </div>
@@ -492,13 +492,13 @@ const MemberProfile = () => {
                     fontSize: '1rem',
                     fontWeight: 600,
                     color: 'white'
-                  }}>{t('member_health_sync_title') || t("g_306384") || t("g_306384") || t("g_306384") || "\uAC74\uAC15 \uB370\uC774\uD130 \uC5F0\uB3D9"}</span>
+                  }}>{t('member_health_sync_title') || t("g_306384") || "\uAC74\uAC15 \uB370\uC774\uD130 \uC5F0\uB3D9"}</span>
                                             <span style={{
                     fontSize: '0.85rem',
                     color: watchSync ? '#00ffcc' : 'rgba(255,255,255,0.4)',
                     transition: 'color 0.3s'
                   }}>
-                                                {watchSync ? t('member_health_sync_on') || t("g_67ba8d") || t("g_67ba8d") || t("g_67ba8d") || "Apple/Samsung Health \uC5F0\uACB0\uB428" : t('member_health_sync_off') || t("g_49e5a2") || t("g_49e5a2") || t("g_49e5a2") || "\uC2EC\uBC15\uC218\xB7\uCE7C\uB85C\uB9AC \uAE30\uB85D \uAD00\uB9AC"}
+                                                {watchSync ? t('member_health_sync_on') || t("g_67ba8d") || "Apple/Samsung Health \uC5F0\uACB0\uB428" : t('member_health_sync_off') || t("g_49e5a2") || "\uC2EC\uBC15\uC218\xB7\uCE7C\uB85C\uB9AC \uAE30\uB85D \uAD00\uB9AC"}
                                             </span>
                                         </div>
                                     </div>
@@ -582,13 +582,13 @@ const MemberProfile = () => {
                     fontSize: '1rem',
                     fontWeight: 600,
                     color: 'white'
-                  }}>{t('member_mbti_title') || t("g_0ccf9f") || t("g_0ccf9f") || t("g_0ccf9f") || "\uB098\uC758 MBTI"}</span>
+                  }}>{t('member_mbti_title') || t("g_0ccf9f") || "\uB098\uC758 MBTI"}</span>
                                             <span style={{
                     fontSize: '0.85rem',
                     color: mbti ? 'var(--primary-gold)' : 'rgba(255,255,255,0.4)',
                     transition: 'color 0.3s'
                   }}>
-                                                {mbti ? `${mbti}${t('member_mbti_badge_desc_set') || t("g_34061b") || t("g_34061b") || t("g_34061b") || " \u2014 AI \uC778\uC0AC\uB9D0\uACFC \uB9DE\uCDA4 \uCF54\uCE6D\uC5D0 \uBC18\uC601\uB3FC\uC694"}` : t('member_mbti_badge_desc_unset') || t("g_13000c") || t("g_13000c") || t("g_13000c") || "\uC124\uC815\uD558\uBA74 \uB098\uB9CC\uC758 AI \uC778\uC0AC\uB9D0\uACFC \uCF54\uCE6D\uC744 \uBC1B\uC544\uC694 \u2728"}
+                                                {mbti ? `${mbti}${t('member_mbti_badge_desc_set') || t("g_34061b") || " \u2014 AI \uC778\uC0AC\uB9D0\uACFC \uB9DE\uCDA4 \uCF54\uCE6D\uC5D0 \uBC18\uC601\uB3FC\uC694"}` : t('member_mbti_badge_desc_unset') || t("g_13000c") || "\uC124\uC815\uD558\uBA74 \uB098\uB9CC\uC758 AI \uC778\uC0AC\uB9D0\uACFC \uCF54\uCE6D\uC744 \uBC1B\uC544\uC694 \u2728"}
                                             </span>
                                         </div>
                                     </div>
@@ -703,7 +703,7 @@ const MemberProfile = () => {
                   boxShadow: '0 4px 16px rgba(212, 175, 55, 0.3)',
                   transition: 'all 0.3s ease'
                 }}>
-                                                    {mbtiPicks.join('')}{t('member_mbti_btn_complete') || t("g_76520e") || t("g_76520e") || t("g_76520e") || " \uC644\uB8CC \u2713"}
+                                                    {mbtiPicks.join('')}{t('member_mbti_btn_complete') || t("g_76520e") || " \uC644\uB8CC \u2713"}
                                                 </button>}
                                         </div> : (/* Completed State */
               <div style={{
@@ -727,7 +727,7 @@ const MemberProfile = () => {
                   color: 'rgba(255,255,255,0.4)',
                   fontSize: '0.8rem',
                   cursor: 'pointer'
-                }}>{t('member_mbti_btn_reselect') || t("g_2aacea") || t("g_2aacea") || t("g_2aacea") || "\uB2E4\uC2DC \uC120\uD0DD"}</button>
+                }}>{t('member_mbti_btn_reselect') || t("g_2aacea") || "\uB2E4\uC2DC \uC120\uD0DD"}</button>
                                         </div>)}
                                 </div>
 
@@ -912,7 +912,7 @@ const MemberProfile = () => {
         color: 'rgba(255,255,255,0.2)',
         textDecoration: 'none',
         fontSize: '0.65rem'
-      }}>{t('member_footer_privacy') || t("g_5381fd") || t("g_5381fd") || t("g_5381fd") || "\uAC1C\uC778\uC815\uBCF4\uCC98\uB9AC\uBC29\uCE68"}</a>
+      }}>{t('member_footer_privacy') || t("g_5381fd") || "\uAC1C\uC778\uC815\uBCF4\uCC98\uB9AC\uBC29\uCE68"}</a>
             </div>
         </div>;
 };

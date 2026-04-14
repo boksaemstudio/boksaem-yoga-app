@@ -66,6 +66,7 @@ export const PrescriptionWizardView = ({
   navigate,
   onClose
 }) => {
+    const t = useLanguageStore(s => s.t);
     // 1-a. Prescription Summary (New AI Analysis View)
   if (step === 'prescription_summary') {
     const summary = currentAIChat?.analysisSummary || prescriptionReason || t('med_wiz_default_summary') || t("g_a6f7bd") || "\uB2F9\uC2E0\uC758 \uB9C8\uC74C \uC0C1\uD0DC\uB97C \uAE4A\uC774 \uB4E4\uC5EC\uB2E4\uBCF4\uC558\uC2B5\uB2C8\uB2E4.";
@@ -196,7 +197,7 @@ export const PrescriptionWizardView = ({
           maxWidth: '400px',
           margin: '0 auto'
         }}>
-                        {Object.values(INTERACTION_TYPES).map(t => <button key={t.id} onClick={() => {
+                        {Object.values(INTERACTION_TYPES).map(iType => <button key={iType.id} onClick={() => {
             setInteractionType(t.id);
             const modeToUse = activeMode || MEDITATION_MODES.find(m => m.id === selectedDiagnosis?.prescription.modeId) || MEDITATION_MODES[1];
             setActiveMode(modeToUse);

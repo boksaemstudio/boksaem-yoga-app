@@ -5,7 +5,6 @@ const SimpleImageModal = ({
   onClose,
   imageSrc
 }) => {
-  const t = useLanguageStore(s => s.t);
   if (!isOpen || !imageSrc) return null;
   return createPortal(<div style={{
     position: 'fixed',

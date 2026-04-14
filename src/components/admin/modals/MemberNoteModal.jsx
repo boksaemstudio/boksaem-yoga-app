@@ -20,14 +20,14 @@ const MemberNoteModal = ({
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('[MemberNoteModal] Failed to save note:', error);
-      alert(t("g_c0b2c2") || t("g_c0b2c2") || t("g_c0b2c2") || t("g_c0b2c2") || t("g_c0b2c2") || "\uBA54\uBAA8 \uC800\uC7A5\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_c0b2c2") || "\uBA54\uBAA8 \uC800\uC7A5\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");
     } finally {
       onClose();
     }
   };
   return <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <h2 className="modal-title">{member.name}{t("g_dd9b06") || t("g_dd9b06") || t("g_dd9b06") || t("g_dd9b06") || t("g_dd9b06") || "\uB2D8 \uBA54\uBAA8"}</h2>
+                <h2 className="modal-title">{member.name}{t("g_dd9b06") || "\uB2D8 \uBA54\uBAA8"}</h2>
                 <textarea className="form-input" style={{
         height: '200px',
         resize: 'none',

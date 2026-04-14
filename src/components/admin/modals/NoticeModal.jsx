@@ -19,7 +19,7 @@ const NoticeModal = ({
   const handleCreateNotice = async () => {
     if (!newNotice.title || !newNotice.content) return;
     if (newNotice.images.length === 0) {
-      alert(t("g_eb79f5") || t("g_eb79f5") || t("g_eb79f5") || t("g_eb79f5") || t("g_eb79f5") || "\uC774\uBBF8\uC9C0\uB97C 1\uAC1C \uC774\uC0C1 \uCCA8\uBD80\uD574\uC8FC\uC138\uC694.");
+      alert(t("g_eb79f5") || "\uC774\uBBF8\uC9C0\uB97C 1\uAC1C \uC774\uC0C1 \uCCA8\uBD80\uD574\uC8FC\uC138\uC694.");
       return;
     }
     if (isSubmitting) return;
@@ -32,12 +32,12 @@ const NoticeModal = ({
         images: [],
         sendPush: true
       });
-      alert(t("g_78cd7e") || t("g_78cd7e") || t("g_78cd7e") || t("g_78cd7e") || t("g_78cd7e") || "\uACF5\uC9C0\uC0AC\uD56D\uC774 \uB4F1\uB85D\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_78cd7e") || "\uACF5\uC9C0\uC0AC\uD56D\uC774 \uB4F1\uB85D\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
       onSuccess();
       onClose();
     } catch (err) {
       console.error('Error creating notice:', err);
-      alert(t("g_37e42e") || t("g_37e42e") || t("g_37e42e") || t("g_37e42e") || t("g_37e42e") || "\uACF5\uC9C0\uC0AC\uD56D \uB4F1\uB85D \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_37e42e") || "\uACF5\uC9C0\uC0AC\uD56D \uB4F1\uB85D \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.");
     } finally {
       setIsSubmitting(false);
     }
@@ -46,7 +46,7 @@ const NoticeModal = ({
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
     if (newNotice.images.length + files.length > 4) {
-      alert(t("g_764e5d") || t("g_764e5d") || t("g_764e5d") || t("g_764e5d") || t("g_764e5d") || "\uC774\uBBF8\uC9C0\uB294 \uCD5C\uB300 4\uC7A5\uAE4C\uC9C0\uB9CC \uCCA8\uBD80\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_764e5d") || "\uC774\uBBF8\uC9C0\uB294 \uCD5C\uB300 4\uC7A5\uAE4C\uC9C0\uB9CC \uCCA8\uBD80\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.");
       return;
     }
     files.forEach(file => {
@@ -244,7 +244,7 @@ const NoticeModal = ({
           color: 'var(--text-secondary)'
         }}>{t('취소')}</button>
                     <button onClick={handleCreateNotice} className="action-btn primary" disabled={isSubmitting}>
-                        {isSubmitting ? t("g_923cf9") || t("g_923cf9") || t("g_923cf9") || t("g_923cf9") || t("g_923cf9") || "\uC800\uC7A5 \uC911..." : t("g_195802") || t("g_195802") || t("g_195802") || t("g_195802") || t("g_195802") || "\uB4F1\uB85D\uD558\uAE30"}
+                        {isSubmitting ? t("g_923cf9") || "\uC800\uC7A5 \uC911..." : t("g_195802") || "\uB4F1\uB85D\uD558\uAE30"}
                     </button>
                 </div>
             </div>

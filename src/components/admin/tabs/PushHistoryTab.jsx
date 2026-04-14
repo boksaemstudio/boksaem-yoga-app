@@ -109,7 +109,7 @@ const PushHistoryTab = ({
                     <div style={{
           fontSize: '0.7rem',
           opacity: 0.5
-        }}>{statusFilter === 'all' ? t("g_d1d0de") || t("g_d1d0de") || t("g_d1d0de") || t("g_d1d0de") || t("g_d1d0de") || "\uC804\uCCB4" : statusFilter === 'sent' ? t("g_13e288") || t("g_13e288") || t("g_13e288") || t("g_13e288") || t("g_13e288") || "\uC131\uACF5" : t("g_086147") || t("g_086147") || t("g_086147") || t("g_086147") || t("g_086147") || "\uC2E4\uD328"}{t("g_aa0e06") || t("g_aa0e06") || t("g_aa0e06") || t("g_aa0e06") || t("g_aa0e06") || "\uAC74\uC218"}</div>
+        }}>{statusFilter === 'all' ? t("g_d1d0de") || "\uC804\uCCB4" : statusFilter === 'sent' ? t("g_13e288") || "\uC131\uACF5" : t("g_086147") || "\uC2E4\uD328"}{t("g_aa0e06") || "\uAC74\uC218"}</div>
                 </div>
             </div>
 
@@ -137,15 +137,15 @@ const PushHistoryTab = ({
       }}>
                     {[{
           id: 'all',
-          label: t("g_d1d0de") || t("g_d1d0de") || t("g_d1d0de") || t("g_d1d0de") || t("g_d1d0de") || "\uC804\uCCB4",
+          label: t("g_d1d0de") || "\uC804\uCCB4",
           color: '#a1a1aa'
         }, {
           id: 'sent',
-          label: t("g_13e288") || t("g_13e288") || t("g_13e288") || t("g_13e288") || t("g_13e288") || "\uC131\uACF5",
+          label: t("g_13e288") || "\uC131\uACF5",
           color: '#28A745'
         }, {
           id: 'failed',
-          label: t("g_086147") || t("g_086147") || t("g_086147") || t("g_086147") || t("g_086147") || "\uC2E4\uD328",
+          label: t("g_086147") || "\uC2E4\uD328",
           color: '#EF4444'
         }].map(f => <button key={f.id} onClick={() => setStatusFilter(f.id)} style={{
           padding: '5px 12px',
@@ -211,7 +211,7 @@ const PushHistoryTab = ({
           alignItems: 'center',
           gap: '8px'
         }}>
-                            <WarningCircle weight="fill" />{t("g_830e7d") || t("g_830e7d") || t("g_830e7d") || t("g_830e7d") || t("g_830e7d") || "\uC2B9\uC778 \uB300\uAE30 \uBA54\uC2DC\uC9C0 ("}{pendingApprovals.length})
+                            <WarningCircle weight="fill" />{t("g_830e7d") || "\uC2B9\uC778 \uB300\uAE30 \uBA54\uC2DC\uC9C0 ("}{pendingApprovals.length})
                         </h4>
                         {pendingApprovals.map(item => <div key={item.id} className="glass-panel" style={{
           padding: '20px',
@@ -235,7 +235,7 @@ const PushHistoryTab = ({
                 fontWeight: 'bold',
                 marginRight: '8px'
               }}>
-                                            {item.type === 'low_credits' ? t("g_20b5de") || t("g_20b5de") || t("g_20b5de") || t("g_20b5de") || t("g_20b5de") || "\uD06C\uB808\uB527 \uC54C\uB9BC" : item.type === 'notice' ? t("g_02a606") || t("g_02a606") || t("g_02a606") || t("g_02a606") || t("g_02a606") || "\uACF5\uC9C0 \uBC1C\uC1A1" : t("g_83e246") || t("g_83e246") || t("g_83e246") || t("g_83e246") || t("g_83e246") || "\uAE30\uD0C0 \uC54C\uB9BC"}
+                                            {item.type === 'low_credits' ? t("g_20b5de") || "\uD06C\uB808\uB527 \uC54C\uB9BC" : item.type === 'notice' ? t("g_02a606") || "\uACF5\uC9C0 \uBC1C\uC1A1" : t("g_83e246") || "\uAE30\uD0C0 \uC54C\uB9BC"}
                                         </span>
                                         <span style={{
                 fontSize: '0.9rem',
@@ -270,7 +270,7 @@ const PushHistoryTab = ({
                                     <div style={{
               fontSize: '0.85rem',
               opacity: 0.7
-            }}>{t("g_00bdfe") || t("g_00bdfe") || t("g_00bdfe") || t("g_00bdfe") || t("g_00bdfe") || "\uBC1C\uC1A1 \uB300\uC0C1:"}{item.targetMemberIds?.length || 0}{t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || "\uBA85"}</div>
+            }}>{t("g_00bdfe") || "\uBC1C\uC1A1 \uB300\uC0C1:"}{item.targetMemberIds?.length || 0}{t("g_7b3c6e") || "\uBA85"}</div>
                                     <div style={{
               display: 'flex',
               gap: '10px'
@@ -309,13 +309,13 @@ const PushHistoryTab = ({
                         <BellRinging size={48} style={{
           marginBottom: '15px'
         }} />
-                        <p>{history.length > 0 ? t("g_53e5a7") || t("g_53e5a7") || t("g_53e5a7") || t("g_53e5a7") || t("g_53e5a7") || "\uC870\uAC74\uC5D0 \uB9DE\uB294 \uAE30\uB85D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4." : t("g_509764") || t("g_509764") || t("g_509764") || t("g_509764") || t("g_509764") || "\uBC1C\uC1A1 \uAE30\uB85D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."}</p>
+                        <p>{history.length > 0 ? t("g_53e5a7") || "\uC870\uAC74\uC5D0 \uB9DE\uB294 \uAE30\uB85D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4." : t("g_509764") || "\uBC1C\uC1A1 \uAE30\uB85D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."}</p>
                     </div> : pagedHistory.map(item => {
         const isNotice = item.type === 'campaign' || item.type === 'notice';
         const isClickable = item.type === 'individual' && item.targetMemberId || isNotice;
         let label = "\uC54C \uC218 \uC5C6\uC74C";
-        if (item.type === 'campaign') label = "\uC571 \uD478\uC2DC (\uB2E8\uCCB4)";else if (item.type === 'notice') label = "\uACF5\uC9C0 \uC54C\uB9BC";else if (item.type === 'individual') label = `앱 푸시 (${item.memberName || item.targetMemberName || t("g_80601c") || t("g_80601c") || t("g_80601c") || t("g_80601c") || t("g_80601c") || "\uC54C \uC218 \uC5C6\uC74C"})`;else if (item.type === 'sms_msg' || item.method === (t("g_3ca941") || t("g_3ca941") || t("g_3ca941") || t("g_3ca941") || t("g_3ca941") || "\uBB38\uC790")) label = "\uBB38\uC790 \uBC1C\uC1A1";
-        const isSms = item.type === 'sms_msg' || item.method === (t("g_3ca941") || t("g_3ca941") || t("g_3ca941") || t("g_3ca941") || t("g_3ca941") || "\uBB38\uC790");
+        if (item.type === 'campaign') label = "\uC571 \uD478\uC2DC (\uB2E8\uCCB4)";else if (item.type === 'notice') label = "\uACF5\uC9C0 \uC54C\uB9BC";else if (item.type === 'individual') label = `앱 푸시 (${item.memberName || item.targetMemberName || t("g_80601c") || "\uC54C \uC218 \uC5C6\uC74C"})`;else if (item.type === 'sms_msg' || item.method === (t("g_3ca941") || "\uBB38\uC790")) label = "\uBB38\uC790 \uBC1C\uC1A1";
+        const isSms = item.type === 'sms_msg' || item.method === (t("g_3ca941") || "\uBB38\uC790");
         return <div key={item.id} className="glass-panel" onClick={() => {
           if (item.type === 'individual' && item.targetMemberId && onSelectMember) {
             onSelectMember(item.targetMemberId);
@@ -394,7 +394,7 @@ const PushHistoryTab = ({
                 background: 'rgba(255,255,255,0.05)',
                 border: '1px solid rgba(255,255,255,0.1)'
               }}>
-                                                {item.totalTargets > 0 ? `${item.totalTargets}명` : item.target === 'all' ? t("g_d1d0de") || t("g_d1d0de") || t("g_d1d0de") || t("g_d1d0de") || t("g_d1d0de") || "\uC804\uCCB4" : t("g_4594ab") || t("g_4594ab") || t("g_4594ab") || t("g_4594ab") || t("g_4594ab") || "\uB2E8\uCCB4"}
+                                                {item.totalTargets > 0 ? `${item.totalTargets}명` : item.target === 'all' ? t("g_d1d0de") || "\uC804\uCCB4" : t("g_4594ab") || "\uB2E8\uCCB4"}
                                             </span>}
                                         <span style={{
                 display: 'flex',
@@ -408,7 +408,7 @@ const PushHistoryTab = ({
                 border: `1px solid ${item.status === 'failed' ? 'rgba(239, 68, 68, 0.2)' : item.status === 'pending' ? 'rgba(255, 193, 7, 0.2)' : 'rgba(40, 167, 69, 0.2)'}`
               }}>
                                             {item.status === 'failed' ? <WarningCircle size={10} /> : item.status === 'pending' ? <WarningCircle size={10} /> : <CheckCircle size={10} />}
-                                            {item.status === 'failed' ? t("g_6159b7") || t("g_6159b7") || t("g_6159b7") || t("g_6159b7") || t("g_6159b7") || "\uBC1C\uC1A1 \uC2E4\uD328" : item.status === 'pending' ? t("g_8c9f6e") || t("g_8c9f6e") || t("g_8c9f6e") || t("g_8c9f6e") || t("g_8c9f6e") || "\uC804\uC1A1 \uC911" : t("g_1fb3af") || t("g_1fb3af") || t("g_1fb3af") || t("g_1fb3af") || t("g_1fb3af") || "\uBC1C\uC1A1 \uC644\uB8CC"}
+                                            {item.status === 'failed' ? t("g_6159b7") || "\uBC1C\uC1A1 \uC2E4\uD328" : item.status === 'pending' ? t("g_8c9f6e") || "\uC804\uC1A1 \uC911" : t("g_1fb3af") || "\uBC1C\uC1A1 \uC644\uB8CC"}
                                         </span>
                                     </div>
                                 </div>
@@ -429,7 +429,7 @@ const PushHistoryTab = ({
               fontSize: '0.75rem',
               color: '#EF4444',
               fontWeight: 'bold'
-            }}>{t("g_cb11d7") || t("g_cb11d7") || t("g_cb11d7") || t("g_cb11d7") || t("g_cb11d7") || "\uC6D0\uC778:"}{item.error || t("g_eb875a") || t("g_eb875a") || t("g_eb875a") || t("g_eb875a") || t("g_eb875a") || "\uBFCC\uB9AC\uC624 \uC5F0\uB3D9 \uC124\uC815 \uB4F1"}
+            }}>{t("g_cb11d7") || "\uC6D0\uC778:"}{item.error || t("g_eb875a") || "\uBFCC\uB9AC\uC624 \uC5F0\uB3D9 \uC124\uC815 \uB4F1"}
                                         </div>}
                                 </div>
                             </div>;

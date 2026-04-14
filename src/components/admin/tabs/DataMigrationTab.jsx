@@ -23,7 +23,7 @@ export default function DataMigrationTab() {
 
     // 파일명 검증 (회원현황_YYYYMMDD.csv 형식)
     if (!file.name.match(/회원현황_\d{8}\.csv/)) {
-      alert(t("g_85c3ec") || t("g_85c3ec") || t("g_85c3ec") || t("g_85c3ec") || t("g_85c3ec") || "\uD30C\uC77C\uBA85\uC774 \uC62C\uBC14\uB974\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \"\uD68C\uC6D0\uD604\uD669_YYYYMMDD.csv\" \uD615\uC2DD\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.");
+      alert(t("g_85c3ec") || "\uD30C\uC77C\uBA85\uC774 \uC62C\uBC14\uB974\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \"\uD68C\uC6D0\uD604\uD669_YYYYMMDD.csv\" \uD615\uC2DD\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.");
       return;
     }
     try {
@@ -32,11 +32,11 @@ export default function DataMigrationTab() {
         // [Agent Admin Mode] Skip explicit confirmation if in agent mode
         const isAgentMode = window.__AGENT_ADMIN_MODE__ === true;
         if (!isAgentMode) {
-          const confirmed = window.confirm(t("g_f6599c") || t("g_f6599c") || t("g_f6599c") || t("g_f6599c") || t("g_f6599c") || "\u26A0\uFE0F [\uC8FC\uC758] \uC2E4\uC81C \uB9C8\uC774\uADF8\uB808\uC774\uC158\uC744 \uC2E4\uD589\uD558\uBA74 \uAE30\uC874 \uBAA8\uB4E0 \uD68C\uC6D0, \uB9E4\uCD9C, \uCD9C\uC11D, \uD478\uC2DC \uB370\uC774\uD130\uAC00 \uC0AD\uC81C\uB41C \uD6C4 \uC0C8\uB85C \uB4F1\uB85D\uB429\uB2C8\uB2E4.\n\n\uC815\uB9D0\uB85C \uC9C4\uD589\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?");
+          const confirmed = window.confirm(t("g_f6599c") || "\u26A0\uFE0F [\uC8FC\uC758] \uC2E4\uC81C \uB9C8\uC774\uADF8\uB808\uC774\uC158\uC744 \uC2E4\uD589\uD558\uBA74 \uAE30\uC874 \uBAA8\uB4E0 \uD68C\uC6D0, \uB9E4\uCD9C, \uCD9C\uC11D, \uD478\uC2DC \uB370\uC774\uD130\uAC00 \uC0AD\uC81C\uB41C \uD6C4 \uC0C8\uB85C \uB4F1\uB85D\uB429\uB2C8\uB2E4.\n\n\uC815\uB9D0\uB85C \uC9C4\uD589\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?");
           if (!confirmed) return;
-          const secondConfirm = window.prompt(t("g_0bcfdf") || t("g_0bcfdf") || t("g_0bcfdf") || t("g_0bcfdf") || t("g_0bcfdf") || "\uC0AD\uC81C \uBC0F \uC774\uC804\uC744 \uD655\uC815\uD558\uB824\uBA74 \"\uB9C8\uC774\uADF8\uB808\uC774\uC158\"\uC774\uB77C\uACE0 \uC785\uB825\uD574\uC8FC\uC138\uC694.");
-          if (secondConfirm !== (t("g_64e330") || t("g_64e330") || t("g_64e330") || t("g_64e330") || t("g_64e330") || "\uB9C8\uC774\uADF8\uB808\uC774\uC158")) {
-            alert(t("g_8b32bf") || t("g_8b32bf") || t("g_8b32bf") || t("g_8b32bf") || t("g_8b32bf") || "\uC785\uB825\uC774 \uC62C\uBC14\uB974\uC9C0 \uC54A\uC544 \uCDE8\uC18C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+          const secondConfirm = window.prompt(t("g_0bcfdf") || "\uC0AD\uC81C \uBC0F \uC774\uC804\uC744 \uD655\uC815\uD558\uB824\uBA74 \"\uB9C8\uC774\uADF8\uB808\uC774\uC158\"\uC774\uB77C\uACE0 \uC785\uB825\uD574\uC8FC\uC138\uC694.");
+          if (secondConfirm !== (t("g_64e330") || "\uB9C8\uC774\uADF8\uB808\uC774\uC158")) {
+            alert(t("g_8b32bf") || "\uC785\uB825\uC774 \uC62C\uBC14\uB974\uC9C0 \uC54A\uC544 \uCDE8\uC18C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
             return;
           }
         } else {
@@ -124,13 +124,13 @@ export default function DataMigrationTab() {
             fontWeight: 'bold',
             marginBottom: '4px'
           }}>
-                            {isDryRun ? t("g_b107ef") || t("g_b107ef") || t("g_b107ef") || t("g_b107ef") || t("g_b107ef") || "\uD83D\uDD0D \uAC80\uC99D \uBAA8\uB4DC (Dry Run)" : t("g_dde952") || t("g_dde952") || t("g_dde952") || t("g_dde952") || t("g_dde952") || "\u26A0\uFE0F \uC2E4\uC81C \uB9C8\uC774\uADF8\uB808\uC774\uC158 & \uCD08\uAE30\uD654 \uBAA8\uB4DC"}
+                            {isDryRun ? t("g_b107ef") || "\uD83D\uDD0D \uAC80\uC99D \uBAA8\uB4DC (Dry Run)" : t("g_dde952") || "\u26A0\uFE0F \uC2E4\uC81C \uB9C8\uC774\uADF8\uB808\uC774\uC158 & \uCD08\uAE30\uD654 \uBAA8\uB4DC"}
                         </div>
                         <div style={{
             fontSize: '0.85rem',
             opacity: 0.8
           }}>
-                            {isDryRun ? t("g_6eb8ad") || t("g_6eb8ad") || t("g_6eb8ad") || t("g_6eb8ad") || t("g_6eb8ad") || "\uC2E4\uC81C \uB370\uC774\uD130 \uBCC0\uACBD \uC5C6\uC774 CSV \uD30C\uC77C \uD615\uC2DD\uB9CC \uAC80\uC99D\uD569\uB2C8\uB2E4." : t("g_5e513a") || t("g_5e513a") || t("g_5e513a") || t("g_5e513a") || t("g_5e513a") || "\uAE30\uC874 \uB370\uC774\uD130\uB97C \uBAA8\uB450 \uC9C0\uC6B0\uACE0 CSV \uAE30\uBC18\uC73C\uB85C \uC0C8\uB85C \uC2DC\uC791\uD569\uB2C8\uB2E4. (\uD68C\uC6D0/\uB9E4\uCD9C/\uCD9C\uC11D/\uD478\uC2DC \uC0AD\uC81C)"}
+                            {isDryRun ? t("g_6eb8ad") || "\uC2E4\uC81C \uB370\uC774\uD130 \uBCC0\uACBD \uC5C6\uC774 CSV \uD30C\uC77C \uD615\uC2DD\uB9CC \uAC80\uC99D\uD569\uB2C8\uB2E4." : t("g_5e513a") || "\uAE30\uC874 \uB370\uC774\uD130\uB97C \uBAA8\uB450 \uC9C0\uC6B0\uACE0 CSV \uAE30\uBC18\uC73C\uB85C \uC0C8\uB85C \uC2DC\uC791\uD569\uB2C8\uB2E4. (\uD68C\uC6D0/\uB9E4\uCD9C/\uCD9C\uC11D/\uD478\uC2DC \uC0AD\uC81C)"}
                         </div>
                     </div>
                 </label>
@@ -190,9 +190,9 @@ export default function DataMigrationTab() {
         fontWeight: 'bold',
         marginBottom: '16px'
       }}>
-                        {migrationStatus === 'uploading' && (t("g_6a8296") || t("g_6a8296") || t("g_6a8296") || t("g_6a8296") || t("g_6a8296") || "CSV \uD30C\uC77C \uC77D\uB294 \uC911...")}
-                        {migrationStatus === 'processing' && `마이그레이션 진행 중 (${isDryRun ? t("g_cecc21") || t("g_cecc21") || t("g_cecc21") || t("g_cecc21") || t("g_cecc21") || "\uAC80\uC99D \uBAA8\uB4DC" : t("g_dd1366") || t("g_dd1366") || t("g_dd1366") || t("g_dd1366") || t("g_dd1366") || "\uC2E4\uC81C \uBAA8\uB4DC"})`}
-                        {migrationStatus === 'cleaning' && (t("g_d60c4d") || t("g_d60c4d") || t("g_d60c4d") || t("g_d60c4d") || t("g_d60c4d") || "\uAE30\uC874 \uB370\uC774\uD130 \uC0AD\uC81C \uC911...")}
+                        {migrationStatus === 'uploading' && (t("g_6a8296") || "CSV \uD30C\uC77C \uC77D\uB294 \uC911...")}
+                        {migrationStatus === 'processing' && `마이그레이션 진행 중 (${isDryRun ? t("g_cecc21") || "\uAC80\uC99D \uBAA8\uB4DC" : t("g_dd1366") || "\uC2E4\uC81C \uBAA8\uB4DC"})`}
+                        {migrationStatus === 'cleaning' && (t("g_d60c4d") || "\uAE30\uC874 \uB370\uC774\uD130 \uC0AD\uC81C \uC911...")}
                     </div>
                     {migrationStatus === 'processing' && <>
                             <div style={{
@@ -238,7 +238,7 @@ export default function DataMigrationTab() {
                             <h3 style={{
             fontSize: '1.1rem',
             fontWeight: 'bold'
-          }}>{t("g_7004eb") || t("g_7004eb") || t("g_7004eb") || t("g_7004eb") || t("g_7004eb") || "\uB9C8\uC774\uADF8\uB808\uC774\uC158 \uC644\uB8CC"}{isDryRun && (t("g_208a0b") || t("g_208a0b") || t("g_208a0b") || t("g_208a0b") || t("g_208a0b") || "(\uAC80\uC99D \uBAA8\uB4DC)")}
+          }}>{t("g_7004eb") || "\uB9C8\uC774\uADF8\uB808\uC774\uC158 \uC644\uB8CC"}{isDryRun && (t("g_208a0b") || "(\uAC80\uC99D \uBAA8\uB4DC)")}
                             </h3>
                         </div>
                         <div style={{
@@ -330,7 +330,7 @@ export default function DataMigrationTab() {
           marginBottom: '12px'
         }}>
                                 <WarningCircle size={20} color="#F43F5E" />
-                                <strong>{t("g_3ccf0e") || t("g_3ccf0e") || t("g_3ccf0e") || t("g_3ccf0e") || t("g_3ccf0e") || "\uC5D0\uB7EC \uB85C\uADF8 ("}{results.errors.length}{t("g_bcbcd4") || t("g_bcbcd4") || t("g_bcbcd4") || t("g_bcbcd4") || t("g_bcbcd4") || "\uAC74)"}</strong>
+                                <strong>{t("g_3ccf0e") || "\uC5D0\uB7EC \uB85C\uADF8 ("}{results.errors.length}{t("g_bcbcd4") || "\uAC74)"}</strong>
                             </div>
                             {results.errors.map((err, idx) => <div key={idx} style={{
           padding: '8px',

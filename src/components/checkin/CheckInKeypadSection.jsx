@@ -13,6 +13,7 @@ const CheckInKeypadSection = memo(({
   handleClear,
   handleSubmit
 }) => {
+    const t = useLanguageStore(s => s.t);
     return <div className="checkin-keypad-section" style={{
     position: 'relative',
     background: 'transparent',

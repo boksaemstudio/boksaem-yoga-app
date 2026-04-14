@@ -33,7 +33,7 @@ const SmartDataImporter = ({
     label: t("g_6a7c04") || "\uAC00\uACA9\uD45C (\uC774\uBBF8\uC9C0)",
     type: 'image'
   }];
-  const currentTabInfo = tabs.find(t => t.id === activeTab);
+  const currentTabInfo = tabs.find(tab => tab.id === activeTab);
   const handleFileChange = e => {
     const selectedFile = e.target.files[0];
     if (selectedFile) processFile(selectedFile);

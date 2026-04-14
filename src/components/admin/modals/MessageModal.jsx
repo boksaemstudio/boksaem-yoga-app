@@ -14,7 +14,7 @@ const MessageModal = ({
     if (!messageText) return;
     const isDemoSite = window.location.hostname.includes('passflow-demo') || localStorage.getItem('lastStudioId') === 'demo-yoga';
     if (isDemoSite) {
-      alert(t("g_233984") || t("g_233984") || t("g_233984") || t("g_233984") || t("g_233984") || "\uB370\uBAA8 \uD658\uACBD\uC5D0\uC11C\uB294 \uBA54\uC2DC\uC9C0 \uBC1C\uC1A1 \uAE30\uB2A5\uC774 \uC81C\uD55C\uB418\uC5B4 \uC788\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_233984") || "\uB370\uBAA8 \uD658\uACBD\uC5D0\uC11C\uB294 \uBA54\uC2DC\uC9C0 \uBC1C\uC1A1 \uAE30\uB2A5\uC774 \uC81C\uD55C\uB418\uC5B4 \uC788\uC2B5\uB2C8\uB2E4.");
       return;
     }
     try {
@@ -24,12 +24,12 @@ const MessageModal = ({
       onClose();
     } catch (error) {
       console.error('[MessageModal] Failed to send message:', error);
-      alert(t("g_83d946") || t("g_83d946") || t("g_83d946") || t("g_83d946") || t("g_83d946") || "\uBA54\uC2DC\uC9C0 \uC804\uC1A1\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_83d946") || "\uBA54\uC2DC\uC9C0 \uC804\uC1A1\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");
     }
   };
   return <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <h2 className="modal-title">{member.name}{t("g_7c65db") || t("g_7c65db") || t("g_7c65db") || t("g_7c65db") || t("g_7c65db") || "\uB2D8\uC5D0\uAC8C \uBA54\uC2DC\uC9C0 \uC804\uC1A1"}</h2>
+                <h2 className="modal-title">{member.name}{t("g_7c65db") || "\uB2D8\uC5D0\uAC8C \uBA54\uC2DC\uC9C0 \uC804\uC1A1"}</h2>
                 <p style={{
         marginBottom: '15px',
         fontSize: '0.9rem',

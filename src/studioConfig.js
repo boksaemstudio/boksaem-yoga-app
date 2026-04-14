@@ -7,12 +7,12 @@ import { useLanguageStore } from './stores/useLanguageStore';
 export const STUDIO_CONFIG = {
   // 1. Identity Module (브랜드 정체성) — 새 요가원 기본값
   IDENTITY: {
-    NAME: t("g_76cf3b") || t("g_76cf3b") || t("g_76cf3b") || t("g_76cf3b") || t("g_76cf3b") || "\uC694\uAC00 \uC2A4\uD29C\uB514\uC624",
+    NAME: "\uC694\uAC00 \uC2A4\uD29C\uB514\uC624",
     NAME_ENGLISH: "Yoga Studio",
     LOGO_TEXT: "YOGA",
-    SLOGAN: t("g_0b9a13") || t("g_0b9a13") || t("g_0b9a13") || t("g_0b9a13") || t("g_0b9a13") || "\uB098\uB97C \uB9CC\uB098\uB294 \uACE0\uC694\uD55C \uC2DC\uAC04",
-    DESCRIPTION: t("g_b54e96") || t("g_b54e96") || t("g_b54e96") || t("g_b54e96") || t("g_b54e96") || "\uC694\uAC00\uC640 \uD568\uAED8\uD558\uB294 \uAC74\uAC15\uD55C \uC77C\uC0C1",
-    APP_VERSION: "2026.04.14 13:54",
+    SLOGAN: "\uB098\uB97C \uB9CC\uB098\uB294 \uACE0\uC694\uD55C \uC2DC\uAC04",
+    DESCRIPTION: "\uC694\uAC00\uC640 \uD568\uAED8\uD558\uB294 \uAC74\uAC15\uD55C \uC77C\uC0C1",
+    APP_VERSION: "2026.04.14 22:50",
     FAVICON: "/favicon.ico"
   },
   // 2. Operational Policy Engine (운영 정책) — 합리적 기본값
@@ -85,36 +85,36 @@ export const STUDIO_CONFIG = {
   },
   // 4. UI 및 표시 정책 — 기본 수업 유형
   SCHEDULE_LEGEND: [{
-    label: t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || "\uC77C\uBC18",
+    label: "\uC77C\uBC18",
     color: '#FFFFFF',
     border: '#DDDDDD'
   }],
   MEMBERSHIP_TYPE_MAP: {
-    'general': t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || "\uC77C\uBC18",
-    'intensive': t("g_75bba0") || t("g_75bba0") || t("g_75bba0") || t("g_75bba0") || t("g_75bba0") || "\uC2EC\uD654",
-    'advanced': t("g_75bba0") || t("g_75bba0") || t("g_75bba0") || t("g_75bba0") || t("g_75bba0") || "\uC2EC\uD654",
-    'kids': t("g_94eab8") || t("g_94eab8") || t("g_94eab8") || t("g_94eab8") || t("g_94eab8") || "\uD0A4\uC988",
-    'kids_flying': t("g_036602") || t("g_036602") || t("g_036602") || t("g_036602") || t("g_036602") || "\uD0A4\uC988\uD50C\uB77C\uC789",
-    'pregnancy': t("g_e65f07") || t("g_e65f07") || t("g_e65f07") || t("g_e65f07") || t("g_e65f07") || "\uC784\uC0B0\uBD80",
-    'prenatal': t("g_55b818") || t("g_55b818") || t("g_55b818") || t("g_55b818") || t("g_55b818") || "\uC784\uC0B0\uBD80\uC694\uAC00",
-    'sat_hatha': t("g_b130cf") || t("g_b130cf") || t("g_b130cf") || t("g_b130cf") || t("g_b130cf") || "\uD558\uD0C0\uC778\uD150\uC2DC\uBE0C",
-    'saturday_hatha': t("g_b130cf") || t("g_b130cf") || t("g_b130cf") || t("g_b130cf") || t("g_b130cf") || "\uD558\uD0C0\uC778\uD150\uC2DC\uBE0C",
+    'general': "\uC77C\uBC18",
+    'intensive': "\uC2EC\uD654",
+    'advanced': "\uC2EC\uD654",
+    'kids': "\uD0A4\uC988",
+    'kids_flying': "\uD0A4\uC988\uD50C\uB77C\uC789",
+    'pregnancy': "\uC784\uC0B0\uBD80",
+    'prenatal': "\uC784\uC0B0\uBD80\uC694\uAC00",
+    'sat_hatha': "\uD558\uD0C0\uC778\uD150\uC2DC\uBE0C",
+    'saturday_hatha': "\uD558\uD0C0\uC778\uD150\uC2DC\uBE0C",
     'ttc': 'TTC',
-    'TTC': t("g_fc0473") || t("g_fc0473") || t("g_fc0473") || t("g_fc0473") || t("g_fc0473") || "TTC (\uC9C0\uB3C4\uC790\uACFC\uC815)"
+    'TTC': "TTC (\uC9C0\uB3C4\uC790\uACFC\uC815)"
   },
   // 5. AI Persona Layer (AI 성격 설정) — 범용
   AI_CONFIG: {
     NAME: "AI",
     PERSONALITY: "Guide",
     TONE: "Traditional & Warm",
-    KEYWORDS: [t("g_dacc84") || t("g_dacc84") || t("g_dacc84") || t("g_dacc84") || t("g_dacc84") || "\uB098\uB9C8\uC2A4\uD14C", t("g_98ed1d") || t("g_98ed1d") || t("g_98ed1d") || t("g_98ed1d") || t("g_98ed1d") || "\uD504\uB77C\uB098", t("g_6f531d") || t("g_6f531d") || t("g_6f531d") || t("g_6f531d") || t("g_6f531d") || "\uD0C0\uD30C\uC2A4", t("g_5476c3") || t("g_5476c3") || t("g_5476c3") || t("g_5476c3") || t("g_5476c3") || "\uC0AC\uD2F0", t("g_2dcbae") || t("g_2dcbae") || t("g_2dcbae") || t("g_2dcbae") || t("g_2dcbae") || "\uC0AC\uB2E4\uB098"],
+    KEYWORDS: ["\uB098\uB9C8\uC2A4\uD14C", "\uD504\uB77C\uB098", "\uD0C0\uD30C\uC2A4", "\uC0AC\uD2F0", "\uC0AC\uB2E4\uB098"],
     ENABLE_ENHANCED_MESSAGES: true,
-    FALLBACK_QUOTES: [t("g_e68c8a") || t("g_e68c8a") || t("g_e68c8a") || t("g_e68c8a") || t("g_e68c8a") || "\uB9E4\uD2B8 \uC704\uC5D0\uC11C \uB098\uB97C \uB9CC\uB098\uB294 \uC18C\uC911\uD55C \uC2DC\uAC04\uC785\uB2C8\uB2E4.", t("g_677d22") || t("g_677d22") || t("g_677d22") || t("g_677d22") || t("g_677d22") || "\uC624\uB298\uB3C4 \uD68C\uC6D0\uB4E4\uC5D0\uAC8C \uB530\uB73B\uD55C \uC5D0\uB108\uC9C0\uB97C \uC804\uD574\uC8FC\uC138\uC694.", t("g_80042a") || t("g_80042a") || t("g_80042a") || t("g_80042a") || t("g_80042a") || "\uD638\uD761\uC744 \uD1B5\uD574 \uB9C8\uC74C\uC758 \uD3C9\uC628\uC744 \uCC3E\uC73C\uC138\uC694.", t("g_0dac94") || t("g_0dac94") || t("g_0dac94") || t("g_0dac94") || t("g_0dac94") || "\uC624\uB298 \uD558\uB8E8\uB3C4 \uC990\uAC70\uC6B4 \uC218\uB828 \uB418\uC138\uC694!"]
+    FALLBACK_QUOTES: ["\uB9E4\uD2B8 \uC704\uC5D0\uC11C \uB098\uB97C \uB9CC\uB098\uB294 \uC18C\uC911\uD55C \uC2DC\uAC04\uC785\uB2C8\uB2E4.", "\uC624\uB298\uB3C4 \uD68C\uC6D0\uB4E4\uC5D0\uAC8C \uB530\uB73B\uD55C \uC5D0\uB108\uC9C0\uB97C \uC804\uD574\uC8FC\uC138\uC694.", "\uD638\uD761\uC744 \uD1B5\uD574 \uB9C8\uC74C\uC758 \uD3C9\uC628\uC744 \uCC3E\uC73C\uC138\uC694.", "\uC624\uB298 \uD558\uB8E8\uB3C4 \uC990\uAC70\uC6B4 \uC218\uB828 \uB418\uC138\uC694!"]
   },
   // 6. 지점 설정 — 기본 1개 지점
   BRANCHES: [{
     id: 'main',
-    name: t("g_5d12a6") || t("g_5d12a6") || t("g_5d12a6") || t("g_5d12a6") || t("g_5d12a6") || "\uBCF8\uC810",
+    name: "\uBCF8\uC810",
     isMain: true
   }],
   // 7. 브랜딩 및 테마

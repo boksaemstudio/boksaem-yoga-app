@@ -28,7 +28,7 @@ const AttendanceTab = ({
     return `${year}-${month}-${day}`;
   };
   const [manualDate, setManualDate] = useState(getSafeToday());
-  const [manualClassName, setManualClassName] = useState(t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || "\uC790\uC728\uC218\uB828");
+  const [manualClassName, setManualClassName] = useState(t("g_2b3da3") || "\uC790\uC728\uC218\uB828");
   const [manualBranch, setManualBranch] = useState(member.homeBranch || (branches.length > 0 ? branches[0].id : ''));
   const [dailyClasses, setDailyClasses] = useState([]);
 
@@ -51,11 +51,11 @@ const AttendanceTab = ({
   const classOptions = useMemo(() => {
     // 자율수련 포함 - 선택된 지점의 이름 찾기
     const options = [{
-      value: t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || "\uC790\uC728\uC218\uB828",
-      label: t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || "\uC790\uC728\uC218\uB828",
+      value: t("g_2b3da3") || "\uC790\uC728\uC218\uB828",
+      label: t("g_2b3da3") || "\uC790\uC728\uC218\uB828",
       time: undefined,
       instructor: undefined,
-      title: t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || "\uC790\uC728\uC218\uB828"
+      title: t("g_2b3da3") || "\uC790\uC728\uC218\uB828"
     }];
     if (dailyClasses.length > 0) {
       dailyClasses.forEach(cls => {
@@ -80,14 +80,14 @@ const AttendanceTab = ({
 
   // 지점이나 날짜 변경 시 수업 선택 초기화
   useEffect(() => {
-    setManualClassName(t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || "\uC790\uC728\uC218\uB828");
+    setManualClassName(t("g_2b3da3") || "\uC790\uC728\uC218\uB828");
   }, [manualBranch, manualDate]);
   return <div>
             <h3 style={{
       color: 'var(--primary-gold)',
       marginBottom: '15px',
       fontSize: '1rem'
-    }}>{t("g_414864") || t("g_414864") || t("g_414864") || t("g_414864") || t("g_414864") || "\uC218\uB3D9 \uCD9C\uC11D \uCC98\uB9AC"}</h3>
+    }}>{t("g_414864") || "\uC218\uB3D9 \uCD9C\uC11D \uCC98\uB9AC"}</h3>
             <div style={{
       background: 'rgba(255,255,255,0.05)',
       padding: '15px',
@@ -122,8 +122,8 @@ const AttendanceTab = ({
                 <button onClick={() => {
         const selectedInfo = classOptions.find(opt => opt.value === manualClassName) || {
           time: '10:00',
-          instructor: t("g_0cb522") || t("g_0cb522") || t("g_0cb522") || t("g_0cb522") || t("g_0cb522") || "\uAD00\uB9AC\uC790",
-          title: t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || "\uC790\uC728\uC218\uB828"
+          instructor: t("g_0cb522") || "\uAD00\uB9AC\uC790",
+          title: t("g_2b3da3") || "\uC790\uC728\uC218\uB828"
         };
         // [FIX] title(수업명)을 넘기도록 수정 (value는 이제 'time|title' 형태이므로)
         const className = selectedInfo.title || manualClassName;
@@ -140,7 +140,7 @@ const AttendanceTab = ({
         cursor: isSubmitting ? 'not-allowed' : 'pointer',
         opacity: isSubmitting ? 0.6 : 1
       }}>
-                    {isSubmitting ? t("g_a8d064") || t("g_a8d064") || t("g_a8d064") || t("g_a8d064") || t("g_a8d064") || "\uCC98\uB9AC \uC911..." : t("g_b31acb") || t("g_b31acb") || t("g_b31acb") || t("g_b31acb") || t("g_b31acb") || "\uCD9C\uC11D"}
+                    {isSubmitting ? t("g_a8d064") || "\uCC98\uB9AC \uC911..." : t("g_b31acb") || "\uCD9C\uC11D"}
                 </button>
             </div>
 

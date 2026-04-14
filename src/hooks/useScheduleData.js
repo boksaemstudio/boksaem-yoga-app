@@ -12,6 +12,7 @@ import * as bookingService from '../services/bookingService';
  * @returns {{ year, month, loading, monthlyClasses, scheduleStatus, images, instructors, classTypes, classLevels, monthlyBookings, handlePrevMonth, handleNextMonth, loadMonthlyData, handleCreateStandard, handleCopyPrevMonth, handleReset, confirmReset, handleOpenRestore, handleRestoreBackup, saveDayClasses, backupList, showResetConfirm, setShowResetConfirm, showRestoreModal, setShowRestoreModal }}
  */
 export function useScheduleData(branchId, config) {
+  const t = useLanguageStore(s => s.t);
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
@@ -103,11 +104,11 @@ export function useScheduleData(branchId, config) {
     setLoading(true);
     try {
       const res = await storageService.createMonthlySchedule(branchId, year, month);
-      alert(res.message || t("g_f03be7") || t("g_f03be7") || t("g_f03be7") || t("g_f03be7") || t("g_f03be7") || "\uD45C\uC900 \uC2DC\uAC04\uD45C\uAC00 \uC0DD\uC131\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+      alert(res.message || t("g_f03be7") || "\uD45C\uC900 \uC2DC\uAC04\uD45C\uAC00 \uC0DD\uC131\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
       await loadMonthlyData();
     } catch (error) {
       console.error("Error creating standard schedule:", error);
-      alert((t("g_9322f6") || t("g_9322f6") || t("g_9322f6") || t("g_9322f6") || t("g_9322f6") || "\uC0DD\uC131 \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4: ") + error.message);
+      alert((t("g_9322f6") || "\uC0DD\uC131 \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4: ") + error.message);
     } finally {
       setLoading(false);
     }
@@ -121,7 +122,7 @@ export function useScheduleData(branchId, config) {
     setLoading(true);
     try {
       await storageService.copyMonthlySchedule(branchId, prevYear, prevMonth, year, month);
-      alert(t("g_a4f100") || t("g_a4f100") || t("g_a4f100") || t("g_a4f100") || t("g_a4f100") || "\uC774\uC804 \uB2EC \uB0B4\uC6A9\uC744 \uBC14\uD0D5\uC73C\uB85C \uC2A4\uCF00\uC904\uC774 \uC0DD\uC131\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_a4f100") || "\uC774\uC804 \uB2EC \uB0B4\uC6A9\uC744 \uBC14\uD0D5\uC73C\uB85C \uC2A4\uCF00\uC904\uC774 \uC0DD\uC131\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
       await loadMonthlyData();
     } catch (e) {
       console.error(e);
@@ -136,11 +137,11 @@ export function useScheduleData(branchId, config) {
     setLoading(true);
     try {
       await storageService.deleteMonthlySchedule(branchId, year, month);
-      alert(t("g_fda046") || t("g_fda046") || t("g_fda046") || t("g_fda046") || t("g_fda046") || "\uC2A4\uCF00\uC904\uC774 \uCD08\uAE30\uD654\uB418\uC5C8\uC2B5\uB2C8\uB2E4.\n(\uD639\uC2DC \uC2E4\uC218\uB85C \uC9C0\uC6E0\uB2E4\uBA74 [\uBC31\uC5C5 \uBCF5\uC6D0] \uBC84\uD2BC\uC73C\uB85C \uC0B4\uB9B4 \uC218 \uC788\uC2B5\uB2C8\uB2E4)");
+      alert(t("g_fda046") || "\uC2A4\uCF00\uC904\uC774 \uCD08\uAE30\uD654\uB418\uC5C8\uC2B5\uB2C8\uB2E4.\n(\uD639\uC2DC \uC2E4\uC218\uB85C \uC9C0\uC6E0\uB2E4\uBA74 [\uBC31\uC5C5 \uBCF5\uC6D0] \uBC84\uD2BC\uC73C\uB85C \uC0B4\uB9B4 \uC218 \uC788\uC2B5\uB2C8\uB2E4)");
       await loadMonthlyData();
     } catch (error) {
       console.error("Reset failed:", error);
-      alert((t("g_8b4400") || t("g_8b4400") || t("g_8b4400") || t("g_8b4400") || t("g_8b4400") || "\uCD08\uAE30\uD654 \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4: ") + error.message);
+      alert((t("g_8b4400") || "\uCD08\uAE30\uD654 \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4: ") + error.message);
     } finally {
       setLoading(false);
     }
@@ -152,22 +153,22 @@ export function useScheduleData(branchId, config) {
       setBackupList(list);
       setShowRestoreModal(true);
     } catch (e) {
-      alert(t("g_3bf229") || t("g_3bf229") || t("g_3bf229") || t("g_3bf229") || t("g_3bf229") || "\uBC31\uC5C5 \uBAA9\uB85D\uC744 \uBD88\uB7EC\uC624\uB294\uB370 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_3bf229") || "\uBC31\uC5C5 \uBAA9\uB85D\uC744 \uBD88\uB7EC\uC624\uB294\uB370 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");
     } finally {
       setLoading(false);
     }
   };
   const handleRestoreBackup = async backupId => {
-    if (!window.confirm(t("g_1d92ca") || t("g_1d92ca") || t("g_1d92ca") || t("g_1d92ca") || t("g_1d92ca") || "\uC120\uD0DD\uD55C \uC774\uC804 \uC2A4\uCF00\uC904\uB85C \uBCF5\uC6D0\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?\n\uD604\uC7AC \uC2DC\uAC04\uD45C \uB0B4\uC6A9\uC774 \uB36E\uC5B4\uC50C\uC6CC\uC9D1\uB2C8\uB2E4.")) return;
+    if (!window.confirm(t("g_1d92ca") || "\uC120\uD0DD\uD55C \uC774\uC804 \uC2A4\uCF00\uC904\uB85C \uBCF5\uC6D0\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?\n\uD604\uC7AC \uC2DC\uAC04\uD45C \uB0B4\uC6A9\uC774 \uB36E\uC5B4\uC50C\uC6CC\uC9D1\uB2C8\uB2E4.")) return;
     setShowRestoreModal(false);
     setLoading(true);
     try {
       await storageService.restoreMonthlyBackup(branchId, year, month, backupId);
-      alert(t("g_0c3745") || t("g_0c3745") || t("g_0c3745") || t("g_0c3745") || t("g_0c3745") || "\uC2A4\uCF00\uC904\uC774 \uC6D0\uC0C1\uBCF5\uAD6C \uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_0c3745") || "\uC2A4\uCF00\uC904\uC774 \uC6D0\uC0C1\uBCF5\uAD6C \uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
       await loadMonthlyData();
     } catch (e) {
       console.error("Restore failed:", e);
-      alert(t("g_c7e408") || t("g_c7e408") || t("g_c7e408") || t("g_c7e408") || t("g_c7e408") || "\uBCF5\uC6D0 \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_c7e408") || "\uBCF5\uC6D0 \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.");
     } finally {
       setLoading(false);
     }
@@ -201,7 +202,7 @@ export function useScheduleData(branchId, config) {
       if (applyToAll) {
         const targetDate = new Date(selectedDate);
         const targetDayIndex = targetDate.getDay();
-        const dayNames = [t("g_95e431") || t("g_95e431") || t("g_95e431") || t("g_95e431") || t("g_95e431") || "\uC77C", t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || "\uC6D4", t("g_74d3f7") || t("g_74d3f7") || t("g_74d3f7") || t("g_74d3f7") || t("g_74d3f7") || "\uD654", t("g_cae82d") || t("g_cae82d") || t("g_cae82d") || t("g_cae82d") || t("g_cae82d") || "\uC218", t("g_d5f699") || t("g_d5f699") || t("g_d5f699") || t("g_d5f699") || t("g_d5f699") || "\uBAA9", t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || "\uAE08", t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || "\uD1A0"];
+        const dayNames = [t("g_95e431") || "\uC77C", t("g_5b51dd") || "\uC6D4", t("g_74d3f7") || "\uD654", t("g_cae82d") || "\uC218", t("g_d5f699") || "\uBAA9", t("g_cef92d") || "\uAE08", t("g_ccc0dc") || "\uD1A0"];
         const targetDayName = dayNames[targetDayIndex];
         const datesToUpdate = [];
         const tempDate = new Date(year, month - 1, 1);
@@ -236,7 +237,7 @@ export function useScheduleData(branchId, config) {
       return true;
     } catch (error) {
       console.error("Error saving daily classes:", error);
-      alert(t("g_12ba3c") || t("g_12ba3c") || t("g_12ba3c") || t("g_12ba3c") || t("g_12ba3c") || "\uC800\uC7A5 \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_12ba3c") || "\uC800\uC7A5 \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.");
       return false;
     } finally {
       setLoading(false);

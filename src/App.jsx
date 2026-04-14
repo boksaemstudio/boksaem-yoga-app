@@ -14,6 +14,7 @@ import { auth } from './firebase';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { useNetworkStatus } from './hooks/useNetworkStatus';
 import { attendanceService } from './services/attendanceService';
+import { usePreventAppExit } from './hooks/usePreventAppExit';
 
 // Lazy load pages
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
@@ -33,22 +34,22 @@ const FeaturesPage = lazy(() => import('./pages/FeaturesPage'));
 const getLang = () => new URLSearchParams(window.location.search).get('lang') || 'ko';
 const loadingTexts = {
   ko: {
-    error: t("g_4a3c78") || t("g_4a3c78") || t("g_4a3c78") || "\u26A0\uFE0F \uC2DC\uC2A4\uD15C \uC624\uB958 \uBC1C\uC0DD",
-    errorDesc: t("g_30a896") || t("g_30a896") || t("g_30a896") || "\uC560\uD50C\uB9AC\uCF00\uC774\uC158\uC744 \uB85C\uB4DC\uD558\uB294 \uC911 \uBB38\uC81C\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.",
-    retry: t("g_40d1a4") || t("g_40d1a4") || t("g_40d1a4") || "\uC0C8\uB85C\uACE0\uCE68 \uBC0F \uCE90\uC2DC \uCD08\uAE30\uD654",
-    authCheck: t("g_67843b") || t("g_67843b") || t("g_67843b") || "\uC778\uC99D \uD655\uC778 \uC911...",
-    permCheck: t("g_11eed3") || t("g_11eed3") || t("g_11eed3") || "\uAD8C\uD55C \uD655\uC778 \uC911...",
-    accessDenied: t("g_ab52c5") || t("g_ab52c5") || t("g_ab52c5") || "\uD83D\uDD12 \uC811\uADFC \uAD8C\uD55C \uC5C6\uC74C",
-    accessDeniedDesc: t("g_b37f72") || t("g_b37f72") || t("g_b37f72") || "\uC774 \uC5C5\uC7A5\uC758 \uAD00\uB9AC\uC790 \uAD8C\uD55C\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
-    logoutBtn: t("g_9ab19a") || t("g_9ab19a") || t("g_9ab19a") || "\uB85C\uADF8\uC544\uC6C3",
-    superAdmin: t("g_2115ca") || t("g_2115ca") || t("g_2115ca") || "\uD83D\uDC51 \uC288\uD37C\uC5B4\uB4DC\uBBFC \uC804\uC6A9",
-    superAdminDesc: t("g_da41da") || t("g_da41da") || t("g_da41da") || "\uC774 \uD398\uC774\uC9C0\uB294 \uD50C\uB7AB\uD3FC \uAD00\uB9AC\uC790\uB9CC \uC811\uADFC\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
-    adminLogin: t("g_7cc44b") || t("g_7cc44b") || t("g_7cc44b") || "\uAD00\uB9AC\uC790 \uACC4\uC815 \uB85C\uADF8\uC778",
-    goHome: t("g_ff4936") || t("g_ff4936") || t("g_ff4936") || "\uD648\uC73C\uB85C \uC774\uB3D9",
-    demoSite: t("g_f2f16f") || t("g_f2f16f") || t("g_f2f16f") || "\uD83C\uDFAF \uB370\uBAA8 \uC0AC\uC774\uD2B8",
-    demoDesc: t("g_048429") || t("g_048429") || t("g_048429") || "\uB370\uBAA8 \uC0AC\uC774\uD2B8\uC5D0 \uC811\uC18D\uD569\uB2C8\uB2E4.",
-    demoAccess: t("g_dd9d7b") || t("g_dd9d7b") || t("g_dd9d7b") || "\uB370\uBAA8 \uC811\uC18D\uD558\uAE30",
-    demoPreparing: t("g_208ef9") || t("g_208ef9") || t("g_208ef9") || "\uB370\uBAA8 \uC0AC\uC774\uD2B8 \uC900\uBE44 \uC911..."
+    error: '⚠️ 시스템 오류 발생',
+    errorDesc: '애플리케이션을 로드하는 중 문제가 발생했습니다.',
+    retry: '새로고침 및 캐시 초기화',
+    authCheck: '인증 확인 중...',
+    permCheck: '권한 확인 중...',
+    accessDenied: '🔒 접근 권한 없음',
+    accessDeniedDesc: '이 업장의 관리자 권한이 없습니다.',
+    logoutBtn: '로그아웃',
+    superAdmin: '👑 슈퍼어드민 전용',
+    superAdminDesc: '이 페이지는 플랫폼 관리자만 접근할 수 있습니다.',
+    adminLogin: '관리자 계정 로그인',
+    goHome: '홈으로 이동',
+    demoSite: '🎯 데모 사이트',
+    demoDesc: '데모 사이트에 접속합니다.',
+    demoAccess: '데모 접속하기',
+    demoPreparing: '데모 사이트 준비 중...'
   },
   en: {
     error: '⚠️ System Error',
@@ -140,7 +141,7 @@ const LoadingScreen = () => {
             borderTop: `4px solid ${primary}`
           }}></div>
           <h2 className="global-loading-title" style={{ marginTop: '16px', fontSize: '1rem', color: 'var(--text-secondary)' }}>
-            {t('loading') || 'Loading...'}
+            {'Loading...'}
           </h2>
         </div>
     </div>
@@ -495,6 +496,13 @@ const HardReload = ({
   }, [target]);
   return <div className="auth-checking">Redirecting...</div>;
 };
+
+// [SaaS Global] PWA 뒤로가기 앱 종료 방지 컴포넌트
+const PWABackHandler = () => {
+  usePreventAppExit();
+  return null;
+};
+
 function App() {
   const t = useLanguageStore(s => s.t);
   // 네트워크 상태 트리거 마운트 (이벤트 콜러 역할)
@@ -526,6 +534,7 @@ function App() {
   return <BrowserRouter>
       <StudioProvider>
           <PWAProvider>
+            <PWABackHandler />
             <div className="app">
               <NotificationListener />
               <Routes>

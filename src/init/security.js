@@ -18,9 +18,10 @@ export function initAgentAdminMode() {
     };
     window.prompt = (msg, defaultVal) => {
       console.log('[Agent Mode] Auto-prompting:', msg);
-      if (msg.includes(t("g_64e330") || "\uB9C8\uC774\uADF8\uB808\uC774\uC158")) return t("g_64e330") || "\uB9C8\uC774\uADF8\uB808\uC774\uC158";
-      if (msg.includes(t("g_30e15a") || "\uC0AD\uC81C")) return t("g_30e15a") || "\uC0AD\uC81C";
-      return defaultVal || t("g_3ce813") || "\uD655\uC778";
+      const t = useLanguageStore.getState().t;
+      if (msg.includes(t("g_64e330") || "마이그레이션")) return t("g_64e330") || "마이그레이션";
+      if (msg.includes(t("g_30e15a") || "삭제")) return t("g_30e15a") || "삭제";
+      return defaultVal || t("g_3ce813") || "확인";
     };
     window.alert = msg => {
       console.log('[Agent Mode] Auto-alerting (Suppressed):', msg);

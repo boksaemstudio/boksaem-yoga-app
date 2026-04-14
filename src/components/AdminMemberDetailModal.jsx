@@ -65,23 +65,23 @@ const AdminMemberDetailModal = ({
   });
   const tabs = member.role === 'instructor' ? [{
     id: 'info',
-    label: t("g_426749") || t("g_426749") || t("g_426749") || t("g_426749") || t("g_426749") || "\uAC15\uC0AC \uC815\uBCF4",
+    label: t("g_426749") || "\uAC15\uC0AC \uC815\uBCF4",
     icon: <User size={20} />
   }] : [{
     id: 'info',
-    label: t("g_3da299") || t("g_3da299") || t("g_3da299") || t("g_3da299") || t("g_3da299") || "\uD68C\uC6D0\uC815\uBCF4",
+    label: t("g_3da299") || "\uD68C\uC6D0\uC815\uBCF4",
     icon: <User size={20} />
   }, {
     id: 'attendance',
-    label: t("g_81b9e4") || t("g_81b9e4") || t("g_81b9e4") || t("g_81b9e4") || t("g_81b9e4") || "\uCD9C\uC11D\uBD80",
+    label: t("g_81b9e4") || "\uCD9C\uC11D\uBD80",
     icon: <Calendar size={20} />
   }, {
     id: 'registration',
-    label: t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || "\uC7AC\uB4F1\uB85D",
+    label: t("g_763e2b") || "\uC7AC\uB4F1\uB85D",
     icon: <CreditCard size={20} />
   }, {
     id: 'messages',
-    label: t("g_918b33") || t("g_918b33") || t("g_918b33") || t("g_918b33") || t("g_918b33") || "\uBA54\uC2DC\uC9C0",
+    label: t("g_918b33") || "\uBA54\uC2DC\uC9C0",
     icon: <Chats size={20} />
   }];
   return <div className="modal-overlay" role="dialog" aria-modal="true" aria-label={`${member.name} 회원 상세`} style={{
@@ -100,23 +100,23 @@ const AdminMemberDetailModal = ({
                                 {getBranchName(member.homeBranch || member.branchId)}
                             </div>
 
-                            {member.pushEnabled !== false && pushTokens.some(t => t.memberId === member.id) && <div className="status-badge status-badge--push">
-                                    <BellRinging size={12} weight="fill" />{t("g_bf6c29") || t("g_bf6c29") || t("g_bf6c29") || t("g_bf6c29") || t("g_bf6c29") || "\uD478\uC2DC ON"}</div>}
+                            {member.pushEnabled !== false && pushTokens.some(tk => tk.memberId === member.id) && <div className="status-badge status-badge--push">
+                                    <BellRinging size={12} weight="fill" />{t("g_bf6c29") || "\uD478\uC2DC ON"}</div>}
 
                             {member.hasFaceDescriptor && <>
-                                    <div className="status-badge status-badge--face">{t("g_3d226c") || t("g_3d226c") || t("g_3d226c") || t("g_3d226c") || t("g_3d226c") || "\uD83D\uDCF8 AI \uC778\uC2DD \uAC00\uB2A5"}</div>
+                                    <div className="status-badge status-badge--face">{t("g_3d226c") || "\uD83D\uDCF8 AI \uC778\uC2DD \uAC00\uB2A5"}</div>
                                     {member.faceUpdatedAt && <span style={{
                 fontSize: '0.65rem',
                 opacity: 0.5,
                 fontWeight: 'normal',
                 transform: 'translateY(2px)'
-              }}>{t("g_f68a93") || t("g_f68a93") || t("g_f68a93") || t("g_f68a93") || t("g_f68a93") || "(\uD559\uC2B5\uC77C:"}{new Date(member.faceUpdatedAt).toLocaleDateString('ko-KR', {
+              }}>{t("g_f68a93") || "(\uD559\uC2B5\uC77C:"}{new Date(member.faceUpdatedAt).toLocaleDateString('ko-KR', {
                   timeZone: 'Asia/Seoul'
                 })})
                                         </span>}
                                 </>}
 
-                            {member.holdStatus === 'holding' && <div className="status-badge status-badge--holding">{t("g_1aeeda") || t("g_1aeeda") || t("g_1aeeda") || t("g_1aeeda") || t("g_1aeeda") || "\u23F8\uFE0F \uD640\uB529 \uC911"}{member.holdStartDate && `(${member.holdStartDate}~)`}
+                            {member.holdStatus === 'holding' && <div className="status-badge status-badge--holding">{t("g_1aeeda") || "\u23F8\uFE0F \uD640\uB529 \uC911"}{member.holdStartDate && `(${member.holdStartDate}~)`}
                                 </div>}
                         </h2>
                         {member.role === 'instructor' ? <div style={{
@@ -127,7 +127,7 @@ const AdminMemberDetailModal = ({
             gap: '8px',
             marginTop: '6px',
             fontWeight: 'bold'
-          }}>{t("g_fff89e") || t("g_fff89e") || t("g_fff89e") || t("g_fff89e") || t("g_fff89e") || "\uC120\uC0DD\uB2D8 (\uD478\uC2DC \uC218\uC2E0 \uC804\uC6A9 \uD504\uB85C\uD544)"}</div> : <div style={{
+          }}>{t("g_fff89e") || "\uC120\uC0DD\uB2D8 (\uD478\uC2DC \uC218\uC2E0 \uC804\uC6A9 \uD504\uB85C\uD544)"}</div> : <div style={{
             fontSize: '0.8rem',
             color: determineStatusColor(member),
             display: 'flex',
@@ -146,21 +146,21 @@ const AdminMemberDetailModal = ({
             }}>
                                     <span style={{
                 fontWeight: 'bold'
-              }}>{member.credits}{t("g_51d327") || t("g_51d327") || t("g_51d327") || t("g_51d327") || t("g_51d327") || "\uD68C \uB0A8\uC74C"}</span>
+              }}>{member.credits}{t("g_51d327") || "\uD68C \uB0A8\uC74C"}</span>
                                 </div>
-                                <span> | {member.endDate === 'TBD' ? t("g_227d2d") || t("g_227d2d") || t("g_227d2d") || t("g_227d2d") || t("g_227d2d") || "\uCCAB \uCD9C\uC11D \uC2DC \uAE30\uAC04 \uD655\uC815" : member.endDate ? `~ ${member.endDate}` : t("g_a1a0e2") || t("g_a1a0e2") || t("g_a1a0e2") || t("g_a1a0e2") || t("g_a1a0e2") || "\uB9CC\uB8CC\uC77C \uBBF8\uC124\uC815"}</span>
+                                <span> | {member.endDate === 'TBD' ? t("g_227d2d") || "\uCCAB \uCD9C\uC11D \uC2DC \uAE30\uAC04 \uD655\uC815" : member.endDate ? `~ ${member.endDate}` : t("g_a1a0e2") || "\uB9CC\uB8CC\uC77C \uBBF8\uC124\uC815"}</span>
                                 {(() => {
               const todayStr = new Date().toLocaleDateString('sv-SE', {
                 timeZone: 'Asia/Seoul'
               });
               if (member.startDate && member.startDate > todayStr) {
-                return <span className="status-badge--preregistered">{t("g_7c1bff") || t("g_7c1bff") || t("g_7c1bff") || t("g_7c1bff") || t("g_7c1bff") || "\uB300\uAE30 \uC911 (\uC120\uB4F1\uB85D)"}</span>;
+                return <span className="status-badge--preregistered">{t("g_7c1bff") || "\uB300\uAE30 \uC911 (\uC120\uB4F1\uB85D)"}</span>;
               }
               return null;
             })()}
                             </div>}
                     </div>
-                    <button onClick={handleSafeClose} className="detail-modal-close" aria-label={t("g_218e2a") || t("g_218e2a") || t("g_218e2a") || t("g_218e2a") || t("g_218e2a") || "\uB2EB\uAE30"}>
+                    <button onClick={handleSafeClose} className="detail-modal-close" aria-label={t("g_218e2a") || "\uB2EB\uAE30"}>
                         <X size={24} />
                     </button>
                 </div>
@@ -214,12 +214,12 @@ const AdminMemberDetailModal = ({
                         <h3 style={{
           color: 'white',
           margin: '0 0 15px 0'
-        }}>{t("g_7df5bb") || t("g_7df5bb") || t("g_7df5bb") || t("g_7df5bb") || t("g_7df5bb") || "\uBCC0\uACBD \uC0AC\uD56D \uD655\uC778"}</h3>
+        }}>{t("g_7df5bb") || "\uBCC0\uACBD \uC0AC\uD56D \uD655\uC778"}</h3>
                         <p style={{
           color: '#a1a1aa',
           fontSize: '0.9rem',
           marginBottom: '15px'
-        }}>{t("g_a7da98") || t("g_a7da98") || t("g_a7da98") || t("g_a7da98") || t("g_a7da98") || "\uC800\uC7A5\uD560 \uD56D\uBAA9\uC744 \uC120\uD0DD\uD574\uC8FC\uC138\uC694."}</p>
+        }}>{t("g_a7da98") || "\uC800\uC7A5\uD560 \uD56D\uBAA9\uC744 \uC120\uD0DD\uD574\uC8FC\uC138\uC694."}</p>
                         <div style={{
           maxHeight: '300px',
           overflowY: 'auto',
@@ -287,7 +287,7 @@ const AdminMemberDetailModal = ({
             border: '1px solid #52525b',
             color: '#a1a1aa',
             borderRadius: '8px'
-          }}>{t("g_d9de21") || t("g_d9de21") || t("g_d9de21") || t("g_d9de21") || t("g_d9de21") || "\uCDE8\uC18C"}</button>
+          }}>{t("g_d9de21") || "\uCDE8\uC18C"}</button>
                             <button onClick={() => {
             const d = {};
             selectedChangeKeys.forEach(key => {
@@ -299,7 +299,7 @@ const AdminMemberDetailModal = ({
             const hasImportantChange = selectedChangeKeys.has('credits') || selectedChangeKeys.has('endDate') || selectedChangeKeys.has('startDate');
             if (hasImportantChange) {
               const changes = pendingChanges.filter(c => selectedChangeKeys.has(c.key));
-              const lines = [`${member.name} 회원님, 수강권 정보가 변경되었습니다.`, '', ...changes.map(c => `• ${c.label}: ${c.oldValue} → ${c.newValue}`), '', t("g_0e7c16") || t("g_0e7c16") || t("g_0e7c16") || t("g_0e7c16") || t("g_0e7c16") || "\uD655\uC778 \uBD80\uD0C1\uB4DC\uB9BD\uB2C8\uB2E4 \uD83D\uDE4F"];
+              const lines = [`${member.name} 회원님, 수강권 정보가 변경되었습니다.`, '', ...changes.map(c => `• ${c.label}: ${c.oldValue} → ${c.newValue}`), '', t("g_0e7c16") || "\uD655\uC778 \uBD80\uD0C1\uB4DC\uB9BD\uB2C8\uB2E4 \uD83D\uDE4F"];
               setPrefillMessage(lines.join('\n'));
             }
             handleFinalSave(d);
@@ -315,7 +315,7 @@ const AdminMemberDetailModal = ({
             color: selectedChangeKeys.size > 0 ? 'black' : '#a1a1aa',
             fontWeight: 'bold'
           }}>
-                                {selectedChangeKeys.size}{t("g_76b147") || t("g_76b147") || t("g_76b147") || t("g_76b147") || t("g_76b147") || "\uAC1C \uBCC0\uACBD \uC800\uC7A5"}</button>
+                                {selectedChangeKeys.size}{t("g_76b147") || "\uAC1C \uBCC0\uACBD \uC800\uC7A5"}</button>
                         </div>
                     </div>
                 </div>}

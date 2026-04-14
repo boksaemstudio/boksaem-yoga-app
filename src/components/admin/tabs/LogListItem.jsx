@@ -32,7 +32,7 @@ const LogListItem = memo(({
   };
   const handleDelete = async e => {
     e.stopPropagation();
-    if (confirm(t("g_eb8a11") || t("g_eb8a11") || t("g_eb8a11") || t("g_eb8a11") || t("g_eb8a11") || "\uC774 \uCD9C\uC11D \uAE30\uB85D\uC744 \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) {
+    if (confirm(t("g_eb8a11") || "\uC774 \uCD9C\uC11D \uAE30\uB85D\uC744 \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) {
       const result = await storageService.deleteAttendance(log.id, true);
       if (result.success) {
         setTimeout(() => {
@@ -76,7 +76,7 @@ const LogListItem = memo(({
       }}>
                     <span style={{
           fontWeight: 'bold'
-        }}>{log.memberName || log.name || t("g_80601c") || t("g_80601c") || t("g_80601c") || t("g_80601c") || t("g_80601c") || "\uC54C \uC218 \uC5C6\uC74C"}</span>
+        }}>{log.memberName || log.name || t("g_80601c") || "\uC54C \uC218 \uC5C6\uC74C"}</span>
                     <span style={{
           fontSize: '0.7rem',
           color: 'var(--primary-gold)',
@@ -84,7 +84,7 @@ const LogListItem = memo(({
           padding: '1px 6px',
           borderRadius: '4px'
         }}>
-                        {log.className || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || "\uC77C\uBC18"}
+                        {log.className || t("g_8209e5") || "\uC77C\uBC18"}
                     </span>
                     <span className="badge" style={{
           fontSize: '0.65rem',
@@ -97,7 +97,7 @@ const LogListItem = memo(({
                         {getBranchName(log.branchId)}
                     </span>
 
-                    {log.status === 'denied' && <span className="status-badge status-badge--denied">{t("g_b6fead") || t("g_b6fead") || t("g_b6fead") || t("g_b6fead") || t("g_b6fead") || "\u26D4 \uCD9C\uC11D\uAC70\uBD80 ("}{log.denialReason === 'expired' ? t("g_94dcd3") || t("g_94dcd3") || t("g_94dcd3") || t("g_94dcd3") || t("g_94dcd3") || "\uAE30\uAC04\uB9CC\uB8CC" : t("g_7174c2") || t("g_7174c2") || t("g_7174c2") || t("g_7174c2") || t("g_7174c2") || "\uD69F\uC218\uC18C\uC9C4"})
+                    {log.status === 'denied' && <span className="status-badge status-badge--denied">{t("g_b6fead") || "\u26D4 \uCD9C\uC11D\uAC70\uBD80 ("}{log.denialReason === 'expired' ? t("g_94dcd3") || "\uAE30\uAC04\uB9CC\uB8CC" : t("g_7174c2") || "\uD69F\uC218\uC18C\uC9C4"})
                         </span>}
                     {isMultiAttMember && sessionRank && <span style={{
           fontSize: '0.6rem',
@@ -109,7 +109,7 @@ const LogListItem = memo(({
           fontWeight: '600',
           letterSpacing: '0.5px'
         }}>
-                            {sessionRank}{t("g_8a602f") || t("g_8a602f") || t("g_8a602f") || t("g_8a602f") || t("g_8a602f") || "\uD68C"}</span>}
+                            {sessionRank}{t("g_8a602f") || "\uD68C"}</span>}
                     {log.facialMatched && <span className="status-badge status-badge--facial-match" style={{
           display: 'flex',
           alignItems: 'center',
@@ -125,7 +125,7 @@ const LogListItem = memo(({
         marginTop: '2px',
         color: log.status === 'denied' ? '#ff4d4f' : 'inherit'
       }}>
-                    {log.status === 'denied' ? `출석 시도가 거부되었습니다 (${log.denialReason === 'expired' ? t("g_94dcd3") || t("g_94dcd3") || t("g_94dcd3") || t("g_94dcd3") || t("g_94dcd3") || "\uAE30\uAC04\uB9CC\uB8CC" : t("g_7174c2") || t("g_7174c2") || t("g_7174c2") || t("g_7174c2") || t("g_7174c2") || "\uD69F\uC218\uC18C\uC9C4"})` : log.action?.includes(t("g_b31acb") || t("g_b31acb") || t("g_b31acb") || t("g_b31acb") || t("g_b31acb") || "\uCD9C\uC11D") ? `${log.className || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || "\uC77C\uBC18"} 수업 참여 (${log.instructor || t("g_0cb522") || t("g_0cb522") || t("g_0cb522") || t("g_0cb522") || t("g_0cb522") || "\uAD00\uB9AC\uC790"} 선생님)` : log.action}
+                    {log.status === 'denied' ? `출석 시도가 거부되었습니다 (${log.denialReason === 'expired' ? t("g_94dcd3") || "\uAE30\uAC04\uB9CC\uB8CC" : t("g_7174c2") || "\uD69F\uC218\uC18C\uC9C4"})` : log.action?.includes(t("g_b31acb") || "\uCD9C\uC11D") ? `${log.className || t("g_8209e5") || "\uC77C\uBC18"} 수업 참여 (${log.instructor || t("g_0cb522") || "\uAD00\uB9AC\uC790"} 선생님)` : log.action}
                 </div>
             </div>
 

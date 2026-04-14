@@ -179,7 +179,7 @@ const OnboardingPage = () => {
 
   // CTA button config based on language
   const renderCTA = () => {
-    const t = useLanguageStore(s => s.t);
+
     if (t.ctaType === 'kakao') {
       return <a href={t.ctaUrl} target="_blank" rel="noopener noreferrer" style={{
         ...buttonStyle,
@@ -227,7 +227,7 @@ const OnboardingPage = () => {
     return null;
   };
   const renderStepIndicator = () => {
-    const t = useLanguageStore(s => s.t);
+
     const totalSteps = 2;
     const currentIdx = step - 1;
     if (step === 0 || step === 2) return null;
@@ -457,7 +457,7 @@ const OnboardingPage = () => {
               color: '#4ade80',
               marginBottom: '12px'
             }}>
-                                    🎉 {lang === 'ko' ? t("g_3c39b3") || t("g_3c39b3") || t("g_3c39b3") || "\uC2A4\uD29C\uB514\uC624\uAC00 \uC989\uC2DC \uC0DD\uC131\uB418\uC5C8\uC2B5\uB2C8\uB2E4!" : 'Your studio is ready!'}
+                                    🎉 {lang === 'ko' ? t("g_3c39b3") || "\uC2A4\uD29C\uB514\uC624\uAC00 \uC989\uC2DC \uC0DD\uC131\uB418\uC5C8\uC2B5\uB2C8\uB2E4!" : 'Your studio is ready!'}
                                 </div>
                                 <div style={{
               fontSize: '0.85rem',
@@ -473,7 +473,7 @@ const OnboardingPage = () => {
               color: '#94a3b8',
               marginBottom: '4px'
             }}>
-                                    {lang === 'ko' ? t("g_951da8") || t("g_951da8") || t("g_951da8") || "\u2705 2\uAC1C\uC6D4 \uBB34\uB8CC \uCCB4\uD5D8\uC774 \uC2DC\uC791\uB418\uC5C8\uC2B5\uB2C8\uB2E4" : '✅ Your 2-month free trial has started'}
+                                    {lang === 'ko' ? t("g_951da8") || "\u2705 2\uAC1C\uC6D4 \uBB34\uB8CC \uCCB4\uD5D8\uC774 \uC2DC\uC791\uB418\uC5C8\uC2B5\uB2C8\uB2E4" : '✅ Your 2-month free trial has started'}
                                 </div>
                             </div>}
 
@@ -559,7 +559,7 @@ const OnboardingPage = () => {
             textDecoration: 'none',
             marginBottom: '12px'
           }}>
-                                🚀 {lang === 'ko' ? t("g_1a2905") || t("g_1a2905") || t("g_1a2905") || "\uB0B4 \uC2A4\uD29C\uB514\uC624 \uBC14\uB85C \uC811\uC18D\uD558\uAE30" : 'Go to My Studio Now'}
+                                🚀 {lang === 'ko' ? t("g_1a2905") || "\uB0B4 \uC2A4\uD29C\uB514\uC624 \uBC14\uB85C \uC811\uC18D\uD558\uAE30" : 'Go to My Studio Now'}
                             </a>}
                         <button style={{
             ...buttonStyle,

@@ -52,13 +52,13 @@ const AdminRevenue = ({
           fontSize: '1.8rem',
           fontWeight: 700
         }}>
-                        {currentDate.getFullYear()}{t("g_e29d2c") || t("g_e29d2c") || t("g_e29d2c") || t("g_e29d2c") || t("g_e29d2c") || "\uB144"}{currentDate.getMonth() + 1}{t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || "\uC6D4"}</h2>
+                        {currentDate.getFullYear()}{t("g_e29d2c") || "\uB144"}{currentDate.getMonth() + 1}{t("g_5b51dd") || "\uC6D4"}</h2>
                     <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))} className="nav-btn">
                         <CaretRight size={20} />
                     </button>
                 </div>
                 <div className="branch-badge">
-                    {currentBranch === 'all' ? t("g_9c8d1a") || t("g_9c8d1a") || t("g_9c8d1a") || t("g_9c8d1a") || t("g_9c8d1a") || "\uC804\uCCB4 \uC9C0\uC810" : getBranchName(currentBranch)}
+                    {currentBranch === 'all' ? t("g_9c8d1a") || "\uC804\uCCB4 \uC9C0\uC810" : getBranchName(currentBranch)}
                 </div>
             </div>
 
@@ -80,14 +80,14 @@ const AdminRevenue = ({
             flex: '1 1 auto',
             minWidth: '240px'
           }}>
-                                <div className="revenue-summary-title">{t("g_759d76") || t("g_759d76") || t("g_759d76") || t("g_759d76") || t("g_759d76") || "\uC774\uBC88 \uB2EC \uB204\uC801 \uB9E4\uCD9C"}</div>
+                                <div className="revenue-summary-title">{t("g_759d76") || "\uC774\uBC88 \uB2EC \uB204\uC801 \uB9E4\uCD9C"}</div>
                                 <div className="revenue-summary-amount" style={{
               wordBreak: 'break-all',
               whiteSpace: 'normal',
               lineHeight: '1.2'
             }}>
-                                    {formatCurrency(monthlyStats.totalRevenue)}{t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || "\uC6D0"}</div>
-                                <div className="revenue-summary-details">{t("g_dceb18") || t("g_dceb18") || t("g_dceb18") || t("g_dceb18") || t("g_dceb18") || "(\uC2E0\uADDC:"}<span className="revenue-new">{formatCurrency(monthlyStats.totalRevenueNew)}{t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || "\uC6D0"}</span>{t("g_0f01cd") || t("g_0f01cd") || t("g_0f01cd") || t("g_0f01cd") || t("g_0f01cd") || "/ \n                                     \uC7AC\uB4F1\uB85D:"}<span className="revenue-rereg">{formatCurrency(monthlyStats.totalRevenueReReg)}{t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || "\uC6D0"}</span>)
+                                    {formatCurrency(monthlyStats.totalRevenue)}{t("g_771dc3") || "\uC6D0"}</div>
+                                <div className="revenue-summary-details">{t("g_dceb18") || "(\uC2E0\uADDC:"}<span className="revenue-new">{formatCurrency(monthlyStats.totalRevenueNew)}{t("g_771dc3") || "\uC6D0"}</span>{t("g_0f01cd") || "/ \n                                     \uC7AC\uB4F1\uB85D:"}<span className="revenue-rereg">{formatCurrency(monthlyStats.totalRevenueReReg)}{t("g_771dc3") || "\uC6D0"}</span>)
                                 </div>
                             </div>
                             <div style={{
@@ -101,7 +101,7 @@ const AdminRevenue = ({
                 alignItems: 'center',
                 justifyContent: 'flex-end',
                 gap: '4px'
-              }}>{t("g_0621cd") || t("g_0621cd") || t("g_0621cd") || t("g_0621cd") || t("g_0621cd") || "\uC624\uB298 \uBC1C\uC0DD \uB9E4\uCD9C"}<div className="tooltip-container" style={{
+              }}>{t("g_0621cd") || "\uC624\uB298 \uBC1C\uC0DD \uB9E4\uCD9C"}<div className="tooltip-container" style={{
                   display: 'inline-flex',
                   cursor: 'pointer'
                 }}>
@@ -124,14 +124,14 @@ const AdminRevenue = ({
                     transform: 'translateX(0)',
                     textAlign: 'left'
                   }}>
-                                                <strong>{t("g_5835fe") || t("g_5835fe") || t("g_5835fe") || t("g_5835fe") || t("g_5835fe") || "\uC624\uB298 \uB9E4\uCD9C \uAE30\uC900"}</strong><br />{t("g_0607f8") || t("g_0607f8") || t("g_0607f8") || t("g_0607f8") || t("g_0607f8") || "\uD604\uC7AC \uB0A0\uC9DC(\uC790\uC815 0\uC2DC \uAE30\uC900)\uC5D0 \uBC1C\uC0DD\uD55C \uACB0\uC81C \uAE08\uC561\uC758 \uCD1D\uD569\uC785\uB2C8\uB2E4."}</div>
+                                                <strong>{t("g_5835fe") || "\uC624\uB298 \uB9E4\uCD9C \uAE30\uC900"}</strong><br />{t("g_0607f8") || "\uD604\uC7AC \uB0A0\uC9DC(\uC790\uC815 0\uC2DC \uAE30\uC900)\uC5D0 \uBC1C\uC0DD\uD55C \uACB0\uC81C \uAE08\uC561\uC758 \uCD1D\uD569\uC785\uB2C8\uB2E4."}</div>
                                         </div>
                                     </div>
                                     <div className="revenue-summary-amount" style={{
                 fontSize: '1.4rem',
                 color: 'var(--primary-theme-color)'
               }}>
-                                        {formatCurrency(comparativeStats.today)}{t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || "\uC6D0"}</div>
+                                        {formatCurrency(comparativeStats.today)}{t("g_771dc3") || "\uC6D0"}</div>
                                 </div>
                                 <div>
                                     <div className="revenue-count-title" style={{
@@ -139,7 +139,7 @@ const AdminRevenue = ({
                 alignItems: 'center',
                 justifyContent: 'flex-end',
                 gap: '4px'
-              }}>{t("g_2a64d2") || t("g_2a64d2") || t("g_2a64d2") || t("g_2a64d2") || t("g_2a64d2") || "\uC774\uBC88 \uB2EC \uACB0\uC81C \uAC74\uC218"}<div className="tooltip-container" style={{
+              }}>{t("g_2a64d2") || "\uC774\uBC88 \uB2EC \uACB0\uC81C \uAC74\uC218"}<div className="tooltip-container" style={{
                   display: 'inline-flex',
                   cursor: 'pointer'
                 }}>
@@ -162,10 +162,10 @@ const AdminRevenue = ({
                     transform: 'translateX(0)',
                     textAlign: 'left'
                   }}>
-                                                <strong>{t("g_f40826") || t("g_f40826") || t("g_f40826") || t("g_f40826") || t("g_f40826") || "\uCD1D \uACB0\uC81C \uAC74\uC218"}</strong><br />{t("g_25f764") || t("g_25f764") || t("g_25f764") || t("g_25f764") || t("g_25f764") || "\uC774\uBC88 \uB2EC \uBC1C\uC0DD\uD55C \uC2B9\uC778 \uC644\uB8CC\uB41C \uACB0\uC81C\uC758 \uCD1D \uD69F\uC218\uC785\uB2C8\uB2E4."}</div>
+                                                <strong>{t("g_f40826") || "\uCD1D \uACB0\uC81C \uAC74\uC218"}</strong><br />{t("g_25f764") || "\uC774\uBC88 \uB2EC \uBC1C\uC0DD\uD55C \uC2B9\uC778 \uC644\uB8CC\uB41C \uACB0\uC81C\uC758 \uCD1D \uD69F\uC218\uC785\uB2C8\uB2E4."}</div>
                                         </div>
                                     </div>
-                                    <div className="revenue-count">{monthlyStats.totalCount}{t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || "\uAC74"}</div>
+                                    <div className="revenue-count">{monthlyStats.totalCount}{t("g_230561") || "\uAC74"}</div>
                                 </div>
                             </div>
                         </div>
@@ -173,12 +173,12 @@ const AdminRevenue = ({
             </CollapsibleCard>
 
             {/* Revenue Graph (Straight Line) */}
-            <CollapsibleCard id="revenue-daily" title={t("g_c783a6") || t("g_c783a6") || t("g_c783a6") || t("g_c783a6") || t("g_c783a6") || "\uD83D\uDCC8 \uCD5C\uADFC 14\uC77C \uC77C\uBCC4 \uB9E4\uCD9C"} defaultOpen={true}>
+            <CollapsibleCard id="revenue-daily" title={t("g_c783a6") || "\uD83D\uDCC8 \uCD5C\uADFC 14\uC77C \uC77C\uBCC4 \uB9E4\uCD9C"} defaultOpen={true}>
                 <StraightLineChart data={recentTrend} branches={branches} showBranches={currentBranch === 'all' && branches.length > 1} />
             </CollapsibleCard>
 
             {/* Monthly Bar Chart */}
-            <CollapsibleCard id="revenue-monthly" title={t("g_80a529") || t("g_80a529") || t("g_80a529") || t("g_80a529") || t("g_80a529") || "\uD83D\uDCCA \uC6D4\uBCC4 \uB9E4\uCD9C \uCD94\uC774 (\uCD5C\uADFC 6\uAC1C\uC6D4)"} defaultOpen={true}>
+            <CollapsibleCard id="revenue-monthly" title={t("g_80a529") || "\uD83D\uDCCA \uC6D4\uBCC4 \uB9E4\uCD9C \uCD94\uC774 (\uCD5C\uADFC 6\uAC1C\uC6D4)"} defaultOpen={true}>
                 <div style={{
         height: '360px',
         display: 'flex',
@@ -235,7 +235,7 @@ const AdminRevenue = ({
                 padding: '8px 10px',
                 fontSize: '0.75rem',
                 whiteSpace: 'nowrap'
-              }} formatter={(value, name) => [`${new Intl.NumberFormat('ko-KR').format(value)}원`, name === 'amount' || name === 'partialAmount' ? name === 'amount' ? t("g_e0f99f") || t("g_e0f99f") || t("g_e0f99f") || t("g_e0f99f") || t("g_e0f99f") || "\uC6D4 \uC804\uCCB4" : `${currentDate.getDate()}일까지` : name]} itemStyle={{
+              }} formatter={(value, name) => [`${new Intl.NumberFormat('ko-KR').format(value)}원`, name === 'amount' || name === 'partialAmount' ? name === 'amount' ? t("g_e0f99f") || "\uC6D4 \uC804\uCCB4" : `${currentDate.getDate()}일까지` : name]} itemStyle={{
                 color: 'var(--primary-theme-color)',
                 fontSize: '0.75rem'
               }} labelStyle={{
@@ -248,7 +248,7 @@ const AdminRevenue = ({
                 color: '#a1a1aa',
                 paddingTop: '10px'
               }} formatter={value => {
-                if (value === 'amount') return t("g_739bdd") || t("g_739bdd") || t("g_739bdd") || t("g_739bdd") || t("g_739bdd") || "\uC6D4 \uC804\uCCB4 \uB9E4\uCD9C";
+                if (value === 'amount') return t("g_739bdd") || "\uC6D4 \uC804\uCCB4 \uB9E4\uCD9C";
                 if (value === 'partialAmount') return `${currentDate.getDate()}일까지 매출`;
                 return value;
               }} />
@@ -272,7 +272,7 @@ const AdminRevenue = ({
             </CollapsibleCard>
 
             {/* Membership Type Sales */}
-            {membershipSales && membershipSales.length > 0 && <CollapsibleCard id="revenue-membership" title={t("g_8fda0e") || t("g_8fda0e") || t("g_8fda0e") || t("g_8fda0e") || t("g_8fda0e") || "\uD83C\uDFF7\uFE0F \uD68C\uC6D0\uAD8C\uBCC4 \uD310\uB9E4 \uD604\uD669"} titleExtra={`${membershipSales.length}종`} defaultOpen={true}>
+            {membershipSales && membershipSales.length > 0 && <CollapsibleCard id="revenue-membership" title={t("g_8fda0e") || "\uD83C\uDFF7\uFE0F \uD68C\uC6D0\uAD8C\uBCC4 \uD310\uB9E4 \uD604\uD669"} titleExtra={`${membershipSales.length}종`} defaultOpen={true}>
                     <div style={{
         display: 'flex',
         flexDirection: 'column',
@@ -311,11 +311,11 @@ const AdminRevenue = ({
                                             <strong style={{
                   color: 'var(--primary-theme-color)',
                   fontSize: '1rem'
-                }}>{ms.count}</strong>{t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || "\uAC74"}<span style={{
+                }}>{ms.count}</strong>{t("g_230561") || "\uAC74"}<span style={{
                   margin: '0 6px',
                   opacity: 0.3
                 }}>|</span>
-                                            {formatCurrency(ms.revenue)}{t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || "\uC6D0"}</span>
+                                            {formatCurrency(ms.revenue)}{t("g_771dc3") || "\uC6D0"}</span>
                                     </div>
                                     <div style={{
               position: 'relative',
@@ -358,8 +358,8 @@ const AdminRevenue = ({
               }}>
                                             {ms.newCount > 0 && <span style={{
                   marginRight: '8px'
-                }}>{t("g_5a601c") || t("g_5a601c") || t("g_5a601c") || t("g_5a601c") || t("g_5a601c") || "\uC2E0\uADDC"}{ms.newCount}</span>}
-                                            {ms.reregCount > 0 && <span>{t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || "\uC7AC\uB4F1\uB85D"}{ms.reregCount}</span>}
+                }}>{t("g_5a601c") || "\uC2E0\uADDC"}{ms.newCount}</span>}
+                                            {ms.reregCount > 0 && <span>{t("g_763e2b") || "\uC7AC\uB4F1\uB85D"}{ms.reregCount}</span>}
                                         </div>
                                     </div>
                                 </div>;
@@ -383,7 +383,7 @@ const AdminRevenue = ({
             height: '12px',
             borderRadius: '3px',
             background: '#4ade80'
-          }} />{t("g_5a601c") || t("g_5a601c") || t("g_5a601c") || t("g_5a601c") || t("g_5a601c") || "\uC2E0\uADDC"}</div>
+          }} />{t("g_5a601c") || "\uC2E0\uADDC"}</div>
                         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -397,7 +397,7 @@ const AdminRevenue = ({
             borderRadius: '3px',
             background: 'var(--primary-theme-color)',
             opacity: 0.7
-          }} />{t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || t("g_763e2b") || "\uC7AC\uB4F1\uB85D"}</div>
+          }} />{t("g_763e2b") || "\uC7AC\uB4F1\uB85D"}</div>
                     </div>
                 </CollapsibleCard>}
 
@@ -414,7 +414,7 @@ const AdminRevenue = ({
           minWidth: '600px'
         }}>
                     {/* Header */}
-                    {[t("g_95e431") || t("g_95e431") || t("g_95e431") || t("g_95e431") || t("g_95e431") || "\uC77C", t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || "\uC6D4", t("g_74d3f7") || t("g_74d3f7") || t("g_74d3f7") || t("g_74d3f7") || t("g_74d3f7") || "\uD654", t("g_cae82d") || t("g_cae82d") || t("g_cae82d") || t("g_cae82d") || t("g_cae82d") || "\uC218", t("g_d5f699") || t("g_d5f699") || t("g_d5f699") || t("g_d5f699") || t("g_d5f699") || "\uBAA9", t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || "\uAE08", t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || "\uD1A0"].map((dayName, index) => <div key={`header-${index}`} className={`calendar-header-cell ${index === 0 ? 'sun' : index === 6 ? 'sat' : ''}`}>
+                    {[t("g_95e431") || "\uC77C", t("g_5b51dd") || "\uC6D4", t("g_74d3f7") || "\uD654", t("g_cae82d") || "\uC218", t("g_d5f699") || "\uBAA9", t("g_cef92d") || "\uAE08", t("g_ccc0dc") || "\uD1A0"].map((dayName, index) => <div key={`header-${index}`} className={`calendar-header-cell ${index === 0 ? 'sun' : index === 6 ? 'sat' : ''}`}>
                             {dayName}
                         </div>)}
 
@@ -453,11 +453,11 @@ const AdminRevenue = ({
                 margin: '4px 0'
               }}></div>
                                     {day.amountNew > 0 && <div className="calendar-amount-row new">
-                                            <span>{t("g_204336") || t("g_204336") || t("g_204336") || t("g_204336") || t("g_204336") || "\uC2E0\uADDC:"}</span>
+                                            <span>{t("g_204336") || "\uC2E0\uADDC:"}</span>
                                             <span>{formatCurrency(day.amountNew)}</span>
                                         </div>}
                                     {day.amountReReg > 0 && <div className="calendar-amount-row rereg">
-                                            <span>{t("g_6a2b8e") || t("g_6a2b8e") || t("g_6a2b8e") || t("g_6a2b8e") || t("g_6a2b8e") || "\uC7AC\uB4F1\uB85D:"}</span>
+                                            <span>{t("g_6a2b8e") || "\uC7AC\uB4F1\uB85D:"}</span>
                                             <span>{formatCurrency(day.amountReReg)}</span>
                                         </div>}
                                 </div>}
@@ -471,13 +471,16 @@ const AdminRevenue = ({
 const CompCard = ({
   title,
   amount
-}) => <div className="dashboard-card" style={{
-  padding: '15px'
-}}>
-        <div className="comp-card-title">{title}</div>
-        <div className={`comp-card-amount ${amount > 0 ? 'positive' : ''}`}>
-            {new Intl.NumberFormat('ko-KR').format(amount)}{t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || "\uC6D0"}</div>
-    </div>;
+}) => {
+  const t = useLanguageStore(s => s.t);
+  return <div className="dashboard-card" style={{
+    padding: '15px'
+  }}>
+    <div className="comp-card-title">{title}</div>
+    <div className={`comp-card-amount ${amount > 0 ? 'positive' : ''}`}>
+      {new Intl.NumberFormat('ko-KR').format(amount)}{t("g_771dc3") || "원"}</div>
+  </div>;
+};
 const StraightLineChart = ({
   data,
   branches,
@@ -539,12 +542,12 @@ const StraightLineChart = ({
         }} itemStyle={{
           color: 'var(--primary-theme-color)',
           fontSize: '0.72rem'
-        }} formatter={(value, name) => [`${new Intl.NumberFormat('ko-KR').format(value)}원`, name === 'amount' ? t("g_ae7f5a") || t("g_ae7f5a") || t("g_ae7f5a") || t("g_ae7f5a") || t("g_ae7f5a") || "\uCD1D\uD569" : name]} labelStyle={{
+        }} formatter={(value, name) => [`${new Intl.NumberFormat('ko-KR').format(value)}원`, name === 'amount' ? t("g_ae7f5a") || "\uCD1D\uD569" : name]} labelStyle={{
           color: '#a1a1aa',
           marginBottom: '2px',
           fontSize: '0.65rem'
         }} />
-                    <Line type="linear" dataKey="amount" name={t("g_ae7f5a") || t("g_ae7f5a") || t("g_ae7f5a") || t("g_ae7f5a") || t("g_ae7f5a") || "\uCD1D\uD569"} stroke="var(--primary-theme-color)" strokeWidth={2} dot={{
+                    <Line type="linear" dataKey="amount" name={t("g_ae7f5a") || "\uCD1D\uD569"} stroke="var(--primary-theme-color)" strokeWidth={2} dot={{
           r: 3,
           fill: '#000',
           stroke: 'var(--primary-theme-color)',

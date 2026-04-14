@@ -11,6 +11,7 @@ const WeeklyComparisonCards = memo(({
   lastWeekSameCount,
   lastWeekLabel
 }) => {
+  const t = useLanguageStore(s => s.t);
   const diff = thisWeekCount - lastWeekSameCount;
   const pct = lastWeekSameCount > 0 ? Math.round(diff / lastWeekSameCount * 100) : thisWeekCount > 0 ? 100 : 0;
   const isUp = diff > 0;
@@ -33,7 +34,7 @@ const WeeklyComparisonCards = memo(({
         fontSize: '0.8rem',
         color: 'var(--text-secondary)',
         marginBottom: '6px'
-      }}>{t(t('admin_trend_this_week') || t("g_134ec4") || t("g_134ec4") || t("g_134ec4") || t("g_134ec4") || t("g_134ec4") || "\uC774\uBC88 \uC8FC")}</div>
+      }}>{t('admin_trend_this_week') || t("g_134ec4") || "이번 주"}</div>
                 <div style={{
         fontSize: '1.4rem',
         fontWeight: '800',
@@ -43,7 +44,7 @@ const WeeklyComparisonCards = memo(({
         fontSize: '0.7rem',
         color: 'var(--text-secondary)',
         marginTop: '2px'
-      }}>{t(t('admin_trend_mon_to_today') || t("g_200ef0") || t("g_200ef0") || t("g_200ef0") || t("g_200ef0") || t("g_200ef0") || "\uC6D4~\uC624\uB298")}</div>
+      }}>{t('admin_trend_mon_to_today') || t("g_200ef0") || "월~오늘"}</div>
             </div>
             {/* 지난 주 동일 시점 */}
             <div style={{
@@ -57,7 +58,7 @@ const WeeklyComparisonCards = memo(({
         fontSize: '0.8rem',
         color: 'var(--text-secondary)',
         marginBottom: '6px'
-      }}>{t(t('admin_trend_last_week') || t("g_6e297f") || t("g_6e297f") || t("g_6e297f") || t("g_6e297f") || t("g_6e297f") || "\uC9C0\uB09C \uC8FC")}</div>
+      }}>{t('admin_trend_last_week') || t("g_6e297f") || "지난 주"}</div>
                 <div style={{
         fontSize: '1.4rem',
         fontWeight: '800'
@@ -84,7 +85,7 @@ const WeeklyComparisonCards = memo(({
         fontSize: '0.8rem',
         color: 'var(--text-secondary)',
         marginBottom: '6px'
-      }}>{t(t('admin_trend_vs_same_time') || t("g_b148e5") || t("g_b148e5") || t("g_b148e5") || t("g_b148e5") || t("g_b148e5") || "\uB3D9\uC77C \uC2DC\uC810 \uB300\uBE44")}</div>
+      }}>{t('admin_trend_vs_same_time') || t("g_b148e5") || "동일 시점 대비"}</div>
                 <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -121,28 +122,28 @@ const DailyTooltip = ({
       color: 'var(--text-secondary)',
       marginBottom: '4px'
     }}>
-                {d.fullDate} ({d.dayName}){d.isToday ? ' · ' + t(t('admin_trend_collecting') || t("g_059816") || t("g_059816") || t("g_059816") || t("g_059816") || t("g_059816") || "\uC9D1\uACC4 \uC911") : ''}
+                {d.fullDate} ({d.dayName}){d.isToday ? ' · ' + (t('admin_trend_collecting') || t("g_059816") || "집계 중") : ''}
             </div>
             <div style={{
       color: 'var(--primary-gold)',
       fontWeight: 'bold',
       fontSize: '1rem'
     }}>
-                {t('admin_trend_attendance') || t("g_b31acb") || t("g_b31acb") || t("g_b31acb") || t("g_b31acb") || t("g_b31acb") || "\uCD9C\uC11D"}: {d.count}{t('admin_trend_count_unit') || t('admin_trend_count_unit') || t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || "\uAC74"}{d.isToday ? ' (' + t(t('admin_trend_in_progress') || t("g_df4a7e") || t("g_df4a7e") || t("g_df4a7e") || t("g_df4a7e") || t("g_df4a7e") || "\uC9C4\uD589 \uC911") + ')' : ''}
+                {t('admin_trend_attendance') || t("g_b31acb") || "출석"}: {d.count}{t('admin_trend_count_unit') || t("g_230561") || "건"}{d.isToday ? ' (' + (t('admin_trend_in_progress') || t("g_df4a7e") || "진행 중") + ')' : ''}
             </div>
             {d.newCount != null && d.newCount > 0 && <div style={{
       color: '#86efac',
       fontSize: '0.8rem',
       marginTop: '2px'
     }}>
-                    {t('admin_trend_new') || t("g_5a601c") || t("g_5a601c") || t("g_5a601c") || t("g_5a601c") || t("g_5a601c") || "\uC2E0\uADDC"}: {d.newCount}{t('admin_trend_count_unit') || t('admin_trend_count_unit') || t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || "\uAC74"} | {t('admin_trend_existing') || t("g_e9d2a1") || t("g_e9d2a1") || t("g_e9d2a1") || t("g_e9d2a1") || t("g_e9d2a1") || "\uAE30\uC874"}: {d.existingCount}{t('admin_trend_count_unit') || t('admin_trend_count_unit') || t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || "\uAC74"}
+                    {t('admin_trend_new') || t("g_5a601c") || "\uC2E0\uADDC"}: {d.newCount}{t('admin_trend_count_unit') || t("g_230561") || "\uAC74"} | {t('admin_trend_existing') || t("g_e9d2a1") || "\uAE30\uC874"}: {d.existingCount}{t('admin_trend_count_unit') || t("g_230561") || "\uAC74"}
                 </div>}
             {d.ma7 != null && <div style={{
       color: 'rgba(255,255,255,0.5)',
       fontSize: '0.8rem',
       marginTop: '2px'
     }}>
-                    {t(t('admin_trend_7d_avg') || t("g_c0c78e") || t("g_c0c78e") || t("g_c0c78e") || t("g_c0c78e") || t("g_c0c78e") || "7\uC77C \uD3C9\uADE0")}: {d.ma7}{t('명')}
+                    {t('admin_trend_7d_avg') || t("g_c0c78e") || "7일 평균"}: {d.ma7}{t('명')}
                 </div>}
         </div>;
 };
@@ -151,10 +152,12 @@ const DailyTooltip = ({
 const HeatmapChart = memo(({
   data
 }) => {
+  const t = useLanguageStore(s => s.t);
   // data: { [dayIdx]: { [hourBucket]: count } }
-  const dayLabels = [t('admin_trend_day_mon') || t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || "\uC6D4", t('admin_trend_day_tue') || t("g_74d3f7") || t("g_74d3f7") || t("g_74d3f7") || t("g_74d3f7") || t("g_74d3f7") || "\uD654", t('admin_trend_day_wed') || t("g_cae82d") || t("g_cae82d") || t("g_cae82d") || t("g_cae82d") || t("g_cae82d") || "\uC218", t('admin_trend_day_thu') || t("g_d5f699") || t("g_d5f699") || t("g_d5f699") || t("g_d5f699") || t("g_d5f699") || "\uBAA9", t('admin_trend_day_fri') || t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || "\uAE08", t('admin_trend_day_sat') || t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || "\uD1A0", t('admin_trend_day_sun') || t("g_95e431") || t("g_95e431") || t("g_95e431") || t("g_95e431") || t("g_95e431") || "\uC77C"];
+  const dayLabels = [t('admin_trend_day_mon') || t("g_5b51dd") || "\uC6D4", t('admin_trend_day_tue') || t("g_74d3f7") || "\uD654", t('admin_trend_day_wed') || t("g_cae82d") || "\uC218", t('admin_trend_day_thu') || t("g_d5f699") || "\uBAA9", t('admin_trend_day_fri') || t("g_cef92d") || "\uAE08", t('admin_trend_day_sat') || t("g_ccc0dc") || "\uD1A0", t('admin_trend_day_sun') || t("g_95e431") || "\uC77C"];
   const hourBuckets = ['06', '08', '10', '12', '14', '16', '18', '20'];
-  const hourLabels = ['6' + t(t('admin_trend_hour_suffix') || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || "\uC2DC"), '8' + t(t('admin_trend_hour_suffix') || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || "\uC2DC"), '10' + t(t('admin_trend_hour_suffix') || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || "\uC2DC"), '12' + t(t('admin_trend_hour_suffix') || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || "\uC2DC"), '14' + t(t('admin_trend_hour_suffix') || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || "\uC2DC"), '16' + t(t('admin_trend_hour_suffix') || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || "\uC2DC"), '18' + t(t('admin_trend_hour_suffix') || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || "\uC2DC"), '20' + t(t('admin_trend_hour_suffix') || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || t("g_1ab611") || "\uC2DC")];
+  const hourSuffix = t('admin_trend_hour_suffix') || t("g_1ab611") || "시";
+  const hourLabels = ['6' + hourSuffix, '8' + hourSuffix, '10' + hourSuffix, '12' + hourSuffix, '14' + hourSuffix, '16' + hourSuffix, '18' + hourSuffix, '20' + hourSuffix];
 
   // Find max for color scaling
   let maxCount = 0;
@@ -236,7 +239,7 @@ const HeatmapChart = memo(({
           borderRadius: '3px',
           background: 'rgba(var(--primary-rgb), 0.1)',
           display: 'inline-block'
-        }} /> {t(t('admin_trend_few') || t("g_08d289") || t("g_08d289") || t("g_08d289") || t("g_08d289") || t("g_08d289") || "\uC801\uC74C")}
+        }} /> {t('admin_trend_few') || t("g_08d289") || "적음"}
                 </span>
                 <span style={{
         display: 'flex',
@@ -249,7 +252,7 @@ const HeatmapChart = memo(({
           borderRadius: '3px',
           background: 'rgba(var(--primary-rgb), 0.5)',
           display: 'inline-block'
-        }} /> {t(t('admin_trend_moderate') || t("g_6b1017") || t("g_6b1017") || t("g_6b1017") || t("g_6b1017") || t("g_6b1017") || "\uBCF4\uD1B5")}
+        }} /> {t('admin_trend_moderate') || t("g_6b1017") || "보통"}
                 </span>
                 <span style={{
         display: 'flex',
@@ -262,7 +265,7 @@ const HeatmapChart = memo(({
           borderRadius: '3px',
           background: 'var(--primary-gold)',
           display: 'inline-block'
-        }} /> {t(t('admin_trend_peak') || t("g_3c9d2e") || t("g_3c9d2e") || t("g_3c9d2e") || t("g_3c9d2e") || t("g_3c9d2e") || "\uD53C\uD06C")}
+        }} /> {t('admin_trend_peak') || t("g_3c9d2e") || "피크"}
                 </span>
             </div>
         </div>;
@@ -274,6 +277,7 @@ const PopularityRanking = memo(({
   classRanking,
   instructorRanking
 }) => {
+  const t = useLanguageStore(s => s.t);
   return <div style={{
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
@@ -287,7 +291,7 @@ const PopularityRanking = memo(({
         marginBottom: '10px',
         fontWeight: '600'
       }}>
-                    {t(t('admin_trend_top5_class') || t("g_09435e") || t("g_09435e") || t("g_09435e") || t("g_09435e") || t("g_09435e") || "\uD83C\uDFC6 \uC778\uAE30 \uC218\uC5C5 Top 5")}
+                    {t('admin_trend_top5_class') || t("g_09435e") || "🏆 인기 수업 Top 5"}
                 </div>
                 {classRanking.slice(0, 5).map((c, i) => <div key={i} style={{
         display: 'flex',
@@ -320,7 +324,7 @@ const PopularityRanking = memo(({
           fontWeight: '700',
           color: 'var(--text-secondary)'
         }}>
-                            {c.count}{t('admin_trend_count_unit') || t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || "\uAC74"}
+                            {c.count}{t('admin_trend_count_unit') || t("g_230561") || "\uAC74"}
                         </span>
                     </div>)}
                 {classRanking.length === 0 && <div style={{
@@ -328,7 +332,7 @@ const PopularityRanking = memo(({
         color: '#52525b',
         textAlign: 'center',
         padding: '16px'
-      }}>{t(t('admin_trend_no_data') || t("g_04f463") || t("g_04f463") || t("g_04f463") || t("g_04f463") || t("g_04f463") || "\uB370\uC774\uD130 \uC5C6\uC74C")}</div>}
+      }}>{t('admin_trend_no_data') || t("g_04f463") || "데이터 없음"}</div>}
             </div>
             {/* 강사 랭킹 */}
             <div>
@@ -338,7 +342,7 @@ const PopularityRanking = memo(({
         marginBottom: '10px',
         fontWeight: '600'
       }}>
-                    {t(t('admin_trend_top5_inst') || t("g_381ce3") || t("g_381ce3") || t("g_381ce3") || t("g_381ce3") || t("g_381ce3") || "\u2B50 \uC778\uAE30 \uAC15\uC0AC Top 5")}
+                    {t('admin_trend_top5_inst') || t("g_381ce3") || "⭐ 인기 강사 Top 5"}
                 </div>
                 {instructorRanking.slice(0, 5).map((c, i) => <div key={i} style={{
         display: 'flex',
@@ -371,7 +375,7 @@ const PopularityRanking = memo(({
           fontWeight: '700',
           color: 'var(--text-secondary)'
         }}>
-                            {c.count}{t('admin_trend_count_unit') || t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || "\uAC74"}
+                            {c.count}{t('admin_trend_count_unit') || t("g_230561") || "\uAC74"}
                         </span>
                     </div>)}
                 {instructorRanking.length === 0 && <div style={{
@@ -379,7 +383,7 @@ const PopularityRanking = memo(({
         color: '#52525b',
         textAlign: 'center',
         padding: '16px'
-      }}>{t(t('admin_trend_no_data') || t("g_04f463") || t("g_04f463") || t("g_04f463") || t("g_04f463") || t("g_04f463") || "\uB370\uC774\uD130 \uC5C6\uC74C")}</div>}
+      }}>{t('admin_trend_no_data') || t("g_04f463") || "데이터 없음"}</div>}
             </div>
         </div>;
 });
@@ -390,6 +394,7 @@ const NewVsReturningBar = memo(({
   newCount,
   existingCount
 }) => {
+  const t = useLanguageStore(s => s.t);
   const total = newCount + existingCount;
   if (total === 0) return null;
   const newPct = Math.round(newCount / total * 100);
@@ -411,12 +416,12 @@ const NewVsReturningBar = memo(({
         alignItems: 'center',
         gap: '4px'
       }}>
-                    <Users size={14} /> {t('admin_trend_ratio_title_pp') || t("g_562e2c") || t("g_562e2c") || t("g_562e2c") || t("g_562e2c") || t("g_562e2c") || "\uC218\uAC15 \uC778\uC6D0 \uBE44\uC728 (\uC2E0\uADDC vs \uAE30\uC874 \uD68C\uC6D0)"}
+                    <Users size={14} /> {t('admin_trend_ratio_title_pp') || t("g_562e2c") || "\uC218\uAC15 \uC778\uC6D0 \uBE44\uC728 (\uC2E0\uADDC vs \uAE30\uC874 \uD68C\uC6D0)"}
                 </span>
                 <span style={{
         fontSize: '0.75rem',
         color: 'var(--text-secondary)'
-      }}>{t('admin_trend_distinct_members') || t("g_05d3de") || t("g_05d3de") || t("g_05d3de") || t("g_05d3de") || t("g_05d3de") || "\uC21C\uC218 \uC778\uC6D0(\uBA85) \uAE30\uC900"}</span>
+      }}>{t('admin_trend_distinct_members') || t("g_05d3de") || "\uC21C\uC218 \uC778\uC6D0(\uBA85) \uAE30\uC900"}</span>
             </div>
             <div style={{
       display: 'flex',
@@ -438,7 +443,7 @@ const NewVsReturningBar = memo(({
         whiteSpace: 'nowrap',
         overflow: 'hidden'
       }}>
-                        {newPct >= 18 ? `${t('admin_trend_new') || t("g_5a601c") || t("g_5a601c") || t("g_5a601c") || t("g_5a601c") || t("g_5a601c") || "\uC2E0\uADDC"} ${newPct}%` : ''}
+                        {newPct >= 18 ? `${t('admin_trend_new') || t("g_5a601c") || "\uC2E0\uADDC"} ${newPct}%` : ''}
                     </div>}
                 {existingCount > 0 && <div style={{
         width: `${existPct}%`,
@@ -453,7 +458,7 @@ const NewVsReturningBar = memo(({
         whiteSpace: 'nowrap',
         overflow: 'hidden'
       }}>
-                        {existPct >= 18 ? `${t('admin_trend_existing') || t("g_e9d2a1") || t("g_e9d2a1") || t("g_e9d2a1") || t("g_e9d2a1") || t("g_e9d2a1") || "\uAE30\uC874"} ${existPct}%` : ''}
+                        {existPct >= 18 ? `${t('admin_trend_existing') || t("g_e9d2a1") || "\uAE30\uC874"} ${existPct}%` : ''}
                     </div>}
             </div>
             <div style={{
@@ -468,15 +473,15 @@ const NewVsReturningBar = memo(({
         color: '#34d399',
         fontWeight: '600',
         whiteSpace: 'nowrap'
-      }}>{t('admin_trend_new_pp') || t("g_dd5149") || t("g_dd5149") || t("g_dd5149") || t("g_dd5149") || t("g_dd5149") || "\uC2E0\uADDC \uD68C\uC6D0"} {newCount}{t('명')} <span style={{
+      }}>{t('admin_trend_new_pp') || t("g_dd5149") || "\uC2E0\uADDC \uD68C\uC6D0"} {newCount}{t('명')} <span style={{
           fontSize: '0.7rem',
           opacity: 0.8
-        }}>({t('admin_trend_recent_30d') || t("g_49bd9f") || t("g_49bd9f") || t("g_49bd9f") || t("g_49bd9f") || t("g_49bd9f") || "\uCD5C\uADFC 30\uC77C \uB4F1\uB85D"})</span></span>
+        }}>({t('admin_trend_recent_30d') || t("g_49bd9f") || "\uCD5C\uADFC 30\uC77C \uB4F1\uB85D"})</span></span>
                 <span style={{
         color: '#60a5fa',
         fontWeight: '600',
         whiteSpace: 'nowrap'
-      }}>{t('admin_trend_existing_pp') || t("g_37a21c") || t("g_37a21c") || t("g_37a21c") || t("g_37a21c") || t("g_37a21c") || "\uAE30\uC874 \uD68C\uC6D0"} {existingCount}{t('명')}</span>
+      }}>{t('admin_trend_existing_pp') || t("g_37a21c") || "\uAE30\uC874 \uD68C\uC6D0"} {existingCount}{t('명')}</span>
             </div>
         </div>;
 });
@@ -494,6 +499,7 @@ const AttendanceTrendChart = memo(({
   selectedDate,
   members = []
 }) => {
+  const t = useLanguageStore(s => s.t);
   const {
     config
   } = useStudioConfig();
@@ -569,7 +575,7 @@ const AttendanceTrendChart = memo(({
       filteredLogs[dateStr] = branchFilter === 'all' ? logs : logs.filter(l => l.branchId === branchFilter);
     });
     const sortedDates = Object.keys(filteredLogs).sort();
-    const dayNames = [t('admin_trend_day_sun') || t("g_95e431") || t("g_95e431") || t("g_95e431") || t("g_95e431") || t("g_95e431") || "\uC77C", t('admin_trend_day_mon') || t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || "\uC6D4", t('admin_trend_day_tue') || t("g_74d3f7") || t("g_74d3f7") || t("g_74d3f7") || t("g_74d3f7") || t("g_74d3f7") || "\uD654", t('admin_trend_day_wed') || t("g_cae82d") || t("g_cae82d") || t("g_cae82d") || t("g_cae82d") || t("g_cae82d") || "\uC218", t('admin_trend_day_thu') || t("g_d5f699") || t("g_d5f699") || t("g_d5f699") || t("g_d5f699") || t("g_d5f699") || "\uBAA9", t('admin_trend_day_fri') || t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || "\uAE08", t('admin_trend_day_sat') || t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || "\uD1A0"];
+    const dayNames = [t('admin_trend_day_sun') || t("g_95e431") || "\uC77C", t('admin_trend_day_mon') || t("g_5b51dd") || "\uC6D4", t('admin_trend_day_tue') || t("g_74d3f7") || "\uD654", t('admin_trend_day_wed') || t("g_cae82d") || "\uC218", t('admin_trend_day_thu') || t("g_d5f699") || "\uBAA9", t('admin_trend_day_fri') || t("g_cef92d") || "\uAE08", t('admin_trend_day_sat') || t("g_ccc0dc") || "\uD1A0"];
     const thirtyDaysAgo = new Date(baseDate + 'T00:00:00+09:00');
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const thirtyDaysAgoMs = thirtyDaysAgo.getTime();
@@ -650,7 +656,7 @@ const AttendanceTrendChart = memo(({
         lastWeekDayNames.push(dayNames[dObj.getDay()]);
       }
     });
-    const lastWeekLabel = lastWeekDayNames.length > 0 ? `${lastWeekDayNames[lastWeekDayNames.length - 1]}~${lastWeekDayNames[0]}` : t(t('admin_trend_same_period') || t("g_233ae1") || t("g_233ae1") || t("g_233ae1") || t("g_233ae1") || t("g_233ae1") || "\uB3D9\uC77C \uAE30\uAC04");
+    const lastWeekLabel = lastWeekDayNames.length > 0 ? `${lastWeekDayNames[lastWeekDayNames.length - 1]}~${lastWeekDayNames[0]}` : t('admin_trend_same_period') || t("g_233ae1") || "\uB3D9\uC77C \uAE30\uAC04";
 
     // ── 요일×시간대 히트맵 ──
     const heatmapData = {};
@@ -719,7 +725,7 @@ const AttendanceTrendChart = memo(({
       }} />
                 <span style={{
         fontSize: '0.85rem'
-      }}>{t(t('admin_trend_analyzing') || t("g_c8f4eb") || t("g_c8f4eb") || t("g_c8f4eb") || t("g_c8f4eb") || t("g_c8f4eb") || "\uCD9C\uC11D \uCD94\uC138 \uBD84\uC11D \uC911...")}</span>
+      }}>{t('admin_trend_analyzing') || t("g_c8f4eb") || "\uCD9C\uC11D \uCD94\uC138 \uBD84\uC11D \uC911..."}</span>
                 <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>;
   }
@@ -770,7 +776,7 @@ const AttendanceTrendChart = memo(({
         gap: '8px'
       }}>
                     <TrendUp size={18} />
-                    {t(t('admin_trend_title') || t("g_a301d3") || t("g_a301d3") || t("g_a301d3") || t("g_a301d3") || t("g_a301d3") || "\uCD9C\uC11D \uCD94\uC138 \uBD84\uC11D")}
+                    {t('admin_trend_title') || t("g_a301d3") || "\uCD9C\uC11D \uCD94\uC138 \uBD84\uC11D"}
                 </h3>
                 <div style={{
         display: 'flex',
@@ -780,13 +786,13 @@ const AttendanceTrendChart = memo(({
         padding: '3px'
       }}>
                     <button onClick={() => setActiveTab('daily')} style={tabStyle(activeTab === 'daily')}>
-                        <ChartLineUp size={14} /> {t(t('admin_trend_tab_daily') || t("g_e1caaf") || t("g_e1caaf") || t("g_e1caaf") || t("g_e1caaf") || t("g_e1caaf") || "\uC77C\uBCC4 \uCD94\uC138")}
+                        <ChartLineUp size={14} /> {t('admin_trend_tab_daily') || t("g_e1caaf") || "\uC77C\uBCC4 \uCD94\uC138"}
                     </button>
                     <button onClick={() => setActiveTab('heatmap')} style={tabStyle(activeTab === 'heatmap')}>
-                        <ChartBar size={14} /> {t(t('admin_trend_tab_heatmap') || t("g_e124ee") || t("g_e124ee") || t("g_e124ee") || t("g_e124ee") || t("g_e124ee") || "\uD788\uD2B8\uB9F5")}
+                        <ChartBar size={14} /> {t('admin_trend_tab_heatmap') || t("g_e124ee") || "\uD788\uD2B8\uB9F5"}
                     </button>
                     <button onClick={() => setActiveTab('ranking')} style={tabStyle(activeTab === 'ranking')}>
-                        <Fire size={14} /> {t(t('admin_trend_tab_ranking') || t("g_95c624") || t("g_95c624") || t("g_95c624") || t("g_95c624") || t("g_95c624") || "\uC778\uAE30 \uBD84\uC11D")}
+                        <Fire size={14} /> {t('admin_trend_tab_ranking') || t("g_95c624") || "\uC778\uAE30 \uBD84\uC11D"}
                     </button>
                 </div>
             </div>
@@ -820,7 +826,7 @@ const AttendanceTrendChart = memo(({
           fontWeight: '600',
           cursor: 'pointer'
         }}>
-                            <option value="all">{t(t('admin_trend_filter_all') || t("g_b919ef") || t("g_b919ef") || t("g_b919ef") || t("g_b919ef") || t("g_b919ef") || "\uD83D\uDCCA \uC804\uCCB4 \uD1B5\uD569")}</option>
+                            <option value="all">{t('admin_trend_filter_all') || t("g_b919ef") || "\uD83D\uDCCA \uC804\uCCB4 \uD1B5\uD569"}</option>
                             {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                         </select>
                     </div>}
@@ -864,7 +870,7 @@ const AttendanceTrendChart = memo(({
           flexShrink: 0,
           opacity: 0.5
         }}>
-                        {t(t('admin_trend_1year') || t("g_3d5bb6") || t("g_3d5bb6") || t("g_3d5bb6") || t("g_3d5bb6") || t("g_3d5bb6") || "1\uB144")}
+                        {t('admin_trend_1year') || t("g_3d5bb6") || "1\uB144"}
                     </span>
                 </div>
             </div>
@@ -897,7 +903,7 @@ const AttendanceTrendChart = memo(({
             display: 'inline-block',
             borderRadius: '1px'
           }} />
-                            {t(t('admin_trend_tab_daily') || t("g_e1caaf") || t("g_e1caaf") || t("g_e1caaf") || t("g_e1caaf") || t("g_e1caaf") || "\uC77C\uBCC4 \uCD94\uC138")}
+                            {t('admin_trend_tab_daily') || t("g_e1caaf") || "\uC77C\uBCC4 \uCD94\uC138"}
                         </span>
                         <span style={{
           display: 'flex',
@@ -921,7 +927,7 @@ const AttendanceTrendChart = memo(({
           color: '#71717a',
           fontSize: '0.8rem'
         }}>
-                            {t(t('admin_trend_daily_dot') || t("g_aa750a") || t("g_aa750a") || t("g_aa750a") || t("g_aa750a") || t("g_aa750a") || "\u25CB \uC810\uC120 = \uC624\uB298(\uC9D1\uACC4 \uC911)")}
+                            {t('admin_trend_daily_dot') || t("g_aa750a") || "\u25CB \uC810\uC120 = \uC624\uB298(\uC9D1\uACC4 \uC911)"}
                         </span>
                     </div>
                     <div style={{
@@ -994,7 +1000,7 @@ const AttendanceTrendChart = memo(({
         fontSize: '0.85rem',
         color: 'var(--text-secondary)',
         marginBottom: '12px'
-      }}>{t("g_468667") || t("g_468667") || t("g_468667") || t("g_468667") || t("g_468667") || "\uCD5C\uADFC"}{formatPeriodLabel(periodDays)}{t("g_9d5c4f") || t("g_9d5c4f") || t("g_9d5c4f") || t("g_9d5c4f") || t("g_9d5c4f") || "\uAE30\uC900, \uC694\uC77C\xD7\uC2DC\uAC04\uB300\uBCC4 \uCD9C\uC11D \uBD84\uD3EC"}{branchFilter !== 'all' ? `(${branches.find(b => b.id === branchFilter)?.name || branchFilter})` : t("g_7f60d9") || t("g_7f60d9") || t("g_7f60d9") || t("g_7f60d9") || t("g_7f60d9") || "(\uC804\uCCB4)"}
+      }}>{t("g_468667") || "\uCD5C\uADFC"}{formatPeriodLabel(periodDays)}{t("g_9d5c4f") || "\uAE30\uC900, \uC694\uC77C\xD7\uC2DC\uAC04\uB300\uBCC4 \uCD9C\uC11D \uBD84\uD3EC"}{branchFilter !== 'all' ? `(${branches.find(b => b.id === branchFilter)?.name || branchFilter})` : t("g_7f60d9") || "(\uC804\uCCB4)"}
                     </div>
                     <HeatmapChart data={heatmapData} />
                 </> : <>
@@ -1002,7 +1008,7 @@ const AttendanceTrendChart = memo(({
         fontSize: '0.85rem',
         color: 'var(--text-secondary)',
         marginBottom: '12px'
-      }}>{t("g_468667") || t("g_468667") || t("g_468667") || t("g_468667") || t("g_468667") || "\uCD5C\uADFC"}{formatPeriodLabel(periodDays)}{t("g_42505d") || t("g_42505d") || t("g_42505d") || t("g_42505d") || t("g_42505d") || "\uAE30\uC900, \uC218\uC5C5/\uAC15\uC0AC\uBCC4 \uCD1D \uCD9C\uC11D \uC218"}{branchFilter !== 'all' ? `(${branches.find(b => b.id === branchFilter)?.name || branchFilter})` : t("g_7f60d9") || t("g_7f60d9") || t("g_7f60d9") || t("g_7f60d9") || t("g_7f60d9") || "(\uC804\uCCB4)"}
+      }}>{t("g_468667") || "\uCD5C\uADFC"}{formatPeriodLabel(periodDays)}{t("g_42505d") || "\uAE30\uC900, \uC218\uC5C5/\uAC15\uC0AC\uBCC4 \uCD1D \uCD9C\uC11D \uC218"}{branchFilter !== 'all' ? `(${branches.find(b => b.id === branchFilter)?.name || branchFilter})` : t("g_7f60d9") || "(\uC804\uCCB4)"}
                     </div>
                     <PopularityRanking classRanking={classRanking} instructorRanking={instructorRanking} />
                 </>}

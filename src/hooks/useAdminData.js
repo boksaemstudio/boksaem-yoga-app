@@ -50,23 +50,23 @@ Never fabricate data. Only analyze based on actual provided data.`,
 };
 
 // [i18n] Time context descriptions per language
-const getTimeContextByLang = (hour, classStartHour, lang) => {
+const getTimeContextByLang = (hour, classStartHour, lang, t) => {
   if (lang === 'ko') {
     if (hour < classStartHour) return {
-      period: t("g_d33888") || t("g_d33888") || t("g_d33888") || t("g_d33888") || t("g_d33888") || "\uC218\uC5C5 \uC804 (\uC544\uCE68)",
+      period: t("g_d33888") || "\uC218\uC5C5 \uC804 (\uC544\uCE68)",
       guidance: `아직 수업이 시작되지 않은 아침입니다(오늘 첫 수업은 ${classStartHour}시부터 시작). 오늘의 매출이나 출석이 0인 것은 당연하므로 절대 언급하지 마세요. 대신 어제의 성과를 간략히 요약하고, 오늘 예정된 수업과 주요 일정을 안내해주세요.`
     };
     if (hour < 14) return {
-      period: t("g_e70620") || t("g_e70620") || t("g_e70620") || t("g_e70620") || t("g_e70620") || "\uC624\uC804 \uC218\uC5C5 \uC911",
+      period: t("g_e70620") || "\uC624\uC804 \uC218\uC5C5 \uC911",
       guidance: `오전 수업이 진행 중입니다(오늘 첫 수업 ${classStartHour}시). 현재까지의 출석 현황과 오후 예정 수업을 분석해주세요.`
     };
     if (hour < 20) return {
-      period: t("g_4054b9") || t("g_4054b9") || t("g_4054b9") || t("g_4054b9") || t("g_4054b9") || "\uC624\uD6C4 \uC218\uC5C5 \uC911",
-      guidance: t("g_42aed9") || t("g_42aed9") || t("g_42aed9") || t("g_42aed9") || t("g_42aed9") || "\uC624\uD6C4 \uD53C\uD06C \uC2DC\uAC04\uB300\uC785\uB2C8\uB2E4. \uD604\uC7AC\uAE4C\uC9C0\uC758 \uC2E4\uC2DC\uAC04 \uCD9C\uC11D \uD604\uD669, \uB0A8\uC740 \uC218\uC5C5, \uC624\uB298\uC758 \uD2B8\uB80C\uB4DC\uB97C \uBD84\uC11D\uD574\uC8FC\uC138\uC694."
+      period: t("g_4054b9") || "\uC624\uD6C4 \uC218\uC5C5 \uC911",
+      guidance: t("g_42aed9") || "\uC624\uD6C4 \uD53C\uD06C \uC2DC\uAC04\uB300\uC785\uB2C8\uB2E4. \uD604\uC7AC\uAE4C\uC9C0\uC758 \uC2E4\uC2DC\uAC04 \uCD9C\uC11D \uD604\uD669, \uB0A8\uC740 \uC218\uC5C5, \uC624\uB298\uC758 \uD2B8\uB80C\uB4DC\uB97C \uBD84\uC11D\uD574\uC8FC\uC138\uC694."
     };
     return {
-      period: t("g_e29fcb") || t("g_e29fcb") || t("g_e29fcb") || t("g_e29fcb") || t("g_e29fcb") || "\uB9C8\uAC10 \uD6C4 (\uC800\uB141)",
-      guidance: t("g_1f3eec") || t("g_1f3eec") || t("g_1f3eec") || t("g_1f3eec") || t("g_1f3eec") || "\uC624\uB298\uC758 \uC218\uC5C5\uC774 \uB9C8\uBB34\uB9AC\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uD558\uB8E8 \uC804\uCCB4 \uC131\uACFC\uB97C \uC885\uD569 \uB9AC\uD3EC\uD2B8 \uD615\uD0DC\uB85C \uC815\uB9AC\uD574\uC8FC\uC138\uC694."
+      period: t("g_e29fcb") || "\uB9C8\uAC10 \uD6C4 (\uC800\uB141)",
+      guidance: t("g_1f3eec") || "\uC624\uB298\uC758 \uC218\uC5C5\uC774 \uB9C8\uBB34\uB9AC\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uD558\uB8E8 \uC804\uCCB4 \uC131\uACFC\uB97C \uC885\uD569 \uB9AC\uD3EC\uD2B8 \uD615\uD0DC\uB85C \uC815\uB9AC\uD574\uC8FC\uC138\uC694."
     };
   }
   if (lang === 'ja') {
@@ -122,6 +122,7 @@ const getFallbackMessage = (lang, activeMembers, todayAttendance) => {
   return msgs[lang] || msgs['en'];
 };
 export const useAdminData = (activeTab, initialBranch = 'all') => {
+  const t = useLanguageStore(s => s.t);
   const [currentBranch, setCurrentBranch] = useState(initialBranch);
   const [members, setMembers] = useState([]);
   const [sales, setSales] = useState([]);
@@ -202,7 +203,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
       // [FIX] 시간표에서 첫 수업 시작 시간 동적 추출 (하드코딩 제거)
       const getFirstClassHour = classes => {
         if (!classes || classes.length === 0) return 10; // 시간표 없을 때 기본값
-        const hours = classes.map(c => c.classTime).filter(Boolean).map(t => parseInt(t.split(':')[0], 10)).filter(h => !isNaN(h));
+        const hours = classes.map(c => c.classTime).filter(Boolean).map(item => parseInt(item.split(':')[0], 10)).filter(h => !isNaN(h));
         return hours.length > 0 ? Math.min(...hours) : 10;
       };
       const firstClassHour = getFirstClassHour(currentTodayClasses);
@@ -210,7 +211,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
       // [NEW] Time-aware context for AI briefing (시간표 기반 동적 판단)
       // [i18n] Use language-aware time context
       const currentLang = useLanguageStore.getState().language || 'ko';
-      const timeCtx = getTimeContextByLang(currentHour, firstClassHour, currentLang);
+      const timeCtx = getTimeContextByLang(currentHour, firstClassHour, currentLang, t);
       const statsData = {
         // ── 기본 현황 ──
         branch: branchNameForPrompt,
@@ -235,12 +236,12 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         recentReRegisteredCount: currentSummary.recentReRegisteredCount || 0,
         membersWithSales: currentSummary.membersWithSales || 0,
         membersReRegistered: currentSummary.membersReRegistered || 0,
-        monthlyReRegTrend: (currentSummary.monthlyReRegTrend || []).map(t => ({
-          month: t.month,
-          monthKey: t.monthKey,
-          total: t.total,
-          reReg: t.reReg,
-          rate: t.rate
+        monthlyReRegTrend: (currentSummary.monthlyReRegTrend || []).map(item => ({
+          month: item.month,
+          monthKey: item.monthKey,
+          total: item.total,
+          reReg: item.reReg,
+          rate: item.rate
         })),
         // ── 이탈/위험 지표 ──
         expiringCount: currentSummary.expiringMembersCount,
@@ -256,7 +257,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         instructorStats: (() => {
           const instructorMap = {};
           (currentTodayClasses || []).forEach(cls => {
-            const name = cls.instructor || t("g_4477e5") || t("g_4477e5") || t("g_4477e5") || t("g_4477e5") || t("g_4477e5") || "\uBBF8\uC9C0\uC815";
+            const name = cls.instructor || t("g_4477e5") || "\uBBF8\uC9C0\uC815";
             if (!instructorMap[name]) instructorMap[name] = {
               totalStudents: 0,
               classCount: 0,
@@ -436,16 +437,16 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
       try {
         await storageService.approvePush(id);
       } catch (e) {
-        alert((t("g_dcd19b") || t("g_dcd19b") || t("g_dcd19b") || t("g_dcd19b") || t("g_dcd19b") || "\uC2B9\uC778 \uCC98\uB9AC \uC911 \uC624\uB958 \uBC1C\uC0DD: ") + e.message);
+        alert((t("g_dcd19b") || "\uC2B9\uC778 \uCC98\uB9AC \uC911 \uC624\uB958 \uBC1C\uC0DD: ") + e.message);
       }
     }
   };
   const handleRejectPush = async id => {
-    if (confirm(t("g_ffc381") || t("g_ffc381") || t("g_ffc381") || t("g_ffc381") || t("g_ffc381") || "\uC774 \uBC1C\uC1A1 \uAC74\uC744 \uC0AD\uC81C(\uAC70\uC808)\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) {
+    if (confirm(t("g_ffc381") || "\uC774 \uBC1C\uC1A1 \uAC74\uC744 \uC0AD\uC81C(\uAC70\uC808)\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) {
       try {
         await storageService.rejectPush(id);
       } catch (e) {
-        alert((t("g_cb1fb3") || t("g_cb1fb3") || t("g_cb1fb3") || t("g_cb1fb3") || t("g_cb1fb3") || "\uC0AD\uC81C \uCC98\uB9AC \uC911 \uC624\uB958 \uBC1C\uC0DD: ") + e.message);
+        alert((t("g_cb1fb3") || "\uC0AD\uC81C \uCC98\uB9AC \uC911 \uC624\uB958 \uBC1C\uC0DD: ") + e.message);
       }
     }
   };

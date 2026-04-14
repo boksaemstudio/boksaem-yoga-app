@@ -93,7 +93,7 @@ const ScheduleTab = ({
               fontSize: '0.8rem',
               fontWeight: 'bold'
             }}>
-                                            {isPrimary ? t("g_5d12a6") || t("g_5d12a6") || t("g_5d12a6") || t("g_5d12a6") || t("g_5d12a6") || "\uBCF8\uC810" : t("g_274785") || t("g_274785") || t("g_274785") || t("g_274785") || t("g_274785") || "\uC9C0\uC810"}
+                                            {isPrimary ? t("g_5d12a6") || "\uBCF8\uC810" : t("g_274785") || "\uC9C0\uC810"}
                                         </div>
                                     </div>}
                                 <AdminScheduleManager branchId={branch.id} />
@@ -147,7 +147,7 @@ const ScheduleTab = ({
                                             <h4 style={{
                   margin: 0,
                   color: 'var(--primary-gold)'
-                }}>{curMonth}{t("g_e945ec") || t("g_e945ec") || t("g_e945ec") || t("g_e945ec") || t("g_e945ec") || "\uC6D4 (\uD604\uC7AC)"}</h4>
+                }}>{curMonth}{t("g_e945ec") || "\uC6D4 (\uD604\uC7AC)"}</h4>
                                             <div style={{
                   background: 'rgba(0,0,0,0.3)',
                   borderRadius: '12px',
@@ -185,7 +185,7 @@ const ScheduleTab = ({
                                             <h4 style={{
                   margin: 0,
                   color: '#a1a1aa'
-                }}>{nextMonth}{t("g_42f4e1") || t("g_42f4e1") || t("g_42f4e1") || t("g_42f4e1") || t("g_42f4e1") || "\uC6D4 (\uB2E4\uC74C\uB2EC)"}</h4>
+                }}>{nextMonth}{t("g_42f4e1") || "\uC6D4 (\uB2E4\uC74C\uB2EC)"}</h4>
                                             <div style={{
                   background: 'rgba(0,0,0,0.3)',
                   borderRadius: '12px',

@@ -4,6 +4,7 @@ import { useNetworkStore } from '../../stores/useNetworkStore';
 import { CloudArrowUp } from '@phosphor-icons/react'; // [ICON] CloudArrowUp for sync
 import { getOfflineQueue } from '../../services/offlineStorage';
 const NetworkStatus = memo(() => {
+  const t = useLanguageStore(s => s.t);
   const isOnline = useNetworkStore(s => s.isOnline);
   const [pendingCount, setPendingCount] = useState(0);
 
@@ -31,7 +32,7 @@ const NetworkStatus = memo(() => {
   if (!isKioskMode || pendingCount === 0) return null;
   return <div className="network-status-badge">
             <CloudArrowUp size={20} weight="duotone" />
-            <span>{t("g_559310") || t("g_559310") || t("g_559310") || t("g_559310") || t("g_559310") || "\uB300\uAE30 \uC911\uC778 \uB370\uC774\uD130:"}{pendingCount}{t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || "\uAC74"}</span>
+            <span>{t("g_559310") || "\uB300\uAE30 \uC911\uC778 \uB370\uC774\uD130:"}{pendingCount}{t("g_230561") || "\uAC74"}</span>
         </div>;
 });
 NetworkStatus.displayName = 'NetworkStatus';

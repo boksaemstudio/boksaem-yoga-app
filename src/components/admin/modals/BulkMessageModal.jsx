@@ -8,20 +8,26 @@ const DEMO_STUDIOS = ['demo-yoga'];
 const KAKAO_PASSFLOW_URL = 'http://pf.kakao.com/_zDxiMX/chat';
 const SEND_MODES = [{
   id: 'push_only',
-  label: t("g_a03713") || t("g_a03713") || t("g_a03713") || t("g_a03713") || t("g_a03713") || "\uC571 \uD478\uC2DC\uB9CC",
-  desc: t("g_667dd4") || t("g_667dd4") || t("g_667dd4") || t("g_667dd4") || t("g_667dd4") || "\uBB34\uB8CC",
+  labelKey: 'g_a03713',
+  labelFallback: "\uC571 \uD478\uC2DC\uB9CC",
+  descKey: 'g_667dd4',
+  descFallback: "\uBB34\uB8CC",
   icon: '📱',
   color: '#10b981'
 }, {
   id: 'push_first',
-  label: t("g_3bd88d") || t("g_3bd88d") || t("g_3bd88d") || t("g_3bd88d") || t("g_3bd88d") || "\uD478\uC2DC \uC6B0\uC120",
-  desc: t("g_ef5af5") || t("g_ef5af5") || t("g_ef5af5") || t("g_ef5af5") || t("g_ef5af5") || "\uD478\uC2DC \uC2E4\uD328 \uC2DC SMS",
+  labelKey: 'g_3bd88d',
+  labelFallback: "\uD478\uC2DC \uC6B0\uC120",
+  descKey: 'g_ef5af5',
+  descFallback: "\uD478\uC2DC \uC2E4\uD328 \uC2DC SMS",
   icon: '📱➡📩',
   color: 'var(--primary-gold)'
 }, {
   id: 'sms_only',
-  label: t("g_d4f540") || t("g_d4f540") || t("g_d4f540") || t("g_d4f540") || t("g_d4f540") || "SMS/LMS\uB9CC",
-  desc: t("g_b812d5") || t("g_b812d5") || t("g_b812d5") || t("g_b812d5") || t("g_b812d5") || "\uBB38\uC790 \uBE44\uC6A9 \uBC1C\uC0DD",
+  labelKey: 'g_d4f540',
+  labelFallback: "SMS/LMS\uB9CC",
+  descKey: 'g_b812d5',
+  descFallback: "\uBB38\uC790 \uBE44\uC6A9 \uBC1C\uC0DD",
   icon: '📩',
   color: '#3B82F6'
 }];
@@ -42,7 +48,7 @@ const BulkMessageModal = ({
   const studioId = getCurrentStudioId();
   const isSmsAvailable = SMS_ENABLED_STUDIOS.includes(studioId);
   const isDemo = DEMO_STUDIOS.includes(studioId);
-  const templates = [t("g_ef461d") || t("g_ef461d") || t("g_ef461d") || t("g_ef461d") || t("g_ef461d") || "[\uC77C\uAD04\uC5F0\uC7A5] \uD734\uBB34\uB85C \uC778\uD574 \uC804 \uD68C\uC6D0 \uC218\uAC15 \uAE30\uAC04\uC774 O\uC77C \uC5F0\uC7A5\uB418\uC5C8\uC2B5\uB2C8\uB2E4.", t("g_e6da62") || t("g_e6da62") || t("g_e6da62") || t("g_e6da62") || t("g_e6da62") || "[\uC784\uC2DC\uD734\uBB34] O\uC6D4 O\uC77C~O\uC77C \uD734\uBB34 \uC548\uB0B4\uB4DC\uB9BD\uB2C8\uB2E4. \uC591\uD574 \uBD80\uD0C1\uB4DC\uB9BD\uB2C8\uB2E4 \uD83D\uDE4F", t("g_2a6202") || t("g_2a6202") || t("g_2a6202") || t("g_2a6202") || t("g_2a6202") || "[\uBA85\uC808\uC778\uC0AC] \uC990\uAC70\uC6B4 \uBA85\uC808 \uBCF4\uB0B4\uC138\uC694! \uC5F0\uD734 \uAE30\uAC04 \uC218\uAC15\uAD8C\uC774 \uC790\uB3D9 \uC5F0\uC7A5\uB429\uB2C8\uB2E4.", t("g_3408a5") || t("g_3408a5") || t("g_3408a5") || t("g_3408a5") || t("g_3408a5") || "[\uC218\uC5C5\uBCC0\uACBD] \uB2E4\uC74C \uC8FC \uC218\uC5C5 \uC2DC\uAC04\uD45C\uAC00 \uBCC0\uACBD\uB429\uB2C8\uB2E4. \uD655\uC778 \uBD80\uD0C1\uB4DC\uB9BD\uB2C8\uB2E4.", t("g_65c3e6") || t("g_65c3e6") || t("g_65c3e6") || t("g_65c3e6") || t("g_65c3e6") || "[\uC774\uBCA4\uD2B8] \uCE5C\uAD6C \uCD94\uCC9C \uC774\uBCA4\uD2B8! \uD568\uAED8 \uB4F1\uB85D \uC2DC \uD560\uC778 \uD61C\uD0DD\uC744 \uB4DC\uB9BD\uB2C8\uB2E4 \uD83C\uDF81"];
+  const templates = [t("g_ef461d") || "[\uC77C\uAD04\uC5F0\uC7A5] \uD734\uBB34\uB85C \uC778\uD574 \uC804 \uD68C\uC6D0 \uC218\uAC15 \uAE30\uAC04\uC774 O\uC77C \uC5F0\uC7A5\uB418\uC5C8\uC2B5\uB2C8\uB2E4.", t("g_e6da62") || "[\uC784\uC2DC\uD734\uBB34] O\uC6D4 O\uC77C~O\uC77C \uD734\uBB34 \uC548\uB0B4\uB4DC\uB9BD\uB2C8\uB2E4. \uC591\uD574 \uBD80\uD0C1\uB4DC\uB9BD\uB2C8\uB2E4 \uD83D\uDE4F", t("g_2a6202") || "[\uBA85\uC808\uC778\uC0AC] \uC990\uAC70\uC6B4 \uBA85\uC808 \uBCF4\uB0B4\uC138\uC694! \uC5F0\uD734 \uAE30\uAC04 \uC218\uAC15\uAD8C\uC774 \uC790\uB3D9 \uC5F0\uC7A5\uB429\uB2C8\uB2E4.", t("g_3408a5") || "[\uC218\uC5C5\uBCC0\uACBD] \uB2E4\uC74C \uC8FC \uC218\uC5C5 \uC2DC\uAC04\uD45C\uAC00 \uBCC0\uACBD\uB429\uB2C8\uB2E4. \uD655\uC778 \uBD80\uD0C1\uB4DC\uB9BD\uB2C8\uB2E4.", t("g_65c3e6") || "[\uC774\uBCA4\uD2B8] \uCE5C\uAD6C \uCD94\uCC9C \uC774\uBCA4\uD2B8! \uD568\uAED8 \uB4F1\uB85D \uC2DC \uD560\uC778 \uD61C\uD0DD\uC744 \uB4DC\uB9BD\uB2C8\uB2E4 \uD83C\uDF81"];
   const calculateCost = msg => {
     let bytes = 0;
     for (let i = 0; i < msg.length; i++) {
@@ -63,23 +69,23 @@ const BulkMessageModal = ({
   const handleSend = async () => {
     if (!message.trim()) return;
     if (isScheduled && !scheduledTime) {
-      alert(t("g_e94562") || t("g_e94562") || t("g_e94562") || t("g_e94562") || t("g_e94562") || "\uC608\uC57D \uC2DC\uAC04\uC744 \uC120\uD0DD\uD574\uC8FC\uC138\uC694.");
+      alert(t("g_e94562") || "\uC608\uC57D \uC2DC\uAC04\uC744 \uC120\uD0DD\uD574\uC8FC\uC138\uC694.");
       return;
     }
     const isDemoSite = window.location.hostname.includes('passflow-demo') || localStorage.getItem('lastStudioId') === 'demo-yoga';
     if (isDemoSite) {
-      alert(t("g_233984") || t("g_233984") || t("g_233984") || t("g_233984") || t("g_233984") || "\uB370\uBAA8 \uD658\uACBD\uC5D0\uC11C\uB294 \uBA54\uC2DC\uC9C0 \uBC1C\uC1A1 \uAE30\uB2A5\uC774 \uC81C\uD55C\uB418\uC5B4 \uC788\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_233984") || "\uB370\uBAA8 \uD658\uACBD\uC5D0\uC11C\uB294 \uBA54\uC2DC\uC9C0 \uBC1C\uC1A1 \uAE30\uB2A5\uC774 \uC81C\uD55C\uB418\uC5B4 \uC788\uC2B5\uB2C8\uB2E4.");
       return;
     }
-    const modeLabel = SEND_MODES.find(m => m.id === sendMode)?.label || sendMode;
-    const costText = sendMode === 'push_only' ? t("g_667dd4") || t("g_667dd4") || t("g_667dd4") || t("g_667dd4") || t("g_667dd4") || "\uBB34\uB8CC" : `약 ${costInfo.totalCost.toLocaleString()}원`;
+    const modeLabel = (() => { const m = SEND_MODES.find(m => m.id === sendMode); return m ? (t(m.labelKey) || m.labelFallback) : sendMode; })();
+    const costText = sendMode === 'push_only' ? t("g_667dd4") || "\uBB34\uB8CC" : `약 ${costInfo.totalCost.toLocaleString()}원`;
     if (!confirm(`${memberCount}명에게 ${modeLabel} 방식으로 전송하시겠습니까?\n예상 비용: ${costText}`)) {
       return;
     }
     setSending(true);
     try {
       await storageService.sendBulkMessages(selectedMemberIds, message, isScheduled ? scheduledTime : null, sendMode);
-      alert(isScheduled ? t("g_ad7a29") || t("g_ad7a29") || t("g_ad7a29") || t("g_ad7a29") || t("g_ad7a29") || "\uC608\uC57D \uBC1C\uC1A1\uC774 \uC124\uC815\uB418\uC5C8\uC2B5\uB2C8\uB2E4." : t("g_45b945") || t("g_45b945") || t("g_45b945") || t("g_45b945") || t("g_45b945") || "\uC804\uC1A1\uC774 \uC2DC\uC791\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+      alert(isScheduled ? t("g_ad7a29") || "\uC608\uC57D \uBC1C\uC1A1\uC774 \uC124\uC815\uB418\uC5C8\uC2B5\uB2C8\uB2E4." : t("g_45b945") || "\uC804\uC1A1\uC774 \uC2DC\uC791\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
       onClose();
       setMessage('');
       setIsScheduled(false);
@@ -87,7 +93,7 @@ const BulkMessageModal = ({
       setSendMode('push_first');
     } catch (error) {
       console.error("Bulk send failed:", error);
-      alert((t("g_0bfa3d") || t("g_0bfa3d") || t("g_0bfa3d") || t("g_0bfa3d") || t("g_0bfa3d") || "\uC804\uC1A1 \uC2E4\uD328: ") + error.message);
+      alert((t("g_0bfa3d") || "\uC804\uC1A1 \uC2E4\uD328: ") + error.message);
     } finally {
       setSending(false);
     }
@@ -165,7 +171,7 @@ const BulkMessageModal = ({
                     <span style={{
           color: 'var(--primary-gold)',
           fontWeight: 'bold'
-        }}>{memberCount}{t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || "\uBA85"}</span>{t('의 회원에게 메시지를 보냅니다.')}
+        }}>{memberCount}{t("g_7b3c6e") || "\uBA85"}</span>{t('의 회원에게 메시지를 보냅니다.')}
                 </div>
 
                 {/* [NEW] Send Mode Selection — 3-way button group */}
@@ -187,7 +193,7 @@ const BulkMessageModal = ({
             const smsBlocked = isSmsMode && !isSmsAvailable && !isDemo;
             return <button key={mode.id} onClick={() => {
               if (smsBlocked) {
-                if (window.confirm(t("g_37f52d") || t("g_37f52d") || t("g_37f52d") || t("g_37f52d") || t("g_37f52d") || "\uBC1C\uC2E0\uC790 \uBC88\uD638\uAC00 \uB4F1\uB85D\uB418\uC5B4 \uC788\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.\n\nSMS \uBC1C\uC1A1\uC744 \uC704\uD574\uC11C\uB294 \uBC1C\uC2E0\uC790 \uBC88\uD638 \uB4F1\uB85D\uC774 \uD544\uC694\uD569\uB2C8\uB2E4.\n\uD328\uC2A4\uD50C\uB85C\uC6B0 \uCE74\uCE74\uC624\uD1A1\uC73C\uB85C \uBB38\uC758\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) {
+                if (window.confirm(t("g_37f52d") || "\uBC1C\uC2E0\uC790 \uBC88\uD638\uAC00 \uB4F1\uB85D\uB418\uC5B4 \uC788\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.\n\nSMS \uBC1C\uC1A1\uC744 \uC704\uD574\uC11C\uB294 \uBC1C\uC2E0\uC790 \uBC88\uD638 \uB4F1\uB85D\uC774 \uD544\uC694\uD569\uB2C8\uB2E4.\n\uD328\uC2A4\uD50C\uB85C\uC6B0 \uCE74\uCE74\uC624\uD1A1\uC73C\uB85C \uBB38\uC758\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) {
                   window.open(KAKAO_PASSFLOW_URL, '_blank');
                 }
                 return;
@@ -213,12 +219,12 @@ const BulkMessageModal = ({
                                 <span style={{
                 fontSize: '1.1rem'
               }}>{mode.icon}</span>
-                                <span>{mode.label}</span>
+                                <span>{t(mode.labelKey) || mode.labelFallback}</span>
                                 <span style={{
                 fontSize: '0.7rem',
                 opacity: 0.7
               }}>
-                                    {smsBlocked ? t("g_860baf") || t("g_860baf") || t("g_860baf") || t("g_860baf") || t("g_860baf") || "\uB4F1\uB85D \uD544\uC694" : isDemo && isSmsMode ? t("g_15a959") || t("g_15a959") || t("g_15a959") || t("g_15a959") || t("g_15a959") || "\uC2DC\uBBAC\uB808\uC774\uC158" : mode.desc}
+                                    {smsBlocked ? t("g_860baf") || "\uB4F1\uB85D \uD544\uC694" : isDemo && isSmsMode ? t("g_15a959") || "\uC2DC\uBBAC\uB808\uC774\uC158" : t(mode.descKey) || mode.descFallback}
                                 </span>
                             </button>;
           })}
@@ -258,7 +264,7 @@ const BulkMessageModal = ({
             justifyContent: 'space-between',
             width: '100%'
           }}>
-                                <span>{message.length}{t("g_4e19f2") || t("g_4e19f2") || t("g_4e19f2") || t("g_4e19f2") || t("g_4e19f2") || "\uC790"}</span>
+                                <span>{message.length}{t("g_4e19f2") || "\uC790"}</span>
                                 <span style={{
               color: '#10b981',
               fontWeight: '600'
@@ -284,7 +290,7 @@ const BulkMessageModal = ({
               }}>
                                         {costInfo.isLMS ? 'LMS' : 'SMS'}
                                     </span>
-                                    <span>{message.length}{t("g_95b65e") || t("g_95b65e") || t("g_95b65e") || t("g_95b65e") || t("g_95b65e") || "\uC790 \u2022"}{costInfo.bytes}/{costInfo.isLMS ? 2000 : 90} bytes</span>
+                                    <span>{message.length}{t("g_95b65e") || "\uC790 \u2022"}{costInfo.bytes}/{costInfo.isLMS ? 2000 : 90} bytes</span>
                                 </div>
                                 <div style={{
               display: 'flex',
@@ -293,17 +299,17 @@ const BulkMessageModal = ({
               color: costInfo.isLMS ? '#f59e0b' : '#10b981',
               fontWeight: '600'
             }}>
-                                    <span>{t("g_6ae50a") || t("g_6ae50a") || t("g_6ae50a") || t("g_6ae50a") || t("g_6ae50a") || "\uAC74\uB2F9"}{costInfo.costPerMsg}{t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || "\uC6D0"}</span>
+                                    <span>{t("g_6ae50a") || "\uAC74\uB2F9"}{costInfo.costPerMsg}{t("g_771dc3") || "\uC6D0"}</span>
                                     <span style={{
                 opacity: 0.6
               }}>×</span>
-                                    <span>{memberCount}{t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || "\uBA85"}</span>
+                                    <span>{memberCount}{t("g_7b3c6e") || "\uBA85"}</span>
                                     <span style={{
                 opacity: 0.6
               }}>=</span>
                                     <span style={{
                 fontWeight: '700'
-              }}>{t("g_773765") || t("g_773765") || t("g_773765") || t("g_773765") || t("g_773765") || "\uC57D"}{costInfo.totalCost.toLocaleString()}{t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || "\uC6D0"}</span>
+              }}>{t("g_773765") || "\uC57D"}{costInfo.totalCost.toLocaleString()}{t("g_771dc3") || "\uC6D0"}</span>
                                 </div>
                             </div>}
                     </div>
@@ -391,7 +397,7 @@ const BulkMessageModal = ({
         cursor: sending ? 'wait' : 'pointer',
         boxShadow: sending ? 'none' : '0 4px 12px rgba(var(--primary-rgb), 0.3)'
       }}>
-                    {sending ? t("g_499898") || t("g_499898") || t("g_499898") || t("g_499898") || t("g_499898") || "\uC804\uC1A1 \uC911..." : isScheduled ? t("g_bdfc4c") || t("g_bdfc4c") || t("g_bdfc4c") || t("g_bdfc4c") || t("g_bdfc4c") || "\uC608\uC57D \uBC1C\uC1A1\uD558\uAE30" : t("g_9760b2") || t("g_9760b2") || t("g_9760b2") || t("g_9760b2") || t("g_9760b2") || "\uC804\uC1A1\uD558\uAE30"}
+                    {sending ? t("g_499898") || "\uC804\uC1A1 \uC911..." : isScheduled ? t("g_bdfc4c") || "\uC608\uC57D \uBC1C\uC1A1\uD558\uAE30" : t("g_9760b2") || "\uC804\uC1A1\uD558\uAE30"}
                 </button>
             </div>
         </div>;

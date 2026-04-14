@@ -54,10 +54,10 @@ const StudioSettingsTab = () => {
           console.log('Registry sync skipped', e);
         }
       }
-      alert(t("g_a7a03e") || t("g_a7a03e") || t("g_a7a03e") || t("g_a7a03e") || t("g_a7a03e") || "\uC124\uC815\uC774 \uC800\uC7A5\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_a7a03e") || "\uC124\uC815\uC774 \uC800\uC7A5\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
     } catch (error) {
       console.error('Failed to save config:', error);
-      alert(`설정 저장 실패: ${error.message || t("g_053d5f") || t("g_053d5f") || t("g_053d5f") || t("g_053d5f") || t("g_053d5f") || "\uC54C \uC218 \uC5C6\uB294 \uC624\uB958"}`);
+      alert(`설정 저장 실패: ${error.message || t("g_053d5f") || "\uC54C \uC218 \uC5C6\uB294 \uC624\uB958"}`);
     } finally {
       setIsSaving(false);
     }
@@ -234,7 +234,7 @@ const StudioSettingsTab = () => {
           fontWeight: 'bold',
           boxShadow: '0 4px 15px var(--primary-theme-skeleton)'
         }}>
-                        <FloppyDisk size={20} weight="bold" /> {isSaving ? t("g_923cf9") || t("g_923cf9") || t("g_923cf9") || t("g_923cf9") || t("g_923cf9") || "\uC800\uC7A5 \uC911..." : t("g_94fe17") || t("g_94fe17") || t("g_94fe17") || t("g_94fe17") || t("g_94fe17") || "\uBCC0\uACBD\uC0AC\uD56D \uC800\uC7A5"}
+                        <FloppyDisk size={20} weight="bold" /> {isSaving ? t("g_923cf9") || "\uC800\uC7A5 \uC911..." : t("g_94fe17") || "\uBCC0\uACBD\uC0AC\uD56D \uC800\uC7A5"}
                     </button>
                 </div>
             </div>
@@ -299,7 +299,7 @@ const StudioSettingsTab = () => {
             const file = e.target.files?.[0];
             if (!file) return;
             if (file.size > 2 * 1024 * 1024) {
-              alert(t("g_d8837c") || t("g_d8837c") || t("g_d8837c") || t("g_d8837c") || t("g_d8837c") || "\uD30C\uC77C \uD06C\uAE30\uB294 2MB \uC774\uD558\uC5EC\uC57C \uD569\uB2C8\uB2E4.");
+              alert(t("g_d8837c") || "\uD30C\uC77C \uD06C\uAE30\uB294 2MB \uC774\uD558\uC5EC\uC57C \uD569\uB2C8\uB2E4.");
               return;
             }
             setLogoUploading(true);
@@ -310,10 +310,10 @@ const StudioSettingsTab = () => {
               });
               const url = await getDownloadURL(logoRef);
               handleChange('IDENTITY.LOGO_URL', url);
-              alert(t("g_3069d4") || t("g_3069d4") || t("g_3069d4") || t("g_3069d4") || t("g_3069d4") || "\uB85C\uACE0\uAC00 \uC5C5\uB85C\uB4DC\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uC800\uC7A5 \uBC84\uD2BC\uC744 \uB20C\uB7EC \uC801\uC6A9\uD558\uC138\uC694.");
+              alert(t("g_3069d4") || "\uB85C\uACE0\uAC00 \uC5C5\uB85C\uB4DC\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uC800\uC7A5 \uBC84\uD2BC\uC744 \uB20C\uB7EC \uC801\uC6A9\uD558\uC138\uC694.");
             } catch (err) {
               console.error('[Settings] Logo upload error:', err);
-              alert((t("g_d53a3f") || t("g_d53a3f") || t("g_d53a3f") || t("g_d53a3f") || t("g_d53a3f") || "\uB85C\uACE0 \uC5C5\uB85C\uB4DC \uC2E4\uD328: ") + err.message);
+              alert((t("g_d53a3f") || "\uB85C\uACE0 \uC5C5\uB85C\uB4DC \uC2E4\uD328: ") + err.message);
             } finally {
               setLogoUploading(false);
             }
@@ -327,7 +327,7 @@ const StudioSettingsTab = () => {
                             <ImageIcon size={14} weight="bold" style={{
               marginRight: '4px'
             }} />
-                            {logoUploading ? t("g_0a4de7") || t("g_0a4de7") || t("g_0a4de7") || t("g_0a4de7") || t("g_0a4de7") || "\uC5C5\uB85C\uB4DC \uC911..." : t("g_5f76bd") || t("g_5f76bd") || t("g_5f76bd") || t("g_5f76bd") || t("g_5f76bd") || "\uB85C\uACE0 \uBCC0\uACBD"}
+                            {logoUploading ? t("g_0a4de7") || "\uC5C5\uB85C\uB4DC \uC911..." : t("g_5f76bd") || "\uB85C\uACE0 \uBCC0\uACBD"}
                         </button>
                     </div>
                 </div>
@@ -585,13 +585,13 @@ const StudioSettingsTab = () => {
           }}>
                             {[{
               value: 'total',
-              label: t("g_1e62f2") || t("g_1e62f2") || t("g_1e62f2") || t("g_1e62f2") || t("g_1e62f2") || "\uC804\uCCB4 \uAE30\uAC04",
-              desc: t("g_12d88c") || t("g_12d88c") || t("g_12d88c") || t("g_12d88c") || t("g_12d88c") || "\uB4F1\uB85D \uAE30\uAC04 \uB0B4 \uC790\uC720\uB86D\uAC8C \uC0AC\uC6A9",
+              label: t("g_1e62f2") || "\uC804\uCCB4 \uAE30\uAC04",
+              desc: t("g_12d88c") || "\uB4F1\uB85D \uAE30\uAC04 \uB0B4 \uC790\uC720\uB86D\uAC8C \uC0AC\uC6A9",
               icon: '📊'
             }, {
               value: 'weekly',
-              label: t("g_d8654b") || t("g_d8654b") || t("g_d8654b") || t("g_d8654b") || t("g_d8654b") || "\uC8FC\uAC04 \uB2E8\uC704",
-              desc: t("g_e486be") || t("g_e486be") || t("g_e486be") || t("g_e486be") || t("g_e486be") || "\uC8FC N\uD68C \uC81C\uD55C (\uC608: \uC8FC 3\uD68C)",
+              label: t("g_d8654b") || "\uC8FC\uAC04 \uB2E8\uC704",
+              desc: t("g_e486be") || "\uC8FC N\uD68C \uC81C\uD55C (\uC608: \uC8FC 3\uD68C)",
               icon: '📅'
             }].map(opt => <button key={opt.value} onClick={() => handleChange('POLICIES.CREDIT_RULES', {
               ...(localConfig.POLICIES?.CREDIT_RULES || {}),
@@ -694,7 +694,7 @@ const StudioSettingsTab = () => {
             borderRadius: '8px',
             border: '1px solid rgba(255,255,255,0.05)'
           }}>
-                            💡 {(localConfig.POLICIES?.CREDIT_RULES?.mode || 'total') === 'total' ? t("g_a28bb6") || t("g_a28bb6") || t("g_a28bb6") || t("g_a28bb6") || t("g_a28bb6") || "\uD604\uC7AC \uBC29\uC2DD: \uB4F1\uB85D\uB41C \uCD1D \uD69F\uC218\uC5D0\uC11C \uCD9C\uC11D\uD560 \uB54C\uB9C8\uB2E4 1\uD68C\uC529 \uCC28\uAC10\uB429\uB2C8\uB2E4." : t("g_5dead3") || t("g_5dead3") || t("g_5dead3") || t("g_5dead3") || t("g_5dead3") || "\uC8FC\uAC04 \uBC29\uC2DD: \uC694\uAE08\uC81C\uC758 \uC8FC\uB2F9 \uD69F\uC218(\uC608: \uC6D4 12\uD68C \u2192 \uC8FC 3\uD68C)\uB97C \uCD08\uACFC\uD558\uBA74 \uCD9C\uC11D\uC774 \uC81C\uD55C\uB429\uB2C8\uB2E4. \uCD1D \uC794\uC5EC \uD69F\uC218\uB3C4 \uD568\uAED8 \uCC28\uAC10\uB429\uB2C8\uB2E4."}
+                            💡 {(localConfig.POLICIES?.CREDIT_RULES?.mode || 'total') === 'total' ? t("g_a28bb6") || "\uD604\uC7AC \uBC29\uC2DD: \uB4F1\uB85D\uB41C \uCD1D \uD69F\uC218\uC5D0\uC11C \uCD9C\uC11D\uD560 \uB54C\uB9C8\uB2E4 1\uD68C\uC529 \uCC28\uAC10\uB429\uB2C8\uB2E4." : t("g_5dead3") || "\uC8FC\uAC04 \uBC29\uC2DD: \uC694\uAE08\uC81C\uC758 \uC8FC\uB2F9 \uD69F\uC218(\uC608: \uC6D4 12\uD68C \u2192 \uC8FC 3\uD68C)\uB97C \uCD08\uACFC\uD558\uBA74 \uCD9C\uC11D\uC774 \uC81C\uD55C\uB429\uB2C8\uB2E4. \uCD1D \uC794\uC5EC \uD69F\uC218\uB3C4 \uD568\uAED8 \uCC28\uAC10\uB429\uB2C8\uB2E4."}
                         </div>
                     </div>
                 </div>
@@ -1007,7 +1007,7 @@ const StudioSettingsTab = () => {
                 fontSize: '0.72rem',
                 color: 'var(--text-tertiary)'
               }}>
-                                        {(localConfig.POLICIES?.CAMERA_SIZE || 'large') === 'large' ? t("g_7fc733") || t("g_7fc733") || t("g_7fc733") || t("g_7fc733") || t("g_7fc733") || "\uB85C\uACE0 \uC544\uB798 \uD070 \uD504\uB9AC\uBDF0" : t("g_f2a964") || t("g_f2a964") || t("g_f2a964") || t("g_f2a964") || t("g_f2a964") || "QR \uCF54\uB4DC \uC606 \uC791\uC740 \uD504\uB9AC\uBDF0"}
+                                        {(localConfig.POLICIES?.CAMERA_SIZE || 'large') === 'large' ? t("g_7fc733") || "\uB85C\uACE0 \uC544\uB798 \uD070 \uD504\uB9AC\uBDF0" : t("g_f2a964") || "QR \uCF54\uB4DC \uC606 \uC791\uC740 \uD504\uB9AC\uBDF0"}
                                     </div>
                                 </div>
                                 <div style={{
@@ -1027,7 +1027,7 @@ const StudioSettingsTab = () => {
                 transition: 'all 0.2s',
                 background: (localConfig.POLICIES?.CAMERA_SIZE || 'large') === size ? 'var(--primary-gold)' : 'transparent',
                 color: (localConfig.POLICIES?.CAMERA_SIZE || 'large') === size ? 'black' : 'var(--text-tertiary)'
-              }}>{size === 'large' ? t("g_49f9df") || t("g_49f9df") || t("g_49f9df") || t("g_49f9df") || t("g_49f9df") || "\uD06C\uAC8C" : t("g_f10e03") || t("g_f10e03") || t("g_f10e03") || t("g_f10e03") || t("g_f10e03") || "\uC791\uAC8C"}</button>)}
+              }}>{size === 'large' ? t("g_49f9df") || "\uD06C\uAC8C" : t("g_f10e03") || "\uC791\uAC8C"}</button>)}
                                 </div>
                             </div>
                             {/* 안면인식 자동 출석 */}
@@ -1109,7 +1109,7 @@ const StudioSettingsTab = () => {
           color: 'var(--text-secondary)',
           border: '1px dashed var(--border-color)'
         }} onClick={() => {
-          const name = prompt(t("g_e9f13e") || t("g_e9f13e") || t("g_e9f13e") || t("g_e9f13e") || t("g_e9f13e") || "\uC0C8 \uC9C0\uC810 \uC774\uB984\uC744 \uC785\uB825\uD558\uC138\uC694:");
+          const name = prompt(t("g_e9f13e") || "\uC0C8 \uC9C0\uC810 \uC774\uB984\uC744 \uC785\uB825\uD558\uC138\uC694:");
           if (name) {
             const id = name.replace(/[^a-zA-Z0-9가-힣]/g, '').toLowerCase() || `branch_${Date.now()}`;
             const autoId = id.replace(/[가-힣]+/g, () => `branch_${Date.now()}`);
@@ -1178,25 +1178,25 @@ const StudioSettingsTab = () => {
         gap: '16px'
       }}>
                     {[{
-          label: t("g_7ea89f") || t("g_7ea89f") || t("g_7ea89f") || t("g_7ea89f") || t("g_7ea89f") || "\uAD00\uB9AC\uC790\uC571",
+          label: t("g_7ea89f") || "\uAD00\uB9AC\uC790\uC571",
           path: '/admin',
           icon: '⚙️',
-          desc: t("g_0498a8") || t("g_0498a8") || t("g_0498a8") || t("g_0498a8") || t("g_0498a8") || "\uC2A4\uD29C\uB514\uC624 \uAD00\uB9AC"
+          desc: t("g_0498a8") || "\uC2A4\uD29C\uB514\uC624 \uAD00\uB9AC"
         }, {
-          label: t("g_9fe899") || t("g_9fe899") || t("g_9fe899") || t("g_9fe899") || t("g_9fe899") || "\uAC15\uC0AC\uC571",
+          label: t("g_9fe899") || "\uAC15\uC0AC\uC571",
           path: '/instructor',
           icon: '🧘',
-          desc: t("g_84cc80") || t("g_84cc80") || t("g_84cc80") || t("g_84cc80") || t("g_84cc80") || "\uCD9C\uC11D \uD655\uC778 & \uC77C\uC815"
+          desc: t("g_84cc80") || "\uCD9C\uC11D \uD655\uC778 & \uC77C\uC815"
         }, {
-          label: t("g_1943ed") || t("g_1943ed") || t("g_1943ed") || t("g_1943ed") || t("g_1943ed") || "\uD68C\uC6D0\uC571",
+          label: t("g_1943ed") || "\uD68C\uC6D0\uC571",
           path: '/member',
           icon: '📱',
-          desc: t("g_7c29ca") || t("g_7c29ca") || t("g_7c29ca") || t("g_7c29ca") || t("g_7c29ca") || "\uCD9C\uC11D & \uC218\uC5C5 \uC815\uBCF4"
+          desc: t("g_7c29ca") || "\uCD9C\uC11D & \uC218\uC5C5 \uC815\uBCF4"
         }, {
-          label: t("g_5bccb5") || t("g_5bccb5") || t("g_5bccb5") || t("g_5bccb5") || t("g_5bccb5") || "\uCD9C\uC11D\uCCB4\uD06C\uC571",
+          label: t("g_5bccb5") || "\uCD9C\uC11D\uCCB4\uD06C\uC571",
           path: '/checkin',
           icon: '✅',
-          desc: t("g_064937") || t("g_064937") || t("g_064937") || t("g_064937") || t("g_064937") || "\uD0A4\uC624\uC2A4\uD06C/\uD0DC\uBE14\uB9BF"
+          desc: t("g_064937") || "\uD0A4\uC624\uC2A4\uD06C/\uD0DC\uBE14\uB9BF"
         }].map(app => {
           const sid = getCurrentStudioId();
           // [SaaS] 스튜디오별 전용 도메인 매핑 — 올바른 URL 생성

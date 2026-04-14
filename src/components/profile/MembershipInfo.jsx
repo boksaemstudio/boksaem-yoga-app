@@ -114,7 +114,7 @@ const MembershipInfo = ({
         display: 'flex',
         alignItems: 'center',
         gap: '4px'
-      }}>{t("g_455574") || t("g_455574") || t("g_455574") || "\uD83D\uDCA0 AI \uCD9C\uC11D \uB4F1\uB85D"}</span>}
+      }}>{t("g_455574") || "\uD83D\uDCA0 AI \uCD9C\uC11D \uB4F1\uB85D"}</span>}
                 {isHolding && <span style={{
         background: 'rgba(251, 146, 60, 0.2)',
         color: '#fb923c',
@@ -158,9 +158,9 @@ const MembershipInfo = ({
                         <span style={{
           color: '#818CF8',
           fontWeight: 'bold'
-        }}>{t("g_e1a2f3") || t("g_e1a2f3") || t("g_e1a2f3") || "AI \uCD9C\uC11D \uC548\uB0B4"}</span>{t("g_9e8f2a") || t("g_9e8f2a") || t("g_9e8f2a") || "\u2014 \n                        \uD68C\uC6D0\uB2D8\uC758 \uC0AC\uC9C4\uC740"}<b style={{
+        }}>{t("g_e1a2f3") || "AI \uCD9C\uC11D \uC548\uB0B4"}</span>{t("g_9e8f2a") || "\u2014 \n                        \uD68C\uC6D0\uB2D8\uC758 \uC0AC\uC9C4\uC740"}<b style={{
           color: 'rgba(255,255,255,0.85)'
-        }}>{t("g_4d4b51") || t("g_4d4b51") || t("g_4d4b51") || "\uC800\uC7A5\uB418\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."}</b>{t("g_0301bf") || t("g_0301bf") || t("g_0301bf") || "\uC5BC\uAD74 \uD2B9\uC9D5\uC774 128\uCC28\uC6D0 \uC22B\uC790(\uBCA1\uD130)\uB85C \uBCC0\uD658\uB418\uC5B4 \uC548\uC804\uD558\uAC8C \uBCF4\uAD00\uB418\uBA70, \uC6D0\uBCF8 \uC774\uBBF8\uC9C0\uB294 \uC989\uC2DC \uC0AD\uC81C\uB429\uB2C8\uB2E4. \uC22B\uC790 \uB370\uC774\uD130\uB85C\uB294 \uC5BC\uAD74\uC744 \uBCF5\uC6D0\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."}</div>
+        }}>{t("g_4d4b51") || "\uC800\uC7A5\uB418\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."}</b>{t("g_0301bf") || "\uC5BC\uAD74 \uD2B9\uC9D5\uC774 128\uCC28\uC6D0 \uC22B\uC790(\uBCA1\uD130)\uB85C \uBCC0\uD658\uB418\uC5B4 \uC548\uC804\uD558\uAC8C \uBCF4\uAD00\uB418\uBA70, \uC6D0\uBCF8 \uC774\uBBF8\uC9C0\uB294 \uC989\uC2DC \uC0AD\uC81C\uB429\uB2C8\uB2E4. \uC22B\uC790 \uB370\uC774\uD130\uB85C\uB294 \uC5BC\uAD74\uC744 \uBCF5\uC6D0\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."}</div>
                 </div>}
 
             {/* 홀딩 중일 때 상태 표시 */}
@@ -201,7 +201,7 @@ const MembershipInfo = ({
             fontSize: '0.7rem',
             color: 'rgba(255,255,255,0.5)'
           }}>
-                                {holdInfo.isAdminHold ? t("g_036c64") || t("g_036c64") || t("g_036c64") || "\uCCAB \uCD9C\uC11D \uC2DC \uC7AC\uC2DC\uC791" : t('holdAutoRelease')}
+                                {holdInfo.isAdminHold ? t("g_036c64") || "\uCCAB \uCD9C\uC11D \uC2DC \uC7AC\uC2DC\uC791" : t('holdAutoRelease')}
                             </div>
                             <div style={{
             fontSize: '0.7rem',
@@ -365,7 +365,7 @@ const MembershipInfo = ({
               fontSize: '0.85rem',
               fontWeight: '700',
               color: 'white'
-            }}>{t("g_7d5a1f") || t("g_7d5a1f") || t("g_7d5a1f") || "\uC218\uAC15 \uD398\uC774\uC2A4"}</span>
+            }}>{t("g_7d5a1f") || "\uC218\uAC15 \uD398\uC774\uC2A4"}</span>
                                 <span style={{
               fontSize: '0.7rem',
               padding: '2px 6px',
@@ -381,7 +381,7 @@ const MembershipInfo = ({
             fontSize: '0.75rem',
             color: '#a1a1aa'
           }}>
-                                {attendanceCount}{t("g_6a67f7") || t("g_6a67f7") || t("g_6a67f7") || "\uD68C \uC0AC\uC6A9 /"}{totalCredits}{t("g_be72a4") || t("g_be72a4") || t("g_be72a4") || "\uD68C \uC911"}</span>
+                                {attendanceCount}{t("g_6a67f7") || "\uD68C \uC0AC\uC6A9 /"}{totalCredits}{t("g_be72a4") || "\uD68C \uC911"}</span>
                         </div>
                         
                         {/* Double Progress Bar */}
@@ -453,7 +453,7 @@ const MembershipInfo = ({
                 background: paceColor,
                 borderRadius: '2px',
                 display: 'inline-block'
-              }} />{t("g_d4dc4e") || t("g_d4dc4e") || t("g_d4dc4e") || "\uC218\uAC15"}{usageRatio}%
+              }} />{t("g_d4dc4e") || "\uC218\uAC15"}{usageRatio}%
                                 </span>
                                 <span style={{
               display: 'flex',
@@ -465,10 +465,10 @@ const MembershipInfo = ({
                 height: '8px',
                 borderLeft: '2px solid rgba(255,255,255,0.5)',
                 display: 'inline-block'
-              }} />{t("g_7bc7c5") || t("g_7bc7c5") || t("g_7bc7c5") || "\uAE30\uAC04"}{timeRatio}%
+              }} />{t("g_7bc7c5") || "\uAE30\uAC04"}{timeRatio}%
                                 </span>
                             </div>
-                            <span>{t("g_34c1e0") || t("g_34c1e0") || t("g_34c1e0") || "\uC794\uC5EC"}{remainingCredits}{t("g_8a602f") || t("g_8a602f") || t("g_8a602f") || "\uD68C"}</span>
+                            <span>{t("g_34c1e0") || "\uC794\uC5EC"}{remainingCredits}{t("g_8a602f") || "\uD68C"}</span>
                         </div>
                         
                         {/* AI Motivation Comment */}
@@ -564,19 +564,19 @@ const MembershipInfo = ({
         gradeMsg = "\uB2E4\uC2DC \uC2DC\uC791\uD574\uBD10\uC694! \uC791\uC740 \uD55C \uAC78\uC74C\uBD80\uD130";
       }
       const indicators = [{
-        label: t("g_8d40f3") || t("g_8d40f3") || t("g_8d40f3") || "\uC8FC\uAC04 \uCD9C\uC11D",
+        label: t("g_8d40f3") || "\uC8FC\uAC04 \uCD9C\uC11D",
         score: weeklyScore,
         desc: `주 ${weeklyAvg.toFixed(1)}회`
       }, {
-        label: t("g_8f2f30") || t("g_8f2f30") || t("g_8f2f30") || "\uADDC\uCE59\uC131",
+        label: t("g_8f2f30") || "\uADDC\uCE59\uC131",
         score: regularityScore,
-        desc: stdDev < 2 ? t("g_5fde0b") || t("g_5fde0b") || t("g_5fde0b") || "\uB9E4\uC6B0 \uADDC\uCE59\uC801" : stdDev < 4 ? t("g_fa06c1") || t("g_fa06c1") || t("g_fa06c1") || "\uADDC\uCE59\uC801" : t("g_6ef51b") || t("g_6ef51b") || t("g_6ef51b") || "\uBD88\uADDC\uCE59"
+        desc: stdDev < 2 ? t("g_5fde0b") || "\uB9E4\uC6B0 \uADDC\uCE59\uC801" : stdDev < 4 ? t("g_fa06c1") || "\uADDC\uCE59\uC801" : t("g_6ef51b") || "\uBD88\uADDC\uCE59"
       }, {
-        label: t("g_10ef44") || t("g_10ef44") || t("g_10ef44") || "\uAFB8\uC900\uD568",
+        label: t("g_10ef44") || "\uAFB8\uC900\uD568",
         score: consistencyScore,
         desc: `최근 4주 중 ${recentWeeks.reduce((a, b) => a + b, 0)}주 출석`
       }, {
-        label: t("g_5673ab") || t("g_5673ab") || t("g_5673ab") || "\uCD5C\uADFC \uD65C\uB825",
+        label: t("g_5673ab") || "\uCD5C\uADFC \uD65C\uB825",
         score: vitalityScore,
         desc: `최근 2주 ${recentCount}회`
       }];
@@ -603,7 +603,7 @@ const MembershipInfo = ({
               fontSize: '0.85rem',
               fontWeight: '700',
               color: 'white'
-            }}>{t("g_3d855e") || t("g_3d855e") || t("g_3d855e") || "\uADFC\uBA74\uC131\uC2E4\uB3C4"}</span>
+            }}>{t("g_3d855e") || "\uADFC\uBA74\uC131\uC2E4\uB3C4"}</span>
                                 <span style={{
               fontSize: '1rem',
               padding: '2px 10px',
@@ -619,7 +619,7 @@ const MembershipInfo = ({
                             <span style={{
             fontSize: '0.75rem',
             color: '#71717a'
-          }}>{totalScore}{t("g_8466e0") || t("g_8466e0") || t("g_8466e0") || "\uC810 / 100"}</span>
+          }}>{totalScore}{t("g_8466e0") || "\uC810 / 100"}</span>
                         </div>
 
                         {/* 지표 바 */}

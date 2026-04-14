@@ -16,7 +16,9 @@ export const WeatherView = ({
   setStep,
   handleWeatherSelect,
   WEATHER_OPTIONS
-}) => <div style={{
+}) => {
+  const t = useLanguageStore(s => s.t);
+  return <div style={{
   position: 'fixed',
   inset: 0,
   background: config.THEME?.BACKGROUND || '#0a0a0c',
@@ -120,6 +122,7 @@ export const WeatherView = ({
             </div>
         </div>
     </div>;
+};
 export const DiagnosisManualView = ({
   config,
   visualTheme,
@@ -132,7 +135,9 @@ export const DiagnosisManualView = ({
   setStep,
   handleDiagnosisSelect,
   DIAGNOSIS_OPTIONS
-}) => <div style={{
+}) => {
+  const t = useLanguageStore(s => s.t);
+  return <div style={{
   position: 'fixed',
   inset: 0,
   background: config.THEME?.BACKGROUND || '#0a0a0c',
@@ -236,3 +241,4 @@ export const DiagnosisManualView = ({
             </div>
         </div>
     </div>;
+};

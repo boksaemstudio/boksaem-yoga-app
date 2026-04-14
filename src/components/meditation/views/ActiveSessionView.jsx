@@ -57,6 +57,7 @@ export const ActiveSessionView = ({
   activeMode,
   showVolumeHint
 }) => {
+    const t = useLanguageStore(s => s.t);
     return <div style={{
     position: 'fixed',
     inset: 0,

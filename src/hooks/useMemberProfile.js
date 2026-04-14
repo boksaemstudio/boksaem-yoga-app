@@ -97,7 +97,7 @@ export const useMemberProfile = (language, t) => {
           grade,
           score: totalScore,
           weeklyAvg: weeklyAvg.toFixed(1),
-          regularity: stdDev < 2 ? t("g_5fde0b") || t("g_5fde0b") || t("g_5fde0b") || t("g_5fde0b") || t("g_5fde0b") || "\uB9E4\uC6B0 \uADDC\uCE59\uC801" : stdDev < 4 ? t("g_fa06c1") || t("g_fa06c1") || t("g_fa06c1") || t("g_fa06c1") || t("g_fa06c1") || "\uADDC\uCE59\uC801" : t("g_6ef51b") || t("g_6ef51b") || t("g_6ef51b") || t("g_6ef51b") || t("g_6ef51b") || "\uBD88\uADDC\uCE59"
+          regularity: stdDev < 2 ? t("g_5fde0b") || "매우 규칙적" : stdDev < 4 ? t("g_fa06c1") || "규칙적" : t("g_6ef51b") || "불규칙"
         };
       }
       const exp = await storageService.getAIExperience(m.name, m.attendanceCount || validAttendance.length, day, hour, null, wData ? `${t('weather_' + wData.key)} (${wData.temp}°C)` : 'Sunny', m.credits || 0, getDaysRemaining(m.endDate), language, {

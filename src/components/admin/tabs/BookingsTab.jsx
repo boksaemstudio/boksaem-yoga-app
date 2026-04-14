@@ -56,10 +56,10 @@ const BookingsTab = ({
     if (!window.confirm(`${booking.memberName}님의 예약을 취소하시겠습니까?`)) return;
     try {
       await bookingService.cancelBooking(booking.date, booking.classIndex, booking.memberId, branchId, config);
-      alert(t("g_cab5b0") || t("g_cab5b0") || t("g_cab5b0") || t("g_cab5b0") || t("g_cab5b0") || "\uC608\uC57D\uC774 \uCDE8\uC18C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_cab5b0") || "\uC608\uC57D\uC774 \uCDE8\uC18C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
       // 실시간 구독이므로 별도 새로고침 불필요
     } catch (e) {
-      alert((t("g_8226c1") || t("g_8226c1") || t("g_8226c1") || t("g_8226c1") || t("g_8226c1") || "\uCDE8\uC18C \uC2E4\uD328: ") + e.message);
+      alert((t("g_8226c1") || "\uCDE8\uC18C \uC2E4\uD328: ") + e.message);
     }
   };
   const [monthlyBookingCounts, setMonthlyBookingCounts] = useState({}); // { '2026-03-16': 3, ... }
@@ -132,10 +132,10 @@ const BookingsTab = ({
 
   // 달력 렌더링
   const renderMiniCalendar = () => {
-    const t = useLanguageStore(s => s.t);
+
     const daysInMonth = new Date(calYear, calMonth, 0).getDate();
     const firstDay = new Date(calYear, calMonth - 1, 1).getDay();
-    const dayNames = [t("g_95e431") || t("g_95e431") || t("g_95e431") || t("g_95e431") || t("g_95e431") || "\uC77C", t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || "\uC6D4", t("g_74d3f7") || t("g_74d3f7") || t("g_74d3f7") || t("g_74d3f7") || t("g_74d3f7") || "\uD654", t("g_cae82d") || t("g_cae82d") || t("g_cae82d") || t("g_cae82d") || t("g_cae82d") || "\uC218", t("g_d5f699") || t("g_d5f699") || t("g_d5f699") || t("g_d5f699") || t("g_d5f699") || "\uBAA9", t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || "\uAE08", t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || "\uD1A0"];
+    const dayNames = [t("g_95e431") || "\uC77C", t("g_5b51dd") || "\uC6D4", t("g_74d3f7") || "\uD654", t("g_cae82d") || "\uC218", t("g_d5f699") || "\uBAA9", t("g_cef92d") || "\uAE08", t("g_ccc0dc") || "\uD1A0"];
     const cells = [];
     for (let i = 0; i < firstDay; i++) cells.push(<div key={`e-${i}`} />);
     for (let d = 1; d <= daysInMonth; d++) {
@@ -183,7 +183,7 @@ const BookingsTab = ({
           fontWeight: 800,
           fontSize: '1rem',
           color: 'white'
-        }}>{calYear}{t("g_e29d2c") || t("g_e29d2c") || t("g_e29d2c") || t("g_e29d2c") || t("g_e29d2c") || "\uB144"}{calMonth}{t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || "\uC6D4"}</span>
+        }}>{calYear}{t("g_e29d2c") || "\uB144"}{calMonth}{t("g_5b51dd") || "\uC6D4"}</span>
                     <button onClick={() => moveMonth(1)} style={dateBtnStyle}>▶</button>
                 </div>
                 <div style={{
@@ -364,7 +364,7 @@ const ClassBookingCard = ({
           fontWeight: 'bold',
           color: fillRate >= 100 ? '#ff4757' : 'var(--primary-gold)'
         }}>
-                        {totalActive}/{capacity}{t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || "\uBA85"}</div>
+                        {totalActive}/{capacity}{t("g_7b3c6e") || "\uBA85"}</div>
                     {/* 미니 정원바 */}
                     <div style={{
           width: '60px',
@@ -385,7 +385,7 @@ const ClassBookingCard = ({
           fontSize: '0.65rem',
           color: '#f39c12',
           marginTop: '2px'
-        }}>{t("g_65905a") || t("g_65905a") || t("g_65905a") || t("g_65905a") || t("g_65905a") || "\uB300\uAE30"}{waitlisted.length}{t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || "\uBA85"}</div>}
+        }}>{t("g_65905a") || "\uB300\uAE30"}{waitlisted.length}{t("g_7b3c6e") || "\uBA85"}</div>}
                 </div>
             </div>
 

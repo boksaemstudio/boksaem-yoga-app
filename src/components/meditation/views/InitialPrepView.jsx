@@ -12,7 +12,9 @@ export const InitialPrepView = ({
   aiLatency,
   setPrepSelections,
   setStep
-}) => <div style={{
+}) => {
+  const t = useLanguageStore(s => s.t);
+  return <div style={{
   position: 'fixed',
   inset: 0,
   background: config.THEME?.BACKGROUND || '#0a0a0c',
@@ -116,3 +118,4 @@ export const InitialPrepView = ({
             </div>
         </div>
     </div>;
+};

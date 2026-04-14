@@ -281,7 +281,7 @@ const PriceTab = ({
                         {paymentInfo && (() => {
           const handleCopyAccount = () => {
             const text = `${paymentInfo.bank} ${paymentInfo.account} ${paymentInfo.holder}`;
-            navigator.clipboard.writeText(text).then(() => alert(t('accountCopied') || t("g_59a092") || t("g_59a092") || t("g_59a092") || "\uACC4\uC88C\uBC88\uD638\uAC00 \uBCF5\uC0AC\uB418\uC5C8\uC2B5\uB2C8\uB2E4.")).catch(() => alert(t("g_58a303") || t("g_58a303") || t("g_58a303") || "\uBCF5\uC0AC \uAE30\uB2A5\uC744 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uB294 \uBE0C\uB77C\uC6B0\uC800\uC785\uB2C8\uB2E4. \uC9C1\uC811 \uD14D\uC2A4\uD2B8\uB97C \uC120\uD0DD\uD574 \uBCF5\uC0AC\uD574\uC8FC\uC138\uC694."));
+            navigator.clipboard.writeText(text).then(() => alert(t('accountCopied') || t("g_59a092") || "\uACC4\uC88C\uBC88\uD638\uAC00 \uBCF5\uC0AC\uB418\uC5C8\uC2B5\uB2C8\uB2E4.")).catch(() => alert(t("g_58a303") || "\uBCF5\uC0AC \uAE30\uB2A5\uC744 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uB294 \uBE0C\uB77C\uC6B0\uC800\uC785\uB2C8\uB2E4. \uC9C1\uC811 \uD14D\uC2A4\uD2B8\uB97C \uC120\uD0DD\uD574 \uBCF5\uC0AC\uD574\uC8FC\uC138\uC694."));
           };
           return <div onClick={handleCopyAccount} style={{
             background: 'rgba(var(--primary-rgb), 0.06)',
@@ -309,7 +309,7 @@ const PriceTab = ({
                 background: 'rgba(var(--primary-rgb), 0.15)',
                 padding: '4px 8px',
                 borderRadius: '12px'
-              }}>{t("g_9ce64c") || t("g_9ce64c") || t("g_9ce64c") || "\uD83D\uDCCB \uBCF5\uC0AC\uD558\uAE30"}</span>
+              }}>{t("g_9ce64c") || "\uD83D\uDCCB \uBCF5\uC0AC\uD558\uAE30"}</span>
                                     </div>
                                     <div style={{
               fontSize: '0.85rem',

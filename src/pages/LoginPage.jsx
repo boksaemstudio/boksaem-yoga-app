@@ -6,6 +6,7 @@ import { logger } from '../utils/logger';
 import { auth } from '../firebase';
 import { useLanguageStore } from '../stores/useLanguageStore';
 const LoginPage = () => {
+  const t = useLanguageStore(s => s.t);
   const {
     config
   } = useStudioConfig();
@@ -14,7 +15,7 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const t = useLanguageStore(s => s.t);
+
   const logoUrl = config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.WIDE;
   const handleLogin = async (e, overrideEmail, overridePassword) => {
     if (e) e.preventDefault();

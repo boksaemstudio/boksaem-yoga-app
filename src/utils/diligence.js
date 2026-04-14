@@ -7,21 +7,53 @@ import { differenceInDays, subDays, startOfWeek } from 'date-fns';
  * Differentiates between:
  * 1. Period-based (Unlimited/Month) -> Focus on "Frequency/Consistency"
  * 2. Count-based (Ticket) -> Focus on "Pacing" (Are they using it fast enough?)
+ * 
+ * [i18n] All labels/descriptions use key+fallback pattern.
+ * t() is passed as a parameter, NOT called at module level.
  */
 
-// Badge Definitions (Premium Icons)
-export const BADGES = {
-    PASSION: { id: 'passion', label: '열정 요기', icon: 'Fire', color: '#FF4500', desc: '주 3회 이상 꾸준히 수련중!' },
-    STEADY: { id: 'steady', label: '성실 요기', icon: 'Plant', color: '#4CAF50', desc: '규칙적인 수련 흐름을 유지중입니다.' },
-    STARTER: { id: 'starter', label: '새싹 요기', icon: 'Leaf', color: '#8BC34A', desc: '요가 여정의 아름다운 시작!' },
-    WELCOME_BACK: { id: 'welcome_back', label: '반가운 요기', icon: 'Sparkle', color: 'var(--primary-gold)', desc: '다시 매트 위에 오신 것을 환영해요!' },
-    FLOWING: { id: 'flowing', label: '몰입 요기', icon: 'Waves', color: '#2196F3', desc: '물 흐르듯 자연스러운 수련 페이스!' },
-    ON_TRACK: { id: 'on_track', label: '순항 요기', icon: 'Boat', color: '#00BCD4', desc: '등록하신 횟수를 알맞게 사용하고 계십니다.' },
-    NEED_BOOST: { id: 'need_boost', label: '응원 필요', icon: 'Barbell', color: '#FF9800', desc: '조금 더 자주 만나요 우리!' }
+// Badge Definitions (Premium Icons) — keys only, resolved at render time
+export const BADGE_KEYS = {
+    PASSION:      { id: 'passion',      icon: 'Fire',    color: '#FF4500', labelKey: 'badge_passion_label',      labelFallback: '열정 요기',    descKey: 'badge_passion_desc',      descFallback: '주 3회 이상 꾸준히 수련중!' },
+    STEADY:       { id: 'steady',       icon: 'Plant',   color: '#4CAF50', labelKey: 'badge_steady_label',       labelFallback: '성실 요기',    descKey: 'badge_steady_desc',       descFallback: '규칙적인 수련 흐름을 유지중입니다.' },
+    STARTER:      { id: 'starter',      icon: 'Leaf',    color: '#8BC34A', labelKey: 'badge_starter_label',      labelFallback: '새싹 요기',    descKey: 'badge_starter_desc',      descFallback: '요가 여정의 아름다운 시작!' },
+    WELCOME_BACK: { id: 'welcome_back', icon: 'Sparkle', color: 'var(--primary-gold)', labelKey: 'badge_welcome_label', labelFallback: '반가운 요기', descKey: 'badge_welcome_desc', descFallback: '다시 매트 위에 오신 것을 환영해요!' },
+    FLOWING:      { id: 'flowing',      icon: 'Waves',   color: '#2196F3', labelKey: 'badge_flowing_label',      labelFallback: '몰입 요기',    descKey: 'badge_flowing_desc',      descFallback: '물 흐르듯 자연스러운 수련 페이스!' },
+    ON_TRACK:     { id: 'on_track',     icon: 'Boat',    color: '#00BCD4', labelKey: 'badge_ontrack_label',      labelFallback: '순항 요기',    descKey: 'badge_ontrack_desc',      descFallback: '등록하신 횟수를 알맞게 사용하고 계십니다.' },
+    NEED_BOOST:   { id: 'need_boost',   icon: 'Barbell', color: '#FF9800', labelKey: 'badge_needboost_label',    labelFallback: '응원 필요',    descKey: 'badge_needboost_desc',    descFallback: '조금 더 자주 만나요 우리!' }
 };
 
-export const analyzeDiligence = (member, history) => {
+/** Resolve a badge key object into a localized badge using t() */
+const resolveBadge = (badgeKey, t) => ({
+    id: badgeKey.id,
+    icon: badgeKey.icon,
+    color: badgeKey.color,
+    label: t(badgeKey.labelKey) || badgeKey.labelFallback,
+    desc: t(badgeKey.descKey) || badgeKey.descFallback
+});
+
+/** Legacy compat: export old-style BADGES (Korean defaults, no t needed) */
+export const BADGES = Object.fromEntries(
+    Object.entries(BADGE_KEYS).map(([key, val]) => [key, {
+        id: val.id,
+        icon: val.icon,
+        color: val.color,
+        label: val.labelFallback,
+        desc: val.descFallback
+    }])
+);
+
+/**
+ * Main analysis function.
+ * @param {Object} member - Member object
+ * @param {Array} history - Attendance history logs
+ * @param {Function} [t] - Optional translation function. If omitted, Korean fallback is used.
+ */
+export const analyzeDiligence = (member, history, t) => {
     if (!member || !history) return null;
+
+    // Safe t function
+    const _t = t || ((key) => null);
 
     // 1. Determine Membership Strategy
     const isUnlimited = member.membershipType?.includes('unlimited') || member.credits > 100;
@@ -41,9 +73,9 @@ export const analyzeDiligence = (member, history) => {
     let status = null;
 
     if (isUnlimited) {
-        status = analyzeUnlimitedMember(recentLogs, streak);
+        status = analyzeUnlimitedMember(recentLogs, streak, _t);
     } else {
-        status = analyzeTicketMember(recentLogs, member, streak);
+        status = analyzeTicketMember(recentLogs, member, streak, _t);
     }
 
     return {
@@ -53,7 +85,7 @@ export const analyzeDiligence = (member, history) => {
 };
 
 // --- Unlimited Member Logic (Frequency is King) ---
-const analyzeUnlimitedMember = (logs, streak) => {
+const analyzeUnlimitedMember = (logs, streak, t) => {
     // Calculate Average Weekly Visits over last 4 weeks
     const weeksMap = {};
     const now = new Date();
@@ -66,11 +98,16 @@ const analyzeUnlimitedMember = (logs, streak) => {
 
     const activeWeeks = Object.keys(weeksMap).length;
     const totalVisits = logs.length;
-    const weeklyAvg = activeWeeks > 0 ? (totalVisits / 4) : 0; // Rough approx over 4 weeks window if logs are filtered
+    const weeklyAvg = activeWeeks > 0 ? (totalVisits / 4) : 0;
 
     // Logic
     if (streak >= 3) {
-        return { type: 'streak_fire', badge: BADGES.PASSION, message: `${streak}일 연속 수련! 엄청난 에너지입니다!` };
+        return {
+            type: 'streak_fire',
+            badge: resolveBadge(BADGE_KEYS.PASSION, t),
+            message: t('badge_msg_streak_fire') || `${streak}일 연속 수련! 엄청난 에너지입니다!`,
+            messageParams: { streak }
+        };
     }
 
     // Check "This Week" count
@@ -78,11 +115,20 @@ const analyzeUnlimitedMember = (logs, streak) => {
     const thisWeekCount = weeksMap[thisWeekStart] || 0;
 
     if (thisWeekCount >= 3) {
-        return { type: 'high_freq', badge: BADGES.PASSION, message: `이번 주 벌써 ${thisWeekCount}회! 뜨거운 열정입니다.` };
+        return {
+            type: 'high_freq',
+            badge: resolveBadge(BADGE_KEYS.PASSION, t),
+            message: t('badge_msg_high_freq') || `이번 주 벌써 ${thisWeekCount}회! 뜨거운 열정입니다.`,
+            messageParams: { thisWeekCount }
+        };
     }
 
     if (weeklyAvg >= 2 || thisWeekCount >= 2) {
-        return { type: 'steady', badge: BADGES.STEADY, message: '꾸준함이 돋보이는 수련 흐름입니다.' };
+        return {
+            type: 'steady',
+            badge: resolveBadge(BADGE_KEYS.STEADY, t),
+            message: t('badge_msg_steady') || '꾸준함이 돋보이는 수련 흐름입니다.'
+        };
     }
 
     // Check Recency
@@ -93,60 +139,84 @@ const analyzeUnlimitedMember = (logs, streak) => {
     if (lastVisit) {
         const daysSinceLast = differenceInDays(now, lastVisit);
         if (daysSinceLast > 14) {
-            return { type: 'welcome_back', badge: BADGES.WELCOME_BACK, message: '오랜만의 수련, 정말 반가워요!' };
+            return {
+                type: 'welcome_back',
+                badge: resolveBadge(BADGE_KEYS.WELCOME_BACK, t),
+                message: t('badge_msg_welcome_back') || '오랜만의 수련, 정말 반가워요!'
+            };
         }
     }
 
     if (logs.length < 5) {
-        return { type: 'starter', badge: BADGES.STARTER, message: '시작이 반! 꾸준히 함께해요.' };
+        return {
+            type: 'starter',
+            badge: resolveBadge(BADGE_KEYS.STARTER, t),
+            message: t('badge_msg_starter') || '시작이 반! 꾸준히 함께해요.'
+        };
     }
 
-    return { type: 'normal', badge: BADGES.STEADY, message: '오늘도 매트 위에 선 당신을 응원합니다.' };
+    return {
+        type: 'normal',
+        badge: resolveBadge(BADGE_KEYS.STEADY, t),
+        message: t('badge_msg_encourage') || '오늘도 매트 위에 선 당신을 응원합니다.'
+    };
 };
 
 // --- Ticket Member Logic (Pacing is King) ---
-const analyzeTicketMember = (logs, member, streak) => {
-    // 1. Calculate Expected Pace
-    // If they have a 3-month ticket (approx 90 days) with 10 credits.
-    // Ideal pace: 1 class every 9 days.
-
-    // Let's look at actual usage.
-
-    // If we can't determine initial, fallback to simple frequency
-    // But let's try to interpret "Diligence" as "Frequency relative to remaining".
-
+const analyzeTicketMember = (logs, member, streak, t) => {
     const lastVisit = logs.length > 0 ?
         (logs[0].timestamp ? new Date(logs[0].timestamp.seconds * 1000 || logs[0].timestamp) : new Date(logs[0].createdAt))
         : null;
 
     if (!lastVisit) {
-        return { type: 'starter', badge: BADGES.STARTER, message: '첫 수련을 축하드려요!' };
+        return {
+            type: 'starter',
+            badge: resolveBadge(BADGE_KEYS.STARTER, t),
+            message: t('badge_msg_first_class') || '첫 수련을 축하드려요!'
+        };
     }
 
     const daysSinceLast = differenceInDays(new Date(), lastVisit);
 
-    // Ticket members shouldn't necessarily come every day.
-    // Differentiate "Good Pace" vs "Too Slow".
-
     if (daysSinceLast > 21) {
-        return { type: 'need_boost', badge: BADGES.NEED_BOOST, message: '다시 운동 리듬을 찾아보세요! 화이팅!' };
+        return {
+            type: 'need_boost',
+            badge: resolveBadge(BADGE_KEYS.NEED_BOOST, t),
+            message: t('badge_msg_need_boost') || '다시 운동 리듬을 찾아보세요! 화이팅!'
+        };
     }
 
     if (daysSinceLast > 10) {
-        return { type: 'welcome_back', badge: BADGES.WELCOME_BACK, message: '다시 오셔서 기뻐요! 꾸준히 이어가봐요.' };
+        return {
+            type: 'welcome_back',
+            badge: resolveBadge(BADGE_KEYS.WELCOME_BACK, t),
+            message: t('badge_msg_come_back') || '다시 오셔서 기뻐요! 꾸준히 이어가봐요.'
+        };
     }
 
     // High Frequency for Ticket User (Bonus)
     if (streak >= 2) {
-        return { type: 'streak', badge: BADGES.FLOWING, message: '연속 수련이라니! 몰입도가 대단하네요.' };
+        return {
+            type: 'streak',
+            badge: resolveBadge(BADGE_KEYS.FLOWING, t),
+            message: t('badge_msg_flowing') || '연속 수련이라니! 몰입도가 대단하네요.'
+        };
     }
 
     // Regular healthy pace (within 3~7 days)
     if (daysSinceLast <= 7) {
-        return { type: 'on_track', badge: BADGES.ON_TRACK, message: '이상적인 수련 주기를 유지하고 계시네요.' };
+        return {
+            type: 'on_track',
+            badge: resolveBadge(BADGE_KEYS.ON_TRACK, t),
+            message: t('badge_msg_on_track') || '이상적인 수련 주기를 유지하고 계시네요.'
+        };
     }
 
-    return { type: 'normal', badge: BADGES.STEADY, message: '차곡차곡 쌓이는 수련이 아름답습니다.' };
+    return {
+        type: 'normal',
+        badge: resolveBadge(BADGE_KEYS.STEADY, t),
+        message: t('badge_msg_beautiful') || '차곡차곡 쌓이는 수련이 아름답습니다.'
+    };
 };
 
 // --- Helpers ---
@@ -160,12 +230,8 @@ const calculateConsecutiveDays = (history) => {
 
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 
-    // If today is not in list (e.g. calculating BEFORE check-in for UI), handle separate
-    // But usually history includes current check-in if called after.
-
     let currentStreak = 0;
 
-    // Check if today exists, if so start there. If not, check yesterday.
     let startIndex = 0;
     if (uniqueDays[0] === today) {
         currentStreak = 1;
@@ -174,13 +240,7 @@ const calculateConsecutiveDays = (history) => {
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         if (uniqueDays[0] === yesterday.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })) {
-            // Streak is alive, but today not yet checked in. 
-            // Depending on when we call this function. 
-            // If we call it AFTER checkin, today MUST be there.
-            // If before, we might say "Current streak: X days" (meaning up to yesterday).
-            // Let's assume we want "Active Streak including today if applicable".
-            return 0; // Reset if today not found? Or return yesterday's streak?
-            // For gamification "Do check in to keep streak!" -> 0 is motivating.
+            return 0;
         } else {
             return 0;
         }

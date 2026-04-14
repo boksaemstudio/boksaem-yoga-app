@@ -65,20 +65,20 @@ const BasicInfoBlock = ({
       color: 'white',
       margin: 0,
       fontSize: '1rem'
-    }}>{t("g_a3f257") || t("g_a3f257") || t("g_a3f257") || t("g_a3f257") || t("g_a3f257") || "\uAE30\uBCF8 \uC815\uBCF4"}</h3>
-            <InputGroup label={t("g_6eb5cd") || t("g_6eb5cd") || t("g_6eb5cd") || t("g_6eb5cd") || t("g_6eb5cd") || "\uC774\uB984"} value={editData.name} onChange={v => setEditData({
+    }}>{t("g_a3f257") || "\uAE30\uBCF8 \uC815\uBCF4"}</h3>
+            <InputGroup label={t("g_6eb5cd") || "\uC774\uB984"} value={editData.name} onChange={v => setEditData({
       ...editData,
       name: v
     })} lang="ko" autoComplete="off" />
-            <InputGroup label={t("g_ba8df0") || t("g_ba8df0") || t("g_ba8df0") || t("g_ba8df0") || t("g_ba8df0") || "\uC804\uD654\uBC88\uD638"} value={editData.phone} onChange={v => setEditData({
+            <InputGroup label={t("g_ba8df0") || "\uC804\uD654\uBC88\uD638"} value={editData.phone} onChange={v => setEditData({
       ...editData,
       phone: v
     })} type="tel" inputMode="numeric" pattern="[0-9]*" autoComplete="off" />
-            <InputGroup label={t("g_252d4d") || t("g_252d4d") || t("g_252d4d") || t("g_252d4d") || t("g_252d4d") || "\uB4F1\uB85D\uC77C"} value={editData.regDate || ''} onChange={v => setEditData({
+            <InputGroup label={t("g_252d4d") || "\uB4F1\uB85D\uC77C"} value={editData.regDate || ''} onChange={v => setEditData({
       ...editData,
       regDate: v
     })} type="date" />
-            <InputGroup label={t("g_9e2b23") || t("g_9e2b23") || t("g_9e2b23") || t("g_9e2b23") || t("g_9e2b23") || "\uC6D0\uC7A5 \uBA54\uBAA8 / \uAE30\uD0C0 \uD2B9\uC774\uC0AC\uD56D"} value={editData.notes || ''} onChange={v => setEditData({
+            <InputGroup label={t("g_9e2b23") || "\uC6D0\uC7A5 \uBA54\uBAA8 / \uAE30\uD0C0 \uD2B9\uC774\uC0AC\uD56D"} value={editData.notes || ''} onChange={v => setEditData({
       ...editData,
       notes: v
     })} type="textarea" />
@@ -118,35 +118,35 @@ const BasicInfoBlock = ({
               fontWeight: 'bold',
               color: originalData?.hasFaceDescriptor ? '#818CF8' : '#71717a'
             }}>
-                                    {originalData?.hasFaceDescriptor ? t("g_a27093") || t("g_a27093") || t("g_a27093") || t("g_a27093") || t("g_a27093") || "\uD83D\uDCF8 \uC548\uBA74 \uC778\uC2DD \uB4F1\uB85D \uC644\uB8CC" : t("g_acf8cd") || t("g_acf8cd") || t("g_acf8cd") || t("g_acf8cd") || t("g_acf8cd") || "\uC548\uBA74 \uB370\uC774\uD130 \uBBF8\uB4F1\uB85D"}
+                                    {originalData?.hasFaceDescriptor ? t("g_a27093") || "\uD83D\uDCF8 \uC548\uBA74 \uC778\uC2DD \uB4F1\uB85D \uC644\uB8CC" : t("g_acf8cd") || "\uC548\uBA74 \uB370\uC774\uD130 \uBBF8\uB4F1\uB85D"}
                                 </div>
                                 {originalData?.hasFaceDescriptor && originalData?.faceUpdatedAt && <div style={{
               fontSize: '0.75rem',
               color: '#a1a1aa',
               marginTop: '2px'
-            }}>{t("g_44830b") || t("g_44830b") || t("g_44830b") || t("g_44830b") || t("g_44830b") || "\uD559\uC2B5\uC77C:"}{new Date(originalData.faceUpdatedAt).toLocaleDateString('ko-KR')}
+            }}>{t("g_44830b") || "\uD559\uC2B5\uC77C:"}{new Date(originalData.faceUpdatedAt).toLocaleDateString('ko-KR')}
                                     </div>}
                                 {!originalData?.hasFaceDescriptor && <div style={{
               fontSize: '0.75rem',
               color: '#52525b',
               marginTop: '2px'
-            }}>{t("g_61a0b1") || t("g_61a0b1") || t("g_61a0b1") || t("g_61a0b1") || t("g_61a0b1") || "\uD0A4\uC624\uC2A4\uD06C \uCCB4\uD06C\uC778\uC5D0\uC11C \uB4F1\uB85D \uAC00\uB2A5"}</div>}
+            }}>{t("g_61a0b1") || "\uD0A4\uC624\uC2A4\uD06C \uCCB4\uD06C\uC778\uC5D0\uC11C \uB4F1\uB85D \uAC00\uB2A5"}</div>}
                             </div>
                         </div>
                         {originalData?.hasFaceDescriptor && <button onClick={async () => {
-          if (!confirm(t("g_c1b61b") || t("g_c1b61b") || t("g_c1b61b") || t("g_c1b61b") || t("g_c1b61b") || "\uC548\uBA74 \uC778\uC2DD \uB370\uC774\uD130\uB97C \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?\n\n\uC0AD\uC81C \uD6C4 \uD0A4\uC624\uC2A4\uD06C\uC5D0\uC11C \uB2E4\uC2DC \uB4F1\uB85D\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.")) return;
+          if (!confirm(t("g_c1b61b") || "\uC548\uBA74 \uC778\uC2DD \uB370\uC774\uD130\uB97C \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?\n\n\uC0AD\uC81C \uD6C4 \uD0A4\uC624\uC2A4\uD06C\uC5D0\uC11C \uB2E4\uC2DC \uB4F1\uB85D\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.")) return;
           setIsDeletingFace(true);
           try {
             const result = await memberService.deleteFaceDescriptor(originalData.id);
             if (result.success) {
-              alert(t("g_cf44fe") || t("g_cf44fe") || t("g_cf44fe") || t("g_cf44fe") || t("g_cf44fe") || "\uC548\uBA74 \uC778\uC2DD \uB370\uC774\uD130\uAC00 \uC0AD\uC81C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.\n\uD0A4\uC624\uC2A4\uD06C\uC5D0\uC11C \uB2E4\uC2DC \uB4F1\uB85D\uD574\uC8FC\uC138\uC694.");
+              alert(t("g_cf44fe") || "\uC548\uBA74 \uC778\uC2DD \uB370\uC774\uD130\uAC00 \uC0AD\uC81C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.\n\uD0A4\uC624\uC2A4\uD06C\uC5D0\uC11C \uB2E4\uC2DC \uB4F1\uB85D\uD574\uC8FC\uC138\uC694.");
               storageService.notifyListeners('members');
             } else {
-              alert((t("g_74d6f6") || t("g_74d6f6") || t("g_74d6f6") || t("g_74d6f6") || t("g_74d6f6") || "\uC0AD\uC81C\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4: ") + (result.error || t("g_053d5f") || t("g_053d5f") || t("g_053d5f") || t("g_053d5f") || t("g_053d5f") || "\uC54C \uC218 \uC5C6\uB294 \uC624\uB958"));
+              alert((t("g_74d6f6") || "\uC0AD\uC81C\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4: ") + (result.error || t("g_053d5f") || "\uC54C \uC218 \uC5C6\uB294 \uC624\uB958"));
             }
           } catch (e) {
             console.error('Face delete failed:', e);
-            alert(t("g_54e78b") || t("g_54e78b") || t("g_54e78b") || t("g_54e78b") || t("g_54e78b") || "\uC0AD\uC81C \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.");
+            alert(t("g_54e78b") || "\uC0AD\uC81C \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.");
           } finally {
             setIsDeletingFace(false);
           }
@@ -164,7 +164,7 @@ const BasicInfoBlock = ({
           alignItems: 'center',
           gap: '5px'
         }}>
-                                <Trash size={14} /> {isDeletingFace ? t("g_adf9c4") || t("g_adf9c4") || t("g_adf9c4") || t("g_adf9c4") || t("g_adf9c4") || "\uC0AD\uC81C \uC911..." : t("g_ac947d") || t("g_ac947d") || t("g_ac947d") || t("g_ac947d") || t("g_ac947d") || "\uC0AD\uC81C \uD6C4 \uC7AC\uB4F1\uB85D"}
+                                <Trash size={14} /> {isDeletingFace ? t("g_adf9c4") || "\uC0AD\uC81C \uC911..." : t("g_ac947d") || "\uC0AD\uC81C \uD6C4 \uC7AC\uB4F1\uB85D"}
                             </button>}
                     </div>
                 </div>}
@@ -235,7 +235,7 @@ const AdminHoldBlock = ({
       });
       alert(`✅ 성공적으로 수동 해제되었으며, ${actualHoldDays}일 만큼 만료일이 연장되었습니다.`);
     } catch (e) {
-      alert((t("g_9c393f") || t("g_9c393f") || t("g_9c393f") || t("g_9c393f") || t("g_9c393f") || "\uD574\uC81C \uC911 \uC624\uB958 \uBC1C\uC0DD: ") + e.message);
+      alert((t("g_9c393f") || "\uD574\uC81C \uC911 \uC624\uB958 \uBC1C\uC0DD: ") + e.message);
     } finally {
       setHoldLoading(false);
     }
@@ -260,7 +260,7 @@ const AdminHoldBlock = ({
       });
       alert(`✅ 성공적으로 수강권 홀딩이 시작되었습니다!\n\n회원 상태가 '홀딩 일시정지 중'으로 변경되었으며, 회원이 복귀하여 첫 출석체크를 하는 순간 홀딩이 해제되고 쉰 날짜만큼 연장됩니다.`);
     } catch (e) {
-      alert((t("g_22102b") || t("g_22102b") || t("g_22102b") || t("g_22102b") || t("g_22102b") || "\uC801\uC6A9 \uC911 \uC624\uB958 \uBC1C\uC0DD: ") + e.message);
+      alert((t("g_22102b") || "\uC801\uC6A9 \uC911 \uC624\uB958 \uBC1C\uC0DD: ") + e.message);
     } finally {
       setHoldLoading(false);
     }
@@ -293,7 +293,7 @@ const AdminHoldBlock = ({
             color: '#fb923c',
             fontWeight: 'bold'
           }}>
-                            {isHolding ? `현재 홀딩 중 (${originalData.holdStartDate} ~ )` : t("g_d09056") || t("g_d09056") || t("g_d09056") || t("g_d09056") || t("g_d09056") || "\uAD00\uB9AC\uC790 \uAD8C\uD55C \uD640\uB529 (\uC77C\uC2DC\uC815\uC9C0)"}
+                            {isHolding ? `현재 홀딩 중 (${originalData.holdStartDate} ~ )` : t("g_d09056") || "\uAD00\uB9AC\uC790 \uAD8C\uD55C \uD640\uB529 (\uC77C\uC2DC\uC815\uC9C0)"}
                         </span>
                     </div>
                     <button onClick={handleHoldToggleClick} disabled={holdLoading} style={{
@@ -306,14 +306,14 @@ const AdminHoldBlock = ({
           color: isHolding ? '#ef4444' : 'white',
           cursor: holdLoading ? 'not-allowed' : 'pointer'
         }}>
-                        {holdLoading ? t("g_a8d064") || t("g_a8d064") || t("g_a8d064") || t("g_a8d064") || t("g_a8d064") || "\uCC98\uB9AC \uC911..." : isHolding ? t("g_fc86f2") || t("g_fc86f2") || t("g_fc86f2") || t("g_fc86f2") || t("g_fc86f2") || "\uD640\uB529 \uD574\uC81C" : t("g_9e9f25") || t("g_9e9f25") || t("g_9e9f25") || t("g_9e9f25") || t("g_9e9f25") || "\uD640\uB529 \uC801\uC6A9"}
+                        {holdLoading ? t("g_a8d064") || "\uCC98\uB9AC \uC911..." : isHolding ? t("g_fc86f2") || "\uD640\uB529 \uD574\uC81C" : t("g_9e9f25") || "\uD640\uB529 \uC801\uC6A9"}
                     </button>
                 </div>
                 {!isHolding && <div style={{
         fontSize: '0.75rem',
         color: 'rgba(255,255,255,0.5)',
         lineHeight: '1.4'
-      }}>{t("g_245159") || t("g_245159") || t("g_245159") || t("g_245159") || t("g_245159") || "\uD68C\uC6D0\uC758 \uC571\uC5D0\uC11C '\uD68C\uC6D0 \uC790\uAC00 \uD640\uB529' \uC124\uC815\uC744 \uCF1C\uC9C0 \uC54A\uB354\uB77C\uB3C4 \uC774 \uD654\uBA74\uC5D0\uC11C \uAD00\uB9AC\uC790\uAC00 \uC9C1\uC811 \uC218\uAC15\uAD8C\uC744 \uC77C\uC2DC\uC815\uC9C0\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4."}</div>}
+      }}>{t("g_245159") || "\uD68C\uC6D0\uC758 \uC571\uC5D0\uC11C '\uD68C\uC6D0 \uC790\uAC00 \uD640\uB529' \uC124\uC815\uC744 \uCF1C\uC9C0 \uC54A\uB354\uB77C\uB3C4 \uC774 \uD654\uBA74\uC5D0\uC11C \uAD00\uB9AC\uC790\uAC00 \uC9C1\uC811 \uC218\uAC15\uAD8C\uC744 \uC77C\uC2DC\uC815\uC9C0\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4."}</div>}
             </div>
 
             {/* Custom Modals */}
@@ -346,12 +346,12 @@ const AdminHoldBlock = ({
         }}>
                             <span style={{
             color: '#fb923c'
-          }}>⏸️</span>{t("g_f7f421") || t("g_f7f421") || t("g_f7f421") || t("g_f7f421") || t("g_f7f421") || "\uAD00\uB9AC\uC790 \uC218\uB3D9 \uD640\uB529 \uC801\uC6A9"}</h3>
+          }}>⏸️</span>{t("g_f7f421") || "\uAD00\uB9AC\uC790 \uC218\uB3D9 \uD640\uB529 \uC801\uC6A9"}</h3>
                         <p style={{
           margin: '0 0 16px',
           color: '#a1a1aa',
           fontSize: '0.9rem'
-        }}>{t("g_ff5a96") || t("g_ff5a96") || t("g_ff5a96") || t("g_ff5a96") || t("g_ff5a96") || "\uD68C\uC6D0\uC758 \uC218\uAC15\uAD8C\uC744 \uC77C\uC2DC\uC815\uC9C0 \uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?"}</p>
+        }}>{t("g_ff5a96") || "\uD68C\uC6D0\uC758 \uC218\uAC15\uAD8C\uC744 \uC77C\uC2DC\uC815\uC9C0 \uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?"}</p>
                         <div style={{
           background: 'rgba(255,255,255,0.03)',
           padding: '12px',
@@ -363,7 +363,7 @@ const AdminHoldBlock = ({
             color: '#fb923c',
             fontSize: '0.8rem',
             fontWeight: 'bold'
-          }}>{t("g_6187fe") || t("g_6187fe") || t("g_6187fe") || t("g_6187fe") || t("g_6187fe") || "\u26A0\uFE0F \uC8FC\uC758\uC0AC\uD56D \uBC0F \uB3D9\uC791 \uBC29\uC2DD"}</p>
+          }}>{t("g_6187fe") || "\u26A0\uFE0F \uC8FC\uC758\uC0AC\uD56D \uBC0F \uB3D9\uC791 \uBC29\uC2DD"}</p>
                             <ul style={{
             margin: 0,
             paddingLeft: '16px',
@@ -373,13 +373,13 @@ const AdminHoldBlock = ({
           }}>
                                 <li style={{
               marginBottom: '6px'
-            }}>{t("g_da67ab") || t("g_da67ab") || t("g_da67ab") || t("g_da67ab") || t("g_da67ab") || "\uC801\uC6A9 \uC989\uC2DC \uC218\uAC15\uAD8C \uC774\uC6A9\uC774 \uC815\uC9C0\uB418\uBA70 \uAE30\uAC04 \uCC28\uAC10\uC774 \uBA48\uCDA5\uB2C8\uB2E4."}</li>
+            }}>{t("g_da67ab") || "\uC801\uC6A9 \uC989\uC2DC \uC218\uAC15\uAD8C \uC774\uC6A9\uC774 \uC815\uC9C0\uB418\uBA70 \uAE30\uAC04 \uCC28\uAC10\uC774 \uBA48\uCDA5\uB2C8\uB2E4."}</li>
                                 <li style={{
               marginBottom: '6px'
-            }}>{t("g_99a420") || t("g_99a420") || t("g_99a420") || t("g_99a420") || t("g_99a420") || "\uD68C\uC6D0\uC774 \uBCF5\uADC0\uD558\uC5EC"}<strong style={{
+            }}>{t("g_99a420") || "\uD68C\uC6D0\uC774 \uBCF5\uADC0\uD558\uC5EC"}<strong style={{
                 color: 'white'
-              }}>{t("g_ff8247") || t("g_ff8247") || t("g_ff8247") || t("g_ff8247") || t("g_ff8247") || "\uCC98\uC74C \uCD9C\uC11D\uCCB4\uD06C"}</strong>{t("g_eefcfe") || t("g_eefcfe") || t("g_eefcfe") || t("g_eefcfe") || t("g_eefcfe") || "\uB97C \uD558\uB294 \uB0A0 \uBC14\uB85C \uD640\uB529\uC774 \uD480\uB9AC\uBA70, \uC26C\uC5C8\uB358 \uAE30\uAC04\uB9CC\uD07C \uC885\uB8CC\uC77C\uC774 \uC790\uB3D9\uC73C\uB85C \uC5F0\uC7A5\uB429\uB2C8\uB2E4."}</li>
-                                <li>{t("g_8b5dfb") || t("g_8b5dfb") || t("g_8b5dfb") || t("g_8b5dfb") || t("g_8b5dfb") || "\uC5B8\uC81C\uB4E0 \uC774 \uD654\uBA74\uC5D0\uC11C \uAD00\uB9AC\uC790\uAC00 \uC218\uB3D9\uC73C\uB85C \uD640\uB529\uC744 \uD574\uC81C\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4."}</li>
+              }}>{t("g_ff8247") || "\uCC98\uC74C \uCD9C\uC11D\uCCB4\uD06C"}</strong>{t("g_eefcfe") || "\uB97C \uD558\uB294 \uB0A0 \uBC14\uB85C \uD640\uB529\uC774 \uD480\uB9AC\uBA70, \uC26C\uC5C8\uB358 \uAE30\uAC04\uB9CC\uD07C \uC885\uB8CC\uC77C\uC774 \uC790\uB3D9\uC73C\uB85C \uC5F0\uC7A5\uB429\uB2C8\uB2E4."}</li>
+                                <li>{t("g_8b5dfb") || "\uC5B8\uC81C\uB4E0 \uC774 \uD654\uBA74\uC5D0\uC11C \uAD00\uB9AC\uC790\uAC00 \uC218\uB3D9\uC73C\uB85C \uD640\uB529\uC744 \uD574\uC81C\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4."}</li>
                             </ul>
                         </div>
                         <div style={{
@@ -395,7 +395,7 @@ const AdminHoldBlock = ({
             color: 'white',
             fontWeight: 'bold',
             cursor: 'pointer'
-          }}>{t("g_d9de21") || t("g_d9de21") || t("g_d9de21") || t("g_d9de21") || t("g_d9de21") || "\uCDE8\uC18C"}</button>
+          }}>{t("g_d9de21") || "\uCDE8\uC18C"}</button>
                             <button onClick={executeApplyHold} style={{
             flex: 1,
             padding: '12px',
@@ -405,7 +405,7 @@ const AdminHoldBlock = ({
             color: 'white',
             fontWeight: 'bold',
             cursor: 'pointer'
-          }}>{t("g_c36eab") || t("g_c36eab") || t("g_c36eab") || t("g_c36eab") || t("g_c36eab") || "\uC801\uC6A9\uD558\uAE30"}</button>
+          }}>{t("g_c36eab") || "\uC801\uC6A9\uD558\uAE30"}</button>
                         </div>
                     </div>
                 </div>}
@@ -439,13 +439,13 @@ const AdminHoldBlock = ({
         }}>
                             <span style={{
             color: '#ef4444'
-          }}>⏹️</span>{t("g_2740a3") || t("g_2740a3") || t("g_2740a3") || t("g_2740a3") || t("g_2740a3") || "\uD640\uB529 \uAC15\uC81C \uD574\uC81C"}</h3>
+          }}>⏹️</span>{t("g_2740a3") || "\uD640\uB529 \uAC15\uC81C \uD574\uC81C"}</h3>
                         <p style={{
           margin: '0 0 20px',
           color: '#d4d4d8',
           fontSize: '0.95rem',
           lineHeight: '1.5'
-        }}>{t("g_06726d") || t("g_06726d") || t("g_06726d") || t("g_06726d") || t("g_06726d") || "\uC815\uB9D0 \uD604\uC7AC \uC9C4\uD589 \uC911\uC778 \uD640\uB529\uC744 \uD574\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?"}</p>
+        }}>{t("g_06726d") || "\uC815\uB9D0 \uD604\uC7AC \uC9C4\uD589 \uC911\uC778 \uD640\uB529\uC744 \uD574\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?"}</p>
                         <div style={{
           background: 'rgba(239, 68, 68, 0.05)',
           border: '1px solid rgba(239, 68, 68, 0.2)',
@@ -458,15 +458,15 @@ const AdminHoldBlock = ({
             color: '#ef4444',
             fontSize: '0.8rem',
             fontWeight: 'bold'
-          }}>{t("g_909c1c") || t("g_909c1c") || t("g_909c1c") || t("g_909c1c") || t("g_909c1c") || "\u26A0\uFE0F \uBCC0\uACBD \uC0AC\uD56D"}</p>
+          }}>{t("g_909c1c") || "\u26A0\uFE0F \uBCC0\uACBD \uC0AC\uD56D"}</p>
                             <p style={{
             margin: 0,
             color: '#a1a1aa',
             fontSize: '0.8rem',
             lineHeight: '1.5'
-          }}>{t("g_a0b975") || t("g_a0b975") || t("g_a0b975") || t("g_a0b975") || t("g_a0b975") || "\uC9C0\uAE08\uAE4C\uC9C0 \uC26C\uC5C8\uB358 \uC77C\uC218(\uCD5C\uB300 \uD55C\uB3C4 \uB0B4)\uB97C \uACC4\uC0B0\uD558\uC5EC \uC989\uC2DC"}<strong style={{
+          }}>{t("g_a0b975") || "\uC9C0\uAE08\uAE4C\uC9C0 \uC26C\uC5C8\uB358 \uC77C\uC218(\uCD5C\uB300 \uD55C\uB3C4 \uB0B4)\uB97C \uACC4\uC0B0\uD558\uC5EC \uC989\uC2DC"}<strong style={{
               color: 'white'
-            }}>{t("g_083ccc") || t("g_083ccc") || t("g_083ccc") || t("g_083ccc") || t("g_083ccc") || "\uD68C\uC6D0\uAD8C \uB9CC\uB8CC\uC77C\uC744 \uC5F0\uC7A5"}</strong>{t("g_3908a9") || t("g_3908a9") || t("g_3908a9") || t("g_3908a9") || t("g_3908a9") || "\uD558\uACE0, \uC0C1\uD0DC\uB97C '\uC774\uC6A9 \uC911'\uC73C\uB85C \uB418\uB3CC\uB9BD\uB2C8\uB2E4."}</p>
+            }}>{t("g_083ccc") || "\uD68C\uC6D0\uAD8C \uB9CC\uB8CC\uC77C\uC744 \uC5F0\uC7A5"}</strong>{t("g_3908a9") || "\uD558\uACE0, \uC0C1\uD0DC\uB97C '\uC774\uC6A9 \uC911'\uC73C\uB85C \uB418\uB3CC\uB9BD\uB2C8\uB2E4."}</p>
                         </div>
                         <div style={{
           display: 'flex',
@@ -481,7 +481,7 @@ const AdminHoldBlock = ({
             color: 'white',
             fontWeight: 'bold',
             cursor: 'pointer'
-          }}>{t("g_d9de21") || t("g_d9de21") || t("g_d9de21") || t("g_d9de21") || t("g_d9de21") || "\uCDE8\uC18C"}</button>
+          }}>{t("g_d9de21") || "\uCDE8\uC18C"}</button>
                             <button onClick={executeReleaseHold} style={{
             flex: 1,
             padding: '12px',
@@ -491,7 +491,7 @@ const AdminHoldBlock = ({
             color: 'white',
             fontWeight: 'bold',
             cursor: 'pointer'
-          }}>{t("g_724f9d") || t("g_724f9d") || t("g_724f9d") || t("g_724f9d") || t("g_724f9d") || "\uD574\uC81C\uD558\uAE30"}</button>
+          }}>{t("g_724f9d") || "\uD574\uC81C\uD558\uAE30"}</button>
                         </div>
                     </div>
                 </div>}
@@ -545,7 +545,7 @@ const MembershipBlock = ({
       color: 'white',
       margin: 0,
       fontSize: '1rem'
-    }}>{t("g_476c3e") || t("g_476c3e") || t("g_476c3e") || t("g_476c3e") || t("g_476c3e") || "\uD68C\uC6D0\uAD8C \uD604\uD669"}</h3>
+    }}>{t("g_476c3e") || "\uD68C\uC6D0\uAD8C \uD604\uD669"}</h3>
 
             {/* ── 현재 활성 회원권 카드 ── */}
             <div style={{
@@ -591,7 +591,7 @@ const MembershipBlock = ({
           color: 'var(--primary-gold)',
           fontWeight: 'bold'
         }}>
-                            {originalData.price.toLocaleString()}{t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || "\uC6D0"}</span>}
+                            {originalData.price.toLocaleString()}{t("g_771dc3") || "\uC6D0"}</span>}
                 </div>
                 <div style={{
         display: 'grid',
@@ -608,13 +608,13 @@ const MembershipBlock = ({
             fontSize: '0.7rem',
             color: '#71717a',
             marginBottom: '4px'
-          }}>{t("g_1b113c") || t("g_1b113c") || t("g_1b113c") || t("g_1b113c") || t("g_1b113c") || "\uC2DC\uC791\uC77C"}</div>
+          }}>{t("g_1b113c") || "\uC2DC\uC791\uC77C"}</div>
                         <div style={{
             fontSize: '0.85rem',
             color: 'white',
             fontWeight: '600'
           }}>
-                            {isTBD ? t("g_7128fe") || t("g_7128fe") || t("g_7128fe") || t("g_7128fe") || t("g_7128fe") || "\uCCAB \uCD9C\uC11D \uC2DC" : originalData?.startDate || '-'}
+                            {isTBD ? t("g_7128fe") || "\uCCAB \uCD9C\uC11D \uC2DC" : originalData?.startDate || '-'}
                         </div>
                     </div>
                     <div style={{
@@ -627,13 +627,13 @@ const MembershipBlock = ({
             fontSize: '0.7rem',
             color: '#71717a',
             marginBottom: '4px'
-          }}>{t("g_42003a") || t("g_42003a") || t("g_42003a") || t("g_42003a") || t("g_42003a") || "\uC885\uB8CC\uC77C"}</div>
+          }}>{t("g_42003a") || "\uC885\uB8CC\uC77C"}</div>
                         <div style={{
             fontSize: '0.85rem',
             color: statusColor,
             fontWeight: '600'
           }}>
-                            {isTBD ? t("g_b8e060") || t("g_b8e060") || t("g_b8e060") || t("g_b8e060") || t("g_b8e060") || "\uCCAB \uCD9C\uC11D \uC2DC \uD655\uC815" : endDate || '-'}
+                            {isTBD ? t("g_b8e060") || "\uCCAB \uCD9C\uC11D \uC2DC \uD655\uC815" : endDate || '-'}
                         </div>
                     </div>
                     <div style={{
@@ -646,13 +646,13 @@ const MembershipBlock = ({
             fontSize: '0.7rem',
             color: '#71717a',
             marginBottom: '4px'
-          }}>{t("g_34c1e0") || t("g_34c1e0") || t("g_34c1e0") || t("g_34c1e0") || t("g_34c1e0") || "\uC794\uC5EC"}</div>
+          }}>{t("g_34c1e0") || "\uC794\uC5EC"}</div>
                         <div style={{
             fontSize: '0.85rem',
             color: credits <= 2 ? '#f59e0b' : 'white',
             fontWeight: '600'
           }}>
-                            {credits >= 999 ? t("g_7fe271") || t("g_7fe271") || t("g_7fe271") || t("g_7fe271") || t("g_7fe271") || "\uBB34\uC81C\uD55C" : `${credits}회`}
+                            {credits >= 999 ? t("g_7fe271") || "\uBB34\uC81C\uD55C" : `${credits}회`}
                         </div>
                     </div>
                 </div>
@@ -681,12 +681,12 @@ const MembershipBlock = ({
           padding: '3px 10px',
           borderRadius: '6px',
           fontWeight: 'bold'
-        }}>{t("g_ae86ba") || t("g_ae86ba") || t("g_ae86ba") || t("g_ae86ba") || t("g_ae86ba") || "\uD640\uB529 \uB0B4\uC5ED"}</span>
+        }}>{t("g_ae86ba") || "\uD640\uB529 \uB0B4\uC5ED"}</span>
                         <span style={{
           fontSize: '0.8rem',
           color: '#fb923c',
           fontWeight: '600'
-        }}>{t("g_97dfc6") || t("g_97dfc6") || t("g_97dfc6") || t("g_97dfc6") || t("g_97dfc6") || "\uCD1D"}{originalData.holdHistory.length}{t("g_f14641") || t("g_f14641") || t("g_f14641") || t("g_f14641") || t("g_f14641") || "\uD68C \uAE30\uB85D"}</span>
+        }}>{t("g_97dfc6") || "\uCD1D"}{originalData.holdHistory.length}{t("g_f14641") || "\uD68C \uAE30\uB85D"}</span>
                     </div>
                     <div style={{
         display: 'flex',
@@ -713,12 +713,12 @@ const MembershipBlock = ({
             }}>
                                         {h.startDate.replace(/-/g, '.')} ~ {h.releasedAt ? new Date(h.releasedAt).toLocaleDateString('sv-SE', {
                 timeZone: 'Asia/Seoul'
-              }).replace(/-/g, '.') : t("g_e7755c") || t("g_e7755c") || t("g_e7755c") || t("g_e7755c") || t("g_e7755c") || "\uD604\uC7AC"}
+              }).replace(/-/g, '.') : t("g_e7755c") || "\uD604\uC7AC"}
                                     </span>
                                     <span style={{
               color: '#a1a1aa',
               fontSize: '0.75rem'
-            }}>{h.appliedByAdmin ? t("g_ee34b0") || t("g_ee34b0") || t("g_ee34b0") || t("g_ee34b0") || t("g_ee34b0") || "\uAD00\uB9AC\uC790 \uC218\uB3D9 \uC815\uC9C0" : t("g_c2d09d") || t("g_c2d09d") || t("g_c2d09d") || t("g_c2d09d") || t("g_c2d09d") || "\uC2DC\uC2A4\uD15C \uCC98\uB9AC"}</span>
+            }}>{h.appliedByAdmin ? t("g_ee34b0") || "\uAD00\uB9AC\uC790 \uC218\uB3D9 \uC815\uC9C0" : t("g_c2d09d") || "\uC2DC\uC2A4\uD15C \uCC98\uB9AC"}</span>
                                 </div>
                                 <div style={{
             color: 'white',
@@ -728,7 +728,7 @@ const MembershipBlock = ({
             padding: '6px 10px',
             borderRadius: '6px'
           }}>
-                                    {h.releasedAt ? `${h.actualDays || '?'}일 정지 완료` : t("g_deb86e") || t("g_deb86e") || t("g_deb86e") || t("g_deb86e") || t("g_deb86e") || "\uC815\uC9C0 \uC911"}
+                                    {h.releasedAt ? `${h.actualDays || '?'}일 정지 완료` : t("g_deb86e") || "\uC815\uC9C0 \uC911"}
                                 </div>
                             </div>)}
                     </div>
@@ -756,7 +756,7 @@ const MembershipBlock = ({
           padding: '3px 10px',
           borderRadius: '6px',
           fontWeight: 'bold'
-        }}>{t("g_bfdbd3") || t("g_bfdbd3") || t("g_bfdbd3") || t("g_bfdbd3") || t("g_bfdbd3") || "\uB2E4\uAC00\uC62C \uC218\uAC15\uAD8C (\uC120\uB4F1\uB85D)"}</span>
+        }}>{t("g_bfdbd3") || "\uB2E4\uAC00\uC62C \uC218\uAC15\uAD8C (\uC120\uB4F1\uB85D)"}</span>
                         {upcoming.membershipType && <span style={{
           fontSize: '0.8rem',
           color: 'var(--primary-gold)',
@@ -780,13 +780,13 @@ const MembershipBlock = ({
             fontSize: '0.7rem',
             color: '#a1a1aa',
             marginBottom: '4px'
-          }}>{t("g_1b113c") || t("g_1b113c") || t("g_1b113c") || t("g_1b113c") || t("g_1b113c") || "\uC2DC\uC791\uC77C"}</div>
+          }}>{t("g_1b113c") || "\uC2DC\uC791\uC77C"}</div>
                             <div style={{
             fontSize: '0.85rem',
             color: 'var(--primary-gold)',
             fontWeight: 'bold'
           }}>
-                                {upcoming.startDate === 'TBD' ? t("g_7128fe") || t("g_7128fe") || t("g_7128fe") || t("g_7128fe") || t("g_7128fe") || "\uCCAB \uCD9C\uC11D \uC2DC" : upcoming.startDate}
+                                {upcoming.startDate === 'TBD' ? t("g_7128fe") || "\uCCAB \uCD9C\uC11D \uC2DC" : upcoming.startDate}
                             </div>
                         </div>
                         <div style={{
@@ -799,13 +799,13 @@ const MembershipBlock = ({
             fontSize: '0.7rem',
             color: '#a1a1aa',
             marginBottom: '4px'
-          }}>{t("g_42003a") || t("g_42003a") || t("g_42003a") || t("g_42003a") || t("g_42003a") || "\uC885\uB8CC\uC77C"}</div>
+          }}>{t("g_42003a") || "\uC885\uB8CC\uC77C"}</div>
                             <div style={{
             fontSize: '0.85rem',
             color: 'var(--primary-gold)',
             fontWeight: 'bold'
           }}>
-                                {upcoming.endDate === 'TBD' ? t("g_b8e060") || t("g_b8e060") || t("g_b8e060") || t("g_b8e060") || t("g_b8e060") || "\uCCAB \uCD9C\uC11D \uC2DC \uD655\uC815" : upcoming.endDate}
+                                {upcoming.endDate === 'TBD' ? t("g_b8e060") || "\uCCAB \uCD9C\uC11D \uC2DC \uD655\uC815" : upcoming.endDate}
                             </div>
                         </div>
                         <div style={{
@@ -818,13 +818,13 @@ const MembershipBlock = ({
             fontSize: '0.7rem',
             color: '#a1a1aa',
             marginBottom: '4px'
-          }}>{t("g_705bfc") || t("g_705bfc") || t("g_705bfc") || t("g_705bfc") || t("g_705bfc") || "\uD69F\uC218"}</div>
+          }}>{t("g_705bfc") || "\uD69F\uC218"}</div>
                             <div style={{
             fontSize: '0.85rem',
             color: 'var(--primary-gold)',
             fontWeight: 'bold'
           }}>
-                                {upcoming.credits >= 999 ? t("g_7fe271") || t("g_7fe271") || t("g_7fe271") || t("g_7fe271") || t("g_7fe271") || "\uBB34\uC81C\uD55C" : `${upcoming.credits}회`}
+                                {upcoming.credits >= 999 ? t("g_7fe271") || "\uBB34\uC81C\uD55C" : `${upcoming.credits}회`}
                             </div>
                         </div>
                     </div>
@@ -832,10 +832,10 @@ const MembershipBlock = ({
         fontSize: '0.8rem',
         color: '#a1a1aa',
         textAlign: 'right'
-      }}>{t("g_74b466") || t("g_74b466") || t("g_74b466") || t("g_74b466") || t("g_74b466") || "\uACB0\uC81C \uAE08\uC561:"}<span style={{
+      }}>{t("g_74b466") || "\uACB0\uC81C \uAE08\uC561:"}<span style={{
           color: 'var(--primary-gold)',
           fontWeight: 'bold'
-        }}>{upcoming.price.toLocaleString()}{t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || "\uC6D0"}</span>
+        }}>{upcoming.price.toLocaleString()}{t("g_771dc3") || "\uC6D0"}</span>
                         </div>}
                 </div>}
 
@@ -859,9 +859,9 @@ const MembershipBlock = ({
           fontSize: '0.8rem',
           color: '#a1a1aa',
           fontWeight: '600'
-        }}>{t("g_85cc35") || t("g_85cc35") || t("g_85cc35") || t("g_85cc35") || t("g_85cc35") || "\uAD00\uB9AC\uC790 \uC218\uB3D9 \uC870\uC815"}</span>
+        }}>{t("g_85cc35") || "\uAD00\uB9AC\uC790 \uC218\uB3D9 \uC870\uC815"}</span>
                     </div>
-                    <InputGroup label={t("g_c4edbb") || t("g_c4edbb") || t("g_c4edbb") || t("g_c4edbb") || t("g_c4edbb") || "\uD68C\uC6D0\uAD8C \uAD6C\uBD84"} value={editData.membershipType} onChange={v => setEditData({
+                    <InputGroup label={t("g_c4edbb") || "\uD68C\uC6D0\uAD8C \uAD6C\uBD84"} value={editData.membershipType} onChange={v => setEditData({
         ...editData,
         membershipType: v
       })} type="select" options={(() => {
@@ -879,7 +879,7 @@ const MembershipBlock = ({
         }
         return opts;
       })()} />
-                    <InputGroup label={t("g_af273f") || t("g_af273f") || t("g_af273f") || t("g_af273f") || t("g_af273f") || "\uC138\uBD80 \uC774\uC6A9\uAD8C"} value={editData.subject || ''} onChange={v => setEditData({
+                    <InputGroup label={t("g_af273f") || "\uC138\uBD80 \uC774\uC6A9\uAD8C"} value={editData.subject || ''} onChange={v => setEditData({
         ...editData,
         subject: v
       })} />
@@ -888,7 +888,7 @@ const MembershipBlock = ({
         gridTemplateColumns: '1fr 1fr',
         gap: '10px'
       }}>
-                        <InputGroup label={t("g_1b113c") || t("g_1b113c") || t("g_1b113c") || t("g_1b113c") || t("g_1b113c") || "\uC2DC\uC791\uC77C"} value={editData.startDate || ''} onChange={v => {
+                        <InputGroup label={t("g_1b113c") || "\uC2DC\uC791\uC77C"} value={editData.startDate || ''} onChange={v => {
           const updates = {
             startDate: v
           };
@@ -909,7 +909,7 @@ const MembershipBlock = ({
             ...updates
           });
         }} type="date" />
-                        <InputGroup label={t("g_42003a") || t("g_42003a") || t("g_42003a") || t("g_42003a") || t("g_42003a") || "\uC885\uB8CC\uC77C"} value={editData.endDate || ''} onChange={v => setEditData({
+                        <InputGroup label={t("g_42003a") || "\uC885\uB8CC\uC77C"} value={editData.endDate || ''} onChange={v => setEditData({
           ...editData,
           endDate: v
         })} type="date" />
@@ -925,7 +925,7 @@ const MembershipBlock = ({
                         <span style={{
           color: '#a1a1aa',
           fontSize: '0.8rem'
-        }}>{t("g_386745") || t("g_386745") || t("g_386745") || t("g_386745") || t("g_386745") || "\uC794\uC5EC \uD69F\uC218"}</span>
+        }}>{t("g_386745") || "\uC794\uC5EC \uD69F\uC218"}</span>
                         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -972,7 +972,7 @@ const MembershipBlock = ({
                         <span style={{
           color: '#a1a1aa',
           fontSize: '0.8rem'
-        }}>{t("g_ada266") || t("g_ada266") || t("g_ada266") || t("g_ada266") || t("g_ada266") || "\uACB0\uC81C \uAE08\uC561"}</span>
+        }}>{t("g_ada266") || "\uACB0\uC81C \uAE08\uC561"}</span>
                         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -998,7 +998,7 @@ const MembershipBlock = ({
                             <span style={{
             color: '#a1a1aa',
             fontSize: '0.9rem'
-          }}>{t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || "\uC6D0"}</span>
+          }}>{t("g_771dc3") || "\uC6D0"}</span>
                         </div>
                     </div>
                 </div>}
@@ -1053,7 +1053,7 @@ const PaymentHistoryBlock = ({
           // 확인: 이 영수증이 현재 회원권인지, 다가올 회원권인지 추정
           if (originalData.startDate === editingSale.startDate && originalData.endDate === editingSale.endDate) syncTarget = 'current';else if (originalData.upcomingMembership?.startDate === editingSale.startDate && originalData.upcomingMembership?.endDate === editingSale.endDate) syncTarget = 'upcoming';
           if (syncTarget) {
-            const targetName = syncTarget === 'current' ? t("g_db09e2") || t("g_db09e2") || t("g_db09e2") || t("g_db09e2") || t("g_db09e2") || "\uD604\uC7AC \uC774\uC6A9 \uC911\uC778 \uC218\uAC15\uAD8C" : t("g_10ae49") || t("g_10ae49") || t("g_10ae49") || t("g_10ae49") || t("g_10ae49") || "\uB2E4\uAC00\uC62C \uC218\uAC15\uAD8C(\uC120\uB4F1\uB85D)";
+            const targetName = syncTarget === 'current' ? t("g_db09e2") || "\uD604\uC7AC \uC774\uC6A9 \uC911\uC778 \uC218\uAC15\uAD8C" : t("g_10ae49") || "\uB2E4\uAC00\uC62C \uC218\uAC15\uAD8C(\uC120\uB4F1\uB85D)";
             if (confirm(`영수증의 날짜가 변경되었습니다.\n연결된 [${targetName}]의 기간도 이 영수증과 똑같이 맞출까요?`)) {
               const memberUpdates = {};
               if (syncTarget === 'current') {
@@ -1072,7 +1072,7 @@ const PaymentHistoryBlock = ({
               storageService.notifyListeners('members');
             }
           } else {
-            alert(t("g_540230") || t("g_540230") || t("g_540230") || t("g_540230") || t("g_540230") || "\uC601\uC218\uC99D \uB0B4\uC5ED\uB9CC \uBCC0\uACBD\uB418\uC5C8\uC2B5\uB2C8\uB2E4.\n(\uCC38\uACE0: \uD68C\uC6D0\uC758 \uC2E4\uC81C \uCD9C\uC11D \uAE30\uAC04 \uBCC0\uACBD\uC774 \uD544\uC694\uD558\uBA74 \uC0C1\uB2E8\uC758 \"\uC218\uB3D9 \uC870\uC815\"\uC744 \uC774\uC6A9\uD558\uC138\uC694.)");
+            alert(t("g_540230") || "\uC601\uC218\uC99D \uB0B4\uC5ED\uB9CC \uBCC0\uACBD\uB418\uC5C8\uC2B5\uB2C8\uB2E4.\n(\uCC38\uACE0: \uD68C\uC6D0\uC758 \uC2E4\uC81C \uCD9C\uC11D \uAE30\uAC04 \uBCC0\uACBD\uC774 \uD544\uC694\uD558\uBA74 \uC0C1\uB2E8\uC758 \"\uC218\uB3D9 \uC870\uC815\"\uC744 \uC774\uC6A9\uD558\uC138\uC694.)");
           }
         }
         await storageService.updateSalesRecord(editingSale.id, updates);
@@ -1080,7 +1080,7 @@ const PaymentHistoryBlock = ({
       setEditingSale(null);
       setSaleEditData(null);
     } catch (e) {
-      alert(t("g_94289f") || t("g_94289f") || t("g_94289f") || t("g_94289f") || t("g_94289f") || "\uACB0\uC81C \uB0B4\uC5ED \uC800\uC7A5\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_94289f") || "\uACB0\uC81C \uB0B4\uC5ED \uC800\uC7A5\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");
     } finally {
       setIsSavingSale(false);
     }
@@ -1091,14 +1091,14 @@ const PaymentHistoryBlock = ({
       await storageService.deleteSalesRecord(salesId);
       setHistory(prev => prev.filter(h => h.id !== salesId));
     } catch (e) {
-      alert((t("g_11a132") || t("g_11a132") || t("g_11a132") || t("g_11a132") || t("g_11a132") || "\uC0AD\uC81C \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4: ") + e.message);
+      alert((t("g_11a132") || "\uC0AD\uC81C \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4: ") + e.message);
     }
   };
   const getSaleBadge = record => {
     const up = originalData?.upcomingMembership;
     if (up && record.startDate === up.startDate && record.endDate === up.endDate && record.amount === up.price) {
       return {
-        label: t("g_6402ed") || t("g_6402ed") || t("g_6402ed") || t("g_6402ed") || t("g_6402ed") || "\uC774\uC6A9 \uB300\uAE30",
+        label: t("g_6402ed") || "\uC774\uC6A9 \uB300\uAE30",
         bg: 'rgba(250, 204, 21, 0.15)',
         color: '#facc15',
         border: '1px solid rgba(250, 204, 21, 0.3)'
@@ -1106,7 +1106,7 @@ const PaymentHistoryBlock = ({
     }
     if (originalData?.startDate === record.startDate && originalData?.endDate === record.endDate) {
       return {
-        label: t("g_e6067e") || t("g_e6067e") || t("g_e6067e") || t("g_e6067e") || t("g_e6067e") || "\uD604\uC7AC \uC774\uC6A9",
+        label: t("g_e6067e") || "\uD604\uC7AC \uC774\uC6A9",
         bg: 'rgba(74, 222, 128, 0.15)',
         color: '#4ade80',
         border: '1px solid rgba(74, 222, 128, 0.3)'
@@ -1117,7 +1117,7 @@ const PaymentHistoryBlock = ({
     });
     if (record.endDate && record.endDate !== 'TBD' && record.endDate < todayStr) {
       return {
-        label: t("g_fab709") || t("g_fab709") || t("g_fab709") || t("g_fab709") || t("g_fab709") || "\uAE30\uAC04 \uB9CC\uB8CC",
+        label: t("g_fab709") || "\uAE30\uAC04 \uB9CC\uB8CC",
         bg: 'rgba(255,255,255,0.05)',
         color: '#a1a1aa',
         border: '1px solid rgba(255,255,255,0.1)'
@@ -1148,7 +1148,7 @@ const PaymentHistoryBlock = ({
           margin: 0,
           fontSize: '1rem',
           color: 'white'
-        }}>{t("g_de09c9") || t("g_de09c9") || t("g_de09c9") || t("g_de09c9") || t("g_de09c9") || "\uC218\uAC15\uAD8C \uBC0F \uACB0\uC81C (\uD0C0\uC784\uB77C\uC778)"}</h3>
+        }}>{t("g_de09c9") || "\uC218\uAC15\uAD8C \uBC0F \uACB0\uC81C (\uD0C0\uC784\uB77C\uC778)"}</h3>
                     <span style={{
           fontSize: '0.75rem',
           color: '#71717a',
@@ -1156,7 +1156,7 @@ const PaymentHistoryBlock = ({
           padding: '2px 8px',
           borderRadius: '10px'
         }}>
-                        {history.length}{t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || t("g_230561") || "\uAC74"}</span>
+                        {history.length}{t("g_230561") || "\uAC74"}</span>
                 </div>
                 {isOpen ? <CaretUp size={18} color="#a1a1aa" /> : <CaretDown size={18} color="#a1a1aa" />}
             </button>
@@ -1190,7 +1190,7 @@ const PaymentHistoryBlock = ({
           }}>
                                     <PencilSimple size={16} style={{
               marginRight: '6px'
-            }} />{t("g_e32a65") || t("g_e32a65") || t("g_e32a65") || t("g_e32a65") || t("g_e32a65") || "\uACB0\uC81C \uB0B4\uC5ED \uC218\uC815"}</h4>
+            }} />{t("g_e32a65") || "\uACB0\uC81C \uB0B4\uC5ED \uC218\uC815"}</h4>
                                 <button onClick={() => {
             setEditingSale(null);
             setSaleEditData(null);
@@ -1202,9 +1202,9 @@ const PaymentHistoryBlock = ({
             borderRadius: '4px',
             fontSize: '0.8rem',
             cursor: 'pointer'
-          }}>{t("g_d9de21") || t("g_d9de21") || t("g_d9de21") || t("g_d9de21") || t("g_d9de21") || "\uCDE8\uC18C"}</button>
+          }}>{t("g_d9de21") || "\uCDE8\uC18C"}</button>
                             </div>
-                            <InputGroup label={t("g_7faa31") || t("g_7faa31") || t("g_7faa31") || t("g_7faa31") || t("g_7faa31") || "\uC218\uAC15\uAD8C \uD56D\uBAA9 \uC774\uB984"} value={saleEditData.item || ''} onChange={v => setSaleEditData({
+                            <InputGroup label={t("g_7faa31") || "\uC218\uAC15\uAD8C \uD56D\uBAA9 \uC774\uB984"} value={saleEditData.item || ''} onChange={v => setSaleEditData({
           ...saleEditData,
           item: v
         })} />
@@ -1213,11 +1213,11 @@ const PaymentHistoryBlock = ({
           gridTemplateColumns: '1fr 1fr',
           gap: '10px'
         }}>
-                                <InputGroup label={t("g_1b113c") || t("g_1b113c") || t("g_1b113c") || t("g_1b113c") || t("g_1b113c") || "\uC2DC\uC791\uC77C"} value={saleEditData.startDate || ''} onChange={v => setSaleEditData({
+                                <InputGroup label={t("g_1b113c") || "\uC2DC\uC791\uC77C"} value={saleEditData.startDate || ''} onChange={v => setSaleEditData({
             ...saleEditData,
             startDate: v
           })} type="date" />
-                                <InputGroup label={t("g_42003a") || t("g_42003a") || t("g_42003a") || t("g_42003a") || t("g_42003a") || "\uC885\uB8CC\uC77C"} value={saleEditData.endDate || ''} onChange={v => setSaleEditData({
+                                <InputGroup label={t("g_42003a") || "\uC885\uB8CC\uC77C"} value={saleEditData.endDate || ''} onChange={v => setSaleEditData({
             ...saleEditData,
             endDate: v
           })} type="date" />
@@ -1227,17 +1227,17 @@ const PaymentHistoryBlock = ({
           gridTemplateColumns: '1fr 1fr',
           gap: '10px'
         }}>
-                                <InputGroup label={t("g_8cdf4b") || t("g_8cdf4b") || t("g_8cdf4b") || t("g_8cdf4b") || t("g_8cdf4b") || "\uACB0\uC81C\uC218\uB2E8"} value={saleEditData.method || ''} onChange={v => setSaleEditData({
+                                <InputGroup label={t("g_8cdf4b") || "\uACB0\uC81C\uC218\uB2E8"} value={saleEditData.method || ''} onChange={v => setSaleEditData({
             ...saleEditData,
             method: v
           })} type="select" options={[{
-            label: t("g_948cb2") || t("g_948cb2") || t("g_948cb2") || t("g_948cb2") || t("g_948cb2") || "\uD604\uAE08",
+            label: t("g_948cb2") || "\uD604\uAE08",
             value: 'cash'
           }, {
-            label: t("g_0b2312") || t("g_0b2312") || t("g_0b2312") || t("g_0b2312") || t("g_0b2312") || "\uC774\uCCB4",
+            label: t("g_0b2312") || "\uC774\uCCB4",
             value: 'transfer'
           }, {
-            label: t("g_7e9cf3") || t("g_7e9cf3") || t("g_7e9cf3") || t("g_7e9cf3") || t("g_7e9cf3") || "\uCE74\uB4DC",
+            label: t("g_7e9cf3") || "\uCE74\uB4DC",
             value: 'card'
           }]} />
                                 <div style={{
@@ -1248,7 +1248,7 @@ const PaymentHistoryBlock = ({
                                     <label style={{
               color: '#a1a1aa',
               fontSize: '0.8rem'
-            }}>{t("g_ada266") || t("g_ada266") || t("g_ada266") || t("g_ada266") || t("g_ada266") || "\uACB0\uC81C \uAE08\uC561"}</label>
+            }}>{t("g_ada266") || "\uACB0\uC81C \uAE08\uC561"}</label>
                                     <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -1266,7 +1266,7 @@ const PaymentHistoryBlock = ({
               }} />
                                         <span style={{
                 color: '#a1a1aa'
-              }}>{t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || "\uC6D0"}</span>
+              }}>{t("g_771dc3") || "\uC6D0"}</span>
                                     </div>
                                 </div>
                             </div>
@@ -1280,7 +1280,7 @@ const PaymentHistoryBlock = ({
           fontSize: '0.95rem',
           cursor: 'pointer'
         }}>
-                                {isSavingSale ? t("g_923cf9") || t("g_923cf9") || t("g_923cf9") || t("g_923cf9") || t("g_923cf9") || "\uC800\uC7A5 \uC911..." : t("g_4c0952") || t("g_4c0952") || t("g_4c0952") || t("g_4c0952") || t("g_4c0952") || "\uACB0\uC81C \uB0B4\uC5ED \uC800\uC7A5"}
+                                {isSavingSale ? t("g_923cf9") || "\uC800\uC7A5 \uC911..." : t("g_4c0952") || "\uACB0\uC81C \uB0B4\uC5ED \uC800\uC7A5"}
                             </button>
                         </div>}
 
@@ -1290,7 +1290,7 @@ const PaymentHistoryBlock = ({
         color: '#71717a',
         padding: '20px',
         fontSize: '0.9rem'
-      }}>{t("g_3efebb") || t("g_3efebb") || t("g_3efebb") || t("g_3efebb") || t("g_3efebb") || "\uACB0\uC81C \uB0B4\uC5ED\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."}</div> : history.map(record => {
+      }}>{t("g_3efebb") || "\uACB0\uC81C \uB0B4\uC5ED\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."}</div> : history.map(record => {
         const dDate = record.timestamp ? new Date(record.timestamp) : new Date(record.date || Date.now());
         const isEditing = editingSale?.id === record.id;
         const badge = getSaleBadge(record);
@@ -1330,14 +1330,14 @@ const PaymentHistoryBlock = ({
                   color: 'white',
                   fontWeight: '600',
                   fontSize: '0.9rem'
-                }}>{record.item || t("g_80601c") || t("g_80601c") || t("g_80601c") || t("g_80601c") || t("g_80601c") || "\uC54C \uC218 \uC5C6\uC74C"}</span>
+                }}>{record.item || t("g_80601c") || "\uC54C \uC218 \uC5C6\uC74C"}</span>
                                             </div>
                                             {record.startDate && record.endDate && <div style={{
                 fontSize: '0.75rem',
                 color: '#71717a',
                 marginTop: '3px'
               }}>
-                                                    📅 {record.startDate === 'TBD' ? t("g_83d1aa") || t("g_83d1aa") || t("g_83d1aa") || t("g_83d1aa") || t("g_83d1aa") || "\uC2DC\uC791\uC77C \uBBF8\uC815" : record.startDate} ~ {record.endDate === 'TBD' ? t("g_b8e060") || t("g_b8e060") || t("g_b8e060") || t("g_b8e060") || t("g_b8e060") || "\uCCAB \uCD9C\uC11D \uC2DC \uD655\uC815" : record.endDate}
+                                                    📅 {record.startDate === 'TBD' ? t("g_83d1aa") || "\uC2DC\uC791\uC77C \uBBF8\uC815" : record.startDate} ~ {record.endDate === 'TBD' ? t("g_b8e060") || "\uCCAB \uCD9C\uC11D \uC2DC \uD655\uC815" : record.endDate}
                                                 </div>}
                                         </div>
                                         <span style={{
@@ -1345,7 +1345,7 @@ const PaymentHistoryBlock = ({
               fontWeight: 'bold',
               fontSize: '0.9rem'
             }}>
-                                            {(record.amount || 0).toLocaleString()}{t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || t("g_771dc3") || "\uC6D0"}</span>
+                                            {(record.amount || 0).toLocaleString()}{t("g_771dc3") || "\uC6D0"}</span>
                                     </div>
                                     <div style={{
             display: 'flex',
@@ -1356,7 +1356,7 @@ const PaymentHistoryBlock = ({
               fontSize: '0.78rem',
               color: '#52525b'
             }}>
-                                            {record.method === 'transfer' ? t("g_0b2312") || t("g_0b2312") || t("g_0b2312") || t("g_0b2312") || t("g_0b2312") || "\uC774\uCCB4" : record.method === 'cash' ? t("g_948cb2") || t("g_948cb2") || t("g_948cb2") || t("g_948cb2") || t("g_948cb2") || "\uD604\uAE08" : record.method === 'card' ? t("g_7e9cf3") || t("g_7e9cf3") || t("g_7e9cf3") || t("g_7e9cf3") || t("g_7e9cf3") || "\uCE74\uB4DC" : record.method || ''} · {dDate.toLocaleDateString('ko-KR')}
+                                            {record.method === 'transfer' ? t("g_0b2312") || "\uC774\uCCB4" : record.method === 'cash' ? t("g_948cb2") || "\uD604\uAE08" : record.method === 'card' ? t("g_7e9cf3") || "\uCE74\uB4DC" : record.method || ''} · {dDate.toLocaleDateString('ko-KR')}
                                         </div>
                                         <div style={{
               display: 'flex',
@@ -1384,7 +1384,7 @@ const PaymentHistoryBlock = ({
                 fontSize: '0.72rem',
                 cursor: 'pointer'
               }}>
-                                                <PencilSimple size={12} />{t("g_ad7560") || t("g_ad7560") || t("g_ad7560") || t("g_ad7560") || t("g_ad7560") || "\uC218\uC815"}</button>
+                                                <PencilSimple size={12} />{t("g_ad7560") || "\uC218\uC815"}</button>
                                             <button onClick={e => {
                 e.stopPropagation();
                 handleDeleteSale(record.id, record.item);
@@ -1400,7 +1400,7 @@ const PaymentHistoryBlock = ({
                 fontSize: '0.72rem',
                 cursor: 'pointer'
               }}>
-                                                <Trash size={12} />{t("g_30e15a") || t("g_30e15a") || t("g_30e15a") || t("g_30e15a") || t("g_30e15a") || "\uC0AD\uC81C"}</button>
+                                                <Trash size={12} />{t("g_30e15a") || "\uC0AD\uC81C"}</button>
                                         </div>
                                     </div>
                                 </div>;
@@ -1462,7 +1462,7 @@ const MemberInfoTab = ({
           color: 'var(--text-on-primary)',
           fontWeight: 'bold',
           fontSize: '1.1rem'
-        }}>{t("g_d998f8") || t("g_d998f8") || t("g_d998f8") || t("g_d998f8") || t("g_d998f8") || "\uD68C\uC6D0\uC815\uBCF4 \uC800\uC7A5\uD558\uAE30"}</button>;
+        }}>{t("g_d998f8") || "\uD68C\uC6D0\uC815\uBCF4 \uC800\uC7A5\uD558\uAE30"}</button>;
       })()}
 
             {/* ━━━ 구분선 ━━━ */}
@@ -1505,7 +1505,7 @@ const MemberInfoTab = ({
               fontSize: '0.75rem',
               color: '#71717a'
             }}>
-                                {isTBD ? t("g_635868") || t("g_635868") || t("g_635868") || t("g_635868") || t("g_635868") || "\uD83D\uDD12 \uC120\uB4F1\uB85D \uD68C\uC6D0\uC740 \uC0AD\uC81C\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \uC218\uAC15 \uB9CC\uB8CC \uD6C4 \uC0AD\uC81C\uAC00 \uAC00\uB2A5\uD569\uB2C8\uB2E4." : `🔒 활성 회원은 삭제할 수 없습니다. (잔여 ${credits}회 / 만료 ${endDate})`}
+                                {isTBD ? t("g_635868") || "\uD83D\uDD12 \uC120\uB4F1\uB85D \uD68C\uC6D0\uC740 \uC0AD\uC81C\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \uC218\uAC15 \uB9CC\uB8CC \uD6C4 \uC0AD\uC81C\uAC00 \uAC00\uB2A5\uD569\uB2C8\uB2E4." : `🔒 활성 회원은 삭제할 수 없습니다. (잔여 ${credits}회 / 만료 ${endDate})`}
                             </p>
                         </div>;
         }
@@ -1520,13 +1520,13 @@ const MemberInfoTab = ({
             try {
               const result = await storageService.softDeleteMember(originalData.id);
               if (result.success) {
-                alert(t("g_84bfed") || t("g_84bfed") || t("g_84bfed") || t("g_84bfed") || t("g_84bfed") || "\uD68C\uC6D0\uC774 \uC0AD\uC81C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.\n\uD734\uC9C0\uD1B5 \uD0ED\uC5D0\uC11C \uBCF5\uC6D0\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.");
+                alert(t("g_84bfed") || "\uD68C\uC6D0\uC774 \uC0AD\uC81C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.\n\uD734\uC9C0\uD1B5 \uD0ED\uC5D0\uC11C \uBCF5\uC6D0\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.");
                 if (typeof window !== 'undefined') window.dispatchEvent(new Event('member-deleted'));
               } else {
-                alert((t("g_51acf1") || t("g_51acf1") || t("g_51acf1") || t("g_51acf1") || t("g_51acf1") || "\uC0AD\uC81C \uC2E4\uD328: ") + (result.error || t("g_053d5f") || t("g_053d5f") || t("g_053d5f") || t("g_053d5f") || t("g_053d5f") || "\uC54C \uC218 \uC5C6\uB294 \uC624\uB958"));
+                alert((t("g_51acf1") || "\uC0AD\uC81C \uC2E4\uD328: ") + (result.error || t("g_053d5f") || "\uC54C \uC218 \uC5C6\uB294 \uC624\uB958"));
               }
             } catch (e) {
-              alert((t("g_5a981d") || t("g_5a981d") || t("g_5a981d") || t("g_5a981d") || t("g_5a981d") || "\uC0AD\uC81C \uC911 \uC624\uB958: ") + e.message);
+              alert((t("g_5a981d") || "\uC0AD\uC81C \uC911 \uC624\uB958: ") + e.message);
             }
           }} style={{
             width: '100%',
@@ -1543,13 +1543,13 @@ const MemberInfoTab = ({
             justifyContent: 'center',
             gap: '6px'
           }}>
-                            <Trash size={16} weight="fill" />{t("g_0f2e4c") || t("g_0f2e4c") || t("g_0f2e4c") || t("g_0f2e4c") || t("g_0f2e4c") || "\uD68C\uC6D0 \uC0AD\uC81C (\uD734\uC9C0\uD1B5\uC73C\uB85C \uC774\uB3D9)"}</button>
+                            <Trash size={16} weight="fill" />{t("g_0f2e4c") || "\uD68C\uC6D0 \uC0AD\uC81C (\uD734\uC9C0\uD1B5\uC73C\uB85C \uC774\uB3D9)"}</button>
                         <p style={{
             margin: '8px 0 0',
             fontSize: '0.72rem',
             color: '#71717a',
             textAlign: 'center'
-          }}>{t("g_fb6b44") || t("g_fb6b44") || t("g_fb6b44") || t("g_fb6b44") || t("g_fb6b44") || "\uC0AD\uC81C\uB41C \uD68C\uC6D0\uC740 \uD68C\uC6D0 \uBAA9\uB85D\uC5D0\uC11C \uC0AC\uB77C\uC9C0\uBA70, \uD734\uC9C0\uD1B5 \uD0ED\uC5D0\uC11C \uC5B8\uC81C\uB4E0 \uBCF5\uC6D0\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4."}</p>
+          }}>{t("g_fb6b44") || "\uC0AD\uC81C\uB41C \uD68C\uC6D0\uC740 \uD68C\uC6D0 \uBAA9\uB85D\uC5D0\uC11C \uC0AC\uB77C\uC9C0\uBA70, \uD734\uC9C0\uD1B5 \uD0ED\uC5D0\uC11C \uC5B8\uC81C\uB4E0 \uBCF5\uC6D0\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4."}</p>
                     </div>;
       })()}
         </div>

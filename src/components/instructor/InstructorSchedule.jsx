@@ -136,7 +136,7 @@ const InstructorSchedule = ({
   }, [year, month, allowBooking, branches]);
   const daysInMonth = new Date(year, month, 0).getDate();
   const firstDay = new Date(year, month - 1, 1).getDay();
-  const dayNames = [t("g_95e431") || t("g_95e431") || t("g_95e431") || "\uC77C", t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || "\uC6D4", t("g_74d3f7") || t("g_74d3f7") || t("g_74d3f7") || "\uD654", t("g_cae82d") || t("g_cae82d") || t("g_cae82d") || "\uC218", t("g_d5f699") || t("g_d5f699") || t("g_d5f699") || "\uBAA9", t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || "\uAE08", t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || "\uD1A0"];
+  const dayNames = [t("g_95e431") || "\uC77C", t("g_5b51dd") || "\uC6D4", t("g_74d3f7") || "\uD654", t("g_cae82d") || "\uC218", t("g_d5f699") || "\uBAA9", t("g_cef92d") || "\uAE08", t("g_ccc0dc") || "\uD1A0"];
   const getBranchStatus = dateStr => {
     const classes = monthlyData[dateStr] || [];
     const myClasses = classes.filter(cls => {
@@ -154,7 +154,7 @@ const InstructorSchedule = ({
     };
   };
   const renderCalendar = () => {
-    const t = useLanguageStore(s => s.t);
+
     const cells = [];
     for (let i = 0; i < firstDay; i++) {
       cells.push(<div key={`empty-${i}`} style={{
@@ -206,19 +206,19 @@ const InstructorSchedule = ({
 
       // Holiday Name Mapping
       const holidayMap = {
-        'holiday_new_year': t("g_b28fbe") || t("g_b28fbe") || t("g_b28fbe") || "\uC2E0\uC815",
-        'holiday_lunar_new_year': t("g_980e4b") || t("g_980e4b") || t("g_980e4b") || "\uC124\uB0A0",
-        'holiday_samiljeol': t("g_81e731") || t("g_81e731") || t("g_81e731") || "\uC0BC\uC77C\uC808",
-        'holiday_childrens_day': t("g_3119a6") || t("g_3119a6") || t("g_3119a6") || "\uC5B4\uB9B0\uC774\uB0A0",
-        'holiday_buddha': t("g_3b47f2") || t("g_3b47f2") || t("g_3b47f2") || "\uC11D\uAC00\uD0C4\uC2E0\uC77C",
-        'holiday_memorial': t("g_08bae5") || t("g_08bae5") || t("g_08bae5") || "\uD604\uCDA9\uC77C",
-        'holiday_liberation': t("g_0fdbee") || t("g_0fdbee") || t("g_0fdbee") || "\uAD11\uBCF5\uC808",
-        'holiday_chuseok': t("g_745828") || t("g_745828") || t("g_745828") || "\uCD94\uC11D",
-        'holiday_foundation': t("g_afbf29") || t("g_afbf29") || t("g_afbf29") || "\uAC1C\uCC9C\uC808",
-        'holiday_hangul': t("g_5a4f32") || t("g_5a4f32") || t("g_5a4f32") || "\uD55C\uAE00\uB0A0",
-        'holiday_christmas': t("g_2ce15d") || t("g_2ce15d") || t("g_2ce15d") || "\uD06C\uB9AC\uC2A4\uB9C8\uC2A4",
-        'holiday_election': t("g_850a5a") || t("g_850a5a") || t("g_850a5a") || "\uC120\uAC70\uC77C",
-        'holiday_arbor_day': t("g_68da2e") || t("g_68da2e") || t("g_68da2e") || "\uC2DD\uBAA9\uC77C"
+        'holiday_new_year': t("g_b28fbe") || "\uC2E0\uC815",
+        'holiday_lunar_new_year': t("g_980e4b") || "\uC124\uB0A0",
+        'holiday_samiljeol': t("g_81e731") || "\uC0BC\uC77C\uC808",
+        'holiday_childrens_day': t("g_3119a6") || "\uC5B4\uB9B0\uC774\uB0A0",
+        'holiday_buddha': t("g_3b47f2") || "\uC11D\uAC00\uD0C4\uC2E0\uC77C",
+        'holiday_memorial': t("g_08bae5") || "\uD604\uCDA9\uC77C",
+        'holiday_liberation': t("g_0fdbee") || "\uAD11\uBCF5\uC808",
+        'holiday_chuseok': t("g_745828") || "\uCD94\uC11D",
+        'holiday_foundation': t("g_afbf29") || "\uAC1C\uCC9C\uC808",
+        'holiday_hangul': t("g_5a4f32") || "\uD55C\uAE00\uB0A0",
+        'holiday_christmas': t("g_2ce15d") || "\uD06C\uB9AC\uC2A4\uB9C8\uC2A4",
+        'holiday_election': t("g_850a5a") || "\uC120\uAC70\uC77C",
+        'holiday_arbor_day': t("g_68da2e") || "\uC2DD\uBAA9\uC77C"
       };
       cells.push(<div key={d} onClick={() => setSelectedDate(dateStr)} style={{
         padding: '4px',
@@ -282,7 +282,7 @@ const InstructorSchedule = ({
                 <h2 style={{
         margin: 0,
         fontSize: '1.2rem'
-      }}>{year}{t("g_e29d2c") || t("g_e29d2c") || t("g_e29d2c") || "\uB144"}{month}{t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || "\uC6D4"}</h2>
+      }}>{year}{t("g_e29d2c") || "\uB144"}{month}{t("g_5b51dd") || "\uC6D4"}</h2>
                 <button onClick={() => setCurrentDate(new Date(year, month, 1))} style={navBtnStyle}>▶</button>
             </div>
 
@@ -293,7 +293,7 @@ const InstructorSchedule = ({
       fontSize: '0.85rem',
       color: 'var(--text-secondary)',
       animation: 'fadeIn 1s ease'
-    }}>{t("g_d9c7f4") || t("g_d9c7f4") || t("g_d9c7f4") || "\uD83D\uDC47 \uB0A0\uC9DC\uB97C \uD130\uCE58\uD558\uBA74 \uC0C1\uC138 \uC2DC\uAC04\uD45C\uB97C \uD655\uC778\uD560 \uC218 \uC788\uC5B4\uC694"}</div>
+    }}>{t("g_d9c7f4") || "\uD83D\uDC47 \uB0A0\uC9DC\uB97C \uD130\uCE58\uD558\uBA74 \uC0C1\uC138 \uC2DC\uAC04\uD45C\uB97C \uD655\uC778\uD560 \uC218 \uC788\uC5B4\uC694"}</div>
 
             {/* Branch Legend (다중 지점일 때만 노출) */}
             {branches.length > 1 && <div style={{
@@ -308,7 +308,7 @@ const InstructorSchedule = ({
         color: 'var(--text-secondary)',
         marginBottom: '10px',
         textAlign: 'center'
-      }}>{t("g_7a270a") || t("g_7a270a") || t("g_7a270a") || "\uD83D\uDCC5 \uC9C0\uC810\uBCC4 \uC77C\uC815 \uD655\uC778"}</div>
+      }}>{t("g_7a270a") || "\uD83D\uDCC5 \uC9C0\uC810\uBCC4 \uC77C\uC815 \uD655\uC778"}</div>
                     <div style={{
         display: 'flex',
         justifyContent: 'center',
@@ -368,10 +368,10 @@ const InstructorSchedule = ({
                     <h3 style={{
         marginBottom: '12px',
         fontSize: '1rem'
-      }}>{selectedDate}{t("g_774943") || t("g_774943") || t("g_774943") || "\uC218\uC5C5"}</h3>
+      }}>{selectedDate}{t("g_774943") || "\uC218\uC5C5"}</h3>
                     {selectedClasses.length === 0 ? <p style={{
         color: 'var(--text-secondary)'
-      }}>{t("g_c298f1") || t("g_c298f1") || t("g_c298f1") || "\uC218\uC5C5\uC774 \uC5C6\uC2B5\uB2C8\uB2E4"}</p> : <div style={{
+      }}>{t("g_c298f1") || "\uC218\uC5C5\uC774 \uC5C6\uC2B5\uB2C8\uB2E4"}</p> : <div style={{
         display: 'flex',
         flexDirection: 'column',
         gap: '8px'
@@ -415,7 +415,7 @@ const InstructorSchedule = ({
                 padding: '2px 6px',
                 borderRadius: '4px',
                 background: 'rgba(255, 71, 87, 0.1)'
-              }}>{t("g_15c491") || t("g_15c491") || t("g_15c491") || "\uD734\uAC15"}</div>}
+              }}>{t("g_15c491") || "\uD734\uAC15"}</div>}
                                             {branches.length > 1 && <div style={{
                 fontSize: '0.75rem',
                 color: cls.branchColor,
@@ -445,7 +445,7 @@ const InstructorSchedule = ({
                 padding: '2px 6px',
                 borderRadius: '4px',
                 fontWeight: 'bold'
-              }}>{t("g_c888cc") || t("g_c888cc") || t("g_c888cc") || "\uB0B4 \uC218\uC5C5"}</span>}
+              }}>{t("g_c888cc") || "\uB0B4 \uC218\uC5C5"}</span>}
                                         </div>
                                         <div style={{
               display: 'flex',
@@ -476,7 +476,7 @@ const InstructorSchedule = ({
                     background: bookedCount >= capacity ? 'rgba(255,71,87,0.15)' : 'rgba(var(--primary-rgb), 0.15)',
                     color: bookedCount >= capacity ? '#ff4757' : 'var(--primary-gold)',
                     border: `1px solid ${bookedCount >= capacity ? 'rgba(255,71,87,0.3)' : 'rgba(var(--primary-rgb), 0.3)'}`
-                  }}>{t("g_0b3bf0") || t("g_0b3bf0") || t("g_0b3bf0") || "\uC608\uC57D"}{bookedCount}/{capacity}</span>;
+                  }}>{t("g_0b3bf0") || "\uC608\uC57D"}{bookedCount}/{capacity}</span>;
                 })()}
                                                 <span style={{
                   fontSize: '0.85rem',
@@ -504,7 +504,7 @@ const InstructorSchedule = ({
                     color: 'var(--primary-gold)',
                     marginBottom: '6px',
                     fontWeight: 'bold'
-                  }}>{t("g_dbe128") || t("g_dbe128") || t("g_dbe128") || "\uD83D\uDCCB \uC608\uC57D \uBA85\uB2E8"}</div>
+                  }}>{t("g_dbe128") || "\uD83D\uDCCB \uC608\uC57D \uBA85\uB2E8"}</div>
                                                             <div style={{
                     display: 'flex',
                     flexWrap: 'wrap',
@@ -528,11 +528,11 @@ const InstructorSchedule = ({
                 color: 'var(--primary-gold)',
                 marginBottom: '8px',
                 fontWeight: 'bold'
-              }}>{t("g_a09538") || t("g_a09538") || t("g_a09538") || "\uD83D\uDC65 \uCD9C\uC11D \uBA85\uB2E8"}</div>
+              }}>{t("g_a09538") || "\uD83D\uDC65 \uCD9C\uC11D \uBA85\uB2E8"}</div>
                                                 {loadingAttendance ? <div style={{
                 fontSize: '0.8rem',
                 color: 'var(--text-secondary)'
-              }}>{t("g_8d23a1") || t("g_8d23a1") || t("g_8d23a1") || "\uC870\uD68C \uC911..."}</div> : <div style={{
+              }}>{t("g_8d23a1") || "\uC870\uD68C \uC911..."}</div> : <div style={{
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '4px'
@@ -541,8 +541,8 @@ const InstructorSchedule = ({
                   const filtered = dateAttendance.filter(a => {
                     // [FIX] Primary: Match by classTime + branchId (most reliable)
                     // Secondary: Match by className (fallback)
-                    const attClass = (a.className || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || "\uC790\uC728\uC218\uB828").trim();
-                    const clsClass = (cls.title || t("g_2b3da3") || t("g_2b3da3") || t("g_2b3da3") || "\uC790\uC728\uC218\uB828").trim();
+                    const attClass = (a.className || t("g_2b3da3") || "\uC790\uC728\uC218\uB828").trim();
+                    const clsClass = (cls.title || t("g_2b3da3") || "\uC790\uC728\uC218\uB828").trim();
                     const attInst = (a.instructor || '').trim();
                     const clsInst = (cls.instructor || '').trim();
 
@@ -559,14 +559,14 @@ const InstructorSchedule = ({
                     // Strategy 2: className match (flexible - includes or equals)
                     const matchClassExact = attClass === clsClass;
                     const matchClassFuzzy = attClass.includes(clsClass) || clsClass.includes(attClass);
-                    const matchInst = attInst === clsInst || !attInst || attInst === (t("g_4477e5") || t("g_4477e5") || t("g_4477e5") || "\uBBF8\uC9C0\uC815");
+                    const matchInst = attInst === clsInst || !attInst || attInst === (t("g_4477e5") || "\uBBF8\uC9C0\uC815");
                     return (matchClassExact || matchClassFuzzy) && matchInst;
                   });
                   return filtered.length === 0 ? <div style={{
                     fontSize: '0.8rem',
                     color: 'var(--text-secondary)',
                     fontStyle: 'italic'
-                  }}>{t("g_ec7b26") || t("g_ec7b26") || t("g_ec7b26") || "\uCD9C\uC11D \uD68C\uC6D0\uC774 \uC5C6\uC2B5\uB2C8\uB2E4"}</div> : filtered.map((att, aidx) => <div key={att.id || aidx} style={{
+                  }}>{t("g_ec7b26") || "\uCD9C\uC11D \uD68C\uC6D0\uC774 \uC5C6\uC2B5\uB2C8\uB2E4"}</div> : filtered.map((att, aidx) => <div key={att.id || aidx} style={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     background: 'rgba(255,255,255,0.05)',

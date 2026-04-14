@@ -15,10 +15,10 @@ import InstallGuideModal from '../components/InstallGuideModal';
 import InstallBanner from '../components/common/InstallBanner';
 
 // === Helper for Default Greeting ===
-const getDefaultGreeting = (name, h, day) => {
-  const t = useLanguageStore(s => s.t);
-  const timeGreeting = h < 12 ? t('inst_page_morning') || t("g_c805e6") || t("g_c805e6") || t("g_c805e6") || t("g_c805e6") || "\uC88B\uC740 \uC544\uCE68\uC774\uC5D0\uC694" : h < 17 ? t('inst_page_afternoon') || t("g_3bc0be") || t("g_3bc0be") || t("g_3bc0be") || t("g_3bc0be") || "\uC624\uB298\uB3C4 \uC88B\uC740 \uC624\uD6C4\uC608\uC694" : t('inst_page_evening') || t("g_b504ee") || t("g_b504ee") || t("g_b504ee") || t("g_b504ee") || "\uC218\uACE0\uD558\uC168\uC5B4\uC694";
-  const dayContext = day === (t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || "\uC6D4") ? t('inst_page_day_mon') || t("g_f09c5e") || t("g_f09c5e") || t("g_f09c5e") || t("g_f09c5e") || "\uC0C8\uB85C\uC6B4 \uD55C \uC8FC\uC758 \uC2DC\uC791!" : day === (t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || "\uAE08") ? t('inst_page_day_fri') || t("g_409e09") || t("g_409e09") || t("g_409e09") || t("g_409e09") || "\uC990\uAC70\uC6B4 \uAE08\uC694\uC77C!" : day === (t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || "\uD1A0") || day === (t("g_95e431") || t("g_95e431") || t("g_95e431") || t("g_95e431") || "\uC77C") ? t('inst_page_day_weekend') || t("g_28c442") || t("g_28c442") || t("g_28c442") || t("g_28c442") || "\uD589\uBCF5\uD55C \uC8FC\uB9D0!" : '';
+const getDefaultGreeting = (name, h, day, t) => {
+
+  const timeGreeting = h < 12 ? t('inst_page_morning') || t("g_c805e6") || "\uC88B\uC740 \uC544\uCE68\uC774\uC5D0\uC694" : h < 17 ? t('inst_page_afternoon') || t("g_3bc0be") || "\uC624\uB298\uB3C4 \uC88B\uC740 \uC624\uD6C4\uC608\uC694" : t('inst_page_evening') || t("g_b504ee") || "\uC218\uACE0\uD558\uC168\uC5B4\uC694";
+  const dayContext = day === (t("g_5b51dd") || "\uC6D4") ? t('inst_page_day_mon') || t("g_f09c5e") || "\uC0C8\uB85C\uC6B4 \uD55C \uC8FC\uC758 \uC2DC\uC791!" : day === (t("g_cef92d") || "\uAE08") ? t('inst_page_day_fri') || t("g_409e09") || "\uC990\uAC70\uC6B4 \uAE08\uC694\uC77C!" : day === (t("g_ccc0dc") || "\uD1A0") || day === (t("g_95e431") || "\uC77C") ? t('inst_page_day_weekend') || t("g_28c442") || "\uD589\uBCF5\uD55C \uC8FC\uB9D0!" : '';
   return t('inst_page_greeting_format', {
     name,
     timeGreeting,
@@ -34,7 +34,24 @@ const InstructorPage = () => {
   } = useStudioConfig();
   const [instructorName, setInstructorName] = useState(localStorage.getItem('instructorName') || '');
   const [instructors, setInstructors] = useState([]);
-  const [activeTab, setActiveTab] = useState('home');
+  const initialTab = new URLSearchParams(window.location.search).get('tab') || 'home';
+  const [activeTab, setActiveTabState] = useState(initialTab);
+  
+  const setActiveTab = (tab) => {
+    if (activeTab === tab) return;
+    setActiveTabState(tab);
+    window.history.pushState({ tab }, '', `?tab=${tab}`);
+  };
+
+  useEffect(() => {
+    const handlePopState = (e) => {
+      const tab = new URLSearchParams(window.location.search).get('tab') || 'home';
+      if (tab !== activeTab) setActiveTabState(tab);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [activeTab]);
+
   const [loading, setLoading] = useState(true);
 
   // Subscription Cleanup Ref
@@ -203,7 +220,7 @@ const InstructorPage = () => {
             const recordInstructor = r.instructor ? r.instructor.trim() : '';
             const currentInstructor = instructorName.trim();
             const isExactMatch = recordInstructor === currentInstructor;
-            const isUndesignated = recordInstructor === (t("g_4477e5") || t("g_4477e5") || t("g_4477e5") || t("g_4477e5") || "\uBBF8\uC9C0\uC815") || !recordInstructor;
+            const isUndesignated = recordInstructor === (t("g_4477e5") || "\uBBF8\uC9C0\uC815") || !recordInstructor;
             const isClassMatch = myClassTitles.has(r.className);
 
             // Debug logging for unmatched but potential candidates
@@ -237,7 +254,7 @@ const InstructorPage = () => {
                 const recordInstructor = r.instructor ? r.instructor.trim() : '';
                 const currentInstructor = instructorName.trim();
                 const isExactMatch = recordInstructor === currentInstructor;
-                const isUndesignated = recordInstructor === (t("g_4477e5") || t("g_4477e5") || t("g_4477e5") || t("g_4477e5") || "\uBBF8\uC9C0\uC815") || !recordInstructor;
+                const isUndesignated = recordInstructor === (t("g_4477e5") || "\uBBF8\uC9C0\uC815") || !recordInstructor;
                 const isClassMatch = myClassTitles.has(r.className);
                 return isExactMatch || isUndesignated && isClassMatch;
               }).map(r => ({
@@ -275,7 +292,7 @@ const InstructorPage = () => {
   // [FIX] 의존성에서 attendance.length 제거 → 깜빡임 방지
   useEffect(() => {
     if (!instructorName) return;
-    const dayOfWeek = [t("g_95e431") || t("g_95e431") || t("g_95e431") || t("g_95e431") || "\uC77C", t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || t("g_5b51dd") || "\uC6D4", t("g_74d3f7") || t("g_74d3f7") || t("g_74d3f7") || t("g_74d3f7") || "\uD654", t("g_cae82d") || t("g_cae82d") || t("g_cae82d") || t("g_cae82d") || "\uC218", t("g_d5f699") || t("g_d5f699") || t("g_d5f699") || t("g_d5f699") || "\uBAA9", t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || t("g_cef92d") || "\uAE08", t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || t("g_ccc0dc") || "\uD1A0"][getKSTDayOfWeek()];
+    const dayOfWeek = [t("g_95e431") || "\uC77C", t("g_5b51dd") || "\uC6D4", t("g_74d3f7") || "\uD654", t("g_cae82d") || "\uC218", t("g_d5f699") || "\uBAA9", t("g_cef92d") || "\uAE08", t("g_ccc0dc") || "\uD1A0"][getKSTDayOfWeek()];
 
     // 1. Try Cache First for instant display
     const cacheKey = `ai_greeting_${instructorName}_${todayStr}_${hour}`;
@@ -287,7 +304,7 @@ const InstructorPage = () => {
     }
 
     // If no cache, set default instant message
-    const defaultMsg = getDefaultGreeting(instructorName, hour, dayOfWeek);
+    const defaultMsg = getDefaultGreeting(instructorName, hour, dayOfWeek, t);
     setAiGreeting(defaultMsg);
 
     // 2. Fetch fresh AI message in background (한 번만)
@@ -320,8 +337,8 @@ const InstructorPage = () => {
   }, [instructorName, hour, todayStr]); // [FIX] attendance.length, attendanceLoading 제거
 
   const handleLogout = () => {
-    const t = useLanguageStore.getState().t;
-    if (window.confirm(t('inst_page_logout_confirm') || t("g_87705e") || t("g_87705e") || t("g_87705e") || t("g_87705e") || "\uB85C\uADF8\uC544\uC6C3 \uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) {
+
+    if (window.confirm(t('inst_page_logout_confirm') || t("g_87705e") || "\uB85C\uADF8\uC544\uC6C3 \uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) {
       localStorage.removeItem('instructorName');
       sessionStorage.setItem('demoLogout', 'true'); // 로그아웃 시 다시 자동 로그인 방지
       setInstructorName('');
@@ -356,7 +373,7 @@ const InstructorPage = () => {
                 <div style={{
         textAlign: 'center',
         color: 'var(--primary-gold)'
-      }}>{t('inst_sch_loading') || t("g_06057f") || t("g_06057f") || t("g_06057f") || t("g_06057f") || "\uB85C\uB529 \uC911..."}</div>
+      }}>{t('inst_sch_loading') || t("g_06057f") || "\uB85C\uB529 \uC911..."}</div>
             </div>;
   }
   if (!instructorName) {
@@ -389,7 +406,7 @@ const InstructorPage = () => {
         alignItems: 'center',
         gap: '12px'
       }}>
-                    {config.IDENTITY?.LOGO_URL ? <img src={config.IDENTITY.LOGO_URL} alt={t("g_0d69c1") || t("g_0d69c1") || t("g_0d69c1") || t("g_0d69c1") || "\uB85C\uACE0"} style={{
+                    {config.IDENTITY?.LOGO_URL ? <img src={config.IDENTITY.LOGO_URL} alt={t("g_0d69c1") || "\uB85C\uACE0"} style={{
           maxHeight: '36px',
           width: 'auto',
           objectFit: 'contain',
@@ -415,12 +432,12 @@ const InstructorPage = () => {
             margin: 0,
             fontSize: '1.2rem',
             color: 'var(--primary-gold)'
-          }}>{config.IDENTITY?.NAME || 'Studio'} {t('inst_page_teacher_suffix') || t("g_9564f6") || t("g_9564f6") || t("g_9564f6") || t("g_9564f6") || "\uC120\uC0DD\uB2D8"}</h1>
+          }}>{config.IDENTITY?.NAME || 'Studio'} {t('inst_page_teacher_suffix') || t("g_9564f6") || "\uC120\uC0DD\uB2D8"}</h1>
                         <div style={{
             margin: '4px 0 0',
             fontSize: '0.9rem',
             color: 'var(--text-secondary)'
-          }}>{instructorName} {t('inst_page_teacher_suffix') || t("g_9564f6") || t("g_9564f6") || t("g_9564f6") || t("g_9564f6") || "\uC120\uC0DD\uB2D8"}</div>
+          }}>{instructorName} {t('inst_page_teacher_suffix') || t("g_9564f6") || "\uC120\uC0DD\uB2D8"}</div>
                     </div>
                 </div>
                 <div style={{
@@ -445,7 +462,7 @@ const InstructorPage = () => {
         }}>
                         {pushLoading ? <><SpinnerGap size={16} style={{
               animation: 'spin 0.6s linear infinite'
-            }} /> {t('inst_page_push_setting') || t("g_b25fd3") || t("g_b25fd3") || t("g_b25fd3") || t("g_b25fd3") || "\uC124\uC815 \uC911"}</> : pushEnabled ? <><Bell size={16} weight="fill" /> {t('inst_page_push_on') || t("g_7e46b3") || t("g_7e46b3") || t("g_7e46b3") || t("g_7e46b3") || "\uC54C\uB9BCON"}</> : <><BellSlash size={16} /> {t('inst_page_push_off') || t("g_e26726") || t("g_e26726") || t("g_e26726") || t("g_e26726") || "\uC54C\uB9BCOFF"}</>}
+            }} /> {t('inst_page_push_setting') || t("g_b25fd3") || "\uC124\uC815 \uC911"}</> : pushEnabled ? <><Bell size={16} weight="fill" /> {t('inst_page_push_on') || t("g_7e46b3") || "\uC54C\uB9BCON"}</> : <><BellSlash size={16} /> {t('inst_page_push_off') || t("g_e26726") || "\uC54C\uB9BCOFF"}</>}
                     </button>
                     <button onClick={handleLogout} style={{
           background: 'none',
@@ -528,7 +545,7 @@ const InstructorPage = () => {
           fontWeight: 400,
           animation: 'pulse 1.5s ease-in-out infinite'
         }}>
-                            {t('inst_page_ai_preparing') || t("g_9f52c7") || t("g_9f52c7") || t("g_9f52c7") || t("g_9f52c7") || "AI\uAC00 \uC624\uB298\uC758 \uC778\uC0AC\uB97C \uC900\uBE44\uD558\uACE0 \uC788\uC5B4\uC694"}
+                            {t('inst_page_ai_preparing') || t("g_9f52c7") || "AI\uAC00 \uC624\uB298\uC758 \uC778\uC0AC\uB97C \uC900\uBE44\uD558\uACE0 \uC788\uC5B4\uC694"}
                         </span>
                         <div style={{
           display: 'flex',
@@ -570,9 +587,9 @@ const InstructorPage = () => {
       borderTop: '1px solid var(--border-color)',
       zIndex: 10
     }}>
-                <TabButton icon={<House size={24} />} label={t('inst_nav_home') || t("g_cd07a7") || t("g_cd07a7") || t("g_cd07a7") || t("g_cd07a7") || "\uD648"} active={activeTab === 'home'} onClick={() => setActiveTab('home')} />
-                <TabButton icon={<CalendarBlank size={24} />} label={config?.POLICIES?.ALLOW_BOOKING ? t('inst_nav_schedule_book') || t("g_841ef1") || t("g_841ef1") || t("g_841ef1") || t("g_841ef1") || "\uC2DC\uAC04\uD45C/\uC608\uC57D\uD604\uD669" : t('inst_nav_schedule') || t("g_7e0dcf") || t("g_7e0dcf") || t("g_7e0dcf") || t("g_7e0dcf") || "\uC2DC\uAC04\uD45C"} active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} />
-                <TabButton icon={<Bell size={24} />} label={t('inst_nav_notice') || t("g_0b1a0f") || t("g_0b1a0f") || t("g_0b1a0f") || t("g_0b1a0f") || "\uACF5\uC9C0"} active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} />
+                <TabButton icon={<House size={24} />} label={t('inst_nav_home') || t("g_cd07a7") || "\uD648"} active={activeTab === 'home'} onClick={() => setActiveTab('home')} />
+                <TabButton icon={<CalendarBlank size={24} />} label={config?.POLICIES?.ALLOW_BOOKING ? t('inst_nav_schedule_book') || t("g_841ef1") || "\uC2DC\uAC04\uD45C/\uC608\uC57D\uD604\uD669" : t('inst_nav_schedule') || t("g_7e0dcf") || "\uC2DC\uAC04\uD45C"} active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} />
+                <TabButton icon={<Bell size={24} />} label={t('inst_nav_notice') || t("g_0b1a0f") || "\uACF5\uC9C0"} active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} />
             </div>
 
             <InstallBanner onManualInstallClick={() => safeSetShowInstallGuide(true)} />
@@ -587,7 +604,7 @@ const InstructorPage = () => {
         fontSize: '0.7rem',
         color: 'rgba(255,255,255,0.2)',
         textDecoration: 'none'
-      }}>{t('system_privacy') || t("g_5381fd") || t("g_5381fd") || t("g_5381fd") || t("g_5381fd") || "\uAC1C\uC778\uC815\uBCF4\uCC98\uB9AC\uBC29\uCE68"}</a>
+      }}>{t('system_privacy') || t("g_5381fd") || "\uAC1C\uC778\uC815\uBCF4\uCC98\uB9AC\uBC29\uCE68"}</a>
             </div>
         </div>;
 };

@@ -12,13 +12,13 @@ const NoticesTab = ({
     config
   } = useStudioConfig();
   const handleDeleteNotice = async id => {
-    if (window.confirm(t("g_8fbdb2") || t("g_8fbdb2") || t("g_8fbdb2") || t("g_8fbdb2") || t("g_8fbdb2") || "\uC774 \uACF5\uC9C0\uC0AC\uD56D\uC744 \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) {
+    if (window.confirm(t("g_8fbdb2") || "\uC774 \uACF5\uC9C0\uC0AC\uD56D\uC744 \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) {
       try {
         await storageService.deleteNotice(id);
         refreshData();
       } catch (error) {
         console.error('[NoticesTab] Failed to delete notice:', error);
-        alert(t("g_a436e2") || t("g_a436e2") || t("g_a436e2") || t("g_a436e2") || t("g_a436e2") || "\uACF5\uC9C0 \uC0AD\uC81C\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");
+        alert(t("g_a436e2") || "\uACF5\uC9C0 \uC0AD\uC81C\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");
       }
     }
   };
@@ -120,7 +120,7 @@ const NoticesTab = ({
             }}>
                                         {notice.date || (notice.timestamp ? new Date(notice.timestamp).toLocaleDateString('ko-KR', {
                 timeZone: 'Asia/Seoul'
-              }) : t("g_8fec39") || t("g_8fec39") || t("g_8fec39") || t("g_8fec39") || t("g_8fec39") || "\uB0A0\uC9DC \uC815\uBCF4 \uC5C6\uC74C")}{t("g_212496") || t("g_212496") || t("g_212496") || t("g_212496") || t("g_212496") || "\uB4F1\uB85D"}</div>
+              }) : t("g_8fec39") || "\uB0A0\uC9DC \uC815\uBCF4 \uC5C6\uC74C")}{t("g_212496") || "\uB4F1\uB85D"}</div>
                                 </div>
                                 <button onClick={() => handleDeleteNotice(notice.id)} className="action-btn" style={{
             flex: 'none',

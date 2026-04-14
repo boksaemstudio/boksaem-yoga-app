@@ -345,7 +345,7 @@ const AttendanceHistory = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px'
-              }}>{t("g_5c025b") || t("g_5c025b") || t("g_5c025b") || "\u231A \uB9AC\uD3EC\uD2B8"}</button>}
+              }}>{t("g_5c025b") || "\u231A \uB9AC\uD3EC\uD2B8"}</button>}
                                         <div style={{
                 fontSize: '0.8rem',
                 color: badgeColor,

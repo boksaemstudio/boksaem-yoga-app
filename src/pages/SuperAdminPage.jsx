@@ -67,7 +67,7 @@ const SuperAdminPage = () => {
       }));
       setInquiries(list);
     } catch (e) {
-      console.error(t("g_774275") || t("g_774275") || t("g_774275") || t("g_774275") || t("g_774275") || "\uBB38\uC758 \uB85C\uB529 \uC2E4\uD328:", e);
+      console.error(t("g_774275") || "\uBB38\uC758 \uB85C\uB529 \uC2E4\uD328:", e);
     }
     setInquiriesLoading(false);
   };
@@ -85,7 +85,7 @@ const SuperAdminPage = () => {
         translatedMessage: translated
       } : i));
     } catch (e) {
-      console.error(t("g_81a184") || t("g_81a184") || t("g_81a184") || t("g_81a184") || t("g_81a184") || "\uBC88\uC5ED \uC2E4\uD328:", e);
+      console.error(t("g_81a184") || "\uBC88\uC5ED \uC2E4\uD328:", e);
     }
     setTranslating(p => ({
       ...p,
@@ -123,17 +123,17 @@ const SuperAdminPage = () => {
       const result = await fn();
       setAdmins(result.data.admins || []);
     } catch (e) {
-      alert((t("g_84fd49") || t("g_84fd49") || t("g_84fd49") || t("g_84fd49") || t("g_84fd49") || "\uAD00\uB9AC\uC790 \uBAA9\uB85D \uC870\uD68C \uC2E4\uD328: ") + e.message);
+      alert((t("g_84fd49") || "\uAD00\uB9AC\uC790 \uBAA9\uB85D \uC870\uD68C \uC2E4\uD328: ") + e.message);
     }
     setAdminsLoading(false);
   };
   const handleAddAdmin = async () => {
     if (!addForm.email || !addForm.role) {
-      alert(t("g_c5156e") || t("g_c5156e") || t("g_c5156e") || t("g_c5156e") || t("g_c5156e") || "\uC774\uBA54\uC77C\uACFC \uC5ED\uD560\uC740 \uD544\uC218\uC785\uB2C8\uB2E4.");
+      alert(t("g_c5156e") || "\uC774\uBA54\uC77C\uACFC \uC5ED\uD560\uC740 \uD544\uC218\uC785\uB2C8\uB2E4.");
       return;
     }
     if (addForm.role === 'admin' && !addForm.studioId) {
-      alert(t("g_00693f") || t("g_00693f") || t("g_00693f") || t("g_00693f") || t("g_00693f") || "\uC77C\uBC18 \uAD00\uB9AC\uC790\uB294 \uC5C5\uC7A5\uC744 \uC120\uD0DD\uD574\uC57C \uD569\uB2C8\uB2E4.");
+      alert(t("g_00693f") || "\uC77C\uBC18 \uAD00\uB9AC\uC790\uB294 \uC5C5\uC7A5\uC744 \uC120\uD0DD\uD574\uC57C \uD569\uB2C8\uB2E4.");
       return;
     }
     setAdding(true);
@@ -157,12 +157,12 @@ const SuperAdminPage = () => {
         };
         await sendPasswordResetEmail(auth, addForm.email, actionCodeSettings);
       } catch (err) {
-        console.error(t("g_1265fc") || t("g_1265fc") || t("g_1265fc") || t("g_1265fc") || t("g_1265fc") || "\uC774\uBA54\uC77C \uC804\uC1A1 \uC2E4\uD328(\uBB34\uC2DC\uB428):", err);
+        console.error(t("g_1265fc") || "\uC774\uBA54\uC77C \uC804\uC1A1 \uC2E4\uD328(\uBB34\uC2DC\uB428):", err);
       }
       alert(`${result.data.message}\n\n✅ [완벽한 화이트라벨링 통과]\n해당 원장님께 비밀번호 설정 이메일이 자동 발송되었습니다!\n(혹시 메일이 안 간 경우 화면의 링크를 직접 복사해서 주셔도 됩니다.)`);
       loadAdmins();
     } catch (e) {
-      alert((t("g_60c58a") || t("g_60c58a") || t("g_60c58a") || t("g_60c58a") || t("g_60c58a") || "\uC0DD\uC131 \uC2E4\uD328: ") + (e.message || t("g_5eeba8") || t("g_5eeba8") || t("g_5eeba8") || t("g_5eeba8") || t("g_5eeba8") || "\uC624\uB958 \uBC1C\uC0DD"));
+      alert((t("g_60c58a") || "\uC0DD\uC131 \uC2E4\uD328: ") + (e.message || t("g_5eeba8") || "\uC624\uB958 \uBC1C\uC0DD"));
     }
     setAdding(false);
   };
@@ -186,7 +186,7 @@ const SuperAdminPage = () => {
   };
   const handleResetPassword = async () => {
     if (!newPassword || newPassword.length < 6) {
-      alert(t("g_be3a8d") || t("g_be3a8d") || t("g_be3a8d") || t("g_be3a8d") || t("g_be3a8d") || "\uBE44\uBC00\uBC88\uD638\uB294 \uCD5C\uC18C 6\uC790 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.");
+      alert(t("g_be3a8d") || "\uBE44\uBC00\uBC88\uD638\uB294 \uCD5C\uC18C 6\uC790 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.");
       return;
     }
     setResetting(true);
@@ -200,7 +200,7 @@ const SuperAdminPage = () => {
       setResetPasswordUid(null);
       setNewPassword('');
     } catch (e) {
-      alert((t("g_8788a6") || t("g_8788a6") || t("g_8788a6") || t("g_8788a6") || t("g_8788a6") || "\uBE44\uBC00\uBC88\uD638 \uBCC0\uACBD \uC2E4\uD328: ") + e.message);
+      alert((t("g_8788a6") || "\uBE44\uBC00\uBC88\uD638 \uBCC0\uACBD \uC2E4\uD328: ") + e.message);
     }
     setResetting(false);
   };
@@ -215,7 +215,7 @@ const SuperAdminPage = () => {
       alert(`${email} 권한 변경 완료`);
       loadAdmins();
     } catch (e) {
-      alert((t("g_3555a9") || t("g_3555a9") || t("g_3555a9") || t("g_3555a9") || t("g_3555a9") || "\uAD8C\uD55C \uBCC0\uACBD \uC2E4\uD328: ") + e.message);
+      alert((t("g_3555a9") || "\uAD8C\uD55C \uBCC0\uACBD \uC2E4\uD328: ") + e.message);
     }
   };
   const handleDeleteAdmin = async adminObj => {
@@ -229,17 +229,17 @@ const SuperAdminPage = () => {
       alert(result.data.message);
       loadAdmins();
     } catch (e) {
-      alert((t("g_51acf1") || t("g_51acf1") || t("g_51acf1") || t("g_51acf1") || t("g_51acf1") || "\uC0AD\uC81C \uC2E4\uD328: ") + e.message);
+      alert((t("g_51acf1") || "\uC0AD\uC81C \uC2E4\uD328: ") + e.message);
       setAdminsLoading(false);
     }
   };
   const handleRegister = async () => {
     if (!registerForm.studioId || !registerForm.name || !registerForm.ownerEmail) {
-      alert(t("g_41817d") || t("g_41817d") || t("g_41817d") || t("g_41817d") || t("g_41817d") || "\uC2A4\uD29C\uB514\uC624 ID, \uC774\uB984, \uAD00\uB9AC\uC790 \uC774\uBA54\uC77C\uC740 \uD544\uC218\uC785\uB2C8\uB2E4.");
+      alert(t("g_41817d") || "\uC2A4\uD29C\uB514\uC624 ID, \uC774\uB984, \uAD00\uB9AC\uC790 \uC774\uBA54\uC77C\uC740 \uD544\uC218\uC785\uB2C8\uB2E4.");
       return;
     }
     if (!/^[a-z0-9-]+$/.test(registerForm.studioId)) {
-      alert(t("g_4c2636") || t("g_4c2636") || t("g_4c2636") || t("g_4c2636") || t("g_4c2636") || "\uC2A4\uD29C\uB514\uC624 ID\uB294 \uC601\uBB38 \uC18C\uBB38\uC790, \uC22B\uC790, \uD558\uC774\uD508\uB9CC \uAC00\uB2A5\uD569\uB2C8\uB2E4.");
+      alert(t("g_4c2636") || "\uC2A4\uD29C\uB514\uC624 ID\uB294 \uC601\uBB38 \uC18C\uBB38\uC790, \uC22B\uC790, \uD558\uC774\uD508\uB9CC \uAC00\uB2A5\uD569\uB2C8\uB2E4.");
       return;
     }
     setRegistering(true);
@@ -258,10 +258,10 @@ const SuperAdminPage = () => {
     } else alert(result.message);
   };
   const handleApproveOnboarding = async pending => {
-    const studioId = prompt(t("g_a27085") || t("g_a27085") || t("g_a27085") || t("g_a27085") || t("g_a27085") || "\u2705 \uC2B9\uC778 \uCC98\uB9AC\uB97C \uC704\uD574 \uBD80\uC5EC\uD560 \uC601\uBB38 \uC2A4\uD29C\uB514\uC624 ID\uB97C \uC785\uB825\uD558\uC138\uC694\n(\uC608: namaste-yoga)", '');
+    const studioId = prompt(t("g_a27085") || "\u2705 \uC2B9\uC778 \uCC98\uB9AC\uB97C \uC704\uD574 \uBD80\uC5EC\uD560 \uC601\uBB38 \uC2A4\uD29C\uB514\uC624 ID\uB97C \uC785\uB825\uD558\uC138\uC694\n(\uC608: namaste-yoga)", '');
     if (!studioId) return;
     if (!/^[a-z0-9-]+$/.test(studioId)) {
-      alert(t("g_483755") || t("g_483755") || t("g_483755") || t("g_483755") || t("g_483755") || "\uC601\uBB38 \uC18C\uBB38\uC790, \uC22B\uC790, \uD558\uC774\uD508\uB9CC \uAC00\uB2A5\uD569\uB2C8\uB2E4.");
+      alert(t("g_483755") || "\uC601\uBB38 \uC18C\uBB38\uC790, \uC22B\uC790, \uD558\uC774\uD508\uB9CC \uAC00\uB2A5\uD569\uB2C8\uB2E4.");
       return;
     }
     setLoading(true);
@@ -272,7 +272,7 @@ const SuperAdminPage = () => {
         const fn = httpsCallable(functions, 'createAdminCall');
         const adminResult = await fn({
           email: pending.ownerEmail,
-          displayName: pending.name + (t("g_513c81") || t("g_513c81") || t("g_513c81") || t("g_513c81") || t("g_513c81") || " \uC6D0\uC7A5\uB2D8"),
+          displayName: pending.name + (t("g_513c81") || " \uC6D0\uC7A5\uB2D8"),
           role: 'admin',
           studioId: studioId
         });
@@ -295,21 +295,21 @@ const SuperAdminPage = () => {
           };
           await sendPasswordResetEmail(auth, pending.ownerEmail, actionCodeSettings);
         } catch (err) {
-          console.error(t("g_1265fc") || t("g_1265fc") || t("g_1265fc") || t("g_1265fc") || t("g_1265fc") || "\uC774\uBA54\uC77C \uC804\uC1A1 \uC2E4\uD328(\uBB34\uC2DC\uB428):", err);
+          console.error(t("g_1265fc") || "\uC774\uBA54\uC77C \uC804\uC1A1 \uC2E4\uD328(\uBB34\uC2DC\uB428):", err);
         }
         alert(`🎉 스튜디오 승인 완료!\n\n1. 원장님 이메일로 접속 설정 안내가 자동 발송되었습니다.\n2. (선택) 화면에 생성된 '직접 연결 주소'를 복사해서 카카오톡으로도 즉시 전달하실 수 있습니다!\n\n접속 즉시 한글판 PassFlow AI 로그인 화면이 펼쳐집니다.`);
       } catch (err) {
-        console.error(t("g_ac1c64") || t("g_ac1c64") || t("g_ac1c64") || t("g_ac1c64") || t("g_ac1c64") || "\uACC4\uC815 \uC790\uB3D9 \uC0DD\uC131 \uC5D0\uB7EC:", err);
+        console.error(t("g_ac1c64") || "\uACC4\uC815 \uC790\uB3D9 \uC0DD\uC131 \uC5D0\uB7EC:", err);
         alert(`승인은 완료되었으나, 계정 자동 세팅에 실패했습니다.\n[관리자 계정] 탭에서 수동으로 새 관리자 계정을 추가해주세요.\n(사유: ${err.message})`);
       }
       loadStudios();
     } else {
-      alert((t("g_032dcd") || t("g_032dcd") || t("g_032dcd") || t("g_032dcd") || t("g_032dcd") || "\uC2B9\uC778 \uC2E4\uD328: ") + result.message);
+      alert((t("g_032dcd") || "\uC2B9\uC778 \uC2E4\uD328: ") + result.message);
     }
     setLoading(false);
   };
   const handleRejectOnboarding = async pending => {
-    const reason = prompt(t("g_f33e90") || t("g_f33e90") || t("g_f33e90") || t("g_f33e90") || t("g_f33e90") || "\u274C \uBC18\uB824 (\uAC70\uC808) \uC0AC\uC720\uB97C \uC785\uB825\uD558\uC138\uC694 (\uC2E0\uCCAD\uC790\uC5D0\uAC8C \uBC1C\uC1A1 \uC548\uB428, \uAE30\uB85D\uC6A9):", '');
+    const reason = prompt(t("g_f33e90") || "\u274C \uBC18\uB824 (\uAC70\uC808) \uC0AC\uC720\uB97C \uC785\uB825\uD558\uC138\uC694 (\uC2E0\uCCAD\uC790\uC5D0\uAC8C \uBC1C\uC1A1 \uC548\uB428, \uAE30\uB85D\uC6A9):", '');
     if (reason === null) return;
     setLoading(true);
     await studioRegistryService.rejectOnboarding(pending.id, reason);
@@ -334,7 +334,7 @@ const SuperAdminPage = () => {
 
     const timestamp = new Date(newDateStr).getTime();
     if (isNaN(timestamp)) {
-      alert(t("g_b4735a") || t("g_b4735a") || t("g_b4735a") || t("g_b4735a") || t("g_b4735a") || "\uC62C\uBC14\uB978 \uB0A0\uC9DC \uD615\uC2DD\uC774 \uC544\uB2D9\uB2C8\uB2E4. (\uC608: 2026-03-31)");
+      alert(t("g_b4735a") || "\uC62C\uBC14\uB978 \uB0A0\uC9DC \uD615\uC2DD\uC774 \uC544\uB2D9\uB2C8\uB2E4. (\uC608: 2026-03-31)");
       return;
     }
     const isoString = new Date(newDateStr).toISOString();
@@ -343,10 +343,10 @@ const SuperAdminPage = () => {
         createdAt: isoString
       });
       if (success) {
-        alert(t("g_35401c") || t("g_35401c") || t("g_35401c") || t("g_35401c") || t("g_35401c") || "\uB0A0\uC9DC\uAC00 \uC218\uC815\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+        alert(t("g_35401c") || "\uB0A0\uC9DC\uAC00 \uC218\uC815\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
         loadStudios();
       } else {
-        alert(t("g_6cc3ad") || t("g_6cc3ad") || t("g_6cc3ad") || t("g_6cc3ad") || t("g_6cc3ad") || "\uB0A0\uC9DC \uC218\uC815\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");
+        alert(t("g_6cc3ad") || "\uB0A0\uC9DC \uC218\uC815\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");
       }
     }
   };
@@ -356,14 +356,14 @@ const SuperAdminPage = () => {
     trial: '#F59E0B'
   };
   const statusLabels = {
-    active: t("g_7b4d79") || t("g_7b4d79") || t("g_7b4d79") || t("g_7b4d79") || t("g_7b4d79") || "\uC6B4\uC601\uC911",
-    suspended: t("g_d59db9") || t("g_d59db9") || t("g_d59db9") || t("g_d59db9") || t("g_d59db9") || "\uC815\uC9C0",
-    trial: t("g_ab62a0") || t("g_ab62a0") || t("g_ab62a0") || t("g_ab62a0") || t("g_ab62a0") || "\uCCB4\uD5D8"
+    active: t("g_7b4d79") || "\uC6B4\uC601\uC911",
+    suspended: t("g_d59db9") || "\uC815\uC9C0",
+    trial: t("g_ab62a0") || "\uCCB4\uD5D8"
   };
   const planLabels = {
-    free: t("g_667dd4") || t("g_667dd4") || t("g_667dd4") || t("g_667dd4") || t("g_667dd4") || "\uBB34\uB8CC",
-    basic: t("g_d58f1c") || t("g_d58f1c") || t("g_d58f1c") || t("g_d58f1c") || t("g_d58f1c") || "\uBCA0\uC774\uC9C1",
-    pro: t("g_56fcec") || t("g_56fcec") || t("g_56fcec") || t("g_56fcec") || t("g_56fcec") || "\uD504\uB85C"
+    free: t("g_667dd4") || "\uBB34\uB8CC",
+    basic: t("g_d58f1c") || "\uBCA0\uC774\uC9C1",
+    pro: t("g_56fcec") || "\uD504\uB85C"
   };
   const planColors = {
     free: '#6B7280',
@@ -413,7 +413,7 @@ const SuperAdminPage = () => {
           gap: '8px',
           marginRight: '8px'
         }}>
-                        <img src="/assets/passflow_square_logo.png" alt={t("g_4983a8") || t("g_4983a8") || t("g_4983a8") || t("g_4983a8") || t("g_4983a8") || "\uC815\uC0AC\uAC01\uD615 \uB85C\uACE0"} style={{
+                        <img src="/assets/passflow_square_logo.png" alt={t("g_4983a8") || "\uC815\uC0AC\uAC01\uD615 \uB85C\uACE0"} style={{
             height: '32px',
             borderRadius: '6px',
             boxShadow: '0 0 10px rgba(212, 175, 55, 0.3)'
@@ -426,7 +426,7 @@ const SuperAdminPage = () => {
             overflow: 'hidden',
             position: 'relative'
           }}>
-                            <img src="/assets/passflow_ai_logo_transparent.png" alt={t("g_09656c") || t("g_09656c") || t("g_09656c") || t("g_09656c") || t("g_09656c") || "\uAC00\uB85C\uD615 \uB85C\uACE0"} style={{
+                            <img src="/assets/passflow_ai_logo_transparent.png" alt={t("g_09656c") || "\uAC00\uB85C\uD615 \uB85C\uACE0"} style={{
               position: 'absolute',
               height: '100px',
               left: '-5px',
@@ -442,7 +442,7 @@ const SuperAdminPage = () => {
           background: 'rgba(212, 175, 55, 0.15)',
           color: '#D4AF37',
           fontWeight: '600'
-        }}>{t("g_16db03") || t("g_16db03") || t("g_16db03") || t("g_16db03") || t("g_16db03") || "\uD50C\uB7AB\uD3FC \uAD00\uB9AC"}</span>
+        }}>{t("g_16db03") || "\uD50C\uB7AB\uD3FC \uAD00\uB9AC"}</span>
                 </div>
             </div>
 
@@ -466,7 +466,7 @@ const SuperAdminPage = () => {
         alignItems: 'center',
         gap: '6px'
       }}>
-                    <Buildings size={18} />{t("g_e54edb") || t("g_e54edb") || t("g_e54edb") || t("g_e54edb") || t("g_e54edb") || "\uC2A4\uD29C\uB514\uC624"}</button>
+                    <Buildings size={18} />{t("g_e54edb") || "\uC2A4\uD29C\uB514\uC624"}</button>
                 <button onClick={() => {
         setActiveSection('admins');
         if (admins.length === 0) loadAdmins();
@@ -483,7 +483,7 @@ const SuperAdminPage = () => {
         alignItems: 'center',
         gap: '6px'
       }}>
-                    <ShieldCheck size={18} />{t("g_c5529e") || t("g_c5529e") || t("g_c5529e") || t("g_c5529e") || t("g_c5529e") || "\uAD00\uB9AC\uC790 \uACC4\uC815"}</button>
+                    <ShieldCheck size={18} />{t("g_c5529e") || "\uAD00\uB9AC\uC790 \uACC4\uC815"}</button>
                 <button onClick={() => setActiveSection('domains')} style={{
         padding: '10px 20px',
         background: activeSection === 'domains' ? '#3B82F6' : 'rgba(255,255,255,0.05)',
@@ -497,7 +497,7 @@ const SuperAdminPage = () => {
         alignItems: 'center',
         gap: '6px'
       }}>
-                    <Globe size={18} />{t("g_99a17a") || t("g_99a17a") || t("g_99a17a") || t("g_99a17a") || t("g_99a17a") || "\uB3C4\uBA54\uC778 \uAD00\uB9AC"}</button>
+                    <Globe size={18} />{t("g_99a17a") || "\uB3C4\uBA54\uC778 \uAD00\uB9AC"}</button>
                 <button onClick={() => {
         setActiveSection('inquiries');
         if (inquiries.length === 0) loadInquiries();
@@ -515,7 +515,7 @@ const SuperAdminPage = () => {
         gap: '6px',
         position: 'relative'
       }}>
-                    <ChatCircleDots size={18} />{t("g_cd3560") || t("g_cd3560") || t("g_cd3560") || t("g_cd3560") || t("g_cd3560") || "\uBB38\uC758 \uBA54\uC2DC\uC9C0"}{inquiries.filter(i => i.status === 'new').length > 0 && <span style={{
+                    <ChatCircleDots size={18} />{t("g_cd3560") || "\uBB38\uC758 \uBA54\uC2DC\uC9C0"}{inquiries.filter(i => i.status === 'new').length > 0 && <span style={{
           position: 'absolute',
           top: '-4px',
           right: '-4px',
@@ -546,7 +546,7 @@ const SuperAdminPage = () => {
         gap: '6px',
         marginLeft: 'auto',
         boxShadow: '0 4px 12px rgba(16,185,129,0.3)'
-      }} title={t("g_862e2b") || t("g_862e2b") || t("g_862e2b") || t("g_862e2b") || t("g_862e2b") || "Passflow Ai \uBC0F \uC694\uAC00\uC6D0 \uBC29\uBB38\uC790 \uD2B8\uB798\uD53D \uD1B5\uACC4\uB97C \uD655\uC778\uD569\uB2C8\uB2E4"}>{t("g_3183aa") || t("g_3183aa") || t("g_3183aa") || t("g_3183aa") || t("g_3183aa") || "\uD83D\uDCCA \uBC29\uBB38\uC790 \uD1B5\uACC4 (GA4)"}</button>
+      }} title={t("g_862e2b") || "Passflow Ai \uBC0F \uC694\uAC00\uC6D0 \uBC29\uBB38\uC790 \uD2B8\uB798\uD53D \uD1B5\uACC4\uB97C \uD655\uC778\uD569\uB2C8\uB2E4"}>{t("g_3183aa") || "\uD83D\uDCCA \uBC29\uBB38\uC790 \uD1B5\uACC4 (GA4)"}</button>
             </div>
 
             {/* ═══ STUDIOS ═══ */}
@@ -572,7 +572,7 @@ const SuperAdminPage = () => {
                             <span style={{
             fontSize: '0.85rem',
             color: '#999'
-          }}>{t("g_dae181") || t("g_dae181") || t("g_dae181") || t("g_dae181") || t("g_dae181") || "\uD604\uC7AC:"}</span>
+          }}>{t("g_dae181") || "\uD604\uC7AC:"}</span>
                             <span style={{
             fontWeight: '700',
             color: '#D4AF37'
@@ -591,13 +591,13 @@ const SuperAdminPage = () => {
           cursor: 'pointer',
           fontSize: '0.9rem'
         }}>
-                            <Plus size={18} weight="bold" />{t("g_98d480") || t("g_98d480") || t("g_98d480") || t("g_98d480") || t("g_98d480") || "\uC0C8 \uC2A4\uD29C\uB514\uC624"}</button>
+                            <Plus size={18} weight="bold" />{t("g_98d480") || "\uC0C8 \uC2A4\uD29C\uB514\uC624"}</button>
                     </div>
                     {loading ? <div style={{
         textAlign: 'center',
         padding: '60px',
         color: '#666'
-      }}>{t("g_74e00a") || t("g_74e00a") || t("g_74e00a") || t("g_74e00a") || t("g_74e00a") || "\uBD88\uB7EC\uC624\uB294 \uC911..."}</div> : <>
+      }}>{t("g_74e00a") || "\uBD88\uB7EC\uC624\uB294 \uC911..."}</div> : <>
                             {/* 신규 가입 심사 대기소 */}
                             {pendingStudios.length > 0 && <div style={{
           marginBottom: '32px',
@@ -614,12 +614,12 @@ const SuperAdminPage = () => {
             color: '#60A5FA',
             fontSize: '1.2rem'
           }}>
-                                        <Crown size={24} weight="fill" />{t("g_3477c1") || t("g_3477c1") || t("g_3477c1") || t("g_3477c1") || t("g_3477c1") || "\uC2E0\uADDC \uAC00\uC785 \uC2EC\uC0AC \uB300\uAE30\uC18C ("}{pendingStudios.length}{t("g_bcbcd4") || t("g_bcbcd4") || t("g_bcbcd4") || t("g_bcbcd4") || t("g_bcbcd4") || "\uAC74)"}<span style={{
+                                        <Crown size={24} weight="fill" />{t("g_3477c1") || "\uC2E0\uADDC \uAC00\uC785 \uC2EC\uC0AC \uB300\uAE30\uC18C ("}{pendingStudios.length}{t("g_bcbcd4") || "\uAC74)"}<span style={{
               fontSize: '0.8rem',
               color: '#94a3b8',
               fontWeight: 'normal',
               marginLeft: 'auto'
-            }}>{t("g_98afca") || t("g_98afca") || t("g_98afca") || t("g_98afca") || t("g_98afca") || "\u2753 \uC0C8\uB85C \uC2E0\uCCAD\uD55C \uC6D0\uC7A5\uB2D8\uB4E4\uC744 \uAC80\uD1A0\uD558\uACE0 \uC2A4\uD29C\uB514\uC624\uB97C \uBC1C\uAE09\uD574\uC8FC\uB294 \uACF5\uAC04\uC785\uB2C8\uB2E4."}</span>
+            }}>{t("g_98afca") || "\u2753 \uC0C8\uB85C \uC2E0\uCCAD\uD55C \uC6D0\uC7A5\uB2D8\uB4E4\uC744 \uAC80\uD1A0\uD558\uACE0 \uC2A4\uD29C\uB514\uC624\uB97C \uBC1C\uAE09\uD574\uC8FC\uB294 \uACF5\uAC04\uC785\uB2C8\uB2E4."}</span>
                                     </h3>
                                     <div style={{
             display: 'grid',
@@ -656,7 +656,7 @@ const SuperAdminPage = () => {
                 fontSize: '0.85rem',
                 color: '#aaa',
                 marginBottom: p.scheduleUrl ? '8px' : '16px'
-              }}>{t("g_b126c0") || t("g_b126c0") || t("g_b126c0") || t("g_b126c0") || t("g_b126c0") || "\uD83D\uDCE6 \uC694\uAE08\uC81C:"}{p.plan === 'pro' ? t("g_56fcec") || t("g_56fcec") || t("g_56fcec") || t("g_56fcec") || t("g_56fcec") || "\uD504\uB85C" : p.plan === 'basic' ? t("g_d58f1c") || t("g_d58f1c") || t("g_d58f1c") || t("g_d58f1c") || t("g_d58f1c") || "\uBCA0\uC774\uC9C1" : t("g_17292f") || t("g_17292f") || t("g_17292f") || t("g_17292f") || t("g_17292f") || "\uBB34\uB8CC\uCCB4\uD5D8"}</div>
+              }}>{t("g_b126c0") || "\uD83D\uDCE6 \uC694\uAE08\uC81C:"}{p.plan === 'pro' ? t("g_56fcec") || "\uD504\uB85C" : p.plan === 'basic' ? t("g_d58f1c") || "\uBCA0\uC774\uC9C1" : t("g_17292f") || "\uBB34\uB8CC\uCCB4\uD5D8"}</div>
                                                 {p.scheduleUrls && p.scheduleUrls.length > 0 && <div style={{
                 marginBottom: '16px',
                 display: 'flex',
@@ -671,7 +671,7 @@ const SuperAdminPage = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px'
-                }}>{t("g_d053f5") || t("g_d053f5") || t("g_d053f5") || t("g_d053f5") || t("g_d053f5") || "\uD83D\uDCE5 \uCCA8\uBD80\uD30C\uC77C #"}{idx + 1}{t("g_612ca2") || t("g_612ca2") || t("g_612ca2") || t("g_612ca2") || t("g_612ca2") || "\uB2E4\uC6B4\uB85C\uB4DC"}</a>)}
+                }}>{t("g_d053f5") || "\uD83D\uDCE5 \uCCA8\uBD80\uD30C\uC77C #"}{idx + 1}{t("g_612ca2") || "\uB2E4\uC6B4\uB85C\uB4DC"}</a>)}
                                                     </div>}
                                                 {!p.scheduleUrls && p.scheduleUrl && <div style={{
                 marginBottom: '16px'
@@ -684,14 +684,14 @@ const SuperAdminPage = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px'
-                }}>{t("g_edb1cf") || t("g_edb1cf") || t("g_edb1cf") || t("g_edb1cf") || t("g_edb1cf") || "\uD83D\uDCE5 \uCCA8\uBD80\uD30C\uC77C (1) \uB2E4\uC6B4\uB85C\uB4DC"}</a>
+                }}>{t("g_edb1cf") || "\uD83D\uDCE5 \uCCA8\uBD80\uD30C\uC77C (1) \uB2E4\uC6B4\uB85C\uB4DC"}</a>
                                                     </div>}
                                                 
                                                 <div style={{
                 display: 'flex',
                 gap: '8px'
               }}>
-                                                    <button onClick={() => handleApproveOnboarding(p)} title={t("g_6c3c44") || t("g_6c3c44") || t("g_6c3c44") || t("g_6c3c44") || t("g_6c3c44") || "\uC774 \uBC84\uD2BC\uC744 \uB204\uB974\uBA74 \uC6D0\uC7A5\uB2D8 \uC804\uC6A9 DB\uAC00 \uC790\uB3D9\uC73C\uB85C \uC138\uD305\uB418\uBA70 \uCE74\uD1A1 \uC54C\uB9BC\uC774 \uC804\uC1A1\uB429\uB2C8\uB2E4."} style={{
+                                                    <button onClick={() => handleApproveOnboarding(p)} title={t("g_6c3c44") || "\uC774 \uBC84\uD2BC\uC744 \uB204\uB974\uBA74 \uC6D0\uC7A5\uB2D8 \uC804\uC6A9 DB\uAC00 \uC790\uB3D9\uC73C\uB85C \uC138\uD305\uB418\uBA70 \uCE74\uD1A1 \uC54C\uB9BC\uC774 \uC804\uC1A1\uB429\uB2C8\uB2E4."} style={{
                   flex: 1,
                   padding: '10px',
                   background: '#3B82F6',
@@ -701,8 +701,8 @@ const SuperAdminPage = () => {
                   fontWeight: 'bold',
                   cursor: 'pointer',
                   fontSize: '0.9rem'
-                }}>{t("g_350916") || t("g_350916") || t("g_350916") || t("g_350916") || t("g_350916") || "\u2705 \uC2B9\uC778 \uBC0F ID \uBC1C\uAE09"}</button>
-                                                    <button onClick={() => handleRejectOnboarding(p)} title={t("g_0b6761") || t("g_0b6761") || t("g_0b6761") || t("g_0b6761") || t("g_0b6761") || "\uAC00\uC9DC \uC2E0\uCCAD\uC774\uAC70\uB098 \uC911\uBCF5 \uC2E0\uCCAD\uC77C \uACBD\uC6B0 \uAC70\uC808\uD569\uB2C8\uB2E4."} style={{
+                }}>{t("g_350916") || "\u2705 \uC2B9\uC778 \uBC0F ID \uBC1C\uAE09"}</button>
+                                                    <button onClick={() => handleRejectOnboarding(p)} title={t("g_0b6761") || "\uAC00\uC9DC \uC2E0\uCCAD\uC774\uAC70\uB098 \uC911\uBCF5 \uC2E0\uCCAD\uC77C \uACBD\uC6B0 \uAC70\uC808\uD569\uB2C8\uB2E4."} style={{
                   padding: '10px 16px',
                   background: 'rgba(239, 68, 68, 0.1)',
                   color: '#EF4444',
@@ -710,7 +710,7 @@ const SuperAdminPage = () => {
                   borderRadius: '8px',
                   fontWeight: 'bold',
                   cursor: 'pointer'
-                }}>{t("g_457da6") || t("g_457da6") || t("g_457da6") || t("g_457da6") || t("g_457da6") || "\u274C \uBC18\uB824"}</button>
+                }}>{t("g_457da6") || "\u274C \uBC18\uB824"}</button>
                                                 </div>
                                             </div>)}
                                     </div>
@@ -721,7 +721,7 @@ const SuperAdminPage = () => {
           margin: '0 0 16px 0',
           fontSize: '1.1rem',
           color: '#ccc'
-        }}>{t("g_963144") || t("g_963144") || t("g_963144") || t("g_963144") || t("g_963144") || "\uB4F1\uB85D\uB41C \uC2A4\uD29C\uB514\uC624 \uBAA9\uB85D"}</h3>
+        }}>{t("g_963144") || "\uB4F1\uB85D\uB41C \uC2A4\uD29C\uB514\uC624 \uBAA9\uB85D"}</h3>
                             <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
@@ -747,7 +747,7 @@ const SuperAdminPage = () => {
                 background: '#D4AF37',
                 color: '#000',
                 fontWeight: '700'
-              }}>{t("g_ae1d1f") || t("g_ae1d1f") || t("g_ae1d1f") || t("g_ae1d1f") || t("g_ae1d1f") || "\uD604\uC7AC \uC811\uC18D\uC911"}</div>}
+              }}>{t("g_ae1d1f") || "\uD604\uC7AC \uC811\uC18D\uC911"}</div>}
                                             <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -829,7 +829,7 @@ const SuperAdminPage = () => {
                   borderRadius: '6px',
                   cursor: 'pointer',
                   border: '1px solid rgba(255,255,255,0.1)'
-                }} title={t("g_813c28") || t("g_813c28") || t("g_813c28") || t("g_813c28") || t("g_813c28") || "\uD074\uB9AD\uD558\uC5EC \uC2DC\uC791(\uC0DD\uC131) \uB0A0\uC9DC\uB97C \uC218\uC815\uD569\uB2C8\uB2E4."}>{t("g_9f6303") || t("g_9f6303") || t("g_9f6303") || t("g_9f6303") || t("g_9f6303") || "\uD83D\uDDD3\uFE0F \uC2DC\uC791\uC77C:"}{studio.createdAt ? new Date(studio.createdAt).toLocaleDateString('ko-KR') : t("g_1feee3") || t("g_1feee3") || t("g_1feee3") || t("g_1feee3") || t("g_1feee3") || "\uB0A0\uC9DC \uC5C6\uC74C"}
+                }} title={t("g_813c28") || "\uD074\uB9AD\uD558\uC5EC \uC2DC\uC791(\uC0DD\uC131) \uB0A0\uC9DC\uB97C \uC218\uC815\uD569\uB2C8\uB2E4."}>{t("g_9f6303") || "\uD83D\uDDD3\uFE0F \uC2DC\uC791\uC77C:"}{studio.createdAt ? new Date(studio.createdAt).toLocaleDateString('ko-KR') : t("g_1feee3") || "\uB0A0\uC9DC \uC5C6\uC74C"}
                                                 </div>
                                             </div>
                                             <div style={{
@@ -885,11 +885,11 @@ const SuperAdminPage = () => {
                     color: isExpired ? '#EF4444' : isUrgent ? '#F59E0B' : '#4ade80',
                     fontWeight: '700'
                   }}>
-                                                            {isExpired ? t("g_5fc089") || t("g_5fc089") || t("g_5fc089") || t("g_5fc089") || t("g_5fc089") || "\u26D4 \uCCB4\uD5D8 \uB9CC\uB8CC" : `⏰ 체험 D-${daysLeft}`}
+                                                            {isExpired ? t("g_5fc089") || "\u26D4 \uCCB4\uD5D8 \uB9CC\uB8CC" : `⏰ 체험 D-${daysLeft}`}
                                                         </span>
                                                         <span style={{
                     color: '#888'
-                  }}>{t("g_162657") || t("g_162657") || t("g_162657") || t("g_162657") || t("g_162657") || "\uD83D\uDC65 \uD68C\uC6D0"}{studio.memberCount || 0}{t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || t("g_7b3c6e") || "\uBA85"}</span>
+                  }}>{t("g_162657") || "\uD83D\uDC65 \uD68C\uC6D0"}{studio.memberCount || 0}{t("g_7b3c6e") || "\uBA85"}</span>
                                                     </div>;
               })()}
                                             {studio.scheduleUrls && studio.scheduleUrls.length > 0 ? <div style={{
@@ -906,7 +906,7 @@ const SuperAdminPage = () => {
                   padding: '4px 10px',
                   borderRadius: '4px',
                   textDecoration: 'none'
-                }}>{t("g_83c5a3") || t("g_83c5a3") || t("g_83c5a3") || t("g_83c5a3") || t("g_83c5a3") || "\uD83D\uDCE6 \uAC00\uC785 \uCCA8\uBD80\uD30C\uC77C"}{i + 1}{t("g_612ca2") || t("g_612ca2") || t("g_612ca2") || t("g_612ca2") || t("g_612ca2") || "\uB2E4\uC6B4\uB85C\uB4DC"}</a>)}
+                }}>{t("g_83c5a3") || "\uD83D\uDCE6 \uAC00\uC785 \uCCA8\uBD80\uD30C\uC77C"}{i + 1}{t("g_612ca2") || "\uB2E4\uC6B4\uB85C\uB4DC"}</a>)}
                                                 </div> : studio.scheduleUrl && <div style={{
                 display: 'flex',
                 gap: '8px',
@@ -921,7 +921,7 @@ const SuperAdminPage = () => {
                   padding: '4px 10px',
                   borderRadius: '4px',
                   textDecoration: 'none'
-                }}>{t("g_b62339") || t("g_b62339") || t("g_b62339") || t("g_b62339") || t("g_b62339") || "\uD83D\uDCE6 \uAC00\uC785 \uCCA8\uBD80\uD30C\uC77C \uB2E4\uC6B4\uB85C\uB4DC"}</a>
+                }}>{t("g_b62339") || "\uD83D\uDCE6 \uAC00\uC785 \uCCA8\uBD80\uD30C\uC77C \uB2E4\uC6B4\uB85C\uB4DC"}</a>
                                                 </div>}
                                         </div>;
           })}
@@ -941,7 +941,7 @@ const SuperAdminPage = () => {
           margin: 0,
           fontSize: '1.2rem',
           color: '#ccc'
-        }}>{t("g_c5529e") || t("g_c5529e") || t("g_c5529e") || t("g_c5529e") || t("g_c5529e") || "\uAD00\uB9AC\uC790 \uACC4\uC815"}</h2>
+        }}>{t("g_c5529e") || "\uAD00\uB9AC\uC790 \uACC4\uC815"}</h2>
                         <div style={{
           display: 'flex',
           gap: '8px'
@@ -954,7 +954,7 @@ const SuperAdminPage = () => {
             color: '#aaa',
             cursor: 'pointer',
             fontSize: '0.85rem'
-          }}>{t("g_423c41") || t("g_423c41") || t("g_423c41") || t("g_423c41") || t("g_423c41") || "\uC0C8\uB85C\uACE0\uCE68"}</button>
+          }}>{t("g_423c41") || "\uC0C8\uB85C\uACE0\uCE68"}</button>
                             <button onClick={() => {
             setShowAddAdmin(true);
             setCreatedResetLink(null);
@@ -971,7 +971,7 @@ const SuperAdminPage = () => {
             alignItems: 'center',
             gap: '6px'
           }}>
-                                <UserCirclePlus size={18} />{t("g_2538d9") || t("g_2538d9") || t("g_2538d9") || t("g_2538d9") || t("g_2538d9") || "\uC0C8 \uAD00\uB9AC\uC790"}</button>
+                                <UserCirclePlus size={18} />{t("g_2538d9") || "\uC0C8 \uAD00\uB9AC\uC790"}</button>
                         </div>
                     </div>
 
@@ -995,7 +995,7 @@ const SuperAdminPage = () => {
           alignItems: 'center',
           gap: '6px'
         }}>
-                            <ShieldCheck size={18} />{t("g_b79209") || t("g_b79209") || t("g_b79209") || t("g_b79209") || t("g_b79209") || "\uC0C8 \uAD00\uB9AC\uC790 \uCD94\uAC00 \uC21C\uC11C (\uC288\uD37C\uC5B4\uB4DC\uBBFC \uC228\uAE40 \uBC29\uC2DD)"}</div>
+                            <ShieldCheck size={18} />{t("g_b79209") || "\uC0C8 \uAD00\uB9AC\uC790 \uCD94\uAC00 \uC21C\uC11C (\uC288\uD37C\uC5B4\uB4DC\uBBFC \uC228\uAE40 \uBC29\uC2DD)"}</div>
                         <ol style={{
           margin: 0,
           paddingLeft: '20px',
@@ -1003,12 +1003,12 @@ const SuperAdminPage = () => {
           flexDirection: 'column',
           gap: '4px'
         }}>
-                            <li>{t("g_22877c") || t("g_22877c") || t("g_22877c") || t("g_22877c") || t("g_22877c") || "\uC6B0\uCE21 \uC0C1\uB2E8\uC758"}<strong>{t("g_5e19ff") || t("g_5e19ff") || t("g_5e19ff") || t("g_5e19ff") || t("g_5e19ff") || "[+ \uC0C8 \uAD00\uB9AC\uC790]"}</strong>{t("g_0fcb13") || t("g_0fcb13") || t("g_0fcb13") || t("g_0fcb13") || t("g_0fcb13") || "\uBC84\uD2BC \uD074\uB9AD"}</li>
-                            <li>{t("g_d043d7") || t("g_d043d7") || t("g_d043d7") || t("g_d043d7") || t("g_d043d7") || "\uC774\uBA54\uC77C\uACFC \uB2F4\uB2F9 \uC5C5\uC7A5\uB9CC \uC120\uD0DD\uD558\uACE0 \"\uC0DD\uC131\uD558\uAE30\" \uD074\uB9AD (\uBE44\uBC00\uBC88\uD638 \uC785\uB825\uB780 \uC5C6\uC74C)"}</li>
-                            <li>{t("g_05990c") || t("g_05990c") || t("g_05990c") || t("g_05990c") || t("g_05990c") || "\uC131\uACF5\uD558\uBA74 \uD654\uBA74\uC5D0"}<strong>{t("g_11ad7f") || t("g_11ad7f") || t("g_11ad7f") || t("g_11ad7f") || t("g_11ad7f") || "\"\uBE44\uBC00\uBC88\uD638 \uC124\uC815 \uB9C1\uD06C\""}</strong>{t("g_4169bb") || t("g_4169bb") || t("g_4169bb") || t("g_4169bb") || t("g_4169bb") || "\uC0DD\uC131"}</li>
-                            <li>{t("g_71e171") || t("g_71e171") || t("g_71e171") || t("g_71e171") || t("g_71e171") || "\uC774 \uB9C1\uD06C \uBCF5\uC0AC \uBC84\uD2BC\uC744 \uB20C\uB7EC\uC11C \uD574\uB2F9 \uC6D0\uC7A5\uB2D8\uAED8 \uCE74\uD1A1/\uBB38\uC790\uB85C \uC804\uB2EC"}</li>
-                            <li>{t("g_82c8bc") || t("g_82c8bc") || t("g_82c8bc") || t("g_82c8bc") || t("g_82c8bc") || "\uC6D0\uC7A5\uB2D8\uC774 \uB9C1\uD06C\uB97C \uB204\uB974\uBA74 \uBCF8\uC778\uC774 \uC9C1\uC811 \uC0AC\uC6A9\uD560 \uBE44\uBC00\uBC88\uD638\uB97C \uC785\uB825\uD558\uACE0 \uC800\uC7A5"}</li>
-                            <li>{t("g_14c0a5") || t("g_14c0a5") || t("g_14c0a5") || t("g_14c0a5") || t("g_14c0a5") || "\uC6D0\uC7A5\uB2D8\uC740 \uC124\uC815\uD55C \uBE44\uBC00\uBC88\uD638\uB85C \uBCF8\uC778 \uC5C5\uC7A5\uC5D0 \uB85C\uADF8\uC778 (\uC790\uC2E0\uB9CC\uC758 \uB2E8\uB3C5 \uC571\uC774\uB77C \uC778\uC2DD)"}</li>
+                            <li>{t("g_22877c") || "\uC6B0\uCE21 \uC0C1\uB2E8\uC758"}<strong>{t("g_5e19ff") || "[+ \uC0C8 \uAD00\uB9AC\uC790]"}</strong>{t("g_0fcb13") || "\uBC84\uD2BC \uD074\uB9AD"}</li>
+                            <li>{t("g_d043d7") || "\uC774\uBA54\uC77C\uACFC \uB2F4\uB2F9 \uC5C5\uC7A5\uB9CC \uC120\uD0DD\uD558\uACE0 \"\uC0DD\uC131\uD558\uAE30\" \uD074\uB9AD (\uBE44\uBC00\uBC88\uD638 \uC785\uB825\uB780 \uC5C6\uC74C)"}</li>
+                            <li>{t("g_05990c") || "\uC131\uACF5\uD558\uBA74 \uD654\uBA74\uC5D0"}<strong>{t("g_11ad7f") || "\"\uBE44\uBC00\uBC88\uD638 \uC124\uC815 \uB9C1\uD06C\""}</strong>{t("g_4169bb") || "\uC0DD\uC131"}</li>
+                            <li>{t("g_71e171") || "\uC774 \uB9C1\uD06C \uBCF5\uC0AC \uBC84\uD2BC\uC744 \uB20C\uB7EC\uC11C \uD574\uB2F9 \uC6D0\uC7A5\uB2D8\uAED8 \uCE74\uD1A1/\uBB38\uC790\uB85C \uC804\uB2EC"}</li>
+                            <li>{t("g_82c8bc") || "\uC6D0\uC7A5\uB2D8\uC774 \uB9C1\uD06C\uB97C \uB204\uB974\uBA74 \uBCF8\uC778\uC774 \uC9C1\uC811 \uC0AC\uC6A9\uD560 \uBE44\uBC00\uBC88\uD638\uB97C \uC785\uB825\uD558\uACE0 \uC800\uC7A5"}</li>
+                            <li>{t("g_14c0a5") || "\uC6D0\uC7A5\uB2D8\uC740 \uC124\uC815\uD55C \uBE44\uBC00\uBC88\uD638\uB85C \uBCF8\uC778 \uC5C5\uC7A5\uC5D0 \uB85C\uADF8\uC778 (\uC790\uC2E0\uB9CC\uC758 \uB2E8\uB3C5 \uC571\uC774\uB77C \uC778\uC2DD)"}</li>
                         </ol>
                     </div>
 
@@ -1016,7 +1016,7 @@ const SuperAdminPage = () => {
         textAlign: 'center',
         padding: '40px',
         color: '#666'
-      }}>{t("g_8d23a1") || t("g_8d23a1") || t("g_8d23a1") || t("g_8d23a1") || t("g_8d23a1") || "\uC870\uD68C \uC911..."}</div> : <div style={{
+      }}>{t("g_8d23a1") || "\uC870\uD68C \uC911..."}</div> : <div style={{
         display: 'flex',
         flexDirection: 'column',
         gap: '12px'
@@ -1058,7 +1058,7 @@ const SuperAdminPage = () => {
                   color: a.role === 'superadmin' ? '#D4AF37' : a.role === 'admin' ? '#3B82F6' : '#EF4444',
                   fontWeight: '600'
                 }}>
-                                                    {a.role === 'superadmin' ? t("g_94de12") || t("g_94de12") || t("g_94de12") || t("g_94de12") || t("g_94de12") || "\uD83D\uDC51 \uC288\uD37C\uC5B4\uB4DC\uBBFC" : a.role === 'admin' ? t("g_9989be") || t("g_9989be") || t("g_9989be") || t("g_9989be") || t("g_9989be") || "\uD83D\uDD12 \uAD00\uB9AC\uC790" : t("g_493d27") || t("g_493d27") || t("g_493d27") || t("g_493d27") || t("g_493d27") || "\u26A0\uFE0F \uBBF8\uC124\uC815"}
+                                                    {a.role === 'superadmin' ? t("g_94de12") || "\uD83D\uDC51 \uC288\uD37C\uC5B4\uB4DC\uBBFC" : a.role === 'admin' ? t("g_9989be") || "\uD83D\uDD12 \uAD00\uB9AC\uC790" : t("g_493d27") || "\u26A0\uFE0F \uBBF8\uC124\uC815"}
                                                 </span>
                                                 {a.studioId && <span style={{
                   fontSize: '0.75rem',
@@ -1088,9 +1088,9 @@ const SuperAdminPage = () => {
                 alignItems: 'center',
                 gap: '4px'
               }}>
-                                                <Lock size={14} />{t("g_9ecb3c") || t("g_9ecb3c") || t("g_9ecb3c") || t("g_9ecb3c") || t("g_9ecb3c") || "\uBE44\uBC88 \uBCC0\uACBD"}</button>
+                                                <Lock size={14} />{t("g_9ecb3c") || "\uBE44\uBC88 \uBCC0\uACBD"}</button>
                                             {a.role !== 'superadmin' && <button onClick={() => {
-                const sid = prompt(t("g_f3784b") || t("g_f3784b") || t("g_f3784b") || t("g_f3784b") || t("g_f3784b") || "\uB2F4\uB2F9 \uC5C5\uC7A5 ID:", a.studioId || '');
+                const sid = prompt(t("g_f3784b") || "\uB2F4\uB2F9 \uC5C5\uC7A5 ID:", a.studioId || '');
                 if (sid !== null) handleSetClaims(a.email, 'admin', sid);
               }} style={{
                 padding: '6px 12px',
@@ -1100,7 +1100,7 @@ const SuperAdminPage = () => {
                 color: '#aaa',
                 cursor: 'pointer',
                 fontSize: '0.8rem'
-              }}>{t("g_c8d56b") || t("g_c8d56b") || t("g_c8d56b") || t("g_c8d56b") || t("g_c8d56b") || "\uC5C5\uC7A5 \uBCC0\uACBD"}</button>}
+              }}>{t("g_c8d56b") || "\uC5C5\uC7A5 \uBCC0\uACBD"}</button>}
                                             {a.role !== 'superadmin' && <button onClick={() => handleDeleteAdmin(a)} style={{
                 padding: '6px 12px',
                 background: 'rgba(239, 68, 68, 0.1)',
@@ -1113,7 +1113,7 @@ const SuperAdminPage = () => {
                 alignItems: 'center',
                 gap: '4px'
               }}>
-                                                    <Trash size={14} />{t("g_30e15a") || t("g_30e15a") || t("g_30e15a") || t("g_30e15a") || t("g_30e15a") || "\uC0AD\uC81C"}</button>}
+                                                    <Trash size={14} />{t("g_30e15a") || "\uC0AD\uC81C"}</button>}
                                         </div>
                                     </div>
 
@@ -1130,7 +1130,7 @@ const SuperAdminPage = () => {
               position: 'relative',
               flex: 1
             }}>
-                                                <input type={showPassword[a.uid] ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder={t("g_bcc599") || t("g_bcc599") || t("g_bcc599") || t("g_bcc599") || t("g_bcc599") || "\uC0C8 \uBE44\uBC00\uBC88\uD638 (6\uC790 \uC774\uC0C1)"} style={{
+                                                <input type={showPassword[a.uid] ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder={t("g_bcc599") || "\uC0C8 \uBE44\uBC00\uBC88\uD638 (6\uC790 \uC774\uC0C1)"} style={{
                 ...inputStyle,
                 paddingRight: '36px'
               }} />
@@ -1161,7 +1161,7 @@ const SuperAdminPage = () => {
               fontSize: '0.85rem',
               whiteSpace: 'nowrap'
             }}>
-                                                {resetting ? '...' : t("g_9be281") || t("g_9be281") || t("g_9be281") || t("g_9be281") || t("g_9be281") || "\uBCC0\uACBD"}
+                                                {resetting ? '...' : t("g_9be281") || "\uBCC0\uACBD"}
                                             </button>
                                             <button onClick={() => setResetPasswordUid(null)} style={{
               padding: '10px',
@@ -1177,7 +1177,7 @@ const SuperAdminPage = () => {
             marginTop: '8px',
             fontSize: '0.7rem',
             color: '#555'
-          }}>{t("g_e2f381") || t("g_e2f381") || t("g_e2f381") || t("g_e2f381") || t("g_e2f381") || "\uB9C8\uC9C0\uB9C9 \uB85C\uADF8\uC778:"}{a.lastSignIn ? new Date(a.lastSignIn).toLocaleString('ko-KR') : t("g_a245e6") || t("g_a245e6") || t("g_a245e6") || t("g_a245e6") || t("g_a245e6") || "\uC5C6\uC74C"}
+          }}>{t("g_e2f381") || "\uB9C8\uC9C0\uB9C9 \uB85C\uADF8\uC778:"}{a.lastSignIn ? new Date(a.lastSignIn).toLocaleString('ko-KR') : t("g_a245e6") || "\uC5C6\uC74C"}
                                     </div>
                                 </div>)}
                         </div>}
@@ -1201,7 +1201,7 @@ const SuperAdminPage = () => {
             alignItems: 'center',
             gap: '8px'
           }}>
-                                <UserCirclePlus size={24} color="#10B981" />{t("g_c1d06a") || t("g_c1d06a") || t("g_c1d06a") || t("g_c1d06a") || t("g_c1d06a") || "\uC0C8 \uAD00\uB9AC\uC790 \uCD94\uAC00"}</h2>
+                                <UserCirclePlus size={24} color="#10B981" />{t("g_c1d06a") || "\uC0C8 \uAD00\uB9AC\uC790 \uCD94\uAC00"}</h2>
                             <button onClick={() => {
             setShowAddAdmin(false);
             setCreatedResetLink(null);
@@ -1226,11 +1226,11 @@ const SuperAdminPage = () => {
               fontWeight: '700',
               color: '#10B981',
               marginBottom: '8px'
-            }}>{t("g_389baa") || t("g_389baa") || t("g_389baa") || t("g_389baa") || t("g_389baa") || "\u2705 \uAD00\uB9AC\uC790 \uACC4\uC815 \uC0DD\uC131 \uC644\uB8CC!"}</div>
+            }}>{t("g_389baa") || "\u2705 \uAD00\uB9AC\uC790 \uACC4\uC815 \uC0DD\uC131 \uC644\uB8CC!"}</div>
                                     <div style={{
               fontSize: '0.85rem',
               color: '#aaa'
-            }}>{t("g_27a83f") || t("g_27a83f") || t("g_27a83f") || t("g_27a83f") || t("g_27a83f") || "\uC544\uB798 \uB9C1\uD06C\uB97C \uAD00\uB9AC\uC790\uC5D0\uAC8C \uC804\uB2EC\uD558\uC138\uC694."}<br />{t("g_1696b0") || t("g_1696b0") || t("g_1696b0") || t("g_1696b0") || t("g_1696b0") || "\uAD00\uB9AC\uC790\uAC00 \uB9C1\uD06C\uB97C \uD074\uB9AD\uD558\uBA74 \uC9C1\uC811 \uBE44\uBC00\uBC88\uD638\uB97C \uC124\uC815\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4."}</div>
+            }}>{t("g_27a83f") || "\uC544\uB798 \uB9C1\uD06C\uB97C \uAD00\uB9AC\uC790\uC5D0\uAC8C \uC804\uB2EC\uD558\uC138\uC694."}<br />{t("g_1696b0") || "\uAD00\uB9AC\uC790\uAC00 \uB9C1\uD06C\uB97C \uD074\uB9AD\uD558\uBA74 \uC9C1\uC811 \uBE44\uBC00\uBC88\uD638\uB97C \uC124\uC815\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4."}</div>
                                 </div>
                                 <div style={{
             position: 'relative'
@@ -1257,7 +1257,7 @@ const SuperAdminPage = () => {
               gap: '4px',
               fontSize: '0.8rem'
             }}>
-                                        {copied ? <><Check size={14} />{t("g_b42cbc") || t("g_b42cbc") || t("g_b42cbc") || t("g_b42cbc") || t("g_b42cbc") || "\uBCF5\uC0AC\uB428"}</> : <><Copy size={14} />{t("g_6acf7a") || t("g_6acf7a") || t("g_6acf7a") || t("g_6acf7a") || t("g_6acf7a") || "\uBCF5\uC0AC"}</>}
+                                        {copied ? <><Check size={14} />{t("g_b42cbc") || "\uBCF5\uC0AC\uB428"}</> : <><Copy size={14} />{t("g_6acf7a") || "\uBCF5\uC0AC"}</>}
                                     </button>
                                 </div>
                                 <button onClick={() => {
@@ -1280,7 +1280,7 @@ const SuperAdminPage = () => {
             fontWeight: '600',
             cursor: 'pointer',
             fontSize: '0.95rem'
-          }}>{t("g_4f8e30") || t("g_4f8e30") || t("g_4f8e30") || t("g_4f8e30") || t("g_4f8e30") || "\uC644\uB8CC"}</button>
+          }}>{t("g_4f8e30") || "\uC644\uB8CC"}</button>
                             </div> : <>
                                 <div style={{
             display: 'flex',
@@ -1288,21 +1288,21 @@ const SuperAdminPage = () => {
             gap: '16px'
           }}>
                                     <div>
-                                        <label style={labelStyle}>{t("g_71ce1e") || t("g_71ce1e") || t("g_71ce1e") || t("g_71ce1e") || t("g_71ce1e") || "\uC774\uBA54\uC77C *"}</label>
+                                        <label style={labelStyle}>{t("g_71ce1e") || "\uC774\uBA54\uC77C *"}</label>
                                         <input value={addForm.email} onChange={e => setAddForm({
                 ...addForm,
                 email: e.target.value
               })} placeholder="admin@studio.com" style={inputStyle} />
                                     </div>
                                     <div>
-                                        <label style={labelStyle}>{t("g_2904f9") || t("g_2904f9") || t("g_2904f9") || t("g_2904f9") || t("g_2904f9") || "\uD45C\uC2DC \uC774\uB984"}</label>
+                                        <label style={labelStyle}>{t("g_2904f9") || "\uD45C\uC2DC \uC774\uB984"}</label>
                                         <input value={addForm.displayName} onChange={e => setAddForm({
                 ...addForm,
                 displayName: e.target.value
-              })} placeholder={t("g_4dec08") || t("g_4dec08") || t("g_4dec08") || t("g_4dec08") || t("g_4dec08") || "\uC608: \uAE40\uC6D0\uC7A5"} style={inputStyle} />
+              })} placeholder={t("g_4dec08") || "\uC608: \uAE40\uC6D0\uC7A5"} style={inputStyle} />
                                     </div>
                                     <div>
-                                        <label style={labelStyle}>{t("g_c90de7") || t("g_c90de7") || t("g_c90de7") || t("g_c90de7") || t("g_c90de7") || "\uC5ED\uD560 *"}</label>
+                                        <label style={labelStyle}>{t("g_c90de7") || "\uC5ED\uD560 *"}</label>
                                         <select value={addForm.role} onChange={e => setAddForm({
                 ...addForm,
                 role: e.target.value
@@ -1310,12 +1310,12 @@ const SuperAdminPage = () => {
                 ...inputStyle,
                 cursor: 'pointer'
               }}>
-                                            <option value="admin">{t("g_3c9eb9") || t("g_3c9eb9") || t("g_3c9eb9") || t("g_3c9eb9") || t("g_3c9eb9") || "\uD83D\uDD12 \uC77C\uBC18 \uAD00\uB9AC\uC790 (\uD2B9\uC815 \uC5C5\uC7A5\uB9CC)"}</option>
-                                            <option value="superadmin">{t("g_8241e3") || t("g_8241e3") || t("g_8241e3") || t("g_8241e3") || t("g_8241e3") || "\uD83D\uDC51 \uC288\uD37C\uC5B4\uB4DC\uBBFC (\uBAA8\uB4E0 \uC5C5\uC7A5)"}</option>
+                                            <option value="admin">{t("g_3c9eb9") || "\uD83D\uDD12 \uC77C\uBC18 \uAD00\uB9AC\uC790 (\uD2B9\uC815 \uC5C5\uC7A5\uB9CC)"}</option>
+                                            <option value="superadmin">{t("g_8241e3") || "\uD83D\uDC51 \uC288\uD37C\uC5B4\uB4DC\uBBFC (\uBAA8\uB4E0 \uC5C5\uC7A5)"}</option>
                                         </select>
                                     </div>
                                     {addForm.role === 'admin' && <div>
-                                            <label style={labelStyle}>{t("g_d1a82e") || t("g_d1a82e") || t("g_d1a82e") || t("g_d1a82e") || t("g_d1a82e") || "\uB2F4\uB2F9 \uC5C5\uC7A5 *"}</label>
+                                            <label style={labelStyle}>{t("g_d1a82e") || "\uB2F4\uB2F9 \uC5C5\uC7A5 *"}</label>
                                             <select value={addForm.studioId} onChange={e => setAddForm({
                 ...addForm,
                 studioId: e.target.value
@@ -1323,7 +1323,7 @@ const SuperAdminPage = () => {
                 ...inputStyle,
                 cursor: 'pointer'
               }}>
-                                                <option value="">{t("g_c074e1") || t("g_c074e1") || t("g_c074e1") || t("g_c074e1") || t("g_c074e1") || "\uC5C5\uC7A5 \uC120\uD0DD..."}</option>
+                                                <option value="">{t("g_c074e1") || "\uC5C5\uC7A5 \uC120\uD0DD..."}</option>
                                                 {studios.map(s => <option key={s.id} value={s.id}>{s.name} ({s.id})</option>)}
                                             </select>
                                         </div>}
@@ -1333,7 +1333,7 @@ const SuperAdminPage = () => {
               borderRadius: '8px',
               fontSize: '0.8rem',
               color: '#888'
-            }}>{t("g_f37390") || t("g_f37390") || t("g_f37390") || t("g_f37390") || t("g_f37390") || "\uD83D\uDD10 \uBE44\uBC00\uBC88\uD638\uB294 \uAD00\uB9AC\uC790\uAC00 \uC9C1\uC811 \uC124\uC815\uD569\uB2C8\uB2E4. \uC0DD\uC131 \uD6C4 \uBE44\uBC00\uBC88\uD638 \uC124\uC815 \uB9C1\uD06C\uAC00 \uC81C\uACF5\uB429\uB2C8\uB2E4."}</div>
+            }}>{t("g_f37390") || "\uD83D\uDD10 \uBE44\uBC00\uBC88\uD638\uB294 \uAD00\uB9AC\uC790\uAC00 \uC9C1\uC811 \uC124\uC815\uD569\uB2C8\uB2E4. \uC0DD\uC131 \uD6C4 \uBE44\uBC00\uBC88\uD638 \uC124\uC815 \uB9C1\uD06C\uAC00 \uC81C\uACF5\uB429\uB2C8\uB2E4."}</div>
                                 </div>
                                 <div style={{
             display: 'flex',
@@ -1348,7 +1348,7 @@ const SuperAdminPage = () => {
               borderRadius: '8px',
               color: '#aaa',
               cursor: 'pointer'
-            }}>{t("g_d9de21") || t("g_d9de21") || t("g_d9de21") || t("g_d9de21") || t("g_d9de21") || "\uCDE8\uC18C"}</button>
+            }}>{t("g_d9de21") || "\uCDE8\uC18C"}</button>
                                     <button onClick={handleAddAdmin} disabled={adding} style={{
               padding: '10px 24px',
               background: adding ? '#555' : '#10B981',
@@ -1358,7 +1358,7 @@ const SuperAdminPage = () => {
               fontWeight: '600',
               cursor: adding ? 'not-allowed' : 'pointer'
             }}>
-                                        {adding ? t("g_1c54a5") || t("g_1c54a5") || t("g_1c54a5") || t("g_1c54a5") || t("g_1c54a5") || "\uC0DD\uC131\uC911..." : t("g_612ee1") || t("g_612ee1") || t("g_612ee1") || t("g_612ee1") || t("g_612ee1") || "\u2705 \uC0DD\uC131\uD558\uAE30"}
+                                        {adding ? t("g_1c54a5") || "\uC0DD\uC131\uC911..." : t("g_612ee1") || "\u2705 \uC0DD\uC131\uD558\uAE30"}
                                     </button>
                                 </div>
                             </>}
@@ -1382,7 +1382,7 @@ const SuperAdminPage = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '8px'
-          }}><Buildings size={24} color="#3B82F6" />{t("g_3cebae") || t("g_3cebae") || t("g_3cebae") || t("g_3cebae") || t("g_3cebae") || "\uC0C8 \uC2A4\uD29C\uB514\uC624 \uB4F1\uB85D"}</h2>
+          }}><Buildings size={24} color="#3B82F6" />{t("g_3cebae") || "\uC0C8 \uC2A4\uD29C\uB514\uC624 \uB4F1\uB85D"}</h2>
                             <button onClick={() => setShowRegister(false)} style={{
             background: 'none',
             border: 'none',
@@ -1396,27 +1396,27 @@ const SuperAdminPage = () => {
           gap: '16px'
         }}>
                             <div>
-                                <label style={labelStyle}>{t("g_344a41") || t("g_344a41") || t("g_344a41") || t("g_344a41") || t("g_344a41") || "\uC2A4\uD29C\uB514\uC624 ID *"}</label>
+                                <label style={labelStyle}>{t("g_344a41") || "\uC2A4\uD29C\uB514\uC624 ID *"}</label>
                                 <input value={registerForm.studioId} onChange={e => setRegisterForm({
               ...registerForm,
               studioId: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')
-            })} placeholder={t("g_7a2317") || t("g_7a2317") || t("g_7a2317") || t("g_7a2317") || t("g_7a2317") || "\uC608: namaste-yoga"} style={inputStyle} />
+            })} placeholder={t("g_7a2317") || "\uC608: namaste-yoga"} style={inputStyle} />
                                 <div style={{
               fontSize: '0.7rem',
               color: '#666',
               marginTop: '4px'
-            }}>{t("g_8d1071") || t("g_8d1071") || t("g_8d1071") || t("g_8d1071") || t("g_8d1071") || "\uC601\uBB38 \uC18C\uBB38\uC790, \uC22B\uC790, \uD558\uC774\uD508\uB9CC \uAC00\uB2A5"}</div>
+            }}>{t("g_8d1071") || "\uC601\uBB38 \uC18C\uBB38\uC790, \uC22B\uC790, \uD558\uC774\uD508\uB9CC \uAC00\uB2A5"}</div>
                             </div>
                             <div>
-                                <label style={labelStyle}>{t("g_2b5eb5") || t("g_2b5eb5") || t("g_2b5eb5") || t("g_2b5eb5") || t("g_2b5eb5") || "\uC2A4\uD29C\uB514\uC624 \uC774\uB984 *"}</label>
+                                <label style={labelStyle}>{t("g_2b5eb5") || "\uC2A4\uD29C\uB514\uC624 \uC774\uB984 *"}</label>
                                 <input value={registerForm.name} onChange={e => setRegisterForm({
               ...registerForm,
               name: e.target.value
-            })} placeholder={t("g_bd1eb6") || t("g_bd1eb6") || t("g_bd1eb6") || t("g_bd1eb6") || t("g_bd1eb6") || "\uC608: \uB098\uB9C8\uC2A4\uD14C \uC694\uAC00"} style={inputStyle} />
+            })} placeholder={t("g_bd1eb6") || "\uC608: \uB098\uB9C8\uC2A4\uD14C \uC694\uAC00"} style={inputStyle} />
                             </div>
 
                             <div>
-                                <label style={labelStyle}>{t("g_dea9f2") || t("g_dea9f2") || t("g_dea9f2") || t("g_dea9f2") || t("g_dea9f2") || "\uAD00\uB9AC\uC790 \uC774\uBA54\uC77C *"}</label>
+                                <label style={labelStyle}>{t("g_dea9f2") || "\uAD00\uB9AC\uC790 \uC774\uBA54\uC77C *"}</label>
                                 <input type="email" value={registerForm.ownerEmail} onChange={e => setRegisterForm({
               ...registerForm,
               ownerEmail: e.target.value
@@ -1436,7 +1436,7 @@ const SuperAdminPage = () => {
             borderRadius: '8px',
             color: '#aaa',
             cursor: 'pointer'
-          }}>{t("g_d9de21") || t("g_d9de21") || t("g_d9de21") || t("g_d9de21") || t("g_d9de21") || "\uCDE8\uC18C"}</button>
+          }}>{t("g_d9de21") || "\uCDE8\uC18C"}</button>
                             <button onClick={handleRegister} disabled={registering} style={{
             padding: '10px 24px',
             background: registering ? '#555' : '#3B82F6',
@@ -1446,7 +1446,7 @@ const SuperAdminPage = () => {
             fontWeight: '600',
             cursor: registering ? 'not-allowed' : 'pointer'
           }}>
-                                {registering ? t("g_e21a14") || t("g_e21a14") || t("g_e21a14") || t("g_e21a14") || t("g_e21a14") || "\uB4F1\uB85D\uC911..." : t("g_1ebbc6") || t("g_1ebbc6") || t("g_1ebbc6") || t("g_1ebbc6") || t("g_1ebbc6") || "\uD83C\uDFE2 \uB4F1\uB85D\uD558\uAE30"}
+                                {registering ? t("g_e21a14") || "\uB4F1\uB85D\uC911..." : t("g_1ebbc6") || "\uD83C\uDFE2 \uB4F1\uB85D\uD558\uAE30"}
                             </button>
                         </div>
                     </div>
@@ -1470,7 +1470,7 @@ const SuperAdminPage = () => {
                             <span style={{
             fontSize: '0.85rem',
             color: '#a5b4fc'
-          }}>{t("g_dcce5d") || t("g_dcce5d") || t("g_dcce5d") || t("g_dcce5d") || t("g_dcce5d") || "\uC120\uC810 \uC644\uB8CC\uB41C Firebase Hosting \uB3C4\uBA54\uC778 \uBAA9\uB85D\uC785\uB2C8\uB2E4. \uB2E4\uB978 \uC0AC\uC6A9\uC790\uAC00 \uC808\uB300 \uAC00\uC838\uAC08 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."}</span>
+          }}>{t("g_dcce5d") || "\uC120\uC810 \uC644\uB8CC\uB41C Firebase Hosting \uB3C4\uBA54\uC778 \uBAA9\uB85D\uC785\uB2C8\uB2E4. \uB2E4\uB978 \uC0AC\uC6A9\uC790\uAC00 \uC808\uB300 \uAC00\uC838\uAC08 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."}</span>
                         </div>
                     </div>
 
@@ -1484,7 +1484,7 @@ const SuperAdminPage = () => {
         alignItems: 'center',
         gap: '8px'
       }}>
-                        <LinkSimple size={18} weight="bold" />{t("g_ace280") || t("g_ace280") || t("g_ace280") || t("g_ace280") || t("g_ace280") || "\uC6B4\uC601 \uC911 (Active)"}</h3>
+                        <LinkSimple size={18} weight="bold" />{t("g_ace280") || "\uC6B4\uC601 \uC911 (Active)"}</h3>
                     <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
@@ -1492,12 +1492,12 @@ const SuperAdminPage = () => {
         marginBottom: '28px'
       }}>
                         {[{
-          name: t("g_1378bb") || t("g_1378bb") || t("g_1378bb") || t("g_1378bb") || t("g_1378bb") || "\uBCF5\uC0D8\uC694\uAC00",
+          name: t("g_1378bb") || "\uBCF5\uC0D8\uC694\uAC00",
           siteId: 'boksaem-yoga',
           url: 'boksaem-yoga.web.app',
           active: true
         }, {
-          name: t("g_a20f83") || t("g_a20f83") || t("g_a20f83") || t("g_a20f83") || t("g_a20f83") || "\uC30D\uBB38\uC694\uAC00",
+          name: t("g_a20f83") || "\uC30D\uBB38\uC694\uAC00",
           siteId: 'ssangmunyoga',
           url: 'ssangmunyoga.web.app',
           active: true
@@ -1534,7 +1534,7 @@ const SuperAdminPage = () => {
             background: 'rgba(16, 185, 129, 0.15)',
             color: '#10B981',
             fontWeight: '600'
-          }}>{t("g_7b4d79") || t("g_7b4d79") || t("g_7b4d79") || t("g_7b4d79") || t("g_7b4d79") || "\uC6B4\uC601\uC911"}</span>
+          }}>{t("g_7b4d79") || "\uC6B4\uC601\uC911"}</span>
                             </div>)}
                     </div>
 
@@ -1548,7 +1548,7 @@ const SuperAdminPage = () => {
         alignItems: 'center',
         gap: '8px'
       }}>
-                        <Lock size={18} weight="bold" />{t("g_b25ed4") || t("g_b25ed4") || t("g_b25ed4") || t("g_b25ed4") || t("g_b25ed4") || "\uC120\uC810 \uBCF4\uAD00 \uC911 (Reserved)"}</h3>
+                        <Lock size={18} weight="bold" />{t("g_b25ed4") || "\uC120\uC810 \uBCF4\uAD00 \uC911 (Reserved)"}</h3>
                     <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
@@ -1556,95 +1556,95 @@ const SuperAdminPage = () => {
         marginBottom: '28px'
       }}>
                         {[{
-          name: t("g_cadba1") || t("g_cadba1") || t("g_cadba1") || t("g_cadba1") || t("g_cadba1") || "\uBCF5\uC0D8\uC694\uAC00 (\uBD99\uC784)",
+          name: t("g_cadba1") || "\uBCF5\uC0D8\uC694\uAC00 (\uBD99\uC784)",
           siteId: 'boksaemyoga',
           url: 'boksaemyoga.web.app'
         }, {
-          name: t("g_a20f83") || t("g_a20f83") || t("g_a20f83") || t("g_a20f83") || t("g_a20f83") || "\uC30D\uBB38\uC694\uAC00",
+          name: t("g_a20f83") || "\uC30D\uBB38\uC694\uAC00",
           siteId: 'ssangmunyoga',
           url: 'ssangmunyoga.web.app'
         }, {
-          name: t("g_f6947c") || t("g_f6947c") || t("g_f6947c") || t("g_f6947c") || t("g_f6947c") || "\uB9C8\uD3EC\uC694\uAC00",
+          name: t("g_f6947c") || "\uB9C8\uD3EC\uC694\uAC00",
           siteId: 'mapo-yoga',
           url: 'mapo-yoga.web.app'
         }, {
-          name: t("g_1954aa") || t("g_1954aa") || t("g_1954aa") || t("g_1954aa") || t("g_1954aa") || "\uB9C8\uD3EC\uC694\uAC00 (\uBD99\uC784)",
+          name: t("g_1954aa") || "\uB9C8\uD3EC\uC694\uAC00 (\uBD99\uC784)",
           siteId: 'mapoyoga',
           url: 'mapoyoga.web.app'
         }, {
-          name: t("g_131dc3") || t("g_131dc3") || t("g_131dc3") || t("g_131dc3") || t("g_131dc3") || "\uACF5\uB355\uC694\uAC00",
+          name: t("g_131dc3") || "\uACF5\uB355\uC694\uAC00",
           siteId: 'gongdeok-yoga',
           url: 'gongdeok-yoga.web.app'
         }, {
-          name: t("g_39bc10") || t("g_39bc10") || t("g_39bc10") || t("g_39bc10") || t("g_39bc10") || "\uACF5\uB355\uC694\uAC00 (\uBD99\uC784)",
+          name: t("g_39bc10") || "\uACF5\uB355\uC694\uAC00 (\uBD99\uC784)",
           siteId: 'gongdeokyoga',
           url: 'gongdeokyoga.web.app'
         }, {
-          name: t("g_8fba09") || t("g_8fba09") || t("g_8fba09") || t("g_8fba09") || t("g_8fba09") || "\uC544\uD604\uC694\uAC00",
+          name: t("g_8fba09") || "\uC544\uD604\uC694\uAC00",
           siteId: 'ahyeon-yoga',
           url: 'ahyeon-yoga.web.app'
         }, {
-          name: t("g_a73991") || t("g_a73991") || t("g_a73991") || t("g_a73991") || t("g_a73991") || "\uC544\uD604\uC694\uAC00 (\uBD99\uC784)",
+          name: t("g_a73991") || "\uC544\uD604\uC694\uAC00 (\uBD99\uC784)",
           siteId: 'ahyeonyoga',
           url: 'ahyeonyoga.web.app'
         }, {
-          name: t("g_346453") || t("g_346453") || t("g_346453") || t("g_346453") || t("g_346453") || "\uC774\uB300\uC694\uAC00",
+          name: t("g_346453") || "\uC774\uB300\uC694\uAC00",
           siteId: 'ewha-yoga',
           url: 'ewha-yoga.web.app'
         }, {
-          name: t("g_dd49f2") || t("g_dd49f2") || t("g_dd49f2") || t("g_dd49f2") || t("g_dd49f2") || "\uC774\uB300\uC694\uAC00 (\uBD99\uC784)",
+          name: t("g_dd49f2") || "\uC774\uB300\uC694\uAC00 (\uBD99\uC784)",
           siteId: 'ewhayoga',
           url: 'ewhayoga.web.app'
         }, {
-          name: t("g_28b0c0") || t("g_28b0c0") || t("g_28b0c0") || t("g_28b0c0") || t("g_28b0c0") || "\uC2E0\uCD0C\uC694\uAC00",
+          name: t("g_28b0c0") || "\uC2E0\uCD0C\uC694\uAC00",
           siteId: 'sinchon-yoga',
           url: 'sinchon-yoga.web.app'
         }, {
-          name: t("g_137714") || t("g_137714") || t("g_137714") || t("g_137714") || t("g_137714") || "\uC2E0\uCD0C\uC694\uAC00 (\uBD99\uC784)",
+          name: t("g_137714") || "\uC2E0\uCD0C\uC694\uAC00 (\uBD99\uC784)",
           siteId: 'sinchonyoga',
           url: 'sinchonyoga.web.app'
         }, {
-          name: t("g_66479b") || t("g_66479b") || t("g_66479b") || t("g_66479b") || t("g_66479b") || "\uD64D\uB300\uC694\uAC00",
+          name: t("g_66479b") || "\uD64D\uB300\uC694\uAC00",
           siteId: 'hongdae-yoga',
           url: 'hongdae-yoga.web.app'
         }, {
-          name: t("g_5c2870") || t("g_5c2870") || t("g_5c2870") || t("g_5c2870") || t("g_5c2870") || "\uD64D\uB300\uC694\uAC00 (\uBD99\uC784)",
+          name: t("g_5c2870") || "\uD64D\uB300\uC694\uAC00 (\uBD99\uC784)",
           siteId: 'hongdaeyoga',
           url: 'hongdaeyoga.web.app'
         }, {
-          name: t("g_3865af") || t("g_3865af") || t("g_3865af") || t("g_3865af") || t("g_3865af") || "\uB9DD\uC6D0\uC694\uAC00",
+          name: t("g_3865af") || "\uB9DD\uC6D0\uC694\uAC00",
           siteId: 'mangwon-yoga',
           url: 'mangwon-yoga.web.app'
         }, {
-          name: t("g_807211") || t("g_807211") || t("g_807211") || t("g_807211") || t("g_807211") || "\uB9DD\uC6D0\uC694\uAC00 (\uBD99\uC784)",
+          name: t("g_807211") || "\uB9DD\uC6D0\uC694\uAC00 (\uBD99\uC784)",
           siteId: 'mangwonyoga',
           url: 'mangwonyoga.web.app'
         }, {
-          name: t("g_5dae47") || t("g_5dae47") || t("g_5dae47") || t("g_5dae47") || t("g_5dae47") || "\uD569\uC815\uC694\uAC00",
+          name: t("g_5dae47") || "\uD569\uC815\uC694\uAC00",
           siteId: 'hapjeong-yoga',
           url: 'hapjeong-yoga.web.app'
         }, {
-          name: t("g_e17925") || t("g_e17925") || t("g_e17925") || t("g_e17925") || t("g_e17925") || "\uD569\uC815\uC694\uAC00 (\uBD99\uC784)",
+          name: t("g_e17925") || "\uD569\uC815\uC694\uAC00 (\uBD99\uC784)",
           siteId: 'hapjeongyoga',
           url: 'hapjeongyoga.web.app'
         }, {
-          name: t("g_11da0f") || t("g_11da0f") || t("g_11da0f") || t("g_11da0f") || t("g_11da0f") || "\uC560\uC624\uAC1C\uC694\uAC00",
+          name: t("g_11da0f") || "\uC560\uC624\uAC1C\uC694\uAC00",
           siteId: 'aeogae-yoga',
           url: 'aeogae-yoga.web.app'
         }, {
-          name: t("g_e9a912") || t("g_e9a912") || t("g_e9a912") || t("g_e9a912") || t("g_e9a912") || "\uC560\uC624\uAC1C\uC694\uAC00 (\uBD99\uC784)",
+          name: t("g_e9a912") || "\uC560\uC624\uAC1C\uC694\uAC00 (\uBD99\uC784)",
           siteId: 'aeogaeyoga',
           url: 'aeogaeyoga.web.app'
         }, {
-          name: t("g_79cc63") || t("g_79cc63") || t("g_79cc63") || t("g_79cc63") || t("g_79cc63") || "\uC5EC\uC758\uB3C4\uC694\uAC00",
+          name: t("g_79cc63") || "\uC5EC\uC758\uB3C4\uC694\uAC00",
           siteId: 'yeouido-yoga',
           url: 'yeouido-yoga.web.app'
         }, {
-          name: t("g_55dfb0") || t("g_55dfb0") || t("g_55dfb0") || t("g_55dfb0") || t("g_55dfb0") || "\uC5EC\uC758\uB3C4\uC694\uAC00 (\uBD99\uC784)",
+          name: t("g_55dfb0") || "\uC5EC\uC758\uB3C4\uC694\uAC00 (\uBD99\uC784)",
           siteId: 'yeoidoyoga',
           url: 'yeoidoyoga.web.app'
         }, {
-          name: t("g_14858e") || t("g_14858e") || t("g_14858e") || t("g_14858e") || t("g_14858e") || "PassFlow \uB79C\uB529",
+          name: t("g_14858e") || "PassFlow \uB79C\uB529",
           siteId: 'passflow-landing',
           url: 'passflow-landing.web.app'
         }].map(d => <div key={d.siteId} style={{
@@ -1675,7 +1675,7 @@ const SuperAdminPage = () => {
             background: 'rgba(245, 158, 11, 0.1)',
             color: '#F59E0B',
             fontWeight: '600'
-          }}>{t("g_ef8c0a") || t("g_ef8c0a") || t("g_ef8c0a") || t("g_ef8c0a") || t("g_ef8c0a") || "\uBCF4\uAD00"}</span>
+          }}>{t("g_ef8c0a") || "\uBCF4\uAD00"}</span>
                             </div>)}
                     </div>
 
@@ -1692,10 +1692,10 @@ const SuperAdminPage = () => {
           fontWeight: '700',
           color: '#9ca3af',
           marginBottom: '4px'
-        }}>{t("g_0b43f8") || t("g_0b43f8") || t("g_0b43f8") || t("g_0b43f8") || t("g_0b43f8") || "\uD83D\uDCCC \uB3C4\uBA54\uC778 \uAD00\uB9AC \uC548\uB0B4"}</div>
-                        <div>{t("g_faea2e") || t("g_faea2e") || t("g_faea2e") || t("g_faea2e") || t("g_faea2e") || "\u2022 \uBAA8\uB4E0 \uB3C4\uBA54\uC778\uC740 Firebase Hosting\uC5D0 \uC120\uC810 \uB4F1\uB85D\uB418\uC5B4, \uC678\uBD80\uC778\uC774 \uB3D9\uC77C \uC774\uB984\uC73C\uB85C \uC0AC\uC774\uD2B8\uB97C \uB9CC\uB4E4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."}</div>
-                        <div>{t("g_6dc2ce") || t("g_6dc2ce") || t("g_6dc2ce") || t("g_6dc2ce") || t("g_6dc2ce") || "\u2022 '\uBCF4\uAD00' \uC0C1\uD0DC\uC758 \uB3C4\uBA54\uC778\uC740 \uC544\uC9C1 \uC571\uC774 \uBC30\uD3EC\uB418\uC9C0 \uC54A\uC740 \uC0C1\uD0DC\uC774\uBA70, \uACE0\uAC1D \uC628\uBCF4\uB529 \uC2DC \uC989\uC2DC \uD65C\uC131\uD654\uB429\uB2C8\uB2E4."}</div>
-                        <div>• <strong>ssangmun-yoga</strong>{t("g_f6b1bf") || t("g_f6b1bf") || t("g_f6b1bf") || t("g_f6b1bf") || t("g_f6b1bf") || "(\uD558\uC774\uD508 \uD3EC\uD568)\uB294 \uD0C0 \uD504\uB85C\uC81D\uD2B8\uC5D0 \uC120\uC810\uB418\uC5B4 \uC788\uC5B4"}<strong>ssangmunyoga</strong>{t("g_1daf44") || t("g_1daf44") || t("g_1daf44") || t("g_1daf44") || t("g_1daf44") || "\uB85C \uC6B4\uC601 \uC911\uC785\uB2C8\uB2E4."}</div>
+        }}>{t("g_0b43f8") || "\uD83D\uDCCC \uB3C4\uBA54\uC778 \uAD00\uB9AC \uC548\uB0B4"}</div>
+                        <div>{t("g_faea2e") || "\u2022 \uBAA8\uB4E0 \uB3C4\uBA54\uC778\uC740 Firebase Hosting\uC5D0 \uC120\uC810 \uB4F1\uB85D\uB418\uC5B4, \uC678\uBD80\uC778\uC774 \uB3D9\uC77C \uC774\uB984\uC73C\uB85C \uC0AC\uC774\uD2B8\uB97C \uB9CC\uB4E4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."}</div>
+                        <div>{t("g_6dc2ce") || "\u2022 '\uBCF4\uAD00' \uC0C1\uD0DC\uC758 \uB3C4\uBA54\uC778\uC740 \uC544\uC9C1 \uC571\uC774 \uBC30\uD3EC\uB418\uC9C0 \uC54A\uC740 \uC0C1\uD0DC\uC774\uBA70, \uACE0\uAC1D \uC628\uBCF4\uB529 \uC2DC \uC989\uC2DC \uD65C\uC131\uD654\uB429\uB2C8\uB2E4."}</div>
+                        <div>• <strong>ssangmun-yoga</strong>{t("g_f6b1bf") || "(\uD558\uC774\uD508 \uD3EC\uD568)\uB294 \uD0C0 \uD504\uB85C\uC81D\uD2B8\uC5D0 \uC120\uC810\uB418\uC5B4 \uC788\uC5B4"}<strong>ssangmunyoga</strong>{t("g_1daf44") || "\uB85C \uC6B4\uC601 \uC911\uC785\uB2C8\uB2E4."}</div>
                     </div>
                 </>}
 
@@ -1714,7 +1714,7 @@ const SuperAdminPage = () => {
           alignItems: 'center',
           gap: '8px'
         }}>
-                            <ChatCircleDots size={24} color="#8B5CF6" weight="duotone" />{t("g_979ce3") || t("g_979ce3") || t("g_979ce3") || t("g_979ce3") || t("g_979ce3") || "\uD574\uC678 \uACE0\uAC1D \uBB38\uC758 \uBA54\uC2DC\uC9C0"}</h2>
+                            <ChatCircleDots size={24} color="#8B5CF6" weight="duotone" />{t("g_979ce3") || "\uD574\uC678 \uACE0\uAC1D \uBB38\uC758 \uBA54\uC2DC\uC9C0"}</h2>
                         <button onClick={loadInquiries} style={{
           padding: '8px 16px',
           background: 'rgba(139,92,246,0.15)',
@@ -1724,14 +1724,14 @@ const SuperAdminPage = () => {
           cursor: 'pointer',
           fontWeight: '600',
           fontSize: '0.85rem'
-        }}>{t("g_ee7f7e") || t("g_ee7f7e") || t("g_ee7f7e") || t("g_ee7f7e") || t("g_ee7f7e") || "\uD83D\uDD04 \uC0C8\uB85C\uACE0\uCE68"}</button>
+        }}>{t("g_ee7f7e") || "\uD83D\uDD04 \uC0C8\uB85C\uACE0\uCE68"}</button>
                     </div>
 
                     {inquiriesLoading ? <div style={{
         textAlign: 'center',
         padding: '40px',
         color: '#888'
-      }}>{t("g_06057f") || t("g_06057f") || t("g_06057f") || t("g_06057f") || t("g_06057f") || "\uB85C\uB529 \uC911..."}</div> : inquiries.length === 0 ? <div style={{
+      }}>{t("g_06057f") || "\uB85C\uB529 \uC911..."}</div> : inquiries.length === 0 ? <div style={{
         textAlign: 'center',
         padding: '60px 20px',
         background: 'rgba(255,255,255,0.02)',
@@ -1742,7 +1742,7 @@ const SuperAdminPage = () => {
                             <p style={{
           color: '#888',
           marginTop: '12px'
-        }}>{t("g_c8c3e2") || t("g_c8c3e2") || t("g_c8c3e2") || t("g_c8c3e2") || t("g_c8c3e2") || "\uC544\uC9C1 \uC811\uC218\uB41C \uBB38\uC758\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4."}</p>
+        }}>{t("g_c8c3e2") || "\uC544\uC9C1 \uC811\uC218\uB41C \uBB38\uC758\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4."}</p>
                         </div> : <div style={{
         display: 'flex',
         flexDirection: 'column',
@@ -1793,7 +1793,7 @@ const SuperAdminPage = () => {
                 fontSize: '0.75rem',
                 color: '#666'
               }}>
-                                                {inq.createdAt?.toDate ? inq.createdAt.toDate().toLocaleString('ko-KR') : t("g_b76230") || t("g_b76230") || t("g_b76230") || t("g_b76230") || t("g_b76230") || "\uC2DC\uAC04 \uBBF8\uC0C1"}
+                                                {inq.createdAt?.toDate ? inq.createdAt.toDate().toLocaleString('ko-KR') : t("g_b76230") || "\uC2DC\uAC04 \uBBF8\uC0C1"}
                                             </span>
                                             {inq.status === 'new' && <button onClick={() => handleMarkRead(inq.id)} style={{
                 padding: '4px 10px',
@@ -1804,7 +1804,7 @@ const SuperAdminPage = () => {
                 borderRadius: '6px',
                 cursor: 'pointer',
                 fontWeight: '600'
-              }}>{t("g_eabae3") || t("g_eabae3") || t("g_eabae3") || t("g_eabae3") || t("g_eabae3") || "\u2705 \uC77D\uC74C"}</button>}
+              }}>{t("g_eabae3") || "\u2705 \uC77D\uC74C"}</button>}
                                         </div>
                                     </div>
 
@@ -1833,7 +1833,7 @@ const SuperAdminPage = () => {
               color: '#888',
               marginBottom: '6px',
               fontWeight: '600'
-            }}>{t("g_b59a09") || t("g_b59a09") || t("g_b59a09") || t("g_b59a09") || t("g_b59a09") || "\uD83D\uDCAC \uC6D0\uBB38"}</div>
+            }}>{t("g_b59a09") || "\uD83D\uDCAC \uC6D0\uBB38"}</div>
                                         <p style={{
               margin: 0,
               color: '#d1d5db',
@@ -1855,7 +1855,7 @@ const SuperAdminPage = () => {
               color: '#8B5CF6',
               marginBottom: '6px',
               fontWeight: '600'
-            }}>{t("g_f987f7") || t("g_f987f7") || t("g_f987f7") || t("g_f987f7") || t("g_f987f7") || "\uD83C\uDDF0\uD83C\uDDF7 \uD55C\uAD6D\uC5B4 \uBC88\uC5ED"}</div>
+            }}>{t("g_f987f7") || "\uD83C\uDDF0\uD83C\uDDF7 \uD55C\uAD6D\uC5B4 \uBC88\uC5ED"}</div>
                                             <p style={{
               margin: 0,
               color: '#e0e0e0',
@@ -1876,7 +1876,7 @@ const SuperAdminPage = () => {
             alignItems: 'center',
             gap: '6px'
           }}>
-                                            <Translate size={16} /> {translating[inq.id] ? t("g_a212b8") || t("g_a212b8") || t("g_a212b8") || t("g_a212b8") || t("g_a212b8") || "\uBC88\uC5ED \uC911..." : t("g_9442be") || t("g_9442be") || t("g_9442be") || t("g_9442be") || t("g_9442be") || "\uD55C\uAD6D\uC5B4\uB85C \uBC88\uC5ED"}
+                                            <Translate size={16} /> {translating[inq.id] ? t("g_a212b8") || "\uBC88\uC5ED \uC911..." : t("g_9442be") || "\uD55C\uAD6D\uC5B4\uB85C \uBC88\uC5ED"}
                                         </button>}
 
                                     {/* Reply action */}
@@ -1899,7 +1899,7 @@ const SuperAdminPage = () => {
               alignItems: 'center',
               gap: '6px'
             }}>
-                                            <EnvelopeOpen size={16} />{t("g_21fa4c") || t("g_21fa4c") || t("g_21fa4c") || t("g_21fa4c") || t("g_21fa4c") || "\uC774\uBA54\uC77C\uB85C \uB2F5\uBCC0"}</a>
+                                            <EnvelopeOpen size={16} />{t("g_21fa4c") || "\uC774\uBA54\uC77C\uB85C \uB2F5\uBCC0"}</a>
                                         <button onClick={() => {
               navigator.clipboard.writeText(inq.email);
             }} style={{
@@ -1915,7 +1915,7 @@ const SuperAdminPage = () => {
               alignItems: 'center',
               gap: '6px'
             }}>
-                                            <Copy size={16} />{t("g_e413a9") || t("g_e413a9") || t("g_e413a9") || t("g_e413a9") || t("g_e413a9") || "\uC774\uBA54\uC77C \uBCF5\uC0AC"}</button>
+                                            <Copy size={16} />{t("g_e413a9") || "\uC774\uBA54\uC77C \uBCF5\uC0AC"}</button>
                                         {inq.page && <span style={{
               fontSize: '0.72rem',
               color: '#555',
