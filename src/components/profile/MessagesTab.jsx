@@ -2,8 +2,7 @@ import { Icons } from '../CommonIcons';
 import { useLanguageStore } from '../../stores/useLanguageStore';
 
 const MessagesTab = ({ messages, t, setActiveTab }) => {
-
-    return (
+  return (
         <div className="fade-in" style={{ padding: '0 5px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '25px' }}>
                 <div style={{

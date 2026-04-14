@@ -8,8 +8,7 @@ const NoticeTab = ({
     setSelectedNoticeId,
     setLightboxImage
 }) => {
-
-    return (
+  return (
         <div className="fade-in">
             <div style={{ padding: '0 5px 20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '25px' }}>

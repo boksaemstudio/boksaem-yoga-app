@@ -5,10 +5,10 @@ const ConfirmModal = ({
   isOpen,
   onClose,
   onConfirm,
-  title = t("g_3ce813") || "\uD655\uC778",
+  title = "\uD655\uC778",
   message,
-  confirmText = t("g_3ce813") || "\uD655\uC778",
-  cancelText = t("g_d9de21") || "\uCDE8\uC18C",
+  confirmText = "\uD655\uC778",
+  cancelText = "\uCDE8\uC18C",
   isDestructive = false
 }) => {
   const t = useLanguageStore(s => s.t);

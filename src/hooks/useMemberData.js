@@ -1,4 +1,4 @@
-/**
+import { useLanguageStore } from '../stores/useLanguageStore';\n/**
  * useMemberData — Data loading, real-time subscriptions, AI/Weather for MemberProfile
  * Extracted from MemberProfile.jsx to reduce its 1,162-line bulk by ~300 lines.
  */

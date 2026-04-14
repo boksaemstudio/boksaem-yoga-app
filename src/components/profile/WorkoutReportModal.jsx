@@ -6,7 +6,7 @@ const WorkoutReportModal = ({
   onClose,
   t
 }) => {
-    const [animationState, setAnimationState] = useState(false);
+  const [animationState, setAnimationState] = useState(false);
   useEffect(() => {
     // Trigger animations after mount
     const timer = setTimeout(() => setAnimationState(true), 100);

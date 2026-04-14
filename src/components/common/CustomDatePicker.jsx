@@ -5,7 +5,7 @@ import { getHolidayName } from '../../utils/holidays';
 const CustomDatePicker = ({
   value,
   onChange,
-  placeholder = t("g_a39e38") || "\uB0A0\uC9DC \uC120\uD0DD"
+  placeholder = "\uB0A0\uC9DC \uC120\uD0DD"
 }) => {
   const t = useLanguageStore(s => s.t);
   const [isOpen, setIsOpen] = useState(false);

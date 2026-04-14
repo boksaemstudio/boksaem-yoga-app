@@ -4,8 +4,7 @@ import { getTranslatedClass } from '../../utils/classMapping';
 import { useLanguageStore } from '../../stores/useLanguageStore';
 
 const RecentAttendance = ({ logs, language, t, setActiveTab }) => {
-
-    if (!logs || logs.length === 0) return null;
+  if (!logs || logs.length === 0) return null;
 
     const lastLog = logs[0];
     const date = new Date(lastLog.timestamp);

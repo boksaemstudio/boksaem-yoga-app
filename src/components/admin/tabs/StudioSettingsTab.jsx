@@ -1262,9 +1262,9 @@ const StudioSettingsTab = () => {
               navigator.clipboard.writeText(fullUrl);
               const btn = document.getElementById(`copy-btn-${app.path}`);
               if (btn) {
-                btn.textContent = t("g_d6557c") || t("g_d6557c") || t("g_d6557c") || t("g_d6557c") || t("g_d6557c") || "\u2713 \uBCF5\uC0AC\uB428!";
+                btn.textContent = "\u2713 \uBCF5\uC0AC\uB428!";
                 setTimeout(() => {
-                  btn.textContent = t("g_290145") || t("g_290145") || t("g_290145") || t("g_290145") || t("g_290145") || "URL \uBCF5\uC0AC";
+                  btn.textContent = "URL \uBCF5\uC0AC";
                 }, 2000);
               }
             }} id={`copy-btn-${app.path}`} style={{

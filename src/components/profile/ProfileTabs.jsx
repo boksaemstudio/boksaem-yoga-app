@@ -25,8 +25,7 @@ const NavItem = ({ active, onClick, icon, label }) => (
 );
 
 const ProfileTabs = ({ activeTab, setActiveTab, t, config }) => {
-
-    const scheduleLabel = config?.POLICIES?.ALLOW_BOOKING ? `${t('tabSchedule')}/${t('bookingTab')}` : t('tabSchedule');
+  const scheduleLabel = config?.POLICIES?.ALLOW_BOOKING ? `${t('tabSchedule')}/${t('bookingTab')}` : t('tabSchedule');
     return (
         <div style={{
             position: 'fixed',

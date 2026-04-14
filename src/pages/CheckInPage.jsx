@@ -263,7 +263,7 @@ const CheckInPage = () => {
   }, [period]);
 
   // ── Business Logic ──
-  const loadAIExperience = async (name = t("g_403daa") || t("g_403daa") || t("g_403daa") || t("g_403daa") || t("g_403daa") || "\uBC29\uBB38 \uD68C\uC6D0", credits = null, days = null, w = null) => {
+  const loadAIExperience = async (name = "\uBC29\uBB38 \uD68C\uC6D0", credits = null, days = null, w = null) => {
     const isStandby = name === (t("g_403daa") || t("g_403daa") || t("g_403daa") || t("g_403daa") || t("g_403daa") || "\uBC29\uBB38 \uD68C\uC6D0");
     try {
       const h = getKSTHour();

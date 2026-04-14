@@ -322,25 +322,25 @@ const MembershipInfo = ({
       const diff = usageRatio - timeRatio;
       let paceStatus, paceColor, paceEmoji, paceMessage;
       if (diff >= 10) {
-        paceStatus = t("g_d340bb") || t("g_d340bb") || t("g_d340bb") || "\uBE60\uB984";
+        paceStatus = "\uBE60\uB984";
         paceColor = '#10b981';
         paceEmoji = '🔥';
-        paceMessage = t("g_8ab686") || t("g_8ab686") || t("g_8ab686") || "\uC5F4\uC2EC\uD788 \uD558\uACE0 \uACC4\uC138\uC694! \uC774 \uD398\uC774\uC2A4\uB85C \uAFB8\uC900\uD788!";
+        paceMessage = "\uC5F4\uC2EC\uD788 \uD558\uACE0 \uACC4\uC138\uC694! \uC774 \uD398\uC774\uC2A4\uB85C \uAFB8\uC900\uD788!";
       } else if (diff >= -5) {
-        paceStatus = t("g_d9fed5") || t("g_d9fed5") || t("g_d9fed5") || "\uC801\uC808";
+        paceStatus = "\uC801\uC808";
         paceColor = 'var(--primary-gold)';
         paceEmoji = '✨';
-        paceMessage = t("g_d82b2d") || t("g_d82b2d") || t("g_d82b2d") || "\uC644\uBCBD\uD55C \uD398\uC774\uC2A4\uC608\uC694! \uAFB8\uC900\uD568\uC774 \uAC74\uAC15\uC758 \uBE44\uACB0!";
+        paceMessage = "\uC644\uBCBD\uD55C \uD398\uC774\uC2A4\uC608\uC694! \uAFB8\uC900\uD568\uC774 \uAC74\uAC15\uC758 \uBE44\uACB0!";
       } else if (diff >= -20) {
-        paceStatus = t("g_0df72a") || t("g_0df72a") || t("g_0df72a") || "\uC870\uAE08 \uB290\uB9BC";
+        paceStatus = "\uC870\uAE08 \uB290\uB9BC";
         paceColor = '#F59E0B';
         paceEmoji = '💪';
-        paceMessage = t("g_eee989") || t("g_eee989") || t("g_eee989") || "\uC870\uAE08 \uB354 \uBD84\uBC1C\uD558\uBA74 \uC218\uAC15\uAD8C\uC744 \uC54C\uCC28\uAC8C \uC4F8 \uC218 \uC788\uC5B4\uC694!";
+        paceMessage = "\uC870\uAE08 \uB354 \uBD84\uBC1C\uD558\uBA74 \uC218\uAC15\uAD8C\uC744 \uC54C\uCC28\uAC8C \uC4F8 \uC218 \uC788\uC5B4\uC694!";
       } else {
-        paceStatus = t("g_2c3a87") || t("g_2c3a87") || t("g_2c3a87") || "\uB290\uB9BC";
+        paceStatus = "\uB290\uB9BC";
         paceColor = '#EF4444';
         paceEmoji = '🧘‍♀️';
-        paceMessage = t("g_c22f29") || t("g_c22f29") || t("g_c22f29") || "\uC218\uB828\uD558\uB7EC \uC624\uC138\uC694! \uB0A8\uC740 \uAE30\uAC04\uC5D0 \uC544\uC9C1 \uCDA9\uBD84\uD788 \uD560 \uC218 \uC788\uC5B4\uC694!";
+        paceMessage = "\uC218\uB828\uD558\uB7EC \uC624\uC138\uC694! \uB0A8\uC740 \uAE30\uAC04\uC5D0 \uC544\uC9C1 \uCDA9\uBD84\uD788 \uD560 \uC218 \uC788\uC5B4\uC694!";
       }
       return <div style={{
         marginTop: '16px',
@@ -541,27 +541,27 @@ const MembershipInfo = ({
         grade = 'S';
         gradeColor = '#10b981';
         gradeEmoji = '🏆';
-        gradeMsg = t("g_1edbbb") || t("g_1edbbb") || t("g_1edbbb") || "\uC644\uBCBD\uD55C \uADFC\uBA74\uC131\uC2E4! \uB2F9\uC2E0\uC740 \uC694\uAC00 \uB9C8\uC2A4\uD130 \uD83E\uDDD8";
+        gradeMsg = "\uC644\uBCBD\uD55C \uADFC\uBA74\uC131\uC2E4! \uB2F9\uC2E0\uC740 \uC694\uAC00 \uB9C8\uC2A4\uD130 \uD83E\uDDD8";
       } else if (totalScore >= 70) {
         grade = 'A';
         gradeColor = '#3B82F6';
         gradeEmoji = '⭐';
-        gradeMsg = t("g_989745") || t("g_989745") || t("g_989745") || "\uD6CC\uB96D\uD574\uC694! \uAFB8\uC900\uD568\uC774 \uBE5B\uB098\uB294 \uC218\uB828\uC790";
+        gradeMsg = "\uD6CC\uB96D\uD574\uC694! \uAFB8\uC900\uD568\uC774 \uBE5B\uB098\uB294 \uC218\uB828\uC790";
       } else if (totalScore >= 50) {
         grade = 'B';
         gradeColor = 'var(--primary-gold)';
         gradeEmoji = '💫';
-        gradeMsg = t("g_e6715a") || t("g_e6715a") || t("g_e6715a") || "\uC88B\uC740 \uD398\uC774\uC2A4! \uC870\uAE08\uB9CC \uB354 \uADDC\uCE59\uC801\uC73C\uB85C";
+        gradeMsg = "\uC88B\uC740 \uD398\uC774\uC2A4! \uC870\uAE08\uB9CC \uB354 \uADDC\uCE59\uC801\uC73C\uB85C";
       } else if (totalScore >= 30) {
         grade = 'C';
         gradeColor = '#F59E0B';
         gradeEmoji = '💪';
-        gradeMsg = t("g_1edc39") || t("g_1edc39") || t("g_1edc39") || "\uAC00\uB2A5\uC131\uC774 \uC788\uC5B4\uC694! \uC2B5\uAD00\uC744 \uB9CC\uB4E4\uC5B4\uBCF4\uC138\uC694";
+        gradeMsg = "\uAC00\uB2A5\uC131\uC774 \uC788\uC5B4\uC694! \uC2B5\uAD00\uC744 \uB9CC\uB4E4\uC5B4\uBCF4\uC138\uC694";
       } else {
         grade = 'D';
         gradeColor = '#EF4444';
         gradeEmoji = '🌱';
-        gradeMsg = t("g_94191c") || t("g_94191c") || t("g_94191c") || "\uB2E4\uC2DC \uC2DC\uC791\uD574\uBD10\uC694! \uC791\uC740 \uD55C \uAC78\uC74C\uBD80\uD130";
+        gradeMsg = "\uB2E4\uC2DC \uC2DC\uC791\uD574\uBD10\uC694! \uC791\uC740 \uD55C \uAC78\uC74C\uBD80\uD130";
       }
       const indicators = [{
         label: t("g_8d40f3") || t("g_8d40f3") || t("g_8d40f3") || "\uC8FC\uAC04 \uCD9C\uC11D",

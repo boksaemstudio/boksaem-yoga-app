@@ -8,7 +8,7 @@ const PWAInstallPrompts = ({
   handleInstallClick,
   t
 }) => {
-    if (isInStandaloneMode || isInAppBrowser) {
+  if (isInStandaloneMode || isInAppBrowser) {
     if (isInAppBrowser) {
       return <div className="glass-panel" style={{
         padding: '16px',

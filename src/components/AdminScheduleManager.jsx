@@ -13,6 +13,7 @@ const ColorLegend = memo(({
   const {
     config
   } = useStudioConfig();
+  const t = useLanguageStore(s => s.t);
   const items = config.SCHEDULE_LEGEND || [{
     label: t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || "\uC77C\uBC18",
     color: '#FFFFFF',

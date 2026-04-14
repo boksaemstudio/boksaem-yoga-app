@@ -673,10 +673,10 @@ const AttendanceTrendChart = memo(({
     const instructorCounts = {};
     sortedDates.forEach(dateStr => {
       filteredLogs[dateStr].forEach(log => {
-        const cls = log.className || t(t('admin_trend_general') || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || t("g_8209e5") || "\uC77C\uBC18");
-        const inst = log.instructor || t(t('admin_trend_unassigned') || t("g_4477e5") || t("g_4477e5") || t("g_4477e5") || t("g_4477e5") || t("g_4477e5") || "\uBBF8\uC9C0\uC815");
+        const cls = log.className || t('admin_trend_general') || "\uC77C\uBC18";
+        const inst = log.instructor || t('admin_trend_unassigned') || "\uBBF8\uC9C0\uC815";
         classCounts[cls] = (classCounts[cls] || 0) + 1;
-        if (inst !== (t('admin_trend_unassigned') || t("g_4477e5") || t("g_4477e5") || t("g_4477e5") || t("g_4477e5") || t("g_4477e5") || "\uBBF8\uC9C0\uC815") && inst !== t(t('admin_trend_unassigned') || t("g_4477e5") || t("g_4477e5") || t("g_4477e5") || t("g_4477e5") || t("g_4477e5") || "\uBBF8\uC9C0\uC815") && inst !== (t('admin_trend_admin') || t("g_0cb522") || t("g_0cb522") || t("g_0cb522") || t("g_0cb522") || t("g_0cb522") || "\uAD00\uB9AC\uC790") && inst !== t(t('admin_trend_admin') || t("g_0cb522") || t("g_0cb522") || t("g_0cb522") || t("g_0cb522") || t("g_0cb522") || "\uAD00\uB9AC\uC790")) {
+        if (inst !== (t('admin_trend_unassigned') || "\uBBF8\uC9C0\uC815") && inst !== "\uBBF8\uC9C0\uC815" && inst !== (t('admin_trend_admin') || "\uAD00\uB9AC\uC790") && inst !== "\uAD00\uB9AC\uC790") {
           instructorCounts[inst] = (instructorCounts[inst] || 0) + 1;
         }
       });

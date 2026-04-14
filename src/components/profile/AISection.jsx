@@ -8,7 +8,7 @@ const AISection = ({
   t,
   getTraditionalYogaMessage
 }) => {
-    // [FIX] Clean up AI messages that sound like system errors or negative states
+  // [FIX] Clean up AI messages that sound like system errors or negative states
   const getCleanMessage = () => {
     const raw = aiExperience?.message || getTraditionalYogaMessage();
 

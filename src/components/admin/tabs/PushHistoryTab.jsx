@@ -313,8 +313,8 @@ const PushHistoryTab = ({
                     </div> : pagedHistory.map(item => {
         const isNotice = item.type === 'campaign' || item.type === 'notice';
         const isClickable = item.type === 'individual' && item.targetMemberId || isNotice;
-        let label = t("g_80601c") || t("g_80601c") || t("g_80601c") || t("g_80601c") || t("g_80601c") || "\uC54C \uC218 \uC5C6\uC74C";
-        if (item.type === 'campaign') label = t("g_cb9a86") || t("g_cb9a86") || t("g_cb9a86") || t("g_cb9a86") || t("g_cb9a86") || "\uC571 \uD478\uC2DC (\uB2E8\uCCB4)";else if (item.type === 'notice') label = t("g_e1625c") || t("g_e1625c") || t("g_e1625c") || t("g_e1625c") || t("g_e1625c") || "\uACF5\uC9C0 \uC54C\uB9BC";else if (item.type === 'individual') label = `앱 푸시 (${item.memberName || item.targetMemberName || t("g_80601c") || t("g_80601c") || t("g_80601c") || t("g_80601c") || t("g_80601c") || "\uC54C \uC218 \uC5C6\uC74C"})`;else if (item.type === 'sms_msg' || item.method === (t("g_3ca941") || t("g_3ca941") || t("g_3ca941") || t("g_3ca941") || t("g_3ca941") || "\uBB38\uC790")) label = t("g_57a5f2") || t("g_57a5f2") || t("g_57a5f2") || t("g_57a5f2") || t("g_57a5f2") || "\uBB38\uC790 \uBC1C\uC1A1";
+        let label = "\uC54C \uC218 \uC5C6\uC74C";
+        if (item.type === 'campaign') label = "\uC571 \uD478\uC2DC (\uB2E8\uCCB4)";else if (item.type === 'notice') label = "\uACF5\uC9C0 \uC54C\uB9BC";else if (item.type === 'individual') label = `앱 푸시 (${item.memberName || item.targetMemberName || t("g_80601c") || t("g_80601c") || t("g_80601c") || t("g_80601c") || t("g_80601c") || "\uC54C \uC218 \uC5C6\uC74C"})`;else if (item.type === 'sms_msg' || item.method === (t("g_3ca941") || t("g_3ca941") || t("g_3ca941") || t("g_3ca941") || t("g_3ca941") || "\uBB38\uC790")) label = "\uBB38\uC790 \uBC1C\uC1A1";
         const isSms = item.type === 'sms_msg' || item.method === (t("g_3ca941") || t("g_3ca941") || t("g_3ca941") || t("g_3ca941") || t("g_3ca941") || "\uBB38\uC790");
         return <div key={item.id} className="glass-panel" onClick={() => {
           if (item.type === 'individual' && item.targetMemberId && onSelectMember) {

@@ -1,9 +1,10 @@
+import { useLanguageStore } from '../../stores/useLanguageStore';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 import { useStudioConfig } from '../../contexts/StudioContext';
 import { useLanguage } from '../../hooks/useLanguage';
 
 const MyStatsChart = ({ logs }) => {
-    const { t } = useLanguage();
+  const { t } = useLanguage();
     const { config } = useStudioConfig();
     const COLORS = [config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)', '#FF6B6B', '#48dbfb', '#1dd1a1', '#feca57', '#5f27cd'];
     

@@ -17,8 +17,7 @@ const ScheduleTab = ({
     setLightboxImage,
     member
 }) => {
-
-    const { config } = useStudioConfig();
+  const { config } = useStudioConfig();
     const viewToggleStyle = {
         border: 'none',
         padding: '6px 16px',

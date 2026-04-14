@@ -3,8 +3,7 @@ import LanguageSelector from '../LanguageSelector';
 import { useLanguageStore } from '../../stores/useLanguageStore';
 
 const ProfileHeader = ({ logo, studioName, langLabelIndex, langLabels, t, logout }) => {
-
-    return (
+  return (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 10px', paddingTop: 'max(20px, env(safe-area-inset-top))' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <img src={logo} alt="Logo" style={{ width: 'auto', height: '30px', objectFit: 'contain', background: 'rgba(255, 255, 255, 0.85)', padding: '4px', borderRadius: '6px' }} onError={(e) => { e.target.style.display = 'none'; }} />

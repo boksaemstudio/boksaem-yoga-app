@@ -518,22 +518,22 @@ const MembershipBlock = ({
   const credits = Number(originalData?.credits || 0);
   const endDate = originalData?.endDate;
   const isTBD = endDate === 'TBD';
-  let statusLabel = t("g_4cb2b6") || t("g_4cb2b6") || t("g_4cb2b6") || t("g_4cb2b6") || t("g_4cb2b6") || "\uB9CC\uB8CC\uB428";
+  let statusLabel = "\uB9CC\uB8CC\uB428";
   let statusColor = '#ef4444';
   if (isTBD) {
-    statusLabel = t("g_1f7ce8") || t("g_1f7ce8") || t("g_1f7ce8") || t("g_1f7ce8") || t("g_1f7ce8") || "\uCCAB \uCD9C\uC11D \uB300\uAE30";
+    statusLabel = "\uCCAB \uCD9C\uC11D \uB300\uAE30";
     statusColor = 'var(--primary-gold)';
   } else if (originalData?.holdStatus === 'holding') {
-    statusLabel = t("g_03b1e5") || t("g_03b1e5") || t("g_03b1e5") || t("g_03b1e5") || t("g_03b1e5") || "\uD640\uB529 \uC77C\uC2DC\uC815\uC9C0 \uC911";
+    statusLabel = "\uD640\uB529 \uC77C\uC2DC\uC815\uC9C0 \uC911";
     statusColor = '#fb923c';
   } else if (endDate && endDate >= todayStr && credits > 0) {
-    statusLabel = t("g_b42569") || t("g_b42569") || t("g_b42569") || t("g_b42569") || t("g_b42569") || "\uC774\uC6A9 \uC911";
+    statusLabel = "\uC774\uC6A9 \uC911";
     statusColor = '#10b981';
   } else if (endDate && endDate >= todayStr && credits <= 0) {
-    statusLabel = t("g_d2c721") || t("g_d2c721") || t("g_d2c721") || t("g_d2c721") || t("g_d2c721") || "\uD69F\uC218 \uC18C\uC9C4";
+    statusLabel = "\uD69F\uC218 \uC18C\uC9C4";
     statusColor = '#f59e0b';
   } else if (endDate && endDate < todayStr) {
-    statusLabel = t("g_fab709") || t("g_fab709") || t("g_fab709") || t("g_fab709") || t("g_fab709") || "\uAE30\uAC04 \uB9CC\uB8CC";
+    statusLabel = "\uAE30\uAC04 \uB9CC\uB8CC";
     statusColor = '#ef4444';
   }
   return <div style={{
