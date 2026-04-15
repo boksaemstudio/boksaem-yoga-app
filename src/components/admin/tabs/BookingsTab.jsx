@@ -53,7 +53,7 @@ const BookingsTab = ({
 
   // 관리자 예약 취소
   const handleCancelBooking = async booking => {
-    if (!window.confirm(`${booking.memberName}님의 예약을 취소하시겠습니까?`)) return;
+    if (!window.confirm((t('confirm_cancel_booking') || `Cancel booking for ${booking.memberName}?`).replace('{name}', booking.memberName))) return;
     try {
       await bookingService.cancelBooking(booking.date, booking.classIndex, booking.memberId, branchId, config);
       alert(t("g_cab5b0") || "\uC608\uC57D\uC774 \uCDE8\uC18C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");

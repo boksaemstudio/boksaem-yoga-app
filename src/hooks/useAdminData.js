@@ -433,7 +433,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
     };
   }, [loadInitialData, handleDataUpdate]);
   const handleApprovePush = async (id, title) => {
-    if (confirm(`'${title}' 메시지 발송을 승인하시겠습니까?`)) {
+    if (confirm(t('confirm_approve_push') || 'Approve this push notification?')) {
       try {
         await storageService.approvePush(id);
       } catch (e) {

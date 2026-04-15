@@ -174,7 +174,7 @@ const MessageOverlay = memo(({
           justifyContent: 'center',
           gap: '12px'
         }}>
-          {t('kiosk_overlay_close') || t("g_218e2a") || "닫기"}
+          {t('kiosk_overlay_close') || t("g_218e2a") || "Close"}
           {/* Countdown Badge */}
           <span style={{
             display: 'inline-flex',
@@ -199,7 +199,7 @@ const MessageOverlay = memo(({
           fontSize: '1.1rem',
           fontWeight: 500
         }}>
-          {t('kiosk_overlay_touch_to_return') || t("g_bbcb03") || "화면을 터치하면 출석 화면으로 돌아갑니다"}
+          {t('kiosk_overlay_touch_to_return') || t("g_bbcb03") || "Tap anywhere to return to the check-in screen"}
         </div>
       </div>
     </div>

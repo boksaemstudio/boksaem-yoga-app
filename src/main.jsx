@@ -30,7 +30,7 @@ try {
   document.getElementById('root').innerHTML = `
     <div style="padding: 20px; color: red; background: #1a1a1a; height: 100vh;">
       <h1>Critical Error</h1>
-      <p>애플리케이션을 시작할 수 없습니다.</p>
+      <p>Application failed to start.</p>
       <pre>${fatalError.toString()}</pre>
     </div>
   `;

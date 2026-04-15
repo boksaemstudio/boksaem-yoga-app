@@ -900,7 +900,7 @@ const MembershipBlock = ({
             const newEndDate = end.toLocaleDateString('sv-SE', {
               timeZone: 'Asia/Seoul'
             });
-            if (confirm(`시작일 변경에 따라 종료일을 ${newEndDate}로 자동 조정하시겠습니까?`)) {
+            if (confirm((t('confirm_adjust_end_date') || `Adjust end date to ${newEndDate}?`).replace('{date}', newEndDate))) {
               updates.endDate = newEndDate;
             }
           }
@@ -1054,7 +1054,7 @@ const PaymentHistoryBlock = ({
           if (originalData.startDate === editingSale.startDate && originalData.endDate === editingSale.endDate) syncTarget = 'current';else if (originalData.upcomingMembership?.startDate === editingSale.startDate && originalData.upcomingMembership?.endDate === editingSale.endDate) syncTarget = 'upcoming';
           if (syncTarget) {
             const targetName = syncTarget === 'current' ? t("g_db09e2") || "\uD604\uC7AC \uC774\uC6A9 \uC911\uC778 \uC218\uAC15\uAD8C" : t("g_10ae49") || "\uB2E4\uAC00\uC62C \uC218\uAC15\uAD8C(\uC120\uB4F1\uB85D)";
-            if (confirm(`영수증의 날짜가 변경되었습니다.\n연결된 [${targetName}]의 기간도 이 영수증과 똑같이 맞출까요?`)) {
+            if (confirm((t('confirm_sync_receipt') || `Receipt dates updated. Sync [${targetName}] period to match?`).replace('{target}', targetName))) {
               const memberUpdates = {};
               if (syncTarget === 'current') {
                 if (updates.startDate !== undefined) memberUpdates.startDate = updates.startDate;
@@ -1067,7 +1067,7 @@ const PaymentHistoryBlock = ({
                 if (updates.endDate !== undefined) memberUpdates.upcomingMembership.endDate = updates.endDate;
               }
               await memberService.updateMember(originalData.id, memberUpdates);
-              alert(`[${targetName}] 기간도 성공적으로 동기화되었습니다.`);
+              alert((t('alert_sync_success') || `[${targetName}] dates synced successfully.`).replace('{target}', targetName));
               // 상태 리로드를 위해 이벤트를 좀 트리거해주는게 좋지만, 일단 storageService 리스너가 처리해줌
               storageService.notifyListeners('members');
             }
@@ -1086,7 +1086,7 @@ const PaymentHistoryBlock = ({
     }
   };
   const handleDeleteSale = async (salesId, itemName) => {
-    if (!confirm(`"${itemName}" 결제 내역을 삭제하시겠습니까?\n\n삭제된 내역은 휴지통에서 복원할 수 있습니다.`)) return;
+    if (!confirm((t('confirm_delete_payment') || `Delete "${itemName}"?\n\nDeleted records can be restored from Trash.`).replace('{item}', itemName))) return;
     try {
       await storageService.deleteSalesRecord(salesId);
       setHistory(prev => prev.filter(h => h.id !== salesId));
@@ -1516,7 +1516,7 @@ const MemberInfoTab = ({
           borderRadius: '12px'
         }}>
                         <button onClick={async () => {
-            if (!confirm(`"${originalData.name}" 회원을 삭제하시겠습니까?\n\n삭제된 회원은 휴지통에서 복원할 수 있습니다.`)) return;
+            if (!confirm(t('confirm_delete_member') || 'Delete this member?\n\nDeleted members can be restored from Trash.')) return;
             try {
               const result = await storageService.softDeleteMember(originalData.id);
               if (result.success) {

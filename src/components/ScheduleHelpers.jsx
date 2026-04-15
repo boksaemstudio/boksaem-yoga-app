@@ -370,7 +370,7 @@ const SettingsModal = ({
                                             </span>
                                             <button onClick={async e => {
                   e.stopPropagation();
-                  if (window.confirm(`'${inst.name}' 선생님을 삭제하시겠습니까?`)) {
+                  if (window.confirm((t('confirm_delete_instructor') || `Delete instructor '${inst.name}'?`).replace('{name}', inst.name))) {
                     try {
                       const updated = normalizedInstructors.filter((_, i) => i !== idx);
                       await storageService.updateInstructors(updated);
@@ -443,7 +443,7 @@ const SettingsModal = ({
                 fontWeight: '500'
               }}>{ct}</span>
                                     <button onClick={async () => {
-                if (window.confirm(`'${ct}' 수업 종류를 삭제하시겠습니까?`)) {
+                if (window.confirm((t('confirm_delete_class_type') || `Delete class type '${ct}'?`).replace('{name}', ct))) {
                   try {
                     const updated = classTypes.filter(c => c !== ct);
                     await storageService.updateClassTypes(updated);
@@ -525,7 +525,7 @@ const SettingsModal = ({
                 fontWeight: '600'
               }}>Lv.{level}</span>
                                     <button onClick={async () => {
-                if (window.confirm(`Lv.${level}을(를) 삭제하시겠습니까?`)) {
+                if (window.confirm((t('confirm_delete_level') || `Delete Lv.${level}?`).replace('{level}', level))) {
                   try {
                     const updated = classLevels.filter(l => l !== level);
                     await storageService.updateClassLevels(updated);

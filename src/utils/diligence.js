@@ -105,7 +105,7 @@ const analyzeUnlimitedMember = (logs, streak, t) => {
         return {
             type: 'streak_fire',
             badge: resolveBadge(BADGE_KEYS.PASSION, t),
-            message: t('badge_msg_streak_fire') || `${streak}일 연속 수련! 엄청난 에너지입니다!`,
+            message: t('badge_msg_streak_fire') || `${streak} days in a row! Incredible dedication!`,
             messageParams: { streak }
         };
     }
@@ -118,7 +118,7 @@ const analyzeUnlimitedMember = (logs, streak, t) => {
         return {
             type: 'high_freq',
             badge: resolveBadge(BADGE_KEYS.PASSION, t),
-            message: t('badge_msg_high_freq') || `이번 주 벌써 ${thisWeekCount}회! 뜨거운 열정입니다.`,
+            message: t('badge_msg_high_freq') || `${thisWeekCount} sessions this week! You're on fire!`,
             messageParams: { thisWeekCount }
         };
     }

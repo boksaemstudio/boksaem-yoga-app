@@ -8,7 +8,7 @@ import '../styles/landing.css';
 
 export default function LandingPage() {
     const t = useLanguageStore(s => s.t);
-    const lang = useLanguageStore(s => s.lang) || 'ko';
+    const lang = useLanguageStore(s => s.language) || 'ko';
     const setLanguage = useLanguageStore(s => s.setLanguage);
     const navigate = useNavigate();
 
@@ -16,9 +16,18 @@ export default function LandingPage() {
     const [inquiryForm, setInquiryForm] = useState({ name: '', phone: '', email: '', message: '' });
     const [inquirySent, setInquirySent] = useState(false);
 
+    // [i18n] document.title을 언어에 맞춰 동적으로 설정
     useEffect(() => {
-        document.title = 'PassFlow AI - 글로벌 스튜디오 관리운영 시스템';
-    }, []);
+        const titles = {
+            ko: 'PassFlow AI - 글로벌 스튜디오 관리운영 시스템',
+            en: 'PassFlow AI - Global Studio Management Platform',
+            ja: 'PassFlow AI - グローバルスタジオ管理プラットフォーム',
+            zh: 'PassFlow AI - 全球工作室管理平台',
+        };
+        document.title = titles[lang] || titles.en;
+        // [i18n] html lang 속성도 동적 업데이트
+        document.documentElement.lang = lang;
+    }, [lang]);
 
     const handleDemoClick = (e) => {
         e.preventDefault();
@@ -53,7 +62,7 @@ export default function LandingPage() {
             }, 3000);
         } catch (error) {
             console.error('Inquiry submission failed:', error);
-            alert('메시지 전송에 실패했습니다.');
+            alert(t('mkt_inquiry_fail') || 'Message sending failed.');
         }
     };
 
@@ -66,31 +75,31 @@ export default function LandingPage() {
                         <button className="inquiry-close" onClick={() => setInquiryOpen(false)}>×</button>
                         {inquirySent ? (
                             <div className="inquiry-success">
-                                <h3>성공적으로 전송되었습니다!</h3>
-                                <p>담당자가 곧 연락드리겠습니다.</p>
+                                <h3>{t('mkt_inquiry_success') || 'Successfully sent!'}</h3>
+                                <p>{t('mkt_inquiry_followup') || 'We will contact you shortly.'}</p>
                             </div>
                         ) : (
                             <form onSubmit={handleInquirySubmit} className="inquiry-form">
-                                <h3>플랫폼 도입 및 1:1 커스텀 상담</h3>
-                                <p>원장님의 스튜디오에 완벽히 맞춘 1:1 맞춤형 SaaS 기능 디자인을 지원합니다. 언제든 편히 문의해 주세요.</p>
+                                <h3>{t('mkt_inquiry_title') || 'Platform Consultation'}</h3>
+                                <p>{t('mkt_inquiry_desc') || 'We provide custom SaaS feature design tailored to your studio. Feel free to reach out anytime.'}</p>
                                 
                                 <div className="i-group">
-                                    <label>성함 (또는 스튜디오명)</label>
+                                    <label>{t('mkt_inquiry_name') || 'Name (or Studio Name)'}</label>
                                     <input type="text" required value={inquiryForm.name} onChange={e => setInquiryForm({...inquiryForm, name: e.target.value})} />
                                 </div>
                                 <div className="i-group">
-                                    <label>연락처</label>
+                                    <label>{t('mkt_inquiry_phone') || 'Phone'}</label>
                                     <input type="text" value={inquiryForm.phone} onChange={e => setInquiryForm({...inquiryForm, phone: e.target.value})} />
                                 </div>
                                 <div className="i-group">
-                                    <label>이메일</label>
+                                    <label>{t('mkt_inquiry_email') || 'Email'}</label>
                                     <input type="email" required value={inquiryForm.email} onChange={e => setInquiryForm({...inquiryForm, email: e.target.value})} />
                                 </div>
                                 <div className="i-group">
-                                    <label>문의 및 요청사항</label>
-                                    <textarea required rows="4" placeholder="운영 중인 지점 수, 필요한 커스텀 기능 등을 편하게 적어주세요." value={inquiryForm.message} onChange={e => setInquiryForm({...inquiryForm, message: e.target.value})}></textarea>
+                                    <label>{t('mkt_inquiry_message') || 'Inquiry & Requests'}</label>
+                                    <textarea required rows="4" placeholder={t('mkt_inquiry_placeholder') || 'Number of branches, custom features needed, etc.'} value={inquiryForm.message} onChange={e => setInquiryForm({...inquiryForm, message: e.target.value})}></textarea>
                                 </div>
-                                <button type="submit" className="i-submit">상담 메시지 보내기</button>
+                                <button type="submit" className="i-submit">{t('mkt_inquiry_submit') || 'Send Inquiry'}</button>
                             </form>
                         )}
                     </div>
@@ -104,9 +113,9 @@ export default function LandingPage() {
                     <span>PassFlow AI</span>
                 </div>
                 <div className="nav-links">
-                    <button onClick={() => navigate('/features')} className="nav-link">상세기능 보기</button>
-                    <button onClick={handleContactClick} className="nav-link">도입 문의</button>
-                    <button onClick={() => window.open('https://admin.passflow.kr', '_blank')} className="nav-link outline">관리자 로그인</button>
+                    <button onClick={() => navigate('/features')} className="nav-link">{t('mkt_nav_features') || 'Features'}</button>
+                    <button onClick={handleContactClick} className="nav-link">{t('mkt_nav_contact') || 'Contact'}</button>
+                    <button onClick={() => window.open('https://admin.passflow.kr', '_blank')} className="nav-link outline">{t('mkt_nav_admin_login') || 'Admin Login'}</button>
                     
                     <div className="lang-selector">
                         <GlobeHemisphereWest size={18} />
@@ -123,9 +132,9 @@ export default function LandingPage() {
             {/* HERO */}
             <header className="landing-hero">
                 <div className="hero-content">
-                    <div className="badge">{t('mkt_badge') || '세계 1등 비전 AI 안면인식 시스템'}</div>
-                    <h1 className="hero-title" dangerouslySetInnerHTML={{ __html: t('mkt_title_main') || '체육시설 무인화의 궁극적 완성,<br /><span className=\"text-gold\">단 하나의 플랫폼</span>으로 끝냅니다.' }} />
-                    <p className="hero-subtitle" dangerouslySetInnerHTML={{ __html: t('mkt_title_sub') || '안면인식 출석부터 다지점 회원 통합 관리, 수업 클래스 스케줄링, 자동 급여 정산까지. 오직 피트니스와 요가 스튜디오만을 위해 설계된 글로벌 SaaS.' }} />
+                    <div className="badge">{t('mkt_badge') || 'World\'s #1 Vision AI Facial Recognition'}</div>
+                    <h1 className="hero-title" dangerouslySetInnerHTML={{ __html: t('mkt_title_main') || 'The Ultimate Unmanned Studio Solution,<br /><span class="text-gold">Powered by PassFlow AI.</span>' }} />
+                    <p className="hero-subtitle" dangerouslySetInnerHTML={{ __html: t('mkt_title_sub') || 'From facial recognition check-in to multi-location member management, class scheduling, and automated payroll. The only platform built exclusively for fitness, yoga, and pilates studios.' }} />
                     <div className="hero-cta-group">
                         <button onClick={handleDemoClick} className="cta-primary">
                             {t('mkt_btn_demo') || '관리자/회원 데모 체험하기'} <CaretRight weight="bold" />
@@ -151,13 +160,13 @@ export default function LandingPage() {
                     </div>
                     <div className="feature-card">
                         <ShieldCheck size={40} className="f-icon" />
-                        <h3>클라우드 다국어 데이터 동기화</h3>
-                        <p>해외 어느 로케이션에 지점을 내셔도 완벽합니다. 전 세계 어디서든 언어 장벽 없이 스튜디오를 100% 원격 관리하십시오.</p>
+                        <h3>{t('mkt_feat2_title') || '클라우드 다국어 데이터 동기화'}</h3>
+                        <p>{t('mkt_feat2_desc') || '해외 어느 로케이션에 지점을 내셔도 완벽합니다. 전 세계 어디서든 언어 장벽 없이 스튜디오를 100% 원격 관리하십시오.'}</p>
                     </div>
                     <div className="feature-card">
                         <ChalkboardTeacher size={40} className="f-icon" />
-                        <h3>강사 앱 & 급여 자동화</h3>
-                        <p>강사는 본인 휴대폰에서 스케줄과 출석부를 확인하고, 원장님은 강사를 위한 맞춤 권한과 급여 명세서를 평생 자동으로 산출합니다.</p>
+                        <h3>{t('mkt_feat3_title') || '강사 앱 & 급여 자동화'}</h3>
+                        <p>{t('mkt_feat3_desc') || '강사는 본인 휴대폰에서 스케줄과 출석부를 확인하고, 원장님은 강사를 위한 맞춤 권한과 급여 명세서를 평생 자동으로 산출합니다.'}</p>
                     </div>
                 </div>
             </section>

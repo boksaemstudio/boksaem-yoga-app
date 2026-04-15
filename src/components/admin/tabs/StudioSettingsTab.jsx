@@ -1095,7 +1095,7 @@ const StudioSettingsTab = () => {
             border: '1px solid rgba(239,68,68,0.3)',
             fontSize: '0.75rem'
           }} onClick={() => {
-            if (window.confirm(`"${branch.name}" 지점을 삭제하시겠습니까?\n\n⚠️ 주의: 해당 지점에 등록된 회원의 출석/매출/시간표 기록에서 지점 정보가 사라질 수 있습니다.\n\n이 작업은 되돌릴 수 없습니다.`)) {
+            if (window.confirm((t('confirm_delete_branch') || `Delete branch "${branch.name}"?\n\n⚠️ Warning: Attendance, revenue, and schedule records linked to this branch may lose their branch data.\n\nThis action cannot be undone.`).replace('{name}', branch.name))) {
               const newBranches = localConfig.BRANCHES.filter((_, i) => i !== index);
               handleChange('BRANCHES', newBranches);
             }

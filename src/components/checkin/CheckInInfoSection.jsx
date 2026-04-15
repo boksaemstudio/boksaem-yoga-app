@@ -70,6 +70,8 @@ const CheckInInfoSection = memo(({
                     {kioskLogos.length > 0 ? kioskLogos.map((logoUrl, idx) => {
           const bgs = config.KIOSK?.LOGO_BGS || [];
           const opacities = config.KIOSK?.LOGO_OPACITIES || [];
+          const inverts = config.KIOSK?.LOGO_INVERTS || [];
+          const isInverted = !!inverts[idx];
           const currentBg = bgs[idx] || 'transparent';
           const opacity = typeof opacities[idx] === 'number' ? opacities[idx] : 1.0;
           const bgRgb = currentBg === 'white' ? '255,255,255' : currentBg === 'black' ? '0,0,0' : null;
@@ -82,7 +84,9 @@ const CheckInInfoSection = memo(({
             maxWidth: kioskLogos.length > 1 ? '45%' : '80%',
             objectFit: 'contain',
             background: bgStyle,
-            borderRadius: currentBg === 'transparent' ? '0' : '8px' // 배경색이 있을 때만 미세한 라운드 처리 (여백 없음)
+            borderRadius: currentBg === 'transparent' ? '0' : '8px', // 배경색이 있을 때만 미세한 라운드 처리 (여백 없음)
+            filter: isInverted ? 'invert(1)' : 'none',
+            transition: 'filter 0.3s ease'
           }} onError={e => {
             e.target.style.display = 'none';
           }} />;

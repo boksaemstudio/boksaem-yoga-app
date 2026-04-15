@@ -83,7 +83,7 @@ const NoticesTab = ({
                 </button>
             </div>
             <div className="card-list">
-                {notices.length === 0 ? <div style={{
+                {notices.filter(n => !n.isSystemNotice).length === 0 ? <div style={{
         textAlign: 'center',
         padding: '60px 0',
         opacity: 0.5
@@ -92,7 +92,7 @@ const NoticesTab = ({
           marginBottom: '15px'
         }} />
                         <p>{t('등록된 공지사항이 없습니다.')}</p>
-                    </div> : [...notices].sort((a, b) => new Date(b.timestamp || b.date || 0) - new Date(a.timestamp || a.date || 0)).map(notice => <div key={notice.id} className="glass-panel" style={{
+                    </div> : [...notices].filter(n => !n.isSystemNotice).sort((a, b) => new Date(b.timestamp || b.date || 0) - new Date(a.timestamp || a.date || 0)).map(notice => <div key={notice.id} className="glass-panel" style={{
         marginBottom: '20px',
         padding: '24px',
         border: `1px solid ${config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'}40`,

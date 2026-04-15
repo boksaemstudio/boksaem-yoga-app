@@ -99,7 +99,7 @@ export function useScheduleData(branchId, config) {
     } else setMonth(month + 1);
   };
   const handleCreateStandard = async () => {
-    const confirmMsg = `📅 ${year}년 ${month}월에 '표준 시간표(기본)'를 적용하시겠습니까?\n\n기본 설정된 시간표 패턴으로 생성됩니다.`;
+    const confirmMsg = (t("confirm_apply_standard") || `📅 Apply the standard schedule template to ${year}/${month}?`).replace("{year}", year).replace("{month}", month);
     if (!window.confirm(confirmMsg)) return;
     setLoading(true);
     try {
@@ -118,7 +118,7 @@ export function useScheduleData(branchId, config) {
     d.setMonth(d.getMonth() - 1);
     const prevYear = d.getFullYear();
     const prevMonth = d.getMonth() + 1;
-    if (!confirm(`${prevYear}년 ${prevMonth}월의 스케줄 패턴을 복사하여\n${year}년 ${month}월 스케줄을 생성하시겠습니까?\n\n(일요일과 토요일 일정도 순차적으로 복사됩니다.)`)) return;
+    if (!confirm((t('confirm_copy_schedule') || `Copy schedule from ${prevYear}/${prevMonth} to ${year}/${month}?\n\n(Weekend schedules will also be copied.)`).replace('{prevYear}', prevYear).replace('{prevMonth}', prevMonth).replace('{year}', year).replace('{month}', month))) return;
     setLoading(true);
     try {
       await storageService.copyMonthlySchedule(branchId, prevYear, prevMonth, year, month);
@@ -197,7 +197,7 @@ export function useScheduleData(branchId, config) {
         }
       });
       if (hasRelevantChanges && !applyToAll) {
-        shouldUpdatePastAttendance = window.confirm(`해당 날짜(${selectedDate})의 수업명이나 강사명이 변경되었습니다.\n\n` + `이 변경 사항을 과거 출석 기록(이미 등록된 출석부)에도 일괄 적용하시겠습니까?\n` + `(적용 시 강사앱 통계 등이 수정되며, 회원의 남은 횟수/기간은 변동되지 않아 안전합니다.)`);
+        shouldUpdatePastAttendance = window.confirm((t('confirm_update_past_attendance') || `Class or instructor name has changed for ${selectedDate}.\n\nApply this change to existing attendance records?\n(Member credits and periods will not be affected.)`).replace('{date}', selectedDate));
       }
       if (applyToAll) {
         const targetDate = new Date(selectedDate);
@@ -216,7 +216,7 @@ export function useScheduleData(branchId, config) {
           }
           tempDate.setDate(tempDate.getDate() + 1);
         }
-        if (!window.confirm(`이번 달의 모든 [${targetDayName}요일] (${datesToUpdate.length}일)을 동일하게 수정하시겠습니까?\n\n날짜: ${datesToUpdate.map(d => d.date.split('-')[2]).join(', ')}`)) {
+        if (!window.confirm((t('confirm_bulk_update_day') || `Update all [${targetDayName}] schedules this month (${datesToUpdate.length} days)?`).replace('{day}', targetDayName).replace('{count}', datesToUpdate.length))) {
           setLoading(false);
           return false;
         }

@@ -219,7 +219,7 @@ const SuperAdminPage = () => {
     }
   };
   const handleDeleteAdmin = async adminObj => {
-    if (!window.confirm(`정말로 [${adminObj.email}] 관리자 계정을 완전히 삭제하시겠습니까?\n이 작업은 복구할 수 없으며 해당 관리자의 파이어베이스 접속이 즉각 차단됩니다.`)) return;
+    if (!window.confirm(t('confirm_delete_admin') || 'Permanently delete this admin account? This action cannot be undone.')) return;
     setAdminsLoading(true);
     try {
       const fn = httpsCallable(functions, 'deleteAdminCall');
@@ -323,7 +323,7 @@ const SuperAdminPage = () => {
     window.open(`/admin?studio=${studio.id}`, '_blank');
   };
   const handleDelete = async studio => {
-    if (!window.confirm(`정말로 [${studio.name}]을 레지스트리에서 삭제하시겠습니까?\n\n(실제 데이터는 보존됩니다)`)) return;
+    if (!window.confirm((t('confirm_remove_studio') || `Remove [${studio.name}] from the registry?\n\n(Actual data will be preserved)`).replace('{name}', studio.name))) return;
     await studioRegistryService.deleteStudio(studio.id);
     loadStudios();
   };
@@ -338,7 +338,7 @@ const SuperAdminPage = () => {
       return;
     }
     const isoString = new Date(newDateStr).toISOString();
-    if (window.confirm(`시작 날짜를 ${newDateStr} 로 변경하시겠습니까?`)) {
+    if (window.confirm((t('confirm_change_start_date') || `Change start date to ${newDateStr}?`).replace('{date}', newDateStr))) {
       const success = await studioRegistryService.updateStudio(studio.id, {
         createdAt: isoString
       });

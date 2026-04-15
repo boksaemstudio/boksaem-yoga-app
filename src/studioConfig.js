@@ -12,7 +12,7 @@ export const STUDIO_CONFIG = {
     LOGO_TEXT: "YOGA",
     SLOGAN: "\uB098\uB97C \uB9CC\uB098\uB294 \uACE0\uC694\uD55C \uC2DC\uAC04",
     DESCRIPTION: "\uC694\uAC00\uC640 \uD568\uAED8\uD558\uB294 \uAC74\uAC15\uD55C \uC77C\uC0C1",
-    APP_VERSION: "2026.04.14 23:07",
+    APP_VERSION: "2026.04.15 10:33",
     FAVICON: "/favicon.ico"
   },
   // 2. Operational Policy Engine (운영 정책) — 합리적 기본값

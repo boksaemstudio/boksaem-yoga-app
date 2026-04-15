@@ -362,7 +362,7 @@ const InstructorHome = ({
                 return memberData.hasFaceDescriptor ? <span onClick={e => {
                   e.stopPropagation();
                   if (deletingFaceMemberId) return;
-                  if (!confirm(`${record.memberName}님의 안면 인식 데이터를 삭제하시겠습니까?\n\n삭제 후 키오스크에서 다시 등록할 수 있습니다.`)) return;
+                  if (!confirm((t('confirm_delete_face_data') || `Delete facial recognition data for ${record.memberName}?\n\nThey can re-register at the kiosk.`).replace('{name}', record.memberName))) return;
                   setDeletingFaceMemberId(record.memberId);
                   memberService.deleteFaceDescriptor(record.memberId).then(result => {
                     if (result.success) {

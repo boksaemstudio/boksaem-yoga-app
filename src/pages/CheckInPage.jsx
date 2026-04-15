@@ -405,7 +405,7 @@ const CheckInPage = () => {
           setMessage({
             type: 'error',
             text: t('checkin_member_not_found') || '😔 등록되지 않은 번호입니다',
-            subText: t('checkin_member_not_found_sub') || '입력하신 전화번호 뒤 4자리와\n일치하는 회원을 찾을 수 없습니다.\n\n번호를 다시 확인해 주세요.'
+            subText: t('checkin_member_not_found_sub') || 'No member found matching the last 4 digits of this phone number.\n\nPlease check and try again.'
           });
           return;
         }

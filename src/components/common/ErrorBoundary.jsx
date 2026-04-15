@@ -51,15 +51,15 @@ class ErrorBoundary extends Component {
         }
         return <div className="eb-fallback">
                         <div>
-                            <h1 className="eb-title">{t("g_4a3c78") || "⚠️ 시스템 오류 발생"}</h1>
-                            <p className="eb-subtitle">{t("g_c96347") || "잠시 후 자동으로 복구됩니다..."}</p>
+                            <h1 className="eb-title">{t("g_4a3c78") || "⚠️ System Error"}</h1>
+                            <p className="eb-subtitle">{t("g_c96347") || "Recovering automatically..."}</p>
                             <p className="eb-hint">
-                                {reloadCount < 3 ? (t("g_ccd5c0") || "10초 후 자동 새로고침") : (t("g_77178b") || "자동 복구 시도 횟수 초과")}
+                                {reloadCount < 3 ? (t("g_ccd5c0") || "Auto-refreshing in 10 seconds") : (t("g_77178b") || "Auto-recovery attempts exceeded")}
                             </p>
                             <div style={{
               marginTop: '30px'
             }}>
-                                <button onClick={() => window.location.reload()} className="eb-btn-primary">{t("g_9a702f") || "지금 새로고침"}</button>
+                                <button onClick={() => window.location.reload()} className="eb-btn-primary">{t("g_9a702f") || "Refresh Now"}</button>
                             </div>
                         </div>
                     </div>;
@@ -78,13 +78,13 @@ class ErrorBoundary extends Component {
                         <h1 className="eb-title" style={{
             color: 'var(--primary-gold)',
             marginBottom: '16px'
-          }}>{t("g_2977ec") || "✨ 업데이트가 완료되었습니다"}</h1>
+          }}>{t("g_2977ec") || "✨ Update Complete"}</h1>
                         <p style={{
             color: 'var(--text-secondary)',
             marginBottom: '30px',
             maxWidth: '400px',
             lineHeight: '1.5'
-          }}>{t("g_fbbd6b") || "새로운 기능이 배포되어 최신 버전을 불러와야 합니다."}<br />{t("g_367556") || "아래 버튼을 눌러 앱을 재시작해주세요."}</p>
+          }}>{t("g_fbbd6b") || "A new version has been deployed. Please reload to get the latest features."}<br />{t("g_367556") || "Tap the button below to restart the app."}</p>
                         <button onClick={async () => {
             sessionStorage.setItem('chunk_reload_time', Date.now().toString());
             try {
@@ -107,7 +107,7 @@ class ErrorBoundary extends Component {
           }} className="eb-btn-primary" style={{
             padding: '12px 24px',
             fontSize: '1rem'
-          }}>{t("g_eacf78") || "앱 재시작 (업데이트 적용)"}</button>
+          }}>{t("g_eacf78") || "Restart App (Apply Update)"}</button>
                     </div>;
       }
       return <div className="eb-fallback-full">
@@ -115,7 +115,7 @@ class ErrorBoundary extends Component {
                     <p style={{
           color: 'white',
           marginBottom: '10px'
-        }}>{t("g_404971") || "애플리케이션을 불러오는 중 문제가 발생했습니다."}</p>
+        }}>{t("g_404971") || "Something went wrong while loading the application."}</p>
 
                     <div className="eb-error-box">
                         <h3 style={{
@@ -134,8 +134,8 @@ class ErrorBoundary extends Component {
           display: 'flex',
           gap: '10px'
         }}>
-                        <button onClick={() => window.location.reload()} className="eb-btn-primary">{t("g_b68cf3") || "새로고침 (F5)"}</button>
-                        <button onClick={() => window.location.href = '/'} className="eb-btn-ghost">{t("g_ff4936") || "홈으로 이동"}</button>
+                        <button onClick={() => window.location.reload()} className="eb-btn-primary">{t("g_b68cf3") || "Refresh (F5)"}</button>
+                        <button onClick={() => window.location.href = '/'} className="eb-btn-ghost">{t("g_ff4936") || "Go to Home"}</button>
                     </div>
                 </div>;
     }

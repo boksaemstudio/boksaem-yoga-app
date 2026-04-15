@@ -231,7 +231,7 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
     if (changes.length === 1) {
       const change = changes[0];
       const extra = hasRevenueRelated ? t("g_8cb3c0") || "\n\n\u203B \uB9E4\uCD9C \uAE30\uB85D\uC740 \uBCC4\uB3C4\uB85C \uAD00\uB9AC\uB418\uBBC0\uB85C \uC601\uD5A5\uBC1B\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4." : '';
-      if (confirm(`${change.label}을(를) "${change.oldValue}"에서 "${change.newValue}"(으)로 변경하시겠습니까?${extra}`)) {
+      if (confirm((t('confirm_field_change') || `Change ${change.label} from "${change.oldValue}" to "${change.newValue}"?`).replace('{label}', change.label).replace('{old}', change.oldValue).replace('{new}', change.newValue))) {
         handleFinalSave({
           [change.key]: editData[change.key]
         });

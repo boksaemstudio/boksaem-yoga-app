@@ -189,7 +189,7 @@ const KioskSettingsTab = () => {
 
   // ─── 개별 삭제 ───
   const handleDeleteItem = async item => {
-    if (!window.confirm(`이 ${item.type === 'video' ? t("g_0c005c") || "\uC601\uC0C1" : t("g_277eb5") || "\uC774\uBBF8\uC9C0"}을 삭제할까요?`)) return;
+    if (!window.confirm(t('confirm_delete_media') || `Delete this ${item.type === 'video' ? 'video' : 'image'}?`)) return;
     try {
       const itemRef = ref(storage, item.fullPath);
       await deleteObject(itemRef);
@@ -285,6 +285,8 @@ const KioskSettingsTab = () => {
           const logoUrl = logos[slotIdx] || '';
           const bgs = config.KIOSK?.LOGO_BGS || [];
           const opacities = config.KIOSK?.LOGO_OPACITIES || [];
+          const inverts = config.KIOSK?.LOGO_INVERTS || [];
+          const isInverted = !!inverts[slotIdx];
           const currentBg = bgs[slotIdx] || 'transparent'; // 'transparent', 'white', 'black'
           const dbOpacity = typeof opacities[slotIdx] === 'number' ? opacities[slotIdx] : 1.0;
           const currentOpacity = tempOpacities[slotIdx] !== undefined ? tempOpacities[slotIdx] : dbOpacity;
@@ -325,10 +327,12 @@ const KioskSettingsTab = () => {
                 padding: '16px 0',
                 background: finalBg
               }}>
-                                            <img src={logoUrl} alt={`키오스크 로고 ${slotIdx + 1}`} style={{
+                                            <img src={logoUrl} alt={`Kiosk Logo ${slotIdx + 1}`} style={{
                   maxHeight: '70px',
                   maxWidth: '80%',
-                  objectFit: 'contain'
+                  objectFit: 'contain',
+                  filter: isInverted ? 'invert(1)' : 'none',
+                  transition: 'filter 0.3s ease'
                 }} />
                                         </div>
 
@@ -365,6 +369,42 @@ const KioskSettingsTab = () => {
                     }
                   }} />
                                                     {bgValue === 'transparent' ? t("g_a245e6") || "\uC5C6\uC74C" : bgValue === 'white' ? t("g_bfabc1") || "\uD770" : t("g_ba3f0f") || "\uAC80"}
+                                                </label>)}
+                                        </div>
+
+                                        {/* 이미지 반전(Invert) 토글 */}
+                                        <div style={{
+                display: 'flex',
+                gap: '8px',
+                marginTop: '8px',
+                alignItems: 'center',
+                fontSize: '0.7rem',
+                color: 'var(--text-secondary)'
+              }}>
+                                            <span>{t('kiosk_logo_invert') || 'Invert:'}</span>
+                                            {[false, true].map(invertValue => <label key={String(invertValue)} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  cursor: 'pointer'
+                }}>
+                                                    <input type="radio" checked={isInverted === invertValue} onChange={async () => {
+                    const newInverts = [...inverts];
+                    while (newInverts.length <= slotIdx) newInverts.push(false);
+                    newInverts[slotIdx] = invertValue;
+                    try {
+                      await updateConfig({
+                        KIOSK: {
+                          ...(config.KIOSK || {}),
+                          LOGO_INVERTS: newInverts
+                        }
+                      });
+                      await refreshConfig();
+                    } catch (e) {
+                      alert((t("g_f4eb20") || "Change failed: ") + e.message);
+                    }
+                  }} />
+                                                    {invertValue ? (t('kiosk_logo_invert_on') || 'On') : (t('kiosk_logo_invert_off') || 'Off')}
                                                 </label>)}
                                         </div>
 

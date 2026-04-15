@@ -19,9 +19,9 @@ export function initAgentAdminMode() {
     window.prompt = (msg, defaultVal) => {
       console.log('[Agent Mode] Auto-prompting:', msg);
       const t = useLanguageStore.getState().t;
-      if (msg.includes(t("g_64e330") || "마이그레이션")) return t("g_64e330") || "마이그레이션";
-      if (msg.includes(t("g_30e15a") || "삭제")) return t("g_30e15a") || "삭제";
-      return defaultVal || t("g_3ce813") || "확인";
+      if (msg.includes(t("g_64e330") || "migration")) return t("g_64e330") || "마이그레이션";
+      if (msg.includes(t("g_30e15a") || "delete")) return t("g_30e15a") || "삭제";
+      return defaultVal || t("g_3ce813") || "confirm";
     };
     window.alert = msg => {
       console.log('[Agent Mode] Auto-alerting (Suppressed):', msg);

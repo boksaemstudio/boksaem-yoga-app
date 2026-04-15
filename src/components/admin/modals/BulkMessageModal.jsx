@@ -79,7 +79,7 @@ const BulkMessageModal = ({
     }
     const modeLabel = (() => { const m = SEND_MODES.find(m => m.id === sendMode); return m ? (t(m.labelKey) || m.labelFallback) : sendMode; })();
     const costText = sendMode === 'push_only' ? t("g_667dd4") || "\uBB34\uB8CC" : `약 ${costInfo.totalCost.toLocaleString()}원`;
-    if (!confirm(`${memberCount}명에게 ${modeLabel} 방식으로 전송하시겠습니까?\n예상 비용: ${costText}`)) {
+    if (!confirm((t('confirm_bulk_send') || `Send to ${memberCount} members via ${modeLabel}?\nEstimated cost: ${costText}`).replace('{count}', memberCount).replace('{mode}', modeLabel).replace('{cost}', costText))) {
       return;
     }
     setSending(true);

@@ -1,5 +1,6 @@
 import { useLanguageStore } from '../stores/useLanguageStore';
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { localizeMembers } from '../utils/demoLocalization';
 import { storageService } from '../services/storage';
 // [Refactor] Ensuring initialization order for SaaS engine
 import { useStudioConfig } from '../contexts/StudioContext';
@@ -88,6 +89,7 @@ const isMemberDormant = (m, logs, isMemberActiveFn) => {
 };
 const AdminDashboard = () => {
   const t = useLanguageStore(s => s.t);
+  const lang = useLanguageStore(s => s.language) || 'ko';
   const {
     config,
     loading
@@ -280,7 +282,7 @@ const AdminDashboard = () => {
       const seenNames = new Set();
       instructorTokens.forEach(tk => {
         // [FIX] 강사는 이름으로 중복 체크 (같은 강사가 여러 기기에서 토큰 등록 시 중복 방지)
-        const instructorName = tk.instructorName || "선생님";
+        const instructorName = tk.instructorName || "";
         if (!seenNames.has(instructorName)) {
           seenNames.add(instructorName);
           uniqueInstructors.push({
@@ -380,7 +382,7 @@ const AdminDashboard = () => {
     }
   };
   const handleForceUpdate = async () => {
-    if (!window.confirm(`업데이트 및 캐시를 초기화하시겠습니까?\n(로그아웃될 수 있습니다)`)) return;
+    if (!window.confirm(t('confirm_clear_cache') || 'Clear all caches and refresh? (You may be logged out)')) return;
     console.log('[App] Forcing update and clearing ALL caches...');
 
     // [CRITICAL] 1. Delete ALL Firestore/Firebase IndexedDB databases
@@ -503,7 +505,7 @@ const AdminDashboard = () => {
       if (instructorToken) {
         member = {
           id: memberId,
-          name: instructorToken.instructorName || t("g_9564f6") || "선생님",
+          name: instructorToken.instructorName || t("g_9564f6") || "",
           phone: '',
           role: 'instructor'
         };
@@ -793,7 +795,7 @@ const AdminDashboard = () => {
                         {aiInsight && <AdminInsights briefing={aiInsight.message} />}
 
 
-                        <MembersTab members={members} filteredMembers={filteredMembers} summary={extendedSummary} searchTerm={searchTerm} setSearchTerm={setSearchTerm} filterType={filterType} handleToggleFilter={handleToggleFilter} selectExpiringMembers={selectExpiringMembers} selectedMemberIds={selectedMemberIds} toggleMemberSelection={toggleMemberSelection} selectFilteredMembers={selectFilteredMembers} currentPage={currentPage} setCurrentPage={setCurrentPage} itemsPerPage={itemsPerPage} handleOpenEdit={handleOpenEdit} setShowAddModal={b => b ? openModal('add') : closeModal('add')} setShowBulkMessageModal={b => b ? openModal('bulkMessage') : closeModal('bulkMessage')} pushTokens={pushTokens} getDormantSegments={getDormantSegments} setBulkMessageInitialText={setBulkMessageInitialText} setActiveTab={setActiveTab} onNoteClick={m => openModal('note', {
+                        <MembersTab members={isDemoSite ? localizeMembers(members, lang) : members} filteredMembers={isDemoSite ? localizeMembers(filteredMembers, lang) : filteredMembers} summary={extendedSummary} searchTerm={searchTerm} setSearchTerm={setSearchTerm} filterType={filterType} handleToggleFilter={handleToggleFilter} selectExpiringMembers={selectExpiringMembers} selectedMemberIds={selectedMemberIds} toggleMemberSelection={toggleMemberSelection} selectFilteredMembers={selectFilteredMembers} currentPage={currentPage} setCurrentPage={setCurrentPage} itemsPerPage={itemsPerPage} handleOpenEdit={handleOpenEdit} setShowAddModal={b => b ? openModal('add') : closeModal('add')} setShowBulkMessageModal={b => b ? openModal('bulkMessage') : closeModal('bulkMessage')} pushTokens={pushTokens} getDormantSegments={getDormantSegments} setBulkMessageInitialText={setBulkMessageInitialText} setActiveTab={setActiveTab} onNoteClick={m => openModal('note', {
             member: m
           })} todayReRegMemberIds={todayReRegMemberIds} sales={sales} />
                 </div>}

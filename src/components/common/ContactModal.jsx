@@ -5,7 +5,8 @@ import { useLanguageStore } from '../../stores/useLanguageStore';
 import '../../styles/landing.css';
 
 export default function ContactModal({ isOpen, onClose }) {
-    const lang = useLanguageStore(s => s.lang) || 'ko';
+    const t = useLanguageStore(s => s.t);
+    const lang = useLanguageStore(s => s.language) || 'ko';
     const [inquiryForm, setInquiryForm] = useState({ name: '', phone: '', email: '', message: '' });
     const [inquirySent, setInquirySent] = useState(false);
 
@@ -28,7 +29,7 @@ export default function ContactModal({ isOpen, onClose }) {
             }, 3000);
         } catch (error) {
             console.error('Inquiry submission failed:', error);
-            alert('Failed to send message.');
+            alert(t('mkt_inquiry_fail') || 'Message sending failed.');
         }
     };
 
@@ -38,31 +39,31 @@ export default function ContactModal({ isOpen, onClose }) {
                 <button className="inquiry-close" onClick={onClose}>×</button>
                 {inquirySent ? (
                     <div className="inquiry-success">
-                        <h3>{lang === 'ko' ? '성공적으로 접수되었습니다.' : 'Request Submitted Successfully.'}</h3>
-                        <p>{lang === 'ko' ? '전담팀에서 영업일 기준 1일 내에 연락드리겠습니다.' : 'Our team will contact you within 1 business day.'}</p>
+                        <h3>{t('contact_success') || 'Request submitted successfully.'}</h3>
+                        <p>{t('contact_followup') || 'Our team will be in touch within 1 business day.'}</p>
                     </div>
                 ) : (
                     <form onSubmit={handleInquirySubmit} className="inquiry-form">
-                        <h3>{lang === 'ko' ? '플랫폼 도입 및 커스텀 상담' : 'Platform Setup & Customization'}</h3>
-                        <p>{lang === 'ko' ? '원장님의 스튜디오에 완벽히 맞춘 1:1 맞춤형 SaaS 기능 가이드를 지원합니다.' : 'We provide 1:1 tailored feature setup designed perfectly for your workflow.'}</p>
+                        <h3>{t('contact_title') || 'Platform Setup & Customization'}</h3>
+                        <p>{t('contact_desc') || 'We provide tailored SaaS feature design, fully adapted to your studio\'s workflow. Let us show you what\'s possible.'}</p>
                         
                         <div className="i-group">
-                            <label>{lang === 'ko' ? '초기 세팅 이름 (스튜디오명)' : 'Name / Studio Name'}</label>
+                            <label>{t('contact_name_label') || 'Name / Studio Name'}</label>
                             <input type="text" required value={inquiryForm.name} onChange={e => setInquiryForm({...inquiryForm, name: e.target.value})} />
                         </div>
                         <div className="i-group">
-                            <label>{lang === 'ko' ? '연락처 (선택)' : 'Phone (Optional)'}</label>
+                            <label>{t('contact_phone_label') || 'Phone (Optional)'}</label>
                             <input type="text" value={inquiryForm.phone} onChange={e => setInquiryForm({...inquiryForm, phone: e.target.value})} />
                         </div>
                         <div className="i-group">
-                            <label>{lang === 'ko' ? '답변받을 이메일' : 'Email Address'}</label>
+                            <label>{t('contact_email_label') || 'Email Address'}</label>
                             <input type="email" required value={inquiryForm.email} onChange={e => setInquiryForm({...inquiryForm, email: e.target.value})} />
                         </div>
                         <div className="i-group">
-                            <label>{lang === 'ko' ? '도입 목적 및 문의사항' : 'Message / Requirements'}</label>
-                            <textarea required rows="4" placeholder={lang==='ko' ? '필요하신 스케줄이나 특별한 요구사항을 적어주세요.' : 'Please describe any specific scheduling or operations needs.'} value={inquiryForm.message} onChange={e => setInquiryForm({...inquiryForm, message: e.target.value})}></textarea>
+                            <label>{t('contact_message_label') || 'Message / Requirements'}</label>
+                            <textarea required rows="4" placeholder={t('contact_placeholder') || 'Describe your scheduling needs, integrations, or any special requirements.'} value={inquiryForm.message} onChange={e => setInquiryForm({...inquiryForm, message: e.target.value})}></textarea>
                         </div>
-                        <button type="submit" className="i-submit">{lang === 'ko' ? '상담 요청하기' : 'Request Consultation'}</button>
+                        <button type="submit" className="i-submit">{t('contact_submit') || 'Request Consultation'}</button>
                     </form>
                 )}
             </div>
