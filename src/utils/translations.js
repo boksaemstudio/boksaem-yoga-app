@@ -703,6 +703,24 @@ export const translations = {
         mkt_inquiry_success: "성공적으로 전송되었습니다!",
         mkt_inquiry_followup: "담당자가 곧 연락드리겠습니다.",
         mkt_inquiry_fail: "메시지 전송에 실패했습니다.",
+
+        // Kiosk Overlay & Success Details
+        "kiosk_overlay_close": "닫기",
+        "kiosk_overlay_touch_to_return": "아무 곳이나 터치하면 출석 화면으로 돌아갑니다",
+        "kiosk_success_tbd": "확정 전",
+        "kiosk_success_unlimited": "무제한",
+        "kiosk_success_expired": "만료",
+        "kiosk_success_credits_title": "잔여 횟수",
+        "kiosk_success_days_title": "잔여 일수",
+        "kiosk_success_confirm_btn": "확인",
+
+        // ErrorBoundary
+        "g_c96347": "자동으로 복구 중입니다...",
+        "g_fbbd6b": "새로운 버전이 배포되었습니다. 최신 기능을 사용하려면 새로고침 해주세요.",
+        "g_367556": "아래 버튼을 눌러 앱을 재시작하세요.",
+        "g_404971": "앱을 불러오는 중 오류가 발생했습니다.",
+        "g_ff4936": "홈으로 이동",
+        "g_f4eb20": "변경 실패: ",
     },
     en: {
         "kiosk_logo_invert": "Invert:",
@@ -998,6 +1016,24 @@ export const translations = {
         "attendance": "Attendance",
         "noAttendanceRecords": "No attendance records.",
         "activityLog": "Activity Log",
+
+        // Kiosk Overlay & Success Details
+        "kiosk_overlay_close": "Close",
+        "kiosk_overlay_touch_to_return": "Tap anywhere to return to the check-in screen",
+        "kiosk_success_tbd": "TBD",
+        "kiosk_success_unlimited": "Unlimited",
+        "kiosk_success_expired": "Expired",
+        "kiosk_success_credits_title": "Remaining Credits",
+        "kiosk_success_days_title": "Days Remaining",
+        "kiosk_success_confirm_btn": "Confirm",
+
+        // ErrorBoundary
+        "g_c96347": "Recovering automatically...",
+        "g_fbbd6b": "A new version has been deployed. Please reload to get the latest features.",
+        "g_367556": "Tap the button below to restart the app.",
+        "g_404971": "Something went wrong while loading the application.",
+        "g_ff4936": "Go to Home",
+        "g_f4eb20": "Change failed: ",
 
         "새로운 버전이 준비되었습니다": "A new version is ready",
         "새로운 기능 활성화 및 최적화를 위해": "To enable new features and optimizations",

@@ -69,6 +69,7 @@ const SuccessDetails = memo(({
     border: '1px solid rgba(255,255,255,0.1)',
     animation: 'fadeIn 0.5s ease-out'
   }}>
+            {/* Stats Row */}
             <div style={{
       display: 'flex',
       justifyContent: 'center',
@@ -91,7 +92,7 @@ const SuccessDetails = memo(({
         }}>
                         {t('kiosk_success_credits_count', {
             credits
-          }) || `${credits}회`}
+          }) || `${credits}\uD68C`}
                     </div>
                 </div>
                 
@@ -118,14 +119,14 @@ const SuccessDetails = memo(({
                         {renderDaysRemaining()}
                     </div>
                 </div>
+            </div>
 
-                <div style={{
-        width: '2px',
-        height: '70px',
-        background: 'rgba(255,255,255,0.1)',
-        marginLeft: '10px'
-      }} />
-                
+            {/* Confirm Button - separate row below stats */}
+            <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      marginTop: '30px'
+    }}>
                 <button onClick={e => {
         e.stopPropagation();
         onClose();
@@ -137,15 +138,14 @@ const SuccessDetails = memo(({
         background: 'rgba(255,255,255,0.12)',
         border: '3px solid rgba(255,255,255,0.25)',
         color: 'white',
-        padding: '20px 45px',
+        padding: '20px 80px',
         borderRadius: '24px',
         fontSize: '1.6rem',
         fontWeight: '900',
         cursor: 'pointer',
         transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
         boxShadow: '0 8px 30px var(--primary-gold-glow)',
-        minWidth: '150px',
-        marginLeft: '15px'
+        minWidth: '200px'
       }}>
                     {t('kiosk_success_confirm_btn') || t("g_3ce813") || "\uD655\uC778"}
                 </button>
