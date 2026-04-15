@@ -88,7 +88,7 @@ const AdminHeader = ({
         fontWeight: 'bold'
       }} title={t('addToHomeScreen')}>
                     <PlusCircle size={16} weight="bold" />
-                    <span className="hide-mobile">{t('addToHomeShort')}</span>
+                    <span className="mobile-compact">{t('addToHomeShort')}</span>
                 </button>
                 <button onClick={handleLogout} style={{
         marginLeft: '4px',
@@ -133,7 +133,7 @@ const AdminHeader = ({
           fontWeight: 'bold'
         }}>
                             {isAllExpanded ? <ToggleRight size={18} weight="fill" /> : <ToggleLeft size={18} />}
-                            <span className="hide-mobile">{isAllExpanded ? t('collapseAll') : t('expandAll')}</span>
+                            <span className="mobile-compact">{isAllExpanded ? t('collapseAll') : t('expandAll')}</span>
                         </button>
                         <div className="tooltip-text" style={{
           width: '200px',
@@ -191,7 +191,7 @@ const AdminHeader = ({
             marginLeft: '2px',
             paddingLeft: '6px',
             borderLeft: '1px solid rgba(var(--primary-rgb), 0.3)'
-          }} className="hide-mobile">
+          }} className="mobile-compact">
                             {aiUsage.count}/{aiUsage.limit}
                         </span>
                     </button>

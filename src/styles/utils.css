@@ -264,6 +264,7 @@
 /* ── Responsive ── */
 @media (max-width: 600px) {
   .hide-mobile { display: none !important; }
+  .mobile-compact { font-size: 0.6rem !important; max-width: 4em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .mobile-col { flex-direction: column; }
   .mobile-full { width: 100%; }
 }
