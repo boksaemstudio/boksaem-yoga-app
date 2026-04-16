@@ -40,6 +40,7 @@ const MiniCalendar = memo(({
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
   const startDay = new Date(viewYear, viewMonth, 1).getDay();
   const language = useLanguageStore(s => s.language);
+  const t = useLanguageStore(s => s.t);
   const dayNames = dayNamesMap[language] || dayNamesMap['en'];
   const dates = [];
   for (let i = 0; i < startDay; i++) dates.push(null);
