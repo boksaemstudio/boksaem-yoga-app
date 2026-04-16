@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- [CRITICAL] Service Worker bypass + force-reload v3 -->
+    <script>
+    (function() {
+        // Skip if already reloaded (check URL param)
+        if (location.search.indexOf('swcleared=1') !== -1) return;
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+                if (regs.length === 0) return; // No SW = page is clean
+                // Unregister all SWs
+                var tasks = regs.map(function(r) { return r.unregister(); });
+                Promise.all(tasks).then(function() {
+                    // Clear all caches then reload
+                    if ('caches' in window) {
+                        caches.keys().then(function(names) {
+                            Promise.all(names.map(function(n) { return caches.delete(n); })).then(function() {
+                                var sep = location.search ? '&' : '?';
+                                location.replace(location.href + sep + 'swcleared=1');
+                            });
+                        });
+                    } else {
+                        var sep = location.search ? '&' : '?';
+                        location.replace(location.href + sep + 'swcleared=1');
+                    }
+                });
+            });
+        }
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PassFlow AI vs Vagaro — Why Pay Monthly When You Can Pay $69/Year?</title>
+    <meta name="description" content="Compare PassFlow AI vs Vagaro for yoga & fitness studio management. PassFlow AI costs $69/year with AI facial recognition included — Vagaro charges $25–$90/month plus add-ons.">
+    <meta name="keywords" content="Vagaro alternative, affordable studio software, PassFlow vs Vagaro, cheap gym management, Vagaro pricing, yoga studio booking software comparison">
+    <meta property="og:title" content="PassFlow AI vs Vagaro — $69/Year vs $300+/Year">
+    <meta property="og:description" content="AI facial recognition, unlimited members, zero add-on fees. See why studios choose PassFlow AI over Vagaro.">
+    <meta property="og:image" content="/assets/passflow_square_logo.png">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://passflowai.web.app/en/vs-vagaro.html">
+    <link rel="canonical" href="https://passflowai.web.app/en/vs-vagaro.html" />
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "PassFlow AI vs Vagaro Comparison",
+        "description": "Detailed feature and pricing comparison between PassFlow AI and Vagaro studio management software.",
+        "url": "https://passflowai.web.app/en/vs-vagaro.html"
+    }
+    </script>
+
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3D6011MNHF"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-3D6011MNHF');
+    </script>
+    <link rel="stylesheet" href="/style.css?v=6">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', 'Outfit', sans-serif; background: #09090b; color: #e4e4e7; }
+        .comparison-page { max-width: 900px; margin: 0 auto; padding: 60px 20px; }
+        .comparison-page h1 { font-family: 'Outfit', sans-serif; font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; text-align: center; margin-bottom: 16px; line-height: 1.2; }
+        .comparison-page h1 span { color: #d4af37; }
+        .comparison-page .subtitle { text-align: center; font-size: 1.15rem; color: #a1a1aa; margin-bottom: 48px; line-height: 1.6; }
+        .comparison-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 16px; overflow: hidden; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); }
+        .comparison-table th, .comparison-table td { padding: 16px 20px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .comparison-table th { background: rgba(212,175,55,0.08); color: #d4af37; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .comparison-table th:first-child { width: 35%; }
+        .comparison-table td:first-child { font-weight: 600; color: #e4e4e7; }
+        .comparison-table tr:last-child td { border-bottom: none; }
+        .winner { color: #4ade80; font-weight: 700; }
+        .loser { color: #71717a; }
+        .price-highlight { font-size: 1.8rem; font-weight: 900; color: #d4af37; }
+        .price-compare { font-size: 1.1rem; color: #ef4444; text-decoration: line-through; opacity: 0.6; }
+        .savings-badge { display: inline-block; padding: 8px 20px; border-radius: 40px; background: linear-gradient(135deg, rgba(74,222,128,0.15), rgba(74,222,128,0.05)); border: 1px solid rgba(74,222,128,0.3); color: #4ade80; font-weight: 800; font-size: 1rem; margin: 24px auto; }
+        .cta-section { text-align: center; margin-top: 60px; padding: 48px 24px; border-radius: 20px; background: linear-gradient(135deg, rgba(212,175,55,0.1), rgba(212,175,55,0.03)); border: 1px solid rgba(212,175,55,0.2); }
+        .cta-section h2 { font-family: 'Outfit'; font-size: 1.8rem; font-weight: 800; margin-bottom: 16px; }
+        .cta-btn { display: inline-block; padding: 16px 40px; border-radius: 50px; background: linear-gradient(135deg, #d4af37, #b8941f); color: #000; font-weight: 800; font-size: 1.1rem; text-decoration: none; margin-top: 20px; transition: transform 0.2s, box-shadow 0.2s; }
+        .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(212,175,55,0.3); }
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 40px 0; }
+        .feature-card { padding: 24px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); }
+        .feature-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; color: #d4af37; }
+        .feature-card p { font-size: 0.9rem; color: #a1a1aa; line-height: 1.5; }
+        .back-link { display: inline-flex; align-items: center; gap: 8px; color: #d4af37; text-decoration: none; font-weight: 600; margin-bottom: 40px; }
+        .back-link:hover { text-decoration: underline; }
+        .also-compare { text-align: center; margin-top: 40px; padding: 20px; border-radius: 12px; background: rgba(255,255,255,0.02); }
+        .also-compare a { color: #d4af37; text-decoration: none; font-weight: 600; }
+        .also-compare a:hover { text-decoration: underline; }
+        @media (max-width: 600px) {
+            .comparison-table th, .comparison-table td { padding: 12px; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="comparison-page">
+        <a href="/en/home.html" class="back-link">← Back to PassFlow AI</a>
+
+        <h1>PassFlow AI vs Vagaro:<br><span>Pay Yearly, Not Monthly</span></h1>
+        <p class="subtitle">
+            Vagaro seems affordable at $25/month — until the add-ons pile up.<br>
+            PassFlow AI is $69/year. Everything included. No surprises.
+        </p>
+
+        <div style="text-align: center;">
+            <div class="savings-badge">💰 Save $231–$1,011/year vs Vagaro</div>
+        </div>
+
+        <!-- Pricing Comparison -->
+        <h2 style="margin-top: 48px; font-family: 'Outfit'; font-size: 1.5rem; font-weight: 800;">💰 The Real Cost Comparison</h2>
+        <p style="color: #a1a1aa; margin-bottom: 16px;">Vagaro's $25/month starting price looks great — until you need essential features.</p>
+        <table class="comparison-table" style="margin-top: 16px;">
+            <thead>
+                <tr>
+                    <th>Cost Item</th>
+                    <th>Vagaro</th>
+                    <th>PassFlow AI</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Base Price (1 user)</td>
+                    <td class="loser">$25–$40/mo</td>
+                    <td class="winner">$69/year (total)</td>
+                </tr>
+                <tr>
+                    <td>Additional Staff</td>
+                    <td class="loser">+$10–$15/user/mo</td>
+                    <td class="winner">$0 — Unlimited users</td>
+                </tr>
+                <tr>
+                    <td>Branded App</td>
+                    <td class="loser">+$200/mo</td>
+                    <td class="winner">✅ PWA included free</td>
+                </tr>
+                <tr>
+                    <td>Text Marketing</td>
+                    <td class="loser">+$20/mo</td>
+                    <td class="winner">✅ Push notifications free</td>
+                </tr>
+                <tr>
+                    <td>AI Facial Recognition</td>
+                    <td class="loser">❌ Not available</td>
+                    <td class="winner">✅ Free (Edge AI)</td>
+                </tr>
+                <tr>
+                    <td>Payment Processing</td>
+                    <td class="loser">2.75% per transaction</td>
+                    <td class="winner">0% (use your own)</td>
+                </tr>
+                <tr>
+                    <td>Per-Member Fees</td>
+                    <td class="loser">Varies</td>
+                    <td class="winner">$0 — Unlimited members</td>
+                </tr>
+                <tr>
+                    <td><strong>True Annual Cost</strong></td>
+                    <td><span class="price-compare">$300–$1,080/year</span></td>
+                    <td><span class="price-highlight">$69/year</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Feature Comparison -->
+        <h2 style="margin-top: 48px; font-family: 'Outfit'; font-size: 1.5rem; font-weight: 800;">⚡ Feature-by-Feature</h2>
+        <table class="comparison-table" style="margin-top: 16px;">
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Vagaro</th>
+                    <th>PassFlow AI</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Member Management</td><td>✅</td><td class="winner">✅</td></tr>
+                <tr><td>Class Scheduling</td><td>✅</td><td class="winner">✅</td></tr>
+                <tr><td>Online Booking</td><td>✅</td><td class="winner">✅</td></tr>
+                <tr><td>Revenue Reports</td><td>✅</td><td class="winner">✅</td></tr>
+                <tr><td>AI Facial Recognition</td><td class="loser">❌</td><td class="winner">✅ No hardware needed</td></tr>
+                <tr><td>AI Business Assistant</td><td class="loser">❌</td><td class="winner">✅ GPT-powered insights</td></tr>
+                <tr><td>Kiosk Self-Check-in</td><td class="loser">Requires Vagaro hardware</td><td class="winner">✅ Any tablet works</td></tr>
+                <tr><td>Multi-Location</td><td class="loser">Extra cost per location</td><td class="winner">✅ Included</td></tr>
+                <tr><td>Instructor Dashboard</td><td>✅</td><td class="winner">✅ Dedicated PWA</td></tr>
+                <tr><td>Member App</td><td>✅ (shared marketplace)</td><td class="winner">✅ Dedicated branded app</td></tr>
+                <tr><td>Setup Time</td><td class="loser">Hours</td><td class="winner">5 Minutes</td></tr>
+                <tr><td>Contract Required</td><td class="loser">Often required</td><td class="winner">No contract ever</td></tr>
+            </tbody>
+        </table>
+
+        <!-- Key Advantages -->
+        <h2 style="margin-top: 48px; font-family: 'Outfit'; font-size: 1.5rem; font-weight: 800;">🏆 Where PassFlow AI Wins</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3>🤖 AI That Works For You</h3>
+                <p>Facial recognition check-in using your existing tablet. No Vagaro hardware purchase needed. Plus GPT-powered business insights that Vagaro doesn't offer.</p>
+            </div>
+            <div class="feature-card">
+                <h3>💰 Truly All-Inclusive</h3>
+                <p>Vagaro's add-ons (branded app, marketing, extra users) can triple your monthly bill. PassFlow includes everything in one flat yearly fee.</p>
+            </div>
+            <div class="feature-card">
+                <h3>🎯 Built for Studios</h3>
+                <p>Vagaro serves salons, spas, and gyms. PassFlow is laser-focused on yoga, pilates, and fitness studios — meaning every feature is tailored for you.</p>
+            </div>
+            <div class="feature-card">
+                <h3>🔒 Your Data, Your Way</h3>
+                <p>No marketplace where members can discover competitors. Your members stay yours with a dedicated branded experience.</p>
+            </div>
+        </div>
+
+        <!-- Real Studio Testimonials -->
+        <h2 style="margin-top: 48px; font-family: 'Outfit'; font-size: 1.5rem; font-weight: 800;">💬 What Studio Owners Say</h2>
+        <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 20px;">
+            <div style="padding: 28px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-left: 3px solid #d4af37;">
+                <p style="font-size: 0.95rem; color: #e4e4e7; line-height: 1.7; margin-bottom: 12px;">"Vagaro kept adding $10 here, $20 there for every feature I needed. <strong style="color:#4ade80;">My monthly bill was $85 before I knew it.</strong> PassFlow AI? $69 for the entire year. I literally saved enough to buy new yoga mats for the studio."</p>
+                <p style="font-size: 0.85rem; color: #d4af37; font-weight: 600;">— Emily R., Hot Yoga Studio Owner (Denver, CO)</p>
+            </div>
+            <div style="padding: 28px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-left: 3px solid #d4af37;">
+                <p style="font-size: 0.95rem; color: #e4e4e7; line-height: 1.7; margin-bottom: 12px;">"What sold me was the AI facial recognition. My old system needed $200 barcode scanners. Now members just walk in and the tablet recognizes them. <strong style="color:#4ade80;">Zero hardware cost.</strong>"</p>
+                <p style="font-size: 0.85rem; color: #d4af37; font-weight: 600;">— Raj P., Fitness Centre Owner (Bangalore, India)</p>
+            </div>
+            <div style="padding: 28px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-left: 3px solid #d4af37;">
+                <p style="font-size: 0.95rem; color: #e4e4e7; line-height: 1.7; margin-bottom: 12px;">"I was on Vagaro for 3 years. The marketplace feature sounds nice until you realize your members are seeing competitor ads. PassFlow keeps my studio private and my members loyal."</p>
+                <p style="font-size: 0.85rem; color: #d4af37; font-weight: 600;">— Yuki T., Pilates Studio Owner (Tokyo, Japan)</p>
+            </div>
+        </div>
+
+        <!-- FAQ Section -->
+        <h2 style="margin-top: 48px; font-family: 'Outfit'; font-size: 1.5rem; font-weight: 800;">❓ Frequently Asked Questions</h2>
+        <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 12px;">
+            <details style="padding: 20px 24px; border-radius: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); cursor: pointer;">
+                <summary style="font-weight: 700; font-size: 1rem; color: #e4e4e7; list-style: none; display: flex; justify-content: space-between; align-items: center;">How is PassFlow AI so much cheaper than Vagaro?<span style="color: #d4af37; font-size: 1.3rem;">+</span></summary>
+                <p style="margin-top: 14px; font-size: 0.92rem; color: #a1a1aa; line-height: 1.7;">Three reasons: (1) Edge AI runs on your device, eliminating cloud GPU costs. (2) We use progressive web apps instead of native iOS/Android apps, cutting distribution costs. (3) We don't run a marketplace — no advertisers to manage, no commissions to collect. Less overhead = lower price for you.</p>
+            </details>
+            <details style="padding: 20px 24px; border-radius: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); cursor: pointer;">
+                <summary style="font-weight: 700; font-size: 1rem; color: #e4e4e7; list-style: none; display: flex; justify-content: space-between; align-items: center;">Can I switch from Vagaro easily?<span style="color: #d4af37; font-size: 1.3rem;">+</span></summary>
+                <p style="margin-top: 14px; font-size: 0.92rem; color: #a1a1aa; line-height: 1.7;">Yes. Export your member list from Vagaro as a CSV, then import it into PassFlow AI. The whole process takes about 20 minutes. We'll even do it for you — just email us your export file and we'll have your studio live within 24 hours.</p>
+            </details>
+            <details style="padding: 20px 24px; border-radius: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); cursor: pointer;">
+                <summary style="font-weight: 700; font-size: 1rem; color: #e4e4e7; list-style: none; display: flex; justify-content: space-between; align-items: center;">Does PassFlow AI work outside of Korea?<span style="color: #d4af37; font-size: 1.3rem;">+</span></summary>
+                <p style="margin-top: 14px; font-size: 0.92rem; color: #a1a1aa; line-height: 1.7;">Absolutely. PassFlow AI is used by studios in South Korea, the US, Japan, and India. The interface supports English, Korean, and Japanese. Payment processing is flexible — use your own local gateway (Stripe, Razorpay, etc.) with zero platform fees.</p>
+            </details>
+            <details style="padding: 20px 24px; border-radius: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); cursor: pointer;">
+                <summary style="font-weight: 700; font-size: 1rem; color: #e4e4e7; list-style: none; display: flex; justify-content: space-between; align-items: center;">Is there a free trial?<span style="color: #d4af37; font-size: 1.3rem;">+</span></summary>
+                <p style="margin-top: 14px; font-size: 0.92rem; color: #a1a1aa; line-height: 1.7;">Yes! Sign up for a free trial with full features — no credit card required. When you're ready, the annual plan is just $69. That's less than one month of most competitors.</p>
+            </details>
+            <details style="padding: 20px 24px; border-radius: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); cursor: pointer;">
+                <summary style="font-weight: 700; font-size: 1rem; color: #e4e4e7; list-style: none; display: flex; justify-content: space-between; align-items: center;">Will my members' data be shown to competitors?<span style="color: #d4af37; font-size: 1.3rem;">+</span></summary>
+                <p style="margin-top: 14px; font-size: 0.92rem; color: #a1a1aa; line-height: 1.7;">Never. Unlike Vagaro's marketplace model, PassFlow AI is a private, dedicated platform for your studio only. Your members will never see competitor promotions or be suggested to "try other studios nearby." Your clients stay yours.</p>
+            </details>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta-section">
+            <h2>Stop Paying Monthly. Start Saving.</h2>
+            <p style="color: #a1a1aa; font-size: 1.05rem; margin-bottom: 8px;">
+                $69/year. AI included. No add-ons. No surprises.
+            </p>
+            <p style="font-size: 0.9rem; color: #71717a;">No credit card required. No contracts. Cancel anytime.</p>
+            <a href="/onboarding?lang=en" class="cta-btn" id="cta-demo-vagaro" onclick="gtag('event','generate_lead',{event_category:'conversion',event_label:'vs-vagaro-demo',source:'comparison',competitor:'vagaro'})">
+                🚀 Get Your Free Demo
+            </a>
+            <br>
+            <a href="/en/home.html" style="display: inline-block; margin-top: 16px; color: #d4af37; text-decoration: none; font-weight: 600;" id="cta-features-vagaro" onclick="gtag('event','click',{event_category:'navigation',event_label:'vs-vagaro-to-features'})">
+                Or explore all features →
+            </a>
+        </div>
+
+        <!-- Cross-link -->
+        <div class="also-compare">
+            <p>Also compare: <a href="/en/vs-mindbody.html" onclick="gtag('event','click',{event_category:'navigation',event_label:'vagaro-to-mindbody'})">PassFlow AI vs Mindbody →</a></p>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; font-size: 0.75rem; color: #52525b;">
+            <p>Pricing data based on publicly available information as of April 2026. Vagaro is a trademark of Vagaro, Inc. PassFlow AI is not affiliated with Vagaro.</p>
+        </div>
+    </div>
+
+    <!-- GA4 Conversion Funnel Tracking -->
+    <script>
+        let maxScroll = 0;
+        window.addEventListener('scroll', function() {
+            const scrollPct = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+            if (scrollPct > maxScroll) {
+                maxScroll = scrollPct;
+                if ([25, 50, 75, 100].includes(scrollPct)) {
+                    gtag('event', 'scroll_depth', { event_category: 'engagement', event_label: 'vs-vagaro', value: scrollPct });
+                }
+            }
+        });
+        let startTime = Date.now();
+        window.addEventListener('beforeunload', function() {
+            const seconds = Math.round((Date.now() - startTime) / 1000);
+            gtag('event', 'time_on_page', { event_category: 'engagement', event_label: 'vs-vagaro', value: seconds });
+        });
+    </script>
+</body>
+</html>

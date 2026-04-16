@@ -98,7 +98,7 @@ const KioskSettingsTab = () => {
       const storageRef = ref(storage, tenantStoragePath(`kiosk_notices/${selectedBranch}/${fileName}`));
       setUploadProgress(`업로드 중... (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
       await uploadBytes(storageRef, file);
-      setUploadProgress(t("g_a9f416") || "URL \uC0DD\uC131 \uC911...");
+      setUploadProgress(t("g_305410") || "URL 생성 중...");
       const downloadUrl = await getDownloadURL(storageRef);
 
       // 업로드한 파일을 자동으로 활성 미디어로 설정
@@ -130,7 +130,7 @@ const KioskSettingsTab = () => {
         ...g,
         isActive: false
       }))]);
-      alert(`✅ ${type === 'video' ? t("g_0c005c") || "\uC601\uC0C1" : t("g_277eb5") || "\uC774\uBBF8\uC9C0"} 업로드 완료!`);
+      alert(`✅ ${type === 'video' ? t("g_e9d6e1") || "영상" : t("g_981f89") || "이미지"} 업로드 완료!`);
     } catch (err) {
       console.error('[Admin] Upload failed:', err);
       alert(`업로드 실패: ${err.message}`);
@@ -158,7 +158,7 @@ const KioskSettingsTab = () => {
     }
     const allowed = ['video/mp4', 'video/webm', 'video/quicktime'];
     if (!allowed.includes(file.type)) {
-      alert(t("g_5bbb43") || "\uC9C0\uC6D0 \uD615\uC2DD: MP4, WebM, MOV");
+      alert(t("g_545fdb") || "지원 형식: MP4, WebM, MOV");
       return;
     }
     uploadToStorage(file, 'video');
@@ -183,7 +183,7 @@ const KioskSettingsTab = () => {
         isActive: g.url === item.url
       })));
     } catch (err) {
-      alert((t("g_97a6ba") || "\uC120\uD0DD \uC2E4\uD328: ") + err.message);
+      alert((t("g_358faa") || "선택 실패: ") + err.message);
     }
   };
 
@@ -209,7 +209,7 @@ const KioskSettingsTab = () => {
       }
       setGallery(prev => prev.filter(g => g.url !== item.url));
     } catch (err) {
-      alert((t("g_51acf1") || "\uC0AD\uC81C \uC2E4\uD328: ") + err.message);
+      alert((t("g_6bafa7") || "삭제 실패: ") + err.message);
     }
   };
   const handleToggleActive = async () => {
@@ -224,7 +224,7 @@ const KioskSettingsTab = () => {
         active: newActive
       }));
     } catch (err) {
-      alert(t("g_a51519") || "\uC124\uC815 \uBCC0\uACBD \uC2E4\uD328");
+      alert(t("g_51a448") || "설정 변경 실패");
     }
   };
   const activeMedia = gallery.find(g => g.isActive) || null;
@@ -316,7 +316,7 @@ const KioskSettingsTab = () => {
               left: '12px',
               fontWeight: 'bold',
               zIndex: 10
-            }}>{t("g_0d69c1") || "\uB85C\uACE0"}{slotIdx + 1}
+            }}>{t("g_d2ba3a") || "로고"}{slotIdx + 1}
                                 </div>
                                 {logoUrl ? <>
                                         {/* 이미지만 감싸는 컨테이너에 선택한 배경 부여 (프리뷰 흐릿함 방지) */}
@@ -365,10 +365,10 @@ const KioskSettingsTab = () => {
                       });
                       await refreshConfig();
                     } catch (e) {
-                      alert((t("g_f4eb20") || "\uBCC0\uACBD \uC2E4\uD328: ") + e.message);
+                      alert((t("g_945e97") || "변경 실패: ") + e.message);
                     }
                   }} />
-                                                    {bgValue === 'transparent' ? t("g_a245e6") || "\uC5C6\uC74C" : bgValue === 'white' ? t("g_bfabc1") || "\uD770" : t("g_ba3f0f") || "\uAC80"}
+                                                    {bgValue === 'transparent' ? t("g_d58fa7") || "없음" : bgValue === 'white' ? t("g_7ac84b") || "흰" : t("g_a2a7e6") || "검"}
                                                 </label>)}
                                         </div>
 
@@ -493,7 +493,7 @@ const KioskSettingsTab = () => {
                     });
                     await refreshConfig();
                   } catch (e) {
-                    alert((t("g_51acf1") || "\uC0AD\uC81C \uC2E4\uD328: ") + e.message);
+                    alert((t("g_6bafa7") || "삭제 실패: ") + e.message);
                   }
                 }} style={{
                   padding: '4px 10px',
@@ -519,7 +519,7 @@ const KioskSettingsTab = () => {
                 fontSize: '0.8rem',
                 color: 'var(--text-tertiary)'
               }}>
-                                            {slotIdx === 0 ? t("g_9ee10b") || "\uD074\uB9AD\uD558\uC5EC \uC5C5\uB85C\uB4DC" : t("g_8de89e") || "(\uC120\uD0DD\uC0AC\uD56D)"}
+                                            {slotIdx === 0 ? t("g_a40258") || "클릭하여 업로드" : t("g_478ee7") || "(선택사항)"}
                                         </span>
                                     </label>}
                                 <input type="file" accept="image/*" id={inputId} style={{
@@ -528,7 +528,7 @@ const KioskSettingsTab = () => {
               const file = e.target.files?.[0];
               if (!file) return;
               if (file.size > 5 * 1024 * 1024) {
-                alert(t("g_b6cff8") || "\uCD5C\uB300 5MB\uAE4C\uC9C0 \uC5C5\uB85C\uB4DC \uAC00\uB2A5\uD569\uB2C8\uB2E4.");
+                alert(t("g_40da6b") || "최대 5MB까지 업로드 가능합니다.");
                 return;
               }
               try {
@@ -554,7 +554,7 @@ const KioskSettingsTab = () => {
                 alert(`✅ 로고 ${slotIdx + 1} 업로드 완료!`);
               } catch (err) {
                 console.error('[Kiosk] Logo upload failed:', err);
-                alert((t("g_9e7e0c") || "\uC5C5\uB85C\uB4DC \uC2E4\uD328: ") + err.message);
+                alert((t("g_2a73af") || "업로드 실패: ") + err.message);
               } finally {
                 setIsUploading(false);
                 setUploadProgress('');
@@ -625,10 +625,10 @@ const KioskSettingsTab = () => {
     }}>
                     {[{
         id: 'all',
-        label: t("g_d1d0de") || "\uC804\uCCB4"
+        label: t("g_934dd2") || "전체"
       }, ...branches.map(b => ({
         id: b.id,
-        label: b.name.replace(t("g_17a7da") || "\uC810", '')
+        label: b.name.replace(t("g_d3ce2d") || "점", '')
       }))].map(branch => <button key={branch.id} onClick={() => setSelectedBranch(branch.id)} style={{
         flex: 1,
         padding: '12px',
@@ -668,7 +668,7 @@ const KioskSettingsTab = () => {
             alignItems: 'center',
             gap: '8px'
           }}>
-                            {activeMedia?.type === 'video' ? <VideoCamera size={20} weight="fill" color="var(--primary-gold)" /> : <Image size={20} weight="fill" color="var(--primary-gold)" />}{t("g_40590f") || "\uC120\uD0DD\uB41C \uBBF8\uB514\uC5B4"}</h4>
+                            {activeMedia?.type === 'video' ? <VideoCamera size={20} weight="fill" color="var(--primary-gold)" /> : <Image size={20} weight="fill" color="var(--primary-gold)" />}{t("g_9cd844") || "선택된 미디어"}</h4>
                         {/* 업로드 버튼 (통합) */}
                         <div style={{
             display: 'flex',
@@ -685,7 +685,7 @@ const KioskSettingsTab = () => {
                 }
                 const allowed = ['video/mp4', 'video/webm', 'video/quicktime'];
                 if (!allowed.includes(file.type)) {
-                  alert(t("g_5bbb43") || "\uC9C0\uC6D0 \uD615\uC2DD: MP4, WebM, MOV");
+                  alert(t("g_545fdb") || "지원 형식: MP4, WebM, MOV");
                   return;
                 }
                 uploadToStorage(file, 'video');
@@ -770,7 +770,7 @@ const KioskSettingsTab = () => {
               borderRadius: '50%',
               animation: 'spin 1s linear infinite'
             }} />
-                                {uploadProgress || t("g_a8d064") || "\uCC98\uB9AC \uC911..."}
+                                {uploadProgress || t("g_e6e1a2") || "처리 중..."}
                             </div>}
                     </div>
                 </div>
@@ -795,7 +795,7 @@ const KioskSettingsTab = () => {
             color: 'var(--text-secondary)',
             fontWeight: 'normal'
           }}>
-                            ({gallery.length}{t("g_d22b87") || "\uAC1C)"}</span>
+                            ({gallery.length}{t("g_3c593d") || "개)"}</span>
                     </h4>
 
                     {loadingGallery ? <div style={{
@@ -853,7 +853,7 @@ const KioskSettingsTab = () => {
                 color: 'white',
                 fontWeight: 'bold'
               }}>
-                                            {item.type === 'video' ? t("g_91b470") || "\uD83C\uDFAC \uC601\uC0C1" : t("g_ef591f") || "\uD83D\uDDBC \uC774\uBBF8\uC9C0"}
+                                            {item.type === 'video' ? t("g_41bd88") || "🎬 영상" : t("g_02610b") || "🖼 이미지"}
                                         </div>
                                         {/* 활성 뱃지 */}
                                         {item.isActive && <div style={{
@@ -924,7 +924,7 @@ const KioskSettingsTab = () => {
             fontSize: '1.2rem',
             color: settings.active ? '#10B981' : 'var(--text-primary)'
           }}>
-                            {settings.active ? t("g_ed8883") || "\uCD9C\uC11D\uAE30\uC5D0 \uD45C\uC2DC \uC911" : t("g_5550d0") || "\uCD9C\uC11D\uAE30\uC5D0 \uBBF8\uD45C\uC2DC"}
+                            {settings.active ? t("g_33f12e") || "출석기에 표시 중" : t("g_66c781") || "출석기에 미표시"}
                         </h4>
                         <p style={{
             margin: 0,
@@ -1000,7 +1000,7 @@ const KioskSettingsTab = () => {
                 showTouchGuide: newVal
               }));
             } catch (err) {
-              alert(t("g_a51519") || "\uC124\uC815 \uBCC0\uACBD \uC2E4\uD328");
+              alert(t("g_51a448") || "설정 변경 실패");
             }
           }} style={{
             background: 'none',
@@ -1049,7 +1049,7 @@ const KioskSettingsTab = () => {
                 proximityReturn: newVal
               }));
             } catch (err) {
-              alert(t("g_a51519") || "\uC124\uC815 \uBCC0\uACBD \uC2E4\uD328");
+              alert(t("g_51a448") || "설정 변경 실패");
             }
           }} style={{
             background: 'none',
@@ -1116,7 +1116,7 @@ const KioskSettingsTab = () => {
                 autoOnOff: newVal
               }));
             } catch (err) {
-              alert(t("g_a51519") || "\uC124\uC815 \uBCC0\uACBD \uC2E4\uD328");
+              alert(t("g_51a448") || "설정 변경 실패");
             }
           }} style={{
             background: 'none',

@@ -172,7 +172,7 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
       if (isMounted) setAiAnalysis(a);
     }).catch(() => {
       if (isMounted) setAiAnalysis({
-        message: t("g_3ef6a5") || "\uB370\uC774\uD130 \uBD84\uC11D \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.",
+        message: t("g_06e329") || "데이터 분석 중 오류가 발생했습니다.",
         isError: true
       });
     });
@@ -183,16 +183,16 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
 
   // ─── Field Labels ───
   const FIELD_LABELS = {
-    name: t("g_6eb5cd") || "\uC774\uB984",
-    phone: t("g_ba8df0") || "\uC804\uD654\uBC88\uD638",
-    membershipType: t("g_c4edbb") || "\uD68C\uC6D0\uAD8C \uAD6C\uBD84",
-    subject: t("g_af273f") || "\uC138\uBD80 \uC774\uC6A9\uAD8C",
-    regDate: t("g_252d4d") || "\uB4F1\uB85D\uC77C",
-    startDate: t("g_69faaa") || "\uC218\uAC15 \uC2DC\uC791\uC77C",
-    endDate: t("g_42003a") || "\uC885\uB8CC\uC77C",
-    credits: t("g_386745") || "\uC794\uC5EC \uD69F\uC218",
-    price: t("g_ada266") || "\uACB0\uC81C \uAE08\uC561",
-    notes: t("g_f3720a") || "\uBA54\uBAA8"
+    name: t("g_9aa18e") || "이름",
+    phone: t("g_9a1c3a") || "전화번호",
+    membershipType: t("g_2b4122") || "회원권 구분",
+    subject: t("g_eac3a7") || "세부 이용권",
+    regDate: t("g_6f8044") || "등록일",
+    startDate: t("g_65812d") || "수강 시작일",
+    endDate: t("g_cad7c8") || "종료일",
+    credits: t("g_029db5") || "잔여 횟수",
+    price: t("g_d62fb3") || "결제 금액",
+    notes: t("g_f3ce23") || "메모"
   };
   const getChangedFields = useCallback(() => {
     const changes = [];
@@ -223,14 +223,14 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
   const handlePreSave = useCallback(() => {
     const changes = getChangedFields();
     if (changes.length === 0) {
-      alert(t("g_ded1d4") || "\uBCC0\uACBD \uC0AC\uD56D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_e5e21e") || "변경 사항이 없습니다.");
       return;
     }
     const revenueRelatedKeys = ['startDate', 'endDate', 'credits'];
     const hasRevenueRelated = changes.some(c => revenueRelatedKeys.includes(c.key));
     if (changes.length === 1) {
       const change = changes[0];
-      const extra = hasRevenueRelated ? t("g_8cb3c0") || "\n\n\u203B \uB9E4\uCD9C \uAE30\uB85D\uC740 \uBCC4\uB3C4\uB85C \uAD00\uB9AC\uB418\uBBC0\uB85C \uC601\uD5A5\uBC1B\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4." : '';
+      const extra = hasRevenueRelated ? t("g_c9e7b4") || "\n\n※ 매출 기록은 별도로 관리되므로 영향받지 않습니다." : '';
       if (confirm((t('confirm_field_change') || `Change ${change.label} from "${change.oldValue}" to "${change.newValue}"?`).replace('{label}', change.label).replace('{old}', change.oldValue).replace('{new}', change.newValue))) {
         handleFinalSave({
           [change.key]: editData[change.key]
@@ -261,7 +261,7 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
           }
         } catch {}
       }
-      alert(t("g_0c47ff") || "\uC800\uC7A5\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_d201d1") || "저장되었습니다.");
       setIsDirtyByUser(false);
       setShowChangeModal(false);
       onClose();
@@ -272,7 +272,7 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
   const handleSafeClose = useCallback(() => {
     const changes = getChangedFields();
     if (isDirtyByUser && changes.length > 0) {
-      if (!confirm(t("g_bb11d4") || "\uC800\uC7A5\uD558\uC9C0 \uC54A\uC740 \uBCC0\uACBD \uC0AC\uD56D\uC774 \uC788\uC2B5\uB2C8\uB2E4. \uBCC0\uACBD\uC744 \uCDE8\uC18C\uD558\uACE0 \uCC3D\uC744 \uB2EB\uC73C\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) return;
+      if (!confirm(t("g_aafa04") || "저장하지 않은 변경 사항이 있습니다. 변경을 취소하고 창을 닫으시겠습니까?")) return;
     }
     onClose();
   }, [getChangedFields, isDirtyByUser, onClose]);
@@ -290,7 +290,7 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
         const [hh, mm] = timeStr.split(':');
         combinedDateStr = `${dateStr}T${hh}:${mm}:00+09:00`;
       }
-      const result = await storageService.addManualAttendance(member.id, combinedDateStr, branchId, className || t("g_5af740") || "\uC218\uB3D9 \uD655\uC778", instructorName || t("g_0cb522") || "\uAD00\uB9AC\uC790");
+      const result = await storageService.addManualAttendance(member.id, combinedDateStr, branchId, className || t("g_1ec9ff") || "수동 확인", instructorName || t("g_ec873c") || "관리자");
       if (result.success) {
         if (member.startDate === 'TBD') {
           const startDateStr = dateStr;
@@ -329,13 +329,13 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
             }));
           } catch {}
         }
-        alert(t("g_85eb30") || "\uC218\uB3D9 \uCD9C\uC11D\uCC98\uB9AC\uAC00 \uC644\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+        alert(t("g_5500af") || "수동 출석처리가 완료되었습니다.");
       } else {
-        alert((t("g_b1b1d6") || "\uCD9C\uC11D \uCC98\uB9AC\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4: ") + (result.message || t("g_053d5f") || "\uC54C \uC218 \uC5C6\uB294 \uC624\uB958"));
+        alert((t("g_7e55e8") || "출석 처리에 실패했습니다: ") + (result.message || t("g_5e9f6b") || "알 수 없는 오류"));
       }
     } catch (e) {
       console.error(e);
-      alert(t("g_7b4a71") || "\uCD9C\uC11D \uCC98\uB9AC\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_a40f19") || "출석 처리에 실패했습니다.");
     } finally {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
@@ -345,7 +345,7 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
   // ─── Delete Attendance ───
   const handleDeleteAttendance = useCallback(async logId => {
     if (isSubmitting) return;
-    if (!confirm(t("g_afb8e4") || "\uC815\uB9D0 \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) return;
+    if (!confirm(t("g_1a60a7") || "정말 삭제하시겠습니까?")) return;
     isSubmittingRef.current = true;
     setIsSubmitting(true);
     try {
@@ -356,7 +356,7 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
           storageService.notifyListeners('members');
         }, 500);
       } else {
-        throw new Error(result.message || t("g_ab8524") || "\uC0AD\uC81C \uC2E4\uD328");
+        throw new Error(result.message || t("g_3f74e1") || "삭제 실패");
       }
     } catch (e) {
       console.error(e);

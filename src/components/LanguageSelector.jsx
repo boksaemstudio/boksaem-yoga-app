@@ -11,19 +11,19 @@ const LanguageSelector = ({
   } = useLanguage();
   const languages = [{
     code: 'ko',
-    label: t("g_d6d014") || "\uD55C\uAD6D\uC5B4"
+    label: t("g_6e081b") || "한국어"
   }, {
     code: 'en',
     label: 'English'
   }, {
     code: 'ja',
-    label: '日本語'
+    label: (t("g_c12140") || "日本語")
   }, {
     code: 'ru',
     label: 'Русский'
   }, {
     code: 'zh',
-    label: '中文'
+    label: (t("g_7be2d2") || "中文")
   }, {
     code: 'es',
     label: 'Español'
@@ -36,6 +36,12 @@ const LanguageSelector = ({
   }, {
     code: 'de',
     label: 'Deutsch'
+  }, {
+    code: 'vi',
+    label: 'Tiếng Việt'
+  }, {
+    code: 'th',
+    label: 'ไทย'
   }];
   const handleChange = e => {
     setLanguage(e.target.value);

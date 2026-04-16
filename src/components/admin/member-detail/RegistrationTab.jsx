@@ -30,7 +30,7 @@ const RegistrationTab = ({
   });
   const [immediateBranch, setImmediateBranch] = useState(member.homeBranch || (branches.length > 0 ? branches[0].id : ''));
   // [FIX] 수업 선택값을 '자율수련' 또는 'time__title' 형식의 고유키로 관리
-  const [immediateClassKey, setImmediateClassKey] = useState(t("g_2b3da3") || "\uC790\uC728\uC218\uB828");
+  const [immediateClassKey, setImmediateClassKey] = useState(t("g_dd529d") || "자율수련");
   const [immediateInstructor, setImmediateInstructor] = useState('');
   const [immediateDailyClasses, setImmediateDailyClasses] = useState([]);
 
@@ -116,7 +116,7 @@ const RegistrationTab = ({
       if (option.type === 'ticket') {
         p = option.basePrice;
         c = option.credits;
-        months = option.months || fallbackMonths > 1 ? fallbackMonths : 3;
+        months = option.months || (fallbackMonths > 1 ? fallbackMonths : 3);
       } else {
         c = option.credits === 9999 ? 9999 : option.credits * duration;
         months = duration * (option.months && option.months > 1 ? option.months : fallbackMonths);
@@ -173,11 +173,11 @@ const RegistrationTab = ({
   // [FIX] value를 'time__title' 형식의 고유키로 사용하여 동일 수업명 중복 문제 해결
   const immediateClassOptions = useMemo(() => {
     const options = [{
-      value: t("g_2b3da3") || "\uC790\uC728\uC218\uB828",
-      label: t("g_2b3da3") || "\uC790\uC728\uC218\uB828",
+      value: t("g_dd529d") || "자율수련",
+      label: t("g_dd529d") || "자율수련",
       time: '',
       instructor: '',
-      className: t("g_2b3da3") || "\uC790\uC728\uC218\uB828"
+      className: t("g_dd529d") || "자율수련"
     }];
     if (immediateDailyClasses.length > 0) {
       immediateDailyClasses.forEach(cls => {
@@ -202,16 +202,16 @@ const RegistrationTab = ({
 
   // ─── 즉시 출석: 지점/날짜 변경 시 수업 선택 초기화 ───
   useEffect(() => {
-    setImmediateClassKey(t("g_2b3da3") || "\uC790\uC728\uC218\uB828");
+    setImmediateClassKey(t("g_dd529d") || "자율수련");
     setImmediateInstructor('');
   }, [immediateBranch, immediateDate]);
 
   // ─── 즉시 출석: 선택된 수업에서 실제 className, time, instructor 추출 ───
   const selectedClassInfo = useMemo(() => {
     const found = immediateClassOptions.find(opt => opt.value === immediateClassKey);
-    if (!found || immediateClassKey === (t("g_2b3da3") || "\uC790\uC728\uC218\uB828")) {
+    if (!found || immediateClassKey === (t("g_dd529d") || "자율수련")) {
       return {
-        className: t("g_2b3da3") || "\uC790\uC728\uC218\uB828",
+        className: t("g_dd529d") || "자율수련",
         time: immediateTime,
         instructor: '',
         isFreePractice: true
@@ -311,21 +311,21 @@ const RegistrationTab = ({
         } catch (attErr) {
           console.error('Auto attendance error:', attErr);
           // 등록은 성공했으므로 출석 실패는 경고만
-          alert(t("g_2213b6") || "\uB4F1\uB85D\uC740 \uC644\uB8CC\uB418\uC5C8\uC73C\uB098, \uCD9C\uC11D \uCC98\uB9AC \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4. \uCD9C\uC11D\uBD80\uC5D0\uC11C \uC218\uB3D9\uC73C\uB85C \uCC98\uB9AC\uD574\uC8FC\uC138\uC694.");
+          alert(t("g_2b82c7") || "등록은 완료되었으나, 출석 처리 중 오류가 발생했습니다. 출석부에서 수동으로 처리해주세요.");
         }
       }
 
       // [NEW] Auto-Message Redirect
       if (setPrefillMessage && setActiveTab) {
-        const msgLines = [`${member.name} 회원님, 수강권 등록/연장이 확정되었습니다.`, '', `• 등록 항목: ${calculatedProductName}`, `• 등록 상태: ${isAdvance ? t("g_a4d3d8") || "\uD83D\uDDD3\uFE0F \uAE30\uC874 \uB9CC\uB8CC \uD6C4 \uC801\uC6A9 (\uC120\uB4F1\uB85D)" : t("g_3e13f0") || "\u2705 \uC9C4\uD589 \uC911"}`, `• 잔여 횟수: ${customCredits >= 999 ? t("g_d5b3ac") || "\uBB34\uC81C\uD55C \uD69F\uC218" : customCredits + (t("g_8a602f") || "\uD68C")}`, `• 이용 기간: ${finalStartDate === 'TBD' ? t("g_b8e060") || "\uCCAB \uCD9C\uC11D \uC2DC \uD655\uC815" : finalStartDate} ~ ${finalEndDate === 'TBD' ? t("g_b8e060") || "\uCCAB \uCD9C\uC11D \uC2DC \uD655\uC815" : finalEndDate}`, '', t("g_f4b2ec") || "\uC624\uB298\uB3C4 \uAC74\uAC15\uD55C \uD558\uB8E8 \uBCF4\uB0B4\uC138\uC694! \uD83D\uDE4F"];
+        const msgLines = [`${member.name} 회원님, 수강권 등록/연장이 확정되었습니다.`, '', `• 등록 항목: ${calculatedProductName}`, `• 등록 상태: ${isAdvance ? t("g_7eea37") || "🗓️ 기존 만료 후 적용 (선등록)" : t("g_871a3d") || "✅ 진행 중"}`, `• 잔여 횟수: ${customCredits >= 999 ? t("g_0e7942") || "무제한 횟수" : customCredits + (t("g_2fc05c") || "회")}`, `• 이용 기간: ${finalStartDate === 'TBD' ? t("g_c2838e") || "첫 출석 시 확정" : finalStartDate} ~ ${finalEndDate === 'TBD' ? t("g_c2838e") || "첫 출석 시 확정" : finalEndDate}`, '', t("g_d85a4a") || "오늘도 건강한 하루 보내세요! 🙏"];
         setPrefillMessage(msgLines.join('\n'));
         setTimeout(() => setActiveTab('messages'), 300);
       } else {
-        alert(isImmediate ? t("g_de6b82") || "\uB4F1\uB85D \uBC0F \uCD9C\uC11D \uCC98\uB9AC\uAC00 \uC644\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4." : t("g_b23e18") || "\uB4F1\uB85D\uC774 \uC644\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+        alert(isImmediate ? t("g_e82843") || "등록 및 출석 처리가 완료되었습니다." : t("g_a80692") || "등록이 완료되었습니다.");
       }
     } catch (err) {
       console.error('Registration error:', err);
-      alert(`등록 중 오류가 발생했습니다.\n상세: ${err.message || t("g_053d5f") || "\uC54C \uC218 \uC5C6\uB294 \uC624\uB958"}`);
+      alert(`등록 중 오류가 발생했습니다.\n상세: ${err.message || t("g_5e9f6b") || "알 수 없는 오류"}`);
     } finally {
       setIsSubmitting(false);
       isSubmittingRef.current = false;
@@ -338,7 +338,7 @@ const RegistrationTab = ({
   }}>
             {/* 회원권 종류 */}
             <div className="form-group">
-                <label className="form-label">{t("g_dd1b38") || "\uD68C\uC6D0\uAD8C \uC885\uB958"}</label>
+                <label className="form-label">{t("g_1f45e2") || "회원권 종류"}</label>
                 <select className="form-select" style={{
         fontFamily: 'var(--font-main)'
       }} value={membershipType} onChange={e => {
@@ -356,7 +356,7 @@ const RegistrationTab = ({
 
             {/* 세부 옵션 */}
             <div className="form-group">
-                <label className="form-label">{t("g_b9497e") || "\uC138\uBD80 \uC635\uC158"}</label>
+                <label className="form-label">{t("g_d2089e") || "세부 옵션"}</label>
                 <select className="form-select" style={{
         fontFamily: 'var(--font-main)'
       }} value={selectedOption} onChange={e => setSelectedOption(e.target.value)}>
@@ -369,7 +369,7 @@ const RegistrationTab = ({
       const option = pricingConfig?.[membershipType]?.options?.find(opt => opt.id === selectedOption);
       if (option && option.type === 'subscription') {
         return <div className="form-group">
-                            <label className="form-label">{t("g_87aba3") || "\uB4F1\uB85D \uAE30\uAC04"}</label>
+                            <label className="form-label">{t("g_a3d754") || "등록 기간"}</label>
                             <div style={{
             display: 'flex',
             gap: '8px'
@@ -381,7 +381,7 @@ const RegistrationTab = ({
               fontSize: '1rem',
               fontWeight: 'bold'
             }} onClick={() => setDuration(m)}>
-                                        {m}{t("g_f667f2") || "\uAC1C\uC6D4"}</button>)}
+                                        {m}{t("g_d2dfd1") || "개월"}</button>)}
                             </div>
                         </div>;
       }
@@ -390,20 +390,20 @@ const RegistrationTab = ({
 
             {/* 결제 방식 */}
             <div className="form-group">
-                <label className="form-label">{t("g_41f75e") || "\uACB0\uC81C \uBC29\uC2DD"}</label>
+                <label className="form-label">{t("g_cca4cd") || "결제 방식"}</label>
                 <div style={{
         display: 'flex',
         gap: '10px'
       }}>
                     {[{
           id: 'card',
-          label: t("g_7e9cf3") || "\uCE74\uB4DC"
+          label: t("g_7dedeb") || "카드"
         }, {
           id: 'cash',
-          label: t("g_948cb2") || "\uD604\uAE08"
+          label: t("g_610240") || "현금"
         }, {
           id: 'transfer',
-          label: t("g_0b2312") || "\uC774\uCCB4"
+          label: t("g_24cb57") || "이체"
         }].map(p => <button key={p.id} className={`action-btn ${paymentMethod === p.id ? 'primary' : ''}`} style={{
           flex: 1,
           padding: '14px 0',
@@ -417,7 +417,7 @@ const RegistrationTab = ({
 
             {/* 수련 시작일 */}
             <div className="form-group">
-                <label className="form-label">{t("g_ace73a") || "\uC218\uB828 \uC2DC\uC791\uC77C"}</label>
+                <label className="form-label">{t("g_4a7d02") || "수련 시작일"}</label>
                 <div style={{
         display: 'flex',
         flexDirection: 'column',
@@ -431,19 +431,19 @@ const RegistrationTab = ({
         }}>
                         {[{
             value: 'tbd',
-            label: isAdvance ? t("g_717d08") || "\uAE30\uC874 \uB9C8\uAC10 \uD6C4 \uCCAB\uCD9C\uC11D \uC2DC" : t("g_b882ea") || "\uCCAB \uCD9C\uC11D \uC2DC \uC2DC\uC791",
+            label: isAdvance ? t("g_06c366") || "기존 마감 후 첫출석 시" : t("g_1a6169") || "첫 출석 시 시작",
             icon: '🧘‍♀️',
-            desc: t("g_44b49d") || "\uB098\uC911\uC5D0 \uCC98\uC74C \uC62C \uB54C \uC790\uB3D9 \uC2DC\uC791"
+            desc: t("g_9d9464") || "나중에 처음 올 때 자동 시작"
           }, {
             value: 'manual',
-            label: t("g_d3ba9f") || "\uC2DC\uC791\uC77C \uC9C1\uC811 \uC9C0\uC815",
+            label: t("g_a1a97e") || "시작일 직접 지정",
             icon: '📅',
-            desc: t("g_eb8bab") || "\uC6D0\uD558\uB294 \uB0A0\uC9DC\uB97C \uC9C1\uC811 \uC785\uB825"
+            desc: t("g_93b7af") || "원하는 날짜를 직접 입력"
           }, {
             value: 'immediate',
-            label: t("g_a15346") || "\uB4F1\uB85D \uC989\uC2DC \uCD9C\uC11D",
+            label: t("g_e37604") || "등록 즉시 출석",
             icon: '⚡',
-            desc: t("g_0a087b") || "\uC624\uB298\uBD80\uD130 \uC2DC\uC791 + \uCD9C\uC11D \uCC98\uB9AC"
+            desc: t("g_afc684") || "오늘부터 시작 + 출석 처리"
           }].map(opt => <button key={opt.value} onClick={() => setStartDateMode(opt.value)} style={{
             flex: 1,
             minWidth: '120px',
@@ -481,7 +481,7 @@ const RegistrationTab = ({
           color: 'white',
           textAlign: 'center',
           fontSize: '0.9rem'
-        }}>{t("g_8b5b77") || "\uCCAB \uCD9C\uC11D\uC77C\uC5D0 \uC2DC\uC791\uC77C/\uB9C8\uAC10\uC77C \uC790\uB3D9 \uD655\uC815"}</div>}
+        }}>{t("g_98cea6") || "첫 출석일에 시작일/마감일 자동 확정"}</div>}
                     {startDateMode === 'manual' && <input type="date" className="form-input" style={{
           width: '100%',
           fontFamily: 'var(--font-main)',
@@ -502,7 +502,7 @@ const RegistrationTab = ({
             fontSize: '0.9rem',
             fontWeight: 'bold'
           }}>
-                                ✅ {immediateDate}{t("g_7d88ce") || "\uC2DC\uC791 + \uCD9C\uC11D 1\uD68C \uC790\uB3D9 \uCC98\uB9AC"}</div>
+                                ✅ {immediateDate}{t("g_4d3041") || "시작 + 출석 1회 자동 처리"}</div>
                             {/* 출석 날짜/시간/지점/수업 선택 UI */}
                             <div style={{
             background: 'rgba(255,255,255,0.05)',
@@ -517,7 +517,7 @@ const RegistrationTab = ({
               fontSize: '0.8rem',
               color: 'var(--text-secondary)',
               fontWeight: 'bold'
-            }}>{t("g_8e863b") || "\uD83D\uDCCB \uCD9C\uC11D \uC815\uBCF4 \uC120\uD0DD"}</label>
+            }}>{t("g_39489e") || "📋 출석 정보 선택"}</label>
                                 <div style={{
               display: 'flex',
               gap: '8px',
@@ -581,7 +581,7 @@ const RegistrationTab = ({
             color: 'var(--text-secondary)',
             marginBottom: '8px'
           }}>
-                                <span>{t("g_b004a1") || "\uB9C8\uAC10\uC77C(\uC885\uB8CC\uC77C)"}</span>
+                                <span>{t("g_fc98e3") || "마감일(종료일)"}</span>
                             </label>
                             <input type="date" className="form-input" style={{
             width: '100%',
@@ -598,7 +598,7 @@ const RegistrationTab = ({
             color: 'var(--text-secondary)',
             marginBottom: '8px'
           }}>
-                                <span>{t("g_b004a1") || "\uB9C8\uAC10\uC77C(\uC885\uB8CC\uC77C)"}</span>
+                                <span>{t("g_fc98e3") || "마감일(종료일)"}</span>
                             </label>
                             <input type="text" className="form-input" style={{
             width: '100%',
@@ -607,7 +607,7 @@ const RegistrationTab = ({
             fontWeight: 'bold',
             textAlign: 'center',
             background: 'rgba(255,255,255,0.05)'
-          }} value={t("g_97df36") || "\uCCAB \uCD9C\uC11D \uC2DC \uC790\uB3D9 \uD655\uC815 (\uC120\uB4F1\uB85D)"} disabled />
+          }} value={t("g_c09f7d") || "첫 출석 시 자동 확정 (선등록)"} disabled />
                         </div>}
 
                     {/* 안내 메시지 */}
@@ -618,7 +618,7 @@ const RegistrationTab = ({
           borderRadius: '8px',
           color: '#38bdf8',
           border: '1px solid rgba(56, 189, 248, 0.15)'
-        }}>{t("g_b6057b") || "\u2139\uFE0F \uC794\uC5EC \uAE30\uAC04\uC774 \uB0A8\uC544\uC788\uC5B4 \uC120\uB4F1\uB85D\uC73C\uB85C \uCC98\uB9AC\uB429\uB2C8\uB2E4."}</div>}
+        }}>{t("g_41777e") || "ℹ️ 잔여 기간이 남아있어 선등록으로 처리됩니다."}</div>}
                 </div>
             </div>
 
@@ -626,14 +626,14 @@ const RegistrationTab = ({
             <div className="form-group">
                 <label className="form-label" style={{
         marginBottom: '6px'
-      }}>{t("g_e0dc09") || "\uC6D0\uC7A5 \uBA54\uBAA8 (\uC120\uD0DD)"}</label>
+      }}>{t("g_794069") || "원장 메모 (선택)"}</label>
                 <textarea className="form-input" style={{
         fontFamily: 'var(--font-main)',
         padding: '14px 18px',
         fontSize: '1rem',
         minHeight: '80px',
         resize: 'vertical'
-      }} value={notesText} onChange={e => setNotesText(e.target.value)} placeholder={t("g_78b50d") || "\uD2B9\uC774\uC0AC\uD56D\uC774\uB098 \uBA54\uBAA8\uB97C \uC785\uB825\uD558\uC138\uC694"} />
+      }} value={notesText} onChange={e => setNotesText(e.target.value)} placeholder={t("g_111f0a") || "특이사항이나 메모를 입력하세요"} />
             </div>
 
             {/* 결제 요약 카드 — MemberAddModal과 동일 스타일 */}
@@ -653,7 +653,7 @@ const RegistrationTab = ({
           fontSize: '0.85rem',
           color: 'rgba(255,255,255,0.6)',
           fontWeight: 'bold'
-        }}>{t("g_ada266") || "\uACB0\uC81C \uAE08\uC561"}</span>
+        }}>{t("g_d62fb3") || "결제 금액"}</span>
                     <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -677,7 +677,7 @@ const RegistrationTab = ({
             fontSize: '1.4rem',
             fontWeight: '900',
             color: 'var(--primary-gold)'
-          }}>{t("g_771dc3") || "\uC6D0"}</span>
+          }}>{t("g_21ba07") || "원"}</span>
                     </div>
                 </div>
                 <div style={{
@@ -692,10 +692,10 @@ const RegistrationTab = ({
       }}>
                     <span style={{
           fontWeight: 600
-        }}>{t("g_705bfc") || "\uD69F\uC218"}</span>
+        }}>{t("g_3ac452") || "횟수"}</span>
                     {customCredits > 200 || customCredits === 9999 ? <span style={{
           fontWeight: 600
-        }}>{t("g_7fe271") || "\uBB34\uC81C\uD55C"}</span> : <div style={{
+        }}>{t("g_98a1bf") || "무제한"}</span> : <div style={{
           display: 'flex',
           alignItems: 'center',
           gap: '4px'
@@ -713,7 +713,7 @@ const RegistrationTab = ({
           }} value={customCredits} onChange={e => setCustomCredits(Number(e.target.value))} />
                             <span style={{
             fontWeight: 600
-          }}>{t("g_8a602f") || "\uD68C"}</span>
+          }}>{t("g_2fc05c") || "회"}</span>
                         </div>}
                 </div>
             </div>
@@ -729,7 +729,7 @@ const RegistrationTab = ({
       cursor: isSubmitting ? 'not-allowed' : 'pointer',
       marginTop: '10px'
     }}>
-                {isSubmitting ? t("g_a8d064") || "\uCC98\uB9AC \uC911..." : t("g_ec881e") || "\uB4F1\uB85D \uD558\uAE30"}
+                {isSubmitting ? t("g_e6e1a2") || "처리 중..." : t("g_06cefa") || "등록 하기"}
             </button>
         </div>;
 };

@@ -24,10 +24,10 @@ const getChurnRisk = (member) => {
   if (!lastDateMs) {
     return {
       level: 'critical',
-      label: t("g_d31e5c") || "\u26A0 \uC704\uD5D8",
+      label: t("g_f5db83") || "⚠ 위험",
       color: '#EF4444',
       daysSince: 999,
-      reason: t("g_0e7fa0") || "\uCD9C\uC11D \uAE30\uB85D \uC5C6\uC74C"
+      reason: t("g_cdce7c") || "출석 기록 없음"
     };
   }
   const daysSince = Math.ceil((now - lastDateMs) / (1000 * 60 * 60 * 24));
@@ -37,7 +37,7 @@ const getChurnRisk = (member) => {
   if (daysSince >= 30 || daysSince >= 14 && credits <= 1) {
     return {
       level: 'critical',
-      label: t("g_d31e5c") || "\u26A0 \uC704\uD5D8",
+      label: t("g_f5db83") || "⚠ 위험",
       color: '#EF4444',
       daysSince,
       reason: daysSince >= 30 ? `${daysSince}일 미출석` : `${daysSince}일 미출석 + 잔여 ${credits}회`
@@ -48,7 +48,7 @@ const getChurnRisk = (member) => {
   if (daysSince >= 21) {
     return {
       level: 'high',
-      label: t("g_3c19bc") || "\uD83D\uDD36 \uC8FC\uC758",
+      label: t("g_691170") || "🔶 주의",
       color: '#F59E0B',
       daysSince,
       reason: `${daysSince}일째 미출석`
@@ -58,7 +58,7 @@ const getChurnRisk = (member) => {
   // Medium: 14~20일 미출석
   return {
     level: 'medium',
-    label: t("g_532784") || "\uD83D\uDCA4 \uAD00\uCC30",
+    label: t("g_fbe057") || "💤 관찰",
     color: '#60A5FA',
     daysSince,
     reason: `${daysSince}일째 미출석`
@@ -165,8 +165,8 @@ const ChurnReportPanel = ({
         name: member.name,
         daysSince: risk.daysSince,
         credits: Number(member.credits || 0),
-        subject: member.subject || t("g_8209e5") || "\uC77C\uBC18",
-        level: risk.level === 'critical' ? t("g_be3a65") || "\uC704\uD5D8" : risk.level === 'high' ? t("g_e0898a") || "\uC8FC\uC758" : t("g_cc1ca7") || "\uAD00\uCC30"
+        subject: member.subject || t("g_aef1a1") || "일반",
+        level: risk.level === 'critical' ? t("g_504b38") || "위험" : risk.level === 'high' ? t("g_33f311") || "주의" : t("g_d7c2ad") || "관찰"
       });
       setEditMessage(aiMsg);
     } catch {
@@ -181,7 +181,7 @@ const ChurnReportPanel = ({
     if (!confirmTarget || !editMessage.trim()) return;
     const isDemoSite = window.location.hostname.includes('passflow') || localStorage.getItem('lastStudioId') === 'demo-yoga';
     if (isDemoSite) {
-      alert(t("g_233984") || "\uB370\uBAA8 \uD658\uACBD\uC5D0\uC11C\uB294 \uBA54\uC2DC\uC9C0 \uBC1C\uC1A1 \uAE30\uB2A5\uC774 \uC81C\uD55C\uB418\uC5B4 \uC788\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_c5dd5f") || "데모 환경에서는 메시지 발송 기능이 제한되어 있습니다.");
       return;
     }
     const {
@@ -195,7 +195,7 @@ const ChurnReportPanel = ({
       alert(`✅ ${member.name} 회원에게 전송되었습니다.`);
     } catch (err) {
       console.error('[ChurnReport] Send failed:', err);
-      alert((t("g_0bfa3d") || "\uC804\uC1A1 \uC2E4\uD328: ") + err.message);
+      alert((t("g_690b54") || "전송 실패: ") + err.message);
     } finally {
       setSendingId(null);
     }
@@ -209,10 +209,10 @@ const ChurnReportPanel = ({
   const openBulkConfirm = async targetLevel => {
     const targets = analysisResults.filter(r => r.risk.level === targetLevel && !sentIds.has(r.member.id));
     if (targets.length === 0) {
-      alert(t("g_93df87") || "\uC804\uC1A1 \uB300\uC0C1\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_3339c5") || "전송 대상이 없습니다.");
       return;
     }
-    const levelLabel = targetLevel === 'critical' ? t("g_be3a65") || "\uC704\uD5D8" : targetLevel === 'high' ? t("g_e0898a") || "\uC8FC\uC758" : t("g_cc1ca7") || "\uAD00\uCC30";
+    const levelLabel = targetLevel === 'critical' ? t("g_504b38") || "위험" : targetLevel === 'high' ? t("g_33f311") || "주의" : t("g_d7c2ad") || "관찰";
     setBulkConfirm({
       level: targetLevel,
       label: levelLabel,
@@ -231,8 +231,8 @@ const ChurnReportPanel = ({
           name: member.name,
           daysSince: risk.daysSince,
           credits: Number(member.credits || 0),
-          subject: member.subject || t("g_8209e5") || "\uC77C\uBC18",
-          level: risk.level === 'critical' ? t("g_be3a65") || "\uC704\uD5D8" : risk.level === 'high' ? t("g_e0898a") || "\uC8FC\uC758" : t("g_cc1ca7") || "\uAD00\uCC30"
+          subject: member.subject || t("g_aef1a1") || "일반",
+          level: risk.level === 'critical' ? t("g_504b38") || "위험" : risk.level === 'high' ? t("g_33f311") || "주의" : t("g_d7c2ad") || "관찰"
         });
         return {
           member,
@@ -253,7 +253,7 @@ const ChurnReportPanel = ({
     if (!bulkConfirm || bulkMessages.length === 0) return;
     const isDemoSite = window.location.hostname.includes('passflow') || localStorage.getItem('lastStudioId') === 'demo-yoga';
     if (isDemoSite) {
-      alert(t("g_233984") || "\uB370\uBAA8 \uD658\uACBD\uC5D0\uC11C\uB294 \uBA54\uC2DC\uC9C0 \uBC1C\uC1A1 \uAE30\uB2A5\uC774 \uC81C\uD55C\uB418\uC5B4 \uC788\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_c5dd5f") || "데모 환경에서는 메시지 발송 기능이 제한되어 있습니다.");
       return;
     }
     for (const {
@@ -286,11 +286,11 @@ const ChurnReportPanel = ({
         color: '#10b981',
         fontWeight: '700',
         marginTop: '10px'
-      }}>{t("g_529687") || "\uC774\uD0C8 \uC704\uD5D8 \uD68C\uC6D0\uC774 \uC5C6\uC2B5\uB2C8\uB2E4!"}</p>
+      }}>{t("g_de97a2") || "이탈 위험 회원이 없습니다!"}</p>
                 <p style={{
         color: '#a1a1aa',
         fontSize: '0.9rem'
-      }}>{t("g_a6cfc5") || "\uBAA8\uB4E0 \uD65C\uC131 \uD68C\uC6D0\uC774 \uCD5C\uADFC 2\uC8FC \uB0B4\uC5D0 \uCD9C\uC11D\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4."}</p>
+      }}>{t("g_2fbff8") || "모든 활성 회원이 최근 2주 내에 출석하고 있습니다."}</p>
             </div>;
   }
   return <div className="fade-in" style={{
@@ -321,12 +321,12 @@ const ChurnReportPanel = ({
             margin: 0,
             fontSize: '1.1rem',
             color: 'white'
-          }}>{t("g_3cf804") || "AI \uC774\uD0C8 \uC608\uCE21 \uBCF4\uACE0\uC11C"}</h3>
+          }}>{t("g_4356a0") || "AI 이탈 예측 보고서"}</h3>
                         <p style={{
             margin: 0,
             fontSize: '0.8rem',
             color: '#a1a1aa'
-          }}>{t("g_c90029") || "\uCD9C\uC11D \uD328\uD134 \uAE30\uBC18 \uC774\uD0C8 \uC704\uD5D8 \uBD84\uC11D"}</p>
+          }}>{t("g_0ca42c") || "출석 패턴 기반 이탈 위험 분석"}</p>
                     </div>
                 </div>
                 {onClose && <button onClick={onClose} style={{
@@ -351,11 +351,11 @@ const ChurnReportPanel = ({
           name: member.name,
           daysSince: risk.daysSince,
           credits: Number(member.credits || 0),
-          subject: member.subject || t("g_8209e5") || "\uC77C\uBC18",
-          level: risk.level === 'critical' ? t("g_be3a65") || "\uC704\uD5D8" : risk.level === 'high' ? t("g_e0898a") || "\uC8FC\uC758" : t("g_cc1ca7") || "\uAD00\uCC30"
+          subject: member.subject || t("g_aef1a1") || "일반",
+          level: risk.level === 'critical' ? t("g_504b38") || "위험" : risk.level === 'high' ? t("g_33f311") || "주의" : t("g_d7c2ad") || "관찰"
         }));
         getChurnAnalysis({
-          branch: t("g_d1d0de") || "\uC804\uCCB4",
+          branch: t("g_934dd2") || "전체",
           activeCount: 0,
           totalMembers: 0,
           criticalCount,
@@ -394,30 +394,30 @@ const ChurnReportPanel = ({
             color: '#A855F7',
             fontSize: '0.85rem',
             fontWeight: '700'
-          }}>{t("g_e5735e") || "\uD83E\uDDE0 AI\uAC00 \uD68C\uC6D0\uBCC4 \uB370\uC774\uD130\uB97C \uC0C1\uC138 \uBD84\uC11D \uC911..."}</div>
+          }}>{t("g_7665fc") || "🧠 AI가 회원별 데이터를 상세 분석 중..."}</div>
                             <div style={{
             color: '#a1a1aa',
             fontSize: '0.75rem',
             marginTop: '2px'
-          }}>{t("g_3cf307") || "\uC774\uB984, \uBBF8\uCD9C\uC11D \uAE30\uAC04, \uC794\uC5EC \uD69F\uC218, \uC218\uAC15 \uACFC\uBAA9\uC744 \uC885\uD569 \uBD84\uC11D\uD569\uB2C8\uB2E4"}</div>
+          }}>{t("g_5623c8") || "이름, 미출석 기간, 잔여 횟수, 수강 과목을 종합 분석합니다"}</div>
                         </div>
                     </div> : detailedAiMessage && (detailedAiMessage.critical || detailedAiMessage.high || detailedAiMessage.medium || detailedAiMessage.summary) ? <div>
                         {/* 등급별 미시 분석 */}
                         {[{
           key: 'critical',
-          label: t("g_786dde") || "\u26A0 \uC704\uD5D8 \uB4F1\uAE09 \uBD84\uC11D",
+          label: t("g_85ffad") || "⚠ 위험 등급 분석",
           color: '#EF4444',
           bg: 'rgba(239,68,68,0.08)',
           border: 'rgba(239,68,68,0.15)'
         }, {
           key: 'high',
-          label: t("g_fb8678") || "\uD83D\uDD36 \uC8FC\uC758 \uB4F1\uAE09 \uBD84\uC11D",
+          label: t("g_d24bb5") || "🔶 주의 등급 분석",
           color: '#F59E0B',
           bg: 'rgba(245,158,11,0.08)',
           border: 'rgba(245,158,11,0.15)'
         }, {
           key: 'medium',
-          label: t("g_91cddf") || "\uD83D\uDCA4 \uAD00\uCC30 \uB4F1\uAE09 \uBD84\uC11D",
+          label: t("g_d47d7d") || "💤 관찰 등급 분석",
           color: '#60A5FA',
           bg: 'rgba(96,165,250,0.08)',
           border: 'rgba(96,165,250,0.15)'
@@ -427,7 +427,7 @@ const ChurnReportPanel = ({
           color,
           bg,
           border
-        }) => detailedAiMessage[key] && detailedAiMessage[key] !== (t("g_61408f") || "\uD574\uB2F9 \uC5C6\uC74C") && <div key={key} style={{
+        }) => detailedAiMessage[key] && detailedAiMessage[key] !== (t("g_f1a3a9") || "해당 없음") && <div key={key} style={{
           padding: '12px 16px',
           borderBottom: `1px solid ${border}`,
           background: bg
@@ -462,7 +462,7 @@ const ChurnReportPanel = ({
               background: 'rgba(168,85,247,0.2)',
               color: '#A855F7',
               fontWeight: '700'
-            }}>{t("g_e1d37b") || "\uD83E\uDDE0 AI \uC885\uD569 \uCD1D\uD3C9"}</span>
+            }}>{t("g_e4f423") || "🧠 AI 종합 총평"}</span>
                                 </div>
                                 <div style={{
             fontSize: '0.88rem',
@@ -486,7 +486,7 @@ const ChurnReportPanel = ({
             background: 'rgba(168,85,247,0.2)',
             color: '#A855F7',
             fontWeight: '700'
-          }}>{t("g_993127") || "AI \uBD84\uC11D"}</span>
+          }}>{t("g_f0cdeb") || "AI 분석"}</span>
                         </div>
                         <div style={{
           fontSize: '0.88rem',
@@ -497,7 +497,7 @@ const ChurnReportPanel = ({
         padding: '14px 16px',
         fontSize: '0.85rem',
         color: '#a1a1aa'
-      }}>{t("g_647d1f") || "\uD83D\uDCCA \uC774\uD0C8 \uC704\uD5D8 \uD68C\uC6D0"}{analysisResults.length}{t("g_257c88") || "\uBA85\uC774 \uAC10\uC9C0\uB418\uC5C8\uC2B5\uB2C8\uB2E4."}</div>}
+      }}>{t("g_29d7b1") || "📊 이탈 위험 회원"}{analysisResults.length}{t("g_2f1aee") || "명이 감지되었습니다."}</div>}
             </div>
 
             {/* Risk Summary Cards */}
@@ -508,21 +508,21 @@ const ChurnReportPanel = ({
     }}>
                 {[{
         level: 'critical',
-        label: t("g_d31e5c") || "\u26A0 \uC704\uD5D8",
+        label: t("g_f5db83") || "⚠ 위험",
         count: criticalCount,
         loss: criticalLoss,
         color: '#EF4444',
         bg: 'rgba(239, 68, 68, 0.1)'
       }, {
         level: 'high',
-        label: t("g_3c19bc") || "\uD83D\uDD36 \uC8FC\uC758",
+        label: t("g_691170") || "🔶 주의",
         count: highCount,
         loss: highLoss,
         color: '#F59E0B',
         bg: 'rgba(245, 158, 11, 0.1)'
       }, {
         level: 'medium',
-        label: t("g_532784") || "\uD83D\uDCA4 \uAD00\uCC30",
+        label: t("g_fbe057") || "💤 관찰",
         count: mediumCount,
         loss: mediumLoss,
         color: '#60A5FA',
@@ -548,7 +548,7 @@ const ChurnReportPanel = ({
           fontSize: '1.5rem',
           fontWeight: '800',
           color: cat.color
-        }}>{cat.count}{t("g_7b3c6e") || "\uBA85"}</div>
+        }}>{cat.count}{t("g_5a62fd") || "명"}</div>
                         {cat.loss > 0 && <div style={{
           fontSize: '0.75rem',
           color: cat.color,
@@ -570,7 +570,7 @@ const ChurnReportPanel = ({
           border: `1px solid ${cat.color}40`,
           borderRadius: '4px',
           cursor: 'pointer'
-        }}>{t("g_0ba0b4") || "\uC77C\uAD04 \uC804\uC1A1"}</button>}
+        }}>{t("g_751b09") || "일괄 전송"}</button>}
                     </div>)}
             </div>
 
@@ -583,11 +583,11 @@ const ChurnReportPanel = ({
     }}>
                 {[{
         id: 'push_only',
-        label: t("g_347c6c") || "\uD83D\uDCF1 \uD478\uC2DC\uB9CC",
+        label: t("g_449051") || "📱 푸시만",
         color: '#10b981'
       }, {
         id: 'push_first',
-        label: t("g_2aec9d") || "\uD83D\uDCF1\u27A1\uD83D\uDCE9 \uD478\uC2DC\uC6B0\uC120",
+        label: t("g_78db79") || "📱➡📩 푸시우선",
         color: 'var(--primary-gold)'
       }, {
         id: 'sms_only',
@@ -598,7 +598,7 @@ const ChurnReportPanel = ({
         const smsBlocked = isSmsMode && !isSmsAvailable && !isDemo;
         return <button key={mode.id} onClick={() => {
           if (smsBlocked) {
-            if (window.confirm(t("g_37f52d") || "\uBC1C\uC2E0\uC790 \uBC88\uD638\uAC00 \uB4F1\uB85D\uB418\uC5B4 \uC788\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.\n\nSMS \uBC1C\uC1A1\uC744 \uC704\uD574\uC11C\uB294 \uBC1C\uC2E0\uC790 \uBC88\uD638 \uB4F1\uB85D\uC774 \uD544\uC694\uD569\uB2C8\uB2E4.\n\uD328\uC2A4\uD50C\uB85C\uC6B0 \uCE74\uCE74\uC624\uD1A1\uC73C\uB85C \uBB38\uC758\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) {
+            if (window.confirm(t("g_3ed666") || "발신자 번호가 등록되어 있지 않습니다.\n\nSMS 발송을 위해서는 발신자 번호 등록이 필요합니다.\n패스플로우 카카오톡으로 문의하시겠습니까?")) {
               window.open(KAKAO_PASSFLOW_URL, '_blank');
             }
             return;
@@ -615,7 +615,7 @@ const ChurnReportPanel = ({
           fontWeight: sendMode === mode.id ? '700' : '400',
           opacity: smsBlocked ? 0.5 : 1
         }}>
-                        {mode.label}{smsBlocked ? t("g_50a212") || " (\uB4F1\uB85D \uD544\uC694)" : ''}
+                        {mode.label}{smsBlocked ? t("g_74afce") || " (등록 필요)" : ''}
                     </button>;
       })}
             </div>
@@ -664,7 +664,7 @@ const ChurnReportPanel = ({
             fontSize: '0.9rem',
             fontWeight: '800',
             color: risk.color
-          }}>{risk.daysSince}{t("g_95e431") || "\uC77C"}</span>
+          }}>{risk.daysSince}{t("g_06cf3e") || "일"}</span>
                         </div>
 
                         {/* Member Info */}
@@ -696,7 +696,7 @@ const ChurnReportPanel = ({
             fontSize: '0.75rem',
             color: '#71717a',
             marginTop: '2px'
-          }}>{t("g_34c1e0") || "\uC794\uC5EC"}{member.credits}{t("g_7c1715") || "\uD68C \u2022"}{member.subject || t("g_8209e5") || "\uC77C\uBC18"}
+          }}>{t("g_599737") || "잔여"}{member.credits}{t("g_3b53dd") || "회 •"}{member.subject || t("g_aef1a1") || "일반"}
                             </div>
                         </div>
 
@@ -709,7 +709,7 @@ const ChurnReportPanel = ({
           fontSize: '0.8rem',
           fontWeight: '700',
           flexShrink: 0
-        }}>{t("g_3af6e6") || "\u2713 \uC804\uC1A1\uB428"}</div> : <button onClick={() => openConfirm(member, risk)} disabled={sendingId === member.id} style={{
+        }}>{t("g_c58e8c") || "✓ 전송됨"}</div> : <button onClick={() => openConfirm(member, risk)} disabled={sendingId === member.id} style={{
           padding: '8px 14px',
           borderRadius: '8px',
           background: sendingId === member.id ? '#52525b' : 'rgba(255,255,255,0.1)',
@@ -724,7 +724,7 @@ const ChurnReportPanel = ({
           gap: '4px'
         }}>
                                 <PaperPlaneTilt size={14} weight="fill" />
-                                {sendingId === member.id ? '...' : t("g_274cb0") || "\uBCF4\uB0B4\uAE30"}
+                                {sendingId === member.id ? '...' : t("g_f4cba3") || "보내기"}
                             </button>}
                     </div>)}
             </div>
@@ -740,7 +740,7 @@ const ChurnReportPanel = ({
       color: '#a1a1aa',
       lineHeight: '1.5'
     }}>
-                💡 <strong>{t("g_acf420") || "\uAE30\uC900"}</strong>{t("g_698cdf") || ": \uC704\uD5D8(30\uC77C+ \uBBF8\uCD9C\uC11D \uB610\uB294 \uC794\uC5EC \u22641\uD68C) \u2192 \uC8FC\uC758(21~29\uC77C) \u2192 \uAD00\uCC30(14~20\uC77C)"}<br />📨 <strong>{t("g_918b33") || "\uBA54\uC2DC\uC9C0"}</strong>{t("g_7f40ac") || "\uB294 \uC774\uD0C8 \uC704\uD5D8\uB3C4\uC5D0 \uB9DE\uCDB0 \uC790\uB3D9 \uC0DD\uC131\uB418\uBA70, \uC804\uC1A1 \uC804 \uB0B4\uC6A9\uC744 \uD655\uC778\xB7\uC218\uC815\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4."}</div>
+                💡 <strong>{t("g_39b300") || "기준"}</strong>{t("g_68be2e") || ": 위험(30일+ 미출석 또는 잔여 ≤1회) → 주의(21~29일) → 관찰(14~20일)"}<br />📨 <strong>{t("g_96330a") || "메시지"}</strong>{t("g_3581e0") || "는 이탈 위험도에 맞춰 자동 생성되며, 전송 전 내용을 확인·수정할 수 있습니다."}</div>
 
             {/* ─── [NEW] 메시지 컨펌 모달 ─── */}
             {confirmTarget && <div style={{
@@ -783,7 +783,7 @@ const ChurnReportPanel = ({
               fontSize: '1rem',
               color: 'white'
             }}>
-                                    {confirmTarget.member.name}{t("g_bf3a2a") || "\uD68C\uC6D0\uC5D0\uAC8C \uBCF4\uB0B4\uAE30"}</h3>
+                                    {confirmTarget.member.name}{t("g_91558f") || "회원에게 보내기"}</h3>
                             </div>
                             <button onClick={() => setConfirmTarget(null)} style={{
             background: 'none',
@@ -817,7 +817,7 @@ const ChurnReportPanel = ({
             fontSize: '0.8rem',
             color: '#a1a1aa'
           }}>
-                                {confirmTarget.risk.reason}{t("g_cfc786") || "\u2022 \uC794\uC5EC"}{confirmTarget.member.credits}{t("g_8a602f") || "\uD68C"}</span>
+                                {confirmTarget.risk.reason}{t("g_bc4a9c") || "• 잔여"}{confirmTarget.member.credits}{t("g_2fc05c") || "회"}</span>
                         </div>
 
                         {/* 전송 방식 표시 */}
@@ -825,11 +825,11 @@ const ChurnReportPanel = ({
           fontSize: '0.8rem',
           color: '#a1a1aa',
           marginBottom: '8px'
-        }}>{t("g_6f4539") || "\uC804\uC1A1 \uBC29\uC2DD:"}<span style={{
+        }}>{t("g_676ac1") || "전송 방식:"}<span style={{
             color: 'var(--primary-gold)',
             fontWeight: '700'
           }}>
-                                {sendMode === 'push_only' ? t("g_ef14f7") || "\uD83D\uDCF1 \uC571 \uD478\uC2DC\uB9CC" : sendMode === 'push_first' ? t("g_91eeaf") || "\uD83D\uDCF1\u27A1\uD83D\uDCE9 \uD478\uC2DC \uC6B0\uC120" : t("g_ba4e61") || "\uD83D\uDCE9 SMS\uB9CC"}
+                                {sendMode === 'push_only' ? t("g_4eaa2e") || "📱 앱 푸시만" : sendMode === 'push_first' ? t("g_5bc8cd") || "📱➡📩 푸시 우선" : t("g_d4f226") || "📩 SMS만"}
                             </span>
                         </div>
 
@@ -848,7 +848,7 @@ const ChurnReportPanel = ({
               fontSize: '0.8rem',
               color: '#a1a1aa'
             }}>
-                                    {messageLoading ? t("g_3dbf4d") || "\uD83E\uDDE0 AI\uAC00 \uB9DE\uCDA4 \uBA54\uC2DC\uC9C0\uB97C \uC791\uC131 \uC911..." : t("g_524d8d") || "AI\uAC00 \uC791\uC131\uD55C \uBA54\uC2DC\uC9C0 (\uC218\uC815 \uAC00\uB2A5)"}
+                                    {messageLoading ? t("g_065ac2") || "🧠 AI가 맞춤 메시지를 작성 중..." : t("g_0b500d") || "AI가 작성한 메시지 (수정 가능)"}
                                 </span>
                                 {messageLoading && <svg width="14" height="14" viewBox="0 0 24 24" style={{
               animation: 'spin 2s ease-in-out infinite'
@@ -877,7 +877,7 @@ const ChurnReportPanel = ({
             marginTop: '4px',
             textAlign: 'right'
           }}>
-                                {editMessage.length}{t("g_4e19f2") || "\uC790"}</div>
+                                {editMessage.length}{t("g_a86264") || "자"}</div>
                         </div>
 
                         {/* 전송 / 취소 버튼 */}
@@ -895,7 +895,7 @@ const ChurnReportPanel = ({
             cursor: 'pointer',
             fontSize: '0.9rem',
             fontWeight: '600'
-          }}>{t("g_d9de21") || "\uCDE8\uC18C"}</button>
+          }}>{t("g_19b2d1") || "취소"}</button>
                             <button onClick={handleConfirmSend} disabled={!editMessage.trim()} style={{
             flex: 2,
             padding: '12px',
@@ -911,7 +911,7 @@ const ChurnReportPanel = ({
             justifyContent: 'center',
             gap: '6px'
           }}>
-                                <PaperPlaneTilt size={16} weight="fill" />{t("g_9760b2") || "\uC804\uC1A1\uD558\uAE30"}</button>
+                                <PaperPlaneTilt size={16} weight="fill" />{t("g_91a5dc") || "전송하기"}</button>
                         </div>
                     </div>
                 </div>}
@@ -961,7 +961,7 @@ const ChurnReportPanel = ({
               margin: 0,
               fontSize: '1rem',
               color: 'white'
-            }}>{t("g_8a06b9") || "\uC77C\uAD04\uC804\uC1A1 \uD655\uC778 \u2014"}{bulkConfirm.label} {bulkConfirm.count}{t("g_7b3c6e") || "\uBA85"}</h3>
+            }}>{t("g_fb52d3") || "일괄전송 확인 —"}{bulkConfirm.label} {bulkConfirm.count}{t("g_5a62fd") || "명"}</h3>
                             </div>
                             <button onClick={() => {
             setBulkConfirm(null);
@@ -996,18 +996,18 @@ const ChurnReportPanel = ({
             }}>
                                         <circle cx="12" cy="12" r="10" fill="none" stroke="rgba(168,85,247,0.3)" strokeWidth="2" />
                                         <path d="M12 2 a10 10 0 0 1 10 10" fill="none" stroke="#A855F7" strokeWidth="2" strokeLinecap="round" />
-                                    </svg>{t("g_4ee7c9") || "\uD83E\uDDE0 AI\uAC00"}{bulkConfirm.count}{t("g_a3485f") || "\uBA85\uC5D0\uAC8C \uAC01\uAC01 \uB9DE\uCDA4 \uBA54\uC2DC\uC9C0\uB97C \uC791\uC131 \uC911..."}</> : `⚠️ 아래 ${bulkMessages.length}명에게 AI가 작성한 맞춤 메시지가 전송됩니다.`}
+                                    </svg>{t("g_2c4fc0") || "🧠 AI가"}{bulkConfirm.count}{t("g_2b3a79") || "명에게 각각 맞춤 메시지를 작성 중..."}</> : `⚠️ 아래 ${bulkMessages.length}명에게 AI가 작성한 맞춤 메시지가 전송됩니다.`}
                         </div>
 
                         <div style={{
           fontSize: '0.8rem',
           color: '#a1a1aa',
           marginBottom: '10px'
-        }}>{t("g_6f4539") || "\uC804\uC1A1 \uBC29\uC2DD:"}<span style={{
+        }}>{t("g_676ac1") || "전송 방식:"}<span style={{
             color: 'var(--primary-gold)',
             fontWeight: '700'
           }}>
-                                {sendMode === 'push_only' ? t("g_ef14f7") || "\uD83D\uDCF1 \uC571 \uD478\uC2DC\uB9CC" : sendMode === 'push_first' ? t("g_91eeaf") || "\uD83D\uDCF1\u27A1\uD83D\uDCE9 \uD478\uC2DC \uC6B0\uC120" : t("g_ba4e61") || "\uD83D\uDCE9 SMS\uB9CC"}
+                                {sendMode === 'push_only' ? t("g_4eaa2e") || "📱 앱 푸시만" : sendMode === 'push_first' ? t("g_5bc8cd") || "📱➡📩 푸시 우선" : t("g_d4f226") || "📩 SMS만"}
                             </span>
                         </div>
 
@@ -1081,7 +1081,7 @@ const ChurnReportPanel = ({
             cursor: 'pointer',
             fontSize: '0.9rem',
             fontWeight: '600'
-          }}>{t("g_d9de21") || "\uCDE8\uC18C"}</button>
+          }}>{t("g_19b2d1") || "취소"}</button>
                             <button onClick={handleBulkConfirmSend} style={{
             flex: 2,
             padding: '12px',
@@ -1098,7 +1098,7 @@ const ChurnReportPanel = ({
             gap: '6px'
           }}>
                                 <PaperPlaneTilt size={16} weight="fill" />
-                                {bulkMessages.length}{t("g_9e1139") || "\uBA85\uC5D0\uAC8C \uC804\uC1A1"}</button>
+                                {bulkMessages.length}{t("g_9265c3") || "명에게 전송"}</button>
                         </div>
                     </div>
                 </div>}

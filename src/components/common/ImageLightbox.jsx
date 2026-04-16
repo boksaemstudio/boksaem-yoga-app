@@ -160,11 +160,11 @@ const ImageLightbox = ({
       textAlign: 'center',
       pointerEvents: 'none'
     }}>
-                {scale > 1 ? t("g_42da8a") || "\uB4DC\uB798\uADF8\uD558\uC5EC \uC774\uB3D9" : t("g_847a89") || "\uB450 \uC190\uAC00\uB77D\uC73C\uB85C \uD655\uB300 \u2022 \uB354\uBE14 \uD0ED\uC73C\uB85C \uC90C"}
+                {scale > 1 ? t("g_30f38c") || "드래그하여 이동" : t("g_c6ff2c") || "두 손가락으로 확대 • 더블 탭으로 줌"}
             </div>
 
             {/* 이미지 */}
-            <img src={src} alt={t("g_9204db") || "\uD655\uB300 \uBCF4\uAE30"} onClick={handleDoubleTap} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{
+            <img src={src} alt={t("g_d3a02e") || "확대 보기"} onClick={handleDoubleTap} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{
       maxWidth: '95vw',
       maxHeight: '90vh',
       objectFit: 'contain',

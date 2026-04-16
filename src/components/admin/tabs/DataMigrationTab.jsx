@@ -23,7 +23,7 @@ export default function DataMigrationTab() {
 
     // 파일명 검증 (회원현황_YYYYMMDD.csv 형식)
     if (!file.name.match(/회원현황_\d{8}\.csv/)) {
-      alert(t("g_85c3ec") || "\uD30C\uC77C\uBA85\uC774 \uC62C\uBC14\uB974\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \"\uD68C\uC6D0\uD604\uD669_YYYYMMDD.csv\" \uD615\uC2DD\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.");
+      alert(t("g_cfad6d") || "파일명이 올바르지 않습니다. \"회원현황_YYYYMMDD.csv\" 형식이어야 합니다.");
       return;
     }
     try {
@@ -32,11 +32,11 @@ export default function DataMigrationTab() {
         // [Agent Admin Mode] Skip explicit confirmation if in agent mode
         const isAgentMode = window.__AGENT_ADMIN_MODE__ === true;
         if (!isAgentMode) {
-          const confirmed = window.confirm(t("g_f6599c") || "\u26A0\uFE0F [\uC8FC\uC758] \uC2E4\uC81C \uB9C8\uC774\uADF8\uB808\uC774\uC158\uC744 \uC2E4\uD589\uD558\uBA74 \uAE30\uC874 \uBAA8\uB4E0 \uD68C\uC6D0, \uB9E4\uCD9C, \uCD9C\uC11D, \uD478\uC2DC \uB370\uC774\uD130\uAC00 \uC0AD\uC81C\uB41C \uD6C4 \uC0C8\uB85C \uB4F1\uB85D\uB429\uB2C8\uB2E4.\n\n\uC815\uB9D0\uB85C \uC9C4\uD589\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?");
+          const confirmed = window.confirm(t("g_28bee6") || "⚠️ [주의] 실제 마이그레이션을 실행하면 기존 모든 회원, 매출, 출석, 푸시 데이터가 삭제된 후 새로 등록됩니다.\n\n정말로 진행하시겠습니까?");
           if (!confirmed) return;
-          const secondConfirm = window.prompt(t("g_0bcfdf") || "\uC0AD\uC81C \uBC0F \uC774\uC804\uC744 \uD655\uC815\uD558\uB824\uBA74 \"\uB9C8\uC774\uADF8\uB808\uC774\uC158\"\uC774\uB77C\uACE0 \uC785\uB825\uD574\uC8FC\uC138\uC694.");
-          if (secondConfirm !== (t("g_64e330") || "\uB9C8\uC774\uADF8\uB808\uC774\uC158")) {
-            alert(t("g_8b32bf") || "\uC785\uB825\uC774 \uC62C\uBC14\uB974\uC9C0 \uC54A\uC544 \uCDE8\uC18C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+          const secondConfirm = window.prompt(t("g_ce7f1f") || "삭제 및 이전을 확정하려면 \"마이그레이션\"이라고 입력해주세요.");
+          if (secondConfirm !== (t("g_b41aa0") || "마이그레이션")) {
+            alert(t("g_f36971") || "입력이 올바르지 않아 취소되었습니다.");
             return;
           }
         } else {
@@ -124,13 +124,13 @@ export default function DataMigrationTab() {
             fontWeight: 'bold',
             marginBottom: '4px'
           }}>
-                            {isDryRun ? t("g_b107ef") || "\uD83D\uDD0D \uAC80\uC99D \uBAA8\uB4DC (Dry Run)" : t("g_dde952") || "\u26A0\uFE0F \uC2E4\uC81C \uB9C8\uC774\uADF8\uB808\uC774\uC158 & \uCD08\uAE30\uD654 \uBAA8\uB4DC"}
+                            {isDryRun ? t("g_925d79") || "🔍 검증 모드 (Dry Run)" : t("g_b8778c") || "⚠️ 실제 마이그레이션 & 초기화 모드"}
                         </div>
                         <div style={{
             fontSize: '0.85rem',
             opacity: 0.8
           }}>
-                            {isDryRun ? t("g_6eb8ad") || "\uC2E4\uC81C \uB370\uC774\uD130 \uBCC0\uACBD \uC5C6\uC774 CSV \uD30C\uC77C \uD615\uC2DD\uB9CC \uAC80\uC99D\uD569\uB2C8\uB2E4." : t("g_5e513a") || "\uAE30\uC874 \uB370\uC774\uD130\uB97C \uBAA8\uB450 \uC9C0\uC6B0\uACE0 CSV \uAE30\uBC18\uC73C\uB85C \uC0C8\uB85C \uC2DC\uC791\uD569\uB2C8\uB2E4. (\uD68C\uC6D0/\uB9E4\uCD9C/\uCD9C\uC11D/\uD478\uC2DC \uC0AD\uC81C)"}
+                            {isDryRun ? t("g_8ae049") || "실제 데이터 변경 없이 CSV 파일 형식만 검증합니다." : t("g_0d3acc") || "기존 데이터를 모두 지우고 CSV 기반으로 새로 시작합니다. (회원/매출/출석/푸시 삭제)"}
                         </div>
                     </div>
                 </label>
@@ -190,9 +190,9 @@ export default function DataMigrationTab() {
         fontWeight: 'bold',
         marginBottom: '16px'
       }}>
-                        {migrationStatus === 'uploading' && (t("g_6a8296") || "CSV \uD30C\uC77C \uC77D\uB294 \uC911...")}
-                        {migrationStatus === 'processing' && `마이그레이션 진행 중 (${isDryRun ? t("g_cecc21") || "\uAC80\uC99D \uBAA8\uB4DC" : t("g_dd1366") || "\uC2E4\uC81C \uBAA8\uB4DC"})`}
-                        {migrationStatus === 'cleaning' && (t("g_d60c4d") || "\uAE30\uC874 \uB370\uC774\uD130 \uC0AD\uC81C \uC911...")}
+                        {migrationStatus === 'uploading' && (t("g_30ba5b") || "CSV 파일 읽는 중...")}
+                        {migrationStatus === 'processing' && `마이그레이션 진행 중 (${isDryRun ? t("g_f72491") || "검증 모드" : t("g_7df3c2") || "실제 모드"})`}
+                        {migrationStatus === 'cleaning' && (t("g_5b307c") || "기존 데이터 삭제 중...")}
                     </div>
                     {migrationStatus === 'processing' && <>
                             <div style={{
@@ -238,7 +238,7 @@ export default function DataMigrationTab() {
                             <h3 style={{
             fontSize: '1.1rem',
             fontWeight: 'bold'
-          }}>{t("g_7004eb") || "\uB9C8\uC774\uADF8\uB808\uC774\uC158 \uC644\uB8CC"}{isDryRun && (t("g_208a0b") || "(\uAC80\uC99D \uBAA8\uB4DC)")}
+          }}>{t("g_65a92c") || "마이그레이션 완료"}{isDryRun && (t("g_ac253d") || "(검증 모드)")}
                             </h3>
                         </div>
                         <div style={{
@@ -330,7 +330,7 @@ export default function DataMigrationTab() {
           marginBottom: '12px'
         }}>
                                 <WarningCircle size={20} color="#F43F5E" />
-                                <strong>{t("g_3ccf0e") || "\uC5D0\uB7EC \uB85C\uADF8 ("}{results.errors.length}{t("g_bcbcd4") || "\uAC74)"}</strong>
+                                <strong>{t("g_974c63") || "에러 로그 ("}{results.errors.length}{t("g_a0fd7f") || "건)"}</strong>
                             </div>
                             {results.errors.map((err, idx) => <div key={idx} style={{
           padding: '8px',

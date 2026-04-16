@@ -12,10 +12,10 @@ import CollapsibleCard from '../CollapsibleCard';
 
 // [i18n] Day names map - shared between MiniCalendar and LogsTab
 const dayNamesMap = {
-  ko: ["일", "월", "화", "수", "목", "금", "토"],
+  ko: [(t("g_06cf3e") || "일"), (t("g_754486") || "월"), (t("g_adb4a2") || "화"), (t("g_c04eb2") || "수"), (t("g_5664a6") || "목"), (t("g_cf5632") || "금"), (t("g_b9e406") || "토")],
   en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-  ja: ['日', '月', '火', '水', '木', '金', '土'],
-  zh: ['日', '一', '二', '三', '四', '五', '六'],
+  ja: [(t("g_15917f") || "日"), (t("g_d9b598") || "月"), (t("g_efb262") || "火"), (t("g_8ffbf1") || "水"), (t("g_8294db") || "木"), (t("g_b59df8") || "金"), (t("g_90fbc9") || "土")],
+  zh: [(t("g_15917f") || "日"), (t("g_d274ee") || "一"), (t("g_1d5639") || "二"), (t("g_49ddb0") || "三"), (t("g_4f8874") || "四"), (t("g_8f07f5") || "五"), (t("g_3d72c7") || "六")],
   ru: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
   es: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
   pt: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
@@ -279,8 +279,8 @@ const LogsTab = ({
           let count = 0;
           dayLogs.forEach(log => {
             const info = guessClassInfo(log);
-            const cName = info?.className || log.className || t("g_8209e5") || "\uC77C\uBC18";
-            const cInst = info?.instructor || log.instructor || t("g_9564f6") || "\uC120\uC0DD\uB2D8";
+            const cName = info?.className || log.className || t("g_aef1a1") || "일반";
+            const cInst = info?.instructor || log.instructor || t("g_620be2") || "선생님";
 
             // [FIX] 수업명 + 강사명만 매칭 (시간은 무시 — 같은 수업이라도 시간대가 변경될 수 있음)
             if (log.status !== 'denied' && cName === tName && cInst === tInst) {
@@ -295,7 +295,7 @@ const LogsTab = ({
             fullDate: targetDateStr,
             timestamp: dObj.getTime(),
             count: count,
-            dayName: [t("g_95e431") || "\uC77C", t("g_5b51dd") || "\uC6D4", t("g_74d3f7") || "\uD654", t("g_cae82d") || "\uC218", t("g_d5f699") || "\uBAA9", t("g_cef92d") || "\uAE08", t("g_ccc0dc") || "\uD1A0"][dayOfWeek]
+            dayName: [t("g_06cf3e") || "일", t("g_754486") || "월", t("g_adb4a2") || "화", t("g_c04eb2") || "수", t("g_5664a6") || "목", t("g_cf5632") || "금", t("g_b9e406") || "토"][dayOfWeek]
           });
         });
 
@@ -375,15 +375,15 @@ const LogsTab = ({
     activeLogs.forEach(log => {
       const info = guessClassInfo(log);
       const classTime = info?.startTime || '00:00';
-      const canonicalClassName = info?.className || log.className || t("g_8209e5") || "\uC77C\uBC18";
-      const canonicalInstructor = info?.instructor || log.instructor || t("g_9564f6") || "\uC120\uC0DD\uB2D8";
-      const key = canonicalClassName === (t("g_2b3da3") || "\uC790\uC728\uC218\uB828") ? `${canonicalClassName}-${log.branchId}` : `${canonicalClassName}-${canonicalInstructor}-${log.branchId}-${classTime}`;
+      const canonicalClassName = info?.className || log.className || t("g_aef1a1") || "일반";
+      const canonicalInstructor = info?.instructor || log.instructor || t("g_620be2") || "선생님";
+      const key = canonicalClassName === (t("g_dd529d") || "자율수련") ? `${canonicalClassName}-${log.branchId}` : `${canonicalClassName}-${canonicalInstructor}-${log.branchId}-${classTime}`;
       if (!groups[key]) {
         groups[key] = {
           className: canonicalClassName,
-          instructor: canonicalClassName === (t("g_2b3da3") || "\uC790\uC728\uC218\uB828") ? t("g_6745df") || "\uD68C\uC6D0" : canonicalInstructor,
+          instructor: canonicalClassName === (t("g_dd529d") || "자율수련") ? t("g_dae3ed") || "회원" : canonicalInstructor,
           branchId: log.branchId,
-          classTime: canonicalClassName === (t("g_2b3da3") || "\uC790\uC728\uC218\uB828") ? '' : classTime,
+          classTime: canonicalClassName === (t("g_dd529d") || "자율수련") ? '' : classTime,
           count: 0,
           deniedCount: 0,
           memberNames: []
@@ -408,7 +408,7 @@ const LogsTab = ({
     });
   })();
   const handleClassClick = cls => {
-    const key = cls.className === (t("g_2b3da3") || "\uC790\uC728\uC218\uB828") ? `${cls.className}-${cls.branchId}` : `${cls.className}-${cls.instructor}-${cls.branchId}-${cls.classTime || 'no-time'}`;
+    const key = cls.className === (t("g_dd529d") || "자율수련") ? `${cls.className}-${cls.branchId}` : `${cls.className}-${cls.instructor}-${cls.branchId}-${cls.classTime || 'no-time'}`;
     // [UX] Toggle selection: if already selected, deselect (show all)
     setSelectedClassKey(prev => prev === key ? null : key);
     setCurrentLogPage(1);
@@ -656,14 +656,14 @@ const LogsTab = ({
                 </div>}
 
             {/* ─── Class Summary Cards ─── */}
-            {!loadingHistorical && classCards.length > 0 && <CollapsibleCard id="logs-class-summary" title={`📊 ${isToday ? t("g_e1e8a7") || "\uC624\uB298" : formatDisplayDate(selectedDate)} 수업별 출석 요약`} titleExtra={`${classCards.length}개 수업`} defaultOpen={false}>
+            {!loadingHistorical && classCards.length > 0 && <CollapsibleCard id="logs-class-summary" title={`📊 ${isToday ? t("g_2bdce5") || "오늘" : formatDisplayDate(selectedDate)} ${t('수업별 출석 요약')}`} titleExtra={`${classCards.length}${t('개 수업')}`} defaultOpen={false}>
                     <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           gap: '12px'
         }}>
                         {classCards.map((cls, idx) => {
-            const key = cls.className === (t("g_2b3da3") || "\uC790\uC728\uC218\uB828") ? `${cls.className}-${cls.branchId}` : `${cls.className}-${cls.instructor}-${cls.branchId}-${cls.classTime || 'no-time'}`;
+            const key = cls.className === (t("g_dd529d") || "자율수련") ? `${cls.className}-${cls.branchId}` : `${cls.className}-${cls.instructor}-${cls.branchId}-${cls.classTime || 'no-time'}`;
             const isSelected = selectedClassKey === key;
             return <React.Fragment key={key}>
                                 <div onClick={() => handleClassClick(cls)} style={{
@@ -741,7 +741,7 @@ const LogsTab = ({
                     border: '1px solid rgba(255, 77, 79, 0.2)',
                     fontWeight: 'bold',
                     marginLeft: '6px'
-                  }}>{t("g_886f0f") || "\u26D4 \uAC70\uBD80"}{cls.deniedCount}{t("g_7b3c6e") || "\uBA85"}</span>}
+                  }}>{t("g_2b8b8b") || "⛔ 거부"}{cls.deniedCount}{t("g_5a62fd") || "명"}</span>}
                                     </div>
                                     {/* [NEW] Show multi-attendance member names */}
                                     {cls.memberNames?.length > 0 && <div style={{
@@ -923,9 +923,9 @@ const LogsTab = ({
             const filteredLogs = (selectedClassKey ? activeLogs.filter(l => {
               const info = guessClassInfo(l);
               const classTime = info?.startTime || '00:00';
-              const canonicalClassName = info?.className || l.className || t("g_8209e5") || "\uC77C\uBC18";
-              const canonicalInstructor = info?.instructor || l.instructor || t("g_9564f6") || "\uC120\uC0DD\uB2D8";
-              const logKey = canonicalClassName === (t("g_2b3da3") || "\uC790\uC728\uC218\uB828") ? `${canonicalClassName}-${l.branchId}` : `${canonicalClassName}-${canonicalInstructor}-${l.branchId}-${classTime}`;
+              const canonicalClassName = info?.className || l.className || t("g_aef1a1") || "일반";
+              const canonicalInstructor = info?.instructor || l.instructor || t("g_620be2") || "선생님";
+              const logKey = canonicalClassName === (t("g_dd529d") || "자율수련") ? `${canonicalClassName}-${l.branchId}` : `${canonicalClassName}-${canonicalInstructor}-${l.branchId}-${classTime}`;
               return logKey === selectedClassKey;
             }) : activeLogs).filter(l => {
               // Apply local filters

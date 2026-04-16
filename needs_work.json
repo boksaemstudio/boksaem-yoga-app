@@ -1,0 +1,1706 @@
+[
+  {
+    "file": "src\\i18n\\onboardingI18n.js",
+    "realKorean": 106,
+    "commentKorean": 0,
+    "alreadyWrapped": 0,
+    "isComponent": false,
+    "samples": [
+      {
+        "line": 24,
+        "text": "logoTitle: name => `${name}의 로고`,"
+      },
+      {
+        "line": 27,
+        "text": "logoAiDesc: name => `\"${name}\" 이름에 맞는 로고를 AI가 만들어 드립니다`,"
+      },
+      {
+        "line": 53,
+        "text": "successDesc: email => `슈퍼어드민이 승인하는 즉시,\\n${email} 주소로\\n초기 비밀번호와 접속 링크를 보내드립니다.`,"
+      },
+      {
+        "line": 132,
+        "text": "heroTitle: 'PassFlow AI 導入のお申し込み',"
+      },
+      {
+        "line": 133,
+        "text": "heroDesc: 'ヨガ・ピラティス・ジムオーナー様のための\\nスタジオ運営AIプラットフォーム。まずは無料でお試しください。',"
+      }
+    ]
+  },
+  {
+    "file": "src\\utils\\demoLocalization.js",
+    "realKorean": 48,
+    "commentKorean": 22,
+    "alreadyWrapped": 0,
+    "isComponent": false,
+    "samples": [
+      {
+        "line": 31,
+        "text": "'山田 花子', '佐藤 美咲', '鈴木 陽子', '田中 真理',"
+      },
+      {
+        "line": 32,
+        "text": "'高橋 千尋', '伊藤 さくら', '渡辺 結衣', '中村 愛',"
+      },
+      {
+        "line": 33,
+        "text": "'小林 理恵', '加藤 優子', '吉田 美紀', '山口 智子',"
+      },
+      {
+        "line": 34,
+        "text": "'松本 恵子', '井上 麻衣', '木村 綾', '石井 瞳',"
+      },
+      {
+        "line": 35,
+        "text": "'前田 由美', '藤田 奈々', '後藤 翔子', '岡田 真由美',"
+      }
+    ]
+  },
+  {
+    "file": "src\\App.jsx",
+    "realKorean": 42,
+    "commentKorean": 23,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 37,
+        "text": "error: '⚠️ 시스템 오류 발생',"
+      },
+      {
+        "line": 38,
+        "text": "errorDesc: '애플리케이션을 로드하는 중 문제가 발생했습니다.',"
+      },
+      {
+        "line": 39,
+        "text": "retry: '새로고침 및 캐시 초기화',"
+      },
+      {
+        "line": 40,
+        "text": "authCheck: '인증 확인 중...',"
+      },
+      {
+        "line": 41,
+        "text": "permCheck: '권한 확인 중...',"
+      }
+    ]
+  },
+  {
+    "file": "src\\hooks\\useAdminData.js",
+    "realKorean": 38,
+    "commentKorean": 19,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 11,
+        "text": "ko: `당신은 최고의 요가 스튜디오 경영 컨설턴트입니다. 원장에게 종합적인 경영 브리핑을 제공하세요."
+      },
+      {
+        "line": 12,
+        "text": "다음 영역을 모두 커버해주세요:"
+      },
+      {
+        "line": 13,
+        "text": "1. 📊 매출 분석: 월간 매출 현황, 일매출 추이, 전월 대비 변화"
+      },
+      {
+        "line": 14,
+        "text": "2. 👥 회원 관리: 활성/총 회원 비율, 신규 등록 vs 재등록, 만료 임박 회원 관리 전략"
+      },
+      {
+        "line": 15,
+        "text": "3. 🔄 재등록률 심층 분석: 누적 재등록률과 최근 3개월 재등록률 비교, 월별 트렌드 해석, 재등록률 개선 전략"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\admin\\tabs\\StudioSettingsTab.jsx",
+    "realKorean": 26,
+    "commentKorean": 6,
+    "alreadyWrapped": 79,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 242,
+        "text": "{/* ─── 1. 우리 요가원 ─── */}"
+      },
+      {
+        "line": 253,
+        "text": "{/* 로고 업로드 */}"
+      },
+      {
+        "line": 335,
+        "text": "{/* 기본 정보 */}"
+      },
+      {
+        "line": 422,
+        "text": "{/* ─── 2. 운영 규칙 ─── */}"
+      },
+      {
+        "line": 433,
+        "text": "{/* ── 2-1. 회원 홀딩 ── */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\admin\\member-detail\\RegistrationTab.jsx",
+    "realKorean": 24,
+    "commentKorean": 23,
+    "alreadyWrapped": 2,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 105,
+        "text": "const match = option.label.match(/(\\d+)개월/);"
+      },
+      {
+        "line": 143,
+        "text": "calculatedProductName: `${label} ${duration > 1 && option.type !== 'ticket' ? `(${duration}개월)` : ''}`,"
+      },
+      {
+        "line": 252,
+        "text": "let confirmMsg = `${calculatedProductName}\\n금액: ${price.toLocaleString()}원\\n\\n등록하시겠습니까?`;"
+      },
+      {
+        "line": 291,
+        "text": "updateData.originalCredits = customCredits; // [FIX] 원래 횟수 기록 (역추적용)"
+      },
+      {
+        "line": 294,
+        "text": "updateData.duration = durationMonths; // [FIX] TBD 해소 시 attendance.js가 이 값으로 endDate 계산"
+      }
+    ]
+  },
+  {
+    "file": "src\\pages\\MeditationPage.jsx",
+    "realKorean": 22,
+    "commentKorean": 14,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 88,
+        "text": "const isPlayingRef = useRef(false); // ✅ 세션 활성 상태 추적 Ref (비동기 콜백용)"
+      },
+      {
+        "line": 89,
+        "text": "const [step, setStep] = useState('initial_prep'); // ✅ 알림 끄기 체크부터 시작"
+      },
+      {
+        "line": 99,
+        "text": "const [selectedIntention, setSelectedIntention] = useState(null); // ✅ 선택한 의도"
+      },
+      {
+        "line": 100,
+        "text": "const [selectedCategory, setSelectedCategory] = useState(null); // ✅ 선택한 카테고리 (비움/채움)"
+      },
+      {
+        "line": 124,
+        "text": "binaural: 0.1 // 🎵 바이노랄 비트 (잠재의식 - 음량 낮춤)"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\admin\\tabs\\KioskSettingsTab.jsx",
+    "realKorean": 21,
+    "commentKorean": 11,
+    "alreadyWrapped": 41,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 99,
+        "text": "setUploadProgress(`업로드 중... (${(file.size / 1024 / 1024).toFixed(1)}MB)`);"
+      },
+      {
+        "line": 245,
+        "text": "{/* ━━━ 출석 화면 로고 설정 (SaaS) ━━━ */}"
+      },
+      {
+        "line": 322,
+        "text": "{/* 이미지만 감싸는 컨테이너에 선택한 배경 부여 (프리뷰 흐릿함 방지) */}"
+      },
+      {
+        "line": 339,
+        "text": "{/* 배경색 선택 UI */}"
+      },
+      {
+        "line": 375,
+        "text": "{/* 이미지 반전(Invert) 토글 */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\admin\\ChurnReportPanel.jsx",
+    "realKorean": 20,
+    "commentKorean": 17,
+    "alreadyWrapped": 3,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 43,
+        "text": "reason: daysSince >= 30 ? `${daysSince}일 미출석` : `${daysSince}일 미출석 + 잔여 ${credits}회`"
+      },
+      {
+        "line": 54,
+        "text": "reason: `${daysSince}일째 미출석`"
+      },
+      {
+        "line": 64,
+        "text": "reason: `${daysSince}일째 미출석`"
+      },
+      {
+        "line": 74,
+        "text": "return `${name} 회원님, 안녕하세요! 요즘 못 뵈어서 궁금했어요 😊 몸 상태는 괜찮으신가요? 다시 함께 수련할 수 있으면 좋겠어요. 언제든 편하게 오세요! 🧘‍♀️`;"
+      },
+      {
+        "line": 77,
+        "text": "return `${name} 회원님, 요즘 바쁘신가 봐요! 틈날 때 한 번 오시면 몸이 가벼워질 거예요 ✨ 기다리고 있을게요! 🧘‍♀️`;"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\admin\\member-detail\\MemberInfoTab.jsx",
+    "realKorean": 20,
+    "commentKorean": 8,
+    "alreadyWrapped": 7,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 86,
+        "text": "{/* 얼굴인식 관리 */}"
+      },
+      {
+        "line": 550,
+        "text": "{/* ── 현재 활성 회원권 카드 ── */}"
+      },
+      {
+        "line": 661,
+        "text": "{/* ── 홀딩 내역 ── */}"
+      },
+      {
+        "line": 737,
+        "text": "{/* ── 다가올 수강권 (선등록) ── */}"
+      },
+      {
+        "line": 842,
+        "text": "{/* ── 관리자 수동 조정 ── */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\profile\\MembershipInfo.jsx",
+    "realKorean": 19,
+    "commentKorean": 14,
+    "alreadyWrapped": 1,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 52,
+        "text": "window.location.reload(); // 상태 새로고침"
+      },
+      {
+        "line": 70,
+        "text": "const isAdminHold = !member.holdRequestedDays; // 관리자 수동 홀딩 = 무기한"
+      },
+      {
+        "line": 138,
+        "text": "{/* [NEW] 안면인식 안심 문구 */}"
+      },
+      {
+        "line": 166,
+        "text": "{/* 홀딩 중일 때 상태 표시 */}"
+      },
+      {
+        "line": 300,
+        "text": "{/* [NEW] 수강권 소진율 프로그레스 바 — 기간 대비 수강 페이스 */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\admin\\tabs\\AttendanceTrendChart.jsx",
+    "realKorean": 18,
+    "commentKorean": 14,
+    "alreadyWrapped": 19,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 25,
+        "text": "{/* 이번 주 (월~오늘) */}"
+      },
+      {
+        "line": 49,
+        "text": "{/* 지난 주 동일 시점 */}"
+      },
+      {
+        "line": 72,
+        "text": "{/* 증감률 */}"
+      },
+      {
+        "line": 166,
+        "text": "const dayIdx = [1, 2, 3, 4, 5, 6, 0][di]; // 월~일 순서"
+      },
+      {
+        "line": 222,
+        "text": "{/* 범례 */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\checkin\\FaceRegistrationModal.jsx",
+    "realKorean": 18,
+    "commentKorean": 15,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 146,
+        "text": "setStep(2.5); // 선택 단계로 이동"
+      },
+      {
+        "line": 149,
+        "text": "setStep(3); // → useEffect가 initCamera 호출"
+      },
+      {
+        "line": 160,
+        "text": "initCamera(); // 재시도"
+      },
+      {
+        "line": 267,
+        "text": "{/* Step 1: 안내 */}"
+      },
+      {
+        "line": 341,
+        "text": "{/* Step 2: 본인 확인 (핸드폰 뒷4자리) */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\admin\\AdminAIAssistant.jsx",
+    "realKorean": 12,
+    "commentKorean": 8,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 137,
+        "text": "content: isQuotaError ? `⚠️ 오늘의 AI 비서 사용 한도(${quota.limit}회)를 모두 사용했습니다. 내일 다시 이용해주세요.` : `죄송합니다, 일시적인 오류가 발생했습니다. 다시 시도"
+      },
+      {
+        "line": 229,
+        "text": "{/* 헤더 */}"
+      },
+      {
+        "line": 304,
+        "text": "{/* 과거 대화 히스토리 패널 */}"
+      },
+      {
+        "line": 383,
+        "text": "{/* 대화 영역 */}"
+      },
+      {
+        "line": 480,
+        "text": "{/* 아바타 */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\pages\\SuperAdminPage.jsx",
+    "realKorean": 11,
+    "commentKorean": 15,
+    "alreadyWrapped": 154,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 333,
+        "text": "if (newDateStr === null) return; // 취소"
+      },
+      {
+        "line": 601,
+        "text": "{/* 신규 가입 심사 대기소 */}"
+      },
+      {
+        "line": 719,
+        "text": "{/* 기존 스튜디오 목록 */}"
+      },
+      {
+        "line": 739,
+        "text": "}} onClick={() => handleSwitch(studio)} title={`클릭하면 이 화면 전체가 [${studio.name}]의 데이터로 탈바꿈합니다.`}>"
+      },
+      {
+        "line": 777,
+        "text": "}} alt={`${studio.name} 로고`} /> : studio.name?.substring(0, 1) || '?'}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\admin\\tabs\\LogsTab.jsx",
+    "realKorean": 10,
+    "commentKorean": 13,
+    "alreadyWrapped": 26,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 15,
+        "text": "ko: [\"일\", \"월\", \"화\", \"수\", \"목\", \"금\", \"토\"],"
+      },
+      {
+        "line": 17,
+        "text": "ja: ['日', '月', '火', '水', '木', '金', '土'],"
+      },
+      {
+        "line": 18,
+        "text": "zh: ['日', '一', '二', '三', '四', '五', '六'],"
+      },
+      {
+        "line": 256,
+        "text": "const selectedDayOfWeek = selectedDayObj.getDay(); // 0=일, 1=월, ..."
+      },
+      {
+        "line": 344,
+        "text": "const rankMap = {}; // logId -> session rank (1회차, 2회차...)"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\admin\\member-detail\\MessagesTab.jsx",
+    "realKorean": 9,
+    "commentKorean": 4,
+    "alreadyWrapped": 1,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 171,
+        "text": "{/* 출석 알림 설정 */}"
+      },
+      {
+        "line": 200,
+        "text": "{/* 앱 푸시 안내 */}"
+      },
+      {
+        "line": 219,
+        "text": "{/* SMS 옵션 — 출석 시 자동 / 지금 보내기 */}"
+      },
+      {
+        "line": 225,
+        "text": "{/* 자동 보내기 토글 */}"
+      },
+      {
+        "line": 279,
+        "text": "{/* 지금 보내기 버튼 */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\admin\\tabs\\BookingsTab.jsx",
+    "realKorean": 9,
+    "commentKorean": 18,
+    "alreadyWrapped": 13,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 224,
+        "text": "{/* 달력 */}"
+      },
+      {
+        "line": 227,
+        "text": "{/* 선택된 날짜 헤더 */}"
+      },
+      {
+        "line": 252,
+        "text": "{/* 요약 통계 카드 */}"
+      },
+      {
+        "line": 264,
+        "text": "{/* 수업별 예약 현황 */}"
+      },
+      {
+        "line": 325,
+        "text": "{/* 수업 헤더 */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\admin\\tabs\\MembersTab.jsx",
+    "realKorean": 9,
+    "commentKorean": 4,
+    "alreadyWrapped": 20,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 123,
+        "text": "}, 60000); // 매 1분 체크"
+      },
+      {
+        "line": 201,
+        "text": "{/* 1. 활성 회원 (핵심 자산) */}"
+      },
+      {
+        "line": 287,
+        "text": "{/* 재등록률 */}"
+      },
+      {
+        "line": 338,
+        "text": "{/* AI 이탈예측 카드 (만료/잠든 카드 통합) */}"
+      },
+      {
+        "line": 664,
+        "text": "{/* Revenue Card (Visual Bar Chart Simulated) — 접기/펼치기 적용 */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\profile\\tabs\\PriceTab.jsx",
+    "realKorean": 9,
+    "commentKorean": 2,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 48,
+        "text": "{/* 회원 결제 내역 */}"
+      },
+      {
+        "line": 51,
+        "text": "{/* 가격표 테이블 뷰 */}"
+      },
+      {
+        "line": 55,
+        "text": "{/* 카테고리 탭 */}"
+      },
+      {
+        "line": 80,
+        "text": "{/* 선택된 카테고리 가격표 */}"
+      },
+      {
+        "line": 84,
+        "text": "{/* 기본 단가표 */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\contexts\\PWAContext.jsx",
+    "realKorean": 9,
+    "commentKorean": 4,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 59,
+        "text": "const path = location.pathname.toLowerCase(); // [FIX] 대소문자 무시"
+      },
+      {
+        "line": 65,
+        "text": "let manifestFile = '/manifest.json'; // 기본값 (포트레이트 모드)"
+      },
+      {
+        "line": 71,
+        "text": "checkin: { ko: '출석체크', en: 'Check-in', ja: '出席チェック', zh: '签到', es: 'Registro', de: 'Check-in', fr: 'Pointage', pt: 'Chec"
+      },
+      {
+        "line": 72,
+        "text": "admin: { ko: '관리자', en: 'Admin', ja: '管理者', zh: '管理员', es: 'Admin', de: 'Admin', fr: 'Admin', pt: 'Admin', ru: 'Админ' }"
+      },
+      {
+        "line": 73,
+        "text": "member: { ko: '내요가', en: 'My Yoga', ja: 'マイヨガ', zh: '我的瑜伽', es: 'Mi Yoga', de: 'Mein Yoga', fr: 'Mon Yoga', pt: 'Meu Yog"
+      }
+    ]
+  },
+  {
+    "file": "src\\pages\\InstructorPage.jsx",
+    "realKorean": 9,
+    "commentKorean": 12,
+    "alreadyWrapped": 16,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 26,
+        "text": "}) || `${name} 선생님, ${timeGreeting} 🧘‍♀️ ${dayContext}`;"
+      },
+      {
+        "line": 59,
+        "text": "const lastAiFetchArgs = useRef(''); // [FIX] AI 중복 호출 방지용 상태 추적"
+      },
+      {
+        "line": 63,
+        "text": "const [aiGreetingLoading, setAiGreetingLoading] = useState(false); // [AI] 로딩 애니메이션"
+      },
+      {
+        "line": 64,
+        "text": "const [aiEnhancedGreeting, setAiEnhancedGreeting] = useState(null); // [AI] AI 보강 메시지"
+      },
+      {
+        "line": 165,
+        "text": "if (!user) return; // Auth 아직 안 됨 — 기다림"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\admin\\tabs\\DataMigrationTab.jsx",
+    "realKorean": 8,
+    "commentKorean": 5,
+    "alreadyWrapped": 18,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 25,
+        "text": "if (!file.name.match(/회원현황_\\d{8}\\.csv/)) {"
+      },
+      {
+        "line": 102,
+        "text": "{/* Dry Run 모드 토글 */}"
+      },
+      {
+        "line": 139,
+        "text": "{/* 파일 업로드 영역 */}"
+      },
+      {
+        "line": 180,
+        "text": "{/* 진행 중 (업로드, 처리, 삭제 공용) */}"
+      },
+      {
+        "line": 222,
+        "text": "{/* 완료 */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\checkin\\CheckInInfoSection.jsx",
+    "realKorean": 8,
+    "commentKorean": 5,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 69,
+        "text": "{/* [SaaS] 키오스크 로고: 관리자가 키오스크 탭에서 등록한 이미지들 */}"
+      },
+      {
+        "line": 87,
+        "text": "borderRadius: currentBg === 'transparent' ? '0' : '8px', // 배경색이 있을 때만 미세한 라운드 처리 (여백 없음)"
+      },
+      {
+        "line": 105,
+        "text": "{/* ━━━ PIN 표시 (키 입력 중일 때 카메라 대신 표시) ━━━ */}"
+      },
+      {
+        "line": 122,
+        "text": "{/* ━━━ Large 카메라 프리뷰 (info-body 내부 — 로고와 AI메시지 사이 중앙) ━━━ */}"
+      },
+      {
+        "line": 311,
+        "text": "}) || `${studioName}의 에너지를 연결하고 있습니다...`}</span>"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\MemberScheduleCalendar.jsx",
+    "realKorean": 8,
+    "commentKorean": 3,
+    "alreadyWrapped": 1,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 226,
+        "text": "{/* 예약 확인 모달 */}"
+      },
+      {
+        "line": 279,
+        "text": "{/* 수업 정보 */}"
+      },
+      {
+        "line": 307,
+        "text": "{/* 정원 현황 바 */}"
+      },
+      {
+        "line": 342,
+        "text": "{/* 버튼 */}"
+      },
+      {
+        "line": 414,
+        "text": "if (dateStr > todayKST) return true; // 미래 날짜 → 가능"
+      }
+    ]
+  },
+  {
+    "file": "src\\hooks\\useMeditationAI.js",
+    "realKorean": 8,
+    "commentKorean": 0,
+    "alreadyWrapped": 1,
+    "isComponent": false,
+    "samples": [
+      {
+        "line": 67,
+        "text": "prescResult.data.prescriptionReason = prescResult.data.prescriptionReason.replace(/OO님/g, `${memberName}님`);"
+      },
+      {
+        "line": 70,
+        "text": "prescResult.data.message = prescResult.data.message.replace(/OO님/g, `${memberName}님`);"
+      },
+      {
+        "line": 91,
+        "text": "const initialMessage = `${intentionLabel} 시간을 가져볼까요? 오늘 하루 마음이 어떠셨나요?`;"
+      },
+      {
+        "line": 122,
+        "text": "}, 12000); // [최적화] 45초→12초 타임아웃 단축"
+      },
+      {
+        "line": 137,
+        "text": "if (result.data.message) result.data.message = result.data.message.replace(/OO님/g, `${memberName}님`);"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\admin\\modals\\MemberAddModal.jsx",
+    "realKorean": 7,
+    "commentKorean": 13,
+    "alreadyWrapped": 26,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 120,
+        "text": "const match = option.label.match(/(\\d+)개월/);"
+      },
+      {
+        "line": 163,
+        "text": "calculatedProductName: `${label} ${duration > 1 && option.type !== 'ticket' ? `(${duration}개월)` : ''}`,"
+      },
+      {
+        "line": 164,
+        "text": "durationMonths: months // [FIX] 실제 계산된 유효기간(개월) — ticket/subscription 무관하게 정확한 값"
+      },
+      {
+        "line": 178,
+        "text": "manualEndDate: '' // [FIX] 시작일이나 결제기간 변경 시 수동 마감일 초기화하여 자동계산값 노출 보장"
+      },
+      {
+        "line": 270,
+        "text": "} // [FIX] 이미 credits 계산 시 1회 차감됨, 이중 차감 방지"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\admin\\tabs\\OperationsGuideTab.jsx",
+    "realKorean": 7,
+    "commentKorean": 2,
+    "alreadyWrapped": 35,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 169,
+        "text": "{/* 헤더 */}"
+      },
+      {
+        "line": 187,
+        "text": "{/* ━━━ 1. 회원 & 출석 ━━━ */}"
+      },
+      {
+        "line": 204,
+        "text": "{/* ━━━ 1-2. 회원권 등록/재등록 로직 ━━━ */}"
+      },
+      {
+        "line": 219,
+        "text": "{/* ━━━ 2. 예약 시스템 ━━━ */}"
+      },
+      {
+        "line": 248,
+        "text": "{/* ━━━ 3. 알림 & 보안 ━━━ */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\instructor\\InstructorHome.jsx",
+    "realKorean": 7,
+    "commentKorean": 5,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 66,
+        "text": "}, 2000); // UI 안정화 후 2초 뒤 자동 실행"
+      },
+      {
+        "line": 79,
+        "text": "}, 3000); // 3초 뒤 자연스럽게 권한 요청 팝업 띄움"
+      },
+      {
+        "line": 239,
+        "text": "{/* 오늘 수업 목록 */}"
+      },
+      {
+        "line": 269,
+        "text": "{/* 출석 명단 */}"
+      },
+      {
+        "line": 284,
+        "text": "{/* 사진 썸네일 */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\contexts\\StudioContext.jsx",
+    "realKorean": 7,
+    "commentKorean": 8,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 50,
+        "text": "console.warn('[스튜디오] 익명 인증 실패, 기본 설정으로 진행:', e);"
+      },
+      {
+        "line": 64,
+        "text": "console.error('[스튜디오] 초기 설정 저장 실패:', e);"
+      },
+      {
+        "line": 144,
+        "text": "console.error('[스튜디오] 설정 동기화 오류:', error);"
+      },
+      {
+        "line": 163,
+        "text": "console.error('[스튜디오] 설정 업데이트 실패:', e);"
+      },
+      {
+        "line": 207,
+        "text": "ko: '스튜디오 준비 중...',"
+      }
+    ]
+  },
+  {
+    "file": "src\\utils\\diligence.js",
+    "realKorean": 7,
+    "commentKorean": 0,
+    "alreadyWrapped": 10,
+    "isComponent": false,
+    "samples": [
+      {
+        "line": 17,
+        "text": "PASSION:      { id: 'passion',      icon: 'Fire',    color: '#FF4500', labelKey: 'badge_passion_label',      labelFallba"
+      },
+      {
+        "line": 18,
+        "text": "STEADY:       { id: 'steady',       icon: 'Plant',   color: '#4CAF50', labelKey: 'badge_steady_label',       labelFallba"
+      },
+      {
+        "line": 19,
+        "text": "STARTER:      { id: 'starter',      icon: 'Leaf',    color: '#8BC34A', labelKey: 'badge_starter_label',      labelFallba"
+      },
+      {
+        "line": 20,
+        "text": "WELCOME_BACK: { id: 'welcome_back', icon: 'Sparkle', color: 'var(--primary-gold)', labelKey: 'badge_welcome_label', labe"
+      },
+      {
+        "line": 21,
+        "text": "FLOWING:      { id: 'flowing',      icon: 'Waves',   color: '#2196F3', labelKey: 'badge_flowing_label',      labelFallba"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\AdminRevenue.jsx",
+    "realKorean": 5,
+    "commentKorean": 1,
+    "alreadyWrapped": 4,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 66,
+        "text": "<CollapsibleCard id=\"revenue-summary\" title={`${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월 총 매출 요약`} tit"
+      },
+      {
+        "line": 221,
+        "text": "}} tickFormatter={value => value === 0 ? '0' : `${(value / 10000).toLocaleString()}만`} axisLine={false} tickLine={false}"
+      },
+      {
+        "line": 252,
+        "text": "if (value === 'partialAmount') return `${currentDate.getDate()}일까지 매출`;"
+      },
+      {
+        "line": 405,
+        "text": "<CollapsibleCard id=\"revenue-calendar\" title={`📅 ${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월 정산 달력`} d"
+      },
+      {
+        "line": 527,
+        "text": "}} tickFormatter={val => val === 0 ? '0' : `${(val / 10000).toLocaleString()}만`} axisLine={false} tickLine={false} domai"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\member\\PushNotificationSettings.jsx",
+    "realKorean": 5,
+    "commentKorean": 1,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 51,
+        "text": "setMessage(`재설정 실패: ${error.message}`);"
+      },
+      {
+        "line": 92,
+        "text": "{/* 상세 정보 */}"
+      },
+      {
+        "line": 120,
+        "text": "{/* 조치 필요 시 버튼 및 안내 */}"
+      },
+      {
+        "line": 147,
+        "text": "{/* 성공 상태 */}"
+      },
+      {
+        "line": 153,
+        "text": "{/* 재설정 버튼 (문제가 있을 때만) */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\pages\\CheckInPage.jsx",
+    "realKorean": 5,
+    "commentKorean": 19,
+    "alreadyWrapped": 16,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 287,
+        "text": "if (res?.message && !res.isFallback) setAiEnhancedMsg(res.message.replace(/나마스테[.]?\\s*🙏?/gi, '').trim());"
+      },
+      {
+        "line": 293,
+        "text": "message: exp.message.replace(/나마스테[.]?\\s*🙏?/gi, '').trim()"
+      },
+      {
+        "line": 549,
+        "text": "const duplicateThresholdMs = 300000; // 5분 (백엔드 차단 시간과 동일)"
+      },
+      {
+        "line": 679,
+        "text": "{/* ── 운영 시간 외 절전 모드 화면 ── */}"
+      },
+      {
+        "line": 749,
+        "text": "{/* ── 안면인식 확인 모달: \"OO회원님 맞나요?\" ── */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\checkin\\MessageOverlay.jsx",
+    "realKorean": 4,
+    "commentKorean": 0,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 9,
+        "text": "const AUTO_CLOSE_SECONDS = 15; // 에러 모달 자동 닫힘 시간"
+      },
+      {
+        "line": 97,
+        "text": "{message.text?.includes('만료') || message.text?.includes('⏳') ? '⏳' :"
+      },
+      {
+        "line": 98,
+        "text": "message.text?.includes('시스템') || message.text?.includes('⚠') ? '⚠️' :"
+      },
+      {
+        "line": 99,
+        "text": "message.text?.includes('실패') || message.text?.includes('❌') ? '❌' : '😔'}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\meditation\\ui\\ChatDialog.jsx",
+    "realKorean": 4,
+    "commentKorean": 0,
+    "alreadyWrapped": 0,
+    "isComponent": false,
+    "samples": [
+      {
+        "line": 136,
+        "text": "}) || `AI ${config.AI_CONFIG?.NAME || 'AI'}가 당신의 마음을 듣고 있어요...` : null} />"
+      },
+      {
+        "line": 155,
+        "text": "{/* 시작 버튼 한정 */}"
+      },
+      {
+        "line": 187,
+        "text": "{/* 대화 선택지 버튼 */}"
+      },
+      {
+        "line": 213,
+        "text": "{/* 입력창 (마이크/텍스트) */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\utils\\aiStandbyHelper.js",
+    "realKorean": 4,
+    "commentKorean": 2,
+    "alreadyWrapped": 0,
+    "isComponent": false,
+    "samples": [
+      {
+        "line": 23,
+        "text": "if (!staticMsg && classTitle && classTitle !== \"자율수련\" && Math.random() > 0.5) {"
+      },
+      {
+        "line": 24,
+        "text": "if (classTitle.includes(\"플라잉\")) {"
+      },
+      {
+        "line": 26,
+        "text": "} else if (classTitle.includes(\"테라피\") || classTitle.includes(\"힐링\")) {"
+      },
+      {
+        "line": 28,
+        "text": "} else if (classTitle.includes(\"명상\") || classTitle.includes(\"빈야사\")) {"
+      }
+    ]
+  },
+  {
+    "file": "src\\utils\\csvParser.js",
+    "realKorean": 4,
+    "commentKorean": 8,
+    "alreadyWrapped": 0,
+    "isComponent": false,
+    "samples": [
+      {
+        "line": 79,
+        "text": "const monthMatch = productName.match(/(\\d+)개월/);"
+      },
+      {
+        "line": 84,
+        "text": "if (productName.includes('쿠폰')) {"
+      },
+      {
+        "line": 104,
+        "text": "console.error('날짜 계산 오류:', e);"
+      },
+      {
+        "line": 140,
+        "text": "normalized.includes(b.name.replace('점', '').toLowerCase()) ||"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\admin\\CollapsibleCard.jsx",
+    "realKorean": 3,
+    "commentKorean": 14,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 78,
+        "text": "{/* 헤더 (항상 보임) */}"
+      },
+      {
+        "line": 102,
+        "text": "{/* 접힌 상태에서 핵심 값 요약 표시 */}"
+      },
+      {
+        "line": 131,
+        "text": "{/* 내용 (접기/펼치기 애니메이션) */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\AdminScheduleManager.jsx",
+    "realKorean": 3,
+    "commentKorean": 0,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 352,
+        "text": "{/* ── 수업 편집 모달 ── */}"
+      },
+      {
+        "line": 420,
+        "text": "{/* ── 초기화 확인 모달 ── */}"
+      },
+      {
+        "line": 464,
+        "text": "{/* ── 백업 복원 모달 ── */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\checkin\\SelectionModal.jsx",
+    "realKorean": 3,
+    "commentKorean": 0,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 24,
+        "text": "if (loading) return; // 로딩 중에는 타이머 정지"
+      },
+      {
+        "line": 107,
+        "text": "}) || `(${timeLeft}초 후 자동 취소)`}"
+      },
+      {
+        "line": 193,
+        "text": "}) || `${m.credits}회`}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\common\\ImageLightbox.jsx",
+    "realKorean": 3,
+    "commentKorean": 13,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 133,
+        "text": "{/* 닫기 버튼 */}"
+      },
+      {
+        "line": 152,
+        "text": "{/* 줌 힌트 */}"
+      },
+      {
+        "line": 166,
+        "text": "{/* 이미지 */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\common\\TrialPaywall.jsx",
+    "realKorean": 3,
+    "commentKorean": 9,
+    "alreadyWrapped": 1,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 36,
+        "text": "setTrialInfo(null); // 레지스트리에 없는 스튜디오 = 기존 운영 중 (면제)"
+      },
+      {
+        "line": 67,
+        "text": "if (!trialInfo) return children; // 기존 스튜디오 → 차단 없음"
+      },
+      {
+        "line": 68,
+        "text": "if (trialInfo.status === 'active') return children; // 결제 완료 → 차단 없음"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\instructor\\InstructorSchedule.jsx",
+    "realKorean": 3,
+    "commentKorean": 8,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 298,
+        "text": "{/* Branch Legend (다중 지점일 때만 노출) */}"
+      },
+      {
+        "line": 465,
+        "text": "{/* 예약/출석 인원 뱃지 */}"
+      },
+      {
+        "line": 495,
+        "text": "{/* 예약자 명단 */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\profile\\BranchCrowdChart.jsx",
+    "realKorean": 3,
+    "commentKorean": 4,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 105,
+        "text": "const currentDayOfWeek = nowKST.getDay(); // 0=일"
+      },
+      {
+        "line": 327,
+        "text": "{/* 현재 혼잡도 카드 */}"
+      },
+      {
+        "line": 440,
+        "text": "{/* 추천 시간대 */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\ScheduleHelpers.jsx",
+    "realKorean": 3,
+    "commentKorean": 0,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 265,
+        "text": "{/* 선생님 관리 섹션 */}"
+      },
+      {
+        "line": 391,
+        "text": "{/* 수업 종류 관리 섹션 */}"
+      },
+      {
+        "line": 463,
+        "text": "{/* 레벨 관리 섹션 */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\pages\\MemberProfile.jsx",
+    "realKorean": 3,
+    "commentKorean": 2,
+    "alreadyWrapped": 1,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 160,
+        "text": "return saved.length >= 4 ? 4 : 0; // 이미 설정됨 → 완료 상태, 아니면 처음부터"
+      },
+      {
+        "line": 596,
+        "text": "{/* Step Progress Dots — 선택 중에만 표시 */}"
+      },
+      {
+        "line": 690,
+        "text": "{/* 완료 버튼 — 4개 다 선택했을 때만 */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\studioConfig.js",
+    "realKorean": 3,
+    "commentKorean": 32,
+    "alreadyWrapped": 0,
+    "isComponent": false,
+    "samples": [
+      {
+        "line": 56,
+        "text": "enableWaitlist: true // 대기열 기능"
+      },
+      {
+        "line": 65,
+        "text": "weeklyLimitSource: 'plan' // 'plan' = 요금제 기준, 'member' = 회원별 수동"
+      },
+      {
+        "line": 69,
+        "text": "SHOW_CAMERA_PREVIEW: false // 키오스크 카메라 프리뷰 (기본 OFF)"
+      }
+    ]
+  },
+  {
+    "file": "src\\utils\\membershipLabels.test.js",
+    "realKorean": 3,
+    "commentKorean": 0,
+    "alreadyWrapped": 6,
+    "isComponent": false,
+    "samples": [
+      {
+        "line": 7,
+        "text": "premium: { label: '프리미엄' },"
+      },
+      {
+        "line": 11,
+        "text": "general: '일반',"
+      },
+      {
+        "line": 12,
+        "text": "advanced: '심화',"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\AdminMemberDetailModal.jsx",
+    "realKorean": 2,
+    "commentKorean": 3,
+    "alreadyWrapped": 1,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 35,
+        "text": "return phone; // 이미 포맷되어 있거나 예외"
+      },
+      {
+        "line": 87,
+        "text": "return <div className=\"modal-overlay\" role=\"dialog\" aria-modal=\"true\" aria-label={`${member.name} 회원 상세`} style={{"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\AdminPriceManager.jsx",
+    "realKorean": 2,
+    "commentKorean": 1,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 212,
+        "text": "{/* 가격표 초기 데이터 세팅 버튼 */}"
+      },
+      {
+        "line": 564,
+        "text": "{/* [NEW] 현금/이체 전용 가격 설정 */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\LanguageSelector.jsx",
+    "realKorean": 2,
+    "commentKorean": 0,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 20,
+        "text": "label: '日本語'"
+      },
+      {
+        "line": 26,
+        "text": "label: '中文'"
+      }
+    ]
+  },
+  {
+    "file": "src\\pages\\OnboardingPage.jsx",
+    "realKorean": 2,
+    "commentKorean": 1,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 445,
+        "text": "{/* 즉시 접속 안내 */}"
+      },
+      {
+        "line": 480,
+        "text": "{/* 초기 세팅 가이드 */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\meditation\\ui\\FeedbackView.jsx",
+    "realKorean": 2,
+    "commentKorean": 0,
+    "alreadyWrapped": 0,
+    "isComponent": false,
+    "samples": [
+      {
+        "line": 113,
+        "text": "{/* ✅ [FIX 3] 관찰일지 출력 로직 개선: message 외에 feedbackPoints도 제대로 노출 */}"
+      },
+      {
+        "line": 208,
+        "text": "{/* ✅ [FIX 1] 버튼이 검은색 배경에 묻히지 않도록 기본 Fallback Color 적용 */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\meditation\\views\\PreparationView.jsx",
+    "realKorean": 2,
+    "commentKorean": 0,
+    "alreadyWrapped": 0,
+    "isComponent": false,
+    "samples": [
+      {
+        "line": 87,
+        "text": "}) || `준비 단계 (${prepStep}/3)`}</div>"
+      },
+      {
+        "line": 236,
+        "text": "}) || `${PREPARATION_GUIDES[prepSelections.posture].title} 자세`}</div>"
+      }
+    ]
+  },
+  {
+    "file": "src\\constants\\meditationConstants.js",
+    "realKorean": 2,
+    "commentKorean": 5,
+    "alreadyWrapped": 0,
+    "isComponent": false,
+    "samples": [
+      {
+        "line": 14,
+        "text": "direction: 'negative_to_zero' // 회복 모드"
+      },
+      {
+        "line": 21,
+        "text": "direction: 'zero_to_positive' // 성장 모드"
+      }
+    ]
+  },
+  {
+    "file": "src\\stores\\useStudioStore.test.js",
+    "realKorean": 2,
+    "commentKorean": 0,
+    "alreadyWrapped": 9,
+    "isComponent": false,
+    "samples": [
+      {
+        "line": 18,
+        "text": "const mockConfig = { IDENTITY: { NAME: '테스트 스튜디오' } };"
+      },
+      {
+        "line": 29,
+        "text": "useStudioStore.getState().setConfig({ IDENTITY: { NAME: '테스트' } });"
+      }
+    ]
+  },
+  {
+    "file": "src\\utils\\proceduralAudio.js",
+    "realKorean": 2,
+    "commentKorean": 14,
+    "alreadyWrapped": 0,
+    "isComponent": false,
+    "samples": [
+      {
+        "line": 140,
+        "text": "const harmonics = [1, 2.76, 4.72, 6.63]; // 싱잉볼 특유의 비정수 배음"
+      },
+      {
+        "line": 141,
+        "text": "const duration = 8; // 8초 루프"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\admin\\modals\\NoticeModal.jsx",
+    "realKorean": 1,
+    "commentKorean": 2,
+    "alreadyWrapped": 11,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 155,
+        "text": "<img src={imgSrc} alt={`공지사항 첨부 이미지 ${idx + 1}`} style={{"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\checkin\\TopBar.jsx",
+    "realKorean": 1,
+    "commentKorean": 0,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 38,
+        "text": "{/* Left: Branch Selector (다중 지점일 때만 노출) */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\common\\NetworkStatus.jsx",
+    "realKorean": 1,
+    "commentKorean": 1,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 21,
+        "text": "}, 3000); // 3초마다 큐 사이즈 감시"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\common\\SimpleImageModal.jsx",
+    "realKorean": 1,
+    "commentKorean": 2,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 23,
+        "text": "backdropFilter: 'none' // 성능 최적화 및 뒤쪽 요소 간섭 제거"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\instructor\\InstructorLogin.jsx",
+    "realKorean": 1,
+    "commentKorean": 1,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 94,
+        "text": "const value = e.target.value.replace(/[^0-9]/g, ''); // 숫자만 허용"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\Keypad.jsx",
+    "realKorean": 1,
+    "commentKorean": 7,
+    "alreadyWrapped": 1,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 76,
+        "text": "return; // 터치에서 이미 처리됨"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\meditation\\views\\DiagnosisChatView.jsx",
+    "realKorean": 1,
+    "commentKorean": 0,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 303,
+        "text": "}) || `AI ${config.AI_CONFIG?.NAME || 'AI'}가 당신의 마음을 듣고 있어요...` : null} />"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\profile\\MemberSalesHistory.jsx",
+    "realKorean": 1,
+    "commentKorean": 0,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 273,
+        "text": "{/* 기간 표시 */}"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\ReloadPrompt.jsx",
+    "realKorean": 1,
+    "commentKorean": 13,
+    "alreadyWrapped": 3,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 54,
+        "text": "if (idleTimerRef.current) return; // 이미 감시 중"
+      }
+    ]
+  },
+  {
+    "file": "src\\hooks\\useAdminMemberDetail.js",
+    "realKorean": 1,
+    "commentKorean": 7,
+    "alreadyWrapped": 2,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 33,
+        "text": "console.warn(`[MemberDetail] ⚠️ duration 보정: ${m.name} duration=${dur} → pricing=${matched.months}mo`);"
+      }
+    ]
+  },
+  {
+    "file": "src\\hooks\\useAdminModals.js",
+    "realKorean": 1,
+    "commentKorean": 7,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 94,
+        "text": "window.history.back(); // 닫기 눌렀을 때"
+      }
+    ]
+  },
+  {
+    "file": "src\\hooks\\useAttendanceCamera.js",
+    "realKorean": 1,
+    "commentKorean": 27,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 128,
+        "text": "}, 60 * 1000); // 1분"
+      }
+    ]
+  },
+  {
+    "file": "src\\hooks\\useMemberUI.js",
+    "realKorean": 1,
+    "commentKorean": 3,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 11,
+        "text": "const [scheduleBranch, setScheduleBranch] = useState(null); // gwangheungchang 대신 null로 초기화하여 config.BRANCHES 적용되게 함"
+      }
+    ]
+  },
+  {
+    "file": "src\\pages\\AdminDashboard.jsx",
+    "realKorean": 1,
+    "commentKorean": 12,
+    "alreadyWrapped": 24,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 756,
+        "text": "{imgSrc ? <img src={imgSrc} alt={`가격표 ${index}`} style={{"
+      }
+    ]
+  },
+  {
+    "file": "src\\pages\\AuthActionPage.jsx",
+    "realKorean": 1,
+    "commentKorean": 1,
+    "alreadyWrapped": 0,
+    "isComponent": true,
+    "samples": [
+      {
+        "line": 39,
+        "text": "setError(`지원하지 않는 인증 모드입니다: ${mode}`);"
+      }
+    ]
+  },
+  {
+    "file": "src\\components\\admin\\modals\\ImageModals.jsx",
+    "realKorean": 1,
+    "commentKorean": 0,
+    "alreadyWrapped": 9,
+    "isComponent": false,
+    "samples": [
+      {
+        "line": 101,
+        "text": "<img src={getImage(`timetable_${branch.id}`, config.ASSETS?.LOGO?.WIDE)} alt={`${branch.name} 시간표`} style={{"
+      }
+    ]
+  },
+  {
+    "file": "src\\hooks\\useRevenueStats.js",
+    "realKorean": 1,
+    "commentKorean": 4,
+    "alreadyWrapped": 0,
+    "isComponent": false,
+    "samples": [
+      {
+        "line": 262,
+        "text": "const label = `${d.getMonth() + 1}월`;"
+      }
+    ]
+  },
+  {
+    "file": "src\\utils\\membershipUtils.js",
+    "realKorean": 1,
+    "commentKorean": 14,
+    "alreadyWrapped": 0,
+    "isComponent": false,
+    "samples": [
+      {
+        "line": 32,
+        "text": "const months = (durationMonths === 9999) ? 1 : durationMonths; // 9999 = 무제한 특수 처리"
+      }
+    ]
+  }
+]

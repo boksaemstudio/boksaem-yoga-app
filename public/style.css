@@ -110,7 +110,7 @@ button.large { padding: 14px 28px; font-size: 1.1rem; }
 .section-desc { text-align: center; margin-bottom: 30px; font-size: 1.1rem; }
 
 /* ── Hero ── */
-.hero { min-height: 75vh; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 60px 5% 0; }
+.hero { min-height: 75vh; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 60px 5% 0; overflow: hidden; }
 .hero-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('assets/hero_bg_ai.webp'); background-size: cover; background-position: center; opacity: 0.2; z-index: -1; mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%); -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%); }
 .hero-badge { display: inline-block; padding: 8px 16px; border-radius: 20px; background: rgba(212, 175, 55, 0.15); border: 1px solid rgba(212, 175, 55, 0.3); color: var(--primary); font-size: 0.9rem; }
 /* ── Features Page Styles ── */
@@ -554,3 +554,202 @@ a.btn-secondary.large { padding: 14px 28px; font-size: 1.1rem; }
 @keyframes slideDown { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+
+/* Premium Contact Modal & FAB Styling */
+
+/* Overlay */
+.inquiry-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    animation: pf-fade-in 0.3s ease-out forwards;
+}
+
+@keyframes pf-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Modal Content Box */
+.inquiry-modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    background: rgba(18, 18, 22, 0.85);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 36px 32px;
+    animation: pf-slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pf-slide-up {
+    from { opacity: 0; transform: translateY(30px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Close Button */
+.inquiry-close {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s, transform 0.2s;
+    padding: 0;
+}
+
+.inquiry-close:hover {
+    color: #fff;
+    transform: rotate(90deg);
+}
+
+/* Form Styles */
+.inquiry-form h3 {
+    margin: 0 0 8px;
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: 'Outfit', 'Inter', sans-serif;
+}
+
+.inquiry-form > p {
+    margin: 0 0 24px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.i-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.i-group label {
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: rgba(212, 175, 55, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.i-group input,
+.i-group textarea {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 1rem;
+    padding: 14px 16px;
+    border-radius: 12px;
+    outline: none;
+    transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.i-group input:focus,
+.i-group textarea:focus {
+    border-color: rgba(212, 175, 55, 0.6);
+    background: rgba(0, 0, 0, 0.6);
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+}
+
+.i-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.i-submit {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #d4af37, #f5d67b);
+    color: #000;
+    font-size: 1.05rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(212, 175, 55, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 10px;
+}
+
+.i-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(212, 175, 55, 0.4);
+}
+
+.i-submit:active {
+    transform: translateY(0);
+}
+
+/* Success State */
+.inquiry-success {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.inquiry-success h3 {
+    color: #4ade80;
+    font-size: 1.6rem;
+    margin-bottom: 12px;
+}
+
+.inquiry-success p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.05rem;
+    line-height: 1.5;
+}
+
+/* Global Floating Action Button */
+.pf-fab-contact {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #d4af37, #f5d67b);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.1) inset;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 9000;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-decoration: none;
+}
+
+.pf-fab-contact:hover {
+    transform: scale(1.1) translateY(-5px);
+}
+
+.pf-fab-contact svg {
+    width: 28px;
+    height: 28px;
+    fill: #000;
+}
+
+@media (max-width: 768px) {
+    .pf-fab-contact {
+        bottom: 20px;
+        right: 20px;
+        width: 56px;
+        height: 56px;
+    }
+}

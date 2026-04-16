@@ -7,32 +7,32 @@ import { storageService } from '../../services/storage';
 // ─── 혼잡도 레벨 판별 ───
 const getCrowdLevel = (val, maxCount, t) => {
   if (val === 0) return {
-    label: t('member_crowd_level_1') || t("g_2ad113") || "\uD55C\uC0B0",
+    label: t('member_crowd_level_1') || t("g_b2da00") || "한산",
     color: '#10b981',
     emoji: '🟢',
     bg: 'rgba(16, 185, 129, 0.12)'
   };
   const ratio = maxCount > 0 ? val / maxCount : 0;
   if (ratio < 0.35) return {
-    label: t('member_crowd_level_2') || t("g_9da070") || "\uC5EC\uC720",
+    label: t('member_crowd_level_2') || t("g_ac8de5") || "여유",
     color: '#34d399',
     emoji: '🟢',
     bg: 'rgba(52, 211, 153, 0.12)'
   };
   if (ratio < 0.65) return {
-    label: t('member_crowd_level_3') || t("g_6b1017") || "\uBCF4\uD1B5",
+    label: t('member_crowd_level_3') || t("g_2179da") || "보통",
     color: '#fbbf24',
     emoji: '🟡',
     bg: 'rgba(251, 191, 36, 0.12)'
   };
   if (ratio < 0.85) return {
-    label: t('member_crowd_level_4') || t("g_598de5") || "\uD63C\uC7A1",
+    label: t('member_crowd_level_4') || t("g_452e98") || "혼잡",
     color: '#f97316',
     emoji: '🟠',
     bg: 'rgba(249, 115, 22, 0.12)'
   };
   return {
-    label: t('member_crowd_level_5') || t("g_106c6b") || "\uB9E4\uC6B0 \uD63C\uC7A1",
+    label: t('member_crowd_level_5') || t("g_59767d") || "매우 혼잡",
     color: '#ef4444',
     emoji: '🔴',
     bg: 'rgba(239, 68, 68, 0.12)'
@@ -94,8 +94,6 @@ const BranchCrowdChart = memo(() => {
   const [rawLogs, setRawLogs] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // 다중 지점이 아니면 렌더 안 함
-  if (branches.length <= 1) return null;
   const todayStr = new Date().toLocaleDateString('sv-SE', {
     timeZone: 'Asia/Seoul'
   });
@@ -162,40 +160,40 @@ const BranchCrowdChart = memo(() => {
 
       // Find best (least crowded) times with at least some traffic
       const rankings = [];
-      const dayLabels = [t('member_crowd_day_sun') || t("g_95e431") || "\uC77C", t('member_crowd_day_mon') || t("g_5b51dd") || "\uC6D4", t('member_crowd_day_tue') || t("g_74d3f7") || "\uD654", t('member_crowd_day_wed') || t("g_cae82d") || "\uC218", t('member_crowd_day_thu') || t("g_d5f699") || "\uBAA9", t('member_crowd_day_fri') || t("g_cef92d") || "\uAE08", t('member_crowd_day_sat') || t("g_ccc0dc") || "\uD1A0"];
+      const dayLabels = [t('member_crowd_day_sun') || t("g_06cf3e") || "일", t('member_crowd_day_mon') || t("g_754486") || "월", t('member_crowd_day_tue') || t("g_adb4a2") || "화", t('member_crowd_day_wed') || t("g_c04eb2") || "수", t('member_crowd_day_thu') || t("g_5664a6") || "목", t('member_crowd_day_fri') || t("g_cf5632") || "금", t('member_crowd_day_sat') || t("g_b9e406") || "토"];
       const hourLabels = {
         '06': t('member_crowd_hour_range', {
           start: '6',
           end: '8'
-        }) || t("g_ea785a") || "6-8\uC2DC",
+        }) || t("g_529272") || "6-8시",
         '08': t('member_crowd_hour_range', {
           start: '8',
           end: '10'
-        }) || t("g_75ee8c") || "8-10\uC2DC",
+        }) || t("g_016c3e") || "8-10시",
         '10': t('member_crowd_hour_range', {
           start: '10',
           end: '12'
-        }) || t("g_526db5") || "10-12\uC2DC",
+        }) || t("g_0ce3ea") || "10-12시",
         '12': t('member_crowd_hour_range', {
           start: '12',
           end: '14'
-        }) || t("g_e83d2c") || "12-14\uC2DC",
+        }) || t("g_3484ac") || "12-14시",
         '14': t('member_crowd_hour_range', {
           start: '14',
           end: '16'
-        }) || t("g_e6a43f") || "14-16\uC2DC",
+        }) || t("g_b53d90") || "14-16시",
         '16': t('member_crowd_hour_range', {
           start: '16',
           end: '18'
-        }) || t("g_9b6af5") || "16-18\uC2DC",
+        }) || t("g_ebf72b") || "16-18시",
         '18': t('member_crowd_hour_range', {
           start: '18',
           end: '20'
-        }) || t("g_e0dbf7") || "18-20\uC2DC",
+        }) || t("g_80139e") || "18-20시",
         '20': t('member_crowd_hour_range', {
           start: '20',
           end: '22'
-        }) || t("g_cfed3a") || "20-22\uC2DC"
+        }) || t("g_011822") || "20-22시"
       };
       [1, 2, 3, 4, 5, 6, 0].forEach(dayIdx => {
         ['06', '08', '10', '12', '14', '16', '18', '20'].forEach(bucket => {
@@ -218,7 +216,9 @@ const BranchCrowdChart = memo(() => {
       };
     });
     return result;
-  }, [rawLogs, branches]);
+  }, [rawLogs, branches, t]);
+  // 다중 지점이 아니면 렌더 안 함
+  if (branches.length <= 1) return null;
   if (loading) {
     return <div style={{
       background: 'rgba(255, 255, 255, 0.03)',
@@ -241,32 +241,32 @@ const BranchCrowdChart = memo(() => {
       }} />
                 <span style={{
         fontSize: '0.85rem'
-      }}>{t('member_crowd_analyzing') || t("g_8bfbb0") || "\uD63C\uC7A1\uB3C4 \uB370\uC774\uD130 \uBD84\uC11D \uC911..."}</span>
+      }}>{t('member_crowd_analyzing') || t("g_765926") || "혼잡도 데이터 분석 중..."}</span>
             </div>;
   }
   if (!computed) return null;
   const branchData = computed[activeBranch];
   if (!branchData) return null;
-  const dayLabels = [t('member_crowd_day_mon') || t("g_5b51dd") || "\uC6D4", t('member_crowd_day_tue') || t("g_74d3f7") || "\uD654", t('member_crowd_day_wed') || t("g_cae82d") || "\uC218", t('member_crowd_day_thu') || t("g_d5f699") || "\uBAA9", t('member_crowd_day_fri') || t("g_cef92d") || "\uAE08", t('member_crowd_day_sat') || t("g_ccc0dc") || "\uD1A0", t('member_crowd_day_sun') || t("g_95e431") || "\uC77C"];
+  const dayLabels = [t('member_crowd_day_mon') || t("g_754486") || "월", t('member_crowd_day_tue') || t("g_adb4a2") || "화", t('member_crowd_day_wed') || t("g_c04eb2") || "수", t('member_crowd_day_thu') || t("g_5664a6") || "목", t('member_crowd_day_fri') || t("g_cf5632") || "금", t('member_crowd_day_sat') || t("g_b9e406") || "토", t('member_crowd_day_sun') || t("g_06cf3e") || "일"];
   const dayIndices = [1, 2, 3, 4, 5, 6, 0];
   const hourBuckets = ['06', '08', '10', '12', '14', '16', '18', '20'];
   const hourLabels = [t('member_crowd_hour_label', {
     hour: '6'
-  }) || t("g_4ccb06") || "6\uC2DC", t('member_crowd_hour_label', {
+  }) || t("g_82aea5") || "6시", t('member_crowd_hour_label', {
     hour: '8'
-  }) || t("g_b6181b") || "8\uC2DC", t('member_crowd_hour_label', {
+  }) || t("g_f41c9c") || "8시", t('member_crowd_hour_label', {
     hour: '10'
-  }) || t("g_19b25b") || "10\uC2DC", t('member_crowd_hour_label', {
+  }) || t("g_a989b6") || "10시", t('member_crowd_hour_label', {
     hour: '12'
-  }) || t("g_ae6eac") || "12\uC2DC", t('member_crowd_hour_label', {
+  }) || t("g_6b3307") || "12시", t('member_crowd_hour_label', {
     hour: '14'
-  }) || t("g_48f715") || "14\uC2DC", t('member_crowd_hour_label', {
+  }) || t("g_42bc54") || "14시", t('member_crowd_hour_label', {
     hour: '16'
-  }) || t("g_4f3745") || "16\uC2DC", t('member_crowd_hour_label', {
+  }) || t("g_bcfea5") || "16시", t('member_crowd_hour_label', {
     hour: '18'
-  }) || t("g_0ca1de") || "18\uC2DC", t('member_crowd_hour_label', {
+  }) || t("g_18575c") || "18시", t('member_crowd_hour_label', {
     hour: '20'
-  }) || t("g_554f7a") || "20\uC2DC"];
+  }) || t("g_5d3b6b") || "20시"];
 
   // 현재 시간의 혼잡도
   const nowVal = branchData.heatmap[currentDayOfWeek]?.[currentHourBucket] || 0;
@@ -288,14 +288,14 @@ const BranchCrowdChart = memo(() => {
       alignItems: 'center',
       gap: '8px'
     }}>
-                📊 {t('member_crowd_title') || t("g_9e7de1") || "\uC9C0\uC810\uBCC4 \uD63C\uC7A1\uB3C4"}
+                📊 {t('member_crowd_title') || t("g_f922d7") || "지점별 혼잡도"}
             </h3>
             <p style={{
       color: 'rgba(255,255,255,0.5)',
       fontSize: '0.8rem',
       margin: '0 0 16px 0'
     }}>
-                {t('member_crowd_subtitle') || t("g_1bf651") || "\uCD5C\uADFC 4\uC8FC \uCD9C\uC11D \uB370\uC774\uD130 \uAE30\uBC18 \xB7 \uD55C\uC0B0\uD55C \uC2DC\uAC04\uC5D0 \uBC29\uBB38\uD558\uC138\uC694!"}
+                {t('member_crowd_subtitle') || t("g_ff0fac") || "최근 4주 출석 데이터 기반 · 한산한 시간에 방문하세요!"}
             </p>
 
             {/* Branch Tabs */}
@@ -344,7 +344,7 @@ const BranchCrowdChart = memo(() => {
           color: 'rgba(255,255,255,0.5)',
           marginBottom: '2px'
         }}>
-                        {t('member_crowd_visit_now') || t("g_e49be0") || "\uC9C0\uAE08 \uBC29\uBB38\uD558\uBA74?"}
+                        {t('member_crowd_visit_now') || t("g_03a5b8") || "지금 방문하면?"}
                     </div>
                     <div style={{
           fontSize: '1rem',
@@ -409,16 +409,16 @@ const BranchCrowdChart = memo(() => {
       marginBottom: '14px'
     }}>
                 {[{
-        label: t('member_crowd_level_1') || t("g_2ad113") || "\uD55C\uC0B0",
+        label: t('member_crowd_level_1') || t("g_b2da00") || "한산",
         color: '#10b981'
       }, {
-        label: t('member_crowd_level_3') || t("g_6b1017") || "\uBCF4\uD1B5",
+        label: t('member_crowd_level_3') || t("g_2179da") || "보통",
         color: '#fbbf24'
       }, {
-        label: t('member_crowd_level_4') || t("g_598de5") || "\uD63C\uC7A1",
+        label: t('member_crowd_level_4') || t("g_452e98") || "혼잡",
         color: '#f97316'
       }, {
-        label: t('member_crowd_level_5') || t("g_106c6b") || "\uB9E4\uC6B0 \uD63C\uC7A1",
+        label: t('member_crowd_level_5') || t("g_59767d") || "매우 혼잡",
         color: '#ef4444'
       }].map(l => <span key={l.label} style={{
         display: 'flex',
@@ -453,7 +453,7 @@ const BranchCrowdChart = memo(() => {
         alignItems: 'center',
         gap: '6px'
       }}>
-                        ✨ {t('member_crowd_recommended') || t("g_e5741e") || "\uCD94\uCC9C \uBC29\uBB38 \uC2DC\uAC04"}
+                        ✨ {t('member_crowd_recommended') || t("g_d2b108") || "추천 방문 시간"}
                     </div>
                     <div style={{
         display: 'flex',

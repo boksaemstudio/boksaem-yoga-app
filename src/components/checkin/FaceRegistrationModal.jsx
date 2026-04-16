@@ -82,7 +82,7 @@ const FaceRegistrationModal = ({
   const initCamera = useCallback(async () => {
     setCameraError(false);
     setCameraReady(false);
-    setStatusMsg(t('facereg_camera_preparing') || t("g_63c91b") || "\uCE74\uBA54\uB77C \uC900\uBE44 \uC911...");
+    setStatusMsg(t('facereg_camera_preparing') || t("g_4c0a1c") || "카메라 준비 중...");
 
     // 외부 비디오 ref에 이미 스트림이 있으면 사용
     if (externalVideoRef?.current?.srcObject) {
@@ -129,7 +129,7 @@ const FaceRegistrationModal = ({
       setCameraError(true);
       setCameraReady(false);
       setStatusMsg('');
-      setError(t('facereg_camera_error_permission') || t("g_ddd653") || "\uCE74\uBA54\uB77C\uC5D0 \uC811\uADFC\uD560 \uC218 \uC5C6\uC5B4\uC694. \uCE74\uBA54\uB77C \uAD8C\uD55C\uC744 \uD655\uC778\uD574\uC8FC\uC138\uC694.");
+      setError(t('facereg_camera_error_permission') || t("g_8b19cb") || "카메라에 접근할 수 없어요. 카메라 권한을 확인해주세요.");
     }
   }, [externalVideoRef]);
   const handlePinSubmit = useCallback(async () => {
@@ -138,7 +138,7 @@ const FaceRegistrationModal = ({
     try {
       const members = await memberService.findMembersByPhone(pin);
       if (members.length === 0) {
-        setError(t('facereg_member_not_found') || t("g_ec85c3") || "\uB4F1\uB85D\uB41C \uD68C\uC6D0\uC774 \uC5C6\uC5B4\uC694. \uBC88\uD638\uB97C \uD655\uC778\uD574\uC8FC\uC138\uC694.");
+        setError(t('facereg_member_not_found') || t("g_9a762b") || "등록된 회원이 없어요. 번호를 확인해주세요.");
         return;
       }
       if (members.length > 1) {
@@ -149,14 +149,14 @@ const FaceRegistrationModal = ({
         setStep(3); // → useEffect가 initCamera 호출
       }
     } catch (e) {
-      setError(t('facereg_member_lookup_error') || t("g_f68342") || "\uD68C\uC6D0 \uC870\uD68C \uC911 \uBB38\uC81C\uAC00 \uC0DD\uACBC\uC5B4\uC694. \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.");
+      setError(t('facereg_member_lookup_error') || t("g_9f1598") || "회원 조회 중 문제가 생겼어요. 다시 시도해주세요.");
     }
   }, [pin]);
   const startCountdown = useCallback(() => {
     // [FIX] 카메라 준비 안 됐으면 카운트다운 시작하지 않음
     const video = getActiveVideo();
     if (!video && !cameraReady) {
-      setError(t('facereg_camera_not_ready') || t("g_4792aa") || "\uCE74\uBA54\uB77C\uAC00 \uC900\uBE44\uB418\uC9C0 \uC54A\uC558\uC5B4\uC694. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.");
+      setError(t('facereg_camera_not_ready') || t("g_7c5758") || "카메라가 준비되지 않았어요. 잠시 후 다시 시도해주세요.");
       initCamera(); // 재시도
       return;
     }
@@ -181,12 +181,12 @@ const FaceRegistrationModal = ({
     // [ROOT FIX] 모델이 이미 페이지 레벨에서 로딩되었으면 건너뛰기
     if (modelsAlreadyLoaded) {
       console.log('[FaceReg] Models already loaded by useFacialRecognition hook — skipping');
-      setStatusMsg(t('facereg_analyzing_face') || t("g_956d3b") || "\uC5BC\uAD74 \uBD84\uC11D \uC911...");
+      setStatusMsg(t('facereg_analyzing_face') || t("g_0c61ec") || "얼굴 분석 중...");
     } else {
-      setStatusMsg(t('facereg_loading_ai_models') || t("g_47bd8a") || "AI \uBAA8\uB378 \uB85C\uB529 \uC911...");
+      setStatusMsg(t('facereg_loading_ai_models') || t("g_024d33") || "AI 모델 로딩 중...");
       try {
-        await Promise.race([loadFacialModels(), new Promise((_, reject) => setTimeout(() => reject(new Error(t('facereg_ai_timeout') || t("g_d600ef") || "AI \uBAA8\uB378 \uB85C\uB529 \uC2DC\uAC04 \uCD08\uACFC. \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.")), 15000))]);
-        setStatusMsg(t('facereg_analyzing_face') || t("g_956d3b") || "\uC5BC\uAD74 \uBD84\uC11D \uC911...");
+        await Promise.race([loadFacialModels(), new Promise((_, reject) => setTimeout(() => reject(new Error(t('facereg_ai_timeout') || t("g_9dee4d") || "AI 모델 로딩 시간 초과. 다시 시도해주세요.")), 15000))]);
+        setStatusMsg(t('facereg_analyzing_face') || t("g_0c61ec") || "얼굴 분석 중...");
       } catch (e) {
         setSaving(false);
         setStatusMsg('');
@@ -198,27 +198,27 @@ const FaceRegistrationModal = ({
     try {
       const video = getActiveVideo();
       if (!video) {
-        throw new Error(t('facereg_video_stream_error') || t("g_bf2542") || "\uCE74\uBA54\uB77C \uC601\uC0C1\uC744 \uAC00\uC838\uC62C \uC218 \uC5C6\uC5B4\uC694. \uCE74\uBA54\uB77C \uAD8C\uD55C\uC744 \uD655\uC778\uD574\uC8FC\uC138\uC694.");
+        throw new Error(t('facereg_video_stream_error') || t("g_f9dbb1") || "카메라 영상을 가져올 수 없어요. 카메라 권한을 확인해주세요.");
       }
       const descriptor = await extractFaceDescriptor(video, true);
       if (!descriptor) {
-        setError(t('facereg_face_not_detected') || t("g_5aa55d") || "\uC5BC\uAD74\uC744 \uC778\uC2DD\uD558\uC9C0 \uBABB\uD588\uC5B4\uC694. \uCE74\uBA54\uB77C\uB97C \uC815\uBA74\uC73C\uB85C \uBC14\uB77C\uBD10\uC8FC\uC138\uC694.");
+        setError(t('facereg_face_not_detected') || t("g_31c465") || "얼굴을 인식하지 못했어요. 카메라를 정면으로 바라봐주세요.");
         setSaving(false);
         setStatusMsg('');
         setCountdown(3);
         return;
       }
-      setStatusMsg(t('facereg_saving') || t("g_923cf9") || "\uC800\uC7A5 \uC911...");
+      setStatusMsg(t('facereg_saving') || t("g_5d6870") || "저장 중...");
       const result = await memberService.updateFaceDescriptor(matchedMember.id, descriptor);
       if (result.success) {
         setStep(4);
       } else {
         console.error('[FaceReg] updateFaceDescriptor failed:', result.error);
-        throw new Error(result.error || t('facereg_save_failed') || t("g_66fe01") || "\uC800\uC7A5\uC5D0 \uC2E4\uD328\uD588\uC5B4\uC694. \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.");
+        throw new Error(result.error || t('facereg_save_failed') || t("g_a97d66") || "저장에 실패했어요. 다시 시도해주세요.");
       }
     } catch (e) {
       console.error('[FaceReg] Save failed:', e);
-      setError(e.message || t('facereg_registration_error') || t("g_8b9709") || "\uB4F1\uB85D \uC911 \uBB38\uC81C\uAC00 \uC0DD\uACBC\uC5B4\uC694. \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.");
+      setError(e.message || t('facereg_registration_error') || t("g_7585c2") || "등록 중 문제가 생겼어요. 다시 시도해주세요.");
       setCountdown(3);
     } finally {
       setSaving(false);
@@ -294,20 +294,20 @@ const FaceRegistrationModal = ({
             marginBottom: '12px',
             fontWeight: 600
           }}>
-                                🔐 {t('facereg_privacy_title') || t("g_a8d7d1") || "\uC0AC\uC9C4\uC740 \uC800\uC7A5\uD558\uC9C0 \uC54A\uC544\uC694!"}
+                                🔐 {t('facereg_privacy_title') || t("g_3af9a3") || "사진은 저장하지 않아요!"}
                             </p>
                             <p style={{
             fontSize: '0.95rem',
             color: 'rgba(255,255,255,0.8)'
           }}>
-                                {t('facereg_privacy_desc1') || t("g_2db73f") || "\uC0AC\uC9C4\uC740 \uC800\uC7A5\uD558\uC9C0 \uC54A\uACE0 \uC554\uD638\uD654\uB418\uC5B4 128\uAC1C \uC22B\uC790\uB85C\uB9CC \uAE30\uC5B5\uD574\uC694. \uC774 \uC22B\uC790\uB85C\uB294 \uC5BC\uAD74\uC744 \uB2E4\uC2DC \uB9CC\uB4E4 \uC218 \uC5C6\uC5B4\uC694. (\uBD88\uAC00\uC5ED\uC801)"}
+                                {t('facereg_privacy_desc1') || t("g_f57c15") || "사진은 저장하지 않고 암호화되어 128개 숫자로만 기억해요. 이 숫자로는 얼굴을 다시 만들 수 없어요. (불가역적)"}
                             </p>
                             <p style={{
             fontSize: '0.95rem',
             color: 'rgba(255,255,255,0.8)',
             marginTop: '8px'
           }}>
-                                {t('facereg_privacy_desc2') || t("g_558598") || "\uB4F1\uB85D\uD558\uBA74 \uB2E4\uC74C\uBD80\uD130 \uCE74\uBA54\uB77C \uC55E\uC5D0 \uC11C\uAE30\uB9CC \uD558\uBA74 \uC790\uB3D9\uC73C\uB85C \uCD9C\uC11D\uC774 \uB429\uB2C8\uB2E4!"}
+                                {t('facereg_privacy_desc2') || t("g_fb2dce") || "등록하면 다음부터 카메라 앞에 서기만 하면 자동으로 출석이 됩니다!"}
                             </p>
                         </div>
                         <div style={{
@@ -323,7 +323,7 @@ const FaceRegistrationModal = ({
             color: 'white',
             border: '1px solid rgba(255,255,255,0.1)',
             cursor: 'pointer'
-          }}>{t('facereg_later') || t("g_51e9a2") || "\uB2E4\uC74C\uC5D0 \uD560\uAC8C\uC694"}</button>
+          }}>{t('facereg_later') || t("g_e473b3") || "다음에 할게요"}</button>
                             <button onClick={() => setStep(2)} style={{
             flex: 1,
             padding: '14px',
@@ -334,7 +334,7 @@ const FaceRegistrationModal = ({
             fontWeight: 'bold',
             border: 'none',
             cursor: 'pointer'
-          }}>{t('facereg_register') || t("g_7559ab") || "\uB4F1\uB85D\uD560\uAC8C\uC694!"}</button>
+          }}>{t('facereg_register') || t("g_d94845") || "등록할게요!"}</button>
                         </div>
                     </div>}
 
@@ -351,14 +351,14 @@ const FaceRegistrationModal = ({
           fontWeight: 'bold',
           marginBottom: '8px'
         }}>
-                            {t('facereg_identity_verify') || t("g_89f775") || "\uBCF8\uC778 \uD655\uC778"}
+                            {t('facereg_identity_verify') || t("g_b7cf73") || "본인 확인"}
                         </h2>
                         <p style={{
           fontSize: '0.95rem',
           color: 'rgba(255,255,255,0.6)',
           marginBottom: '24px'
         }}>
-                            {t('facereg_enter_pin') || t("g_a5cb5f") || "\uD578\uB4DC\uD3F0 \uBC88\uD638 \uB4B7 4\uC790\uB9AC\uB97C \uB20C\uB7EC\uC8FC\uC138\uC694"}
+                            {t('facereg_enter_pin') || t("g_fc483e") || "핸드폰 번호 뒷 4자리를 눌러주세요"}
                         </p>
 
                         {/* PIN Display */}
@@ -412,7 +412,7 @@ const FaceRegistrationModal = ({
             color: '#ff6666',
             border: '1px solid rgba(255,100,100,0.2)',
             cursor: 'pointer'
-          }}>{t('facereg_clear') || t("g_70fa69") || "\uC9C0\uC6B0\uAE30"}</button>
+          }}>{t('facereg_clear') || t("g_bc539f") || "지우기"}</button>
                             <button onClick={() => handlePinKeyPress('0')} style={{
             padding: '14px',
             borderRadius: '12px',
@@ -432,7 +432,7 @@ const FaceRegistrationModal = ({
             color: pin.length === 4 ? '#000' : 'rgba(255,255,255,0.3)',
             border: 'none',
             cursor: pin.length === 4 ? 'pointer' : 'default'
-          }}>{t('facereg_confirm') || t("g_3ce813") || "\uD655\uC778"}</button>
+          }}>{t('facereg_confirm') || t("g_468266") || "확인"}</button>
                         </div>
 
                         {error && <div style={{
@@ -451,7 +451,7 @@ const FaceRegistrationModal = ({
           color: 'rgba(255,255,255,0.4)',
           fontSize: '0.85rem',
           cursor: 'pointer'
-        }}>{t('cancel') || t("g_d9de21") || "\uCDE8\uC18C"}</button>
+        }}>{t('cancel') || t("g_19b2d1") || "취소"}</button>
                     </div>}
 
                 {/* Step 2.5: 멤버 선택 (동명이인/동일번호) */}
@@ -467,14 +467,14 @@ const FaceRegistrationModal = ({
           fontWeight: 'bold',
           marginBottom: '8px'
         }}>
-                            {t('facereg_who_are_you') || t("g_cbf89b") || "\uC5B4\uB290 \uBD84\uC774\uC2E0\uAC00\uC694?"}
+                            {t('facereg_who_are_you') || t("g_c523e4") || "어느 분이신가요?"}
                         </h2>
                         <p style={{
           fontSize: '0.95rem',
           color: 'rgba(255,255,255,0.6)',
           marginBottom: '24px'
         }}>
-                            {t('facereg_multiple_members') || t("g_8dfb3f") || "\uC785\uB825\uD558\uC2E0 \uBC88\uD638\uC640 \uC77C\uCE58\uD558\uB294 \uD68C\uC6D0\uC774 \uC5EC\uB7EC \uBA85 \uC788\uC5B4\uC694"}
+                            {t('facereg_multiple_members') || t("g_c03e30") || "입력하신 번호와 일치하는 회원이 여러 명 있어요"}
                         </p>
                         
                         <div style={{
@@ -519,7 +519,7 @@ const FaceRegistrationModal = ({
           color: 'rgba(255,255,255,0.4)',
           fontSize: '0.9rem',
           cursor: 'pointer'
-        }}>{t('facereg_go_back') || t("g_42a7ca") || "\uB4A4\uB85C \uAC00\uAE30"}</button>
+        }}>{t('facereg_go_back') || t("g_96dd03") || "뒤로 가기"}</button>
                     </div>}
 
                 {/* Step 3: 얼굴 촬영 */}
@@ -541,7 +541,7 @@ const FaceRegistrationModal = ({
           color: 'rgba(255,255,255,0.6)',
           marginBottom: '20px'
         }}>
-                            {t('facereg_look_front') || t("g_22b2e2") || "\uC815\uBA74\uC744 \uBC14\uB77C\uBCF4\uACE0 \uC7A0\uC2DC\uB9CC \uAE30\uB2E4\uB824\uC8FC\uC138\uC694"}
+                            {t('facereg_look_front') || t("g_12dbf0") || "정면을 바라보고 잠시만 기다려주세요"}
                         </p>
 
                         {/* Circular Camera Guide */}
@@ -604,7 +604,7 @@ const FaceRegistrationModal = ({
                                     <div style={{
               fontSize: '0.8rem',
               color: 'rgba(255,255,255,0.6)'
-            }}>{t('facereg_camera_preparing') || t("g_63c91b") || "\uCE74\uBA54\uB77C \uC900\uBE44 \uC911..."}</div>
+            }}>{t('facereg_camera_preparing') || t("g_4c0a1c") || "카메라 준비 중..."}</div>
                                 </div>}
                             {/* 카메라 에러 */}
                             {cameraError && <div style={{
@@ -623,7 +623,7 @@ const FaceRegistrationModal = ({
                                     <div style={{
               fontSize: '0.75rem',
               color: '#ff8888'
-            }}>{t('facereg_camera_inaccessible') || t("g_ee1f84") || "\uCE74\uBA54\uB77C \uC811\uADFC \uBD88\uAC00"}</div>
+            }}>{t('facereg_camera_inaccessible') || t("g_7d4f0a") || "카메라 접근 불가"}</div>
                                 </div>}
                             {/* 분석 상태 */}
                             {saving && <div style={{
@@ -640,7 +640,7 @@ const FaceRegistrationModal = ({
               color: 'var(--primary-gold)',
               fontWeight: 'bold'
             }}>
-                                        {statusMsg || t("g_772a49") || "\uBD84\uC11D \uC911..."}
+                                        {statusMsg || t("g_784896") || "분석 중..."}
                                     </div>
                                 </div>}
                         </div>
@@ -682,7 +682,7 @@ const FaceRegistrationModal = ({
             border: 'none',
             cursor: 'pointer',
             fontSize: '0.9rem'
-          }}>{t('facereg_retry') || t("g_09c041") || "\uB2E4\uC2DC \uC2DC\uB3C4"}</button>
+          }}>{t('facereg_retry') || t("g_0c767c") || "다시 시도"}</button>
                             </div>}
 
                         <button onClick={() => {
@@ -698,7 +698,7 @@ const FaceRegistrationModal = ({
           color: 'rgba(255,255,255,0.4)',
           fontSize: '0.85rem',
           cursor: 'pointer'
-        }}>{t('cancel') || t("g_d9de21") || "\uCDE8\uC18C"}</button>
+        }}>{t('cancel') || t("g_19b2d1") || "취소"}</button>
                     </div>}
 
                 {/* Step 4: 완료 */}
@@ -715,7 +715,7 @@ const FaceRegistrationModal = ({
           marginBottom: '12px',
           color: '#10B981'
         }}>
-                            {t('facereg_done_title') || t("g_893258") || "\uB4F1\uB85D \uC644\uB8CC!"}
+                            {t('facereg_done_title') || t("g_74049f") || "등록 완료!"}
                         </h2>
                         <p style={{
           fontSize: '1.05rem',
@@ -732,7 +732,7 @@ const FaceRegistrationModal = ({
           color: 'rgba(255,255,255,0.5)',
           marginBottom: '24px'
         }}>
-                            {t('facereg_done_desc2') || t("g_1ba18e") || "\uB2E4\uC74C\uBD80\uD130 \uCE74\uBA54\uB77C \uC55E\uC5D0 \uC11C\uBA74 \uC790\uB3D9\uC73C\uB85C \uCD9C\uC11D\uB429\uB2C8\uB2E4 \uD83C\uDF89"}
+                            {t('facereg_done_desc2') || t("g_e2d423") || "다음부터 카메라 앞에 서면 자동으로 출석됩니다 🎉"}
                         </p>
                         <button onClick={onClose} style={{
           padding: '14px 40px',
@@ -743,7 +743,7 @@ const FaceRegistrationModal = ({
           fontWeight: 'bold',
           border: 'none',
           cursor: 'pointer'
-        }}>{t('facereg_confirm') || t("g_3ce813") || "\uD655\uC778"}</button>
+        }}>{t('facereg_confirm') || t("g_468266") || "확인"}</button>
                     </div>}
             </div>
         </div>;

@@ -12,25 +12,25 @@ const KAKAO_PASSFLOW_URL = 'http://pf.kakao.com/_zDxiMX/chat';
 const SEND_MODES = [{
   id: 'push_only',
   labelKey: 'g_a03713',
-  labelFallback: "\uC571 \uD478\uC2DC\uB9CC",
+  labelFallback: (t("g_93efd1") || "앱 푸시만"),
   descKey: 'g_667dd4',
-  descFallback: "\uBB34\uB8CC",
+  descFallback: (t("g_9caae3") || "무료"),
   icon: '📱',
   color: '#10b981'
 }, {
   id: 'push_first',
   labelKey: 'g_3bd88d',
-  labelFallback: "\uD478\uC2DC \uC6B0\uC120",
+  labelFallback: (t("g_d70852") || "푸시 우선"),
   descKey: 'g_ef5af5',
-  descFallback: "\uD478\uC2DC \uC2E4\uD328 \uC2DC SMS",
+  descFallback: (t("g_556350") || "푸시 실패 시 SMS"),
   icon: '📱➡📩',
   color: 'var(--primary-gold)'
 }, {
   id: 'sms_only',
   labelKey: 'g_d4f540',
-  labelFallback: "SMS/LMS\uB9CC",
+  labelFallback: (t("g_761b2d") || "SMS/LMS만"),
   descKey: 'g_b812d5',
-  descFallback: "\uBB38\uC790 \uBE44\uC6A9 \uBC1C\uC0DD",
+  descFallback: (t("g_a06dcc") || "문자 비용 발생"),
   icon: '📩',
   color: '#3B82F6'
 }];
@@ -59,7 +59,7 @@ const MessagesTab = ({
       setAttendanceSmsEnabled(newVal);
     } catch (err) {
       console.error('[MessagesTab] Toggle SMS failed:', err);
-      alert(t("g_34f3da") || "\uC124\uC815 \uC800\uC7A5 \uC2E4\uD328");
+      alert(t("g_ca5434") || "설정 저장 실패");
     } finally {
       setSmsSaving(false);
     }
@@ -143,7 +143,7 @@ const MessagesTab = ({
     if (!message.trim() || !memberId) return;
     const isDemoSite = window.location.hostname.includes('passflow') || localStorage.getItem('lastStudioId') === 'demo-yoga';
     if (isDemoSite) {
-      alert(t("g_233984") || "\uB370\uBAA8 \uD658\uACBD\uC5D0\uC11C\uB294 \uBA54\uC2DC\uC9C0 \uBC1C\uC1A1 \uAE30\uB2A5\uC774 \uC81C\uD55C\uB418\uC5B4 \uC788\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_c5dd5f") || "데모 환경에서는 메시지 발송 기능이 제한되어 있습니다.");
       return;
     }
     setSending(true);
@@ -154,15 +154,15 @@ const MessagesTab = ({
       setIsScheduled(false);
       setScheduledTime('');
       // [UX FIX] 전송 성공 피드백
-      alert(isScheduled ? t("g_7b34d9") || "\uBA54\uC2DC\uC9C0\uAC00 \uC608\uC57D\uB418\uC5C8\uC2B5\uB2C8\uB2E4." : t("g_a91940") || "\u2705 \uBA54\uC2DC\uC9C0\uAC00 \uC804\uC1A1\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+      alert(isScheduled ? t("g_2b4477") || "메시지가 예약되었습니다." : t("g_32bd6c") || "✅ 메시지가 전송되었습니다.");
     } catch (error) {
       console.error("Message send failed:", error);
-      alert(t("g_1b63d2") || "\u274C \uBC1C\uC1A1\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4. \uB124\uD2B8\uC6CC\uD06C \uC0C1\uD0DC\uB97C \uD655\uC778\uD574\uC8FC\uC138\uC694.");
+      alert(t("g_1a4f4d") || "❌ 발송에 실패했습니다. 네트워크 상태를 확인해주세요.");
     } finally {
       setSending(false);
     }
   };
-  const templates = [t("g_8dd155") || "\uD68C\uC6D0\uB2D8, \uC7AC\uB4F1\uB85D \uAE30\uAC04\uC785\uB2C8\uB2E4. \uD655\uC778 \uBD80\uD0C1\uB4DC\uB824\uC694! \uD83E\uDDD8\u200D\u2640\uFE0F", t("g_c6fabf") || "\uC624\uB79C\uB9CC\uC774\uB124\uC694! \uC218\uB828\uD558\uB7EC \uC624\uC138\uC694 \u2728", t("g_ec880c") || "\uC218\uAC15\uAD8C\uC774 \uACE7 \uB9CC\uB8CC\uB429\uB2C8\uB2E4. \uC7AC\uB4F1\uB85D\uC744 \uC548\uB0B4\uB4DC\uB824\uC694!", t("g_35659d") || "\uC794\uC5EC \uD69F\uC218\uAC00 \uC5BC\uB9C8 \uB0A8\uC9C0 \uC54A\uC558\uC5B4\uC694. \uD655\uC778\uD574\uC8FC\uC138\uC694!"];
+  const templates = [t("g_856a13") || "회원님, 재등록 기간입니다. 확인 부탁드려요! 🧘‍♀️", t("g_6f10a5") || "오랜만이네요! 수련하러 오세요 ✨", t("g_b3f1ed") || "수강권이 곧 만료됩니다. 재등록을 안내드려요!", t("g_827e88") || "잔여 횟수가 얼마 남지 않았어요. 확인해주세요!"];
   return <div className="fade-in" style={{
     display: 'flex',
     flexDirection: 'column',
@@ -194,7 +194,7 @@ const MessagesTab = ({
             fontSize: '0.85rem',
             color: 'white',
             fontWeight: '700'
-          }}>{t("g_27d6aa") || "\uCD9C\uC11D \uC54C\uB9BC \uC124\uC815"}</span>
+          }}>{t("g_e06687") || "출석 알림 설정"}</span>
                     </div>
                 </div>
                 {/* 앱 푸시 안내 */}
@@ -214,7 +214,7 @@ const MessagesTab = ({
                     <span style={{
           fontSize: '0.78rem',
           color: '#10b981'
-        }}>{t("g_7b6eff") || "\uC571 \uD478\uC2DC \uC54C\uB9BC: \uCD9C\uC11D \uC2DC \uC790\uB3D9 \uC804\uC1A1 (\uC794\uC5EC \uD69F\uC218 \xB7 \uAE30\uAC04 \uC815\uBCF4 \uD3EC\uD568, \uBB34\uB8CC)"}</span>
+        }}>{t("g_bccbb2") || "앱 푸시 알림: 출석 시 자동 전송 (잔여 횟수 · 기간 정보 포함, 무료)"}</span>
                 </div>
                 {/* SMS 옵션 — 출석 시 자동 / 지금 보내기 */}
                 {!isUnlimited ? <div style={{
@@ -245,12 +245,12 @@ const MessagesTab = ({
                 fontSize: '0.78rem',
                 color: attendanceSmsEnabled ? '#3B82F6' : '#a1a1aa',
                 fontWeight: attendanceSmsEnabled ? '700' : '500'
-              }}>{t("g_d51359") || "\uCD9C\uC11D \uC2DC \uC790\uB3D9 SMS \uBC1C\uC1A1"}</div>
+              }}>{t("g_d29b35") || "출석 시 자동 SMS 발송"}</div>
                                     <div style={{
                 fontSize: '0.68rem',
                 color: '#71717a',
                 marginTop: '2px'
-              }}>{t("g_0fdaf2") || "\u26A0\uFE0F \uAC74\uB2F9 8.4\uC6D0 \uBE44\uC6A9 \uBC1C\uC0DD \u2022 \uC794\uC5EC\uD69F\uC218 \xB7 \uAE30\uAC04 \xB7 \uB9CC\uB8CC\uC77C"}</div>
+              }}>{t("g_61faf7") || "⚠️ 건당 8.4원 비용 발생 • 잔여횟수 · 기간 · 만료일"}</div>
                                 </div>
                             </div>
                             <button onClick={handleToggleAttendanceSms} disabled={smsSaving} style={{
@@ -279,7 +279,7 @@ const MessagesTab = ({
                         {/* 지금 보내기 버튼 */}
                         <button onClick={() => {
           setSendMode('sms_only');
-          const name = member?.name || t("g_6745df") || "\uD68C\uC6D0";
+          const name = member?.name || t("g_dae3ed") || "회원";
           const credits = member?.credits;
           const endDate = member?.endDate;
           const count = member?.attendanceCount || 0;
@@ -289,7 +289,7 @@ const MessagesTab = ({
             const today = new Date();
             const end = new Date(endDate);
             const diff = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
-            parts.push(`기간: ~${endDate.slice(5)} (${diff >= 0 ? diff + (t("g_020489") || "\uC77C \uB0A8\uC74C") : t("g_0c9d60") || "\uB9CC\uB8CC"})`);
+            parts.push(`기간: ~${endDate.slice(5)} (${diff >= 0 ? diff + (t("g_284a69") || "일 남음") : t("g_36009e") || "만료"})`);
           }
           if (count > 0) parts.push(`누적 ${count}회 출석`);
           setMessage(parts.join('\n'));
@@ -307,11 +307,11 @@ const MessagesTab = ({
           justifyContent: 'center',
           gap: '6px',
           transition: 'all 0.15s'
-        }}>{t("g_085c7f") || "\uD83D\uDCE4 \uC9C0\uAE08 SMS\uB85C \uC794\uC5EC \uC815\uBCF4 \uBCF4\uB0B4\uAE30"}<span style={{
+        }}>{t("g_75aa13") || "📤 지금 SMS로 잔여 정보 보내기"}<span style={{
             fontSize: '0.65rem',
             fontWeight: '500',
             opacity: 0.7
-          }}>{t("g_b91a7a") || "(\uAC74\uB2F9 8.4\uC6D0)"}</span>
+          }}>{t("g_31c66e") || "(건당 8.4원)"}</span>
                         </button>
                     </div> : <div style={{
         padding: '8px 10px',
@@ -320,7 +320,7 @@ const MessagesTab = ({
         border: '1px solid rgba(255,255,255,0.08)',
         fontSize: '0.78rem',
         color: '#71717a'
-      }}>{t("g_7cac01") || "\uD83D\uDCE9 SMS \uC54C\uB9BC: \uBB34\uC81C\uD55C \uD68C\uC6D0\uC740 \uBCF4\uB0B4\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4 (\uC794\uC5EC \uD69F\uC218 \uC815\uBCF4 \uC5C6\uC74C)"}</div>}
+      }}>{t("g_40b0e4") || "📩 SMS 알림: 무제한 회원은 보내지 않습니다 (잔여 횟수 정보 없음)"}</div>}
             </div>
 
             {/* Input Area */}
@@ -340,7 +340,7 @@ const MessagesTab = ({
           marginBottom: '6px',
           fontSize: '0.8rem',
           color: '#a1a1aa'
-        }}>{t("g_519b69") || "\uC804\uC1A1 \uBC29\uC2DD"}</label>
+        }}>{t("g_3ba4aa") || "전송 방식"}</label>
                     <div style={{
           display: 'flex',
           gap: '6px'
@@ -350,7 +350,7 @@ const MessagesTab = ({
             const smsBlocked = isSmsMode && !isSmsAvailable && !isDemo;
             return <button key={mode.id} onClick={() => {
               if (smsBlocked) {
-                if (window.confirm(t("g_37f52d") || "\uBC1C\uC2E0\uC790 \uBC88\uD638\uAC00 \uB4F1\uB85D\uB418\uC5B4 \uC788\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.\n\nSMS \uBC1C\uC1A1\uC744 \uC704\uD574\uC11C\uB294 \uBC1C\uC2E0\uC790 \uBC88\uD638 \uB4F1\uB85D\uC774 \uD544\uC694\uD569\uB2C8\uB2E4.\n\uD328\uC2A4\uD50C\uB85C\uC6B0 \uCE74\uCE74\uC624\uD1A1\uC73C\uB85C \uBB38\uC758\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) {
+                if (window.confirm(t("g_3ed666") || "발신자 번호가 등록되어 있지 않습니다.\n\nSMS 발송을 위해서는 발신자 번호 등록이 필요합니다.\n패스플로우 카카오톡으로 문의하시겠습니까?")) {
                   window.open(KAKAO_PASSFLOW_URL, '_blank');
                 }
                 return;
@@ -381,14 +381,14 @@ const MessagesTab = ({
                 fontSize: '0.65rem',
                 opacity: 0.7
               }}>
-                                    {smsBlocked ? t("g_860baf") || "\uB4F1\uB85D \uD544\uC694" : isDemo && isSmsMode ? t("g_15a959") || "\uC2DC\uBBAC\uB808\uC774\uC158" : t(mode.descKey) || mode.descFallback}
+                                    {smsBlocked ? t("g_7f4596") || "등록 필요" : isDemo && isSmsMode ? t("g_634926") || "시뮬레이션" : t(mode.descKey) || mode.descFallback}
                                 </span>
                             </button>;
           })}
                     </div>
                 </div>
 
-                <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder={t("g_397d40") || "\uD68C\uC6D0\uC5D0\uAC8C \uBCF4\uB0BC \uBA54\uC2DC\uC9C0\uB97C \uC785\uB825\uD558\uC138\uC694..."} style={{
+                <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder={t("g_f3cd98") || "회원에게 보낼 메시지를 입력하세요..."} style={{
         width: '100%',
         height: '80px',
         background: 'transparent',
@@ -426,11 +426,11 @@ const MessagesTab = ({
             justifyContent: 'space-between',
             width: '100%'
           }}>
-                                <span>{message.length}{t("g_4e19f2") || "\uC790"}</span>
+                                <span>{message.length}{t("g_a86264") || "자"}</span>
                                 <span style={{
               color: '#10b981',
               fontWeight: '600'
-            }}>{t("g_fd4d48") || "\uD83D\uDCF1 \uC571 \uD478\uC2DC \u2022 \uBB34\uB8CC"}</span>
+            }}>{t("g_f59605") || "📱 앱 푸시 • 무료"}</span>
                             </div> : <div style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -452,12 +452,12 @@ const MessagesTab = ({
               }}>
                                         {isLMS ? 'LMS' : 'SMS'}
                                     </span>
-                                    <span>{message.length}{t("g_95b65e") || "\uC790 \u2022"}{bytes}/{maxBytes} bytes</span>
+                                    <span>{message.length}{t("g_617718") || "자 •"}{bytes}/{maxBytes} bytes</span>
                                 </div>
                                 <span style={{
               color: isLMS ? '#f59e0b' : '#10b981',
               fontWeight: '600'
-            }}>{t("g_6ae50a") || "\uAC74\uB2F9"}{cost}{t("g_771dc3") || "\uC6D0"}{sendMode === 'push_first' ? t("g_4a6315") || " (\uD478\uC2DC \uC2E4\uD328 \uC2DC)" : ''}
+            }}>{t("g_80960b") || "건당"}{cost}{t("g_21ba07") || "원"}{sendMode === 'push_first' ? t("g_589cdf") || " (푸시 실패 시)" : ''}
                                 </span>
                             </div>;
         })()}
@@ -487,7 +487,7 @@ const MessagesTab = ({
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center'
-          }}>{t("g_13cdea") || "\u23F0 \uC608\uC57D \uBC1C\uC1A1"}</label>
+          }}>{t("g_b2bffe") || "⏰ 예약 발송"}</label>
                         
                         {isScheduled && <input ref={scheduleInputRef} type="datetime-local" value={scheduledTime} onChange={e => setScheduledTime(e.target.value)} onClick={() => {
             try {
@@ -518,7 +518,7 @@ const MessagesTab = ({
           opacity: sending || !message.trim() ? 0.5 : 1,
           transition: 'all 0.2s'
         }}>
-                        {sending ? t("g_a8d064") || "\uCC98\uB9AC \uC911..." : isScheduled ? t("g_afba01") || "\uC608\uC57D \uD558\uAE30" : t("g_4092d0") || "\uC804\uC1A1 \uD558\uAE30"}
+                        {sending ? t("g_e6e1a2") || "처리 중..." : isScheduled ? t("g_a8f62d") || "예약 하기" : t("g_b143c3") || "전송 하기"}
                     </button>
                 </div>
             </div>
@@ -531,7 +531,7 @@ const MessagesTab = ({
         color: '#a1a1aa',
         fontSize: '0.85rem',
         marginBottom: '8px'
-      }}>{t("g_45b4c9") || "\uC790\uC8FC \uC4F0\uB294 \uBB38\uAD6C (\uBE44\uC6A9 \uC808\uC57D \uD83D\uDCA1)"}</p>
+      }}>{t("g_747549") || "자주 쓰는 문구 (비용 절약 💡)"}</p>
                 <div style={{
         display: 'flex',
         flexWrap: 'wrap',
@@ -561,7 +561,7 @@ const MessagesTab = ({
         color: 'var(--primary-gold)',
         fontSize: '0.95rem',
         marginBottom: '10px'
-      }}>{t("g_02b8e5") || "\uBC1C\uC1A1 \uC774\uB825 (\uAC1C\uBCC4 + \uACF5\uC9C0)"}</h4>
+      }}>{t("g_32c991") || "발송 이력 (개별 + 공지)"}</h4>
                 {(() => {
         // Merge and sort messages and notices
         const combined = [...history, ...notices];
@@ -571,7 +571,7 @@ const MessagesTab = ({
           textAlign: 'center',
           marginTop: '20px',
           fontSize: '0.9rem'
-        }}>{t("g_6c6ff6") || "\uBC1C\uC1A1\uB41C \uBA54\uC2DC\uC9C0\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4."}</p> : <div style={{
+        }}>{t("g_e39238") || "발송된 메시지가 없습니다."}</p> : <div style={{
           display: 'flex',
           flexDirection: 'column',
           gap: '10px'
@@ -601,7 +601,7 @@ const MessagesTab = ({
                   background: log.type === 'notice' ? 'rgba(var(--primary-rgb), 0.15)' : 'rgba(59, 130, 246, 0.15)',
                   borderRadius: '4px'
                 }}>
-                                                {log.type === 'notice' ? t("g_0b1a0f") || "\uACF5\uC9C0" : t("g_d79a15") || "\uAC1C\uBCC4"}
+                                                {log.type === 'notice' ? t("g_c183e0") || "공지" : t("g_b79ea4") || "개별"}
                                             </span>
                                             {/* Send Mode Badge */}
                                             {log.sendMode && <span style={{
@@ -611,7 +611,7 @@ const MessagesTab = ({
                   background: 'rgba(255,255,255,0.05)',
                   borderRadius: '3px'
                 }}>
-                                                    {log.sendMode === 'push_only' ? t("g_152365") || "\uD83D\uDCF1\uD478\uC2DC" : log.sendMode === 'sms_only' ? '📩SMS' : '📱➡📩'}
+                                                    {log.sendMode === 'push_only' ? t("g_150a12") || "📱푸시" : log.sendMode === 'sms_only' ? '📩SMS' : '📱➡📩'}
                                                 </span>}
                                             <span style={{
                   fontSize: '0.8rem',
@@ -619,7 +619,7 @@ const MessagesTab = ({
                 }}>
                                                 {log.timestamp ? new Date(log.timestamp).toLocaleString('ko-KR', {
                     timeZone: 'Asia/Seoul'
-                  }) : t("g_499898") || "\uC804\uC1A1 \uC911..."}
+                  }) : t("g_d47f33") || "전송 중..."}
                                             </span>
                                         </div>
                                         {log.type === 'individual' && <div style={{
@@ -634,13 +634,13 @@ const MessagesTab = ({
                   background: 'rgba(16, 185, 129, 0.1)',
                   padding: '2px 6px',
                   borderRadius: '4px'
-                }}>{t("g_d0553a") || "\uC571\uD478\uC2DC \uC131\uACF5"}</span> : <span style={{
+                }}>{t("g_01dc34") || "앱푸시 성공"}</span> : <span style={{
                   fontSize: '0.75rem',
                   color: '#6b7280',
                   background: 'rgba(107, 114, 128, 0.1)',
                   padding: '2px 6px',
                   borderRadius: '4px'
-                }}>{t("g_f88594") || "\uC571\uD478\uC2DC \uC2E4\uD328"}</span>)}
+                }}>{t("g_bdc168") || "앱푸시 실패"}</span>)}
                                                 
                                                 {/* SMS Status — 앱 푸시만 모드에서는 숨기기 */}
                                                 {log.sendMode !== 'push_only' && (() => {
@@ -652,13 +652,13 @@ const MessagesTab = ({
                     background: 'rgba(59, 130, 246, 0.1)',
                     padding: '2px 6px',
                     borderRadius: '4px'
-                  }}>{t("g_0346ad") || "\uBB38\uC790 \uC131\uACF5"}</span> : <span style={{
+                  }}>{t("g_f4f786") || "문자 성공"}</span> : <span style={{
                     fontSize: '0.75rem',
                     color: '#ef4444',
                     background: 'rgba(239, 68, 68, 0.1)',
                     padding: '2px 6px',
                     borderRadius: '4px'
-                  }} title={st.error || t("g_053d5f") || "\uC54C \uC218 \uC5C6\uB294 \uC624\uB958"}>{t("g_8fe81a") || "\uBB38\uC790 \uC2E4\uD328"}</span>;
+                  }} title={st.error || t("g_5e9f6b") || "알 수 없는 오류"}>{t("g_40f442") || "문자 실패"}</span>;
                 })()}
                                             </div>}
                                     </div>
@@ -679,7 +679,7 @@ const MessagesTab = ({
             marginTop: '5px',
             cursor: 'pointer',
             fontSize: '0.85rem'
-          }}>{t("g_e509ec") || "\u25BF \uC774\uC804 \uBA54\uC2DC\uC9C0 \uB354\uBCF4\uAE30 (10\uAC1C \uCD94\uAC00)"}</button>}
+          }}>{t("g_9ec5d3") || "▿ 이전 메시지 더보기 (10개 추가)"}</button>}
                         </div>;
       })()}
             </div>

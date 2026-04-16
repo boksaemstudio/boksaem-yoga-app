@@ -1,0 +1,718 @@
+{
+  "📊 전체 통합": {
+    "ko": "📊 Full integration",
+    "en": "📊 Full integration"
+  },
+  "보통": {
+    "ko": "commonly",
+    "en": "commonly"
+  },
+  "출석 추세 분석": {
+    "ko": "Attendance trend analysis",
+    "en": "Attendance trend analysis"
+  },
+  "1년": {
+    "ko": "1 year",
+    "en": "1 year"
+  },
+  "⭐ 인기 강사 Top 5": {
+    "ko": "⭐ Top 5 Popular Instructors",
+    "en": "⭐ Top 5 Popular Instructors"
+  },
+  "히트맵": {
+    "ko": "heatmap",
+    "en": "heatmap"
+  },
+  "출석 추세 분석 중...": {
+    "ko": "Analyzing attendance trends...",
+    "en": "Analyzing attendance trends..."
+  },
+  "일별 추세": {
+    "ko": "daily trend",
+    "en": "daily trend"
+  },
+  "지난 주": {
+    "ko": "last week",
+    "en": "last week"
+  },
+  "일별 출석": {
+    "ko": "daily attendance",
+    "en": "daily attendance"
+  },
+  "7일 이동평균": {
+    "ko": "7-day moving average",
+    "en": "7-day moving average"
+  },
+  "데이터 없음": {
+    "ko": "no data",
+    "en": "no data"
+  },
+  "인기 분석": {
+    "ko": "Popularity Analysis",
+    "en": "Popularity Analysis"
+  },
+  "월~오늘": {
+    "ko": "Monday~Today",
+    "en": "Monday~Today"
+  },
+  "피크": {
+    "ko": "peak",
+    "en": "peak"
+  },
+  "동일 시점 대비": {
+    "ko": "Compared to the same point in time",
+    "en": "Compared to the same point in time"
+  },
+  "적음": {
+    "ko": "less",
+    "en": "less"
+  },
+  "이번 주": {
+    "ko": "this week",
+    "en": "this week"
+  },
+  "신규 vs 기존 회원 (4주)": {
+    "ko": "New vs existing members (4 weeks)",
+    "en": "New vs existing members (4 weeks)"
+  },
+  "○ 점선 = 오늘(집계 중)": {
+    "ko": "○ Dotted line = Today (counting)",
+    "en": "○ Dotted line = Today (counting)"
+  },
+  "대기": {
+    "ko": "atmosphere",
+    "en": "atmosphere"
+  },
+  "파일 선택": {
+    "ko": "Select file",
+    "en": "Select file"
+  },
+  "회원현황_YYYYMMDD.csv": {
+    "ko": "Member Status_YYYYMMDD.csv",
+    "en": "Member Status_YYYYMMDD.csv"
+  },
+  "이 날짜에 등록된 수업이 없습니다": {
+    "ko": "There are no classes registered for this date",
+    "en": "There are no classes registered for this date"
+  },
+  "성공": {
+    "ko": "success",
+    "en": "success"
+  },
+  "출석": {
+    "ko": "attendance",
+    "en": "attendance"
+  },
+  "CSV 회원 데이터 마이그레이션": {
+    "ko": "CSV member data migration",
+    "en": "CSV member data migration"
+  },
+  "📋 예약": {
+    "ko": "📋 Reservation",
+    "en": "📋 Reservation"
+  },
+  "오늘로 돌아가기": {
+    "ko": "back to today",
+    "en": "back to today"
+  },
+  "예약": {
+    "ko": "reservation",
+    "en": "reservation"
+  },
+  "⏳ 대기": {
+    "ko": "⏳ Wait",
+    "en": "⏳ Wait"
+  },
+  "노쇼": {
+    "ko": "no show",
+    "en": "no show"
+  },
+  "CSV 파일 업로드 (마이그레이션 실행)": {
+    "ko": "Upload CSV file (run migration)",
+    "en": "Upload CSV file (run migration)"
+  },
+  "파일명:": {
+    "ko": "File name:",
+    "en": "File name:"
+  },
+  "로딩 중...": {
+    "ko": "Loading...",
+    "en": "Loading..."
+  },
+  "실패": {
+    "ko": "failure",
+    "en": "failure"
+  },
+  "❌ 노쇼": {
+    "ko": "❌ No show",
+    "en": "❌ No show"
+  },
+  "✅ 출석": {
+    "ko": "✅ Attendance",
+    "en": "✅ Attendance"
+  },
+  "예약자 없음": {
+    "ko": "No reservations",
+    "en": "No reservations"
+  },
+  "건너뜀": {
+    "ko": "Skip",
+    "en": "Skip"
+  },
+  "취소": {
+    "ko": "cancellation",
+    "en": "cancellation"
+  },
+  "매출 기록": {
+    "ko": "sales records",
+    "en": "sales records"
+  },
+  "판매금액이 0이 아닌 경우 자동으로 매출 기록이 추가됩니다.": {
+    "ko": "If the sales amount is non-zero, a sales record is automatically added.",
+    "en": "If the sales amount is non-zero, a sales record is automatically added."
+  },
+  "키오스크 화면 설정": {
+    "ko": "Kiosk screen settings",
+    "en": "Kiosk screen settings"
+  },
+  "다시 시도": {
+    "ko": "try again",
+    "en": "try again"
+  },
+  "📷 출석 화면 로고": {
+    "ko": "📷 Attendance screen logo",
+    "en": "📷 Attendance screen logo"
+  },
+  "마이그레이션 중 오류가 발생했습니다.": {
+    "ko": "An error occurred during migration.",
+    "en": "An error occurred during migration."
+  },
+  "먼저": {
+    "ko": "first",
+    "en": "first"
+  },
+  "사용 안내": {
+    "ko": "Instructions for use",
+    "en": "Instructions for use"
+  },
+  "변경": {
+    "ko": "change",
+    "en": "change"
+  },
+  "로 테스트하여 데이터를 확인하세요.": {
+    "ko": "Check your data by testing with .",
+    "en": "Check your data by testing with ."
+  },
+  "등록하지 않으면 설정 탭의 스튜디오 로고가 표시됩니다.": {
+    "ko": "If you don't register, you'll see the studio logo in the Settings tab.",
+    "en": "If you don't register, you'll see the studio logo in the Settings tab."
+  },
+  "새 파일 업로드": {
+    "ko": "Upload new file",
+    "en": "Upload new file"
+  },
+  "배경:": {
+    "ko": "background:",
+    "en": "background:"
+  },
+  "중복 전화번호가 있으면 기존 회원 데이터를 업데이트합니다.": {
+    "ko": "If there are duplicate phone numbers, we will update existing member data.",
+    "en": "If there are duplicate phone numbers, we will update existing member data."
+  },
+  "로 전환하여 진행하세요.": {
+    "ko": "Switch to to proceed.",
+    "en": "Switch to to proceed."
+  },
+  "실제 마이그레이션 모드": {
+    "ko": "Actual migration mode",
+    "en": "Actual migration mode"
+  },
+  "검증 모드": {
+    "ko": "verification mode",
+    "en": "verification mode"
+  },
+  "삭제": {
+    "ko": "delete",
+    "en": "delete"
+  },
+  "출석체크 키오스크 숫자패드 위에 표시될 로고입니다. 최대 2개까지 등록할 수 있습니다.": {
+    "ko": "This is the logo that will be displayed above the attendance check kiosk number pad. ",
+    "en": "This is the logo that will be displayed above the attendance check kiosk number pad. "
+  },
+  "검증 완료 후": {
+    "ko": "After verification is completed",
+    "en": "After verification is completed"
+  },
+  "농도 조절": {
+    "ko": "Concentration control",
+    "en": "Concentration control"
+  },
+  "키오스크 공지 기능 안내": {
+    "ko": "Kiosk notification function information",
+    "en": "Kiosk notification function information"
+  },
+  "📎 업로드": {
+    "ko": "📎 Upload",
+    "en": "📎 Upload"
+  },
+  "업로드된 미디어가 없습니다": {
+    "ko": "No media uploaded",
+    "en": "No media uploaded"
+  },
+  "⚙️ 공지 화면 옵션": {
+    "ko": "⚙️Notice screen options",
+    "en": "⚙️Notice screen options"
+  },
+  "불러오는 중...": {
+    "ko": "Loading...",
+    "en": "Loading..."
+  },
+  "아래 갤러리에서 선택하거나": {
+    "ko": "Choose from the gallery below or",
+    "en": "Choose from the gallery below or"
+  },
+  "갤러리에서": {
+    "ko": "In the gallery",
+    "en": "In the gallery"
+  },
+  "버튼으로 이미지 또는 영상 파일을 올립니다": {
+    "ko": "Upload an image or video file with the button",
+    "en": "Upload an image or video file with the button"
+  },
+  "아래": {
+    "ko": "under",
+    "en": "under"
+  },
+  "사용 방법:": {
+    "ko": "How to use:",
+    "en": "How to use:"
+  },
+  "토글을 켜면 태블릿에 표시됩니다": {
+    "ko": "Turn on the toggle and it will appear on your tablet",
+    "en": "Turn on the toggle and it will appear on your tablet"
+  },
+  "활성화하면 태블릿 화면에 선택한 미디어가 우선 표시됩니다. (터치하면 닫힘)": {
+    "ko": "When enabled, selected media will appear first on your tablet screen. ",
+    "en": "When enabled, selected media will appear first on your tablet screen. "
+  },
+  "\"출석기에 표시\"": {
+    "ko": "“Mark the attendance register”",
+    "en": "“Mark the attendance register”"
+  },
+  "터치 안내 텍스트 표시": {
+    "ko": "Display touch guidance text",
+    "en": "Display touch guidance text"
+  },
+  "위 버튼으로 새로 업로드하세요": {
+    "ko": "Upload a new one using the button above",
+    "en": "Upload a new one using the button above"
+  },
+  "하단의": {
+    "ko": "at the bottom",
+    "en": "at the bottom"
+  },
+  "출석체크 태블릿 화면에 이미지나 영상을 표시할 수 있습니다.": {
+    "ko": "Attendance check You can display images or videos on the tablet screen.",
+    "en": "Attendance check You can display images or videos on the tablet screen."
+  },
+  "지원 파일: 이미지(최대 10MB) | 영상(최대 50MB, MP4/WebM/MOV)": {
+    "ko": "Supported files: Images (up to 10 MB) | ",
+    "en": "Supported files: Images (up to 10 MB) | "
+  },
+  "📂 미디어 갤러리": {
+    "ko": "📂 Media Gallery",
+    "en": "📂 Media Gallery"
+  },
+  "표시할 미디어를 선택": {
+    "ko": "Select the media you want to display",
+    "en": "Select the media you want to display"
+  },
+  "하단에 \"👆 화면을 터치하면 출석부로 이동합니다\" 안내 표시": {
+    "ko": "At the bottom, a “👆Touch the screen will take you to the attendance list” information is displayed.",
+    "en": "At the bottom, a “👆Touch the screen will take you to the attendance list” information is displayed."
+  },
+  "카메라로 사람 접근 감지 시 자동으로 출석체크 화면 전환": {
+    "ko": "Automatically switches to the attendance check screen when a person approaches is detected by the camera.",
+    "en": "Automatically switches to the attendance check screen when a person approaches is detected by the camera."
+  },
+  "오늘로 이동": {
+    "ko": "Go to today",
+    "en": "Go to today"
+  },
+  "다회 출석 (열성 회원)": {
+    "ko": "Multiple attendance (enthusiastic members)",
+    "en": "Multiple attendance (enthusiastic members)"
+  },
+  "설정된 운영 시간 외에는 화면과 동작을 끄고 절전(대기) 모드 진입": {
+    "ko": "Outside of set operating hours, turn off the screen and motion and enter sleep (standby) mode.",
+    "en": "Outside of set operating hours, turn off the screen and motion and enter sleep (standby) mode."
+  },
+  "시작 시간 (켜짐)": {
+    "ko": "Start time (on)",
+    "en": "Start time (on)"
+  },
+  "자동 ON/OFF 스케줄 사용": {
+    "ko": "Use automatic ON/OFF schedule",
+    "en": "Use automatic ON/OFF schedule"
+  },
+  "오늘": {
+    "ko": "today",
+    "en": "today"
+  },
+  "가장 붐비는 수업": {
+    "ko": "busiest class",
+    "en": "busiest class"
+  },
+  "명": {
+    "ko": "number of people",
+    "en": "number of people"
+  },
+  "총 출석 완료": {
+    "ko": "Total attendance completed",
+    "en": "Total attendance completed"
+  },
+  "건 발생 (조치 필요)": {
+    "ko": "Case Occurs (Action Required)",
+    "en": "Case Occurs (Action Required)"
+  },
+  "출석 데이터를 불러오는 중...": {
+    "ko": "Loading attendance data...",
+    "en": "Loading attendance data..."
+  },
+  "⚠️ 출석 제한·거부": {
+    "ko": "⚠️ Attendance restriction/refusal",
+    "en": "⚠️ Attendance restriction/refusal"
+  },
+  "키오스크 공지": {
+    "ko": "Kiosk Notice",
+    "en": "Kiosk Notice"
+  },
+  "⏰ 키오스크 운영 시간 (자동 ON/OFF)": {
+    "ko": "⏰ Kiosk operating hours (automatic ON/OFF)",
+    "en": "⏰ Kiosk operating hours (automatic ON/OFF)"
+  },
+  "종료 시간 (꺼짐)": {
+    "ko": "End time (off)",
+    "en": "End time (off)"
+  },
+  "건": {
+    "ko": "case",
+    "en": "case"
+  },
+  "명 참여": {
+    "ko": "participation",
+    "en": "participation"
+  },
+  "안면 일치": {
+    "ko": "facial matching",
+    "en": "facial matching"
+  },
+  "데이터 분석 중...": {
+    "ko": "Analyzing data...",
+    "en": "Analyzing data..."
+  },
+  "최근 3주 내에 동일한 시간대의 수업 기록이 없습니다.": {
+    "ko": "There are no records of classes in the same time zone within the last 3 weeks.",
+    "en": "There are no records of classes in the same time zone within the last 3 weeks."
+  },
+  "얼굴 미등록": {
+    "ko": "Face not registered",
+    "en": "Face not registered"
+  },
+  "표시할 로그가 없습니다.": {
+    "ko": "There are no logs to display.",
+    "en": "There are no logs to display."
+  },
+  "신규 회원 등록하기": {
+    "ko": "Register a new member",
+    "en": "Register a new member"
+  },
+  "전체 지점": {
+    "ko": "whole branch",
+    "en": "whole branch"
+  },
+  "필터 해제": {
+    "ko": "Filter off",
+    "en": "Filter off"
+  },
+  "접기": {
+    "ko": "fold",
+    "en": "fold"
+  },
+  "데이터 로딩 중...": {
+    "ko": "Loading data...",
+    "en": "Loading data..."
+  },
+  "펼치기": {
+    "ko": "Expand",
+    "en": "Expand"
+  },
+  "오늘 등록·결제": {
+    "ko": "Register/pay today",
+    "en": "Register/pay today"
+  },
+  "다른 날짜를 선택해보세요.": {
+    "ko": "Please select a different date.",
+    "en": "Please select a different date."
+  },
+  "📈 출석 추세 분석": {
+    "ko": "📈 Attendance trend analysis",
+    "en": "📈 Attendance trend analysis"
+  },
+  "활동중인 회원": {
+    "ko": "active member",
+    "en": "active member"
+  },
+  "이전 날": {
+    "ko": "previous day",
+    "en": "previous day"
+  },
+  "이름 검색...": {
+    "ko": "Name search...",
+    "en": "Name search..."
+  },
+  "사용할 수 있습니다.": {
+    "ko": "You can use it.",
+    "en": "You can use it."
+  },
+  "맞춤 안부 메시지 전송 기능을": {
+    "ko": "Ability to send personalized greeting messages",
+    "en": "Ability to send personalized greeting messages"
+  },
+  "잔여 1회 이하 + 14일+ 미출석": {
+    "ko": "Less than 1 session remaining + 14 days + non-attendance",
+    "en": "Less than 1 session remaining + 14 days + non-attendance"
+  },
+  "근접 감지 자동 복귀": {
+    "ko": "Proximity detection automatic return",
+    "en": "Proximity detection automatic return"
+  },
+  "오늘 새로 등록하거나": {
+    "ko": "Register today or",
+    "en": "Register today or"
+  },
+  "카드를 터치하면 상세 목록과": {
+    "ko": "When you touch the card, a detailed list and",
+    "en": "When you touch the card, a detailed list and"
+  },
+  "회원을 위험도별로 분류합니다.": {
+    "ko": "Classifies members by risk level.",
+    "en": "Classifies members by risk level."
+  },
+  "회원": {
+    "ko": "member",
+    "en": "member"
+  },
+  "선생님": {
+    "ko": "teacher",
+    "en": "teacher"
+  },
+  "✨ 모든 회원이 꾸준히 출석 중입니다.": {
+    "ko": "✨ All members are consistently attending.",
+    "en": "✨ All members are consistently attending."
+  },
+  "활성 회원 중 최근 출석이 없는": {
+    "ko": "Active members with no recent attendance",
+    "en": "Active members with no recent attendance"
+  },
+  ": 30일+ 미출석 또는": {
+    "ko": ": 30 days + non-attendance or",
+    "en": ": 30 days + non-attendance or"
+  },
+  "수강권을 재결제한 회원": {
+    "ko": "Members who repaid their course tickets",
+    "en": "Members who repaid their course tickets"
+  },
+  "현재": {
+    "ko": "today",
+    "en": "today"
+  },
+  "앱 설치 + 알림 켜짐 상태로": {
+    "ko": "With app installed + notifications turned on",
+    "en": "With app installed + notifications turned on"
+  },
+  "메시지를 받을 수 있는 인원": {
+    "ko": "Number of people who can receive messages",
+    "en": "Number of people who can receive messages"
+  },
+  "🔶 주의": {
+    "ko": "🔶 Caution",
+    "en": "🔶 Caution"
+  },
+  "알림 수신 가능": {
+    "ko": "Can receive notifications",
+    "en": "Can receive notifications"
+  },
+  "💤 관찰": {
+    "ko": "💤 Observation",
+    "en": "💤 Observation"
+  },
+  "AI 이탈 예측이란?": {
+    "ko": "What is AI Churn Prediction?",
+    "en": "What is AI Churn Prediction?"
+  },
+  "위해 얼굴 등록이 아직": {
+    "ko": "Face registration has not yet been completed",
+    "en": "Face registration has not yet been completed"
+  },
+  "안 된 활성 회원 수": {
+    "ko": "Number of active members not active",
+    "en": "Number of active members not active"
+  },
+  "누적 재등록률": {
+    "ko": "Cumulative re-enrollment rate",
+    "en": "Cumulative re-enrollment rate"
+  },
+  "오늘 전체 등록": {
+    "ko": "Full registration today",
+    "en": "Full registration today"
+  },
+  ": 21~29일 미출석": {
+    "ko": ": Non-attendance from 21st to 29th",
+    "en": ": Non-attendance from 21st to 29th"
+  },
+  "안면 미등록 회원": {
+    "ko": "Face unregistered member",
+    "en": "Face unregistered member"
+  },
+  ": 14~20일 미출석": {
+    "ko": ": Non-attendance for 14-20 days",
+    "en": ": Non-attendance for 14-20 days"
+  },
+  "🧠 AI 이탈 예측": {
+    "ko": "🧠AI Churn Prediction",
+    "en": "🧠AI Churn Prediction"
+  },
+  "⚠ 위험": {
+    "ko": "⚠ Danger",
+    "en": "⚠ Danger"
+  },
+  "기록 없음": {
+    "ko": "no record",
+    "en": "no record"
+  },
+  "🧠 안면인식": {
+    "ko": "🧠 Facial Recognition",
+    "en": "🧠 Facial Recognition"
+  },
+  "마감일 여유 순": {
+    "ko": "Deadline availability",
+    "en": "Deadline availability"
+  },
+  "기본 정렬": {
+    "ko": "default sort",
+    "en": "default sort"
+  },
+  "키오스크 얼굴인식 출석을": {
+    "ko": "Kiosk facial recognition attendance",
+    "en": "Kiosk facial recognition attendance"
+  },
+  "시작 대기중": {
+    "ko": "Waiting to start",
+    "en": "Waiting to start"
+  },
+  "마감일 임박 순": {
+    "ko": "Due date approaching",
+    "en": "Due date approaching"
+  },
+  "잔여 횟수 적은 순": {
+    "ko": "Smallest number of remaining times",
+    "en": "Smallest number of remaining times"
+  },
+  "잔여 횟수 많은 순": {
+    "ko": "Order of most remaining counts",
+    "en": "Order of most remaining counts"
+  },
+  "알림 꺼짐": {
+    "ko": "Notifications off",
+    "en": "Notifications off"
+  },
+  "⏸️ 홀딩 중": {
+    "ko": "⏸️ Holding",
+    "en": "⏸️ Holding"
+  },
+  "검색 결과가 없거나 회원을 등록해주세요.": {
+    "ko": "There are no search results or please register as a member.",
+    "en": "There are no search results or please register as a member."
+  },
+  "📊 월별 재등록 추이 (최근 6개월)": {
+    "ko": "📊 Monthly re-registration trend (last 6 months)",
+    "en": "📊 Monthly re-registration trend (last 6 months)"
+  },
+  "으로 보고 계십니다.": {
+    "ko": "You are looking at it.",
+    "en": "You are looking at it."
+  },
+  "🔍 이름 또는 전화번호 검색...": {
+    "ko": "🔍 Search by name or phone number...",
+    "en": "🔍 Search by name or phone number..."
+  },
+  "등록된 공지사항이 없습니다.": {
+    "ko": "There are no registered announcements.",
+    "en": "There are no registered announcements."
+  },
+  "회원용 앱의 메인 화면에 표시되는 공지사항입니다.": {
+    "ko": "This notice is displayed on the main screen of the member app.",
+    "en": "This notice is displayed on the main screen of the member app."
+  },
+  "이 앱의 모든 자동화 규칙과 정책을 한 눈에 확인하세요": {
+    "ko": "See all automation rules and policies for this app at a glance",
+    "en": "See all automation rules and policies for this app at a glance"
+  },
+  "⚙️ 설정": {
+    "ko": "⚙️Settings",
+    "en": "⚙️Settings"
+  },
+  "현재 예약 기능이 비활성화되어 있습니다. 설정 탭에서 활성화할 수 있습니다.": {
+    "ko": "The reservation feature is currently disabled. ",
+    "en": "The reservation feature is currently disabled. "
+  },
+  "푸시 ON": {
+    "ko": "Push ON",
+    "en": "Push ON"
+  },
+  "소식 및 공지 관리": {
+    "ko": "News and notice management",
+    "en": "News and notice management"
+  },
+  "📖 운영 가이드": {
+    "ko": "📖Operation Guide",
+    "en": "📖Operation Guide"
+  },
+  "만료 회원": {
+    "ko": "expired membership",
+    "en": "expired membership"
+  },
+  "공지 삭제": {
+    "ko": "Delete notice",
+    "en": "Delete notice"
+  },
+  "재등록": {
+    "ko": "re-register",
+    "en": "re-register"
+  },
+  "만료/소진": {
+    "ko": "Expired/Used Out",
+    "en": "Expired/Used Out"
+  },
+  "활동중": {
+    "ko": "Active",
+    "en": "Active"
+  },
+  "메모 작성/수정": {
+    "ko": "Create/edit notes",
+    "en": "Create/edit notes"
+  },
+  "위 설정값은 현재 업장의 실제 설정을 반영합니다.": {
+    "ko": "The above settings reflect the actual settings of the current karma.",
+    "en": "The above settings reflect the actual settings of the current karma."
+  },
+  "공지 작성하기": {
+    "ko": "Create an announcement",
+    "en": "Create an announcement"
+  },
+  "공지 이미지": {
+    "ko": "Notice image",
+    "en": "Notice image"
+  }
+}

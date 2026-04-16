@@ -1,0 +1,718 @@
+{
+  "완전 삭제": {
+    "ko": "Completely delete",
+    "en": "Completely delete"
+  },
+  "오늘 수련 포함": {
+    "ko": "Today's training included",
+    "en": "Today's training included"
+  },
+  "첫 출석일 시작": {
+    "ko": "First day of attendance begins",
+    "en": "First day of attendance begins"
+  },
+  "예약 발송": {
+    "ko": "Reserved delivery",
+    "en": "Reserved delivery"
+  },
+  "회 차감": {
+    "ko": "Deduction",
+    "en": "Deduction"
+  },
+  "마감일(종료일)": {
+    "ko": "due date (end date)",
+    "en": "due date (end date)"
+  },
+  "자율수련 (-1회)": {
+    "ko": "Self-training (-1 time)",
+    "en": "Self-training (-1 time)"
+  },
+  "수련 시작일": {
+    "ko": "Training start date",
+    "en": "Training start date"
+  },
+  "가격표 1": {
+    "ko": "price list 1",
+    "en": "price list 1"
+  },
+  "회원권 종류": {
+    "ko": "Membership type",
+    "en": "Membership type"
+  },
+  "가격표 2": {
+    "ko": "price list 2",
+    "en": "price list 2"
+  },
+  "세부 옵션": {
+    "ko": "Detailed options",
+    "en": "Detailed options"
+  },
+  "연장 기간": {
+    "ko": "extension period",
+    "en": "extension period"
+  },
+  "수강권 연장(재등록)": {
+    "ko": "Course ticket extension (re-registration)",
+    "en": "Course ticket extension (re-registration)"
+  },
+  "제목": {
+    "ko": "title",
+    "en": "title"
+  },
+  "저장하기": {
+    "ko": "Save",
+    "en": "Save"
+  },
+  "메시지 보내기": {
+    "ko": "Send message",
+    "en": "Send message"
+  },
+  "*필수": {
+    "ko": "*essential",
+    "en": "*essential"
+  },
+  "내용": {
+    "ko": "detail",
+    "en": "detail"
+  },
+  "공지사항 작성": {
+    "ko": "Write an announcement",
+    "en": "Write an announcement"
+  },
+  "*첫 출석 시 조정됨": {
+    "ko": "*Adjusted upon first attendance",
+    "en": "*Adjusted upon first attendance"
+  },
+  "가격표 확인 및 관리": {
+    "ko": "Check and manage price lists",
+    "en": "Check and manage price lists"
+  },
+  "* 날짜 선택 시 수동 적용. 비우면 자동 계산.": {
+    "ko": "* Manually applied when selecting date. ",
+    "en": "* Manually applied when selecting date. "
+  },
+  "무제한": {
+    "ko": "borderless",
+    "en": "borderless"
+  },
+  "공지할 내용을 상세히 입력해주세요.": {
+    "ko": "Please enter the details of the information to be announced.",
+    "en": "Please enter the details of the information to be announced."
+  },
+  "회원에 대한 메모를 입력하세요 (예: 허리 디스크, 오전반 선호 등)": {
+    "ko": "Enter any notes about the member (e.g. herniated disc, morning class preference, etc.)",
+    "en": "Enter any notes about the member (e.g. herniated disc, morning class preference, etc.)"
+  },
+  "메시지를 전송하면 해당 회원의 앱으로 푸시 알림이 발송됩니다.": {
+    "ko": "When a message is sent, a push notification will be sent to the member's app.",
+    "en": "When a message is sent, a push notification will be sent to the member's app."
+  },
+  "특이사항이나 메모를 입력하세요": {
+    "ko": "Please enter any special information or notes",
+    "en": "Please enter any special information or notes"
+  },
+  "체크 해제 시 알림 없이 조용히 등록됩니다.": {
+    "ko": "When unchecked, it will be registered quietly without notification.",
+    "en": "When unchecked, it will be registered quietly without notification."
+  },
+  "자율수련": {
+    "ko": "autonomous training",
+    "en": "autonomous training"
+  },
+  "뒷자리 8자리 숫자": {
+    "ko": "Last 8 digits",
+    "en": "Last 8 digits"
+  },
+  "이미지 첨부": {
+    "ko": "Attach image",
+    "en": "Attach image"
+  },
+  "예: [안내] 동절기 수업 시간 변경": {
+    "ko": "Example: [Guide] Change of winter class time",
+    "en": "Example: [Guide] Change of winter class time"
+  },
+  "원장 메모 (선택)": {
+    "ko": "Ledger notes (optional)",
+    "en": "Ledger notes (optional)"
+  },
+  "전체 푸시 알림 보내기": {
+    "ko": "Send full push notification",
+    "en": "Send full push notification"
+  },
+  "회원 이름 입력": {
+    "ko": "Enter member name",
+    "en": "Enter member name"
+  },
+  "mkt_nav_features": {
+    "ko": "상세기능 보기",
+    "en": "Features"
+  },
+  "mkt_nav_contact": {
+    "ko": "도입 문의",
+    "en": "Contact"
+  },
+  "mkt_nav_admin_login": {
+    "ko": "관리자 로그인",
+    "en": "Admin Login"
+  },
+  "mkt_feat2_title": {
+    "ko": "클라우드 다국어 데이터 동기화",
+    "en": "Cloud Multi-language Data Sync"
+  },
+  "mkt_feat2_desc": {
+    "ko": "해외 어느 로케이션에 지점을 내셔도 완벽합니다. 전 세계 어디서든 언어 장벽 없이 스튜디오를 100% 원격 관리하십시오.",
+    "en": "Open branches anywhere in the world. Manage your studio 100% remotely without language barriers."
+  },
+  "mkt_feat3_title": {
+    "ko": "강사 앱 & 급여 자동화",
+    "en": "Instructor App & Payroll Automation"
+  },
+  "mkt_feat3_desc": {
+    "ko": "강사는 본인 휴대폰에서 스케줄과 출석부를 확인하고, 원장님은 강사를 위한 맞춤 권한과 급여 명세서를 평생 자동으로 산출합니다.",
+    "en": "Instructors check schedules and attendance from their phone. Owners get custom permissions and automatic lifetime payroll statements."
+  },
+  "mkt_inquiry_title": {
+    "ko": "플랫폼 도입 및 1:1 커스텀 상담",
+    "en": "Platform Consultation"
+  },
+  "mkt_inquiry_desc": {
+    "ko": "원장님의 스튜디오에 완벽히 맞춘 1:1 맞춤형 SaaS 기능 디자인을 지원합니다. 언제든 편히 문의해 주세요.",
+    "en": "We provide 1:1 custom SaaS feature design tailored to your studio. Feel free to reach out anytime."
+  },
+  "mkt_inquiry_name": {
+    "ko": "성함 (또는 스튜디오명)",
+    "en": "Name (or Studio Name)"
+  },
+  "mkt_inquiry_phone": {
+    "ko": "연락처",
+    "en": "Phone"
+  },
+  "mkt_inquiry_email": {
+    "ko": "이메일",
+    "en": "Email"
+  },
+  "mkt_inquiry_message": {
+    "ko": "문의 및 요청사항",
+    "en": "Inquiry & Requests"
+  },
+  "mkt_inquiry_placeholder": {
+    "ko": "운영 중인 지점 수, 필요한 커스텀 기능 등을 편하게 적어주세요.",
+    "en": "Number of branches, custom features needed, etc."
+  },
+  "mkt_inquiry_submit": {
+    "ko": "상담 메시지 보내기",
+    "en": "Send Inquiry"
+  },
+  "mkt_inquiry_success": {
+    "ko": "성공적으로 전송되었습니다!",
+    "en": "Successfully sent!"
+  },
+  "mkt_inquiry_followup": {
+    "ko": "담당자가 곧 연락드리겠습니다.",
+    "en": "We will contact you shortly."
+  },
+  "mkt_inquiry_fail": {
+    "ko": "메시지 전송에 실패했습니다.",
+    "en": "Message sending failed."
+  },
+  "viewNotice": {
+    "ko": "소식 보기",
+    "en": "View Notice"
+  },
+  "tuitionFee": {
+    "ko": "수강료",
+    "en": "Tuition"
+  },
+  "timetableLabel": {
+    "ko": "시간표",
+    "en": "Timetable"
+  },
+  "ticketType": {
+    "ko": "횟수권",
+    "en": "Ticket"
+  },
+  "threeMonthDiscount": {
+    "ko": "3개월 (5%↓)",
+    "en": "3 Mo (5%↓)"
+  },
+  "stats_title": {
+    "ko": "나의 수강 통계 (전체)",
+    "en": "My Class Stats (Total)"
+  },
+  "stats_empty": {
+    "ko": "아직 수강 내역이 없습니다.",
+    "en": "No class history yet."
+  },
+  "sixMonthDiscount": {
+    "ko": "6개월 (10%↓)",
+    "en": "6 Mo (10%↓)"
+  },
+  "pushNotification": {
+    "ko": "푸시 알림",
+    "en": "Push Notifications"
+  },
+  "preview": {
+    "ko": "미리보기",
+    "en": "Preview"
+  },
+  "preRegistered": {
+    "ko": "선등록 (대기)",
+    "en": "Pre-registered"
+  },
+  "practiceHistory": {
+    "ko": "수련 이력",
+    "en": "Practice History"
+  },
+  "paymentHistory": {
+    "ko": "결제 및 수강권 구매 내역",
+    "en": "Payment & Pass History"
+  },
+  "paymentAccount": {
+    "ko": "🏦 결제 계좌 정보",
+    "en": "🏦 Payment Account"
+  },
+  "passwordLabel": {
+    "ko": "비밀번호",
+    "en": "Password"
+  },
+  "paidOn": {
+    "ko": "결제",
+    "en": "Paid"
+  },
+  "notEnoughData": {
+    "ko": "데이터가 부족합니다.",
+    "en": "Not enough data."
+  },
+  "noTimetableImage": {
+    "ko": "이미지 시간표가 등록되지 않았습니다.",
+    "en": "No timetable image registered."
+  },
+  "noPaymentHistory": {
+    "ko": "결제 이력이 없습니다.",
+    "en": "No payment history."
+  },
+  "noNewNotices": {
+    "ko": "새로운 소식이 없습니다.",
+    "en": "No new notices."
+  },
+  "myYogaTaste": {
+    "ko": "나의 수련 취향",
+    "en": "My Yoga Taste"
+  },
+  "messagesSubtitle": {
+    "ko": "수신된 전체 알림 내역입니다.",
+    "en": "All received notification history."
+  },
+  "meditation": {
+    "ko": "명상",
+    "en": "Meditation"
+  },
+  "longTermDiscount": {
+    "ko": "💎 장기등록 할인",
+    "en": "💎 Long-term Discount"
+  },
+  "loadingPayment": {
+    "ko": "결제 내역을 불러오는 중...",
+    "en": "Loading payment history..."
+  },
+  "loadMoreN": {
+    "ko": "(10개 추가)",
+    "en": "(10 more)"
+  },
+  "loadMoreAttendance": {
+    "ko": "과거 수련 내역 더보기",
+    "en": "Load more attendance history"
+  },
+  "listView": {
+    "ko": "목록",
+    "en": "List"
+  },
+  "legend_saturday": {
+    "ko": "하타인텐시브/별도등록",
+    "en": "Sat Hatha/Special"
+  },
+  "legend_regular": {
+    "ko": "일반",
+    "en": "General"
+  },
+  "legend_pregnancy": {
+    "ko": "임산부",
+    "en": "Prenatal"
+  },
+  "legend_my_practice": {
+    "ko": "나의 수련",
+    "en": "My Practice"
+  },
+  "legend_intensive": {
+    "ko": "심화/플라잉/키즈",
+    "en": "Intensive/Kids"
+  },
+  "kakaoSupport": {
+    "ko": "카카오톡 고객센터 문의하기",
+    "en": "Contact Support via KakaoTalk"
+  },
+  "iosShareStep2": {
+    "ko": "홈 화면에 추가 선택",
+    "en": "Select 'Add to Home Screen'"
+  },
+  "iosShareStep1": {
+    "ko": "하단 공유 버튼 클릭",
+    "en": "Tap the Share button at the bottom"
+  },
+  "installWord": {
+    "ko": "설치",
+    "en": "Install"
+  },
+  "installGuideTitle": {
+    "ko": "앱 설치 안내",
+    "en": "App Install Guide"
+  },
+  "installGuideSub": {
+    "ko": "홈 화면에 추가하면 앱처럼 바로 실행돼요!",
+    "en": "Add to Home Screen to launch like a native app!"
+  },
+  "installGuideConfirm": {
+    "ko": "확인했어요",
+    "en": "Got it"
+  },
+  "inAppBrowserWarning": {
+    "ko": "💡 카카오톡/네이버 앱 내 브라우저를 사용 중입니다. 더 나은 경험을 위해 Chrome이나 Safari로 열어주세요.",
+    "en": "💡 You are using an in-app browser. For a better experience, please open in Chrome or Safari."
+  },
+  "holdingStatus": {
+    "ko": "⏸️ 홀딩 중",
+    "en": "⏸️ On Hold"
+  },
+  "holdSelectPeriod": {
+    "ko": "홀딩 기간 선택",
+    "en": "Select hold period"
+  },
+  "holdPauseTitle": {
+    "ko": "⏸️ 수강권 일시정지 중",
+    "en": "⏸️ Membership Paused"
+  },
+  "holdNoteExtend": {
+    "ko": "해제 시 실제 쉰 일수만큼 마감일이 연장됩니다.",
+    "en": "End date is extended by actual days paused."
+  },
+  "holdNoteAuto": {
+    "ko": "다음 출석(체크인) 시 홀딩이 자동 해제됩니다.",
+    "en": "Hold is auto-released on next check-in."
+  },
+  "holdModalTitle": {
+    "ko": "⏸️ 수강권 일시정지",
+    "en": "⏸️ Pause Membership"
+  },
+  "holdBtnLabel": {
+    "ko": "⏸️ 수강권 일시정지 (홀딩)",
+    "en": "⏸️ Pause Membership (Hold)"
+  },
+  "guideSafariHint": {
+    "ko": "반드시 Safari 브라우저에서 진행해 주세요! (Chrome에서는 불가)",
+    "en": "Must use Safari browser! (Not available in Chrome)"
+  },
+  "guideInstallDone": {
+    "ko": "설치 완료!",
+    "en": "Installation Complete!"
+  },
+  "guideIOSStep3Desc": {
+    "ko": "우측 상단의 '추가'를 누르면 홈 화면에 앱 아이콘이 생겨요. 🎉",
+    "en": "Tap 'Add' at the top right and the app icon will appear on your Home Screen. 🎉"
+  },
+  "guideIOSStep2Title": {
+    "ko": "'홈 화면에 추가' 선택",
+    "en": "Select 'Add to Home Screen'"
+  },
+  "guideIOSStep2Desc": {
+    "ko": "공유 메뉴를 위로 스크롤하면 '홈 화면에 추가' 항목이 있어요.",
+    "en": "Scroll up in the share menu to find 'Add to Home Screen'."
+  },
+  "guideIOSStep1Title": {
+    "ko": "공유(↑) 버튼 터치",
+    "en": "Tap Share (↑) Button"
+  },
+  "guideIOSStep1Desc": {
+    "ko": "화면 하단 중앙의 공유 버튼(네모에서 화살표 나온 모양)을 눌러주세요.",
+    "en": "Tap the share button (square with arrow) at the bottom center."
+  },
+  "guideChromeHint": {
+    "ko": "Chrome 브라우저에서 진행하면 가장 쉽게 설치할 수 있어요!",
+    "en": "Easiest to install via Chrome browser!"
+  },
+  "guideAndroidStep3Desc": {
+    "ko": "'설치' 또는 '추가' 버튼을 누르면 홈 화면에 앱 아이콘이 생겨요. 🎉",
+    "en": "Tap 'Install' or 'Add' and the app icon will appear on your Home Screen. 🎉"
+  },
+  "guideAndroidStep2Title": {
+    "ko": "'홈 화면에 추가' 선택",
+    "en": "Select 'Add to Home Screen'"
+  },
+  "guideAndroidStep2Desc": {
+    "ko": "메뉴 목록에서 '홈 화면에 추가' 또는 '앱 설치'를 찾아 눌러주세요.",
+    "en": "Find 'Add to Home Screen' or 'Install App' in the menu."
+  },
+  "guideAndroidStep1Title": {
+    "ko": "메뉴(⋮) 버튼 터치",
+    "en": "Tap Menu (⋮) Button"
+  },
+  "guideAndroidStep1Desc": {
+    "ko": "화면 우측 상단의 점 3개(⋮) 메뉴를 눌러주세요.",
+    "en": "Tap the three-dot (⋮) menu at the top right."
+  },
+  "emailLabel": {
+    "ko": "이메일",
+    "en": "Email"
+  },
+  "demoAutoLogin": {
+    "ko": "🚀 관리자 데모 자동 로그인",
+    "en": "🚀 Admin Demo Auto Login"
+  },
+  "deferRules": {
+    "ko": "📋 수강연기 규칙",
+    "en": "📋 Deferral Rules"
+  },
+  "currentlyUsing": {
+    "ko": "현재 이용 중",
+    "en": "Currently Active"
+  },
+  "classLabel": {
+    "ko": "수업",
+    "en": "Class"
+  },
+  "cashLabel": {
+    "ko": "현금",
+    "en": "Cash"
+  },
+  "cancelAttendance": {
+    "ko": "출석 취소",
+    "en": "Cancel Attendance"
+  },
+  "calendarView": {
+    "ko": "달력",
+    "en": "Calendar"
+  },
+  "bookingTab": {
+    "ko": "예약",
+    "en": "Bookings"
+  },
+  "appInstallGuide": {
+    "ko": "💡 브라우저 메뉴에서 '앱 설치'를 선택해주세요.",
+    "en": "💡 Please select 'Install App' from the browser menu."
+  },
+  "adminSystem": {
+    "ko": "관리자 시스템",
+    "en": "Admin System"
+  },
+  "accountHolder": {
+    "ko": "예금주",
+    "en": "Account Holder"
+  },
+  "installDescIOS": {
+    "ko": "매번 주소를 입력할 필요 없이 서비스Worker 기반의 앱으로 더 편하게 이용하세요.",
+    "en": "Use it more conveniently as an app without entering the address every time."
+  },
+  "installDescAndroid": {
+    "ko": "한 번의 설치로 홈 화면에서 더 빠르고 편리하게 수련 기록을 관리하세요.",
+    "en": "Manage your training records faster and more conveniently with a single installation."
+  },
+  "analysisPending": {
+    "ko": "수련 기록을 분석하여 회원님만의 인사이트를 준비하고 있습니다...",
+    "en": "Analyzing your records to prepare insights..."
+  },
+  "totalSessions": {
+    "ko": "총 {n}회 수련",
+    "en": "Total {n}"
+  },
+  "noImageTimetable": {
+    "ko": "이미지 시간표가 등록되지 않았습니다.",
+    "en": "Image timetable not registered."
+  },
+  "homeYogaTitle": {
+    "ko": "오늘의 3분 홈트",
+    "en": "Today's 3-Minute Home Yoga"
+  },
+  "homeYogaSub": {
+    "ko": "요가원에 못 오신다면 딱 이것만!",
+    "en": "Just this if you can't come to the studio!"
+  },
+  "branchGwangheungchang": {
+    "ko": "광흥창점",
+    "en": "G.Chang"
+  },
+  "pushDisabledConfirm": {
+    "ko": "알림 수신을 중단하시겠습니까?",
+    "en": "Stop receiving notifications?"
+  },
+  "pushDisabled": {
+    "ko": "알림 설정이 해제되었습니다.",
+    "en": "Notifications disabled."
+  },
+  "insight_dawn_type": {
+    "ko": "새벽의 요기(Yogi)",
+    "en": "Dawn Yogi"
+  },
+  "insight_dawn_desc": {
+    "ko": "남들보다 이른 시간, 만물의 에너지가 깨어나는 브라만 무후르타에 정성을 다하는 모습이 아름답습니다.",
+    "en": "It is beautiful to see you devoting yourself in the Brahma Muhurta, when the energy of all things awakens."
+  },
+  "insight_morning_type": {
+    "ko": "아침의 수행자",
+    "en": "Morning Practitioner"
+  },
+  "insight_morning_desc": {
+    "ko": "태양의 에너지가 충만한 오전 시간, 몸의 정렬을 바로잡으며 활기찬 생명력을 채우고 계시네요.",
+    "en": "In the morning full of solar energy, you are aligning your body and filling it with vibrant vitality."
+  },
+  "insight_afternoon_type": {
+    "ko": "오후의 명상가",
+    "en": "Afternoon Meditator"
+  },
+  "insight_afternoon_desc": {
+    "ko": "일상의 분주함 속에서도 나만을 위한 고요를 선택하여 몸과 마음의 조화를 이루는 지혜가 인상적입니다.",
+    "en": "The wisdom of choosing silence for yourself amidst the busyness of daily life to achieve harmony of body and mind is impressive."
+  },
+  "insight_evening_type": {
+    "ko": "저녁의 정화자",
+    "en": "Evening Purifier"
+  },
+  "insight_evening_desc": {
+    "ko": "하루의 모든 자취를 호흡 뒤로 흘려보내며, 내면의 고요를 깊게 찾아가는 성찰의 시간입니다.",
+    "en": "It is a time of reflection to let go of all traces of the day behind your breath and find deep inner silence."
+  },
+  "insight_consistency_high": {
+    "ko": "최근 한 달간 타파스(Tapas, 열정)가 뜨거우셨습니다. 이러한 정성 어린 반복은 삶의 근원적인 힘이 될 것입니다. ",
+    "en": "Your Tapas (passion) has been hot for the past month. This sincere repetition will become a fundamental strength of life. "
+  },
+  "insight_consistency_mid": {
+    "ko": "일상 속에서 잊지 않고 매트 위에 서는 마음이 참 귀합니다. 나를 향한 이 신성한 시간이 삶의 큰 등불이 될 것입니다. ",
+    "en": "The heart that stands on the mat without forgetting in daily life is precious. This sacred time for yourself will be a great lamp of life. "
+  },
+  "insight_milestone_50": {
+    "ko": "벌써 {n}회의 깊은 수련을 쌓으셨습니다. 이제는 동작의 완성도보다 숨의 결을 느끼며, 매 순간 깨어있는 '사티(Sati, 마음챙김)'를 경험해보시길 바랍니다. 🙏",
+    "en": "You have already accumulated {n} deep practices. Now, feel the texture of your breath rather than the perfection of the movement, and experience 'Sati (mindfulness)' awake in every moment. 🙏"
+  },
+  "insight_milestone_20": {
+    "ko": "수련의 즐거움과 몸의 변화를 충분히 느끼고 계실 단계입니다. 근육의 미세한 자극이 삶의 긍정적인 변화로 이어지고 있으니, 지금의 흐름을 소중히 이어가세요. ✨",
+    "en": "You are at a stage where you can fully feel the joy of practice and the changes in your body. The subtle stimulation of muscles is leading to positive changes in life, so please cherish this flow. ✨"
+  },
+  "insight_milestone_5": {
+    "ko": "요가의 문을 열고 한 걸음씩 깊어지는 소중한 시기입니다. 처음 가졌던 맑은 초심을 기억하며, 호흡 하나하나에 진심을 담아보세요. 🕉️",
+    "en": "It is a precious time to open the door of yoga and deepen step by step. Remember the clear original intention you had at first, and put your sincerity into every breath. 🕉️"
+  },
+  "insight_milestone_0": {
+    "ko": "매트 위에 앉는 것만으로도 수련의 절반은 완성된 것입니다. 조급해하지 말고 숨이 쉬어지는 만큼, 내 몸이 허락하는 만큼 천천히 나를 알아가 보세요. 🌿",
+    "en": "Just sitting on the mat completes half of the practice. Do not rush, and get to know yourself slowly as much as you can breathe and as much as your body allows. 🌿"
+  },
+  "insight_welcome": {
+    "ko": "회원님의 첫 호흡을 기다리고 있습니다. 매트 위에서 나를 만나는 소중한 사다나(Sadhana, 수련)를 함께 시작해보세요. 🙏",
+    "en": "Waiting for your first breath. Start a precious Sadhana (practice) to meet yourself on the mat together. 🙏"
+  },
+  "insight_waiting": {
+    "ko": "수련의 기록이 쌓이면 회원님만의 특별한 에너지 리듬을 분석해 드릴게요. ✨",
+    "en": "When practice records accumulate, we will analyze your unique energy rhythm. ✨"
+  },
+  "insight_user_pattern": {
+    "ko": "회원님은 주로 **{day}요일 {time}**에 수련하시는 **'{type}'**이시네요. {desc}",
+    "en": "You are a **'{type}'** who mainly practices on **{day} at {time}**. {desc}"
+  },
+  "trad_dawn": {
+    "ko": "새벽의 맑은 프라나(Prana)가 깨어나는 시간입니다. ",
+    "en": "It is time for the clear Prana of dawn to awaken. "
+  },
+  "trad_morning": {
+    "ko": "태양의 활기가 몸 안의 에너지를 깨우는 활기찬 아침입니다. ",
+    "en": "It is a vibrant morning when the warmth of the sun wakes up the energy in the body. "
+  },
+  "trad_afternoon": {
+    "ko": "나를 되돌아보며 몸의 정렬을 찾는 빛나는 오후입니다. ",
+    "en": "It is a shining afternoon to look back on yourself and find alignment of your body. "
+  },
+  "trad_evening": {
+    "ko": "저녁의 고요한 기운 속에 머물며 하루의 긴장을 비워냅니다. ",
+    "en": "Stay in the quiet energy of the evening and empty the tension of the day. "
+  },
+  "trad_night": {
+    "ko": "고요한 밤, 깊은 호흡으로 참된 자아(Atman)와 마주하는 시간입니다. ",
+    "en": "It is time to face the true self (Atman) with deep breathing in the quiet night. "
+  },
+  "season_spring": {
+    "ko": "만물이 소생하는 봄, 회원님의 수련에도 새로운 생명력이 깃들길 바랍니다.",
+    "en": "In spring, when all things revive, I hope new vitality will dwell in your practice."
+  },
+  "season_summer": {
+    "ko": "열기가 뜨거운 여름, 차분한 호흡으로 내면의 시원함을 찾아보세요.",
+    "en": "In the hot summer, find inner coolness with calm breathing."
+  },
+  "season_autumn": {
+    "ko": "기운이 깊어지는 가을, 맑은 마음으로 수련의 결실을 맺어 봅니다.",
+    "en": "In autumn, when energy deepens, try to bear the fruit of practice with a clear mind."
+  },
+  "season_winter": {
+    "ko": "추위를 녹이는 따뜻한 열기(Tapas)로 몸과 마음의 평온을 지켜주세요.",
+    "en": "Please protect the peace of body and mind with warm heat (Tapas) that melts the cold."
+  },
+  "class_hatha": {
+    "ko": "하타",
+    "en": "Hatha"
+  },
+  "class_ashtanga": {
+    "ko": "아쉬탕가",
+    "en": "Ashtanga"
+  },
+  "class_mysore": {
+    "ko": "마이솔",
+    "en": "Mysore"
+  },
+  "class_vinyasa": {
+    "ko": "빈야사",
+    "en": "Vinyasa"
+  },
+  "class_healing": {
+    "ko": "힐링",
+    "en": "Healing"
+  },
+  "class_yin": {
+    "ko": "인요가",
+    "en": "Yin Yoga"
+  },
+  "class_inyang": {
+    "ko": "인양요가",
+    "en": "Yin Yang"
+  },
+  "class_flying": {
+    "ko": "플라잉",
+    "en": "Aerial"
+  },
+  "class_lowflying": {
+    "ko": "로우플라잉",
+    "en": "Low Aerial"
+  },
+  "class_kids": {
+    "ko": "키즈플라잉",
+    "en": "Kids Aerial"
+  },
+  "class_pregnancy": {
+    "ko": "임신부요가",
+    "en": "Prenatal"
+  },
+  "class_hatha_intensive": {
+    "ko": "하타 인텐시브",
+    "en": "Hatha Intensive"
+  },
+  "class_intensive": {
+    "ko": "심화",
+    "en": "Intensive"
+  },
+  "class_regular": {
+    "ko": "일반",
+    "en": "General"
+  },
+  "class_general": {
+    "ko": "일반",
+    "en": "General"
+  },
+  "class_advanced": {
+    "ko": "심화",
+    "en": "Advanced"
+  }
+}

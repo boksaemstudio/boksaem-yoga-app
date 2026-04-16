@@ -102,14 +102,14 @@ const TrialPaywall = ({
           fontSize: '1.6rem',
           marginBottom: '12px',
           color: '#EF4444'
-        }}>{t("g_78ebd4") || "\uBB34\uB8CC \uCCB4\uD5D8\uC774 \uC885\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4"}</h2>
+        }}>{t("g_752c68") || "무료 체험이 종료되었습니다"}</h2>
                     <p style={{
           color: '#94a3b8',
           fontSize: '1rem',
           lineHeight: '1.6',
           marginBottom: '32px'
         }}>
-                        {trialInfo.name || t("g_e54edb") || "\uC2A4\uD29C\uB514\uC624"}{t("g_a5feeb") || "\uC758 2\uAC1C\uC6D4 \uBB34\uB8CC \uCCB4\uD5D8 \uAE30\uAC04\uC774 \uB9CC\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4."}<br />{t("g_40b83d") || "\uC5F0\uAC04 $69 (\uC57D 10\uB9CC\uC6D0) \uC73C\uB85C \uBAA8\uB4E0 \uAE30\uB2A5\uC744 \uACC4\uC18D \uC0AC\uC6A9\uD558\uC138\uC694."}</p>
+                        {trialInfo.name || t("g_2bec30") || "스튜디오"}{t("g_dc947e") || "의 2개월 무료 체험 기간이 만료되었습니다."}<br />{t("g_190abc") || "연간 $69 (약 10만원) 으로 모든 기능을 계속 사용하세요."}</p>
                     
                     <div style={{
           background: 'rgba(255,255,255,0.08)',
@@ -123,7 +123,7 @@ const TrialPaywall = ({
             fontSize: '0.9rem',
             color: '#94a3b8',
             marginBottom: '8px'
-          }}>{t("g_6850eb") || "\uD83C\uDDF0\uD83C\uDDF7 \uAD6D\uB0B4 \uACC4\uC88C\uC774\uCCB4 (100,000\uC6D0)"}</div>
+          }}>{t("g_412424") || "🇰🇷 국내 계좌이체 (100,000원)"}</div>
                         <div style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -137,16 +137,16 @@ const TrialPaywall = ({
               fontWeight: 'bold',
               color: '#fff',
               letterSpacing: '0.5px'
-            }}>{t("g_447d9f") || "MG\uC0C8\uB9C8\uC744 9003-2623-9687-7"}<div style={{
+            }}>{t("g_fc521b") || "MG새마을 9003-2623-9687-7"}<div style={{
                 fontSize: '0.8rem',
                 color: '#94a3b8',
                 marginTop: '4px',
                 fontWeight: 'normal'
-              }}>{t("g_c3220b") || "\uC608\uAE08\uC8FC: \uC1A1\uB300\uBBFC"}</div>
+              }}>{t("g_41ceca") || "예금주: 송대민"}</div>
                             </div>
                             <button onClick={() => {
               navigator.clipboard.writeText('9003262396877');
-              alert(t("g_59a092") || "\uACC4\uC88C\uBC88\uD638\uAC00 \uBCF5\uC0AC\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+              alert(t("g_30d293") || "계좌번호가 복사되었습니다.");
             }} style={{
               background: 'var(--primary-gold)',
               color: '#000',
@@ -156,15 +156,15 @@ const TrialPaywall = ({
               fontSize: '0.85rem',
               cursor: 'pointer',
               fontWeight: 'bold'
-            }}>{t("g_6acf7a") || "\uBCF5\uC0AC"}</button>
+            }}>{t("g_a55b1e") || "복사"}</button>
                         </div>
                         <div style={{
             fontSize: '0.8rem',
             color: '#64748b',
             marginTop: '12px'
-          }}>{t("g_fa7544") || "* \uC785\uAE08 \uD6C4"}<strong style={{
+          }}>{t("g_4ed5f4") || "* 입금 후"}<strong style={{
               color: '#94a3b8'
-            }}>motionpt@gmail.com</strong>{t("g_b5dc5f") || "(\uB610\uB294 \uB3C4\uC785 \uBB38\uC758\uCC98)\uB85C \uC54C\uB824\uC8FC\uC2DC\uBA74 \uC989\uC2DC \uC11C\uBE44\uC2A4\uAC00 \uC5F0\uC7A5\uB429\uB2C8\uB2E4."}</div>
+            }}>motionpt@gmail.com</strong>{t("g_c3bb7e") || "(또는 도입 문의처)로 알려주시면 즉시 서비스가 연장됩니다."}</div>
                     </div>
 
                     <a href={PAYPAL_PAYMENT_LINK} target="_blank" rel="noopener noreferrer" style={{
@@ -182,7 +182,7 @@ const TrialPaywall = ({
           boxShadow: '0 4px 20px rgba(0,112,186,0.3)',
           transition: 'transform 0.2s',
           width: '100%'
-        }}>{t("g_a43eb5") || "\uD83C\uDF0D \uD574\uC678 \uACB0\uC81C: PayPal ($69)"}</a>
+        }}>{t("g_53bcaa") || "🌍 해외 결제: PayPal ($69)"}</a>
                 </div>
             </div>;
   }
@@ -206,7 +206,7 @@ const TrialPaywall = ({
       gap: '12px',
       flexWrap: 'wrap'
     }}>
-                    <span>{t("g_ee34df") || "\u23F0 \uBB34\uB8CC \uCCB4\uD5D8 D-"}{daysLeft}{t("g_c8540c") || "| \uC5F0\uAC04 $69\uB85C \uC5F0\uC7A5\uD558\uC138\uC694"}</span>
+                    <span>{t("g_642f63") || "⏰ 무료 체험 D-"}{daysLeft}{t("g_b5c560") || "| 연간 $69로 연장하세요"}</span>
                     <a href={PAYPAL_PAYMENT_LINK} target="_blank" rel="noopener noreferrer" style={{
         padding: '6px 16px',
         background: 'rgba(0,0,0,0.3)',
@@ -216,7 +216,7 @@ const TrialPaywall = ({
         fontWeight: '700',
         fontSize: '0.85rem',
         border: '1px solid rgba(255,255,255,0.3)'
-      }}>{t("g_3d82d9") || "\uD83D\uDCB3 \uD398\uC774\uD314 \uC5F0\uC7A5"}</a>
+      }}>{t("g_3b6150") || "💳 페이팔 연장"}</a>
                 </div>}
             {children}
         </>;

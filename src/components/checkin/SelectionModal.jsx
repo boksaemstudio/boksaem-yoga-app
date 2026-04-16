@@ -89,14 +89,14 @@ const SelectionModal = memo(({
         fontSize: '2rem',
         marginBottom: '5px',
         textAlign: 'center'
-      }}>{t('kiosk_select_title') || t("g_ce1eed") || "\uD68C\uC6D0 \uC120\uD0DD"}</h2>
+      }}>{t('kiosk_select_title') || t("g_a33420") || "회원 선택"}</h2>
                 <p style={{
         textAlign: 'center',
         opacity: 0.7,
         marginBottom: '10px',
         fontSize: '0.95rem'
       }}>
-                    {t('kiosk_select_desc') || t("g_330186") || "\uD574\uB2F9\uD558\uB294 \uD68C\uC6D0\uB2D8\uC744 \uC120\uD0DD\uD574\uC8FC\uC138\uC694"}
+                    {t('kiosk_select_desc') || t("g_dd7f6a") || "해당하는 회원님을 선택해주세요"}
                     <span style={{
           marginLeft: '10px',
           fontSize: '0.85em',
@@ -126,7 +126,7 @@ const SelectionModal = memo(({
             borderBottom: '1px solid rgba(var(--primary-rgb), 0.3)',
             paddingBottom: '8px'
           }}>
-                            {t('kiosk_select_active_members') || t("g_94c935") || "\u2728 \uC774\uC6A9 \uAC00\uB2A5 \uD68C\uC6D0"}
+                            {t('kiosk_select_active_members') || t("g_5a90d0") || "✨ 이용 가능 회원"}
                         </h3>
                         <div style={{
             display: 'flex',
@@ -188,7 +188,7 @@ const SelectionModal = memo(({
                     borderRadius: '50px',
                     color: isSelected ? '#a5d6a7' : 'rgba(255,255,255,0.8)'
                   }}>
-                                                {m.credits > 900 ? t('kiosk_select_unlimited') || t("g_7fe271") || "\uBB34\uC81C\uD55C" : t('kiosk_select_sessions_count', {
+                                                {m.credits > 900 ? t('kiosk_select_unlimited') || t("g_98a1bf") || "무제한" : t('kiosk_select_sessions_count', {
                       credits: m.credits
                     }) || `${m.credits}회`}
                                             </span>
@@ -203,7 +203,7 @@ const SelectionModal = memo(({
               fontSize: '1.2rem',
               padding: '30px'
             }}>
-                                    {t('kiosk_select_no_active_members') || t("g_b9e9c5") || "\uD65C\uC131 \uD68C\uC6D0\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."}
+                                    {t('kiosk_select_no_active_members') || t("g_9257d3") || "활성 회원이 없습니다."}
                                 </div>}
                         </div>
                     </div>
@@ -223,7 +223,7 @@ const SelectionModal = memo(({
             borderBottom: '1px solid rgba(255,255,255,0.1)',
             paddingBottom: '6px'
           }}>
-                            {t('kiosk_select_inactive_title') || t("g_dfe1f2") || "\uD83D\uDCA4 \uB9CC\uB8CC/\uBE44\uD65C\uC131"}
+                            {t('kiosk_select_inactive_title') || t("g_82b492") || "💤 만료/비활성"}
                         </h3>
                         <div style={{
             display: 'flex',
@@ -265,7 +265,7 @@ const SelectionModal = memo(({
                                         <div style={{
                   fontSize: '0.8rem',
                   color: '#ff6b6b'
-                }}>{t('kiosk_select_inactive_badge') || t("g_ad8999") || "\uB9CC\uB8CC/\uBE44\uD65C\uC131"}</div>
+                }}>{t('kiosk_select_inactive_badge') || t("g_39c372") || "만료/비활성"}</div>
                                     </div>;
             }) : <div style={{
               opacity: 0.3,
@@ -273,7 +273,7 @@ const SelectionModal = memo(({
               padding: '15px',
               fontSize: '0.85rem'
             }}>
-                                    {t('kiosk_select_none') || t("g_61408f") || "\uD574\uB2F9 \uC5C6\uC74C"}
+                                    {t('kiosk_select_none') || t("g_f1a3a9") || "해당 없음"}
                                 </div>}
                         </div>
                     </div>
@@ -298,7 +298,7 @@ const SelectionModal = memo(({
           fontWeight: '500',
           cursor: 'pointer'
         }}>
-                        {t('kiosk_select_cancel') || t("g_e7b481") || "\uCDE8\uC18C (\uB2EB\uAE30)"}
+                        {t('kiosk_select_cancel') || t("g_4dc5dd") || "취소 (닫기)"}
                     </button>
                     
                     <button onClick={handleConfirm} disabled={!selectedMemberId || loading} style={{
@@ -312,7 +312,7 @@ const SelectionModal = memo(({
           cursor: selectedMemberId ? 'pointer' : 'not-allowed',
           boxShadow: selectedMemberId ? '0 4px 15px rgba(var(--primary-rgb), 0.3)' : 'none'
         }}>
-                        {selectedMemberId ? t('kiosk_select_confirm') || t("g_c8d102") || "\uC120\uD0DD\uD55C \uD68C\uC6D0\uC73C\uB85C \uCD9C\uC11D\uD558\uAE30" : t('kiosk_select_disabled') || t("g_5c8609") || "\uD68C\uC6D0\uC744 \uBA3C\uC800 \uC120\uD0DD\uD574\uC8FC\uC138\uC694"}
+                        {selectedMemberId ? t('kiosk_select_confirm') || t("g_4cfaa4") || "선택한 회원으로 출석하기" : t('kiosk_select_disabled') || t("g_b23634") || "회원을 먼저 선택해주세요"}
                     </button>
                 </div>
             </div>

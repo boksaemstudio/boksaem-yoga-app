@@ -225,7 +225,7 @@ const AdminDashboard = () => {
   // Auth Logout
   const handleLogout = async () => {
     const isAgentMode = window.__AGENT_ADMIN_MODE__ === true;
-    if (isAgentMode || confirm(t("g_27f0a7") || "\uAD00\uB9AC\uC790 \uBAA8\uB4DC\uB97C \uC885\uB8CC\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) {
+    if (isAgentMode || confirm(t("g_ebccbc") || "관리자 모드를 종료하시겠습니까?")) {
       sessionStorage.setItem('demoAdminLogout', 'true');
       await storageService.logoutAdmin();
       navigate('/login');
@@ -437,7 +437,7 @@ const AdminDashboard = () => {
       await storageService.updateImage('pricing_image_count', count);
     } catch (err) {
       console.error('Failed to update image count:', err);
-      alert(t("g_ad790b") || "\uC774\uBBF8\uC9C0 \uAC1C\uC218 \uBCC0\uACBD\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_08f9a3") || "이미지 개수 변경에 실패했습니다.");
     }
   };
   const handleImageUpload = async (e, target) => {
@@ -446,7 +446,7 @@ const AdminDashboard = () => {
 
     // Optional: Check file size before processing
     if (file.size > 5 * 1024 * 1024) {
-      alert(t("g_a287d2") || "\uD30C\uC77C \uC6A9\uB7C9\uC774 \uB108\uBB34 \uD07D\uB2C8\uB2E4. (\uCD5C\uB300 5MB)");
+      alert(t("g_af67a3") || "파일 용량이 너무 큽니다. (최대 5MB)");
       return;
     }
     const reader = new FileReader();
@@ -485,7 +485,7 @@ const AdminDashboard = () => {
             // Removed setImages call as it is handled by subscription in hook
           } catch (err) {
             console.error(`[Admin] Upload failed for ${target}:`, err);
-            alert(t("g_65c5cb") || "\uC774\uBBF8\uC9C0 \uC5C5\uB85C\uB4DC\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4. (5MB \uC774\uD558\uC778\uC9C0 \uD655\uC778\uD574\uC8FC\uC138\uC694)");
+            alert(t("g_14affc") || "이미지 업로드에 실패했습니다. (5MB 이하인지 확인해주세요)");
           }
         }
       };
@@ -514,7 +514,7 @@ const AdminDashboard = () => {
     if (member) {
       handleOpenEdit(member);
     } else {
-      alert(t("g_32f321") || "\uC0AD\uC81C\uB418\uAC70\uB098 \uCC3E\uC744 \uC218 \uC5C6\uB294 \uD68C\uC6D0\uC785\uB2C8\uB2E4.");
+      alert(t("g_25340e") || "삭제되거나 찾을 수 없는 회원입니다.");
     }
   }, [members, pushTokens]);
   const handleAddSalesRecord = async salesData => {
@@ -528,7 +528,7 @@ const AdminDashboard = () => {
       return true;
     } catch (error) {
       console.error('Error adding sales record:', error);
-      alert(t("g_15768d") || "\uD310\uB9E4 \uAE30\uB85D \uC800\uC7A5 \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_ee2134") || "판매 기록 저장 중 오류가 발생했습니다.");
       return false;
     }
   };
@@ -553,7 +553,7 @@ const AdminDashboard = () => {
         localStorage.setItem('admin_push_enabled', 'false');
         // [ROOT FIX] role='admin'만 삭제 — instructor 토큰 보호
         await storageService.deletePushToken('admin');
-        alert(t("g_69df26") || "\uC774 \uAE30\uAE30\uC5D0\uC11C \uC54C\uB9BC \uC218\uC2E0\uC744 \uAED0\uC2B5\uB2C8\uB2E4. (\uBE0C\uB77C\uC6B0\uC800 \uAD8C\uD55C\uC740 \uC720\uC9C0\uB429\uB2C8\uB2E4)");
+        alert(t("g_ba6718") || "이 기기에서 알림 수신을 껐습니다. (브라우저 권한은 유지됩니다)");
         return;
       }
 
@@ -562,13 +562,13 @@ const AdminDashboard = () => {
       if (result === 'granted') {
         setPushEnabled(true);
         localStorage.setItem('admin_push_enabled', 'true');
-        alert(t("g_977dac") || "\uC6D0\uACA9 \uD478\uC2DC \uC54C\uB9BC \uC218\uC2E0 \uB300\uC0C1\uC73C\uB85C \uB4F1\uB85D\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+        alert(t("g_f3382b") || "원격 푸시 알림 수신 대상으로 등록되었습니다.");
       } else if (result === 'denied') {
         setPushEnabled(false);
         localStorage.setItem('admin_push_enabled', 'false');
-        alert(t("g_ab4047") || "\uD478\uC2DC \uC54C\uB9BC \uAD8C\uD55C\uC774 \uAC70\uBD80\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uBE0C\uB77C\uC6B0\uC800 \uC124\uC815\uC5D0\uC11C \uAD8C\uD55C\uC744 \uD5C8\uC6A9\uD574\uC8FC\uC138\uC694.");
+        alert(t("g_a9bba7") || "푸시 알림 권한이 거부되었습니다. 브라우저 설정에서 권한을 허용해주세요.");
       } else {
-        alert(t("g_c95ed0") || "\uC54C\uB9BC \uC124\uC815 \uC911 \uBB38\uC81C\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.");
+        alert(t("g_fa5cf7") || "알림 설정 중 문제가 발생했습니다.");
       }
     } finally {
       setPushLoading(false);
@@ -619,7 +619,7 @@ const AdminDashboard = () => {
               color: 'var(--primary-gold)',
               marginBottom: '16px'
             }}>
-                                    <BellRinging size={20} weight="fill" />{t("g_52b38c") || "AI \uBC1C\uC1A1 \uC81C\uC548 (\uC2B9\uC778 \uB300\uAE30)"}</h3>
+                                    <BellRinging size={20} weight="fill" />{t("g_cb22c9") || "AI 발송 제안 (승인 대기)"}</h3>
                                 <div style={{
               display: 'flex',
               flexDirection: 'column',
@@ -644,12 +644,12 @@ const AdminDashboard = () => {
                       fontSize: '0.9rem',
                       fontWeight: 'bold',
                       color: 'var(--text-primary)'
-                    }}>{item.memberName}{t("g_8a9e83") || "\uB2D8\uAED8 \uC81C\uC548"}</div>
+                    }}>{item.memberName}{t("g_c90b3e") || "님께 제안"}</div>
                                                     <div style={{
                       fontSize: '0.75rem',
                       color: 'var(--primary-gold)',
                       marginTop: '2px'
-                    }}>{t("g_197e93") || "\uC0AC\uC720:"}{item.reason || t("g_eb9db0") || "\uAD00\uB9AC \uD544\uC694 \uD68C\uC6D0"}</div>
+                    }}>{t("g_0d80f6") || "사유:"}{item.reason || t("g_044bb1") || "관리 필요 회원"}</div>
                                                 </div>
                                                 <div style={{
                     display: 'flex',
@@ -660,11 +660,11 @@ const AdminDashboard = () => {
                       background: 'rgba(244, 63, 94, 0.1)',
                       color: '#F43F5E',
                       border: '1px solid rgba(244, 63, 94, 0.2)'
-                    }}>{t("g_30e15a") || "\uC0AD\uC81C"}</button>
-                                                    <button onClick={() => handleApprovePush(item.id, item.title || t("g_c12d41") || "\uC548\uBD80 \uBA54\uC2DC\uC9C0")} className="action-btn sm primary" style={{
+                    }}>{t("g_fc81e2") || "삭제"}</button>
+                                                    <button onClick={() => handleApprovePush(item.id, item.title || t("g_fe5b40") || "안부 메시지")} className="action-btn sm primary" style={{
                       width: 'auto',
                       boxShadow: '0 4px 12px var(--primary-gold-glow)'
-                    }}>{t("g_c6fff9") || "\uC2B9\uC778 \uBC1C\uC1A1"}</button>
+                    }}>{t("g_dcb51c") || "승인 발송"}</button>
                                                 </div>
                                             </div>
                                             <div style={{
@@ -706,7 +706,7 @@ const AdminDashboard = () => {
             }}>
                                 <h3 className="card-label" style={{
                 margin: 0
-              }}>{t("g_e83d83") || "\uAC00\uACA9\uD45C \uAC1C\uC694 (\uC774\uBBF8\uC9C0)"}</h3>
+              }}>{t("g_119476") || "가격표 개요 (이미지)"}</h3>
                                 <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -715,7 +715,7 @@ const AdminDashboard = () => {
                                     <span style={{
                   fontSize: '0.85rem',
                   color: 'var(--text-secondary)'
-                }}>{t("g_b3bc08") || "\uC774\uBBF8\uC9C0 \uAC1C\uC218:"}</span>
+                }}>{t("g_848c41") || "이미지 개수:"}</span>
                                     <select value={optimisticImages.pricing_image_count || images.pricing_image_count || '2'} onChange={handleImageCountChange} style={{
                   background: 'rgba(255,255,255,0.05)',
                   color: 'white',
@@ -724,9 +724,9 @@ const AdminDashboard = () => {
                   padding: '6px 12px',
                   outline: 'none'
                 }}>
-                                        <option value="1">{t("g_e7c1c9") || "1\uC7A5"}</option>
-                                        <option value="2">{t("g_c75ce0") || "2\uC7A5"}</option>
-                                        <option value="3">{t("g_666f7b") || "3\uC7A5"}</option>
+                                        <option value="1">{t("g_58426f") || "1장"}</option>
+                                        <option value="2">{t("g_4c7458") || "2장"}</option>
+                                        <option value="3">{t("g_8a0e7a") || "3장"}</option>
                                     </select>
                                 </div>
                             </div>
@@ -752,8 +752,8 @@ const AdminDashboard = () => {
                     fontWeight: '800',
                     marginBottom: '15px',
                     color: 'rgba(255,255,255,0.7)'
-                  }}>{t("g_ecb1fa") || "\uC694\uAE08\uD45C \uC774\uBBF8\uC9C0"}{index}</h3>
-                                            {imgSrc ? <img src={imgSrc} alt={`가격표 ${index}`} style={{
+                  }}>{t("g_59e9cd") || "요금표 이미지"}{index}</h3>
+                                            {imgSrc ? <img src={imgSrc} alt={`${t("g_35964c") || "가격표"} ${index}`} style={{
                     width: '100%',
                     borderRadius: '12px',
                     marginBottom: '15px'
@@ -765,7 +765,7 @@ const AdminDashboard = () => {
                     borderRadius: '12px',
                     marginBottom: '15px',
                     color: '#666'
-                  }}>{t("g_7f1c78") || "\uC774\uBBF8\uC9C0\uAC00 \uB4F1\uB85D\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4"}</div>}
+                  }}>{t("g_94b6ad") || "이미지가 등록되지 않았습니다"}</div>}
                                             <div style={{
                     display: 'flex',
                     justifyContent: 'flex-end'
@@ -779,7 +779,7 @@ const AdminDashboard = () => {
                       fontSize: '0.7rem',
                       border: 'none',
                       cursor: 'pointer'
-                    }}>{t("g_0d4e26") || "\uAC00\uACA9\uD45C \uBCC0\uACBD"}</label>
+                    }}>{t("g_c9ab86") || "가격표 변경"}</label>
                                             </div>
                                         </div>;
               })}

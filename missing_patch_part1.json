@@ -1,0 +1,718 @@
+{
+  "yes_thats_me": {
+    "ko": "네, 맞아요",
+    "en": "Yes, that's me"
+  },
+  "pushNotificationTitle": {
+    "ko": "알림 설정",
+    "en": "Notification Settings"
+  },
+  "pushNotificationDesc": {
+    "ko": "수업 알림 및 공지사항을 받을 수 있습니다.",
+    "en": "Receive class reminders and announcements."
+  },
+  "privacy_policy": {
+    "ko": "개인정보처리방침",
+    "en": "Privacy Policy"
+  },
+  "navTrash": {
+    "ko": "휴지통",
+    "en": "Trash"
+  },
+  "navSettings": {
+    "ko": "설정",
+    "en": "Settings"
+  },
+  "navSchedule": {
+    "ko": "시간표",
+    "en": "Schedule"
+  },
+  "navRevenue": {
+    "ko": "매출",
+    "en": "Revenue"
+  },
+  "navPricing": {
+    "ko": "요금",
+    "en": "Pricing"
+  },
+  "navNotices": {
+    "ko": "공지",
+    "en": "Notices"
+  },
+  "navMembers": {
+    "ko": "회원",
+    "en": "Members"
+  },
+  "navKiosk": {
+    "ko": "키오스크",
+    "en": "Kiosk"
+  },
+  "navGuide": {
+    "ko": "가이드",
+    "en": "Guide"
+  },
+  "navData": {
+    "ko": "데이터",
+    "en": "Data"
+  },
+  "navBookings": {
+    "ko": "예약",
+    "en": "Bookings"
+  },
+  "navAttendance": {
+    "ko": "출석",
+    "en": "Attendance"
+  },
+  "navAlertHistory": {
+    "ko": "알림 이력",
+    "en": "Alert History"
+  },
+  "management": {
+    "ko": "관리",
+    "en": "Management"
+  },
+  "guideIOS": {
+    "ko": "아이폰 / iPad",
+    "en": "iPhone / iPad"
+  },
+  "guideAndroid": {
+    "ko": "안드로이드",
+    "en": "Android"
+  },
+  "facereg_title": {
+    "ko": "얼굴 등록",
+    "en": "Face Registration"
+  },
+  "facereg_status": {
+    "ko": "얼굴 등록 상태",
+    "en": "Face Registration Status"
+  },
+  "checkin_touch_to_start": {
+    "ko": "터치하여 시작",
+    "en": "Touch to start"
+  },
+  "checkin_pin_alternative": {
+    "ko": "번호로 출석하기",
+    "en": "Check in with PIN"
+  },
+  "checkin_confirm_question": {
+    "ko": "본인이 맞으신가요?",
+    "en": "Is this you?"
+  },
+  "checkin_closed_title": {
+    "ko": "출석 마감",
+    "en": "Check-in Closed"
+  },
+  "checkin_closed_sub": {
+    "ko": "운영 시간이 아닙니다.",
+    "en": "Outside operating hours."
+  },
+  "collapse": {
+    "ko": "접기",
+    "en": "Collapse"
+  },
+  "expand": {
+    "ko": "펼치기",
+    "en": "Expand"
+  },
+  "addToHomeScreen": {
+    "ko": "홈 화면에 추가",
+    "en": "Add to Home Screen"
+  },
+  "addToHomeShort": {
+    "ko": "홈에 추가",
+    "en": "Add to Home"
+  },
+  "collapseAll": {
+    "ko": "전체 접기",
+    "en": "Collapse All"
+  },
+  "expandAll": {
+    "ko": "전체 펼치기",
+    "en": "Expand All"
+  },
+  "collapseAllCards": {
+    "ko": "전체 카드 접기",
+    "en": "Collapse All Cards"
+  },
+  "expandAllCards": {
+    "ko": "전체 카드 펼치기",
+    "en": "Expand All Cards"
+  },
+  "collapseAllCardsDesc": {
+    "ko": "화면의 모든 카드를 접어 요약 정보만 봅니다.",
+    "en": "Collapse all cards to see summaries."
+  },
+  "expandAllCardsDesc": {
+    "ko": "화면의 모든 카드를 펼쳐 상세 정보를 봅니다.",
+    "en": "Expand all cards to see details."
+  },
+  "aiRefreshConfirm": {
+    "ko": "AI 분석을 새로고침 하시겠습니까?",
+    "en": "Refresh AI analysis?"
+  },
+  "aiRefreshTitle": {
+    "ko": "AI 분석 새로고침",
+    "en": "Refresh AI Analysis"
+  },
+  "aiRefreshDesc": {
+    "ko": "최신 데이터로 AI 브리핑을 재생성합니다.",
+    "en": "Regenerate AI briefing with latest data."
+  },
+  "notificationsOn": {
+    "ko": "알림 켜짐",
+    "en": "Notifications On"
+  },
+  "notificationsOff": {
+    "ko": "알림 꺼짐",
+    "en": "Notifications Off"
+  },
+  "allBranches": {
+    "ko": "전체 지점",
+    "en": "All Branches"
+  },
+  "admin_members_loading": {
+    "ko": "데이터 로딩 중...",
+    "en": "Loading data..."
+  },
+  "admin_members_btn_add": {
+    "ko": "신규 회원 등록",
+    "en": "Add New Member"
+  },
+  "admin_members_stat_active": {
+    "ko": "활성 회원",
+    "en": "Active Members"
+  },
+  "admin_members_stat_today_reg": {
+    "ko": "오늘 등록",
+    "en": "Today's Registrations"
+  },
+  "admin_members_stat_bio_missing": {
+    "ko": "얼굴 미등록",
+    "en": "Face Not Registered"
+  },
+  "admin_members_today_total": {
+    "ko": "오늘 총 등록",
+    "en": "Total Registrations Today"
+  },
+  "admin_members_today_desc1": {
+    "ko": "오늘 신규 등록 또는",
+    "en": "Members newly registered"
+  },
+  "admin_members_today_desc2": {
+    "ko": "재등록한 회원입니다.",
+    "en": "or renewed today."
+  },
+  "admin_btn_collapse": {
+    "ko": "접기",
+    "en": "Collapse"
+  },
+  "admin_btn_expand": {
+    "ko": "펼치기",
+    "en": "Expand"
+  },
+  "admin_tab_rereg": {
+    "ko": "재등록",
+    "en": "Renewed"
+  },
+  "admin_tab_rereg_rate": {
+    "ko": "누적 재등록률",
+    "en": "Cumulative Renewal Rate"
+  },
+  "admin_tab_paid_members": {
+    "ko": "유료 회원",
+    "en": "Paid Members"
+  },
+  "admin_tab_recent_3m": {
+    "ko": "최근 3개월",
+    "en": "Last 3 Months"
+  },
+  "admin_tab_ai_churn": {
+    "ko": "🧠 AI 이탈 예측",
+    "en": "🧠 AI Churn Prediction"
+  },
+  "admin_tab_churn_what": {
+    "ko": "AI 이탈 예측이란?",
+    "en": "What is AI Churn Prediction?"
+  },
+  "admin_tab_churn_desc2": {
+    "ko": "위험 수준에 따라 선제적 관리가 가능합니다.",
+    "en": "Proactive management based on risk level."
+  },
+  "admin_tab_churn_critical": {
+    "ko": "⚠ 위험",
+    "en": "⚠ Critical"
+  },
+  "admin_tab_churn_critical_desc1": {
+    "ko": "30일 이상 미출석 또는",
+    "en": "30+ days absent or"
+  },
+  "admin_tab_churn_critical_desc2": {
+    "ko": "잔여 1회 이하 + 14일 미출석",
+    "en": "≤1 credit remaining + 14 days absent"
+  },
+  "admin_tab_churn_high": {
+    "ko": "🔶 경고",
+    "en": "🔶 Warning"
+  },
+  "admin_tab_churn_high_desc": {
+    "ko": "21~29일 미출석",
+    "en": "21–29 days absent"
+  },
+  "admin_tab_churn_medium": {
+    "ko": "💤 주의",
+    "en": "💤 Watch"
+  },
+  "admin_tab_churn_medium_desc": {
+    "ko": "14~20일 미출석",
+    "en": "14–20 days absent"
+  },
+  "admin_tab_churn_tip1": {
+    "ko": "카드를 탭하면 상세 목록을 볼 수 있습니다.",
+    "en": "Tap a card to view the detail list."
+  },
+  "admin_tab_churn_tip2": {
+    "ko": "위험 회원에게 안부 메시지를 보내보세요.",
+    "en": "Send a check-in message to at-risk members."
+  },
+  "admin_tab_churn_tip3": {
+    "ko": "정기적인 모니터링이 이탈률 감소에 도움됩니다.",
+    "en": "Regular monitoring helps reduce churn."
+  },
+  "admin_tab_churn_all_good": {
+    "ko": "✅ 이탈 위험 회원이 감지되지 않았습니다!",
+    "en": "✅ No at-risk members detected!"
+  },
+  "admin_tab_churn_risk_members": {
+    "ko": "이탈 위험 회원",
+    "en": "At-risk Members"
+  },
+  "admin_tab_churn_detected": {
+    "ko": "명 감지",
+    "en": " detected"
+  },
+  "admin_tab_push_enabled": {
+    "ko": "알림 활성화됨",
+    "en": "Notifications Enabled"
+  },
+  "admin_tab_push_desc1": {
+    "ko": "앱 설치 + 알림 활성화 상태로,",
+    "en": "App installed + notifications enabled,"
+  },
+  "admin_tab_push_desc2": {
+    "ko": "이 회원들에게 푸시 알림을 보낼 수 있습니다.",
+    "en": "these members can receive push notifications."
+  },
+  "admin_label_member": {
+    "ko": "회원",
+    "en": "Member"
+  },
+  "admin_label_instructor": {
+    "ko": "강사",
+    "en": "Instructor"
+  },
+  "admin_tab_push_installed": {
+    "ko": "앱 설치 회원",
+    "en": "App Installed Members"
+  },
+  "admin_tab_installed_member": {
+    "ko": "앱 설치 회원",
+    "en": "App Installed Members"
+  },
+  "admin_tab_bio_missing": {
+    "ko": "얼굴 미등록",
+    "en": "Face Not Registered"
+  },
+  "admin_tab_bio_desc1": {
+    "ko": "키오스크 안면인식 출석을 위해",
+    "en": "For kiosk facial recognition check-in,"
+  },
+  "admin_tab_bio_desc2": {
+    "ko": "아직 얼굴을 등록하지 않은 회원입니다.",
+    "en": "these members have not registered their face."
+  },
+  "admin_tab_bio_desc3": {
+    "ko": "등록을 안내해 주세요.",
+    "en": "Guide them to register."
+  },
+  "admin_tab_monthly_revenue": {
+    "ko": "월 매출",
+    "en": "Monthly Revenue"
+  },
+  "admin_tab_current_revenue": {
+    "ko": "현재 매출",
+    "en": "Current Revenue"
+  },
+  "admin_tab_days_passed": {
+    "ko": "일 경과",
+    "en": "days passed"
+  },
+  "admin_tab_days_left": {
+    "ko": "일 남음",
+    "en": "days left"
+  },
+  "admin_tab_monthly_rereg_trend": {
+    "ko": "월별 재등록 추이",
+    "en": "Monthly Renewal Trend"
+  },
+  "admin_tab_expired_member": {
+    "ko": "만료 회원",
+    "en": "Expired Members"
+  },
+  "admin_tab_search_ph": {
+    "ko": "🔍 회원 검색 (이름, 전화번호)",
+    "en": "🔍 Search members (name, phone)"
+  },
+  "admin_tab_curr": {
+    "ko": "현재",
+    "en": "Current"
+  },
+  "admin_tab_all_member": {
+    "ko": "전체 회원",
+    "en": "All Members"
+  },
+  "admin_tab_active_member": {
+    "ko": "활성 회원",
+    "en": "Active Members"
+  },
+  "admin_tab_today_att_member": {
+    "ko": "오늘 출석 회원",
+    "en": "Today's Attendees"
+  },
+  "admin_tab_today_reg_member": {
+    "ko": "오늘 등록 회원",
+    "en": "Today's Registrations"
+  },
+  "admin_tab_expiring_member": {
+    "ko": "만료 임박",
+    "en": "Expiring Soon"
+  },
+  "admin_tab_dormant_member": {
+    "ko": "장기 미출석",
+    "en": "Long-term Inactive"
+  },
+  "admin_tab_sort_latest_att": {
+    "ko": "최근 출석순",
+    "en": "Recent Attendance"
+  },
+  "admin_tab_sort_latest_inst": {
+    "ko": "최근 수업순",
+    "en": "Recent Classes"
+  },
+  "admin_tab_sort_latest_reg": {
+    "ko": "최근 등록순",
+    "en": "Recent Registration"
+  },
+  "admin_tab_sort_name": {
+    "ko": "이름순",
+    "en": "By Name"
+  },
+  "admin_tab_sort_credit_asc": {
+    "ko": "잔여 횟수 적은순",
+    "en": "Fewest Credits"
+  },
+  "admin_tab_sort_credit_desc": {
+    "ko": "잔여 횟수 많은순",
+    "en": "Most Credits"
+  },
+  "admin_tab_sort_end_asc": {
+    "ko": "만료 임박순",
+    "en": "Expiring Soonest"
+  },
+  "admin_tab_sort_end_desc": {
+    "ko": "만료 먼순",
+    "en": "Expiring Latest"
+  },
+  "admin_tab_viewing_msg": {
+    "ko": "필터가 적용되었습니다.",
+    "en": "viewing filter applied."
+  },
+  "admin_tab_sort_default": {
+    "ko": "기본 정렬",
+    "en": "Default Sort"
+  },
+  "admin_tab_select_all": {
+    "ko": "전체 선택",
+    "en": "Select All"
+  },
+  "admin_tab_btn_send_msg": {
+    "ko": "메시지 보내기",
+    "en": "Send Message"
+  },
+  "admin_tab_page": {
+    "ko": "페이지",
+    "en": "Page"
+  },
+  "admin_tab_empty_result": {
+    "ko": "검색 결과가 없거나 등록된 회원이 없습니다.",
+    "en": "No results found or no members registered."
+  },
+  "admin_badge_bio": {
+    "ko": "🧠 얼굴 등록",
+    "en": "🧠 Face ID"
+  },
+  "admin_tt_memo": {
+    "ko": "메모 추가/수정",
+    "en": "Add/Edit Memo"
+  },
+  "admin_badge_active": {
+    "ko": "이용중",
+    "en": "Active"
+  },
+  "admin_badge_pending_start": {
+    "ko": "시작 대기",
+    "en": "Pending Start"
+  },
+  "admin_badge_expired": {
+    "ko": "만료/소진",
+    "en": "Expired/Used Up"
+  },
+  "admin_badge_pre_reg": {
+    "ko": "사전등록",
+    "en": "Pre-registered"
+  },
+  "admin_badge_holding": {
+    "ko": "⏸️ 홀딩 중",
+    "en": "⏸️ On Hold"
+  },
+  "attendance": {
+    "ko": "출석",
+    "en": "Attendance"
+  },
+  "noAttendanceRecords": {
+    "ko": "출석 기록이 없습니다.",
+    "en": "No attendance records."
+  },
+  "activityLog": {
+    "ko": "활동 로그",
+    "en": "Activity Log"
+  },
+  "kiosk_overlay_close": {
+    "ko": "닫기",
+    "en": "Close"
+  },
+  "kiosk_overlay_touch_to_return": {
+    "ko": "아무 곳이나 터치하면 출석 화면으로 돌아갑니다",
+    "en": "Tap anywhere to return to the check-in screen"
+  },
+  "kiosk_success_unlimited": {
+    "ko": "무제한",
+    "en": "Unlimited"
+  },
+  "kiosk_success_expired": {
+    "ko": "만료",
+    "en": "Expired"
+  },
+  "kiosk_success_credits_title": {
+    "ko": "잔여 횟수",
+    "en": "Remaining Credits"
+  },
+  "kiosk_success_days_title": {
+    "ko": "잔여 일수",
+    "en": "Days Remaining"
+  },
+  "kiosk_success_confirm_btn": {
+    "ko": "확인",
+    "en": "Confirm"
+  },
+  "deniedWeeklyLimit": {
+    "ko": "출석거부(주간 횟수 초과)",
+    "en": "Denied (Weekly Limit Exceeded)"
+  },
+  "deniedDailyLimit": {
+    "ko": "출석거부(일간 횟수 초과)",
+    "en": "Denied (Daily Limit Exceeded)"
+  },
+  "kioskSuccessExtra": {
+    "ko": "반가워요! 이미 출석 확인이 완료되었습니다. (추가 출석)",
+    "en": "Welcome back! Attendance already confirmed. (Extra check-in)"
+  },
+  "kioskSuccessConsecutive": {
+    "ko": "오늘의 두 번째 수련이 시작됩니다. (연강 출석)",
+    "en": "Your second session today begins. (Consecutive class)"
+  },
+  "kioskExpiredMsg": {
+    "ko": "수련권 기간이 만료되었습니다. 선생님께서 안내를 도와드릴게요.",
+    "en": "Your pass has expired. Your instructor will assist you."
+  },
+  "kioskNoCredits": {
+    "ko": "수련 횟수가 모두 소진되었습니다. 선생님께서 안내를 도와드릴게요.",
+    "en": "All credits used. Your instructor will assist you."
+  },
+  "kioskLastDay": {
+    "ko": "오늘이 이번 수련권의 마지막 날이네요. 정성 가득한 수련 되세요!",
+    "en": "This is the last day of your pass. Make it count!"
+  },
+  "kioskTouchGuide": {
+    "ko": "화면을 터치하면 출석부로 이동합니다",
+    "en": "Touch the screen to go to check-in"
+  },
+  "kiosk_logo_invert": {
+    "ko": "반전:",
+    "en": "Invert:"
+  },
+  "feat_nav_consult": {
+    "ko": "1:1 커스텀 개발 상담",
+    "en": "Custom Development"
+  },
+  "feat_hero_title": {
+    "ko": "소프트웨어에 스튜디오를 맞추지 마세요.<br /><span class=\"text-gold\">SaaS가 원장님께 맞춥니다.</span>",
+    "en": "Don't adapt your studio to software.<br /><span class=\"text-gold\">Let SaaS adapt to you.</span>"
+  },
+  "feat_squad_title": {
+    "ko": "1:1 맞춤형 개발 스쿼드 지원",
+    "en": "Your Dedicated Development Squad"
+  },
+  "feat_squad_desc": {
+    "ko": "단순히 월 구독료를 내고 쓰는 시스템이 아닙니다. 스튜디오의 독특한 그룹 수업 룰이나 매출 정산 방식이 있으신가요? 전담 컨설팅을 통해 <strong>모든 니즈에 1대1로 대응하여 기능을 커스텀 디자인 및 추가</strong>해 드립니다.",
+    "en": "This isn't a one-size-fits-all subscription. Have unique group class policies or revenue models? Through dedicated consulting, we <strong>custom-design and build every feature</strong> to fit your exact needs. That's what sets us apart."
+  },
+  "feat_squad_check1": {
+    "ko": "스튜디오별 고유 맞춤 데이터 테이블 신설",
+    "en": "Custom data architecture tailored to your studio"
+  },
+  "feat_squad_check2": {
+    "ko": "특수 목적 결제 PG 및 마케팅 툴 연동",
+    "en": "Bespoke payment gateway & marketing integrations"
+  },
+  "feat_squad_check3": {
+    "ko": "프라이빗 회원 가입 플로우 디자인",
+    "en": "Private branded member onboarding flows"
+  },
+  "feat_dashboard_preview": {
+    "ko": "원장님 전용 대시보드 맞춤 구성 예시",
+    "en": "Custom Dashboard Configuration Preview"
+  },
+  "feat_edge_ai_title": {
+    "ko": "세계 최고 수준의 On-Device Edge AI",
+    "en": "World-Class On-Device Edge AI"
+  },
+  "feat_edge_ai_desc": {
+    "ko": "비용이 비싼 서버 AI 통신이 아닙니다. 아이패드나 스마트폰의 <strong>자체 브라우저 NPU</strong>를 극한까지 활용하는 On-Device 안면인식을 통해, 인터넷이 끊기는 상황에서도 0.1초만에 회원을 판별하고 출석을 승인합니다.",
+    "en": "No expensive cloud API calls. By leveraging your iPad or smartphone's <strong>built-in browser NPU</strong> to its fullest, our on-device facial recognition identifies members in 0.1 seconds — even offline. Enterprise-grade tech, startup-friendly pricing."
+  },
+  "feat_ai_rendering": {
+    "ko": "AI 모델 실시간 렌더링 최적화 탑재",
+    "en": "Real-time AI model rendering optimization"
+  },
+  "feat_multi_tenant_title": {
+    "ko": "멀티-테넌트 다이렉트 확장성",
+    "en": "Multi-Tenant, Instant Scalability"
+  },
+  "feat_multi_tenant_desc": {
+    "ko": "지금은 지점이 1개지만, 프랜차이즈화를 꿈꾸시나요? 단 한 번의 버튼 클릭으로 동일한 브랜딩이 적용된 <strong>제 2, 제 3의 지점 통합 서버 공간</strong>이 생성됩니다.",
+    "en": "One location today, a franchise tomorrow? A single click deploys your next branded branch with <strong>unified server infrastructure</strong>. Manage revenue and attendance across every location from one Super Admin account."
+  },
+  "feat_tenant_check1": {
+    "ko": "전 지점 크로스 회원권(Cross-Membership) 지원",
+    "en": "Cross-location membership support"
+  },
+  "feat_tenant_check2": {
+    "ko": "강사별 로테이션 출강 자동 급여 계산",
+    "en": "Automated payroll for rotating instructors"
+  },
+  "feat_cta_title": {
+    "ko": "지금 바로 전문가 조직과 상담하세요",
+    "en": "Talk to Our Solutions Team Today"
+  },
+  "feat_cta_btn": {
+    "ko": "1:1 맞춤 스튜디오 컨설팅 즉시 신청",
+    "en": "Schedule Your Custom Consultation"
+  },
+  "feat_inquiry_success": {
+    "ko": "성공적으로 접수되었습니다.",
+    "en": "Your request has been submitted."
+  },
+  "feat_inquiry_followup": {
+    "ko": "비즈니스 파트너 전담팀에서 1영업일 이내 연락드리겠습니다.",
+    "en": "Our solutions team will be in touch within 1 business day."
+  },
+  "feat_inquiry_title": {
+    "ko": "1:1 맞춤형 커스텀 문의",
+    "en": "Custom Feature Consultation"
+  },
+  "feat_inquiry_desc": {
+    "ko": "원하시는 어떤 기능이든, 스튜디오 프로세스에 맞추어 플랫폼을 1:1로 조정해 드리는 프리미엄 플랜을 상담받아 보세요.",
+    "en": "Whatever you envision for your studio, we tailor the platform to match. Explore our premium customization plans."
+  },
+  "feat_inquiry_studio": {
+    "ko": "스튜디오 / 기업명",
+    "en": "Studio / Business Name"
+  },
+  "feat_inquiry_feature_label": {
+    "ko": "원하시는 맞춤 기능 / 연동 내용",
+    "en": "Features & Integrations Needed"
+  },
+  "feat_inquiry_feature_ph": {
+    "ko": "예: 저희는 그룹 스케줄 외에 개인 PT 특화된 달력이 필요합니다.",
+    "en": "e.g. We need a 1-on-1 session calendar alongside group schedules."
+  },
+  "feat_inquiry_submit": {
+    "ko": "개발 컨설팅 요청하기",
+    "en": "Request a Custom Build"
+  },
+  "contact_success": {
+    "ko": "성공적으로 접수되었습니다.",
+    "en": "Request submitted successfully."
+  },
+  "contact_followup": {
+    "ko": "전담팀에서 영업일 기준 1일 내에 연락드리겠습니다.",
+    "en": "Our team will be in touch within 1 business day."
+  },
+  "contact_title": {
+    "ko": "플랫폼 도입 및 1:1 커스텀 상담",
+    "en": "Platform Setup & Customization"
+  },
+  "contact_desc": {
+    "ko": "원장님의 스튜디오에 완벽히 맞춘 1:1 맞춤형 SaaS 기능 가이드를 지원합니다.",
+    "en": "We design tailored SaaS features around your studio's exact workflow. Let us show you what's possible."
+  },
+  "contact_name_label": {
+    "ko": "이름 (또는 스튜디오명)",
+    "en": "Name / Studio Name"
+  },
+  "contact_phone_label": {
+    "ko": "연락처 (선택)",
+    "en": "Phone (Optional)"
+  },
+  "contact_email_label": {
+    "ko": "답변받을 이메일",
+    "en": "Email Address"
+  },
+  "contact_message_label": {
+    "ko": "도입 목적 및 문의사항",
+    "en": "Message / Requirements"
+  },
+  "contact_placeholder": {
+    "ko": "필요하신 스케줄이나 특별한 요구사항을 적어주세요.",
+    "en": "Describe your scheduling needs, integrations, or any special operations requirements."
+  },
+  "contact_submit": {
+    "ko": "상담 요청하기",
+    "en": "Request Consultation"
+  },
+  "새로운 버전이 준비되었습니다": {
+    "ko": "A new version is ready",
+    "en": "A new version is ready"
+  },
+  "새로운 기능 활성화 및 최적화를 위해": {
+    "ko": "To enable new features and optimizations",
+    "en": "To enable new features and optimizations"
+  },
+  "지금 업데이트를 진행해주세요.": {
+    "ko": "Please update now.",
+    "en": "Please update now."
+  },
+  "업데이트 중...": {
+    "ko": "Updating...",
+    "en": "Updating..."
+  },
+  "클릭하여 업데이트 및 재시작": {
+    "ko": "Click to update and restart",
+    "en": "Click to update and restart"
+  },
+  "🏆 인기 수업 Top 5": {
+    "ko": "🏆 Top 5 popular classes",
+    "en": "🏆 Top 5 popular classes"
+  }
+}

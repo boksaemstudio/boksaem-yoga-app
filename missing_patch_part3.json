@@ -1,0 +1,718 @@
+{
+  "만료/임박": {
+    "ko": "Expired/Immediate",
+    "en": "Expired/Immediate"
+  },
+  "선등록 대기중": {
+    "ko": "Waiting for pre-registration",
+    "en": "Waiting for pre-registration"
+  },
+  "설정 변경은": {
+    "ko": "Change settings",
+    "en": "Change settings"
+  },
+  "키오스크에서 회원이 출석하면 잔여 횟수가 자동으로 1회 차감됩니다. 관리자가 수동 출석 처리 시에는 차감 여부를 선택할 수 있습니다.": {
+    "ko": "When a member attends the kiosk, the remaining number of times is automatically deducted by 1. ",
+    "en": "When a member attends the kiosk, the remaining number of times is automatically deducted by 1. "
+  },
+  "예: 7일 홀딩 후 출석 → 종료일이 7일 뒤로 자동 연장": {
+    "ko": "Example: Attendance after holding for 7 days → End date automatically extended 7 days later",
+    "en": "Example: Attendance after holding for 7 days → End date automatically extended 7 days later"
+  },
+  "출석 체크 & 횟수 차감": {
+    "ko": "Attendance check & count deduction",
+    "en": "Attendance check & count deduction"
+  },
+  "TBD: 시작일 미확정 등록": {
+    "ko": "TBD: Registration with unconfirmed start date",
+    "en": "TBD: Registration with unconfirmed start date"
+  },
+  "선등록 (미래 수강권 예약)": {
+    "ko": "Pre-registration (reservation of future course tickets)",
+    "en": "Pre-registration (reservation of future course tickets)"
+  },
+  "관리자 대시보드에서는 거부된 출석 시도도 기록으로 남아 확인할 수 있습니다.": {
+    "ko": "Rejected attendance attempts can also be logged and viewed in the administrator dashboard.",
+    "en": "Rejected attendance attempts can also be logged and viewed in the administrator dashboard."
+  },
+  "예: 3개월 수강권을 TBD로 등록 → 4월 1일 첫 출석 → 시작일 4/1, 종료일 6/30 자동 설정": {
+    "ko": "Example: Register a 3-month course ticket as TBD → First attendance on April 1st → Automatically set start date 4/1 and end date 6/30",
+    "en": "Example: Register a 3-month course ticket as TBD → First attendance on April 1st → Automatically set start date 4/1 and end date 6/30"
+  },
+  "기간이 만료(종료일 초과)되었거나 잔여 횟수가 0인 회원은 키오스크에서 자동으로 출석이 거부됩니다. 화면에 '기간 만료' 또는 '횟수 부족' 사유가 표시됩니다.": {
+    "ko": "Members whose period has expired (exceeded the end date) or whose remaining count is 0 will automatically be denied attendance at the kiosk. ",
+    "en": "Members whose period has expired (exceeded the end date) or whose remaining count is 0 will automatically be denied attendance at the kiosk. "
+  },
+  "탭에서 할 수 있습니다.": {
+    "ko": "You can do it from the tab.",
+    "en": "You can do it from the tab."
+  },
+  "홀딩 (수강 일시정지)": {
+    "ko": "Holding (temporary suspension of course attendance)",
+    "en": "Holding (temporary suspension of course attendance)"
+  },
+  "회원권 등록 · 재등록 로직": {
+    "ko": "Membership registration/re-registration logic",
+    "en": "Membership registration/re-registration logic"
+  },
+  "첫 출석 시 자동 확정": {
+    "ko": "Automatically confirmed upon first attendance",
+    "en": "Automatically confirmed upon first attendance"
+  },
+  "출석 거부 (자동 차단)": {
+    "ko": "Attendance refusal (automatic blocking)",
+    "en": "Attendance refusal (automatic blocking)"
+  },
+  "같은 날 여러 수업 출석도 가능합니다(다중 출석). 각 출석마다 1회씩 차감됩니다.": {
+    "ko": "Attending multiple classes on the same day is also possible (multiple attendance). ",
+    "en": "Attending multiple classes on the same day is also possible (multiple attendance). "
+  },
+  "선등록 수강권은 시작일 옵션(TBD/직접지정/즉시출석)에 따라 종료일이 산정됩니다.": {
+    "ko": "For pre-registered tickets, the end date is calculated according to the start date option (TBD/direct designation/immediate attendance).",
+    "en": "For pre-registered tickets, the end date is calculated according to the start date option (TBD/direct designation/immediate attendance)."
+  },
+  "현재 수강권이 진행 중인 회원에게 다음 수강권을 미리 등록할 수 있습니다. 기존 횟수가 소진되거나 기간이 만료되면 첫 출석 시 선등록 수강권이 자동 활성화됩니다. 활성화 시 기존 잔여 횟수는 무조건 0이 되고, 새 수강권의 횟수와 기간으로 교체됩니다.": {
+    "ko": "Members who are currently enrolled in a course can pre-register for the next course. ",
+    "en": "Members who are currently enrolled in a course can pre-register for the next course. "
+  },
+  "소진/만료 시 자동 전환": {
+    "ko": "Automatic conversion when exhausted/expired",
+    "en": "Automatic conversion when exhausted/expired"
+  },
+  "종료일 산정 기준": {
+    "ko": "Criteria for calculating the end date",
+    "en": "Criteria for calculating the end date"
+  },
+  "잔여 횟수가 0이지만 종료일이 아직 남아있는 경우 재등록하면, 선택한 시작일부터 새 수강권 기간만큼 종료일이 산정됩니다. 기존의 남은 기간은 무시됩니다.": {
+    "ko": "잔여 횟수가 0이지만 종료일이 아직 남아있는 경우 재등록하면, 선택한 시작일부터 새 수강권 기간만큼 종료일이 산정됩니다. ",
+    "en": "잔여 횟수가 0이지만 종료일이 아직 남아있는 경우 재등록하면, 선택한 시작일부터 새 수강권 기간만큼 종료일이 산정됩니다. "
+  },
+  "시작일 기준 자동 계산": {
+    "ko": "Automatic calculation based on start date",
+    "en": "Automatic calculation based on start date"
+  },
+  "시작일부터 새로 계산": {
+    "ko": "New calculation from start date",
+    "en": "New calculation from start date"
+  },
+  "횟수 0 + 기간 남음 → 재등록": {
+    "ko": "Count 0 + period remaining → re-register",
+    "en": "Count 0 + period remaining → re-register"
+  },
+  "잠든 회원 자동 분류": {
+    "ko": "Automatic classification of sleeping members",
+    "en": "Automatic classification of sleeping members"
+  },
+  "예: 3/25 + 1개월 → 4/24 | 3/25 + 3개월 → 6/24 | 4/1 + 3개월 → 6/30": {
+    "ko": "Example: 3/25 + 1 month → 4/24 | ",
+    "en": "Example: 3/25 + 1 month → 4/24 | "
+  },
+  "회원 & 출석": {
+    "ko": "Membership & Attendance",
+    "en": "Membership & Attendance"
+  },
+  "만료 임박 알림": {
+    "ko": "Imminent expiration notification",
+    "en": "Imminent expiration notification"
+  },
+  "횟수 남음 + 기간 종료 → 재등록": {
+    "ko": "Number remaining + period ends → re-registration",
+    "en": "Number remaining + period ends → re-registration"
+  },
+  "예약 시스템": {
+    "ko": "reservation system",
+    "en": "reservation system"
+  },
+  "기존 횟수 삭제 → 새로 부여": {
+    "ko": "Delete existing count → Grant new number",
+    "en": "Delete existing count → Grant new number"
+  },
+  "신규 등록과 동일": {
+    "ko": "Same as new registration",
+    "en": "Same as new registration"
+  },
+  "취소 마감 시간": {
+    "ko": "Cancellation Deadline",
+    "en": "Cancellation Deadline"
+  },
+  "알림 & 보안": {
+    "ko": "Notifications & Security",
+    "en": "Notifications & Security"
+  },
+  "크레딧 정책 모드": {
+    "ko": "credit policy mode",
+    "en": "credit policy mode"
+  },
+  "기존 횟수 사라짐": {
+    "ko": "Existing counts disappear",
+    "en": "Existing counts disappear"
+  },
+  "종료일은 항상 '시작일 + 수강권 기간(개월) - 1일'로 자동 계산됩니다. 예를 들어 시작일이 3월 25일이고 3개월 수강권이면 종료일은 6월 24일입니다.": {
+    "ko": "The end date is always automatically calculated as 'start date + course period (months) - 1 day'. ",
+    "en": "The end date is always automatically calculated as 'start date + course period (months) - 1 day'. "
+  },
+  "크레딧 소진 알림": {
+    "ko": "Credit exhaustion notification",
+    "en": "Credit exhaustion notification"
+  },
+  "노쇼 (미출석) 자동 처리": {
+    "ko": "No-show (non-attendance) automatic processing",
+    "en": "No-show (non-attendance) automatic processing"
+  },
+  "횟수도 0이고 기간도 지난 경우 재등록하면, 신규 등록과 완전히 동일하게 처리됩니다. 선택한 시작일부터 수강권 기간에 따라 종료일이 산정되고 새 횟수가 부여됩니다.": {
+    "ko": "If the number of times is 0 and the period has expired, if you re-register, it will be processed exactly the same as a new registration. ",
+    "en": "If the number of times is 0 and the period has expired, if you re-register, it will be processed exactly the same as a new registration. "
+  },
+  "기간이 만료되었지만 잔여 횟수가 남아있는 경우 재등록하면, 기존 잔여 횟수는 삭제(0)되고 새 수강권의 횟수가 부여됩니다. 종료일도 새 수강권 기간에 따라 새로 산정됩니다.": {
+    "ko": "If the period has expired but there are still remaining courses, if you re-register, the existing remaining number of courses will be deleted (0) and a new course number will be granted. ",
+    "en": "If the period has expired but there are still remaining courses, if you re-register, the existing remaining number of courses will be deleted (0) and a new course number will be granted. "
+  },
+  "횟수 0 + 기간 종료 → 재등록 (신규와 동일)": {
+    "ko": "Count 0 + period ends → re-registration (same as new)",
+    "en": "Count 0 + period ends → re-registration (same as new)"
+  },
+  "자동 발송이 아닌 '관리자 승인 후 발송' 방식이므로 안심하셔도 됩니다.": {
+    "ko": "You can rest assured that it is not sent automatically, but rather sent after administrator approval.",
+    "en": "You can rest assured that it is not sent automatically, but rather sent after administrator approval."
+  },
+  "시작일 옵션(TBD/직접지정/즉시출석)에 따라 종료일이 산정됩니다. 어떤 경우든 기존 횟수는 보존되지 않습니다.": {
+    "ko": "The end date is calculated according to the start date option (TBD/direct designation/immediate attendance). ",
+    "en": "The end date is calculated according to the start date option (TBD/direct designation/immediate attendance). "
+  },
+  "예: 기존 5회 남았지만 기간 만료 → 재등록 시 새 수강권 35회로 교체": {
+    "ko": "Example: There are 5 existing courses left, but the period has expired → When re-registering, they are replaced with a new 35-course ticket.",
+    "en": "Example: There are 5 existing courses left, but the period has expired → When re-registering, they are replaced with a new 35-course ticket."
+  },
+  "10분 주기": {
+    "ko": "10 minute cycle",
+    "en": "10 minute cycle"
+  },
+  "예약 가능 기간": {
+    "ko": "Reservation period",
+    "en": "Reservation period"
+  },
+  "관리자가 예약한 알림 메시지(수업 리마인더, 이벤트 안내 등)는 10분 간격으로 자동 발송됩니다. 푸시 알림 우선이며, 푸시 실패 시 SMS로 대체 발송합니다.": {
+    "ko": "Notification messages scheduled by the administrator (class reminders, event information, etc.) are automatically sent every 10 minutes. ",
+    "en": "Notification messages scheduled by the administrator (class reminders, event information, etc.) are automatically sent every 10 minutes. "
+  },
+  "예약 메시지 자동 발송": {
+    "ko": "Automatically send reservation messages",
+    "en": "Automatically send reservation messages"
+  },
+  "푸시 → SMS 순서로 발송합니다. 앱 미설치 회원에게도 SMS로 전달됩니다.": {
+    "ko": "It is sent in the order of push → SMS. ",
+    "en": "It is sent in the order of push → SMS. "
+  },
+  "매일 밤 11시에 오늘의 출석 수, 신규 가입 수, 보안 이상 여부를 정리한 요약 보고서가 관리자에게 푸시 알림으로 발송됩니다.": {
+    "ko": "Every night at 11 p.m., a summary report summarizing today's attendance, number of new sign-ups, and security anomalies is sent to administrators as a push notification.",
+    "en": "Every night at 11 p.m., a summary report summarizing today's attendance, number of new sign-ups, and security anomalies is sent to administrators as a push notification."
+  },
+  "회원의 잔여 횟수가 0이 되면 AI가 해당 회원의 수강 패턴을 분석하여 맞춤형 알림 메시지를 자동 생성합니다. 관리자가 승인하면 회원에게 푸시 알림으로 발송됩니다.": {
+    "ko": "When a member's remaining count reaches 0, AI analyzes the member's course attendance patterns and automatically creates a customized notification message. ",
+    "en": "When a member's remaining count reaches 0, AI analyzes the member's course attendance patterns and automatically creates a customized notification message. "
+  },
+  "현재 수강권이 활성 상태인 회원에게 선등록하면, 기존 횟수가 소진되거나 기간이 만료되었을 때 첫 출석 시 자동으로 전환됩니다. 전환 시 기존 잔여 횟수는 0이 되고, 새 수강권의 횟수와 기간으로 완전히 교체됩니다.": {
+    "ko": "If a member with an active course pre-registers, it will be automatically converted upon first attendance when the existing number of passes is exhausted or the period expires. ",
+    "en": "If a member with an active course pre-registers, it will be automatically converted upon first attendance when the existing number of passes is exhausted or the period expires. "
+  },
+  "이전": {
+    "ko": "before",
+    "en": "before"
+  },
+  "관리자 대시보드에 접속하면 AI가 현재 시간대에 맞는 전략적 분석을 제공합니다. 활성 회원 수, 매출, 출석률 등 실시간 데이터를 기반으로 실행 가능한 인사이트를 생성합니다.": {
+    "ko": "When you access your admin dashboard, AI provides strategic analysis tailored to your current time zone. ",
+    "en": "When you access your admin dashboard, AI provides strategic analysis tailored to your current time zone. "
+  },
+  "유령 토큰 자동 정리": {
+    "ko": "Automatic cleanup of ghost tokens",
+    "en": "Automatic cleanup of ghost tokens"
+  },
+  "선등록 시 회원권 전환": {
+    "ko": "Membership conversion upon pre-registration",
+    "en": "Membership conversion upon pre-registration"
+  },
+  "정원 관리 & 대기열": {
+    "ko": "Gardening & Queues",
+    "en": "Gardening & Queues"
+  },
+  "매시간 자동으로 체크합니다. 수업 시간이 지나야 노쇼로 처리됩니다.": {
+    "ko": "It is checked automatically every hour. ",
+    "en": "It is checked automatically every hour. "
+  },
+  "동시 예약 & 하루 예약 한도": {
+    "ko": "Simultaneous reservations & daily reservation limit",
+    "en": "Simultaneous reservations & daily reservation limit"
+  },
+  "일일 리포트 (매일 23시)": {
+    "ko": "Daily report (every day at 23:00)",
+    "en": "Daily report (every day at 23:00)"
+  },
+  "다음": {
+    "ko": "next",
+    "en": "next"
+  },
+  "이미지 없음": {
+    "ko": "no image",
+    "en": "no image"
+  },
+  "이미지 변경": {
+    "ko": "change image",
+    "en": "change image"
+  },
+  "매일 오전과 오후, 하루 2회 Firestore 데이터가 자동으로 백업됩니다. 데이터 손실 시 백업 시점으로 복원할 수 있습니다.": {
+    "ko": "Firestore data is automatically backed up twice a day, every morning and afternoon. ",
+    "en": "Firestore data is automatically backed up twice a day, every morning and afternoon. "
+  },
+  "단체 및 개별 푸시 알림 발송 이력입니다.": {
+    "ko": "Group and individual push notification sending history.",
+    "en": "Group and individual push notification sending history."
+  },
+  "60일 이상 업데이트되지 않은 만료된 푸시 알림 토큰을 자동으로 정리합니다. 이를 통해 불필요한 알림 발송 시도를 줄이고 시스템 효율을 유지합니다.": {
+    "ko": "Automatically cleans up expired push notification tokens that haven't been updated in more than 60 days. ",
+    "en": "Automatically cleans up expired push notification tokens that haven't been updated in more than 60 days. "
+  },
+  "데이터 자동 백업": {
+    "ko": "Automatic data backup",
+    "en": "Automatic data backup"
+  },
+  "매일 23:00": {
+    "ko": "Every day 23:00",
+    "en": "Every day 23:00"
+  },
+  "1일 2회": {
+    "ko": "2 times a day",
+    "en": "2 times a day"
+  },
+  "날짜 초기화": {
+    "ko": "Reset Date",
+    "en": "Reset Date"
+  },
+  "회원명/내용 검색...": {
+    "ko": "Member name/content search...",
+    "en": "Member name/content search..."
+  },
+  "주간 시간표": {
+    "ko": "weekly timetable",
+    "en": "weekly timetable"
+  },
+  "알림 발송 기록": {
+    "ko": "Notification sending history",
+    "en": "Notification sending history"
+  },
+  "승인 및 발송": {
+    "ko": "Approval and dispatch",
+    "en": "Approval and dispatch"
+  },
+  "이미지 등록/변경": {
+    "ko": "Register/change image",
+    "en": "Register/change image"
+  },
+  "비율입니다.": {
+    "ko": "It's a ratio.",
+    "en": "It's a ratio."
+  },
+  "발송 이력": {
+    "ko": "Shipping history",
+    "en": "Shipping history"
+  },
+  "60일 초과 시 삭제": {
+    "ko": "Deleted after 60 days",
+    "en": "Deleted after 60 days"
+  },
+  "월간 시간표": {
+    "ko": "monthly timetable",
+    "en": "monthly timetable"
+  },
+  "새로고침": {
+    "ko": "refresh",
+    "en": "refresh"
+  },
+  "얼굴 등록 현황": {
+    "ko": "Face registration status",
+    "en": "Face registration status"
+  },
+  "✨ 오늘 AI 자동 인식 출석": {
+    "ko": "✨ AI automatic recognition attendance today",
+    "en": "✨ AI automatic recognition attendance today"
+  },
+  "몇 시에 회원이 가장 많이": {
+    "ko": "What time do you have the most members?",
+    "en": "What time do you have the most members?"
+  },
+  "참석 횟수 기준으로 보여줍니다.": {
+    "ko": "It is displayed based on the number of attendees.",
+    "en": "It is displayed based on the number of attendees."
+  },
+  "주간 시간표 (이미지)": {
+    "ko": "Weekly timetable (image)",
+    "en": "Weekly timetable (image)"
+  },
+  "키오스크 얼굴인식 출석을 위해": {
+    "ko": "For kiosk facial recognition attendance",
+    "en": "For kiosk facial recognition attendance"
+  },
+  "시간대별 이용 현황": {
+    "ko": "Usage status by time zone",
+    "en": "Usage status by time zone"
+  },
+  "우리 스튜디오 설정": {
+    "ko": "Our studio setup",
+    "en": "Our studio setup"
+  },
+  "오는지 한눈에 보여줍니다.": {
+    "ko": "You can see at a glance if it is coming.",
+    "en": "You can see at a glance if it is coming."
+  },
+  "어떤 수업이 가장 인기있는지": {
+    "ko": "Which classes are most popular?",
+    "en": "Which classes are most popular?"
+  },
+  "얼굴 데이터를 등록한 활성 회원의": {
+    "ko": "Active members who have registered their facial data",
+    "en": "Active members who have registered their facial data"
+  },
+  "한 줄 소개": {
+    "ko": "one line introduction",
+    "en": "one line introduction"
+  },
+  "스튜디오 로고": {
+    "ko": "studio logo",
+    "en": "studio logo"
+  },
+  "설정 로드 중...": {
+    "ko": "Loading settings...",
+    "en": "Loading settings..."
+  },
+  "수업별 인기 현황": {
+    "ko": "Popularity status by class",
+    "en": "Popularity status by class"
+  },
+  "명 등록": {
+    "ko": "name registration",
+    "en": "name registration"
+  },
+  "스튜디오 이름": {
+    "ko": "studio name",
+    "en": "studio name"
+  },
+  "월요일": {
+    "ko": "monday",
+    "en": "monday"
+  },
+  "화요일": {
+    "ko": "tuesday",
+    "en": "tuesday"
+  },
+  "목요일": {
+    "ko": "thursday",
+    "en": "thursday"
+  },
+  "수요일": {
+    "ko": "wednesday",
+    "en": "wednesday"
+  },
+  "금요일": {
+    "ko": "friday",
+    "en": "friday"
+  },
+  "일요일": {
+    "ko": "sunday",
+    "en": "sunday"
+  },
+  "토요일": {
+    "ko": "Saturday",
+    "en": "Saturday"
+  },
+  "회원이 앱에서 수강권을 일시정지할 수 있습니다": {
+    "ko": "Members can pause their subscription in the app",
+    "en": "Members can pause their subscription in the app"
+  },
+  "회원의 수강 횟수를 전체 기간/주간/일간 단위로 관리합니다": {
+    "ko": "Manage the number of classes a member takes on a per-period/weekly/daily basis.",
+    "en": "Manage the number of classes a member takes on a per-period/weekly/daily basis."
+  },
+  "⏸️ 회원 홀딩 (일시정지)": {
+    "ko": "⏸️ Member holding (pause)",
+    "en": "⏸️ Member holding (pause)"
+  },
+  "홀딩 규칙 (수강권별)": {
+    "ko": "Holding rules (by course)",
+    "en": "Holding rules (by course)"
+  },
+  "회원 앱과 알림에 표시돼요": {
+    "ko": "It appears in the member app and notifications.",
+    "en": "It appears in the member app and notifications."
+  },
+  "최대 횟수": {
+    "ko": "maximum number of times",
+    "en": "maximum number of times"
+  },
+  "주간 리셋 요일": {
+    "ko": "Weekly reset day",
+    "en": "Weekly reset day"
+  },
+  "🏠 우리 스튜디오": {
+    "ko": "🏠 Our Studio",
+    "en": "🏠 Our Studio"
+  },
+  "요금제 자동 계산": {
+    "ko": "Automatic rate plan calculation",
+    "en": "Automatic rate plan calculation"
+  },
+  "1회 최대": {
+    "ko": "1 time maximum",
+    "en": "1 time maximum"
+  },
+  "+ 규칙 추가": {
+    "ko": "+ Add rules",
+    "en": "+ Add rules"
+  },
+  "예약 마감": {
+    "ko": "Reservation Deadline",
+    "en": "Reservation Deadline"
+  },
+  "기본값": {
+    "ko": "default",
+    "en": "default"
+  },
+  "외부 링크 관리 (SNS, 블로그 등)": {
+    "ko": "External link management (SNS, blog, etc.)",
+    "en": "External link management (SNS, blog, etc.)"
+  },
+  "🔢 수강 횟수 관리 방식": {
+    "ko": "🔢 How to manage the number of courses taken",
+    "en": "🔢 How to manage the number of courses taken"
+  },
+  "대기열": {
+    "ko": "queue",
+    "en": "queue"
+  },
+  "회원이 앱에서 수업을 미리 예약할 수 있습니다": {
+    "ko": "Members can pre-book classes in the app",
+    "en": "Members can pre-book classes in the app"
+  },
+  "시간표에서 수업별로 따로 정할 수도 있습니다": {
+    "ko": "You can also set separate classes for each class in the timetable.",
+    "en": "You can also set separate classes for each class in the timetable."
+  },
+  "💡 예약 기능을 켜도, 예약 없이 직접 오는 회원은 기존처럼 출석 가능합니다. 다만 정원이 찬 수업은 워크인이 제한될 수 있습니다.": {
+    "ko": "💡 Even if you turn on the reservation function, members who come in person without a reservation can still attend as before. ",
+    "en": "💡 Even if you turn on the reservation function, members who come in person without a reservation can still attend as before. "
+  },
+  "지점 관리": {
+    "ko": "Branch Management",
+    "en": "Branch Management"
+  },
+  "+ 링크 추가": {
+    "ko": "+ Add link",
+    "en": "+ Add link"
+  },
+  "수강 기간": {
+    "ko": "Course period",
+    "en": "Course period"
+  },
+  "주간 한도 기준": {
+    "ko": "Based on weekly limit",
+    "en": "Based on weekly limit"
+  },
+  "회원별 수동 설정": {
+    "ko": "Manual settings for each member",
+    "en": "Manual settings for each member"
+  },
+  "수업당 최대 인원": {
+    "ko": "Maximum number of people per class",
+    "en": "Maximum number of people per class"
+  },
+  "📋 운영 규칙": {
+    "ko": "📋Operating Rules",
+    "en": "📋Operating Rules"
+  },
+  "📅 수업 예약": {
+    "ko": "📅 Book a class",
+    "en": "📅 Book a class"
+  },
+  "로고": {
+    "ko": "logo",
+    "en": "logo"
+  },
+  "🔒 개인정보처리방침": {
+    "ko": "🔒 Privacy Policy",
+    "en": "🔒 Privacy Policy"
+  },
+  "URL 복사": {
+    "ko": "Copy URL",
+    "en": "Copy URL"
+  },
+  "📐 프리뷰 크기": {
+    "ko": "📐 Preview size",
+    "en": "📐 Preview size"
+  },
+  "회": {
+    "ko": "episode",
+    "en": "episode"
+  },
+  "등록된 회원의 얼굴을 인식하면 자동으로 출석 처리합니다": {
+    "ko": "When a registered member's face is recognized, attendance is automatically processed.",
+    "en": "When a registered member's face is recognized, attendance is automatically processed."
+  },
+  "주": {
+    "ko": "main",
+    "en": "main"
+  },
+  "앱 URL 및 QR 코드": {
+    "ko": "App URL and QR code",
+    "en": "App URL and QR code"
+  },
+  "📷 출석 화면 카메라": {
+    "ko": "📷 Attendance screen camera",
+    "en": "📷 Attendance screen camera"
+  },
+  "개월": {
+    "ko": "months",
+    "en": "months"
+  },
+  "시간 전": {
+    "ko": "time ago",
+    "en": "time ago"
+  },
+  "미출석 시 횟수 차감": {
+    "ko": "Deduction in case of non-attendance",
+    "en": "Deduction in case of non-attendance"
+  },
+  "정원 초과 시 대기 → 취소 발생 시 자동 예약 + 알림": {
+    "ko": "Standby when capacity is exceeded → Automatic reservation + notification in case of cancellation",
+    "en": "Standby when capacity is exceeded → Automatic reservation + notification in case of cancellation"
+  },
+  "🧠 안면인식 자동 출석": {
+    "ko": "🧠 Facial recognition automatic attendance",
+    "en": "🧠 Facial recognition automatic attendance"
+  },
+  "노쇼 (예약 후 미출석)": {
+    "ko": "No-show (non-attendance after reservation)",
+    "en": "No-show (non-attendance after reservation)"
+  },
+  "출석체크 화면에 카메라 영상을 표시합니다": {
+    "ko": "Display camera video on the attendance check screen.",
+    "en": "Display camera video on the attendance check screen."
+  },
+  "• 기존 회원의 소속 지점이 삭제된 경우, \"전체\" 보기에는 포함되지만 지점별 필터링이 불가합니다.": {
+    "ko": "• If an existing member's affiliated branch is deleted, it will be included in the \"All\" view, but filtering by branch will not be possible.",
+    "en": "• If an existing member's affiliated branch is deleted, it will be included in the \"All\" view, but filtering by branch will not be possible."
+  },
+  "삭제된 항목이 없습니다": {
+    "ko": "No items were deleted",
+    "en": "No items were deleted"
+  },
+  "⚠️ 지점 관리 주의사항": {
+    "ko": "⚠️ Branch management precautions",
+    "en": "⚠️ Branch management precautions"
+  },
+  "이름 (예: 인스타그램)": {
+    "ko": "Name (e.g. Instagram)",
+    "en": "Name (e.g. Instagram)"
+  },
+  "삭제된 항목 불러오는 중...": {
+    "ko": "Loading deleted items...",
+    "en": "Loading deleted items..."
+  },
+  "클릭하여 새 탭에서 열기": {
+    "ko": "Click to open in new tab",
+    "en": "Click to open in new tab"
+  },
+  "전송 방식": {
+    "ko": "Transmission method",
+    "en": "Transmission method"
+  },
+  "하루 최대 예약": {
+    "ko": "Maximum reservation per day",
+    "en": "Maximum reservation per day"
+  },
+  "취소 마감": {
+    "ko": "cancellation deadline",
+    "en": "cancellation deadline"
+  },
+  "+ 지점 추가": {
+    "ko": "+ Add branch",
+    "en": "+ Add branch"
+  },
+  "동시 예약 한도": {
+    "ko": "Concurrent reservation limit",
+    "en": "Concurrent reservation limit"
+  },
+  "일 전부터": {
+    "ko": "a day ago",
+    "en": "a day ago"
+  },
+  "결제 방식": {
+    "ko": "Payment method",
+    "en": "Payment method"
+  },
+  "자주 쓰는 문구": {
+    "ko": "Frequently used phrases",
+    "en": "Frequently used phrases"
+  },
+  "회원 등록": {
+    "ko": "Member registration",
+    "en": "Member registration"
+  },
+  "이름": {
+    "ko": "name",
+    "en": "name"
+  },
+  "전화번호": {
+    "ko": "phone number",
+    "en": "phone number"
+  },
+  "회원, 출석 또는 매출을 삭제하면 이곳에 보관됩니다": {
+    "ko": "If you delete a member, attendance or sales, they will be archived here",
+    "en": "If you delete a member, attendance or sales, they will be archived here"
+  },
+  "각 앱의 URL을 복사하거나 QR 코드를 공유할 수 있습니다.": {
+    "ko": "You can copy the URL of each app or share the QR code.",
+    "en": "You can copy the URL of each app or share the QR code."
+  },
+  "• 지점을 삭제하면, 해당 지점의 출석/매출/시간표 기록에서 지점 정보가 사라질 수 있습니다.": {
+    "ko": "• If you delete a branch, branch information may disappear from the branch's attendance/sales/timetable records.",
+    "en": "• If you delete a branch, branch information may disappear from the branch's attendance/sales/timetable records."
+  },
+  "지점": {
+    "ko": "spot",
+    "en": "spot"
+  },
+  "등록일": {
+    "ko": "Registration date",
+    "en": "Registration date"
+  },
+  "의 회원에게 메시지를 보냅니다.": {
+    "ko": "Send a message to a member of .",
+    "en": "Send a message to a member of ."
+  },
+  "전송할 내용을 입력하세요...": {
+    "ko": "Enter what you want to send...",
+    "en": "Enter what you want to send..."
+  },
+  "📱 앱 푸시 • 무료": {
+    "ko": "📱 App Push • Free",
+    "en": "📱 App Push • Free"
+  },
+  "시간표 확인 및 관리": {
+    "ko": "Check and manage timetable",
+    "en": "Check and manage timetable"
+  },
+  "결제 금액": {
+    "ko": "payment amount",
+    "en": "payment amount"
+  },
+  "횟수": {
+    "ko": "number",
+    "en": "number"
+  },
+  "단체 메시지 전송": {
+    "ko": "Send group message",
+    "en": "Send group message"
+  },
+  "등록 기간": {
+    "ko": "Registration period",
+    "en": "Registration period"
+  }
+}

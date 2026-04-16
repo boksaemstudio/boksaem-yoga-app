@@ -125,7 +125,7 @@ const LogListItem = memo(({
         marginTop: '2px',
         color: log.status === 'denied' ? '#ff4d4f' : 'inherit'
       }}>
-                    {log.status === 'denied' ? `출석 시도가 거부되었습니다 (${log.denialReason === 'expired' ? t("g_94dcd3") || "\uAE30\uAC04\uB9CC\uB8CC" : t("g_7174c2") || "\uD69F\uC218\uC18C\uC9C4"})` : log.action?.includes(t("g_b31acb") || "\uCD9C\uC11D") ? `${log.className || t("g_8209e5") || "\uC77C\uBC18"} 수업 참여 (${log.instructor || t("g_0cb522") || "\uAD00\uB9AC\uC790"} 선생님)` : log.action}
+                    {log.status === 'denied' ? `${t('출석 시도가 거부되었습니다')} (${log.denialReason === 'expired' ? t("g_94dcd3") || "\uAE30\uAC04\uB9CC\uB8CC" : t("g_7174c2") || "\uD69F\uC218\uC18C\uC9C4"})` : log.action?.includes(t("g_b31acb") || "\uCD9C\uC11D") ? `${log.className || t("g_8209e5") || "\uC77C\uBC18"} ${t('수업 참여')} (${log.instructor || t("g_0cb522") || "\uAD00\uB9AC\uC790"} ${t('선생님')})` : log.action}
                 </div>
             </div>
 

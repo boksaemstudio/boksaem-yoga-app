@@ -48,7 +48,7 @@ const PushNotificationSettings = ({
       }
     } catch (error) {
       console.error('Reregistration failed:', error);
-      setMessage(`재설정 실패: ${error.message}`);
+      setMessage(`${t("reset_failed") || "재설정 실패"}: ${error.message}`);
     } finally {
       setReregistering(false);
     }

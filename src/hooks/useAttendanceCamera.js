@@ -1,4 +1,5 @@
 // src/hooks/useAttendanceCamera.js
+import { useLanguageStore } from '../stores/useLanguageStore';
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { storage } from '../firebase';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';

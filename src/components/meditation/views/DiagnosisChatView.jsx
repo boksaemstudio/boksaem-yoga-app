@@ -138,7 +138,7 @@ export const DiagnosisChatView = ({
               fontSize: '1rem',
               fontWeight: 600,
               color: 'white'
-            }}>{config.AI_CONFIG?.NAME || 'AI'} {t('med_chat_ai_subtitle') || t("g_bb666f") || "(\uB9C8\uC74C \uCC59\uAE40\uC774)"}</span>
+            }}>{config.AI_CONFIG?.NAME || 'AI'} {t('med_chat_ai_subtitle') || t("g_7b16ec") || "(마음 챙김이)"}</span>
                             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -149,7 +149,7 @@ export const DiagnosisChatView = ({
                 fontSize: '0.7rem',
                 color: 'rgba(255,255,255,0.6)'
               }}>
-                                    {isAnalyzing ? <span className="blinking-text">{t('med_chat_analyzing') || t("g_772a49") || "\uBD84\uC11D \uC911..."}</span> : isAILoading ? t('med_chat_thinking') || t("g_d6b1c2") || "\uC0DD\uAC01\uD558\uB294 \uC911..." : t('med_chat_voice_on') || t("g_a72608") || "\uC74C\uC131 \uB300\uD654 \uC911"}
+                                    {isAnalyzing ? <span className="blinking-text">{t('med_chat_analyzing') || t("g_784896") || "분석 중..."}</span> : isAILoading ? t('med_chat_thinking') || t("g_93ad3e") || "생각하는 중..." : t('med_chat_voice_on') || t("g_7b09c8") || "음성 대화 중"}
                                 </span>
                             </div>
                         </div>
@@ -165,7 +165,7 @@ export const DiagnosisChatView = ({
           fontWeight: '600',
           cursor: 'pointer'
         }}>
-                            {t('med_chat_btn_start_immediate') || t("g_755138") || "\uBC14\uB85C \uC2DC\uC791"}
+                            {t('med_chat_btn_start_immediate') || t("g_609c2c") || "바로 시작"}
                         </button>}
                 </div>
 
@@ -282,7 +282,7 @@ export const DiagnosisChatView = ({
               boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
               border: '1px solid rgba(255,255,255,0.15)',
               backdropFilter: 'blur(10px)'
-            }}><TypewriterText text={currentAIChat.message || currentAIChat.question || t('med_chat_default_greeting') || t("g_6c87b3") || "\uC624\uB298 \uD558\uB8E8\uB294 \uC5B4\uB5A0\uC168\uB098\uC694?"} speed={40} /></div>
+            }}><TypewriterText text={currentAIChat.message || currentAIChat.question || t('med_chat_default_greeting') || t("g_54ffd9") || "오늘 하루는 어떠셨나요?"} speed={40} /></div>
                                 <span style={{
               fontSize: '0.7rem',
               color: 'rgba(255,255,255,0.4)',
@@ -349,13 +349,13 @@ export const DiagnosisChatView = ({
             gap: '8px',
             boxShadow: '0 10px 20px rgba(var(--primary-rgb), 0.3)'
           }}>
-                                🧘 {t('med_chat_btn_start') || t("g_747d3d") || "\uBA85\uC0C1 \uC2DC\uC791\uD558\uAE30"}
+                                🧘 {t('med_chat_btn_start') || t("g_64e81b") || "명상 시작하기"}
                             </button>
                             <p style={{
             textAlign: 'center',
             fontSize: '0.8rem',
             color: 'rgba(255,255,255,0.4)'
-          }}>{t('med_chat_prepared_desc') || t("g_ff9f7e") || "\uB2F9\uC2E0\uC5D0\uAC8C \uB9DE\uB294 \uBA85\uC0C1\uC744 \uC900\uBE44\uD588\uC5B4\uC694"}</p>
+          }}>{t('med_chat_prepared_desc') || t("g_62270b") || "당신에게 맞는 명상을 준비했어요"}</p>
                         </div>}
 
                     {!isAILoading && currentAIChat?.options?.length > 0 && !currentAIChat?.isFinalAnalysis && <div className="no-scrollbar" style={{
@@ -398,7 +398,7 @@ export const DiagnosisChatView = ({
           padding: '6px 6px 6px 20px',
           border: '1px solid rgba(255,255,255,0.1)'
         }}>
-                            <input type="text" value={manualInput} onChange={e => setManualInput(e.target.value)} disabled={isAILoading} autoFocus placeholder={isAILoading ? t('med_chat_waiting_reply') || t("g_550dea") || "\uB2F5\uBCC0\uC744 \uAE30\uB2E4\uB9AC\uB294 \uC911..." : t('med_chat_input_placeholder') || t("g_77c0c8") || "\uC9C1\uC811 \uC785\uB825\uD558\uAE30..."} style={{
+                            <input type="text" value={manualInput} onChange={e => setManualInput(e.target.value)} disabled={isAILoading} autoFocus placeholder={isAILoading ? t('med_chat_waiting_reply') || t("g_9b26b1") || "답변을 기다리는 중..." : t('med_chat_input_placeholder') || t("g_a2ecb2") || "직접 입력하기..."} style={{
             flex: 1,
             background: 'transparent',
             border: 'none',

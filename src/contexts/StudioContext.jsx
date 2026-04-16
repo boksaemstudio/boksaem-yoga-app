@@ -1,3 +1,4 @@
+import { useLanguageStore } from '../stores/useLanguageStore';
 import { createContext, useContext, useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
 import { useStudioStore } from '../stores/useStudioStore';
@@ -47,7 +48,7 @@ export const StudioProvider = ({ children }) => {
                 try {
                     await signInAnonymously(auth);
                 } catch (e) {
-                    console.warn('[스튜디오] 익명 인증 실패, 기본 설정으로 진행:', e);
+                    console.warn((t("g_90531c") || "[스튜디오] 익명 인증 실패, 기본 설정으로 진행:"), e);
                     setLoading(false);
                     return;
                 }
@@ -61,7 +62,7 @@ export const StudioProvider = ({ children }) => {
                     await setDoc(studioDocRef, STATIC_CONFIG);
                 }
             } catch (e) {
-                console.error('[스튜디오] 초기 설정 저장 실패:', e);
+                console.error((t("g_951aa6") || "[스튜디오] 초기 설정 저장 실패:"), e);
             }
 
         // [REAL-TIME SYNC]
@@ -141,7 +142,7 @@ export const StudioProvider = ({ children }) => {
             setLoading(false);
                 useStudioStore.getState().setLoading(false);
         }, (error) => {
-            console.error('[스튜디오] 설정 동기화 오류:', error);
+            console.error((t("g_4c2197") || "[스튜디오] 설정 동기화 오류:"), error);
             setLoading(false);
                 useStudioStore.getState().setLoading(false);
         });
@@ -160,7 +161,7 @@ export const StudioProvider = ({ children }) => {
             await setDoc(studioDocRef, newConfig, { merge: true });
             return true;
         } catch (e) {
-            console.error('[스튜디오] 설정 업데이트 실패:', e);
+            console.error((t("g_aaf0ca") || "[스튜디오] 설정 업데이트 실패:"), e);
             throw e;
         }
     };
@@ -204,10 +205,10 @@ export const StudioProvider = ({ children }) => {
                             if (typeof window === 'undefined') return 'Loading Studio...';
                             const lang = new URLSearchParams(window.location.search).get('lang') || 'ko';
                             const loadingMap = {
-                                ko: '스튜디오 준비 중...',
+                                ko: (t("g_8916eb") || "스튜디오 준비 중..."),
                                 en: 'Loading Studio...',
-                                ja: 'スタジオ準備中...',
-                                zh: '工作室加载中...',
+                                ja: (t("g_dbdc54") || "スタジオ準備中..."),
+                                zh: (t("g_24d026") || "工作室加载中..."),
                                 es: 'Cargando estudio...',
                                 de: 'Studio wird geladen...',
                                 fr: 'Chargement du studio...',

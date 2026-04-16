@@ -32,7 +32,7 @@ const NetworkStatus = memo(() => {
   if (!isKioskMode || pendingCount === 0) return null;
   return <div className="network-status-badge">
             <CloudArrowUp size={20} weight="duotone" />
-            <span>{t("g_559310") || "\uB300\uAE30 \uC911\uC778 \uB370\uC774\uD130:"}{pendingCount}{t("g_230561") || "\uAC74"}</span>
+            <span>{t("g_574487") || "대기 중인 데이터:"}{pendingCount}{t("g_d202b4") || "건"}</span>
         </div>;
 });
 NetworkStatus.displayName = 'NetworkStatus';

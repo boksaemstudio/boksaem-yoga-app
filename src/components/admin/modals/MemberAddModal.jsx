@@ -133,7 +133,7 @@ const MemberAddModal = ({
       if (option.type === 'ticket') {
         p = option.basePrice;
         c = option.credits;
-        months = option.months || fallbackMonths > 1 ? fallbackMonths : 3;
+        months = option.months || (fallbackMonths > 1 ? fallbackMonths : 3);
       } else {
         c = option.credits === 9999 ? 9999 : option.credits * duration;
         months = duration * (option.months && option.months > 1 ? option.months : fallbackMonths);
@@ -158,7 +158,7 @@ const MemberAddModal = ({
     return {
       calculatedPrice: p,
       calculatedCredits: c,
-      calculatedEndDate: newMember.autoStart ? t("g_b8e060") || "\uCCAB \uCD9C\uC11D \uC2DC \uD655\uC815" : newMember.manualEndDate ? newMember.manualEndDate : realEnd,
+      calculatedEndDate: newMember.autoStart ? t("g_c2838e") || "첫 출석 시 확정" : newMember.manualEndDate ? newMember.manualEndDate : realEnd,
       calculatedRealEndDate: newMember.manualEndDate ? newMember.manualEndDate : realEnd,
       calculatedProductName: `${label} ${duration > 1 && option.type !== 'ticket' ? `(${duration}개월)` : ''}`,
       durationMonths: months // [FIX] 실제 계산된 유효기간(개월) — ticket/subscription 무관하게 정확한 값
@@ -218,7 +218,7 @@ const MemberAddModal = ({
   }, [newMember.branch, newMember.membershipType, newMember.selectedOption, isOpen, pricingConfig]);
   const handleAddMember = async () => {
     if (!newMember.name || !newMember.phone) {
-      alert(t("g_e53e44") || "\uC774\uB984\uACFC \uC804\uD654\uBC88\uD638\uB294 \uD544\uC218\uC785\uB2C8\uB2E4.");
+      alert(t("g_c5fd52") || "이름과 전화번호는 필수입니다.");
       return;
     }
     if (isSubmitting) return;
@@ -265,7 +265,7 @@ const MemberAddModal = ({
         const todayDateStr = new Date().toLocaleDateString('sv-SE', {
           timeZone: 'Asia/Seoul'
         });
-        await storageService.addManualAttendance(res.id, todayDateStr, newMember.branch, newMember.todayClass?.title || t("g_e7056c") || "\uB4F1\uB85D \uB2F9\uC77C \uC218\uB828", newMember.todayClass?.instructor || t("g_019a25") || "\uC2DC\uC2A4\uD15C \uC790\uB3D9", {
+        await storageService.addManualAttendance(res.id, todayDateStr, newMember.branch, newMember.todayClass?.title || t("g_3754f7") || "등록 당일 수련", newMember.todayClass?.instructor || t("g_d8b1bd") || "시스템 자동", {
           skipCreditDeduction: true
         } // [FIX] 이미 credits 계산 시 1회 차감됨, 이중 차감 방지
         );
@@ -299,7 +299,7 @@ const MemberAddModal = ({
       });
     } catch (err) {
       console.error('Error adding member:', err);
-      alert(t("g_7117f4") || "\uD68C\uC6D0 \uB4F1\uB85D \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.");
+      alert(t("g_e096cf") || "회원 등록 중 오류가 발생했습니다.");
     } finally {
       setIsSubmitting(false);
       isSubmittingRef.current = false;
@@ -440,7 +440,7 @@ const MemberAddModal = ({
                 ...newMember,
                 duration: m
               })}>
-                                            {m}{t("g_f667f2") || "\uAC1C\uC6D4"}</button>)}
+                                            {m}{t("g_d2dfd1") || "개월"}</button>)}
                                 </div>
                             </div>;
         }
@@ -581,12 +581,12 @@ const MemberAddModal = ({
                 cursor: 'pointer'
               }} value={(() => {
                 const cls = newMember.todayClass;
-                if (!cls) return t("g_2b3da3") || "\uC790\uC728\uC218\uB828";
+                if (!cls) return t("g_dd529d") || "자율수련";
                 // [FIX] 고유키(time__title) 사용하여 동일 수업명 중복 시에도 정확한 선택 보장
-                return cls._key || cls.title || t("g_2b3da3") || "\uC790\uC728\uC218\uB828";
+                return cls._key || cls.title || t("g_dd529d") || "자율수련";
               })()} onChange={e => {
                 const selectedKey = e.target.value;
-                if (selectedKey === (t("g_2b3da3") || "\uC790\uC728\uC218\uB828")) {
+                if (selectedKey === (t("g_dd529d") || "자율수련")) {
                   setNewMember({
                     ...newMember,
                     todayClass: null
@@ -616,7 +616,7 @@ const MemberAddModal = ({
                   const title = cls.title || cls.className || '';
                   const time = cls.time || '';
                   const instructor = cls.instructor || '';
-                  const label = [time, title, instructor].filter(Boolean).join(' ') + (t("g_ab216c") || " (-1\uD68C)");
+                  const label = [time, title, instructor].filter(Boolean).join(' ') + (t("g_9dc8e0") || " (-1회)");
                   // [FIX] 고유키(time__title) — 같은 수업이 다른 시간대에 있어도 구분 가능
                   const uniqueKey = `${time}__${title}`;
                   return <option key={uniqueKey} value={uniqueKey}>{label}</option>;
@@ -666,13 +666,13 @@ const MemberAddModal = ({
         }}>
                         {[{
             id: 'card',
-            label: t("g_7e9cf3") || "\uCE74\uB4DC"
+            label: t("g_7dedeb") || "카드"
           }, {
             id: 'cash',
-            label: t("g_948cb2") || "\uD604\uAE08"
+            label: t("g_610240") || "현금"
           }, {
             id: 'transfer',
-            label: t("g_0b2312") || "\uC774\uCCB4"
+            label: t("g_24cb57") || "이체"
           }].map(p => <button key={p.id} className={`action-btn ${newMember.paymentMethod === p.id ? 'primary' : ''}`} style={{
             flex: 1,
             padding: '14px 0',
@@ -814,7 +814,7 @@ const MemberAddModal = ({
           borderRadius: '16px',
           boxShadow: '0 10px 20px rgba(var(--primary-rgb), 0.2)'
         }} disabled={isSubmitting}>
-                        {isSubmitting ? t("g_a8d064") || "\uCC98\uB9AC \uC911..." : t("g_bcf353") || "\uD68C\uC6D0 \uB4F1\uB85D \uC644\uB8CC"}
+                        {isSubmitting ? t("g_e6e1a2") || "처리 중..." : t("g_b5685a") || "회원 등록 완료"}
                     </button>
                 </div>
             </div>

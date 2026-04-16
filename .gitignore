@@ -30,3 +30,6 @@ service-account-key.json
 functions/service-account-key.json
 **/service-account-key*.json
 *-credentials.json
+
+# Workspace Archives
+_workspace_archive/

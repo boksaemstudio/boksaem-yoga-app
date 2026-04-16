@@ -1,0 +1,706 @@
+{
+  "class_saturday_hatha": {
+    "ko": "하타인텐시브",
+    "en": "Saturday Hatha"
+  },
+  "class_kids_flying": {
+    "ko": "키즈플라잉",
+    "en": "Kids Flying"
+  },
+  "class_prenatal": {
+    "ko": "임산부요가",
+    "en": "Prenatal Yoga"
+  },
+  "class_TTC": {
+    "ko": "TTC (지도자과정)",
+    "en": "TTC (Teacher Training)"
+  },
+  "weather_clear": {
+    "ko": "맑음",
+    "en": "Clear"
+  },
+  "weather_partly_cloudy": {
+    "ko": "약간 흐림",
+    "en": "Partly Cloudy"
+  },
+  "weather_cloudy": {
+    "ko": "흐림",
+    "en": "Cloudy"
+  },
+  "weather_rain": {
+    "ko": "비",
+    "en": "Rain"
+  },
+  "weather_snow": {
+    "ko": "눈",
+    "en": "Snow"
+  },
+  "weather_thunderstorm": {
+    "ko": "뇌우",
+    "en": "Thunderstorm"
+  },
+  "weather_calm": {
+    "ko": "평온함",
+    "en": "Calm"
+  },
+  "auto_practice": {
+    "ko": "자율수련",
+    "en": "Self Practice"
+  },
+  "holiday_new_year": {
+    "ko": "신정",
+    "en": "New Year's Day"
+  },
+  "holiday_lunar_new_year": {
+    "ko": "설날",
+    "en": "Lunar New Year"
+  },
+  "holiday_samiljeol": {
+    "ko": "삼일절",
+    "en": "Independence Movement Day"
+  },
+  "holiday_arbor_day": {
+    "ko": "식목일",
+    "en": "Arbor Day"
+  },
+  "holiday_childrens_day": {
+    "ko": "어린이날",
+    "en": "Children's Day"
+  },
+  "holiday_buddha": {
+    "ko": "부처님 오신 날",
+    "en": "Buddha's Birthday"
+  },
+  "holiday_memorial": {
+    "ko": "현충일",
+    "en": "Memorial Day"
+  },
+  "holiday_liberation": {
+    "ko": "광복절",
+    "en": "Liberation Day"
+  },
+  "holiday_chuseok": {
+    "ko": "추석",
+    "en": "Chuseok"
+  },
+  "holiday_foundation": {
+    "ko": "개천절",
+    "en": "National Foundation Day"
+  },
+  "holiday_hangul": {
+    "ko": "한글날",
+    "en": "Hangul Proclamation Day"
+  },
+  "holiday_christmas": {
+    "ko": "크리스마스",
+    "en": "Christmas"
+  },
+  "loadMoreMessages": {
+    "ko": "이전 메시지 더보기",
+    "en": "Load more messages"
+  },
+  "statusPending": {
+    "ko": "대기 중 (선등록)",
+    "en": "Pending (Pre-registered)"
+  },
+  "paymentItem": {
+    "ko": "결제 항목",
+    "en": "Payment Item"
+  },
+  "payCard": {
+    "ko": "카드결제",
+    "en": "Card"
+  },
+  "payCash": {
+    "ko": "현금결제",
+    "en": "Cash"
+  },
+  "payOther": {
+    "ko": "기타 결제",
+    "en": "Other"
+  },
+  "payTransfer": {
+    "ko": "계좌이체",
+    "en": "Transfer"
+  },
+  "holdElapsed": {
+    "ko": "{start}부터 {elapsed}일 경과 (신청: {requested}일)",
+    "en": "Since {start}, {elapsed} days elapsed (Requested: {requested} days)"
+  },
+  "holdAutoRelease": {
+    "ko": "출석 시 자동 해제",
+    "en": "Auto-released on check-in"
+  },
+  "holdExtended": {
+    "ko": "마감일이 {days}일 연장됩니다",
+    "en": "End date extended by {days} days"
+  },
+  "holdApplied": {
+    "ko": "홀딩이 적용되었습니다.",
+    "en": "Hold applied successfully."
+  },
+  "holdFailed": {
+    "ko": "홀딩 적용에 실패했습니다.",
+    "en": "Failed to apply hold."
+  },
+  "holdError": {
+    "ko": "홀딩 처리 중 오류가 발생했습니다.",
+    "en": "Error processing hold."
+  },
+  "endDateTBD": {
+    "ko": "첫 출석 시 확정",
+    "en": "Set on first attendance"
+  },
+  "daysLeftHolding": {
+    "ko": "⏸️ 정지",
+    "en": "⏸️ Paused"
+  },
+  "holdRemaining": {
+    "ko": "남은 횟수: {n}회",
+    "en": "Remaining: {n} times"
+  },
+  "holdModalDesc": {
+    "ko": "최대 {weeks}주 · {count}회 가능",
+    "en": "Max {weeks} weeks · {count} times"
+  },
+  "holdWeekDays": {
+    "ko": "{w}주 ({d}일)",
+    "en": "{w} wk ({d} days)"
+  },
+  "holdStartBtn": {
+    "ko": "{days}일 홀딩 시작",
+    "en": "Start {days}-day Hold"
+  },
+  "normalCount": {
+    "ko": "정상 {n}회",
+    "en": "Valid {n}"
+  },
+  "expiredCancelCount": {
+    "ko": "만료취소 {n}회",
+    "en": "Cancelled {n}"
+  },
+  "deniedNoCredits": {
+    "ko": "출석거부(횟수소진)",
+    "en": "Denied (No Credits)"
+  },
+  "deniedExpired": {
+    "ko": "출석거부(기간만료)",
+    "en": "Denied (Expired)"
+  },
+  "sessionN": {
+    "ko": "{n}회차",
+    "en": "Session {n}"
+  },
+  "loadMsg1": {
+    "ko": "호흡을 고르는 중...",
+    "en": "Settling the breath..."
+  },
+  "loadMsg2": {
+    "ko": "수련 기록을 읽는 중...",
+    "en": "Reading your practice log..."
+  },
+  "loadMsg3": {
+    "ko": "회원님의 리듬을 파악하는 중...",
+    "en": "Understanding your rhythm..."
+  },
+  "loadMsg4": {
+    "ko": "고요한 통찰을 준비 중입니다...",
+    "en": "Preparing quiet insights..."
+  },
+  "sessionComplete": {
+    "ko": "{n}회차 수련 완료!",
+    "en": "Session {n} Complete!"
+  },
+  "pushOnLabel": {
+    "ko": "알림이 켜져 있습니다",
+    "en": "Notifications are ON"
+  },
+  "pushOffLabel": {
+    "ko": "알림이 꺼져 있습니다",
+    "en": "Notifications are OFF"
+  },
+  "pushOffConfirm": {
+    "ko": "푸시 알림을 끄시겠습니까? (브라우저 설정에서 차단해야 완벽하게 꺼집니다)",
+    "en": "Turn off push notifications? (Block in browser settings for full effect)"
+  },
+  "installIOS": {
+    "ko": "아이폰에 앱 설치하기",
+    "en": "Install App on iPhone"
+  },
+  "installAndroid": {
+    "ko": "앱 설치하기",
+    "en": "Install App"
+  },
+  "installIOSDesc": {
+    "ko": "사파리(Safari)에서 홈 화면에 추가하세요",
+    "en": "Add to Home Screen from Safari"
+  },
+  "installAndroidDesc": {
+    "ko": "홈 화면에 추가하여 더 편리하게 이용하세요",
+    "en": "Add to Home Screen for easy access"
+  },
+  "homeYogaDefault": {
+    "ko": "기본 추천 요가",
+    "en": "Basic Recommended Yoga"
+  },
+  "homeYogaAI": {
+    "ko": "오늘의 AI 추천 요가",
+    "en": "Today's AI Recommended Yoga"
+  },
+  "homeYogaFallback": {
+    "ko": "서비스 연결이 원활하지 않아 기본 코스를 안내합니다.",
+    "en": "Service unavailable. Showing default course."
+  },
+  "recent": {
+    "ko": "최근",
+    "en": "Recent"
+  },
+  "analyzedRecent": {
+    "ko": "최근 {n}번의 수련 기록을 분석했습니다.",
+    "en": "Analyzed {n} recent practice records."
+  },
+  "practiceCount": {
+    "ko": "수련 횟수",
+    "en": "Sessions"
+  },
+  "etcLabel": {
+    "ko": "기타",
+    "en": "Other"
+  },
+  "pushSetSuccess": {
+    "ko": "푸시 알림이 설정되었습니다.",
+    "en": "Push notifications enabled."
+  },
+  "pushSetFail": {
+    "ko": "알림 설정 실패",
+    "en": "Notification setup failed"
+  },
+  "pushTurnOffConfirm": {
+    "ko": "푸시 알림을 끄시겠습니까? (브라우저 설정에서 차단해야 완벽하게 꺼집니다)",
+    "en": "Turn off push notifications? (Block in browser settings for full effect)"
+  },
+  "aiRecommendLoading": {
+    "ko": "AI 추천 로딩 중...",
+    "en": "Loading AI recommendations..."
+  },
+  "msgIndividual": {
+    "ko": "개별",
+    "en": "Personal"
+  },
+  "msgNotice": {
+    "ko": "공지",
+    "en": "Notice"
+  },
+  "authenticating": {
+    "ko": "인증 중...",
+    "en": "Authenticating..."
+  },
+  "loginBtn": {
+    "ko": "접속하기",
+    "en": "Sign In"
+  },
+  "loginError": {
+    "ko": "로그인 처리 중 오류가 발생했습니다.",
+    "en": "An error occurred during login."
+  },
+  "kioskChecking": {
+    "ko": "출석 확인 중...",
+    "en": "Checking attendance..."
+  },
+  "kioskMemberNotFound": {
+    "ko": "회원 정보를 찾을 수 없습니다.",
+    "en": "Member not found."
+  },
+  "kioskSystemError": {
+    "ko": "시스템 오류가 발생했습니다. 다시 시도해주세요.",
+    "en": "A system error occurred. Please try again."
+  },
+  "kioskExpiredDenied": {
+    "ko": "기간 혹은 횟수가 만료되었습니다.",
+    "en": "Your membership has expired."
+  },
+  "kioskSuccessStart": {
+    "ko": "오늘의 수련이 시작됩니다.",
+    "en": "Your practice begins today."
+  },
+  "kioskPrivacy": {
+    "ko": "개인정보처리방침",
+    "en": "Privacy Policy"
+  },
+  "kioskSleepTitle": {
+    "ko": "운영 시간이 종료되었습니다",
+    "en": "Operating hours have ended"
+  },
+  "kioskSleepSub": {
+    "ko": "내일 다시 만나요",
+    "en": "See you tomorrow"
+  },
+  "kioskFaceConfirmQ": {
+    "ko": "출석하시겠습니까?",
+    "en": "Would you like to check in?"
+  },
+  "kioskFaceYes": {
+    "ko": "네, 맞아요",
+    "en": "Yes, that's me"
+  },
+  "kioskFacePinFallback": {
+    "ko": "본인이 아니면 4자리 핀번호로 출석해주세요",
+    "en": "If not you, please use your 4-digit PIN"
+  },
+  "accessDeniedTitle": {
+    "ko": "🔒 접근 권한 없음",
+    "en": "🔒 Access Denied"
+  },
+  "accessDeniedDesc": {
+    "ko": "이 업장의 관리자 권한이 없습니다.",
+    "en": "You don't have admin access to this studio."
+  },
+  "logoutBtn": {
+    "ko": "로그아웃",
+    "en": "Logout"
+  },
+  "superAdminOnly": {
+    "ko": "👑 슈퍼어드민 전용",
+    "en": "👑 Super Admin Only"
+  },
+  "superAdminOnlyDesc": {
+    "ko": "이 페이지는 플랫폼 관리자만 접근할 수 있습니다.",
+    "en": "This page is only accessible to platform administrators."
+  },
+  "adminLoginBtn": {
+    "ko": "관리자 계정 로그인",
+    "en": "Login as Admin"
+  },
+  "goHome": {
+    "ko": "홈으로 이동",
+    "en": "Go Home"
+  },
+  "demoSiteTitle": {
+    "ko": "🎯 데모 사이트",
+    "en": "🎯 Demo Site"
+  },
+  "demoSiteDesc": {
+    "ko": "데모 사이트에 접속합니다.",
+    "en": "Accessing the demo site."
+  },
+  "demoAccessBtn": {
+    "ko": "데모 접속하기",
+    "en": "Access Demo"
+  },
+  "demoPreparing": {
+    "ko": "데모 사이트 준비 중...",
+    "en": "Preparing demo site..."
+  },
+  "tabMessages": {
+    "ko": "메시지",
+    "en": "Messages"
+  },
+  "messagesTitle": {
+    "ko": "메시지함",
+    "en": "Messages"
+  },
+  "notificationSetting": {
+    "ko": "수련 및 만료 알림",
+    "en": "Notifications"
+  },
+  "startDate": {
+    "ko": "시작일",
+    "en": "Start"
+  },
+  "nameLabel": {
+    "ko": "이름",
+    "en": "Name"
+  },
+  "weatherPrefix": {
+    "ko": "서울",
+    "en": "Seoul"
+  },
+  "viewWeekly": {
+    "ko": "주간",
+    "en": "Weekly"
+  },
+  "viewCalendar": {
+    "ko": "달력",
+    "en": "Calendar"
+  },
+  "viewAll": {
+    "ko": "전체보기",
+    "en": "View All"
+  },
+  "todayWisdom": {
+    "ko": "✨ 오늘의 지혜",
+    "en": "✨ Today's Wisdom"
+  },
+  "times": {
+    "ko": "회차",
+    "en": "times"
+  },
+  "tabSchedule": {
+    "ko": "시간표",
+    "en": "Schedule"
+  },
+  "tabPrices": {
+    "ko": "수강권/결제",
+    "en": "Prices"
+  },
+  "tabNotices": {
+    "ko": "공지",
+    "en": "Notices"
+  },
+  "tabHome": {
+    "ko": "홈",
+    "en": "Home"
+  },
+  "tabHistory": {
+    "ko": "수련기록",
+    "en": "History"
+  },
+  "settingUp": {
+    "ko": "설정 중...",
+    "en": "Setting up..."
+  },
+  "scheduleTitle": {
+    "ko": "수련 시간표",
+    "en": "Schedule"
+  },
+  "scheduleSub": {
+    "ko": "오늘의 수련 시간을 확인하여\n몸과 마음의 정막(Prashanti)을 준비해 보세요.",
+    "en": "Check today's schedule and prepare your body and mind."
+  },
+  "remainingCredits": {
+    "ko": "잔여 횟수",
+    "en": "Credits"
+  },
+  "remainCount": {
+    "ko": "잔여 횟수",
+    "en": "Remaining"
+  },
+  "recentAttendance": {
+    "ko": "최근 수련",
+    "en": "Recent"
+  },
+  "phonePlaceholder": {
+    "ko": "번호 4자리를 눌러주세요",
+    "en": "Enter 4 digits"
+  },
+  "phoneLabel": {
+    "ko": "전화번호 뒤 4자리",
+    "en": "Last 4 digits of phone"
+  },
+  "noticesTitle": {
+    "ko": "요가원 공지",
+    "en": "Notices"
+  },
+  "noMessages": {
+    "ko": "수신된 메시지가 없습니다.",
+    "en": "No messages received."
+  },
+  "noAttendanceHistory": {
+    "ko": "수련 기록이 없습니다.",
+    "en": "No attendance history found."
+  },
+  "namePlaceholder": {
+    "ko": "이름을 입력해주세요",
+    "en": "Please enter your name"
+  },
+  "myPassStatus": {
+    "ko": "나의 이용권 상태",
+    "en": "My Pass Status"
+  },
+  "logout": {
+    "ko": "로그아웃",
+    "en": "Logout"
+  },
+  "loginWelcome": {
+    "ko": "디지털 마당에 오신 것을 환영합니다.",
+    "en": "Welcome to our Digital Yard."
+  },
+  "loginTitle": {
+    "ko": "나를 만나는 고요한 시간",
+    "en": "A Quiet Time to Meet Myself"
+  },
+  "loginSub": {
+    "ko": "매트 위에서의 소중한 정성을 확인해보세요.",
+    "en": "Check your precious sincerity on the mat."
+  },
+  "loginFooter": {
+    "ko": "수련 데이터가 쌓일수록 AI가 당신의 요가 수련을 깊이 있게 분석해 드립니다.",
+    "en": "Containing the depth of traditional yoga with modern convenience."
+  },
+  "loading": {
+    "ko": "로딩 중...",
+    "en": "Loading..."
+  },
+  "installBtn": {
+    "ko": "설치하기",
+    "en": "Install"
+  },
+  "installApp": {
+    "ko": "홈 화면에 앱 추가하기",
+    "en": "Add App to Home Screen"
+  },
+  "expiryDate": {
+    "ko": "만료일",
+    "en": "Expiry"
+  },
+  "daysLeft": {
+    "ko": "남은 기간",
+    "en": "Days Left"
+  },
+  "currentMembership": {
+    "ko": "현재 수강권",
+    "en": "Membership"
+  },
+  "countUnit": {
+    "ko": "회",
+    "en": "times"
+  },
+  "checkRecordBtn": {
+    "ko": "나의 수련 여정 보기",
+    "en": "Check Records"
+  },
+  "cancel": {
+    "ko": "취소",
+    "en": "Cancel"
+  },
+  "bannerInstallTitle": {
+    "ko": "앱 설치하고 1초 접속 ⚡️",
+    "en": "Install app for instant access ⚡️"
+  },
+  "bannerInstallDesc": {
+    "ko": "터치해서 홈 화면에 바로 추가하세요",
+    "en": "Tap to add to your Home Screen"
+  },
+  "aiPracticeAnalysis": {
+    "ko": "✨ AI 수련 분석",
+    "en": "✨ AI Practice Analysis"
+  },
+  "language": {
+    "ko": "언어",
+    "en": "Language"
+  },
+  "logoutConfirm": {
+    "ko": "로그아웃 하시겠습니까?",
+    "en": "Are you sure you want to logout?"
+  },
+  "expired": {
+    "ko": "만료",
+    "en": "Expired"
+  },
+  "unlimited": {
+    "ko": "무제한",
+    "en": "Unlimited"
+  },
+  "consecutiveDays": {
+    "ko": "{n}일 연속 수련",
+    "en": "{n} Day Streak"
+  },
+  "myAnalysis": {
+    "ko": "나의 수련 분석",
+    "en": "My Analysis"
+  },
+  "historyTitle": {
+    "ko": "수련 기록",
+    "en": "Records"
+  },
+  "noNotices": {
+    "ko": "새로운 공지가 없습니다.",
+    "en": "No new notices."
+  },
+  "errorMemberNotFound": {
+    "ko": "회원 정보를 찾을 수 없습니다.",
+    "en": "Member not found."
+  },
+  "inputError": {
+    "ko": "이름과 전화번호 뒷자리를 입력해주세요.",
+    "en": "Please enter name and last 4 digits."
+  },
+  "loginFailed": {
+    "ko": "로그인 처리 중 오류가 발생했습니다.",
+    "en": "Login failed."
+  },
+  "unknownError": {
+    "ko": "알 수 없는 오류",
+    "en": "Unknown error"
+  },
+  "weatherDefault": {
+    "ko": "오늘 하루도 요가와 함께",
+    "en": "Have a great day with yoga"
+  },
+  "pushEnabled": {
+    "ko": "알림 설정이 완료되었습니다.",
+    "en": "Notifications enabled."
+  },
+  "pushBlocked": {
+    "ko": "알림 권한이 차단되었습니다. 브라우저 설정에서 허용해주세요.",
+    "en": "Notifications blocked. Please allow in browser settings."
+  },
+  "sessionOrder": {
+    "ko": "{n}회차",
+    "en": "Session {n}"
+  },
+  "date_header": {
+    "ko": "{year}년 {month}월",
+    "en": "{year}.{month}"
+  },
+  "selfPractice": {
+    "ko": "자율수련",
+    "en": "Self Practice"
+  },
+  "ticket": {
+    "ko": "수강권",
+    "en": "Pass"
+  },
+  "statusActive": {
+    "ko": "이용 중",
+    "en": "Active"
+  },
+  "statusExpired": {
+    "ko": "만료됨",
+    "en": "Expired"
+  },
+  "statusNone": {
+    "ko": "미보유",
+    "en": "None"
+  },
+  "processing": {
+    "ko": "처리 중...",
+    "en": "Processing..."
+  },
+  "healthDataSync": {
+    "ko": "건강 데이터 연동",
+    "en": "Health Data Sync"
+  },
+  "healthConnected": {
+    "ko": "Apple/Samsung Health 연결됨",
+    "en": "Apple/Samsung Health Connected"
+  },
+  "healthDescription": {
+    "ko": "심박수·칼로리 기록 관리",
+    "en": "Heart rate & calorie tracking"
+  },
+  "myMBTI": {
+    "ko": "나의 MBTI",
+    "en": "My MBTI"
+  },
+  "mbtiApplied": {
+    "ko": "AI 인사말과 맞춤 코칭에 반영돼요",
+    "en": "Applied to AI greeting & coaching"
+  },
+  "mbtiPrompt": {
+    "ko": "설정하면 나만의 AI 인사말과 코칭을 받아요 ✨",
+    "en": "Set your MBTI for personalized AI greetings ✨"
+  },
+  "complete": {
+    "ko": "완료",
+    "en": "Done"
+  },
+  "reselect": {
+    "ko": "다시 선택",
+    "en": "Reselect"
+  },
+  "privacyPolicy": {
+    "ko": "개인정보처리방침",
+    "en": "Privacy Policy"
+  }
+}

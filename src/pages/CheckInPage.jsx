@@ -87,7 +87,7 @@ const CheckInPage = () => {
   const [pendingPin, setPendingPin] = useState(null);
   const [duplicateTimer, setDuplicateTimer] = useState(config.POLICIES?.SESSION_AUTO_CLOSE_SEC || 25);
   const [isDuplicateFlow, setIsDuplicateFlow] = useState(false);
-  const [loadingMessage, setLoadingMessage] = useState(t('checkin_verifying') || t("g_a03db7") || "\uCD9C\uC11D \uD655\uC778 \uC911...");
+  const [loadingMessage, setLoadingMessage] = useState(t('checkin_verifying') || t("g_a81959") || "출석 확인 중...");
   // [안면인식 확인 모달] 중신뢰 매칭 시 "OO회원님 맞나요?" 표시
   const [faceConfirmMember, setFaceConfirmMember] = useState(null);
   const [period, setPeriod] = useState(() => {
@@ -263,8 +263,8 @@ const CheckInPage = () => {
   }, [period]);
 
   // ── Business Logic ──
-  const loadAIExperience = async (name = "\uBC29\uBB38 \uD68C\uC6D0", credits = null, days = null, w = null) => {
-    const isStandby = name === (t("g_403daa") || "\uBC29\uBB38 \uD68C\uC6D0");
+  const loadAIExperience = async (name = (t("g_ebb526") || "방문 회원"), credits = null, days = null, w = null) => {
+    const isStandby = name === (t("g_ebb526") || "방문 회원");
     try {
       const h = getKSTHour();
       if (h < CHECKIN_CONFIG.SERVICE_HOURS.AI_READY_START || h >= CHECKIN_CONFIG.SERVICE_HOURS.AI_READY_END) {
@@ -275,7 +275,7 @@ const CheckInPage = () => {
         return;
       }
       const info = await storageService.getCurrentClass(currentBranch);
-      const title = info?.title || t("g_2b3da3") || "\uC790\uC728\uC218\uB828";
+      const title = info?.title || t("g_dd529d") || "자율수련";
       if (isStandby) {
         const staticMsg = getStaticStandbyMessage(h, w?.weathercode || '0', title);
         setAiExperience({
@@ -283,11 +283,11 @@ const CheckInPage = () => {
           isFallback: true
         });
         setAiLoading(true);
-        storageService.getAIExperience(name, 0, t("g_e1e8a7") || "\uC624\uB298", h, title, w, null, null, language, null, 'visitor', 'checkin').then(res => {
+        storageService.getAIExperience(name, 0, t("g_2bdce5") || "오늘", h, title, w, null, null, language, null, 'visitor', 'checkin').then(res => {
           if (res?.message && !res.isFallback) setAiEnhancedMsg(res.message.replace(/나마스테[.]?\s*🙏?/gi, '').trim());
         }).finally(() => setAiLoading(false));
       } else {
-        const exp = await storageService.getAIExperience(name, 0, t("g_e1e8a7") || "\uC624\uB298", h, title, w, credits, days, language, null, 'member', 'checkin');
+        const exp = await storageService.getAIExperience(name, 0, t("g_2bdce5") || "오늘", h, title, w, credits, days, language, null, 'member', 'checkin');
         if (exp) setAiExperience({
           ...exp,
           message: exp.message.replace(/나마스테[.]?\s*🙏?/gi, '').trim()
@@ -300,7 +300,7 @@ const CheckInPage = () => {
       const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.9780&current_weather=true');
       const d = await r.json();
       setWeather(d.current_weather);
-      loadAIExperience(t("g_403daa") || "\uBC29\uBB38 \uD68C\uC6D0", null, null, d.current_weather);
+      loadAIExperience(t("g_ebb526") || "방문 회원", null, null, d.current_weather);
     } catch (e) {
       loadAIExperience();
     }
@@ -360,7 +360,7 @@ const CheckInPage = () => {
     });
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => handleModalClose(() => setMessage(null)), CHECKIN_CONFIG.TIMEOUTS.SUCCESS_MODAL);
-    setAiEnhancedMsg(t('checkin_ai_peaceful') || t("g_224835") || "\uC624\uB298\uB3C4 \uD3C9\uC628\uD55C \uC694\uAC00 \uC548\uB0B4\uD574 \uB4DC\uB9B4\uAC8C\uC694. \uB098\uB9C8\uC2A4\uD14C \uD83D\uDE4F");
+    setAiEnhancedMsg(t('checkin_ai_peaceful') || t("g_1f7776") || "오늘도 평온한 요가 안내해 드릴게요. 나마스테 🙏");
     setAiLoading(false);
   };
   const proceedWithCheckIn = async (p, isDup = false, memberIdToForce = null, facialTask = null, needConfirm = false, duplicateConfirmMethod = null) => {
@@ -371,7 +371,7 @@ const CheckInPage = () => {
         if (members) {
           setFaceConfirmMember({
             id: memberIdToForce,
-            name: members.name || t("g_6745df") || "\uD68C\uC6D0"
+            name: members.name || t("g_dae3ed") || "회원"
           });
           return;
         }
@@ -404,7 +404,7 @@ const CheckInPage = () => {
           await new Promise(r => setTimeout(r, 300));
           setMessage({
             type: 'error',
-            text: t('checkin_member_not_found') || '😔 등록되지 않은 번호입니다',
+            text: t('checkin_member_not_found') || (t("g_04cdab") || "😔 등록되지 않은 번호입니다"),
             subText: t('checkin_member_not_found_sub') || 'No member found matching the last 4 digits of this phone number.\n\nPlease check and try again.'
           });
           return;
@@ -468,8 +468,8 @@ const CheckInPage = () => {
           await new Promise(r => setTimeout(r, 300));
           setMessage({
             type: 'error',
-            text: t('checkin_expired') || '⏳ 수강권이 만료되었습니다',
-            subText: t('checkin_expired_sub') || '수강 기간이 지났거나 횟수가 소진되었습니다.\n\n프론트에 문의해 주세요.'
+            text: t('checkin_expired') || (t("g_f7866f") || "⏳ 수강권이 만료되었습니다"),
+            subText: t('checkin_expired_sub') || (t("g_2d2816") || "수강 기간이 지났거나 횟수가 소진되었습니다.\n\n프론트에 문의해 주세요.")
           });
         } else {
           // [FIX] 오프라인 출석이면 사진 URL을 pending_attendance에 저장
@@ -512,8 +512,8 @@ const CheckInPage = () => {
         await new Promise(r => setTimeout(r, 300));
          setMessage({
           type: 'error',
-          text: res.message || t('checkin_failed') || '❌ 출석 처리 실패',
-          subText: t('checkin_failed_sub') || '일시적인 오류가 발생했습니다.\n잠시 후 다시 시도해 주세요.'
+          text: res.message || t('checkin_failed') || (t("g_752d87") || "❌ 출석 처리 실패"),
+          subText: t('checkin_failed_sub') || (t("g_7c1dfd") || "일시적인 오류가 발생했습니다.\n잠시 후 다시 시도해 주세요.")
         });
       }
     } catch (e) {
@@ -524,8 +524,8 @@ const CheckInPage = () => {
       speak("error");
       setMessage({
         type: 'error',
-        text: t('checkin_system_error') || '⚠️ 시스템 오류',
-        subText: t('checkin_system_error_sub') || '일시적인 시스템 오류가 발생했습니다.\n잠시 후 다시 시도해 주세요.'
+        text: t('checkin_system_error') || (t("g_34c5fc") || "⚠️ 시스템 오류"),
+        subText: t('checkin_system_error_sub') || (t("g_c2c12e") || "일시적인 시스템 오류가 발생했습니다.\n잠시 후 다시 시도해 주세요.")
       });
     } finally {
       setLoading(false);

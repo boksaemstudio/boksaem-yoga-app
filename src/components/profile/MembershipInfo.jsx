@@ -114,7 +114,7 @@ const MembershipInfo = ({
         display: 'flex',
         alignItems: 'center',
         gap: '4px'
-      }}>{t("g_455574") || "\uD83D\uDCA0 AI \uCD9C\uC11D \uB4F1\uB85D"}</span>}
+      }}>{t("g_4f0782") || "💠 AI 출석 등록"}</span>}
                 {isHolding && <span style={{
         background: 'rgba(251, 146, 60, 0.2)',
         color: '#fb923c',
@@ -158,9 +158,9 @@ const MembershipInfo = ({
                         <span style={{
           color: '#818CF8',
           fontWeight: 'bold'
-        }}>{t("g_e1a2f3") || "AI \uCD9C\uC11D \uC548\uB0B4"}</span>{t("g_9e8f2a") || "\u2014 \n                        \uD68C\uC6D0\uB2D8\uC758 \uC0AC\uC9C4\uC740"}<b style={{
+        }}>{t("g_aa0cc0") || "AI 출석 안내"}</span>{t("g_7487f8") || "— \n                        회원님의 사진은"}<b style={{
           color: 'rgba(255,255,255,0.85)'
-        }}>{t("g_4d4b51") || "\uC800\uC7A5\uB418\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."}</b>{t("g_0301bf") || "\uC5BC\uAD74 \uD2B9\uC9D5\uC774 128\uCC28\uC6D0 \uC22B\uC790(\uBCA1\uD130)\uB85C \uBCC0\uD658\uB418\uC5B4 \uC548\uC804\uD558\uAC8C \uBCF4\uAD00\uB418\uBA70, \uC6D0\uBCF8 \uC774\uBBF8\uC9C0\uB294 \uC989\uC2DC \uC0AD\uC81C\uB429\uB2C8\uB2E4. \uC22B\uC790 \uB370\uC774\uD130\uB85C\uB294 \uC5BC\uAD74\uC744 \uBCF5\uC6D0\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."}</div>
+        }}>{t("g_d4206d") || "저장되지 않습니다."}</b>{t("g_898d03") || "얼굴 특징이 128차원 숫자(벡터)로 변환되어 안전하게 보관되며, 원본 이미지는 즉시 삭제됩니다. 숫자 데이터로는 얼굴을 복원할 수 없습니다."}</div>
                 </div>}
 
             {/* 홀딩 중일 때 상태 표시 */}
@@ -201,7 +201,7 @@ const MembershipInfo = ({
             fontSize: '0.7rem',
             color: 'rgba(255,255,255,0.5)'
           }}>
-                                {holdInfo.isAdminHold ? t("g_036c64") || "\uCCAB \uCD9C\uC11D \uC2DC \uC7AC\uC2DC\uC791" : t('holdAutoRelease')}
+                                {holdInfo.isAdminHold ? t("g_c06b16") || "첫 출석 시 재시작" : t('holdAutoRelease')}
                             </div>
                             <div style={{
             fontSize: '0.7rem',
@@ -322,25 +322,25 @@ const MembershipInfo = ({
       const diff = usageRatio - timeRatio;
       let paceStatus, paceColor, paceEmoji, paceMessage;
       if (diff >= 10) {
-        paceStatus = "\uBE60\uB984";
+        paceStatus = t("g_f8fc36") || "빠름";
         paceColor = '#10b981';
         paceEmoji = '🔥';
-        paceMessage = "\uC5F4\uC2EC\uD788 \uD558\uACE0 \uACC4\uC138\uC694! \uC774 \uD398\uC774\uC2A4\uB85C \uAFB8\uC900\uD788!";
+        paceMessage = t("g_773a61") || "열심히 하고 계세요! 이 페이스로 꾸준히!";
       } else if (diff >= -5) {
-        paceStatus = "\uC801\uC808";
+        paceStatus = t("g_b777db") || "적절";
         paceColor = 'var(--primary-gold)';
         paceEmoji = '✨';
-        paceMessage = "\uC644\uBCBD\uD55C \uD398\uC774\uC2A4\uC608\uC694! \uAFB8\uC900\uD568\uC774 \uAC74\uAC15\uC758 \uBE44\uACB0!";
+        paceMessage = t("g_491a53") || "완벽한 페이스예요! 꾸준함이 건강의 비결!";
       } else if (diff >= -20) {
-        paceStatus = "\uC870\uAE08 \uB290\uB9BC";
+        paceStatus = t("g_21460f") || "조금 느림";
         paceColor = '#F59E0B';
         paceEmoji = '💪';
-        paceMessage = "\uC870\uAE08 \uB354 \uBD84\uBC1C\uD558\uBA74 \uC218\uAC15\uAD8C\uC744 \uC54C\uCC28\uAC8C \uC4F8 \uC218 \uC788\uC5B4\uC694!";
+        paceMessage = t("g_a16508") || "조금 더 분발하면 수강권을 알차게 쓸 수 있어요!";
       } else {
-        paceStatus = "\uB290\uB9BC";
+        paceStatus = t("g_d7a0cb") || "느림";
         paceColor = '#EF4444';
         paceEmoji = '🧘‍♀️';
-        paceMessage = "\uC218\uB828\uD558\uB7EC \uC624\uC138\uC694! \uB0A8\uC740 \uAE30\uAC04\uC5D0 \uC544\uC9C1 \uCDA9\uBD84\uD788 \uD560 \uC218 \uC788\uC5B4\uC694!";
+        paceMessage = t("g_a95871") || "수련하러 오세요! 남은 기간에 아직 충분히 할 수 있어요!";
       }
       return <div style={{
         marginTop: '16px',
@@ -365,7 +365,7 @@ const MembershipInfo = ({
               fontSize: '0.85rem',
               fontWeight: '700',
               color: 'white'
-            }}>{t("g_7d5a1f") || "\uC218\uAC15 \uD398\uC774\uC2A4"}</span>
+            }}>{t("g_77813b") || "수강 페이스"}</span>
                                 <span style={{
               fontSize: '0.7rem',
               padding: '2px 6px',
@@ -381,7 +381,7 @@ const MembershipInfo = ({
             fontSize: '0.75rem',
             color: '#a1a1aa'
           }}>
-                                {attendanceCount}{t("g_6a67f7") || "\uD68C \uC0AC\uC6A9 /"}{totalCredits}{t("g_be72a4") || "\uD68C \uC911"}</span>
+                                {attendanceCount}{t("g_200a34") || "회 사용 /"}{totalCredits}{t("g_0fd568") || "회 중"}</span>
                         </div>
                         
                         {/* Double Progress Bar */}
@@ -453,7 +453,7 @@ const MembershipInfo = ({
                 background: paceColor,
                 borderRadius: '2px',
                 display: 'inline-block'
-              }} />{t("g_d4dc4e") || "\uC218\uAC15"}{usageRatio}%
+              }} />{t("g_75600e") || "수강"}{usageRatio}%
                                 </span>
                                 <span style={{
               display: 'flex',
@@ -465,10 +465,10 @@ const MembershipInfo = ({
                 height: '8px',
                 borderLeft: '2px solid rgba(255,255,255,0.5)',
                 display: 'inline-block'
-              }} />{t("g_7bc7c5") || "\uAE30\uAC04"}{timeRatio}%
+              }} />{t("g_262233") || "기간"}{timeRatio}%
                                 </span>
                             </div>
-                            <span>{t("g_34c1e0") || "\uC794\uC5EC"}{remainingCredits}{t("g_8a602f") || "\uD68C"}</span>
+                            <span>{t("g_599737") || "잔여"}{remainingCredits}{t("g_2fc05c") || "회"}</span>
                         </div>
                         
                         {/* AI Motivation Comment */}
@@ -541,44 +541,44 @@ const MembershipInfo = ({
         grade = 'S';
         gradeColor = '#10b981';
         gradeEmoji = '🏆';
-        gradeMsg = "\uC644\uBCBD\uD55C \uADFC\uBA74\uC131\uC2E4! \uB2F9\uC2E0\uC740 \uC694\uAC00 \uB9C8\uC2A4\uD130 \uD83E\uDDD8";
+        gradeMsg = t("g_1528ad") || "완벽한 근면성실! 당신은 요가 마스터 🧘‍♀️";
       } else if (totalScore >= 70) {
         grade = 'A';
         gradeColor = '#3B82F6';
         gradeEmoji = '⭐';
-        gradeMsg = "\uD6CC\uB96D\uD574\uC694! \uAFB8\uC900\uD568\uC774 \uBE5B\uB098\uB294 \uC218\uB828\uC790";
+        gradeMsg = t("g_8266c4") || "훌륭해요! 꾸준함이 빛나는 수련자";
       } else if (totalScore >= 50) {
         grade = 'B';
         gradeColor = 'var(--primary-gold)';
         gradeEmoji = '💫';
-        gradeMsg = "\uC88B\uC740 \uD398\uC774\uC2A4! \uC870\uAE08\uB9CC \uB354 \uADDC\uCE59\uC801\uC73C\uB85C";
+        gradeMsg = t("g_0a5a3c") || "좋은 페이스! 조금만 더 규칙적으로";
       } else if (totalScore >= 30) {
         grade = 'C';
         gradeColor = '#F59E0B';
         gradeEmoji = '💪';
-        gradeMsg = "\uAC00\uB2A5\uC131\uC774 \uC788\uC5B4\uC694! \uC2B5\uAD00\uC744 \uB9CC\uB4E4\uC5B4\uBCF4\uC138\uC694";
+        gradeMsg = t("g_c8db70") || "가능성이 있어요! 습관을 만들어보세요";
       } else {
         grade = 'D';
         gradeColor = '#EF4444';
         gradeEmoji = '🌱';
-        gradeMsg = "\uB2E4\uC2DC \uC2DC\uC791\uD574\uBD10\uC694! \uC791\uC740 \uD55C \uAC78\uC74C\uBD80\uD130";
+        gradeMsg = t("g_24fb8a") || "다시 시작해봐요! 작은 한 걸음부터";
       }
       const indicators = [{
-        label: t("g_8d40f3") || "\uC8FC\uAC04 \uCD9C\uC11D",
+        label: t("g_3deaf3") || "주간 출석",
         score: weeklyScore,
-        desc: `주 ${weeklyAvg.toFixed(1)}회`
+        desc: t("weekly_attendance_desc", { count: weeklyAvg.toFixed(1) }) || `주 ${weeklyAvg.toFixed(1)}회`
       }, {
-        label: t("g_8f2f30") || "\uADDC\uCE59\uC131",
+        label: t("g_88d2d2") || "규칙성",
         score: regularityScore,
-        desc: stdDev < 2 ? t("g_5fde0b") || "\uB9E4\uC6B0 \uADDC\uCE59\uC801" : stdDev < 4 ? t("g_fa06c1") || "\uADDC\uCE59\uC801" : t("g_6ef51b") || "\uBD88\uADDC\uCE59"
+        desc: stdDev < 2 ? t("g_bab125") || "매우 규칙적" : stdDev < 4 ? t("g_d82985") || "규칙적" : t("g_7582c5") || "불규칙"
       }, {
-        label: t("g_10ef44") || "\uAFB8\uC900\uD568",
+        label: t("g_58a92c") || "꾸준함",
         score: consistencyScore,
-        desc: `최근 4주 중 ${recentWeeks.reduce((a, b) => a + b, 0)}주 출석`
+        desc: t("recent_4weeks_desc", { count: recentWeeks.reduce((a, b) => a + b, 0) }) || `최근 4주 중 ${recentWeeks.reduce((a, b) => a + b, 0)}주 출석`
       }, {
-        label: t("g_5673ab") || "\uCD5C\uADFC \uD65C\uB825",
+        label: t("g_b8ffad") || "최근 활력",
         score: vitalityScore,
-        desc: `최근 2주 ${recentCount}회`
+        desc: t("recent_2weeks_desc", { count: recentCount }) || `최근 2주 ${recentCount}회`
       }];
       return <div style={{
         marginTop: '16px',
@@ -603,7 +603,7 @@ const MembershipInfo = ({
               fontSize: '0.85rem',
               fontWeight: '700',
               color: 'white'
-            }}>{t("g_3d855e") || "\uADFC\uBA74\uC131\uC2E4\uB3C4"}</span>
+            }}>{t("g_91e95d") || "근면성실도"}</span>
                                 <span style={{
               fontSize: '1rem',
               padding: '2px 10px',
@@ -619,7 +619,7 @@ const MembershipInfo = ({
                             <span style={{
             fontSize: '0.75rem',
             color: '#71717a'
-          }}>{totalScore}{t("g_8466e0") || "\uC810 / 100"}</span>
+          }}>{totalScore}{t("g_207753") || "점 / 100"}</span>
                         </div>
 
                         {/* 지표 바 */}

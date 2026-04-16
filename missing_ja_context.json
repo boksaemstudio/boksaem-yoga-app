@@ -1,0 +1,1230 @@
+{
+  "수업별 출석 요약": {
+    "ko": "수업별 출석 요약",
+    "en": "Class Attendance Summary"
+  },
+  "개 수업": {
+    "ko": "개 수업",
+    "en": " Classes"
+  },
+  "출석 시도가 거부되었습니다": {
+    "ko": "출석 시도가 거부되었습니다",
+    "en": "Attendance attempt was denied"
+  },
+  "수업 참여": {
+    "ko": "수업 참여",
+    "en": "Class participation"
+  },
+  "g_69c40d": {
+    "ko": "좋은 아침이에요",
+    "en": "g_69c40d"
+  },
+  "g_0afaa0": {
+    "ko": "오늘도 좋은 오후예요",
+    "en": "g_0afaa0"
+  },
+  "g_3b6240": {
+    "ko": "수고하셨어요",
+    "en": "g_3b6240"
+  },
+  "g_754486": {
+    "ko": "월",
+    "en": "g_754486"
+  },
+  "g_71a096": {
+    "ko": "새로운 한 주의 시작!",
+    "en": "g_71a096"
+  },
+  "g_cf5632": {
+    "ko": "금",
+    "en": "g_cf5632"
+  },
+  "g_7e763e": {
+    "ko": "즐거운 금요일!",
+    "en": "g_7e763e"
+  },
+  "g_b9e406": {
+    "ko": "토",
+    "en": "g_b9e406"
+  },
+  "g_06cf3e": {
+    "ko": "일",
+    "en": "g_06cf3e"
+  },
+  "g_81cdb0": {
+    "ko": "행복한 주말!",
+    "en": "g_81cdb0"
+  },
+  "g_5c1a70": {
+    "ko": "미지정",
+    "en": "g_5c1a70"
+  },
+  "g_adb4a2": {
+    "ko": "화",
+    "en": "g_adb4a2"
+  },
+  "g_c04eb2": {
+    "ko": "수",
+    "en": "g_c04eb2"
+  },
+  "g_5664a6": {
+    "ko": "목",
+    "en": "g_5664a6"
+  },
+  "g_b163f5": {
+    "ko": "로그아웃 하시겠습니까?",
+    "en": "g_b163f5"
+  },
+  "g_06e61b": {
+    "ko": "로딩 중...",
+    "en": "g_06e61b"
+  },
+  "g_d2ba3a": {
+    "ko": "로고",
+    "en": "g_d2ba3a"
+  },
+  "g_620be2": {
+    "ko": "선생님",
+    "en": "g_620be2"
+  },
+  "g_e11dab": {
+    "ko": "설정 중",
+    "en": "g_e11dab"
+  },
+  "g_162678": {
+    "ko": "알림ON",
+    "en": "g_162678"
+  },
+  "g_e0bda3": {
+    "ko": "알림OFF",
+    "en": "g_e0bda3"
+  },
+  "g_bc08bf": {
+    "ko": "AI가 오늘의 인사를 준비하고 있어요",
+    "en": "g_bc08bf"
+  },
+  "g_13a46f": {
+    "ko": "홈",
+    "en": "g_13a46f"
+  },
+  "g_72ffa1": {
+    "ko": "시간표/예약현황",
+    "en": "g_72ffa1"
+  },
+  "g_78222f": {
+    "ko": "시간표",
+    "en": "g_78222f"
+  },
+  "g_c183e0": {
+    "ko": "공지",
+    "en": "g_c183e0"
+  },
+  "g_339679": {
+    "ko": "개인정보처리방침",
+    "en": "g_339679"
+  },
+  "g_dfa233": {
+    "ko": "문의 로딩 실패:",
+    "en": "g_dfa233"
+  },
+  "g_a9369b": {
+    "ko": "번역 실패:",
+    "en": "g_a9369b"
+  },
+  "g_f644d4": {
+    "ko": "관리자 목록 조회 실패: ",
+    "en": "g_f644d4"
+  },
+  "g_19978f": {
+    "ko": "이메일과 역할은 필수입니다.",
+    "en": "g_19978f"
+  },
+  "g_870347": {
+    "ko": "일반 관리자는 업장을 선택해야 합니다.",
+    "en": "g_870347"
+  },
+  "g_293aba": {
+    "ko": "이메일 전송 실패(무시됨):",
+    "en": "g_293aba"
+  },
+  "g_25b592": {
+    "ko": "생성 실패: ",
+    "en": "g_25b592"
+  },
+  "g_6a7ffd": {
+    "ko": "오류 발생",
+    "en": "g_6a7ffd"
+  },
+  "g_0406bb": {
+    "ko": "비밀번호는 최소 6자 이상이어야 합니다.",
+    "en": "g_0406bb"
+  },
+  "g_39370c": {
+    "ko": "비밀번호 변경 실패: ",
+    "en": "g_39370c"
+  },
+  "g_65997e": {
+    "ko": "권한 변경 실패: ",
+    "en": "g_65997e"
+  },
+  "g_6bafa7": {
+    "ko": "삭제 실패: ",
+    "en": "g_6bafa7"
+  },
+  "g_0a015f": {
+    "ko": "스튜디오 ID, 이름, 관리자 이메일은 필수입니다.",
+    "en": "g_0a015f"
+  },
+  "g_44a282": {
+    "ko": "스튜디오 ID는 영문 소문자, 숫자, 하이픈만 가능합니다.",
+    "en": "g_44a282"
+  },
+  "g_bbdd6e": {
+    "ko": "✅ 승인 처리를 위해 부여할 영문 스튜디오 ID를 입력하세요\n(예: namaste-yoga)",
+    "en": "g_bbdd6e"
+  },
+  "g_9732cc": {
+    "ko": "영문 소문자, 숫자, 하이픈만 가능합니다.",
+    "en": "g_9732cc"
+  },
+  "g_b6a17e": {
+    "ko": " 원장님",
+    "en": "g_b6a17e"
+  },
+  "g_9385ac": {
+    "ko": "🎉 스튜디오 승인 완료!\\n\\n1. 원장님 이메일로 접속 설정 안내가 자동 발송되었습니다.\\n2. (선택) 화면에 생성된 '직접 연결 주소'를 복사해서 카카오톡으로도 즉시 전달하실 수 있습니다!\\n\\n접속 즉시 한글판 PassFlow AI 로그인 화면이 펼쳐집니다.",
+    "en": "g_9385ac"
+  },
+  "g_a355c8": {
+    "ko": "계정 자동 생성 에러:",
+    "en": "g_a355c8"
+  },
+  "g_167d2b": {
+    "ko": "승인 실패: ",
+    "en": "g_167d2b"
+  },
+  "g_54b037": {
+    "ko": "❌ 반려 (거절) 사유를 입력하세요 (신청자에게 발송 안됨, 기록용):",
+    "en": "g_54b037"
+  },
+  "g_a31b7b": {
+    "ko": "올바른 날짜 형식이 아닙니다. (예: 2026-03-31)",
+    "en": "g_a31b7b"
+  },
+  "g_c4b755": {
+    "ko": "날짜가 수정되었습니다.",
+    "en": "g_c4b755"
+  },
+  "g_5e74ac": {
+    "ko": "날짜 수정에 실패했습니다.",
+    "en": "g_5e74ac"
+  },
+  "g_0bdbf7": {
+    "ko": "운영중",
+    "en": "g_0bdbf7"
+  },
+  "g_1d441e": {
+    "ko": "정지",
+    "en": "g_1d441e"
+  },
+  "g_e7cc41": {
+    "ko": "체험",
+    "en": "g_e7cc41"
+  },
+  "g_9caae3": {
+    "ko": "무료",
+    "en": "g_9caae3"
+  },
+  "g_6a5f26": {
+    "ko": "베이직",
+    "en": "g_6a5f26"
+  },
+  "g_2abd4b": {
+    "ko": "프로",
+    "en": "g_2abd4b"
+  },
+  "g_de66a8": {
+    "ko": "정사각형 로고",
+    "en": "g_de66a8"
+  },
+  "g_2d6c66": {
+    "ko": "가로형 로고",
+    "en": "g_2d6c66"
+  },
+  "g_01e107": {
+    "ko": "플랫폼 관리",
+    "en": "g_01e107"
+  },
+  "g_2bec30": {
+    "ko": "스튜디오",
+    "en": "g_2bec30"
+  },
+  "g_bdd81e": {
+    "ko": "관리자 계정",
+    "en": "g_bdd81e"
+  },
+  "g_dc3181": {
+    "ko": "도메인 관리",
+    "en": "g_dc3181"
+  },
+  "g_2b0f1a": {
+    "ko": "문의 메시지",
+    "en": "g_2b0f1a"
+  },
+  "g_9c5544": {
+    "ko": "Passflow Ai 및 요가원 방문자 트래픽 통계를 확인합니다",
+    "en": "g_9c5544"
+  },
+  "g_e72d34": {
+    "ko": "📊 방문자 통계 (GA4)",
+    "en": "g_e72d34"
+  },
+  "g_4e8322": {
+    "ko": "현재:",
+    "en": "g_4e8322"
+  },
+  "g_67f75d": {
+    "ko": "새 스튜디오",
+    "en": "g_67f75d"
+  },
+  "g_c21bd6": {
+    "ko": "불러오는 중...",
+    "en": "g_c21bd6"
+  },
+  "g_d18858": {
+    "ko": "신규 가입 심사 대기소 (",
+    "en": "g_d18858"
+  },
+  "g_a0fd7f": {
+    "ko": "건)",
+    "en": "g_a0fd7f"
+  },
+  "g_dae9ed": {
+    "ko": "❓ 새로 신청한 원장님들을 검토하고 스튜디오를 발급해주는 공간입니다.",
+    "en": "g_dae9ed"
+  },
+  "g_2b68d8": {
+    "ko": "🇯🇵 日本語",
+    "en": "g_2b68d8"
+  },
+  "g_190c4e": {
+    "ko": "📦 요금제:",
+    "en": "g_190c4e"
+  },
+  "g_79d007": {
+    "ko": "무료체험",
+    "en": "g_79d007"
+  },
+  "g_7a9449": {
+    "ko": "📥 첨부파일 #",
+    "en": "g_7a9449"
+  },
+  "g_5c5095": {
+    "ko": "다운로드",
+    "en": "g_5c5095"
+  },
+  "g_9119cb": {
+    "ko": "📥 첨부파일 (1) 다운로드",
+    "en": "g_9119cb"
+  },
+  "g_26a154": {
+    "ko": "이 버튼을 누르면 원장님 전용 DB가 자동으로 세팅되며 카톡 알림이 전송됩니다.",
+    "en": "g_26a154"
+  },
+  "g_581ce2": {
+    "ko": "✅ 승인 및 ID 발급",
+    "en": "g_581ce2"
+  },
+  "g_1b28f1": {
+    "ko": "가짜 신청이거나 중복 신청일 경우 거절합니다.",
+    "en": "g_1b28f1"
+  },
+  "g_317903": {
+    "ko": "❌ 반려",
+    "en": "g_317903"
+  },
+  "g_00d6a4": {
+    "ko": "등록된 스튜디오 목록",
+    "en": "g_00d6a4"
+  },
+  "g_890276": {
+    "ko": "현재 접속중",
+    "en": "g_890276"
+  },
+  "g_38322a": {
+    "ko": "클릭하여 시작(생성) 날짜를 수정합니다.",
+    "en": "g_38322a"
+  },
+  "g_120b26": {
+    "ko": "🗓️ 시작일:",
+    "en": "g_120b26"
+  },
+  "g_c9bc10": {
+    "ko": "날짜 없음",
+    "en": "g_c9bc10"
+  },
+  "g_e51551": {
+    "ko": "[링크 복사] 이 스튜디오 전용 관리자 접속 주소를 복사하여 원장님 카카오톡으로 전달하세요.",
+    "en": "g_e51551"
+  },
+  "g_1c631d": {
+    "ko": "[가입 해지] 이 요가원을 플랫폼 목록에서 아예 삭제합니다.",
+    "en": "g_1c631d"
+  },
+  "g_693147": {
+    "ko": "⛔ 체험 만료",
+    "en": "g_693147"
+  },
+  "g_3b2da5": {
+    "ko": "👥 회원",
+    "en": "g_3b2da5"
+  },
+  "g_5a62fd": {
+    "ko": "명",
+    "en": "g_5a62fd"
+  },
+  "g_c79f13": {
+    "ko": "📦 가입 첨부파일",
+    "en": "📦 Registration Attachments"
+  },
+  "g_5b94cf": {
+    "ko": "📦 가입 첨부파일 다운로드",
+    "en": "📦 Download Registration Attachments"
+  },
+  "g_deb94a": {
+    "ko": "새로고침",
+    "en": "Refresh"
+  },
+  "g_360948": {
+    "ko": "새 관리자",
+    "en": "New Admin"
+  },
+  "g_8ae72b": {
+    "ko": "새 관리자 추가 순서 (슈퍼어드민 숨김 방식)",
+    "en": "New Admin Setup Sequence (Hide from Super Admin)"
+  },
+  "g_754368": {
+    "ko": "우측 상단의",
+    "en": "Click the"
+  },
+  "g_e285c0": {
+    "ko": "[+ 새 관리자]",
+    "en": "[+ New Admin]"
+  },
+  "g_08b9d2": {
+    "ko": "버튼 클릭",
+    "en": "button in the top right"
+  },
+  "g_7d9e3a": {
+    "ko": "이메일과 담당 업장만 선택하고 \"생성하기\" 클릭 (비밀번호 입력란 없음)",
+    "en": "Select email and assigned studio, then click \"Create\" (No password field)"
+  },
+  "g_6143f5": {
+    "ko": "성공하면 화면에",
+    "en": "Upon success, the"
+  },
+  "g_8b7d1e": {
+    "ko": "\"비밀번호 설정 링크\"",
+    "en": "\"Password Setup Link\""
+  },
+  "g_d1a2d3": {
+    "ko": "생성",
+    "en": "will be generated"
+  },
+  "g_b87881": {
+    "ko": "이 링크 복사 버튼을 눌러서 해당 원장님께 카톡/문자로 전달",
+    "en": "Click the Copy Link button and send it via WhatsApp/Telegram to the studio owner"
+  },
+  "g_afbbb5": {
+    "ko": "원장님이 링크를 누르면 본인이 직접 사용할 비밀번호를 입력하고 저장",
+    "en": "When the owner clicks the link, they configure their own password and save it"
+  },
+  "g_15cdc3": {
+    "ko": "원장님은 설정한 비밀번호로 본인 업장에 로그인 (자신만의 단독 앱이라 인식)",
+    "en": "The owner subsequently logs in using their set password (recognized as an independent, standalone app)"
+  },
+  "g_fcad99": {
+    "ko": "조회 중...",
+    "en": "Verifying..."
+  },
+  "g_058ab0": {
+    "ko": "👑 슈퍼어드민",
+    "en": "👑 Super Admin"
+  },
+  "g_8d980d": {
+    "ko": "🔒 관리자",
+    "en": "🔒 Administrator"
+  },
+  "g_0eb0aa": {
+    "ko": "⚠️ 미설정",
+    "en": "⚠️ Not Configured"
+  },
+  "g_36b29d": {
+    "ko": "비번 변경",
+    "en": "Change Password"
+  },
+  "g_17b6f2": {
+    "ko": "담당 업장 ID:",
+    "en": "Assigned Studio ID:"
+  },
+  "g_2e82b0": {
+    "ko": "업장 변경",
+    "en": "Resign Studio"
+  },
+  "g_fc81e2": {
+    "ko": "삭제",
+    "en": "Delete"
+  },
+  "g_5a7ef7": {
+    "ko": "새 비밀번호 (6자 이상)",
+    "en": "New Password (min 6 characters)"
+  },
+  "g_ce0109": {
+    "ko": "변경",
+    "en": "Update"
+  },
+  "g_d0819d": {
+    "ko": "마지막 로그인:",
+    "en": "Last Login:"
+  },
+  "g_d58fa7": {
+    "ko": "없음",
+    "en": "None"
+  },
+  "g_e5474b": {
+    "ko": "새 관리자 추가",
+    "en": "Add New Administrator"
+  },
+  "g_ab7f2a": {
+    "ko": "✅ 관리자 계정 생성 완료!",
+    "en": "✅ Admin Account Created Successfully!"
+  },
+  "g_fab18d": {
+    "ko": "아래 링크를 관리자에게 전달하세요.",
+    "en": "Forward the link below to the respective administrator."
+  },
+  "g_88e26a": {
+    "ko": "관리자가 링크를 클릭하면 직접 비밀번호를 설정할 수 있습니다.",
+    "en": "Once clicked, they will be prompted to safely configure their password."
+  },
+  "g_e5c85b": {
+    "ko": "복사됨",
+    "en": "Copied"
+  },
+  "g_a55b1e": {
+    "ko": "복사",
+    "en": "Copy"
+  },
+  "g_8d8680": {
+    "ko": "완료",
+    "en": "Done"
+  },
+  "g_1b12f9": {
+    "ko": "이메일 *",
+    "en": "Email *"
+  },
+  "g_7be993": {
+    "ko": "표시 이름",
+    "en": "Display Name"
+  },
+  "g_0c5e9a": {
+    "ko": "예: 김원장",
+    "en": "e.g., Jane Doe"
+  },
+  "g_ed216d": {
+    "ko": "역할 *",
+    "en": "Role *"
+  },
+  "g_3087cd": {
+    "ko": "🔒 일반 관리자 (특정 업장만)",
+    "en": "🔒 Standard Admin (Assigned Studio Only)"
+  },
+  "g_598094": {
+    "ko": "👑 슈퍼어드민 (모든 업장)",
+    "en": "👑 Super Admin (All Access)"
+  },
+  "g_914c67": {
+    "ko": "담당 업장 *",
+    "en": "Assign Studio *"
+  },
+  "g_c67924": {
+    "ko": "업장 선택...",
+    "en": "Select a studio..."
+  },
+  "g_2b9cff": {
+    "ko": "🔐 비밀번호는 관리자가 직접 설정합니다. 생성 후 비밀번호 설정 링크가 제공됩니다.",
+    "en": "🔐 Passwords are set securely by the admins themselves. A configuration link will be provided after creation."
+  },
+  "g_19b2d1": {
+    "ko": "취소",
+    "en": "Cancel"
+  },
+  "g_444c33": {
+    "ko": "생성중...",
+    "en": "Creating..."
+  },
+  "g_3722dc": {
+    "ko": "✅ 생성하기",
+    "en": "✅ Create Account"
+  },
+  "g_5609c6": {
+    "ko": "새 스튜디오 등록",
+    "en": "Register New Studio"
+  },
+  "g_353d54": {
+    "ko": "스튜디오 ID *",
+    "en": "Studio ID *"
+  },
+  "g_f1df18": {
+    "ko": "예: namaste-yoga",
+    "en": "e.g., namaste-yoga"
+  },
+  "g_eaf198": {
+    "ko": "영문 소문자, 숫자, 하이픈만 가능",
+    "en": "Lowercase letters, numbers, and hyphens only"
+  },
+  "g_5f6e5b": {
+    "ko": "스튜디오 이름 *",
+    "en": "Studio Name *"
+  },
+  "g_a21805": {
+    "ko": "예: 나마스테 요가",
+    "en": "e.g., Namaste Yoga Studio"
+  },
+  "g_72e505": {
+    "ko": "관리자 이메일 *",
+    "en": "Admin Email *"
+  },
+  "g_241e6d": {
+    "ko": "등록중...",
+    "en": "Registering..."
+  },
+  "g_2014a7": {
+    "ko": "🏢 등록하기",
+    "en": "🏢 Register Studio"
+  },
+  "g_59fe33": {
+    "ko": "선점 완료된 Firebase Hosting 도메인 목록입니다. 다른 사용자가 절대 가져갈 수 없습니다.",
+    "en": "Reserved Firebase Hosting Domains. These unique identifiers cannot be claimed elsewhere."
+  },
+  "g_c139f6": {
+    "ko": "운영 중 (Active)",
+    "en": "Active Runtime"
+  },
+  "g_dc2437": {
+    "ko": "복샘요가",
+    "en": "Boksaem Yoga"
+  },
+  "g_d0273e": {
+    "ko": "쌍문요가",
+    "en": "Ssangmun Yoga"
+  },
+  "g_335d6e": {
+    "ko": "선점 보관 중 (Reserved)",
+    "en": "Reserved Allocations"
+  },
+  "g_4d577c": {
+    "ko": "복샘요가 (붙임)",
+    "en": "Boksaem Yoga (Joined)"
+  },
+  "g_8da28a": {
+    "ko": "마포요가",
+    "en": "Mapo Yoga"
+  },
+  "g_94fc33": {
+    "ko": "마포요가 (붙임)",
+    "en": "Mapo Yoga (Joined)"
+  },
+  "g_fbf3bc": {
+    "ko": "공덕요가",
+    "en": "Gongdeok Yoga"
+  },
+  "g_31bfbb": {
+    "ko": "공덕요가 (붙임)",
+    "en": "Gongdeok Yoga (Joined)"
+  },
+  "g_a58937": {
+    "ko": "아현요가",
+    "en": "Ahyeon Yoga"
+  },
+  "g_8eafd3": {
+    "ko": "아현요가 (붙임)",
+    "en": "Ahyeon Yoga (Joined)"
+  },
+  "g_c715ce": {
+    "ko": "이대요가",
+    "en": "Ewha Yoga"
+  },
+  "g_a5ebbf": {
+    "ko": "이대요가 (붙임)",
+    "en": "Ewha Yoga (Joined)"
+  },
+  "g_f3d3fd": {
+    "ko": "신촌요가",
+    "en": "Sinchon Yoga"
+  },
+  "g_3237af": {
+    "ko": "신촌요가 (붙임)",
+    "en": "Sinchon Yoga (Joined)"
+  },
+  "g_56051f": {
+    "ko": "홍대요가",
+    "en": "Hongdae Yoga"
+  },
+  "g_3cda7c": {
+    "ko": "홍대요가 (붙임)",
+    "en": "Hongdae Yoga (Joined)"
+  },
+  "g_ded768": {
+    "ko": "망원요가",
+    "en": "Mangwon Yoga"
+  },
+  "g_491d02": {
+    "ko": "망원요가 (붙임)",
+    "en": "Mangwon Yoga (Joined)"
+  },
+  "g_61b69f": {
+    "ko": "합정요가",
+    "en": "Hapjeong Yoga"
+  },
+  "g_7a82fc": {
+    "ko": "합정요가 (붙임)",
+    "en": "Hapjeong Yoga (Joined)"
+  },
+  "g_83680f": {
+    "ko": "애오개요가",
+    "en": "Aeogae Yoga"
+  },
+  "g_1db62c": {
+    "ko": "애오개요가 (붙임)",
+    "en": "Aeogae Yoga (Joined)"
+  },
+  "g_49755c": {
+    "ko": "여의도요가",
+    "en": "Yeouido Yoga"
+  },
+  "g_298028": {
+    "ko": "여의도요가 (붙임)",
+    "en": "Yeouido Yoga (Joined)"
+  },
+  "g_de675d": {
+    "ko": "PassFlow 랜딩",
+    "en": "PassFlow Showcase"
+  },
+  "g_63df50": {
+    "ko": "보관",
+    "en": "Archived"
+  },
+  "g_af5f4b": {
+    "ko": "📌 도메인 관리 안내",
+    "en": "📌 Domain Matrix Architecture"
+  },
+  "g_edb165": {
+    "ko": "• 모든 도메인은 Firebase Hosting에 선점 등록되어, 외부인이 동일 이름으로 사이트를 만들 수 없습니다.",
+    "en": "• All listed routing endpoints are pre-approved to intercept Firebase DNS bindings securely."
+  },
+  "g_d2b4e3": {
+    "ko": "• '보관' 상태의 도메인은 아직 앱이 배포되지 않은 상태이며, 고객 온보딩 시 즉시 활성화됩니다.",
+    "en": "• 'Reserved' topologies represent unmapped assets pending official client onboarding implementation sequences."
+  },
+  "g_58340e": {
+    "ko": "(하이픈 포함)는 타 프로젝트에 선점되어 있어",
+    "en": "(including hyphens) is already mapped to an active topology."
+  },
+  "g_45bd7a": {
+    "ko": "로 운영 중입니다.",
+    "en": "is actively operating the target scope."
+  },
+  "g_e8b772": {
+    "ko": "해외 고객 문의 메시지",
+    "en": "Global Inbound Communication Logs"
+  },
+  "g_c94e48": {
+    "ko": "🔄 새로고침",
+    "en": "🔄 Force Sync"
+  },
+  "g_9cac69": {
+    "ko": "아직 접수된 문의가 없습니다.",
+    "en": "The inquiry database is currently empty."
+  },
+  "g_f81f7a": {
+    "ko": "시간 미상",
+    "en": "Timestamp Unavailable"
+  },
+  "g_b9e848": {
+    "ko": "✅ 읽음",
+    "en": "✅ Mark Addressed"
+  },
+  "g_1ea474": {
+    "ko": "🌍 랜딩페이지",
+    "en": "🌍 Landing Contact Node"
+  },
+  "g_1bad77": {
+    "ko": "🚀 온보딩 모달",
+    "en": "🚀 Onboarding Portal"
+  },
+  "g_778cf3": {
+    "ko": "💬 원문",
+    "en": "💬 Raw Submission"
+  },
+  "g_de7e36": {
+    "ko": "🇰🇷 한국어 번역",
+    "en": "🇰🇷 Localized Synthesis"
+  },
+  "g_c6cf97": {
+    "ko": "번역 중...",
+    "en": "Transcribing..."
+  },
+  "g_654593": {
+    "ko": "한국어로 번역",
+    "en": "Execute AI Translation"
+  },
+  "g_7d5d83": {
+    "ko": "이메일로 답변",
+    "en": "Reply via External Client"
+  },
+  "g_12f25f": {
+    "ko": "이메일 복사",
+    "en": "Copy Dispatch Address"
+  },
+  "g_ebccbc": {
+    "ko": "관리자 모드를 종료하시겠습니까?",
+    "en": "Are you sure you want to exit Administrator Mode?"
+  },
+  "g_08f9a3": {
+    "ko": "이미지 개수 변경에 실패했습니다.",
+    "en": "Capacity reconfiguration constraint failure."
+  },
+  "g_af67a3": {
+    "ko": "파일 용량이 너무 큽니다. (최대 5MB)",
+    "en": "Payload exceeds maximum transmission limits (Max 5MB)."
+  },
+  "g_14affc": {
+    "ko": "이미지 업로드에 실패했습니다. (5MB 이하인지 확인해주세요)",
+    "en": "Media upload protocol failed. Ensure assets remain exactly below 5MB threshold parameters."
+  },
+  "g_25340e": {
+    "ko": "삭제되거나 찾을 수 없는 회원입니다.",
+    "en": "Profile identifier missing or administratively severed."
+  },
+  "g_ee2134": {
+    "ko": "판매 기록 저장 중 오류가 발생했습니다.",
+    "en": "Financial transaction logging sequence failed fatally."
+  },
+  "g_ba6718": {
+    "ko": "이 기기에서 알림 수신을 껐습니다. (브라우저 권한은 유지됩니다)",
+    "en": "Push notification telemetry was disabled gracefully at the local device level."
+  },
+  "g_f3382b": {
+    "ko": "원격 푸시 알림 수신 대상으로 등록되었습니다.",
+    "en": "Device registered successfully for high-priority administrative broadcast streams."
+  },
+  "g_a9bba7": {
+    "ko": "푸시 알림 권한이 거부되었습니다. 브라우저 설정에서 권한을 허용해주세요.",
+    "en": "System-level push propagation denied. Verify operating system telemetry permissions."
+  },
+  "g_fa5cf7": {
+    "ko": "알림 설정 중 문제가 발생했습니다.",
+    "en": "Subscription workflow encountered an unanticipated operational block."
+  },
+  "g_cb22c9": {
+    "ko": "AI 발송 제안 (승인 대기)",
+    "en": "Automated Engagement (Awaiting Clearance)"
+  },
+  "g_c90b3e": {
+    "ko": "님께 제안",
+    "en": "Outbound targeted to"
+  },
+  "g_0d80f6": {
+    "ko": "사유:",
+    "en": "Trigger Context:"
+  },
+  "g_044bb1": {
+    "ko": "관리 필요 회원",
+    "en": "Priority Intercession Candidates"
+  },
+  "g_fe5b40": {
+    "ko": "안부 메시지",
+    "en": "Re-engagement Warmup Message"
+  },
+  "g_dcb51c": {
+    "ko": "승인 발송",
+    "en": "Clear for Dispatch"
+  },
+  "g_119476": {
+    "ko": "가격표 개요 (이미지)",
+    "en": "Plan Structural Outlines (Img)"
+  },
+  "g_848c41": {
+    "ko": "이미지 개수:",
+    "en": "Media Assets Required:"
+  },
+  "g_58426f": {
+    "ko": "1장",
+    "en": "1 Document"
+  },
+  "g_4c7458": {
+    "ko": "2장",
+    "en": "2 Documents"
+  },
+  "g_8a0e7a": {
+    "ko": "3장",
+    "en": "3 Documents"
+  },
+  "g_59e9cd": {
+    "ko": "요금표 이미지",
+    "en": "Tier Representation Media"
+  },
+  "g_94b6ad": {
+    "ko": "이미지가 등록되지 않았습니다",
+    "en": "No tier structures found."
+  },
+  "g_c9ab86": {
+    "ko": "가격표 변경",
+    "en": "Modify Operational Tariffs"
+  },
+  "g_a81959": {
+    "ko": "출석 확인 중...",
+    "en": "Verifying attendance credentials..."
+  },
+  "g_ebb526": {
+    "ko": "방문 회원",
+    "en": "Walk-in Clients"
+  },
+  "g_dd529d": {
+    "ko": "자율수련",
+    "en": "Open Practice"
+  },
+  "g_2bdce5": {
+    "ko": "오늘",
+    "en": "Current Operating Day"
+  },
+  "g_1f7776": {
+    "ko": "오늘도 평온한 요가 안내해 드릴게요. 나마스테 🙏",
+    "en": "We'll guide you to a peaceful practice today. Namaste 🙏"
+  },
+  "g_dae3ed": {
+    "ko": "회원",
+    "en": "Member"
+  },
+  "g_04cdab": {
+    "ko": "😔 등록되지 않은 번호입니다",
+    "en": "😔 Unregistered Authentication Sequence"
+  },
+  "g_f7866f": {
+    "ko": "⏳ 수강권이 만료되었습니다",
+    "en": "⏳ Subscription Contract Severed"
+  },
+  "g_2d2816": {
+    "ko": "수강 기간이 지났거나 횟수가 소진되었습니다.\n\n프론트에 문의해 주세요.",
+    "en": "Your enrollment period has elapsed or available usage credits are exhausted.\n\nPlease contact studio administration."
+  },
+  "g_752d87": {
+    "ko": "❌ 출석 처리 실패",
+    "en": "❌ Verification Failed"
+  },
+  "g_7c1dfd": {
+    "ko": "일시적인 오류가 발생했습니다.\n잠시 후 다시 시도해 주세요.",
+    "en": "A transient system irregularity prevented processing.\nPlease await stabilization and attempt your check-in sequence again."
+  },
+  "g_34c5fc": {
+    "ko": "⚠️ 시스템 오류",
+    "en": "⚠️ Critical Environmental Warning"
+  },
+  "g_c2c12e": {
+    "ko": "일시적인 시스템 오류가 발생했습니다.\n잠시 후 다시 시도해 주세요.",
+    "en": "Cloud infrastructure dependency disruption detected.\nPlease await synchronization recovery."
+  },
+  "admin_trend_this_week": {
+    "ko": "이번 주",
+    "en": "This Operational Week"
+  },
+  "admin_trend_mon_to_today": {
+    "ko": "월~오늘",
+    "en": "Mon - Curr"
+  },
+  "admin_trend_last_week": {
+    "ko": "지난 주",
+    "en": "Trailing Week"
+  },
+  "admin_trend_vs_same_time": {
+    "ko": "동일 시점 대비",
+    "en": "∆ vs. Trailing Window"
+  },
+  "admin_trend_collecting": {
+    "ko": "집계 중",
+    "en": "Aggregating..."
+  },
+  "admin_trend_attendance": {
+    "ko": "출석",
+    "en": "Attendance"
+  },
+  "admin_trend_count_unit": {
+    "ko": "건",
+    "en": "admin_trend_count_unit"
+  },
+  "admin_trend_in_progress": {
+    "ko": "진행 중",
+    "en": "In Progress"
+  },
+  "admin_trend_new": {
+    "ko": "신규",
+    "en": "New"
+  },
+  "admin_trend_existing": {
+    "ko": "기존",
+    "en": "Existing"
+  },
+  "admin_trend_7d_avg": {
+    "ko": "7일 평균",
+    "en": "7-day moving avg"
+  },
+  "admin_trend_day_mon": {
+    "ko": "월",
+    "en": "Mon"
+  },
+  "admin_trend_day_tue": {
+    "ko": "화",
+    "en": "Tue"
+  },
+  "admin_trend_day_wed": {
+    "ko": "수",
+    "en": "Wed"
+  },
+  "admin_trend_day_thu": {
+    "ko": "목",
+    "en": "Thu"
+  },
+  "admin_trend_day_fri": {
+    "ko": "금",
+    "en": "Fri"
+  },
+  "admin_trend_day_sat": {
+    "ko": "토",
+    "en": "Sat"
+  },
+  "admin_trend_day_sun": {
+    "ko": "일",
+    "en": "Sun"
+  },
+  "admin_trend_hour_suffix": {
+    "ko": "시",
+    "en": ":00"
+  },
+  "admin_trend_few": {
+    "ko": "적음",
+    "en": "Few"
+  },
+  "admin_trend_moderate": {
+    "ko": "보통",
+    "en": "Moderate"
+  },
+  "admin_trend_peak": {
+    "ko": "피크",
+    "en": "Peak"
+  },
+  "admin_trend_top5_class": {
+    "ko": "🏆 인기 수업 Top 5",
+    "en": "Busiest class"
+  },
+  "admin_trend_no_data": {
+    "ko": "데이터 없음",
+    "en": "No data"
+  },
+  "admin_trend_top5_inst": {
+    "ko": "⭐ 인기 강사 Top 5",
+    "en": "Top inst."
+  },
+  "admin_trend_ratio_title_pp": {
+    "ko": "수강 인원 비율 (신규 vs 기존 회원)",
+    "en": "Ratio"
+  },
+  "admin_trend_distinct_members": {
+    "ko": "순수 인원(명) 기준",
+    "en": "Distinct members"
+  },
+  "admin_trend_new_pp": {
+    "ko": "신규 회원",
+    "en": "Inaugural Attendance"
+  },
+  "admin_trend_recent_30d": {
+    "ko": "최근 30일 등록",
+    "en": "Recent 30 days"
+  },
+  "admin_trend_existing_pp": {
+    "ko": "기존 회원",
+    "en": "Retained Clients"
+  },
+  "admin_trend_same_period": {
+    "ko": "동일 기간",
+    "en": "Vs last week"
+  },
+  "admin_trend_analyzing": {
+    "ko": "출석 추세 분석 중...",
+    "en": "Analyzing..."
+  },
+  "admin_trend_title": {
+    "ko": "출석 추세 분석",
+    "en": "Attendance trend analysis"
+  },
+  "admin_trend_tab_daily": {
+    "ko": "일별 추세",
+    "en": "Daily trend"
+  },
+  "admin_trend_tab_heatmap": {
+    "ko": "히트맵",
+    "en": "Heatmap"
+  },
+  "admin_trend_tab_ranking": {
+    "ko": "인기 분석",
+    "en": "Popularity"
+  },
+  "admin_trend_filter_all": {
+    "ko": "📊 전체 통합",
+    "en": "All"
+  },
+  "admin_trend_1year": {
+    "ko": "1년",
+    "en": "1 Year"
+  },
+  "admin_trend_daily_dot": {
+    "ko": "○ 점선 = 오늘(집계 중)",
+    "en": "Dot"
+  },
+  "admin_trend_general": {
+    "ko": "일반",
+    "en": "General"
+  },
+  "admin_trend_unassigned": {
+    "ko": "미지정",
+    "en": "Unassigned"
+  },
+  "admin_trend_admin": {
+    "ko": "관리자",
+    "en": "Admin"
+  },
+  "landing_hero_badge": {
+    "ko": "세계 1등 비전 AI 스튜디오 관리 솔루션",
+    "en": "World's #1 Vision AI Studio Platform"
+  },
+  "landing_hero_title": {
+    "ko": "체육시설 무인화의 궁극적 완성,<br /><span class=\"gradient-text-pure-gold\">단 하나의 플랫폼</span>으로.",
+    "en": "The Ultimate Unmanned Studio,<br />Powered by <span class=\"gradient-text-pure-gold\">One Platform</span>."
+  },
+  "landing_hero_sub": {
+    "ko": "안면인식 출석, 자동 수강권 차감, 다지점 통합 관리, 자동 급여 정산까지. 가장 가벼우면서도 강력한 글로벌 SaaS.",
+    "en": "Facial recognition check-ins, auto credit deductions, multi-location management, and automated payroll. The lightest yet most powerful global SaaS."
+  },
+  "landing_cta_start": {
+    "ko": "🚀 무료로 시작하기",
+    "en": "🚀 Start Free Trial"
+  },
+  "landing_cta_chat": {
+    "ko": "💬 맞춤 도입 상담",
+    "en": "💬 Custom Consultation"
+  },
+  "landing_feat_title": {
+    "ko": "기존 시스템의 한계를 넘다",
+    "en": "Beyond Traditional Limits"
+  },
+  "landing_feat_sub": {
+    "ko": "스튜디오 운영을 압도적으로 바꿀 3가지 핵심 통합 기술",
+    "en": "Three core technologies that will overwhelmingly transform your studio operations."
+  },
+  "landing_bento1_title": {
+    "ko": "0.1초 엣지 AI 안면 출석",
+    "en": "0.1s Edge AI Face Check-in"
+  },
+  "landing_bento1_desc": {
+    "ko": "태블릿 하나만 세워두세요. 비싼 장비 없이 아이패드 브라우저만으로 오프라인 수준의 0.1초 안면인식 출입을 실현합니다. 신규 회원과 기존 회원을 스스로 판단하여 대화를 시도합니다.",
+    "en": "Just mount an iPad. No expensive proprietary hardware. Our browser-based Edge AI recognizes members in 0.1 seconds, proactively greeting new and existing members natively."
+  },
+  "landing_bento2_title": {
+    "ko": "수강권 & 자동 차감",
+    "en": "Credits & Auto-Deductions"
+  },
+  "landing_bento2_desc": {
+    "ko": "출석 즉시 회원별 수강 잔여 횟수와 만료일을 자동 계산합니다. 골치 아픈 잔여일 수기 계산이나 문자 안내가 100% 자동화됩니다.",
+    "en": "Instantly calculates remaining credits and expiry dates upon check-in. Put an end to messy manual tracking and let the system fully automate your member lifecycle."
+  },
+  "landing_bento3_title": {
+    "ko": "1분 매출 & 급여 결산",
+    "en": "1-Min Revenue & Payroll"
+  },
+  "landing_bento3_desc": {
+    "ko": "강사별 수업 진행률에 따른 복잡한 급여 명세서를 평생 자동으로 산출합니다. 오늘 매출과 월간 트렌드를 모바일로 한 눈에 확인하세요.",
+    "en": "Automatically generates complex payroll statements based on instructor class completion rates. Review today's revenue and monthly trends instantly on your mobile device."
+  },
+  "landing_price_badge": {
+    "ko": "프리미엄 무제한 플랜",
+    "en": "Premium Unlimited Plan"
+  },
+  "landing_price_title": {
+    "ko": "심플하고 완벽한 프라이싱",
+    "en": "Simple & Transparent Pricing"
+  },
+  "landing_price_amount": {
+    "ko": "월 10만원",
+    "en": "$99 /mo"
+  },
+  "landing_price_desc": {
+    "ko": "가입비, 설치비, 인원 추가금 제로. 모든 기능을 한 달 10만원에 누리세요.",
+    "en": "Zero onboarding or hidden per-user fees. Unlock every premium feature for a flat $99 monthly."
+  },
+  "landing_price_feature1": {
+    "ko": "2개월 전면 무료 체험 (카드 등록 불필요)",
+    "en": "2-Month Free Trial (No Credit Card)"
+  },
+  "landing_price_feature2": {
+    "ko": "클라우드 기반 예약, 출석, 급여 자동화",
+    "en": "Cloud scheduling, attendance, and payroll"
+  },
+  "landing_price_feature3": {
+    "ko": "다국어 지원 및 1:1 맞춤형 세팅 무료 지원",
+    "en": "Global multi-language & free 1-on-1 setup"
+  },
+  "feat_page_title": {
+    "ko": "맞춤형 SaaS, 우리의 철학",
+    "en": "Custom SaaS, Our Philosophy"
+  },
+  "feat_page_sub": {
+    "ko": "세상에 똑같은 스튜디오는 없습니다. 패스플로우는 원장님의 가장 까다로운 요구사항조차 플랫폼 내에 녹여낼 수 있도록 설계된 유일한 SaaS입니다.",
+    "en": "No two studios are identical. PassFlow is the only SaaS built from the ground up to absorb even your most demanding operational rules natively."
+  },
+  "landing_footer_desc": {
+    "ko": "패스플로우 AI는 피트니스, 요가, 필라테스 스튜디오의 완전 무인화와 매출 극대화를 돕는 넥스트 제너레이션 B2B SaaS 입니다.",
+    "en": "PassFlow AI is the next-generation B2B SaaS helping fitness, yoga, and pilates studios achieve complete unmanned operations and revenue maximization."
+  },
+  "mkt_badge": {
+    "ko": "세계 1등 비전 AI 안면인식 시스템",
+    "en": "#1 Global Vision AI Biometric Modality"
+  },
+  "mkt_title_main": {
+    "ko": "체육시설 무인화의 궁극적 완성,<br /><span class=\"text-gold\">단 하나의 플랫폼</span>으로 끝냅니다.",
+    "en": "The absolute pinnacle of unassisted fitness operations,<br /><span class=\"text-gold\">A single platform</span> brings absolute control."
+  },
+  "mkt_title_sub": {
+    "ko": "안면인식 출석부터 다지점 회원 통합 관리, 수업 클래스 스케줄링, 자동 급여 정산까지. 오직 피트니스와 요가 스튜디오만을 위해 설계된 글로벌 SaaS.",
+    "en": "From zero-latency biometric verification to multi-branch federation, dynamic class orchestration, and localized payroll distribution. Global SaaS engineering tailored explicitly for Pilates and Yoga ecosystems."
+  },
+  "mkt_btn_demo": {
+    "ko": "관리자/회원 데모 체험하기",
+    "en": "Launch Integrated Enterprise Demonstration"
+  },
+  "mkt_btn_consult": {
+    "ko": "맞춤 도입 상담",
+    "en": "Request Guided Implementation Strategy"
+  },
+  "mkt_feat_title": {
+    "ko": "스튜디오 운영을 압도적으로 바꿉니다",
+    "en": "Redefining High-Velocity Studio Infrastructure"
+  },
+  "mkt_feat1_title": {
+    "ko": "AI 안면 출석 자동화",
+    "en": "Zero-Touch AI Biometrics"
+  },
+  "mkt_feat1_desc": {
+    "ko": "오직 얼굴 카메라 하나로 신규 회원과 기존 회원을 0.2초만에 구분합니다. 대리 출석 방지는 물론 인사말까지 건네줍니다.",
+    "en": "Dodge badge fraud forever. Our vision array segregates unknown intakes from sustained revenue accounts in precisely 0.2s—enforcing exact contract adherence while automatically rendering personalized intake greetings seamlessly."
+  }
+}

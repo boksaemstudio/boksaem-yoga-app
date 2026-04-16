@@ -8,18 +8,7 @@ import { useLanguageStore } from '../stores/useLanguageStore';
 // [i18n] AI briefing prompts per language
 const getAIBriefingGuidance = lang => {
   const guidances = {
-    ko: `당신은 최고의 요가 스튜디오 경영 컨설턴트입니다. 원장에게 종합적인 경영 브리핑을 제공하세요.
-다음 영역을 모두 커버해주세요:
-1. 📊 매출 분석: 월간 매출 현황, 일매출 추이, 전월 대비 변화
-2. 👥 회원 관리: 활성/총 회원 비율, 신규 등록 vs 재등록, 만료 임박 회원 관리 전략
-3. 🔄 재등록률 심층 분석: 누적 재등록률과 최근 3개월 재등록률 비교, 월별 트렌드 해석, 재등록률 개선 전략
-4. ⚠️ 이탈 방지: 만료/거부 회원 현황, 선제적 리텐션 전략
-5. 👩‍🏫 강사 평가 및 인사 관련: 강사별 수업 참여도 분석, 인기 강사와 관심이 필요한 강사 파악, 수업 편성 최적화 제안
-6. 📱 디지털 전환: 앱 설치율과 푸시 도달률 분석, 디지털 마케팅 기회
-7. 🔮 미래 전망: 현재 추세 기반 다음 달 예측, 계절적 요인 고려, 선제적 대응 전략
-
-톤: 전문적이면서도 실행 가능한 조언 위주. 숫자와 근거를 들어 설명. 4~6단락으로 구성.
-절대로 데이터가 없는 영역을 꾸며내지 마세요. 실제 데이터 기반으로만 분석하세요.`,
+    ko: (t("g_d84ded") || "당신은 최고의 요가 스튜디오 경영 컨설턴트입니다. 원장에게 종합적인 경영 브리핑을 제공하세요.\n다음 영역을 모두 커버해주세요:\n1. 📊 매출 분석: 월간 매출 현황, 일매출 추이, 전월 대비 변화\n2. 👥 회원 관리: 활성/총 회원 비율, 신규 등록 vs 재등록, 만료 임박 회원 관리 전략\n3. 🔄 재등록률 심층 분석: 누적 재등록률과 최근 3개월 재등록률 비교, 월별 트렌드 해석, 재등록률 개선 전략\n4. ⚠️ 이탈 방지: 만료/거부 회원 현황, 선제적 리텐션 전략\n5. 👩‍🏫 강사 평가 및 인사 관련: 강사별 수업 참여도 분석, 인기 강사와 관심이 필요한 강사 파악, 수업 편성 최적화 제안\n6. 📱 디지털 전환: 앱 설치율과 푸시 도달률 분석, 디지털 마케팅 기회\n7. 🔮 미래 전망: 현재 추세 기반 다음 달 예측, 계절적 요인 고려, 선제적 대응 전략\n\n톤: 전문적이면서도 실행 가능한 조언 위주. 숫자와 근거를 들어 설명. 4~6단락으로 구성.\n절대로 데이터가 없는 영역을 꾸며내지 마세요. 실제 데이터 기반으로만 분석하세요."),
     en: `You are a top-tier yoga/fitness studio management consultant. Provide a comprehensive business briefing to the studio owner.
 Cover these areas:
 1. 📊 Revenue Analysis: Monthly revenue status, daily trends, month-over-month changes
@@ -32,18 +21,7 @@ Cover these areas:
 
 Tone: Professional yet actionable. Use data and figures. 4-6 paragraphs.
 Never fabricate data. Only analyze based on actual provided data.`,
-    ja: `あなたはトップレベルのヨガ/フィットネススタジオ経営コンサルタントです。オーナーに総合的な経営ブリーフィングを提供してください。
-以下の領域をカバーしてください：
-1. 📊 売上分析：月間売上状況、日別推移、前月比
-2. 👥 会員管理：アクティブ/全体比率、新規vs再登録、期限切れ会員対策
-3. 🔄 再登録率分析：累計vs直近3ヶ月の再登録率、月別トレンド
-4. ⚠️ 離脱防止：期限切れ/拒否会員の現状、先制的リテンション戦略
-5. 👩‍🏫 講師評価：講師別クラス参加度、人気講師と要注意講師の把握
-6. 📱 デジタル推進：アプリ導入率、プッシュ到達率分析
-7. 🔮 将来展望：現在のトレンドに基づく来月予測
-
-トーン：プロフェッショナルかつ実行可能なアドバイス中心。データと根拠を示す。4〜6段落構成。
-データがない領域を作り上げないでください。実際のデータのみで分析してください。`
+    ja: (t("g_3390c3") || "あなたはトップレベルのヨガ/フィットネススタジオ経営コンサルタントです。オーナーに総合的な経営ブリーフィングを提供してください。\n以下の領域をカバーしてください：\n1. 📊 売上分析：月間売上状況、日別推移、前月比\n2. 👥 会員管理：アクティブ/全体比率、新規vs再登録、期限切れ会員対策\n3. 🔄 再登録率分析：累計vs直近3ヶ月の再登録率、月別トレンド\n4. ⚠️ 離脱防止：期限切れ/拒否会員の現状、先制的リテンション戦略\n5. 👩‍🏫 講師評価：講師別クラス参加度、人気講師と要注意講師の把握\n6. 📱 デジタル推進：アプリ導入率、プッシュ到達率分析\n7. 🔮 将来展望：現在のトレンドに基づく来月予測\n\nトーン：プロフェッショナルかつ実行可能なアドバイス中心。データと根拠を示す。4〜6段落構成。\nデータがない領域を作り上げないでください。実際のデータのみで分析してください。")
   };
   // For languages without a specific prompt, use English
   return guidances[lang] || guidances['en'];
@@ -53,38 +31,38 @@ Never fabricate data. Only analyze based on actual provided data.`,
 const getTimeContextByLang = (hour, classStartHour, lang, t) => {
   if (lang === 'ko') {
     if (hour < classStartHour) return {
-      period: t("g_d33888") || "\uC218\uC5C5 \uC804 (\uC544\uCE68)",
+      period: t("g_3bbd84") || "수업 전 (아침)",
       guidance: `아직 수업이 시작되지 않은 아침입니다(오늘 첫 수업은 ${classStartHour}시부터 시작). 오늘의 매출이나 출석이 0인 것은 당연하므로 절대 언급하지 마세요. 대신 어제의 성과를 간략히 요약하고, 오늘 예정된 수업과 주요 일정을 안내해주세요.`
     };
     if (hour < 14) return {
-      period: t("g_e70620") || "\uC624\uC804 \uC218\uC5C5 \uC911",
+      period: t("g_99b3d6") || "오전 수업 중",
       guidance: `오전 수업이 진행 중입니다(오늘 첫 수업 ${classStartHour}시). 현재까지의 출석 현황과 오후 예정 수업을 분석해주세요.`
     };
     if (hour < 20) return {
-      period: t("g_4054b9") || "\uC624\uD6C4 \uC218\uC5C5 \uC911",
-      guidance: t("g_42aed9") || "\uC624\uD6C4 \uD53C\uD06C \uC2DC\uAC04\uB300\uC785\uB2C8\uB2E4. \uD604\uC7AC\uAE4C\uC9C0\uC758 \uC2E4\uC2DC\uAC04 \uCD9C\uC11D \uD604\uD669, \uB0A8\uC740 \uC218\uC5C5, \uC624\uB298\uC758 \uD2B8\uB80C\uB4DC\uB97C \uBD84\uC11D\uD574\uC8FC\uC138\uC694."
+      period: t("g_92e742") || "오후 수업 중",
+      guidance: t("g_ba5587") || "오후 피크 시간대입니다. 현재까지의 실시간 출석 현황, 남은 수업, 오늘의 트렌드를 분석해주세요."
     };
     return {
-      period: t("g_e29fcb") || "\uB9C8\uAC10 \uD6C4 (\uC800\uB141)",
-      guidance: t("g_1f3eec") || "\uC624\uB298\uC758 \uC218\uC5C5\uC774 \uB9C8\uBB34\uB9AC\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uD558\uB8E8 \uC804\uCCB4 \uC131\uACFC\uB97C \uC885\uD569 \uB9AC\uD3EC\uD2B8 \uD615\uD0DC\uB85C \uC815\uB9AC\uD574\uC8FC\uC138\uC694."
+      period: t("g_5ccaee") || "마감 후 (저녁)",
+      guidance: t("g_db5d55") || "오늘의 수업이 마무리되었습니다. 하루 전체 성과를 종합 리포트 형태로 정리해주세요."
     };
   }
   if (lang === 'ja') {
     if (hour < classStartHour) return {
-      period: '授業前（朝）',
+      period: (t("g_6127c0") || "授業前（朝）"),
       guidance: `まだ授業が始まっていない朝です（本日の最初の授業は${classStartHour}時から）。売上や出席が0なのは当然のため言及しないでください。昨日の成果を簡潔にまとめ、本日の予定をお知らせください。`
     };
     if (hour < 14) return {
-      period: '午前の授業中',
-      guidance: `午前の授業が進行中です。現在までの出席状況と午後の予定を分析してください。`
+      period: (t("g_33b6ee") || "午前の授業中"),
+      guidance: (t("g_6747b9") || "午前の授業が進行中です。現在までの出席状況と午後の予定を分析してください。")
     };
     if (hour < 20) return {
-      period: '午後の授業中',
-      guidance: '午後のピーク時間帯です。リアルタイムの出席状況と今日のトレンドを分析してください。'
+      period: (t("g_82016d") || "午後の授業中"),
+      guidance: (t("g_c46ead") || "午後のピーク時間帯です。リアルタイムの出席状況と今日のトレンドを分析してください。")
     };
     return {
-      period: '終了後（夜）',
-      guidance: '本日の授業は終了しました。一日の総合レポートをまとめてください。'
+      period: (t("g_0e242a") || "終了後（夜）"),
+      guidance: (t("g_913577") || "本日の授業は終了しました。一日の総合レポートをまとめてください。")
     };
   }
   // Default: English (used for en + all other languages)
@@ -257,7 +235,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         instructorStats: (() => {
           const instructorMap = {};
           (currentTodayClasses || []).forEach(cls => {
-            const name = cls.instructor || t("g_4477e5") || "\uBBF8\uC9C0\uC815";
+            const name = cls.instructor || t("g_5c1a70") || "미지정";
             if (!instructorMap[name]) instructorMap[name] = {
               totalStudents: 0,
               classCount: 0,
@@ -437,16 +415,16 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
       try {
         await storageService.approvePush(id);
       } catch (e) {
-        alert((t("g_dcd19b") || "\uC2B9\uC778 \uCC98\uB9AC \uC911 \uC624\uB958 \uBC1C\uC0DD: ") + e.message);
+        alert((t("g_e3de55") || "승인 처리 중 오류 발생: ") + e.message);
       }
     }
   };
   const handleRejectPush = async id => {
-    if (confirm(t("g_ffc381") || "\uC774 \uBC1C\uC1A1 \uAC74\uC744 \uC0AD\uC81C(\uAC70\uC808)\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?")) {
+    if (confirm(t("g_04c18b") || "이 발송 건을 삭제(거절)하시겠습니까?")) {
       try {
         await storageService.rejectPush(id);
       } catch (e) {
-        alert((t("g_cb1fb3") || "\uC0AD\uC81C \uCC98\uB9AC \uC911 \uC624\uB958 \uBC1C\uC0DD: ") + e.message);
+        alert((t("g_e2492d") || "삭제 처리 중 오류 발생: ") + e.message);
       }
     }
   };

@@ -143,12 +143,12 @@ const MeditationPage = ({
       const stored = localStorage.getItem('member');
       if (stored) {
         const member = JSON.parse(stored);
-        return member.name || t("g_6745df") || "\uD68C\uC6D0";
+        return member.name || t("g_dae3ed") || "회원";
       }
     } catch (e) {
       console.warn("Failed to load member name", e);
     }
-    return t("g_6745df") || "\uD68C\uC6D0";
+    return t("g_dae3ed") || "회원";
   });
 
   // 🛠️ DEBUG MODE STATES (User Request)
@@ -501,7 +501,7 @@ const MeditationPage = ({
       detectFrame();
     } catch (error) {
       console.error("❌ Failed to load AI libraries:", error);
-      setPermissionError(t("g_18b811") || "AI \uC5D4\uC9C4 \uB85C\uB529\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4. \uB124\uD2B8\uC6CC\uD06C\uB97C \uD655\uC778\uD574\uC8FC\uC138\uC694.");
+      setPermissionError(t("g_f61acd") || "AI 엔진 로딩에 실패했습니다. 네트워크를 확인해주세요.");
     } finally {
       setIsPoseLoading(false);
     }
@@ -578,7 +578,7 @@ const MeditationPage = ({
       // 연속 실패 3회 이상이면 간격 자동 증가
       if (consecutiveFailsRef.current >= 3) {
         clearInterval(messageIntervalRef.current);
-        console.log('[Session] AI 연속 실패 — 35초 간격으로 전환');
+        console.log((t("g_1d81e4") || "[Session] AI 연속 실패 — 35초 간격으로 전환"));
         messageIntervalRef.current = setInterval(() => {
           fetchAISessionMessage();
         }, 35000);
@@ -685,7 +685,7 @@ const MeditationPage = ({
         setupAudioAnalysis(stream, audioCtx);
       } catch (err) {
         console.error("Mic Error:", err);
-        setPermissionError(t("g_1b3f18") || "\uB9C8\uC774\uD06C \uAD8C\uD55C\uC774 \uD544\uC694\uD569\uB2C8\uB2E4.");
+        setPermissionError(t("g_9fec66") || "마이크 권한이 필요합니다.");
         stopSession();
         return;
       }
@@ -703,7 +703,7 @@ const MeditationPage = ({
         initPoseEngine(); // Call (MOCKED) engine
       } catch (err) {
         console.error("Camera Error:", err);
-        setPermissionError(t("g_688845") || "\uCE74\uBA54\uB77C \uAD8C\uD55C\uC774 \uD544\uC694\uD569\uB2C8\uB2E4. \uC124\uC815\uC5D0\uC11C \uCE74\uBA54\uB77C \uC811\uADFC\uC744 \uD5C8\uC6A9\uD574\uC8FC\uC138\uC694.");
+        setPermissionError(t("g_d9b2a4") || "카메라 권한이 필요합니다. 설정에서 카메라 접근을 허용해주세요.");
         // Give user a moment to see the error before stopping
         setTimeout(() => stopSession(), 3000);
         return;
@@ -726,7 +726,7 @@ const MeditationPage = ({
       if (selectedIntention?.label) {
         return `선택하신 '${selectedIntention.label}'을(를) 마음에 품고, 평온한 시간을 시작합니다.`;
       }
-      return t("g_06e130") || "\uC228\uC744 \uAE4A\uAC8C \uB4E4\uC774\uB9C8\uC2DC\uACE0 \uB0B4\uC26C\uBA70, \uB2F9\uC2E0\uB9CC\uC758 \uD3C9\uC628\uD55C \uC2DC\uAC04\uC744 \uC2DC\uC791\uD569\uB2C8\uB2E4.";
+      return t("g_fc4231") || "숨을 깊게 들이마시고 내쉬며, 당신만의 평온한 시간을 시작합니다.";
     };
     const introMessage = getPreIntro();
     setAiMessage(introMessage);
@@ -818,7 +818,7 @@ const MeditationPage = ({
 
     // ✨ AI's empathetic/regret message when user chooses quick start
     if (forceStart && chatHistory.length < 3) {
-      const regretMessages = [t("g_173a51") || "\uC870\uAE08 \uC544\uC27D\uC9C0\uB9CC, \uAD1C\uCC2E\uC544\uC694. \uC9C0\uAE08 \uB290\uB07C\uC2E0 \uADF8\uB300\uB85C \uC2DC\uC791\uD574\uBCFC\uAC8C\uC694. \uD83D\uDE4F", t("g_9fe9a0") || "\uB354 \uB300\uD654\uD558\uACE0 \uC2F6\uC5C8\uC9C0\uB9CC, \uC9C0\uAE08 \uC774 \uC21C\uAC04\uB3C4 \uC18C\uC911\uD574\uC694. \uD568\uAED8\uD574\uC694.", t("g_4a1138") || "\uB9C8\uC74C\uC774 \uAE09\uD558\uC2DC\uAD70\uC694. \uAD1C\uCC2E\uC544\uC694, \uC9C0\uAE08 \uBC14\uB85C \uD3C9\uC628\uD568\uC73C\uB85C \uC548\uB0B4\uD560\uAC8C\uC694."];
+      const regretMessages = [t("g_4a6ff0") || "조금 아쉽지만, 괜찮아요. 지금 느끼신 그대로 시작해볼게요. 🙏", t("g_7e00e2") || "더 대화하고 싶었지만, 지금 이 순간도 소중해요. 함께해요.", t("g_19531b") || "마음이 급하시군요. 괜찮아요, 지금 바로 평온함으로 안내할게요."];
       const randomMsg = regretMessages[Math.floor(Math.random() * regretMessages.length)];
       setChatHistory(prev => [...prev, {
         role: 'model',
@@ -894,7 +894,7 @@ const MeditationPage = ({
         // Fallback Feedback
         setFeedbackData({
           message: `${memberName}님, 오늘 명상으로 마음이 한결 편안해지셨길 바래요.`,
-          feedbackPoints: [t("g_47e9ff") || "\uBA85\uC0C1\uC744 \uD1B5\uD574 \uB0B4\uBA74\uC758 \uACE0\uC694\uD568\uC744 \uACBD\uD5D8\uD588\uC2B5\uB2C8\uB2E4.", t("g_1bdaec") || "\uD638\uD761\uC5D0 \uC9D1\uC911\uD558\uBA70 \uD604\uC7AC\uC5D0 \uBA38\uBB34\uB974\uB294 \uC5F0\uC2B5\uC744 \uD588\uC2B5\uB2C8\uB2E4.", t("g_ec7ce1") || "\uAE34\uC7A5\uD588\uB358 \uBAB8\uACFC \uB9C8\uC74C\uC774 \uC870\uAE08 \uB354 \uC774\uC644\uB418\uC5C8\uC2B5\uB2C8\uB2E4.", t("g_918efc") || "\uC624\uB298 \uD558\uB8E8\uB3C4 \uD3C9\uC628\uD55C \uB9C8\uC74C\uC73C\uB85C \uC774\uC5B4\uAC00\uC138\uC694."]
+          feedbackPoints: [t("g_c7fb01") || "명상을 통해 내면의 고요함을 경험했습니다.", t("g_a97bb0") || "호흡에 집중하며 현재에 머무르는 연습을 했습니다.", t("g_749d85") || "긴장했던 몸과 마음이 조금 더 이완되었습니다.", t("g_0dedea") || "오늘 하루도 평온한 마음으로 이어가세요."]
         });
       } finally {
         setIsAILoading(false);
@@ -950,7 +950,7 @@ const MeditationPage = ({
     case 'preparation':
       return <PreparationView {...sharedProps} prepStep={prepStep} setPrepStep={setPrepStep} prepSelections={prepSelections} setPrepSelections={setPrepSelections} interactionType={interactionType} startSession={startSession} />;
     case 'feedback':
-      return <FeedbackView activeMode={activeMode} feedbackData={feedbackData} formatTime={formatTime} timeLeft={timeLeft} modeName={activeMode?.name || t("g_31464c") || "AI \uB9DE\uCDA4 \uBA85\uC0C1"} onClose={onClose} visualTheme={visualTheme} isDebugMode={isDebugMode} ttsState={ttsState} step={step} audioVolumes={audioVolumes} aiMessage={aiMessage} aiLatency={aiLatency} isAILoading={isAILoading} points={feedbackData?.feedbackPoints || []} stopAllAudio={stopAllAudio} setAiMessage={setAiMessage} setChatHistory={setChatHistory} />;
+      return <FeedbackView activeMode={activeMode} feedbackData={feedbackData} formatTime={formatTime} timeLeft={timeLeft} modeName={activeMode?.name || t("g_dab83c") || "AI 맞춤 명상"} onClose={onClose} visualTheme={visualTheme} isDebugMode={isDebugMode} ttsState={ttsState} step={step} audioVolumes={audioVolumes} aiMessage={aiMessage} aiLatency={aiLatency} isAILoading={isAILoading} points={feedbackData?.feedbackPoints || []} stopAllAudio={stopAllAudio} setAiMessage={setAiMessage} setChatHistory={setChatHistory} />;
     default:
       return <ActiveSessionView {...sharedProps} interactionType={interactionType} isPlaying={isPlaying} formatTime={formatTime} timeLeft={timeLeft} micVolume={micVolume} permissionError={permissionError} completeSession={completeSession} togglePlay={togglePlay} showVolumePanel={showVolumePanel} setShowVolumePanel={setShowVolumePanel} soundEnabled={soundEnabled} setSoundEnabled={setSoundEnabled} setAudioVolumes={setAudioVolumes} currentAudioRef={currentAudioRef} updateAmbientVolume={updateAmbientVolume} updateBinauralVolume={updateBinauralVolume} videoRef={videoRef} canvasRef={canvasRef} showVolumeHint={showVolumeHint} />;
   }

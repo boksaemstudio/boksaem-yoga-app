@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- [CRITICAL] Service Worker bypass + force-reload v3 -->
+    <script>
+    (function() {
+        // Skip if already reloaded (check URL param)
+        if (location.search.indexOf('swcleared=1') !== -1) return;
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+                if (regs.length === 0) return; // No SW = page is clean
+                // Unregister all SWs
+                var tasks = regs.map(function(r) { return r.unregister(); });
+                Promise.all(tasks).then(function() {
+                    // Clear all caches then reload
+                    if ('caches' in window) {
+                        caches.keys().then(function(names) {
+                            Promise.all(names.map(function(n) { return caches.delete(n); })).then(function() {
+                                var sep = location.search ? '&' : '?';
+                                location.replace(location.href + sep + 'swcleared=1');
+                            });
+                        });
+                    } else {
+                        var sep = location.search ? '&' : '?';
+                        location.replace(location.href + sep + 'swcleared=1');
+                    }
+                });
+            });
+        }
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PassFlow AI | AI-Powered Gym & Studio Management — $69/Year, Not Month</title>
+    <meta name="naver-site-verification" content="4070bbb12ed48b6f675fa0738d94c12500889b74" />
+    <meta name="description" content="AI-powered gym & yoga studio management software with facial recognition check-in. Membership, booking, billing CRM — $69/year. No monthly fees.">
+    <meta name="keywords" content="gym management software, yoga studio software, pilates studio management, fitness CRM, AI facial recognition check-in, affordable gym software, Mindbody alternative, studio booking system, member management app, PassFlow AI">
+    <meta property="og:title" content="PassFlow AI — $69/Year Studio Management (Yes, Per Year)">
+    <meta property="og:description" content="AI-powered check-in, booking, and member management for fitness studios. $69/year — that's less than what others charge per month.">
+    <meta property="og:image" content="/assets/passflow_square_logo.png">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://passflowai.web.app/en/home.html">
+
+    <!-- hreflang -->
+    <link rel="alternate" hreflang="en" href="https://passflowai.web.app/en/home.html" />
+    <link rel="alternate" hreflang="ko" href="https://passflowai.web.app/home.html" />
+    <link rel="alternate" hreflang="ja" href="https://passflowai.web.app/ja/home.html" />
+    <link rel="alternate" hreflang="x-default" href="https://passflowai.web.app/en/home.html" />
+    <link rel="canonical" href="https://passflowai.web.app/en/home.html" />
+    <link rel="alternate" hreflang="en-IN" href="https://passflowai.web.app/in/home.html" />
+
+    <!-- Structured Data: SoftwareApplication -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "PassFlow AI",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web, iOS, Android",
+        "description": "AI-powered gym & yoga studio management software with facial recognition check-in. Membership management, booking, billing CRM — all for $69/year.",
+        "url": "https://passflowai.web.app/en/home.html",
+        "offers": {
+            "@type": "Offer",
+            "price": "69",
+            "priceCurrency": "USD",
+            "priceValidUntil": "2027-12-31",
+            "availability": "https://schema.org/InStock"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "ratingCount": "47"
+        },
+        "featureList": "AI Facial Recognition Check-in, Member Management, Class Booking, Revenue Dashboard, Multi-Branch Support, Automated Billing"
+    }
+    </script>
+
+    <!-- LCP Optimization: preconnect + preload -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="image" type="image/webp" href="/assets/hero_bg_ai.webp">
+
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/logo_circle_white.webp">
+    <!-- Google Analytics 4 (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3D6011MNHF"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-3D6011MNHF');
+        gtag('config', 'AW-878972747');
+    </script>
+    <link rel="stylesheet" href="/style.css?v=7">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', 'Outfit', sans-serif; }
+        .hero-glow {
+            position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
+            width: 600px; max-width: 100vw; height: 600px; border-radius: 50%; overflow: hidden;
+            background: radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+        .icon-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 56px; height: 56px; border-radius: 16px;
+            background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.2);
+            margin-bottom: 20px;
+        }
+        .icon-badge svg { width: 28px; height: 28px; }
+        .pricing-feature-grid-responsive {
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 12px; margin-bottom: 30px; text-align: left;
+        }
+        @media (max-width: 480px) {
+            .pricing-feature-grid-responsive { grid-template-columns: 1fr; }
+        }
+        .pricing-feature-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 16px; border-radius: 12px;
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+        }
+        .pricing-feature-item svg { flex-shrink: 0; width: 20px; height: 20px; color: #4ade80; }
+        .pricing-feature-item span { font-size: 0.95rem; color: rgba(255,255,255,0.85); }
+        .single-plan-card {
+            position: relative; z-index: 1;
+            max-width: 520px; margin: 40px auto 0;
+            padding: clamp(30px, 6vw, 50px) clamp(20px, 6vw, 40px);
+            background: rgba(15, 15, 20, 0.75); backdrop-filter: blur(12px);
+            border: 1px solid rgba(212,175,55,0.3); border-radius: 24px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+            transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        .single-plan-card:hover { border-color: rgba(212,175,55,0.6); transform: translateY(-4px); }
+        .demo-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 24px; margin-top: 40px; max-width: 800px; margin-left: auto; margin-right: auto;
+        }
+        @media (max-width: 768px) { .demo-grid { grid-template-columns: 1fr; } }
+        .demo-card-enhanced {
+            background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+            border: 1px solid rgba(255,255,255,0.08); border-radius: 20px;
+            padding: clamp(24px, 4vw, 40px) 24px; text-align: center; transition: all 0.4s;
+            position: relative; overflow: hidden; display: flex; flex-direction: column;
+        }
+        .demo-card-enhanced::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, transparent, #d4af37, transparent);
+            opacity: 0; transition: opacity 0.4s;
+        }
+        .demo-card-enhanced:hover::before { opacity: 1; }
+        .demo-card-enhanced:hover { border-color: rgba(212,175,55,0.2); transform: translateY(-4px); }
+        .demo-card-enhanced img {
+            width: 100%; height: 200px; object-fit: cover; border-radius: 16px;
+            margin-bottom: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        .spec-category { margin: 60px 0; padding-top: 40px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .spec-header { margin-bottom: 30px; text-align: left; }
+        .spec-header h2 { font-size: 1.8rem; margin-bottom: 12px; color: #fff; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .spec-header p { color: rgba(255, 255, 255, 0.65); font-size: 1rem; max-width: 600px; line-height: 1.5; }
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .feature-card { background: rgba(20, 20, 24, 0.6); border: 1px solid rgba(212, 175, 55, 0.15); border-radius: 16px; padding: 30px 24px; position: relative; overflow: hidden; transition: all 0.3s; }
+        .feature-card:hover { border-color: rgba(212, 175, 55, 0.4); transform: translateY(-4px); }
+        .f-icon { font-size: 1.8rem; margin-bottom: 16px; display: inline-flex; align-items: center; justify-content: center; width: 50px; height: 50px; background: rgba(212, 175, 55, 0.08); border-radius: 12px; border: 1px solid rgba(212, 175, 55, 0.2); }
+        .f-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; color: #fff; }
+        .f-desc { color: rgba(255, 255, 255, 0.65); font-size: 0.9rem; line-height: 1.5; margin-bottom: 16px; }
+        .f-points { list-style: none; padding: 0; margin: 0; }
+        .f-points li { position: relative; padding-left: 20px; margin-bottom: 8px; font-size: 0.85rem; color: #ececec; line-height: 1.4; }
+        .f-points li::before { content: '✦'; position: absolute; left: 0; color: #d4af37; font-size: 0.85rem; }
+        .sympathy-box { background: linear-gradient(145deg, rgba(212, 175, 55, 0.1), rgba(0,0,0,0.8)); border-left: 4px solid #d4af37; border-radius: 0 16px 16px 0; padding: 30px; margin: 40px 0; }
+        .sympathy-box h3 { font-size: 1.4rem; margin-bottom: 10px; color: #fff; }
+        .sympathy-box p { font-size: 0.95rem; line-height: 1.6; color: rgba(255,255,255,0.8); }
+        .philosophy-box { display: flex; gap: 20px; align-items: flex-start; background: rgba(255,255,255,0.03); border-radius: 20px; padding: 30px; border: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap; margin-top: 30px; }
+        .competitor-table { width: 100%; border-collapse: collapse; margin: 30px 0; border-radius: 16px; overflow: hidden; }
+        .competitor-table th, .competitor-table td { padding: 16px 20px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .competitor-table th { background: rgba(212,175,55,0.1); color: #d4af37; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .competitor-table td { color: rgba(255,255,255,0.75); font-size: 0.95rem; }
+        .competitor-table tr:last-child td { border-bottom: none; }
+        .competitor-table tr.highlight { background: rgba(212,175,55,0.08); }
+        .competitor-table tr.highlight td { color: #d4af37; font-weight: 700; }
+        /* Language Switcher */
+        .lang-switcher { position: relative; display: inline-flex; align-items: center; cursor: pointer; }
+        .lang-switcher-btn { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .lang-switcher-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(212,175,55,0.3); }
+        .lang-dropdown { position: absolute; top: calc(100% + 8px); right: 0; min-width: 160px; background: rgba(20,20,25,0.98); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 6px; display: none; z-index: 1000; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+        .lang-dropdown.show { display: block; }
+        .lang-dropdown a { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; text-decoration: none; color: rgba(255,255,255,0.75); font-size: 0.9rem; transition: all 0.15s; }
+        .lang-dropdown a:hover { background: rgba(212,175,55,0.1); color: #d4af37; }
+        .lang-dropdown a.active { color: #d4af37; font-weight: 600; }
+        .year-emphasis { display: inline-block; background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.3); border-radius: 6px; padding: 2px 10px; font-weight: 800; letter-spacing: 0.5px; }
+    </style>
+    <style class="overflow-x-fix">
+        /* [CRITICAL] Prevent mobile horizontal overflow / forced zoom-out */
+        html, body { overflow-x: hidden !important; max-width: 100vw !important; }
+        .hero { overflow: hidden !important; }
+        .hero-glow { max-width: 100vw !important; overflow: hidden !important; }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar glass" style="position: relative;">
+        <a href="/en/home.html" class="logo" style="text-decoration:none; display: flex; align-items: center; gap: 8px;">
+            <img src="/assets/passflow_square_logo.png" alt="PassFlow AI" style="height: 36px; border-radius: 6px; box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.3);" />
+            <div style="width: 140px; height: 38px; display: flex; align-items: center; overflow: hidden; position: relative;">
+                <img src="/assets/passflow_ai_logo_transparent.webp" alt="PassFlow AI" style="position: absolute; height: 110px; left: -6px; max-width: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));" />
+            </div>
+        </a>
+        
+        <!-- Centered Lang Switcher -->
+        
+        
+        <!-- Centered Lang Switcher -->
+        <div class="lang-switcher" style="position:absolute; left:50%; transform:translateX(-50%); display:flex; align-items:center; z-index: 100;">
+                <button class="lang-switcher-btn" onclick="document.querySelector('.lang-dropdown').classList.toggle('show')">
+                    🌐 EN ▾
+                </button>
+                <div class="lang-dropdown" style="left:50%; transform:translateX(-50%); right:auto;" style="left:50%; transform:translateX(-50%); right:auto;">
+                    <a href="/home.html" class="lang-dropdown-link" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;transition:0.2s;color:rgba(255,255,255,0.85);" onmouseover="this.style.color='#d4af37';this.style.background='rgba(212,175,55,0.1)';" onmouseout="this.style.color='rgba(255,255,255,0.85)';this.style.background='transparent';">🇰🇷 한국어</a>
+                    <a href="/en/home.html" class="lang-dropdown-link active" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;transition:0.2s;color:#d4af37;font-weight:700;background:rgba(212,175,55,0.1);" onmouseover="this.style.color='#d4af37';this.style.background='rgba(212,175,55,0.1)';" onmouseout="this.style.color='#d4af37';this.style.background='rgba(212,175,55,0.1)';">🇺🇸 English (US)</a>
+                    <a href="/ja/home.html" class="lang-dropdown-link" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;transition:0.2s;color:rgba(255,255,255,0.85);" onmouseover="this.style.color='#d4af37';this.style.background='rgba(212,175,55,0.1)';" onmouseout="this.style.color='rgba(255,255,255,0.85)';this.style.background='transparent';">🇯🇵 日本語</a>
+                    <a href="/ru/home.html" class="lang-dropdown-link" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;transition:0.2s;color:rgba(255,255,255,0.85);" onmouseover="this.style.color='#d4af37';this.style.background='rgba(212,175,55,0.1)';" onmouseout="this.style.color='rgba(255,255,255,0.85)';this.style.background='transparent';">🇷🇺 Русский</a>
+                    <a href="/zh/home.html" class="lang-dropdown-link" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;transition:0.2s;color:rgba(255,255,255,0.85);" onmouseover="this.style.color='#d4af37';this.style.background='rgba(212,175,55,0.1)';" onmouseout="this.style.color='rgba(255,255,255,0.85)';this.style.background='transparent';">🇨🇳 中文</a>
+                    <a href="/es/home.html" class="lang-dropdown-link" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;transition:0.2s;color:rgba(255,255,255,0.85);" onmouseover="this.style.color='#d4af37';this.style.background='rgba(212,175,55,0.1)';" onmouseout="this.style.color='rgba(255,255,255,0.85)';this.style.background='transparent';">🇪🇸 Español</a>
+                    <a href="/pt/home.html" class="lang-dropdown-link" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;transition:0.2s;color:rgba(255,255,255,0.85);" onmouseover="this.style.color='#d4af37';this.style.background='rgba(212,175,55,0.1)';" onmouseout="this.style.color='rgba(255,255,255,0.85)';this.style.background='transparent';">🇧🇷 Português</a>
+                    <a href="/fr/home.html" class="lang-dropdown-link" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;transition:0.2s;color:rgba(255,255,255,0.85);" onmouseover="this.style.color='#d4af37';this.style.background='rgba(212,175,55,0.1)';" onmouseout="this.style.color='rgba(255,255,255,0.85)';this.style.background='transparent';">🇫🇷 Français</a>
+                    <a href="/de/home.html" class="lang-dropdown-link" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;transition:0.2s;color:rgba(255,255,255,0.85);" onmouseover="this.style.color='#d4af37';this.style.background='rgba(212,175,55,0.1)';" onmouseout="this.style.color='rgba(255,255,255,0.85)';this.style.background='transparent';">🇩🇪 Deutsch</a>
+                    <a href="/in/home.html" class="lang-dropdown-link" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;transition:0.2s;color:rgba(255,255,255,0.85);" onmouseover="this.style.color='#d4af37';this.style.background='rgba(212,175,55,0.1)';" onmouseout="this.style.color='rgba(255,255,255,0.85)';this.style.background='transparent';">🇮🇳 India (EN)</a>
+                    <a href="/au/home.html" class="lang-dropdown-link" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;transition:0.2s;color:rgba(255,255,255,0.85);" onmouseover="this.style.color='#d4af37';this.style.background='rgba(212,175,55,0.1)';" onmouseout="this.style.color='rgba(255,255,255,0.85)';this.style.background='transparent';">🇦🇺 Australia</a>
+                    <a href="/ca/home.html" class="lang-dropdown-link" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.9rem;transition:0.2s;color:rgba(255,255,255,0.85);" onmouseover="this.style.color='#d4af37';this.style.background='rgba(212,175,55,0.1)';" onmouseout="this.style.color='rgba(255,255,255,0.85)';this.style.background='transparent';">🇨🇦 Canada</a>
+                </div>
+            </div>
+        <div class="nav-links" id="navLinks">
+            <a href="#live-demo" style="color:#d4af37; font-weight:600;">Demo</a>
+            <a href="#features">Features</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#contact">Contact</a>
+            
+        </div>
+        <button class="nav-hamburger" class="nav-hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero" id="home">
+        <div class="hero-bg"></div>
+        <div class="hero-glow"></div>
+        <div class="hero-content" style="position: relative; z-index: 2; padding-top: 40px;">
+            <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border-radius:30px; background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.25); margin-bottom:24px; font-size:0.85rem; font-weight: 600; color:#d4af37;">
+                Affordable. Simple. AI-Smart Studio Management.
+            </div>
+            
+            <h1 style="color:#fff; font-size:clamp(2.2rem, 5vw, 3.8rem); font-weight:800; line-height: 1.25; margin-bottom:20px; letter-spacing: -1px;">
+                You teach. <span class="gradient-text">We handle everything else.</span>
+            </h1>
+            
+            <p style="color:rgba(255,255,255,0.7); font-size:clamp(1.05rem, 2vw, 1.25rem); font-weight: 400; line-height: 1.6; max-width: 680px; margin: 0 auto 30px;">
+                Stop overpaying for bloated studio software.<br>
+                <strong style="color:#d4af37;">For $69 per year, not per month.</strong>
+            </p>
+
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                <div style="display: inline-flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; padding: 12px 24px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 50px;">
+                    <span style="color:#fff; font-size:0.95rem; font-weight: 600;">
+                        ✔ AI Facial Recognition
+                    </span>
+                    <span style="color:rgba(255,255,255,0.2); margin: 0 6px;">|</span>
+                    <span style="color:#fff; font-size:0.95rem; font-weight: 600;">
+                        ✔ Auto Booking & Credits
+                    </span>
+                    <span style="color:rgba(255,255,255,0.2); margin: 0 6px;">|</span>
+                    <span style="color:#d4af37; font-size:0.95rem; font-weight: 700;">
+                        ✔ $69/<span class="year-emphasis">YEAR</span>
+                    </span>
+                
+                <!-- Hero CTA Buttons -->
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 10px;">
+                    <a href="/onboarding?lang=en" style="display: inline-flex; align-items: center; gap: 8px; padding: 16px 32px; background: linear-gradient(135deg, #4ade80, #22c55e); color: #000; font-weight: 800; font-size: 1.1rem; border-radius: 50px; text-decoration: none; box-shadow: 0 4px 20px rgba(74,222,128,0.35); transition: all 0.3s; animation: pulse 2s ease-in-out infinite;">
+                        🚀 Start Free — 2 Months
+                    </a>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; justify-content: center;">
+                    <div style="display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);">
+                        <span style="font-size: 0.82rem;">🟢</span>
+                        <span style="color: rgba(255,255,255,0.7); font-size: 0.8rem; font-weight: 500;">Live in production</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);">
+                        <span style="font-size: 0.82rem;">🔒</span>
+                        <span style="color: rgba(255,255,255,0.7); font-size: 0.8rem; font-weight: 500;">GDPR Compliant</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);">
+                        <span style="font-size: 0.82rem;">☁️</span>
+                        <span style="color: rgba(255,255,255,0.7); font-size: 0.8rem; font-weight: 500;">Google Cloud</span>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Core Features -->
+    <section class="features" id="features" style="padding: clamp(30px, 5vw, 60px) 0;">
+        <div class="container">
+            <h2 style="text-align:center; margin-bottom: 20px; font-size: 2.2rem; color: #fff;">Three essentials, <span style="color:#d4af37;">perfectly automated</span></h2>
+            <p style="text-align:center; color:rgba(255,255,255,0.6); margin-bottom: 60px; font-size: 1.1rem; line-height: 1.7;">
+                Stop juggling spreadsheets, paper sign-ins, and expensive software.<br>
+                <span style="color:rgba(212,175,55,0.85);">An AI assistant that gets smarter as your data grows</span> — marketing, accounting, and insights included.
+            </p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 40px; text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">👋</div>
+                    <h3 style="font-size: 1.4rem; color: #fff; margin-bottom: 12px; font-weight: 700;">No Front Desk Needed</h3>
+                    <p style="font-size: 1rem; color: rgba(255,255,255,0.6); line-height: 1.6;">
+                        Just place a tablet at the entrance.<br>Members check in by face or PIN — no staff needed.
+                    </p>
+                </div>
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 40px; text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">🎫</div>
+                    <h3 style="font-size: 1.4rem; color: #fff; margin-bottom: 12px; font-weight: 700;">Bookings, Credits & No-Shows</h3>
+                    <p style="font-size: 1rem; color: rgba(255,255,255,0.6); line-height: 1.6;">
+                        Credits deduct instantly on check-in, expiry auto-tracked.<br>No-show auto-deduction and extra bookings — one tap.
+                    </p>
+                </div>
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 40px; text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">📉</div>
+                    <h3 style="font-size: 1.4rem; color: #fff; margin-bottom: 12px; font-weight: 700;">Daily Reports in 1 Tap</h3>
+                    <p style="font-size: 1rem; color: rgba(255,255,255,0.6); line-height: 1.6;">
+                        Who showed up, how much revenue today.<br>Clean stats delivered to your phone.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why PassFlow (Empathy + Detail) -->
+    <section class="features" style="padding: clamp(40px, 6vw, 80px) 0;">
+        <div class="container">
+            <div class="sympathy-box" style="position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -30px; right: -30px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+                <h3 style="display: flex; align-items: center; gap: 10px;">🏋️ Built by a real studio owner</h3>
+                <p style="line-height: 1.8; color: rgba(255,255,255,0.75);">
+                    PassFlow AI was designed by a <strong style="color: #d4af37;">practicing yoga studio owner</strong> who got tired of clunky, overpriced management software that didn't understand real operations.<br><br>
+                    After years of struggling with inadequate tools for <strong style="color: rgba(255,255,255,0.9);">member management, class booking, holds, credit tracking, pass management, and revenue reporting</strong>, every single feature was designed from real operational pain points.<br><br>
+                    Instead of cramming in hundreds of features, we picked <em style="color: #d4af37;">only what matters in daily operations and made it dead simple</em>. You'll be running it on day one — no manual needed.
+                </p>
+            </div>
+
+            <!-- AI & Kiosk -->
+            <div class="spec-category">
+                <div class="spec-header">
+                    <h2>🤖 AI-Powered Unmanned Check-in</h2>
+                    <p>No expensive fingerprint scanners or turnstiles. One tablet. One app. That's it.</p>
+                </div>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="f-icon">⚡</div>
+                        <div class="f-title">Face ID + PIN Fallback</div>
+                        <div class="f-desc">Members walk up, get recognized instantly. If lighting is tricky, a quick 4-digit PIN works just as well.</div>
+                        <ul class="f-points">
+                            <li>Sub-second facial recognition — no waiting</li>
+                            <li>Voice feedback: valid, expired, or duplicate check-in</li>
+                            <li>Auto sleep mode to save tablet battery</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <div class="f-icon">📶</div>
+                        <div class="f-title">Works Offline Too</div>
+                        <div class="f-desc">Wi-Fi drops happen. PassFlow stores check-ins locally and syncs automatically when connection returns. Zero data loss.</div>
+                        <ul class="f-points">
+                            <li>Offline check-in with auto cloud sync</li>
+                            <li>Every single check-in is safely recorded</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Assistant -->
+            <div class="spec-category">
+                <div class="spec-header">
+                    <h2>🧠 Your AI Business Assistant</h2>
+                    <p>Ask questions in plain English. Get instant answers from your real data.</p>
+                </div>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="f-icon">💬</div>
+                        <div class="f-title">Chat with Your Data</div>
+                        <div class="f-desc">"Who has classes tonight with more than 10 sessions left?" — just ask, and AI pulls the exact answer from your database.</div>
+                        <ul class="f-points">
+                            <li>Natural language queries — no training needed</li>
+                            <li>Revenue summaries, member lookups, instant reports</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <div class="f-icon">📈</div>
+                        <div class="f-title">Churn Prevention AI</div>
+                        <div class="f-desc">AI auto-identifies members at risk of leaving — those near expiry, or those who haven't visited in 2 weeks. It even drafts a friendly follow-up message for you.</div>
+                        <ul class="f-points">
+                            <li>Real-time retention & churn rate visualization</li>
+                            <li>Accidental deletions? Full undo & recovery</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Multi-branch & PWA -->
+            <div class="spec-category">
+                <div class="spec-header">
+                    <h2>🏢 Multi-Location & Instant Apps</h2>
+                    <p>Scale from 1 studio to 10 without changing tools. Each location runs independently, managed from one dashboard.</p>
+                </div>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="f-icon">🌐</div>
+                        <div class="f-title">Branch-Level Isolation</div>
+                        <div class="f-desc">Switch between locations with one tap. Staff and members only see their own branch. Owner sees everything.</div>
+                        <ul class="f-points">
+                            <li>Data never mixes between branches</li>
+                            <li>Your studio gets its own custom URL</li>
+                            <li>Use branches to separate programs: Yoga / Pilates / Fitness</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <div class="f-icon">📱</div>
+                        <div class="f-title">4 Dedicated Apps, Zero App Store</div>
+                        <div class="f-desc">Check-in kiosk, member app, instructor app, admin dashboard — each installs as a home screen app in seconds. No App Store submission needed.</div>
+                        <ul class="f-points">
+                            <li>Install from browser in one tap (PWA)</li>
+                            <li>Your logo & brand colors auto-applied</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Privacy -->
+            <div class="spec-category">
+                <div class="spec-header">
+                    <h2>🛡️ Dead Simple UX, Serious Privacy</h2>
+                    <p>No thick manual. No training sessions. If you can use a smartphone, you can run PassFlow.</p>
+                </div>
+                <div class="philosophy-box">
+                    <div style="flex:1; min-width: 250px;">
+                        <h4 style="font-size: 1.3rem; margin-bottom: 12px; color: #d4af37;">No Face Photos Stored</h4>
+                        <p style="color: rgba(255,255,255,0.7); font-size: 0.95rem; line-height: 1.6;">
+                            Member faces are never saved as images. They're instantly converted to irreversible encrypted vectors — impossible to reverse-engineer. Fully GDPR & privacy-law compliant.
+                        </p>
+                    </div>
+                    <div style="flex:1; min-width: 250px;">
+                        <h4 style="font-size: 1.3rem; margin-bottom: 12px; color: #d4af37;">Role-Based Access</h4>
+                        <p style="color: rgba(255,255,255,0.7); font-size: 0.95rem; line-height: 1.6;">
+                            Instructors only see their own class roster. They cannot access other instructors' data, revenue figures, or member financials. Clean separation, built-in.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Demo -->
+    <section class="features" id="live-demo" style="padding: clamp(40px, 6vw, 70px) 0;">
+        <div class="container">
+            <h2 style="text-align:center; margin-bottom: 15px;"><span class="gradient-text">See it in action — right now</span></h2>
+            <p class="section-desc" style="margin-bottom: clamp(30px, 5vw, 40px);">Try each app yourself. No sign-up required.</p>
+
+            <div class="demo-grid">
+                <div class="demo-card-enhanced">
+                    <img src="/assets/demo_admin.webp" alt="Admin Dashboard">
+                    <h3 style="color:#fff; font-size:1.2rem; margin-bottom:10px;">Admin Dashboard</h3>
+                    <p style="color:rgba(255,255,255,0.6); font-size:0.9rem; margin-bottom:24px; line-height:1.5; min-height:44px;">
+                        Members, revenue, bookings<br>— all in one place
+                    </p>
+                    <a href="https://passflowai.web.app/admin?lang=en" target="_blank"
+                       style="display:inline-block; padding:14px 24px; background:linear-gradient(135deg,#d4af37,#f5d67b); color:#000; font-weight:700; border-radius:30px; text-decoration:none; transition:all 0.3s; width:100%; box-sizing:border-box; font-size:0.95rem;">
+                        Try Admin App
+                    </a>
+                </div>
+                <div class="demo-card-enhanced">
+                    <img src="/assets/demo_checkin.webp" alt="Check-in Kiosk">
+                    <h3 style="color:#fff; font-size:1.2rem; margin-bottom:10px;">Check-in Kiosk</h3>
+                    <p style="color:rgba(255,255,255,0.6); font-size:0.9rem; margin-bottom:24px; line-height:1.5; min-height:44px;">
+                        Face ID & PIN check-in<br>
+                        <span style="font-size:0.8rem; color:#d4af37; font-weight:600;">📱↔️ Best viewed on tablet in <strong>landscape mode</strong></span>
+                    </p>
+                    <a href="https://passflowai.web.app/checkin?lang=en" target="_blank"
+                       style="display:inline-block; padding:14px 24px; background:linear-gradient(135deg,#d4af37,#f5d67b); color:#000; font-weight:700; border-radius:30px; text-decoration:none; transition:all 0.3s; width:100%; box-sizing:border-box; font-size:0.95rem;">
+                        Try Check-in
+                    </a>
+                </div>
+                <div class="demo-card-enhanced">
+                    <img src="/assets/demo_member.webp" alt="Member App">
+                    <h3 style="color:#fff; font-size:1.2rem; margin-bottom:10px;">Member App</h3>
+                    <p style="color:rgba(255,255,255,0.6); font-size:0.9rem; margin-bottom:24px; line-height:1.5; min-height:44px;">
+                        Check credits, book classes,<br>view attendance history
+                    </p>
+                    <a href="https://passflowai.web.app/member?lang=en" target="_blank"
+                       style="display:inline-block; padding:14px 24px; background:linear-gradient(135deg,#d4af37,#f5d67b); color:#000; font-weight:700; border-radius:30px; text-decoration:none; transition:all 0.3s; width:100%; box-sizing:border-box; font-size:0.95rem;">
+                        Try Member App
+                    </a>
+                </div>
+                <div class="demo-card-enhanced">
+                    <img src="/assets/demo_instructor.webp" alt="Instructor App">
+                    <h3 style="color:#fff; font-size:1.2rem; margin-bottom:10px;">Instructor App</h3>
+                    <p style="color:rgba(255,255,255,0.6); font-size:0.9rem; margin-bottom:24px; line-height:1.5; min-height:44px;">
+                        Today's schedule,<br>real-time attendance
+                    </p>
+                    <a href="https://passflowai.web.app/instructor?lang=en" target="_blank"
+                       style="display:inline-block; padding:14px 24px; background:linear-gradient(135deg,#d4af37,#f5d67b); color:#000; font-weight:700; border-radius:30px; text-decoration:none; transition:all 0.3s; width:100%; box-sizing:border-box; font-size:0.95rem;">
+                        Try Instructor App
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" style="padding: 40px 0 30px;">
+        <div class="container" style="position: relative; z-index: 1;">
+            <h2 style="text-align:center; margin-bottom: 10px; color: #fff; font-size: 2rem;">Stop Paying <span style="color:#d4af37;">Monthly.</span></h2>
+            <p style="text-align:center; color:rgba(255,255,255,0.5); margin-bottom: 10px; font-size: 1rem;">Others charge $50–$700 <em>per month</em>. We charge this <em>per year</em>.</p>
+
+            <div class="single-plan-card">
+                <div style="text-align:center; margin-bottom: 16px;">
+                    <span style="display:inline-block; padding:8px 24px; border-radius:40px; background:linear-gradient(135deg, rgba(74,222,128,0.2), rgba(74,222,128,0.05)); border:1px solid rgba(74,222,128,0.4); color:#4ade80; font-weight:800; font-size:1rem; animation: pulse 2s ease-in-out infinite;">🎁 2-Month Free Trial</span>
+                </div>
+                <style>@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }</style>
+                <div style="font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">All-in-One Plan</div>
+                <h3 style="font-size: clamp(2.5rem, 6vw, 3.2rem); margin-bottom: 4px; color: #d4af37; font-weight: 900; letter-spacing: -0.5px;">
+                    $69<span style="font-size: 0.4em; font-weight: 500; color: rgba(255,255,255,0.5);">/</span><span class="year-emphasis" style="font-size: 0.5em;">YEAR</span>
+                </h3>
+                <p style="font-size: 1.1rem; color: rgba(255,255,255,0.6); margin-bottom: 8px;">That's <strong style="color:#fff;">$5.75/month</strong> — less than a single coffee per week.</p>
+                <p style="font-size: 1rem; color: #4ade80; font-weight: 700; margin-bottom: 24px;">⏰ Try it free for 2 months. No credit card required.</p>
+                <p style="font-size: 0.85rem; color: rgba(212,175,55,0.7); margin-bottom: 20px; font-weight: 500;">⚡ No hidden fees. No setup costs. No per-member charges.</p>
+                
+                <div class="pricing-feature-grid-responsive">
+                    <div class="pricing-feature-item">
+                        <svg viewBox="0 0 20 20" fill="#4ade80"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+                        <span>AI Face Recognition Check-in</span>
+                    </div>
+                    <div class="pricing-feature-item">
+                        <svg viewBox="0 0 20 20" fill="#4ade80"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+                        <span>Booking & Scheduling</span>
+                    </div>
+                    <div class="pricing-feature-item">
+                        <svg viewBox="0 0 20 20" fill="#4ade80"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+                        <span>Member & Instructor CRM</span>
+                    </div>
+                    <div class="pricing-feature-item">
+                        <svg viewBox="0 0 20 20" fill="#4ade80"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+                        <span>Revenue & Analytics</span>
+                    </div>
+                    <div class="pricing-feature-item">
+                        <svg viewBox="0 0 20 20" fill="#4ade80"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+                        <span>Multi-Location Support</span>
+                    </div>
+                    <div class="pricing-feature-item">
+                        <svg viewBox="0 0 20 20" fill="#4ade80"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+                        <span>Free Onboarding Support</span>
+                    </div>
+                </div>
+
+                <!-- Competitor Comparison -->
+                <div style="padding: 16px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); margin-bottom: 24px;">
+                    <p style="font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">How we compare</p>
+                    <table class="competitor-table" style="width:100%; font-size: 0.85rem;">
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+                            <td style="padding: 8px 0; color: rgba(255,255,255,0.5);">Mindbody</td>
+                            <td style="padding: 8px 0; color: rgba(255,255,255,0.5); text-align:right;">$139–$699 <em>/month</em></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+                            <td style="padding: 8px 0; color: rgba(255,255,255,0.5);">Glofox</td>
+                            <td style="padding: 8px 0; color: rgba(255,255,255,0.5); text-align:right;">$100–$300 <em>/month</em></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+                            <td style="padding: 8px 0; color: rgba(255,255,255,0.5);">Vagaro</td>
+                            <td style="padding: 8px 0; color: rgba(255,255,255,0.5); text-align:right;">$30–$90 <em>/month</em></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #d4af37; font-weight: 700;">PassFlow AI</td>
+                            <td style="padding: 8px 0; color: #d4af37; font-weight: 700; text-align:right;">$69 /<span class="year-emphasis">YEAR</span></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <a href="/onboarding?lang=en" class="btn-primary" id="cta-free-trial-en" onclick="gtag('event','generate_lead',{event_category:'conversion',event_label:'en-landing-free-trial',source:'landing',page:'en'})" style="display:flex; justify-content:center; align-items:center; gap:8px; width:100%; box-sizing:border-box; text-align:center; padding: 18px; font-size: 1.15rem; text-decoration: none; font-weight: 800; background: linear-gradient(135deg,#4ade80,#22c55e); color: #000; border-radius: 12px; box-shadow: 0 4px 20px rgba(74,222,128,0.3); border: none;">
+                    🚀 Start Your 2-Month Free Trial
+                </a>
+                
+                    <h3 style="color:#4ade80;margin:0 0 6px;font-size:1.1rem;">Message Sent!</h3>
+                    <p style="color:rgba(255,255,255,0.6);margin:0;font-size:0.9rem;">We'll reply to your email shortly.</p>
+                </div>
+            
+                <div style="text-align:center;margin-top:20px;padding:14px 20px;border-radius:12px;background:rgba(212,175,55,0.05);border:1px dashed rgba(212,175,55,0.2);">
+                    <p style="margin:0;font-size:0.9rem;color:rgba(255,255,255,0.7);line-height:1.6;">
+                        💡 <strong style="color:#d4af37;">Have a feature in mind?</strong><br>
+                        Just let us know — we'll make it happen.
+                    </p>
+                </div>
+</div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="contact" style="padding: 20px 0 25px; text-align: center;">
+        <div class="container">
+            <div class="footer-bottom" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                <h4 style="font-size:0.85rem; color:#d4af37; margin-bottom:8px;">The new standard in fitness studio management</h4>
+                <p style="font-size:0.85rem; color:rgba(255,255,255,0.6); margin-bottom:12px; line-height:1.5;">PassFlow AI is an AI-powered platform that automates check-in, member management, and business analytics for gyms, CrossFit boxes, yoga, and pilates studios worldwide.</p>
+                <p>&copy; 2026 PassFlow AI. All rights reserved.</p>
+                <p style="margin-top:8px;"><a href="https://passflowai.web.app/privacy" target="_blank" rel="noopener noreferrer" style="color:rgba(255,255,255,0.25); text-decoration:none; font-size:0.75rem;">Privacy Policy</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Close language dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.lang-switcher')) {
+                document.querySelectorAll('.lang-dropdown').forEach(d => d.classList.remove('show'));
+            }
+        });
+    </script>
+    <script src="/script.js"></script>
+
+    <!-- Firebase SDK for inquiry form -->
+    
+
+    <!-- Global Floating Action Button for Contact -->
+    <a href="javascript:void(0)" class="pf-fab-contact" onclick="document.getElementById('pf-global-contact-modal').style.display='flex'">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4C2.9 4 2.01 4.9 2.01 6L2 18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM19.6 8.25L12.53 12.67C12.21 12.87 11.79 12.87 11.47 12.67L4.4 8.25C4.15 8.09 4 7.82 4 7.53C4 6.86 4.73 6.46 5.3 6.81L12 11L18.7 6.81C19.27 6.46 20 6.86 20 7.53C20 7.82 19.85 8.09 19.6 8.25Z"/></svg>
+    </a>
+
+    <!-- Global Contact Modal (Glassmorphism) -->
+    <div id="pf-global-contact-modal" class="inquiry-modal-overlay" style="display:none;" onclick="this.style.display='none'">
+        <div class="inquiry-modal-content" onclick="event.stopPropagation()">
+            <button class="inquiry-close" onclick="document.getElementById('pf-global-contact-modal').style.display='none'">×</button>
+            <div id="pf-inquiry-done" class="inquiry-success" style="display:none;">
+                <h3>✅ Sent Successfully</h3>
+                <p>Our team will contact you shortly.</p>
+            </div>
+            <form id="pf-inquiry-form-modal" class="inquiry-form" onsubmit="window._pfSendInquiryModal(event)">
+                <h3 data-i18n-contact="title">Platform Setup Inquiry</h3>
+                <p data-i18n-contact="desc">We provide tailored SaaS capabilities for your studio.</p>
+                <div class="i-group">
+                    <label data-i18n-contact="email">Email Address</label>
+                    <input type="email" id="pf-inquiry-email-modal" required>
+                </div>
+                <div class="i-group">
+                    <label data-i18n-contact="msg">Message / Details</label>
+                    <textarea id="pf-inquiry-msg-modal" required rows="4"></textarea>
+                </div>
+                <button type="submit" id="pf-inquiry-btn-modal" class="i-submit" data-i18n-contact="btn">Send Inquiry</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+    // Firebase SDK for Global Contact Modal
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-app.js';
+    import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-firestore.js';
+    const app = initializeApp({
+      apiKey: "AIzaSyCJ3ZLNQ3GIXtRFksTnXef2PKTh_bPJAXo",
+      authDomain: "boksaem-yoga.firebaseapp.com",
+      projectId: "boksaem-yoga",
+      storageBucket: "boksaem-yoga.firebasestorage.app",
+      messagingSenderId: "197947587005",
+      appId: "1:197947587005:web:a1bec8e14ab51e25be7a23"
+    });
+    const db = getFirestore(app);
+
+    window._pfSendInquiryModal = async function(e) {
+      e.preventDefault();
+      const emailEl = document.getElementById('pf-inquiry-email-modal');
+      const msgEl = document.getElementById('pf-inquiry-msg-modal');
+      const btnEl = document.getElementById('pf-inquiry-btn-modal');
+      const formEl = document.getElementById('pf-inquiry-form-modal');
+      const doneEl = document.getElementById('pf-inquiry-done');
+      
+      if (!emailEl.value.trim() || !msgEl.value.trim()) return;
+      
+      const originalText = btnEl.textContent;
+      btnEl.disabled = true;
+      btnEl.textContent = '...';
+      
+      try {
+        await addDoc(collection(db, 'platform_inquiries'), {
+          email: emailEl.value.trim(),
+          message: msgEl.value.trim(),
+          lang: document.documentElement.lang || 'en',
+          source: 'landing_global_modal',
+          status: 'new',
+          createdAt: new Date().toISOString()
+        });
+        
+        formEl.style.display = 'none';
+        doneEl.style.display = 'block';
+        
+        setTimeout(() => { 
+            formEl.style.display = 'block'; 
+            doneEl.style.display = 'none'; 
+            emailEl.value = ''; 
+            msgEl.value = ''; 
+            btnEl.disabled = false; 
+            btnEl.textContent = originalText; 
+            document.getElementById('pf-global-contact-modal').style.display = 'none';
+        }, 4000);
+      } catch(e) {
+        console.error('Inquiry error:', e);
+        btnEl.disabled = false;
+        btnEl.textContent = originalText;
+      }
+    };
+</script>
+</body>
+</html>

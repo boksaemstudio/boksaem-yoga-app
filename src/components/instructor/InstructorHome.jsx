@@ -110,7 +110,7 @@ const InstructorHome = ({
     setPushMessage('');
     try {
       if (!('Notification' in window)) {
-        setPushMessage((t("g_2d9077") || "\u274C \uC774 \uBE0C\uB77C\uC6B0\uC800\uB294 \uC54C\uB9BC\uC744 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. ") + (deviceOS === 'ios' ? t("g_be69b5") || "\uC544\uC774\uD3F0\uC740 '\uD648 \uD654\uBA74\uC5D0 \uCD94\uAC00'\uB97C \uD1B5\uD574 \uC571\uC744 \uC124\uCE58\uD574\uC57C \uC54C\uB9BC \uC124\uC815\uC774 \uAC00\uB2A5\uD569\uB2C8\uB2E4." : t("g_759086") || "\uD06C\uB86C \uB4F1 \uCD5C\uC2E0 \uBE0C\uB77C\uC6B0\uC800\uB97C \uC0AC\uC6A9\uD574 \uC8FC\uC138\uC694."));
+        setPushMessage((t("g_46b103") || "❌ 이 브라우저는 알림을 지원하지 않습니다. ") + (deviceOS === 'ios' ? t("g_a8e020") || "아이폰은 '홈 화면에 추가'를 통해 앱을 설치해야 알림 설정이 가능합니다." : t("g_490419") || "크롬 등 최신 브라우저를 사용해 주세요."));
         return;
       }
       const permission = await window.Notification.requestPermission();
@@ -124,23 +124,23 @@ const InstructorHome = ({
         if (token) {
           await storageService.saveInstructorToken(token, instructorName);
           setPushEnabled(true);
-          setPushMessage(t("g_7a9efe") || "\u2705 \uC54C\uB9BC\uC774 \uD65C\uC131\uD654\uB418\uC5C8\uC2B5\uB2C8\uB2E4!");
+          setPushMessage(t("g_cfc84b") || "✅ 알림이 활성화되었습니다!");
           console.log('[InstructorHome] ✅ Push enabled for:', instructorName, 'token:', token.substring(0, 20) + '...');
         } else {
-          setPushMessage(t("g_9f214f") || "\u274C \uD1A0\uD070\uC744 \uAC00\uC838\uC62C \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.");
+          setPushMessage(t("g_7b5319") || "❌ 토큰을 가져올 수 없습니다.");
         }
       } else if (permission === 'denied') {
-        setPushMessage(t("g_5fdb6b") || "\u274C \uC54C\uB9BC\uC774 \uCC28\uB2E8\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uBE0C\uB77C\uC6B0\uC800 \uC124\uC815\uC5D0\uC11C \uD5C8\uC6A9\uD574\uC8FC\uC138\uC694.");
+        setPushMessage(t("g_4cee70") || "❌ 알림이 차단되었습니다. 브라우저 설정에서 허용해주세요.");
       }
     } catch (e) {
       console.error('Push setup failed:', e);
-      setPushMessage((t("g_c59205") || "\u274C \uC54C\uB9BC \uC124\uC815 \uC2E4\uD328: ") + e.message);
+      setPushMessage((t("g_63f731") || "❌ 알림 설정 실패: ") + e.message);
     } finally {
       setPushLoading(false);
     }
   };
   const handleDisablePush = () => {
-    setPushMessage(t("g_69531a") || "\u2139\uFE0F \uBE0C\uB77C\uC6B0\uC800 \uC124\uC815\uC5D0\uC11C \uC54C\uB9BC\uC744 \uB04C \uC218 \uC788\uC2B5\uB2C8\uB2E4.\n\uC0AC\uC774\uD2B8 \uC124\uC815 > \uC54C\uB9BC > \uCC28\uB2E8");
+    setPushMessage(t("g_9cbaec") || "ℹ️ 브라우저 설정에서 알림을 끌 수 있습니다.\n사이트 설정 > 알림 > 차단");
   };
   const handleInstallPWA = async () => {
     if (deferredPrompt) {
@@ -159,11 +159,11 @@ const InstructorHome = ({
     } else {
       // Manual Guide
       if (deviceOS === 'ios') {
-        setPushMessage(t("g_f8cdf6") || "\u2139\uFE0F \uC544\uC774\uD3F0: Safari \uD558\uB2E8 \uACF5\uC720(\u2191) \uD074\uB9AD > \"\uD648 \uD654\uBA74\uC5D0 \uCD94\uAC00\"");
+        setPushMessage(t("g_6bc54d") || "ℹ️ 아이폰: Safari 하단 공유(↑) 클릭 > \"홈 화면에 추가\"");
       } else if (deviceOS === 'android') {
-        setPushMessage(t("g_73c178") || "\u2139\uFE0F \uC548\uB4DC\uB85C\uC774\uB4DC: \uBE0C\uB77C\uC6B0\uC800 \uBA54\uB274(\u22EE) \uD074\uB9AD > \"\uC571 \uC124\uCE58\" \uB610\uB294 \"\uD648 \uD654\uBA74\uC5D0 \uCD94\uAC00\"");
+        setPushMessage(t("g_a80316") || "ℹ️ 안드로이드: 브라우저 메뉴(⋮) 클릭 > \"앱 설치\" 또는 \"홈 화면에 추가\"");
       } else {
-        setPushMessage(t("g_f8b7a8") || "\u2139\uFE0F \uBE0C\uB77C\uC6B0\uC800 \uBA54\uB274\uC5D0\uC11C \"\uC571 \uC124\uCE58\"\uB97C \uCC3E\uC544\uC8FC\uC138\uC694.");
+        setPushMessage(t("g_b4df3f") || "ℹ️ 브라우저 메뉴에서 \"앱 설치\"를 찾아주세요.");
       }
     }
   };
@@ -189,15 +189,15 @@ const InstructorHome = ({
       const start = h * 60 + m;
       const end = start + duration;
       if (currentMinutes < start) return {
-        label: t("g_72cd53") || "\uC608\uC815",
+        label: t("g_7ba954") || "예정",
         color: '#FFD93D'
       };
       if (currentMinutes >= start && currentMinutes < end) return {
-        label: t("g_df4a7e") || "\uC9C4\uD589 \uC911",
+        label: t("g_7890ca") || "진행 중",
         color: '#4CAF50'
       };
       return {
-        label: t("g_36b7d7") || "\uC885\uB8CC",
+        label: t("g_cafdc6") || "종료",
         color: 'gray'
       };
     };
@@ -233,7 +233,7 @@ const InstructorHome = ({
           opacity: 0.6,
           fontSize: '0.8rem',
           fontWeight: 'normal'
-        }}>{t("g_97dfc6") || "\uCD1D"}{list.length}{t("g_46b3c1") || "\uBA85 \uCD9C\uC11D"}</span>
+        }}>{t("g_10d96e") || "총"}{list.length}{t("g_3c5525") || "명 출석"}</span>
                 </h4>
 
                 {/* 오늘 수업 목록 */}
@@ -339,7 +339,7 @@ const InstructorHome = ({
                   padding: '1px 6px',
                   borderRadius: '4px',
                   fontWeight: 'bold'
-                }}>{t("g_5a601c") || "\uC2E0\uADDC"}</span>;
+                }}>{t("g_884009") || "신규"}</span>;
                 return null;
               })()}
                                         {record.facialMatched && <span style={{
@@ -354,7 +354,7 @@ const InstructorHome = ({
                 gap: '3px',
                 border: '1px solid rgba(59, 130, 246, 0.3)'
               }}>
-                                                <UserFocus size={10} weight="fill" />{t("g_ae8632") || "\uC548\uBA74\uC77C\uCE58"}</span>}
+                                                <UserFocus size={10} weight="fill" />{t("g_d4edf3") || "안면일치"}</span>}
                                         {/* 안면인식 등록 상태 뱃지 */}
                                         {(() => {
                 const memberData = record.memberId ? memberService.getMemberById(record.memberId) : null;
@@ -366,11 +366,11 @@ const InstructorHome = ({
                   setDeletingFaceMemberId(record.memberId);
                   memberService.deleteFaceDescriptor(record.memberId).then(result => {
                     if (result.success) {
-                      alert(t("g_c801e1") || "\uC548\uBA74 \uC778\uC2DD \uB370\uC774\uD130\uAC00 \uC0AD\uC81C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+                      alert(t("g_fc6a3e") || "안면 인식 데이터가 삭제되었습니다.");
                     } else {
-                      alert((t("g_51acf1") || "\uC0AD\uC81C \uC2E4\uD328: ") + (result.error || t("g_053d5f") || "\uC54C \uC218 \uC5C6\uB294 \uC624\uB958"));
+                      alert((t("g_6bafa7") || "삭제 실패: ") + (result.error || t("g_5e9f6b") || "알 수 없는 오류"));
                     }
-                  }).catch(() => alert(t("g_54e78b") || "\uC0AD\uC81C \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.")).finally(() => setDeletingFaceMemberId(null));
+                  }).catch(() => alert(t("g_b4d561") || "삭제 중 오류가 발생했습니다.")).finally(() => setDeletingFaceMemberId(null));
                 }} style={{
                   fontSize: '0.65rem',
                   background: 'rgba(99, 102, 241, 0.15)',
@@ -384,7 +384,7 @@ const InstructorHome = ({
                   border: '1px solid rgba(99, 102, 241, 0.3)',
                   cursor: 'pointer',
                   opacity: deletingFaceMemberId === record.memberId ? 0.5 : 1
-                }} title={t("g_899a75") || "\uD074\uB9AD\uD558\uC5EC \uC548\uBA74 \uB370\uC774\uD130 \uC0AD\uC81C"}>{t("g_b6f5d5") || "\uD83E\uDDE0 \uC548\uBA74\uB4F1\uB85D \u2715"}</span> : null;
+                }} title={t("g_2ffd1a") || "클릭하여 안면 데이터 삭제"}>{t("g_5b426c") || "🧠 안면등록 ✕"}</span> : null;
               })()}
                                     </div>
                                     <div style={{
@@ -423,7 +423,7 @@ const InstructorHome = ({
         textAlign: 'center',
         border: '1px dashed rgba(255,255,255,0.1)',
         borderRadius: '6px'
-      }}>{t("g_240ef3") || "\uCD9C\uC11D \uB370\uC774\uD130\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4"}</div>}
+      }}>{t("g_ef43c1") || "출석 데이터가 없습니다"}</div>}
             </div>;
   };
   return <div style={{
@@ -446,18 +446,18 @@ const InstructorHome = ({
                     <h3 style={{
           margin: 0,
           fontSize: '1rem'
-        }}>{t("g_904625") || "\uD83D\uDCCB \uC624\uB298 \uB098\uC758 \uC218\uC5C5 \uCD9C\uC11D \uD604\uD669"}</h3>
+        }}>{t("g_873180") || "📋 오늘 나의 수업 출석 현황"}</h3>
                     <span style={{
           fontSize: '0.8rem',
           color: 'var(--text-secondary)'
-        }}>{todayStr} ({attendance.length}{t("g_df355c") || "\uBA85)"}</span>
+        }}>{todayStr} ({attendance.length}{t("g_8038a0") || "명)"}</span>
                 </div>
                 
                 {attendanceLoading ? <div style={{
         textAlign: 'center',
         color: 'var(--text-secondary)',
         padding: '20px'
-      }}>{t("g_06057f") || "\uB85C\uB529 \uC911..."}</div> : <>
+      }}>{t("g_06e61b") || "로딩 중..."}</div> : <>
                         {attendance.length === 0 && instructorClasses.length === 0 ? <div style={{
           textAlign: 'center',
           padding: '40px 20px',
@@ -476,12 +476,12 @@ const InstructorHome = ({
             fontWeight: 'bold',
             color: 'white',
             marginBottom: '4px'
-          }}>{t("g_c7ecc2") || "\uC624\uB298\uC740 \uC218\uC5C5 \uC77C\uC815\uC774 \uC5C6\uC2B5\uB2C8\uB2E4"}</div>
+          }}>{t("g_802f1e") || "오늘은 수업 일정이 없습니다"}</div>
                                 <div style={{
             fontSize: '0.85rem',
             opacity: 0.7
-          }}>{t("g_922fd2") || "\uD3B8\uC548\uD55C \uD734\uC2DD\uACFC \uCDA9\uC804\uC758 \uC2DC\uAC04 \uB418\uC2DC\uAE38 \uBC14\uB78D\uB2C8\uB2E4!"}</div>
-                            </div> : (config.BRANCHES || []).map(branch => renderAttendanceList(attendanceByBranch[branch.id] || [], config.BRANCHES?.length > 1 ? branch.name : t("g_3430e8") || "\uCD9C\uC11D \uD604\uD669", branch.color, branch.id))}
+          }}>{t("g_3fd487") || "편안한 휴식과 충전의 시간 되시길 바랍니다!"}</div>
+                            </div> : (config.BRANCHES || []).map(branch => renderAttendanceList(attendanceByBranch[branch.id] || [], config.BRANCHES?.length > 1 ? branch.name : t("g_294547") || "출석 현황", branch.color, branch.id))}
                     </>}
             </div>
 
@@ -505,12 +505,12 @@ const InstructorHome = ({
                         <h3 style={{
             margin: 0,
             fontSize: '1rem'
-          }}>{t("g_03bd79") || "\uB098\uC758 \uC218\uC5C5 \uCD9C\uC11D\uD68C\uC6D0 \uC54C\uB9BC"}</h3>
+          }}>{t("g_7feae3") || "나의 수업 출석회원 알림"}</h3>
                         <div style={{
             margin: '2px 0 0',
             fontSize: '0.8rem',
             color: 'var(--text-secondary)'
-          }}>{t("g_0a7c39") || "\uD68C\uC6D0 \uCD9C\uC11D \uC2DC \uC54C\uB9BC \uBC1B\uAE30"}</div>
+          }}>{t("g_b995aa") || "회원 출석 시 알림 받기"}</div>
                     </div>
                     {/* Toggle Switch */}
                     <div onClick={() => pushEnabled ? handleDisablePush() : handleEnablePush()} style={{
@@ -553,11 +553,11 @@ const InstructorHome = ({
           fontWeight: 'bold',
           fontSize: '1rem',
           marginBottom: '4px'
-        }}>{t("g_1cf93b") || "\uC54C\uB9BC \uC124\uC815\uC774 \uCF1C\uC838 \uC788\uC2B5\uB2C8\uB2E4"}</div>
+        }}>{t("g_c476cd") || "알림 설정이 켜져 있습니다"}</div>
                         <div style={{
           color: 'var(--text-secondary)',
           fontSize: '0.8rem'
-        }}>{t("g_d1ef65") || "\uD1A0\uAE00\uC744 \uB20C\uB7EC \uC54C\uB9BC\uC744 \uB04C \uC218 \uC788\uC2B5\uB2C8\uB2E4."}</div>
+        }}>{t("g_ed87c8") || "토글을 눌러 알림을 끌 수 있습니다."}</div>
                     </div> : <button onClick={handleEnablePush} disabled={pushLoading} style={{
         width: '100%',
         padding: '14px',
@@ -583,7 +583,7 @@ const InstructorHome = ({
             borderTop: '2px solid var(--text-secondary)',
             borderRadius: '50%',
             animation: 'spin 1s linear infinite'
-          }} />{t("g_22f510") || "\uC124\uC815 \uC911... \uD31D\uC5C5\uC744 \uD655\uC778\uD574\uC8FC\uC138\uC694"}</> : t("g_94714a") || "\uD83D\uDD14 \uC54C\uB9BC \uAD8C\uD55C \uD5C8\uC6A9\uD558\uAE30"}
+          }} />{t("g_f0af9d") || "설정 중... 팝업을 확인해주세요"}</> : t("g_0caaa7") || "🔔 알림 권한 허용하기"}
                     </button>}
                 
                 {pushMessage && <div style={{
@@ -646,13 +646,13 @@ const InstructorHome = ({
             margin: 0,
             fontSize: '1.05rem',
             color: 'white'
-          }}>{t("g_ef6889") || "\uD654\uBA74\uC5D0 \uC571 \uBCF4\uAD00\uD558\uAE30"}</h3>
+          }}>{t("g_b92f83") || "화면에 앱 보관하기"}</h3>
                             <div style={{
             margin: '4px 0 0',
             fontSize: '0.85rem',
             color: 'var(--text-secondary)'
           }}>
-                                {deviceOS === 'ios' ? t("g_2a915f") || "\uC0AC\uD30C\uB9AC(Safari)\uC5D0\uC11C \uD648 \uD654\uBA74\uC5D0 \uCD94\uAC00\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4." : t("g_97ccf6") || "\uD558\uB2E8\uC758 \uBC84\uD2BC\uC744 \uB204\uB974\uAC70\uB098 \uC124\uCE58 \uD31D\uC5C5\uC744 \uD655\uC778\uD558\uC138\uC694."}
+                                {deviceOS === 'ios' ? t("g_489f35") || "사파리(Safari)에서 홈 화면에 추가할 수 있습니다." : t("g_157492") || "하단의 버튼을 누르거나 설치 팝업을 확인하세요."}
                             </div>
                         </div>
                     </div>
@@ -684,10 +684,10 @@ const InstructorHome = ({
           }}>1</span>
                                 <span style={{
             color: '#e0e0e0'
-          }}>{t("g_556228") || "\uD558\uB2E8"}<Share size={18} weight="bold" style={{
+          }}>{t("g_b84f07") || "하단"}<Share size={18} weight="bold" style={{
               verticalAlign: 'middle',
               margin: '0 2px'
-            }} /> <strong>{t("g_9e553a") || "\uACF5\uC720 \uBC84\uD2BC"}</strong>{t("g_3630e7") || "\uC744 \uD074\uB9AD\uD558\uC138\uC694."}</span>
+            }} /> <strong>{t("g_bbf57b") || "공유 버튼"}</strong>{t("g_064378") || "을 클릭하세요."}</span>
                              </div>
                              <div style={{
           display: 'flex',
@@ -712,7 +712,7 @@ const InstructorHome = ({
           }}><PlusSquare size={18} weight="bold" style={{
               verticalAlign: 'middle',
               margin: '0 2px'
-            }} /> <strong>{t("g_e1557e") || "\uD648 \uD654\uBA74\uC5D0 \uCD94\uAC00"}</strong>{t("g_866e97") || "\uB97C \uC120\uD0DD\uD558\uC138\uC694."}</span>
+            }} /> <strong>{t("g_100222") || "홈 화면에 추가"}</strong>{t("g_5f09f8") || "를 선택하세요."}</span>
                              </div>
                         </div> : <button onClick={handleInstallPWA} style={{
         width: '100%',
@@ -732,7 +732,7 @@ const InstructorHome = ({
       }}>
                             <SignOut size={20} style={{
           transform: 'rotate(-90deg)'
-        }} />{t("g_7aad57") || "\uD3F0\uC5D0 \uC571 \uC124\uCE58\uD558\uAE30"}</button>}
+        }} />{t("g_caa253") || "폰에 앱 설치하기"}</button>}
                 </div>}
 
 

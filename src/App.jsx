@@ -27,8 +27,8 @@ const SuperAdminPage = lazy(() => import('./pages/SuperAdminPage'));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 const AuthActionPage = lazy(() => import('./pages/AuthActionPage'));
-const LandingPage = lazy(() => import('./pages/LandingPage'));
-const FeaturesPage = lazy(() => import('./pages/FeaturesPage'));
+
+
 
 // i18n helper for loading/error screens
 const getLang = () => new URLSearchParams(window.location.search).get('lang') || 'ko';
@@ -480,7 +480,7 @@ const RootRoute = () => {
   // [SaaS] 플랫폼 도메인에서는 랜딩페이지로, 그 외(각 스튜디오 도메인)에서는 키오스크로
   const isPlatform = window.location.hostname === 'passflowai.web.app';
   if (isPlatform) {
-    if (window.location.pathname === '/') window.location.href = '/home';
+    if (window.location.pathname === '/') window.location.href = '/home.html';
     return null;
   }
   return <CheckInPage />;
@@ -549,10 +549,8 @@ function App() {
                 <Route path="/super-admin" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><RequireSuperAdmin><SuperAdminPage /></RequireSuperAdmin></Suspense></ErrorBoundary>} />
                 <Route path="/auth/action" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><AuthActionPage /></Suspense></ErrorBoundary>} />
                 <Route path="/privacy" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><PrivacyPolicyPage /></Suspense></ErrorBoundary>} />
-                <Route path="/features" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><FeaturesPage /></Suspense></ErrorBoundary>} />
-                <Route path="/features.html" element={<HardReload target="/features" />} />
-                <Route path="/home" element={<ErrorBoundary fallback={<ErrorFallback />}><Suspense fallback={<LoadingScreen />}><LandingPage /></Suspense></ErrorBoundary>} />
-                <Route path="/home.html" element={<HardReload target="/home" />} />
+                <Route path="/features.html" element={<HardReload target="/features.html" />} />
+                <Route path="/home.html" element={<HardReload target="/home.html" />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
               <NetworkStatus />

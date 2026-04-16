@@ -121,7 +121,7 @@ const TopBar = memo(({
       gap: '20px',
       alignItems: 'center'
     }}>
-                <button className="instructor-btn" onClick={onInstructorClick} aria-label={t('kiosk_topbar_instructor_only') || t("g_7c4e80") || "\uC120\uC0DD\uB2D8 \uC804\uC6A9"} style={{
+                <button className="instructor-btn" onClick={onInstructorClick} aria-label={t('kiosk_topbar_instructor_only') || t("g_69cd4e") || "선생님 전용"} style={{
         background: 'rgba(var(--primary-rgb), 0.15)',
         border: '1px solid rgba(var(--primary-rgb), 0.4)',
         borderRadius: '22px',
@@ -136,11 +136,11 @@ const TopBar = memo(({
         transition: 'none'
       }}>
                     <Chalkboard size={20} weight="duotone" />
-                    {t('kiosk_topbar_instructor') || t("g_9564f6") || "\uC120\uC0DD\uB2D8"}
+                    {t('kiosk_topbar_instructor') || t("g_620be2") || "선생님"}
                 </button>
 
 
-                <button className="fullscreen-btn" onClick={toggleFullscreen} aria-label={isFullscreen ? t('kiosk_topbar_fullscreen_exit') || t("g_7a0d27") || "\uC804\uCCB4\uD654\uBA74 \uC885\uB8CC" : t('kiosk_topbar_fullscreen_enter') || t("g_c5835b") || "\uC804\uCCB4\uD654\uBA74 \uC2DC\uC791"} style={{
+                <button className="fullscreen-btn" onClick={toggleFullscreen} aria-label={isFullscreen ? t('kiosk_topbar_fullscreen_exit') || t("g_330054") || "전체화면 종료" : t('kiosk_topbar_fullscreen_enter') || t("g_641b14") || "전체화면 시작"} style={{
         background: 'rgba(255, 255, 255, 0.1)',
         border: '1px solid rgba(255, 255, 255, 0.2)',
         borderRadius: '50%',
