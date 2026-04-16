@@ -12,25 +12,25 @@ const KAKAO_PASSFLOW_URL = 'http://pf.kakao.com/_zDxiMX/chat';
 const SEND_MODES = [{
   id: 'push_only',
   labelKey: 'g_a03713',
-  labelFallback: (t("g_93efd1") || "앱 푸시만"),
+  labelFallback: "앱 푸시만",
   descKey: 'g_667dd4',
-  descFallback: (t("g_9caae3") || "무료"),
+  descFallback: "무료",
   icon: '📱',
   color: '#10b981'
 }, {
   id: 'push_first',
   labelKey: 'g_3bd88d',
-  labelFallback: (t("g_d70852") || "푸시 우선"),
+  labelFallback: "푸시 우선",
   descKey: 'g_ef5af5',
-  descFallback: (t("g_556350") || "푸시 실패 시 SMS"),
+  descFallback: "푸시 실패 시 SMS",
   icon: '📱➡📩',
   color: 'var(--primary-gold)'
 }, {
   id: 'sms_only',
   labelKey: 'g_d4f540',
-  labelFallback: (t("g_761b2d") || "SMS/LMS만"),
+  labelFallback: "SMS/LMS만",
   descKey: 'g_b812d5',
-  descFallback: (t("g_a06dcc") || "문자 비용 발생"),
+  descFallback: "문자 비용 발생",
   icon: '📩',
   color: '#3B82F6'
 }];

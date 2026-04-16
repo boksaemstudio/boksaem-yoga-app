@@ -12,10 +12,10 @@ import CollapsibleCard from '../CollapsibleCard';
 
 // [i18n] Day names map - shared between MiniCalendar and LogsTab
 const dayNamesMap = {
-  ko: [(t("g_06cf3e") || "일"), (t("g_754486") || "월"), (t("g_adb4a2") || "화"), (t("g_c04eb2") || "수"), (t("g_5664a6") || "목"), (t("g_cf5632") || "금"), (t("g_b9e406") || "토")],
+  ko: ["일", "월", "화", "수", "목", "금", "토"],
   en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-  ja: [(t("g_15917f") || "日"), (t("g_d9b598") || "月"), (t("g_efb262") || "火"), (t("g_8ffbf1") || "水"), (t("g_8294db") || "木"), (t("g_b59df8") || "金"), (t("g_90fbc9") || "土")],
-  zh: [(t("g_15917f") || "日"), (t("g_d274ee") || "一"), (t("g_1d5639") || "二"), (t("g_49ddb0") || "三"), (t("g_4f8874") || "四"), (t("g_8f07f5") || "五"), (t("g_3d72c7") || "六")],
+  ja: ["日", "月", "火", "水", "木", "金", "土"],
+  zh: ["日", "一", "二", "三", "四", "五", "六"],
   ru: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
   es: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
   pt: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
