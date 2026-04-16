@@ -6,7 +6,7 @@ import { isMemberActive, isMemberExpiring, getDormantSegments, calculateDerivedD
 import { useLanguageStore } from '../stores/useLanguageStore';
 
 // [i18n] AI briefing prompts per language
-const getAIBriefingGuidance = lang => {
+const getAIBriefingGuidance = (lang, t) => {
   const guidances = {
     ko: (t("g_d84ded") || "당신은 최고의 요가 스튜디오 경영 컨설턴트입니다. 원장에게 종합적인 경영 브리핑을 제공하세요.\n다음 영역을 모두 커버해주세요:\n1. 📊 매출 분석: 월간 매출 현황, 일매출 추이, 전월 대비 변화\n2. 👥 회원 관리: 활성/총 회원 비율, 신규 등록 vs 재등록, 만료 임박 회원 관리 전략\n3. 🔄 재등록률 심층 분석: 누적 재등록률과 최근 3개월 재등록률 비교, 월별 트렌드 해석, 재등록률 개선 전략\n4. ⚠️ 이탈 방지: 만료/거부 회원 현황, 선제적 리텐션 전략\n5. 👩‍🏫 강사 평가 및 인사 관련: 강사별 수업 참여도 분석, 인기 강사와 관심이 필요한 강사 파악, 수업 편성 최적화 제안\n6. 📱 디지털 전환: 앱 설치율과 푸시 도달률 분석, 디지털 마케팅 기회\n7. 🔮 미래 전망: 현재 추세 기반 다음 달 예측, 계절적 요인 고려, 선제적 대응 전략\n\n톤: 전문적이면서도 실행 가능한 조언 위주. 숫자와 근거를 들어 설명. 4~6단락으로 구성.\n절대로 데이터가 없는 영역을 꾸며내지 마세요. 실제 데이터 기반으로만 분석하세요."),
     en: `You are a top-tier yoga/fitness studio management consultant. Provide a comprehensive business briefing to the studio owner.
@@ -271,7 +271,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         timeContext: timeCtx.period,
         timeGuidance: timeCtx.guidance,
         // ── AI 브리핑 가이드 ──
-        briefingGuidance: getAIBriefingGuidance(currentLang)
+        briefingGuidance: getAIBriefingGuidance(currentLang, t)
       };
       const aiPromise = storageService.getAIAnalysis("Administrator", logs.length, logs, getKSTHour(), currentLang, 'admin', statsData, 'admin');
       const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("AI Analysis Timeout")), 30000));
