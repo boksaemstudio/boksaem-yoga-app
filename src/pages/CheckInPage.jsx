@@ -231,7 +231,15 @@ const CheckInPage = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        await signInAnonymously(auth);
+        await new Promise(resolve => {
+          const unsubscribe = auth.onAuthStateChanged(user => {
+            unsubscribe();
+            resolve(user);
+          });
+        });
+        if (!auth.currentUser) {
+          await signInAnonymously(auth);
+        }
       } catch (e) {}
       await storageService.initialize({
         mode: 'kiosk'

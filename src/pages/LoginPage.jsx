@@ -32,13 +32,13 @@ const LoginPage = () => {
             // 플랫폼 도메인(passflowai)에서만 super-admin으로 이동
             // 테넌트 전용 도메인(boksaem-yoga, ssangmun-yoga 등)에서는 해당 스튜디오 /admin으로 진입
             const isPlatformDomain = window.location.hostname.includes('passflowai');
-            navigate(isPlatformDomain ? '/super-admin' : '/admin');
+            window.location.href = isPlatformDomain ? '/super-admin' : '/admin';
             return;
           }
         } catch (e) {
           console.error('[LoginPage] Claims check failed:', e);
         }
-        navigate('/admin');
+        window.location.href = '/admin';
       } else {
         setError(result.message);
         setLoading(false);
