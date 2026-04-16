@@ -114,7 +114,7 @@ const AdminHeader = ({
       alignItems: 'center',
       flexWrap: 'wrap'
     }}>
-                {isAllExpanded !== undefined && <div className="tooltip-container" style={{
+                {isAllExpanded !== undefined && <div style={{
         display: 'inline-flex'
       }}>
                         <button onClick={handleToggleAllCards} style={{
@@ -135,17 +135,6 @@ const AdminHeader = ({
                             {isAllExpanded ? <ToggleRight size={18} weight="fill" /> : <ToggleLeft size={18} />}
                             <span className="mobile-compact">{isAllExpanded ? t('collapseAll') : t('expandAll')}</span>
                         </button>
-                        <div className="tooltip-text" style={{
-          width: '200px',
-          left: 'auto',
-          right: '50%',
-          transform: 'translateX(50%)',
-          top: '130%',
-          zIndex: 10
-        }}>
-                            <strong>{isAllExpanded ? t('collapseAllCards') : t('expandAllCards')}</strong><br />
-                            {isAllExpanded ? t('collapseAllCardsDesc') : t('expandAllCardsDesc')}
-                        </div>
                     </div>}
 
                 <div className="tooltip-container" style={{

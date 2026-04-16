@@ -1,5 +1,4 @@
 import * as Icons from '@phosphor-icons/react';
-import { useLanguageStore } from '../../../stores/useLanguageStore';
 
 const NoticeTab = ({
     t,

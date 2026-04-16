@@ -1,6 +1,5 @@
 import React from 'react';
 import LanguageSelector from '../LanguageSelector';
-import { useLanguageStore } from '../../stores/useLanguageStore';
 
 const ProfileHeader = ({ logo, studioName, langLabelIndex, langLabels, t, logout }) => {
   return (

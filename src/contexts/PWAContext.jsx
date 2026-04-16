@@ -68,6 +68,7 @@ export const PWAProvider = ({ children }) => {
 
         // [i18n] Dynamic tab title based on language
         const langParam = new URLSearchParams(location.search).get('lang') || 'ko';
+        const t = useLanguageStore.getState().t;
         const titleMap = {
             checkin: { ko: (t("g_660ceb") || "출석체크"), en: 'Check-in', ja: (t("g_0cd193") || "出席チェック"), zh: (t("g_6a0e66") || "签到"), es: 'Registro', de: 'Check-in', fr: 'Pointage', pt: 'Check-in', ru: 'Отметка' },
             admin: { ko: (t("g_ec873c") || "관리자"), en: 'Admin', ja: (t("g_9b4f13") || "管理者"), zh: (t("g_ef84e7") || "管理员"), es: 'Admin', de: 'Admin', fr: 'Admin', pt: 'Admin', ru: 'Админ' },

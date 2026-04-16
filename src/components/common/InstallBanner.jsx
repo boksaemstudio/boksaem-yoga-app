@@ -1,4 +1,3 @@
-import { useLanguageStore } from '../../stores/useLanguageStore';
 import { useContext, useEffect, useState } from 'react';
 import { PWAContext } from '../../contexts/PWAContextDef';
 import { DownloadSimple } from '@phosphor-icons/react';

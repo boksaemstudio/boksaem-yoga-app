@@ -399,6 +399,11 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
 
   // Subscriptions
   useEffect(() => {
+    // [CRITICAL FIX] Ensure real-time listeners are forcefully enabled.
+    // If the user started on the Kiosk page ('/'), global listeners were skipped to save memory.
+    // We must upgrade the storage service to 'full' mode here to guarantee instant updates.
+    storageService.initialize({ mode: 'full' }).catch(e => console.error('[Admin] Storage init failed:', e));
+
     loadInitialData();
     const unsubscribe = storageService.subscribe(handleDataUpdate);
     // AI Pending Approvals (New)

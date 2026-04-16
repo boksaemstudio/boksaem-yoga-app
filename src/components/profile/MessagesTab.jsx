@@ -1,5 +1,4 @@
 import { Icons } from '../CommonIcons';
-import { useLanguageStore } from '../../stores/useLanguageStore';
 
 const MessagesTab = ({ messages, t, setActiveTab }) => {
   return (

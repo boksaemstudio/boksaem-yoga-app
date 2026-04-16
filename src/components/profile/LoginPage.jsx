@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import LanguageSelector from '../LanguageSelector';
 import { profileStyles } from './profileStyles';
-import { useLanguageStore } from '../../stores/useLanguageStore';
 
 /**
  * LoginPage — 회원 로그인 화면

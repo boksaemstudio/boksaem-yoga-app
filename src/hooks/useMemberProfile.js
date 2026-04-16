@@ -1,4 +1,3 @@
-import { useLanguageStore } from '../stores/useLanguageStore';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { onSnapshot, query, where, orderBy, limit as firestoreLimit } from 'firebase/firestore';
 import { auth } from '../firebase';

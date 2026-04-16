@@ -1,4 +1,3 @@
-import { useLanguageStore } from '../stores/useLanguageStore';
 // ==========================================
 // 🧘 AI Mindful Guide - CONFIG
 // "지금의 당신을 듣고, 지금의 명상을 만듭니다."

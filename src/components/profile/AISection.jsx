@@ -1,6 +1,5 @@
 import React from 'react';
 import { Icons } from '../CommonIcons';
-import { useLanguageStore } from '../../stores/useLanguageStore';
 const AISection = ({
   aiExperience,
   weatherData,

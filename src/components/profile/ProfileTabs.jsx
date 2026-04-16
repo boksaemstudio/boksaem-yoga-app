@@ -1,6 +1,5 @@
 import { cloneElement } from 'react';
 import { Icons } from '../CommonIcons';
-import { useLanguageStore } from '../../stores/useLanguageStore';
 
 const NavItem = ({ active, onClick, icon, label }) => (
     <button onClick={onClick} style={{

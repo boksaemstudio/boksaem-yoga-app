@@ -1,4 +1,3 @@
-import { useLanguageStore } from './stores/useLanguageStore';
 // Yoga Studio Configuration (범용 기본값)
 // 이 파일은 새로운 요가원의 기본 설정 템플릿입니다.
 // 실제 운영 데이터는 Firestore(studios/{studioId})에서 실시간으로 로드되어 이 값을 덮어씁니다.
@@ -12,7 +11,7 @@ export const STUDIO_CONFIG = {
     LOGO_TEXT: "YOGA",
     SLOGAN: "\uB098\uB97C \uB9CC\uB098\uB294 \uACE0\uC694\uD55C \uC2DC\uAC04",
     DESCRIPTION: "\uC694\uAC00\uC640 \uD568\uAED8\uD558\uB294 \uAC74\uAC15\uD55C \uC77C\uC0C1",
-    APP_VERSION: "2026.04.17 03:23",
+    APP_VERSION: "2026.04.17 04:33",
     FAVICON: "/favicon.ico"
   },
   // 2. Operational Policy Engine (운영 정책) — 합리적 기본값

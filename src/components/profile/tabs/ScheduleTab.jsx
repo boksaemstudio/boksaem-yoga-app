@@ -1,6 +1,5 @@
 import MemberScheduleCalendar from '../../MemberScheduleCalendar';
 import { useStudioConfig } from '../../../contexts/StudioContext';
-import { useLanguageStore } from '../../../stores/useLanguageStore';
 
 const ScheduleTab = ({
     t,

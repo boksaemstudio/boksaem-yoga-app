@@ -18,6 +18,7 @@ export const useStudioConfig = () => {
 };
 
 export const StudioProvider = ({ children }) => {
+    const t = useLanguageStore.getState().t;
     const [config, setConfig] = useState(STATIC_CONFIG);
     const [loading, setLoading] = useState(true);
     const [studioId, setStudioId] = useState(() => resolveStudioId());

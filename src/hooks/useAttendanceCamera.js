@@ -1,5 +1,4 @@
 // src/hooks/useAttendanceCamera.js
-import { useLanguageStore } from '../stores/useLanguageStore';
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { storage } from '../firebase';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -225,18 +224,30 @@ export const useAttendanceCamera = PHOTO_ENABLED => {
         resolve(null);
       }, 5000);
       try {
-        // [O] Switch to WebP for better compression (v10)
+        // [O] Switch to WebP for better compression (v10), with JPEG fallback for older iOS
         canvas.toBlob(blob => {
-          clearTimeout(timeout);
           if (blob) {
+            clearTimeout(timeout);
             capturedPhotoRef.current = blob;
             lastCaptureTimeRef.current = Date.now();
             console.log(`[PHOTO] ✅ Captured WebP: ${(blob.size / 1024).toFixed(1)}KB`);
+            isCapturingRef.current = false;
+            resolve(blob);
           } else {
-            console.warn('[PHOTO] ⚠️ toBlob returned null blob');
+            console.warn('[PHOTO] ⚠️ toBlob returned null for webp, falling back to jpeg');
+            canvas.toBlob(fallbackBlob => {
+              clearTimeout(timeout);
+              if (fallbackBlob) {
+                capturedPhotoRef.current = fallbackBlob;
+                lastCaptureTimeRef.current = Date.now();
+                console.log(`[PHOTO] ✅ Captured JPEG Fallback: ${(fallbackBlob.size / 1024).toFixed(1)}KB`);
+              } else {
+                console.warn('[PHOTO] ❌ toBlob returned null blob for jpeg as well');
+              }
+              isCapturingRef.current = false;
+              resolve(fallbackBlob);
+            }, 'image/jpeg', 0.8);
           }
-          isCapturingRef.current = false;
-          resolve(blob);
         }, 'image/webp', 0.8);
       } catch (err) {
         clearTimeout(timeout);

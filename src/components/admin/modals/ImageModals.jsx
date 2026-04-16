@@ -8,7 +8,7 @@ const handleImageUpload = (e, target, setOptimisticImages) => {
   const file = e.target.files[0];
   if (!file) return;
   if (file.size > 5 * 1024 * 1024) {
-    alert(t("g_a287d2") || "\uD30C\uC77C \uC6A9\uB7C9\uC774 \uB108\uBB34 \uD07D\uB2C8\uB2E4. (\uCD5C\uB300 5MB)");
+    alert(useLanguageStore.getState().t("g_a287d2") || "\uD30C\uC77C \uC6A9\uB7C9\uC774 \uB108\uBB34 \uD07D\uB2C8\uB2E4. (\uCD5C\uB300 5MB)");
     return;
   }
   const reader = new FileReader();
@@ -35,7 +35,7 @@ const handleImageUpload = (e, target, setOptimisticImages) => {
       try {
         await storageService.updateImage(target, compressedBase64);
       } catch {
-        alert(t("g_b0e999") || "\uC774\uBBF8\uC9C0 \uC5C5\uB85C\uB4DC\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");
+        alert(useLanguageStore.getState().t("g_b0e999") || "\uC774\uBBF8\uC9C0 \uC5C5\uB85C\uB4DC\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");
       }
     };
     img.src = event.target.result;

@@ -1,4 +1,3 @@
-import { useLanguageStore } from '../../../stores/useLanguageStore';
 import { useState, useEffect } from 'react';
 import MemberSalesHistory from '../MemberSalesHistory';
 import { storageService } from '../../../services/storage';

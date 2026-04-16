@@ -1,4 +1,3 @@
-import { useLanguageStore } from '../../stores/useLanguageStore';
 import { createPortal } from 'react-dom';
 import { X } from '@phosphor-icons/react';
 const SimpleImageModal = ({

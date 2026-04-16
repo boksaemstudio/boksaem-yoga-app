@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { getTranslatedClass } from '../../utils/classMapping';
-import { useLanguageStore } from '../../stores/useLanguageStore';
 
 const RecentAttendance = ({ logs, language, t, setActiveTab }) => {
   if (!logs || logs.length === 0) return null;

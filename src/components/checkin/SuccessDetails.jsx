@@ -8,7 +8,8 @@ import { useLanguageStore } from '../../stores/useLanguageStore';
  */
 const SuccessDetails = memo(({
   member,
-  onClose
+  onClose,
+  countdown
 }) => {
   const t = useLanguageStore(s => s.t);
   if (!member) return null;
@@ -145,9 +146,29 @@ const SuccessDetails = memo(({
         cursor: 'pointer',
         transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
         boxShadow: '0 8px 30px var(--primary-gold-glow)',
-        minWidth: '200px'
+        minWidth: '200px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '12px'
       }}>
                     {t('kiosk_success_confirm_btn') || t("g_3ce813") || "\uD655\uC778"}
+                    {countdown !== undefined && (
+                        <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            background: 'rgba(255,255,255,0.15)',
+                            fontSize: '1.2rem',
+                            fontWeight: '800',
+                            fontFamily: 'var(--font-mono, monospace)',
+                        }}>
+                            {countdown}
+                        </span>
+                    )}
                 </button>
             </div>
         </div>;

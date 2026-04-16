@@ -98,7 +98,7 @@ const AdminDashboard = () => {
   const initialTab = new URLSearchParams(window.location.search).get('tab') || 'logs';
   const [activeTab, setActiveTab] = useState(initialTab);
   const isDemoSite = typeof window !== 'undefined' && window.location.hostname.includes('demo');
-  const [isAllExpanded, setIsAllExpanded] = useState(isDemoSite ? true : false);
+  const [isAllExpanded, setIsAllExpanded] = useState(true);
   // [Refactor] Use Custom Hook for Data & Logic
   const adminData = useAdminData(activeTab, 'all');
   const {
@@ -214,6 +214,7 @@ const AdminDashboard = () => {
   }, [activeTab]);
 
   // 전부 펼치기/접기 토글
+
   const handleToggleAllCards = () => {
     const next = !isAllExpanded;
     setIsAllExpanded(next);

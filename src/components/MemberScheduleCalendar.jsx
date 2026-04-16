@@ -1,4 +1,3 @@
-import { useLanguageStore } from '../stores/useLanguageStore';
 import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
 import { storageService } from '../services/storage';
 import { CaretLeft, CaretRight, CheckCircle } from '@phosphor-icons/react';

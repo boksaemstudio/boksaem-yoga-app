@@ -1,7 +1,6 @@
-import { useLanguageStore } from '../stores/useLanguageStore';
 import { useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Buildings, CheckCircle, ShieldCheck, ArrowRight, ArrowLeft, Spinner, Upload, MagicWand, Image as ImageIcon, CalendarBlank, ArrowsClockwise, EnvelopeSimple } from '@phosphor-icons/react';
+import { Buildings, CheckCircle, ShieldCheck, ArrowRight, ArrowLeft, Spinner, EnvelopeSimple } from '@phosphor-icons/react';
 import { studioRegistryService } from '../services/studioRegistryService';
 import { storage } from '../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';

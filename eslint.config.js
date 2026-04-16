@@ -6,7 +6,7 @@ import reactPlugin from "eslint-plugin-react";
 import unusedImports from "eslint-plugin-unused-imports";
 
 export default [
-  { ignores: ["dist", "build", "test_images.js", "eslint-report*.json", "lint_*.txt", "functions/**", "scripts/**", "oldLogsTab.js", "dev-dist", "dev-dist/**"] },
+  { ignores: ["dist", "build", "test_images.js", "eslint-report*.json", "lint_*.txt", "functions/**", "scripts/**", "oldLogsTab.js", "dev-dist", "dev-dist/**", "_workspace_archive/**", "**/*.test.jsx", "**/*.test.js"] },
   {
     files: ["src/**/*.{js,jsx}"],
     languageOptions: {

@@ -604,7 +604,7 @@ const MembersTab = ({
                                 <span style={{
                 color: '#93C5FD',
                 fontSize: '0.85rem'
-              }}>{t('admin_tab_push_installed') || t('admin_tab_installed_member' || t("g_0d3e15") || "\uC571 \uC124\uCE58 \uD68C\uC6D0")} {summary.installedCount}{t('명')} ({summary.installRatio}%)</span>
+              }}>{t('admin_tab_push_installed') || t('admin_tab_installed_member') || t("g_0d3e15") || "\uC571 \uC124\uCE58 \uD68C\uC6D0"} {summary.installedCount}{t('명')} ({summary.installRatio}%)</span>
                                 <span style={{
                 margin: '0 4px',
                 opacity: 0.3

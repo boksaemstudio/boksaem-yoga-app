@@ -1,4 +1,3 @@
-import { useLanguageStore } from '../stores/useLanguageStore';
 // Onboarding page i18n strings
 // Each key corresponds to a language code detected from URL or browser
 

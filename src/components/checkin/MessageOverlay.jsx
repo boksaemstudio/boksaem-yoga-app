@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useCallback } from 'react';
+import { memo, useState, useEffect } from 'react';
 import SuccessDetails from './SuccessDetails';
 import { useLanguageStore } from '../../stores/useLanguageStore';
 
@@ -14,11 +14,12 @@ const MessageOverlay = memo(({
   aiExperience
 }) => {
   const t = useLanguageStore(s => s.t);
+  const AUTO_CLOSE_SECONDS = message?.type === 'success' ? 8 : 15;
   const [countdown, setCountdown] = useState(AUTO_CLOSE_SECONDS);
 
-  // Auto-close countdown for error messages
+  // Auto-close countdown for all messages (error and success)
   useEffect(() => {
-    if (!message || message.type === 'success') return;
+    if (!message) return;
     setCountdown(AUTO_CLOSE_SECONDS);
     const interval = setInterval(() => {
       setCountdown(prev => {
@@ -31,7 +32,7 @@ const MessageOverlay = memo(({
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [message, onClose]);
+  }, [message, onClose, AUTO_CLOSE_SECONDS]);
 
   if (!message) return null;
 
@@ -66,7 +67,7 @@ const MessageOverlay = memo(({
     }} onClick={e => e.stopPropagation()}>
 
       {/* Countdown Progress Bar */}
-      {isError && <div style={{
+      <div style={{
         position: 'absolute',
         top: 0,
         left: 0,
@@ -74,16 +75,17 @@ const MessageOverlay = memo(({
         height: '4px',
         background: 'rgba(255,255,255,0.05)',
         overflow: 'hidden',
-        borderRadius: '40px 40px 0 0'
+        borderTopLeftRadius: '40px',
+        borderTopRightRadius: '40px'
       }}>
         <div style={{
           height: '100%',
           width: `${(countdown / AUTO_CLOSE_SECONDS) * 100}%`,
-          background: 'linear-gradient(90deg, #FF6B6B, #ff4444)',
+          background: isError ? 'linear-gradient(90deg, #FF6B6B, #ff4444)' : 'linear-gradient(90deg, var(--primary-gold), #FFF)',
           transition: 'width 1s linear',
           borderRadius: '4px'
         }} />
-      </div>}
+      </div>
 
       <div className="message-content" style={{
         textAlign: 'center'
@@ -142,7 +144,7 @@ const MessageOverlay = memo(({
         </div>}
 
         {/* [SUCCESS DETAILS] Grid for credits and days remaining */}
-        {isSuccess && <SuccessDetails member={message.member} onClose={onClose} />}
+        {isSuccess && <SuccessDetails member={message.member} onClose={onClose} countdown={countdown} />}
         
         {/* Close Button with Countdown */}
         {!isSuccess && <button onClick={e => {

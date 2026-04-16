@@ -5,7 +5,6 @@ import { getHolidayName } from '../../utils/holidays';
 import { useStudioConfig } from '../../contexts/StudioContext';
 import { getMembershipLabel } from '../../utils/membershipLabels';
 import WorkoutReportModal from './WorkoutReportModal';
-import { useLanguageStore } from '../../stores/useLanguageStore';
 const AttendanceHistory = ({
   logs,
   member,

@@ -1,4 +1,3 @@
-import { useLanguageStore } from '../stores/useLanguageStore';
 // src/constants/aiMessages.js
 
 export const FALLBACK_MESSAGE_OUTSIDE_BUSINESS_HOURS = "\uC624\uB298\uB3C4 \uB9E4\uD2B8 \uC704\uC5D0\uC11C \uB098\uB97C \uB9CC\uB098\uB294 \uC18C\uC911\uD55C \uC2DC\uAC04\uC785\uB2C8\uB2E4.";
