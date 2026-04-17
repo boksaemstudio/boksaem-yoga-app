@@ -55,9 +55,9 @@ const CheckInPage = () => {
   // [FIX] FACE_RECOGNITION_ENABLED만으로 얼굴 인식 활성화 (SHOW_CAMERA_PREVIEW는 프리뷰 표시만 제어)
   const faceRecognitionEnabled = config.POLICIES?.FACE_RECOGNITION_ENABLED === true;
   const RANDOM_BACKGROUNDS = [
-    '/assets/bg/random_bg_1.webp',
-    '/assets/bg/random_bg_2.webp',
-    '/assets/bg/random_bg_3.webp'
+    '/assets/bg/medieval_bg_1.webp',
+    '/assets/bg/medieval_bg_2.webp',
+    '/assets/bg/medieval_bg_3.webp'
   ];
 
   const getRandomBg = () => {
@@ -117,6 +117,7 @@ const CheckInPage = () => {
   });
   const pinRef = useRef(pin);
   const warmupTriggered = useRef(false);
+  const standbyAiMsgRef = useRef(null);
 
   // Custom Hooks
   const pwaContext = usePWA();
@@ -298,7 +299,11 @@ const CheckInPage = () => {
         });
         setAiLoading(true);
         storageService.getAIExperience(name, 0, t("g_2bdce5") || "오늘", h, title, w, null, null, language, null, 'visitor', 'checkin').then(res => {
-          if (res?.message && !res.isFallback) setAiEnhancedMsg(res.message.replace(/나마스테[.]?\s*🙏?/gi, '').trim());
+          if (res?.message && !res.isFallback) {
+            const refined = res.message.replace(/나마스테[.]?\s*🙏?/gi, '').trim();
+            setAiEnhancedMsg(refined);
+            standbyAiMsgRef.current = refined;
+          }
         }).finally(() => setAiLoading(false));
       } else {
         const exp = await storageService.getAIExperience(name, 0, t("g_2bdce5") || "오늘", h, title, w, credits, days, language, null, 'member', 'checkin');
@@ -323,7 +328,7 @@ const CheckInPage = () => {
     setKeypadLocked(true);
     action();
     setPin('');
-    setAiEnhancedMsg(null);
+    setAiEnhancedMsg(standbyAiMsgRef.current);
     setAiLoading(false);
     setTimeout(() => setKeypadLocked(false), 350);
   }, []);
