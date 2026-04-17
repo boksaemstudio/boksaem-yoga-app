@@ -54,9 +54,14 @@ const CheckInPage = () => {
   const branches = config.BRANCHES || [];
   // [FIX] FACE_RECOGNITION_ENABLED만으로 얼굴 인식 활성화 (SHOW_CAMERA_PREVIEW는 프리뷰 표시만 제어)
   const faceRecognitionEnabled = config.POLICIES?.FACE_RECOGNITION_ENABLED === true;
-  const getBgForPeriod = p => {
-    const bgKey = p.toUpperCase();
-    return config.ASSETS?.BACKGROUNDS?.[bgKey] || config.ASSETS?.BACKGROUNDS?.NIGHT;
+  const RANDOM_BACKGROUNDS = [
+    '/assets/bg/random_bg_1.webp',
+    '/assets/bg/random_bg_2.webp',
+    '/assets/bg/random_bg_3.webp'
+  ];
+
+  const getRandomBg = () => {
+    return RANDOM_BACKGROUNDS[Math.floor(Math.random() * RANDOM_BACKGROUNDS.length)];
   };
 
   // States
@@ -97,7 +102,7 @@ const CheckInPage = () => {
     if (h >= 17 && h < 21) return 'evening';
     return 'night';
   });
-  const [bgImage, setBgImage] = useState(null);
+  const [bgImage, setBgImage] = useState(() => getRandomBg());
   const [monthlyClasses, setMonthlyClasses] = useState({});
   const [isOperatingHours, setIsOperatingHours] = useState(true);
   const [isOnline, setIsOnline] = useState(true);
@@ -267,7 +272,8 @@ const CheckInPage = () => {
     // 자동 팝업을 제거하여 화면을 방해하지 않도록 함 (QR 코드 클릭 시에만 수동으로 뜸)
   }, [isReady, pwaContext.isStandalone]);
   useEffect(() => {
-    setBgImage(getBgForPeriod(period));
+    // Keep the same background once set, or we could change it on period change if desired
+    // For now, leaving it static per load randomly. 
   }, [period]);
 
   // ── Business Logic ──
