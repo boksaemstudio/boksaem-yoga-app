@@ -204,15 +204,15 @@ const CheckInInfoSection = memo(({
                     </div>}
 
                 <div className="message-container" style={{
-        flex: '0 0 auto'
+        flex: '0 0 auto',
+        background: 'rgba(0, 0, 0, 0.85)',
+        padding: 'clamp(12px, 2vh, 20px) clamp(16px, 3vw, 30px)',
+        borderRadius: '24px',
+        border: '1px solid rgba(255, 215, 0, 0.2)'
       }}>
                     <div className={`instruction-text ${loading ? 'loading' : ''}`}>
                         {aiExperience ? <div>
                                 {aiEnhancedMsg && !loading && <div style={{
-              padding: '16px 20px',
-              background: 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.12), rgba(var(--primary-rgb), 0.04))',
-              border: '1px solid rgba(var(--primary-rgb), 0.25)',
-              borderRadius: '16px',
               animation: 'slideUp 0.6s ease-out',
               display: 'flex',
               alignItems: 'flex-start',
@@ -234,15 +234,10 @@ const CheckInInfoSection = memo(({
                                         </span>
                                     </div>}
                                 {!aiEnhancedMsg && aiLoading && !loading && <div style={{
-              marginTop: '12px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '10px',
-              padding: '10px 16px',
-              borderRadius: '20px',
-              background: 'rgba(var(--primary-rgb), 0.08)',
-              border: '1px solid rgba(var(--primary-rgb), 0.15)',
               animation: 'fadeIn 0.5s ease-out'
             }}>
                                         <div className="ai-thinking-icon">

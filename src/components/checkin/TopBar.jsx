@@ -58,7 +58,7 @@ const TopBar = memo(({
       gap: '12px',
       padding: '8px 20px',
       borderRadius: '50px',
-      background: 'rgba(255, 255, 255, 0.1)',
+      background: 'rgba(0, 0, 0, 0.85)',
       border: '1px solid rgba(255, 215, 0, 0.3)',
       boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
       whiteSpace: 'nowrap',
