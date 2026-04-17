@@ -54,15 +54,12 @@ const CheckInPage = () => {
   const branches = config.BRANCHES || [];
   // [FIX] FACE_RECOGNITION_ENABLED만으로 얼굴 인식 활성화 (SHOW_CAMERA_PREVIEW는 프리뷰 표시만 제어)
   const faceRecognitionEnabled = config.POLICIES?.FACE_RECOGNITION_ENABLED === true;
-  const RANDOM_BACKGROUNDS = [
-    '/assets/bg/medieval_bg_1.webp',
-    '/assets/bg/medieval_bg_2.webp',
-    '/assets/bg/medieval_bg_3.webp'
+  const ROTATING_BACKGROUNDS = [
+    '/assets/kiosk_bg_1.jpg',
+    '/assets/kiosk_bg_2.jpg',
+    '/assets/kiosk_bg_3.jpg',
+    '/assets/kiosk_bg_4.jpg'
   ];
-
-  const getRandomBg = () => {
-    return RANDOM_BACKGROUNDS[Math.floor(Math.random() * RANDOM_BACKGROUNDS.length)];
-  };
 
   // States
   const [pin, setPin] = useState('');
@@ -102,7 +99,17 @@ const CheckInPage = () => {
     if (h >= 17 && h < 21) return 'evening';
     return 'night';
   });
-  const [bgImage, setBgImage] = useState(() => getRandomBg());
+  const [bgImageIndex, setBgImageIndex] = useState(0);
+
+  // Background Rotation
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setBgImageIndex(prev => (prev + 1) % ROTATING_BACKGROUNDS.length);
+    }, 3000000); // 50 minutes rotation
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const bgImage = ROTATING_BACKGROUNDS[bgImageIndex];
   const [monthlyClasses, setMonthlyClasses] = useState({});
   const [isOperatingHours, setIsOperatingHours] = useState(true);
   const [isOnline, setIsOnline] = useState(true);

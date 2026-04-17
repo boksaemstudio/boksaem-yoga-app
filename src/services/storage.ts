@@ -30,6 +30,13 @@ import type { DailyClass, DailyUpdate, ScheduleStatus, ScheduleBackup, WeeklyTem
 // Added for Demo Localization
 import { useLanguageStore } from '../stores/useLanguageStore';
 import { getCurrentStudioId } from '../utils/resolveStudioId';
+import { 
+    localizeMembers, 
+    localizeSchedules, 
+    localizeNotices, 
+    localizeInstructors,
+    localizePricings
+} from '../utils/demoLocalization';
 
 // ── Types ──
 type EventType = 'members' | 'logs' | 'sales' | 'images' | 'notices' | 'general';
@@ -134,14 +141,18 @@ export const storageService = {
     },
 
     // ═══ MEMBER ═══
-    getMembers(): Member[] { return memberService.getMembers(); },
+    getMembers(): Member[] { return localizeMembers(memberService.getMembers(), useLanguageStore.getState().currentLanguage); },
     loadAllMembers(force = false) { return memberService.loadAllMembers(force); },
     _buildPhoneLast4Index() { return memberService._buildPhoneLast4Index(); },
     findMembersByPhone(last4Digits: string) { return memberService.findMembersByPhone(last4Digits); },
     _updateLocalMemberCache(memberId: string, updates: Partial<Member>) { return memberService._updateLocalMemberCache(memberId, updates); },
     updateMember(memberId: string, data: Partial<Member>) { return memberService.updateMember(memberId, data); },
     addMember(data: Partial<Member> & { phone: string }) { return memberService.addMember(data); },
-    getMemberById(id: string) { return memberService.getMemberById(id); },
+    getMemberById(id: string) { 
+        const member = memberService.getMemberById(id);
+        const { localizeMember } = require('../utils/demoLocalization');
+        return localizeMember(member, useLanguageStore.getState().currentLanguage);
+    },
     fetchMemberById(id: string) { return memberService.fetchMemberById(id); },
     getMemberStreak(memberId: string, attendance: Array<{ date?: string }>) { return memberService.getMemberStreak(memberId, attendance); },
     getMemberDiligence(memberId: string) { return memberService.getMemberDiligence(memberId); },
@@ -191,14 +202,18 @@ export const storageService = {
     sendBulkPushCampaign(targetMemberIds: string[], title: string, body: string) { return messageService.sendBulkPushCampaign(targetMemberIds, title, body); },
 
     // ═══ SCHEDULE ═══
-    getMonthlyClasses(branchId: string, year: number, month: number) { return scheduleService.getMonthlyClasses(branchId, year, month); },
+    getMonthlyClasses(branchId: string, year: number, month: number) { 
+        return localizeSchedules(scheduleService.getMonthlyClasses(branchId, year, month), useLanguageStore.getState().currentLanguage); 
+    },
     getMonthlyScheduleStatus(branchId: string, year: number, month: number) { return scheduleService.getMonthlyScheduleStatus(branchId, year, month); },
     updateDailyClasses(branchId: string, date: string, classes: DailyClass[]) { return scheduleService.updateDailyClasses(branchId, date, classes); },
     batchUpdateDailyClasses(branchId: string, updates: DailyUpdate[]) { return scheduleService.batchUpdateDailyClasses(branchId, updates); },
     createMonthlySchedule(branchId: string, year: number, month: number) { return scheduleService.createMonthlySchedule(branchId, year, month); },
     copyMonthlySchedule(branchId: string, fromYear: number, fromMonth: number, toYear: number, toMonth: number) { return scheduleService.copyMonthlySchedule(branchId, fromYear, fromMonth, toYear, toMonth); },
     deleteMonthlySchedule(branchId: string, year: number, month: number) { return scheduleService.deleteMonthlySchedule(branchId, year, month); },
-    getInstructors() { return scheduleService.getInstructors(); },
+    getInstructors() { 
+        return localizeInstructors(scheduleService.getInstructors(), useLanguageStore.getState().currentLanguage); 
+    },
     updateInstructors(list: (string | Record<string, unknown>)[]) { return scheduleService.updateInstructors(list); },
     getClassTypes() { return scheduleService.getClassTypes(); },
     updateClassTypes(list: string[]) { return scheduleService.updateClassTypes(list); },
@@ -213,24 +228,7 @@ export const storageService = {
     translateNotices(notices: Notice[], targetLang: string) { return noticeService.translateNotices(notices, targetLang); },
     getNotices(): Notice[] { 
         let notices = [...cachedNotices].sort((a, b) => new Date(b.timestamp || '0').getTime() - new Date(a.timestamp || '0').getTime());
-        if (typeof window !== 'undefined' && getCurrentStudioId() === 'demo-yoga') {
-            const { t, currentLanguage } = useLanguageStore.getState();
-            if (currentLanguage && currentLanguage !== 'ko') {
-                notices = notices.map((n, i) => {
-                    const noticeKeyTitle = `demoNotice${i+1}Title`;
-                    const noticeKeyContent = `demoNotice${i+1}Content`;
-                    const localizedTitle = t(noticeKeyTitle);
-                    const localizedContent = t(noticeKeyContent);
-                    return {
-                        ...n,
-                        title: localizedTitle !== noticeKeyTitle ? localizedTitle : n.title,
-                        content: localizedContent !== noticeKeyContent ? localizedContent : n.content,
-                        image: (n as any)[`image_${currentLanguage}`] || n.image
-                    };
-                });
-            }
-        }
-        return notices;
+        return localizeNotices(notices, useLanguageStore.getState().currentLanguage);
     },
     async loadNotices() { if (cachedNotices.length > 0) return cachedNotices; return noticeService.loadNotices(); },
 
@@ -265,7 +263,9 @@ export const storageService = {
 
     // ═══ CLASS ═══
     getCurrentClass(branchId: string, instructorName: string | null = null, membershipTypeHint: string | null = null) { return classService.getCurrentClass(branchId, instructorName, membershipTypeHint); },
-    getDailyClasses(branchId: string, instructorName: string | null = null, date: string | null = null) { return classService.getDailyClasses(branchId, instructorName, date); },
+    getDailyClasses(branchId: string, instructorName: string | null = null, date: string | null = null) { 
+        return localizeSchedules(classService.getDailyClasses(branchId, instructorName, date), useLanguageStore.getState().currentLanguage); 
+    },
 
     // ═══ CONFIG ═══
     getImages() { 
@@ -281,7 +281,16 @@ export const storageService = {
         return imgs;
     },
     updateImage(id: string, base64: string) { return configService.updateImage(id, base64, notifyListeners); },
-    getPricing() { return configService.getPricing(); },
+    getPricing() { 
+        const pricing = configService.getPricing();
+        if (!pricing) return pricing;
+        const lang = useLanguageStore.getState().currentLanguage;
+        // Check if pricing is { passes: [], regular: [] } which is common structure
+        const localized = { ...pricing };
+        if (Array.isArray(localized.passes)) localized.passes = localizePricings(localized.passes, lang);
+        if (Array.isArray(localized.regular)) localized.regular = localizePricings(localized.regular, lang);
+        return localized;
+    },
     savePricing(pricingData: Record<string, unknown>) { return configService.savePricing(pricingData, notifyListeners); },
     getKioskSettings(branchId = 'all') { return configService.getKioskSettings(branchId); },
     updateKioskSettings(branchId: string, data: Record<string, unknown>) { return configService.updateKioskSettings(branchId, data); },

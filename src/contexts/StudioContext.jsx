@@ -5,6 +5,7 @@ import { useStudioStore } from '../stores/useStudioStore';
 import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { STUDIO_CONFIG as STATIC_CONFIG } from '../studioConfig';
+import { localizeConfig } from '../utils/demoLocalization';
 import { resolveStudioId, onStudioChange } from '../utils/resolveStudioId';
 
 const StudioContext = createContext();
@@ -131,11 +132,13 @@ export const StudioProvider = ({ children }) => {
                 // [FIX] 원장님 요청: 데모 사이트에서도 SaaS 로고 변경 테스트가 가능하도록 하드코딩 오버라이드 제거.
                 // 이제 관리자 앱에서 수정한 로고가 passflowai.web.app에도 정상 반영됩니다.
 
-                setConfig(merged);
-                useStudioStore.getState().setConfig(merged);
+                
 
+                let finalConfig = localizeConfig(merged, useLanguageStore.getState().currentLanguage);
+                setConfig(finalConfig);
+                useStudioStore.getState().setConfig(finalConfig);
                 // Update CSS Variables dynamically
-                const theme = merged.THEME || {};
+                const theme = finalConfig.THEME || {};
                 const primary = theme.PRIMARY_COLOR || 'var(--primary-gold)';
                 document.documentElement.style.setProperty('--primary-theme-color', primary);
                 document.documentElement.style.setProperty('--primary-theme-skeleton', theme.SKELETON_COLOR || 'rgba(var(--primary-rgb), 0.1)');

@@ -205,10 +205,10 @@ const CheckInInfoSection = memo(({
 
                 <div className="message-container" style={{
         flex: '0 0 auto',
-        background: 'rgba(0, 0, 0, 0.85)',
+        background: 'rgba(30, 20, 5, 0.85)',
         padding: 'clamp(12px, 2vh, 20px) clamp(16px, 3vw, 30px)',
         borderRadius: '24px',
-        border: '1px solid rgba(255, 215, 0, 0.2)'
+        border: '2px solid rgba(255, 215, 0, 0.4)'
       }}>
                     <div className={`instruction-text ${loading ? 'loading' : ''}`}>
                         {aiExperience ? <div>

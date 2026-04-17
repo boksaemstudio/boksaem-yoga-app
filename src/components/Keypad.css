@@ -15,7 +15,7 @@
     width: 100%;
     min-height: clamp(80px, 12vh, 120px);
     border-radius: 24px;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.85);
     /* Darker button background */
     border: 1px solid rgba(255, 255, 255, 0.15);
     color: white;
@@ -48,7 +48,7 @@
 
 .keypad-btn.clear-btn {
     /* No special color, same as numbers */
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.85);
 }
 
 .keypad-btn.clear-btn:active {

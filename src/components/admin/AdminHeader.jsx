@@ -37,7 +37,7 @@ const AdminHeader = ({
       display: 'flex',
       alignItems: 'center'
     }}>
-                {config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.SQUARE && config.ASSETS.LOGO.SQUARE !== '/assets/passflow_logo.png' ? <div style={{
+                {config.IDENTITY?.LOGO_URL || config.ASSETS?.LOGO?.SQUARE ? <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'

@@ -1,0 +1,4506 @@
+[
+  {
+    "key": "g_673d3d",
+    "fallback": "이 브라우저에서는 음성 입력을 지원하지 않습니다."
+  },
+  {
+    "key": "g_cea340",
+    "fallback": "오류가 발생했습니다."
+  },
+  {
+    "key": "g_f9a32a",
+    "fallback": "한도"
+  },
+  {
+    "key": "g_dae3ed",
+    "fallback": "회원"
+  },
+  {
+    "key": "g_937c42",
+    "fallback": "출석"
+  },
+  {
+    "key": "g_191145",
+    "fallback": "매출"
+  },
+  {
+    "key": "g_7fa4b7",
+    "fallback": "스케줄"
+  },
+  {
+    "key": "g_913a74",
+    "fallback": "전략"
+  },
+  {
+    "key": "g_aef1a1",
+    "fallback": "일반"
+  },
+  {
+    "key": "g_3efa8a",
+    "fallback": "오류"
+  },
+  {
+    "key": "g_85b604",
+    "fallback": "AI 비서"
+  },
+  {
+    "key": "g_2bdce5",
+    "fallback": "오늘"
+  },
+  {
+    "key": "g_9f545e",
+    "fallback": "대화기록"
+  },
+  {
+    "key": "g_b69c6b",
+    "fallback": "새 대화"
+  },
+  {
+    "key": "g_8fb36d",
+    "fallback": "📋 과거 대화 기록"
+  },
+  {
+    "key": "g_748543",
+    "fallback": "닫기 ✕"
+  },
+  {
+    "key": "g_a37572",
+    "fallback": "아직 대화 기록이 없습니다"
+  },
+  {
+    "key": "g_6faa2d",
+    "fallback": "무엇이든 물어보세요"
+  },
+  {
+    "key": "g_3eada3",
+    "fallback": "이름·전화번호·종목으로 회원 검색, 출석·매출 분석까지"
+  },
+  {
+    "key": "g_3c636f",
+    "fallback": "모든 데이터"
+  },
+  {
+    "key": "g_748dbe",
+    "fallback": "✨ 운영을 할수록 데이터가 쌓여 맞춤형 조언이 가능합니다."
+  },
+  {
+    "key": "g_3acbce",
+    "fallback": "홍길동 회원 정보 알려줘"
+  },
+  {
+    "key": "g_eacaf3",
+    "fallback": "데이터 분석 중..."
+  },
+  {
+    "key": "g_7739f2",
+    "fallback": "음성 입력 중지"
+  },
+  {
+    "key": "g_162218",
+    "fallback": "🎤 말씀하세요..."
+  },
+  {
+    "key": "g_4077ce",
+    "fallback": "전송"
+  },
+  {
+    "key": "g_06c603",
+    "fallback": "음성 입력 중... 말씀이 끝나면 자동으로 입력됩니다"
+  },
+  {
+    "key": "g_f5db83",
+    "fallback": "⚠ 위험"
+  },
+  {
+    "key": "g_cdce7c",
+    "fallback": "출석 기록 없음"
+  },
+  {
+    "key": "g_f5db83",
+    "fallback": "⚠ 위험"
+  },
+  {
+    "key": "g_691170",
+    "fallback": "🔶 주의"
+  },
+  {
+    "key": "g_fbe057",
+    "fallback": "💤 관찰"
+  },
+  {
+    "key": "g_aef1a1",
+    "fallback": "일반"
+  },
+  {
+    "key": "g_504b38",
+    "fallback": "위험"
+  },
+  {
+    "key": "g_c5dd5f",
+    "fallback": "데모 환경에서는 메시지 발송 기능이 제한되어 있습니다."
+  },
+  {
+    "key": "g_690b54",
+    "fallback": "전송 실패: "
+  },
+  {
+    "key": "g_3339c5",
+    "fallback": "전송 대상이 없습니다."
+  },
+  {
+    "key": "g_504b38",
+    "fallback": "위험"
+  },
+  {
+    "key": "g_aef1a1",
+    "fallback": "일반"
+  },
+  {
+    "key": "g_504b38",
+    "fallback": "위험"
+  },
+  {
+    "key": "g_c5dd5f",
+    "fallback": "데모 환경에서는 메시지 발송 기능이 제한되어 있습니다."
+  },
+  {
+    "key": "g_de97a2",
+    "fallback": "이탈 위험 회원이 없습니다!"
+  },
+  {
+    "key": "g_2fbff8",
+    "fallback": "모든 활성 회원이 최근 2주 내에 출석하고 있습니다."
+  },
+  {
+    "key": "g_4356a0",
+    "fallback": "AI 이탈 예측 보고서"
+  },
+  {
+    "key": "g_0ca42c",
+    "fallback": "출석 패턴 기반 이탈 위험 분석"
+  },
+  {
+    "key": "g_aef1a1",
+    "fallback": "일반"
+  },
+  {
+    "key": "g_504b38",
+    "fallback": "위험"
+  },
+  {
+    "key": "g_934dd2",
+    "fallback": "전체"
+  },
+  {
+    "key": "g_7665fc",
+    "fallback": "🧠 AI가 회원별 데이터를 상세 분석 중..."
+  },
+  {
+    "key": "g_5623c8",
+    "fallback": "이름, 미출석 기간, 잔여 횟수, 수강 과목을 종합 분석합니다"
+  },
+  {
+    "key": "g_85ffad",
+    "fallback": "⚠ 위험 등급 분석"
+  },
+  {
+    "key": "g_d24bb5",
+    "fallback": "🔶 주의 등급 분석"
+  },
+  {
+    "key": "g_d47d7d",
+    "fallback": "💤 관찰 등급 분석"
+  },
+  {
+    "key": "g_f1a3a9",
+    "fallback": "해당 없음"
+  },
+  {
+    "key": "g_e4f423",
+    "fallback": "🧠 AI 종합 총평"
+  },
+  {
+    "key": "g_f0cdeb",
+    "fallback": "AI 분석"
+  },
+  {
+    "key": "g_29d7b1",
+    "fallback": "📊 이탈 위험 회원"
+  },
+  {
+    "key": "g_f5db83",
+    "fallback": "⚠ 위험"
+  },
+  {
+    "key": "g_691170",
+    "fallback": "🔶 주의"
+  },
+  {
+    "key": "g_fbe057",
+    "fallback": "💤 관찰"
+  },
+  {
+    "key": "g_5a62fd",
+    "fallback": "명"
+  },
+  {
+    "key": "g_751b09",
+    "fallback": "일괄 전송"
+  },
+  {
+    "key": "g_449051",
+    "fallback": "📱 푸시만"
+  },
+  {
+    "key": "g_78db79",
+    "fallback": "📱➡📩 푸시우선"
+  },
+  {
+    "key": "g_3ed666",
+    "fallback": "발신자 번호가 등록되어 있지 않습니다.\\n\\nSMS 발송을 위해서는 발신자 번호 등록이 필요합니다.\\n패스플로우 카카오톡으로 문의하시겠습니까?"
+  },
+  {
+    "key": "g_74afce",
+    "fallback": " (등록 필요)"
+  },
+  {
+    "key": "g_06cf3e",
+    "fallback": "일"
+  },
+  {
+    "key": "g_599737",
+    "fallback": "잔여"
+  },
+  {
+    "key": "g_c58e8c",
+    "fallback": "✓ 전송됨"
+  },
+  {
+    "key": "g_f4cba3",
+    "fallback": "보내기"
+  },
+  {
+    "key": "g_39b300",
+    "fallback": "기준"
+  },
+  {
+    "key": "g_91558f",
+    "fallback": "회원에게 보내기"
+  },
+  {
+    "key": "g_bc4a9c",
+    "fallback": "• 잔여"
+  },
+  {
+    "key": "g_676ac1",
+    "fallback": "전송 방식:"
+  },
+  {
+    "key": "g_4eaa2e",
+    "fallback": "📱 앱 푸시만"
+  },
+  {
+    "key": "g_065ac2",
+    "fallback": "🧠 AI가 맞춤 메시지를 작성 중..."
+  },
+  {
+    "key": "g_a86264",
+    "fallback": "자"
+  },
+  {
+    "key": "g_19b2d1",
+    "fallback": "취소"
+  },
+  {
+    "key": "g_91a5dc",
+    "fallback": "전송하기"
+  },
+  {
+    "key": "g_fb52d3",
+    "fallback": "일괄전송 확인 —"
+  },
+  {
+    "key": "g_2c4fc0",
+    "fallback": "🧠 AI가"
+  },
+  {
+    "key": "g_676ac1",
+    "fallback": "전송 방식:"
+  },
+  {
+    "key": "g_4eaa2e",
+    "fallback": "📱 앱 푸시만"
+  },
+  {
+    "key": "g_19b2d1",
+    "fallback": "취소"
+  },
+  {
+    "key": "g_9265c3",
+    "fallback": "명에게 전송"
+  },
+  {
+    "key": "g_eb7f50",
+    "fallback": "기본 정보"
+  },
+  {
+    "key": "g_9aa18e",
+    "fallback": "이름"
+  },
+  {
+    "key": "g_9a1c3a",
+    "fallback": "전화번호"
+  },
+  {
+    "key": "g_6f8044",
+    "fallback": "등록일"
+  },
+  {
+    "key": "g_83ec64",
+    "fallback": "원장 메모 / 기타 특이사항"
+  },
+  {
+    "key": "g_1d63bf",
+    "fallback": "📸 안면 인식 등록 완료"
+  },
+  {
+    "key": "g_cd9a55",
+    "fallback": "학습일:"
+  },
+  {
+    "key": "g_270822",
+    "fallback": "키오스크 체크인에서 등록 가능"
+  },
+  {
+    "key": "g_801f40",
+    "fallback": "안면 인식 데이터를 삭제하시겠습니까?\\n\\n삭제 후 키오스크에서 다시 등록할 수 있습니다."
+  },
+  {
+    "key": "g_5559ed",
+    "fallback": "안면 인식 데이터가 삭제되었습니다.\\n키오스크에서 다시 등록해주세요."
+  },
+  {
+    "key": "g_2e3339",
+    "fallback": "삭제에 실패했습니다: "
+  },
+  {
+    "key": "g_b4d561",
+    "fallback": "삭제 중 오류가 발생했습니다."
+  },
+  {
+    "key": "g_d2884b",
+    "fallback": "삭제 중..."
+  },
+  {
+    "key": "g_758882",
+    "fallback": "해제 중 오류 발생: "
+  },
+  {
+    "key": "g_525dc8",
+    "fallback": "✅ 성공적으로 수강권 홀딩이 시작되었습니다!\\\\n\\\\n회원 상태가 "
+  },
+  {
+    "key": "g_ddfe4b",
+    "fallback": "적용 중 오류 발생: "
+  },
+  {
+    "key": "g_a66dc5",
+    "fallback": "관리자 권한 홀딩 (일시정지)"
+  },
+  {
+    "key": "g_e6e1a2",
+    "fallback": "처리 중..."
+  },
+  {
+    "key": "g_698649",
+    "fallback": "회원의 앱에서 "
+  },
+  {
+    "key": "g_1aff93",
+    "fallback": "관리자 수동 홀딩 적용"
+  },
+  {
+    "key": "g_fe2b3e",
+    "fallback": "회원의 수강권을 일시정지 하시겠습니까?"
+  },
+  {
+    "key": "g_9d0be7",
+    "fallback": "⚠️ 주의사항 및 동작 방식"
+  },
+  {
+    "key": "g_aab40b",
+    "fallback": "적용 즉시 수강권 이용이 정지되며 기간 차감이 멈춥니다."
+  },
+  {
+    "key": "g_863851",
+    "fallback": "회원이 복귀하여"
+  },
+  {
+    "key": "g_6c0ecb",
+    "fallback": "처음 출석체크"
+  },
+  {
+    "key": "g_75ddf4",
+    "fallback": "언제든 이 화면에서 관리자가 수동으로 홀딩을 해제할 수 있습니다."
+  },
+  {
+    "key": "g_19b2d1",
+    "fallback": "취소"
+  },
+  {
+    "key": "g_ff5076",
+    "fallback": "적용하기"
+  },
+  {
+    "key": "g_fc78e9",
+    "fallback": "홀딩 강제 해제"
+  },
+  {
+    "key": "g_2a5600",
+    "fallback": "정말 현재 진행 중인 홀딩을 해제하시겠습니까?"
+  },
+  {
+    "key": "g_93de08",
+    "fallback": "⚠️ 변경 사항"
+  },
+  {
+    "key": "g_651116",
+    "fallback": "지금까지 쉬었던 일수(최대 한도 내)를 계산하여 즉시"
+  },
+  {
+    "key": "g_1c09ee",
+    "fallback": "회원권 만료일을 연장"
+  },
+  {
+    "key": "g_19b2d1",
+    "fallback": "취소"
+  },
+  {
+    "key": "g_2ca746",
+    "fallback": "해제하기"
+  },
+  {
+    "key": "g_a406de",
+    "fallback": "만료됨"
+  },
+  {
+    "key": "g_cfc4b9",
+    "fallback": "첫 출석 대기"
+  },
+  {
+    "key": "g_adebf0",
+    "fallback": "홀딩 일시정지 중"
+  },
+  {
+    "key": "g_fc5612",
+    "fallback": "이용 중"
+  },
+  {
+    "key": "g_470148",
+    "fallback": "횟수 소진"
+  },
+  {
+    "key": "g_00f3cd",
+    "fallback": "기간 만료"
+  },
+  {
+    "key": "g_b4d9ba",
+    "fallback": "회원권 현황"
+  },
+  {
+    "key": "g_21ba07",
+    "fallback": "원"
+  },
+  {
+    "key": "g_453c56",
+    "fallback": "시작일"
+  },
+  {
+    "key": "g_46323b",
+    "fallback": "첫 출석 시"
+  },
+  {
+    "key": "g_cad7c8",
+    "fallback": "종료일"
+  },
+  {
+    "key": "g_c2838e",
+    "fallback": "첫 출석 시 확정"
+  },
+  {
+    "key": "g_599737",
+    "fallback": "잔여"
+  },
+  {
+    "key": "g_98a1bf",
+    "fallback": "무제한"
+  },
+  {
+    "key": "g_c15549",
+    "fallback": "홀딩 내역"
+  },
+  {
+    "key": "g_10d96e",
+    "fallback": "총"
+  },
+  {
+    "key": "g_001e4b",
+    "fallback": "현재"
+  },
+  {
+    "key": "g_1b7f81",
+    "fallback": "관리자 수동 정지"
+  },
+  {
+    "key": "g_e310b1",
+    "fallback": "정지 중"
+  },
+  {
+    "key": "g_25ecc8",
+    "fallback": "다가올 수강권 (선등록)"
+  },
+  {
+    "key": "g_453c56",
+    "fallback": "시작일"
+  },
+  {
+    "key": "g_46323b",
+    "fallback": "첫 출석 시"
+  },
+  {
+    "key": "g_cad7c8",
+    "fallback": "종료일"
+  },
+  {
+    "key": "g_c2838e",
+    "fallback": "첫 출석 시 확정"
+  },
+  {
+    "key": "g_3ac452",
+    "fallback": "횟수"
+  },
+  {
+    "key": "g_98a1bf",
+    "fallback": "무제한"
+  },
+  {
+    "key": "g_d3a053",
+    "fallback": "결제 금액:"
+  },
+  {
+    "key": "g_21ba07",
+    "fallback": "원"
+  },
+  {
+    "key": "g_e545bc",
+    "fallback": "관리자 수동 조정"
+  },
+  {
+    "key": "g_2b4122",
+    "fallback": "회원권 구분"
+  },
+  {
+    "key": "g_eac3a7",
+    "fallback": "세부 이용권"
+  },
+  {
+    "key": "g_453c56",
+    "fallback": "시작일"
+  },
+  {
+    "key": "g_cad7c8",
+    "fallback": "종료일"
+  },
+  {
+    "key": "g_029db5",
+    "fallback": "잔여 횟수"
+  },
+  {
+    "key": "g_d62fb3",
+    "fallback": "결제 금액"
+  },
+  {
+    "key": "g_21ba07",
+    "fallback": "원"
+  },
+  {
+    "key": "g_f41ed0",
+    "fallback": "현재 이용 중인 수강권"
+  },
+  {
+    "key": "g_b09ac9",
+    "fallback": "영수증 내역만 변경되었습니다.\\n(참고: 회원의 실제 출석 기간 변경이 필요하면 상단의 \\"
+  },
+  {
+    "key": "g_051b0a",
+    "fallback": "결제 내역 저장에 실패했습니다."
+  },
+  {
+    "key": "g_052482",
+    "fallback": "삭제 중 오류가 발생했습니다: "
+  },
+  {
+    "key": "g_066bd2",
+    "fallback": "이용 대기"
+  },
+  {
+    "key": "g_f861bf",
+    "fallback": "현재 이용"
+  },
+  {
+    "key": "g_00f3cd",
+    "fallback": "기간 만료"
+  },
+  {
+    "key": "g_b692c6",
+    "fallback": "수강권 및 결제 (타임라인)"
+  },
+  {
+    "key": "g_d202b4",
+    "fallback": "건"
+  },
+  {
+    "key": "g_b9cde6",
+    "fallback": "결제 내역 수정"
+  },
+  {
+    "key": "g_19b2d1",
+    "fallback": "취소"
+  },
+  {
+    "key": "g_0b2ca6",
+    "fallback": "수강권 항목 이름"
+  },
+  {
+    "key": "g_453c56",
+    "fallback": "시작일"
+  },
+  {
+    "key": "g_cad7c8",
+    "fallback": "종료일"
+  },
+  {
+    "key": "g_6e15fe",
+    "fallback": "결제수단"
+  },
+  {
+    "key": "g_610240",
+    "fallback": "현금"
+  },
+  {
+    "key": "g_24cb57",
+    "fallback": "이체"
+  },
+  {
+    "key": "g_7dedeb",
+    "fallback": "카드"
+  },
+  {
+    "key": "g_d62fb3",
+    "fallback": "결제 금액"
+  },
+  {
+    "key": "g_21ba07",
+    "fallback": "원"
+  },
+  {
+    "key": "g_5d6870",
+    "fallback": "저장 중..."
+  },
+  {
+    "key": "g_f8604f",
+    "fallback": "결제 내역이 없습니다."
+  },
+  {
+    "key": "g_8916b6",
+    "fallback": "알 수 없음"
+  },
+  {
+    "key": "g_b81580",
+    "fallback": "시작일 미정"
+  },
+  {
+    "key": "g_21ba07",
+    "fallback": "원"
+  },
+  {
+    "key": "g_24cb57",
+    "fallback": "이체"
+  },
+  {
+    "key": "g_e1407b",
+    "fallback": "수정"
+  },
+  {
+    "key": "g_fc81e2",
+    "fallback": "삭제"
+  },
+  {
+    "key": "g_af4ca1",
+    "fallback": "회원정보 저장하기"
+  },
+  {
+    "key": "g_08a272",
+    "fallback": "🔒 선등록 회원은 삭제할 수 없습니다. 수강 만료 후 삭제가 가능합니다."
+  },
+  {
+    "key": "g_46cad8",
+    "fallback": "회원이 삭제되었습니다.\\n휴지통 탭에서 복원할 수 있습니다."
+  },
+  {
+    "key": "g_6bafa7",
+    "fallback": "삭제 실패: "
+  },
+  {
+    "key": "g_d25e2e",
+    "fallback": "삭제 중 오류: "
+  },
+  {
+    "key": "g_dd2807",
+    "fallback": "회원 삭제 (휴지통으로 이동)"
+  },
+  {
+    "key": "g_1c10d3",
+    "fallback": "삭제된 회원은 회원 목록에서 사라지며, 휴지통 탭에서 언제든 복원할 수 있습니다."
+  },
+  {
+    "key": "g_ca5434",
+    "fallback": "설정 저장 실패"
+  },
+  {
+    "key": "g_c5dd5f",
+    "fallback": "데모 환경에서는 메시지 발송 기능이 제한되어 있습니다."
+  },
+  {
+    "key": "g_2b4477",
+    "fallback": "메시지가 예약되었습니다."
+  },
+  {
+    "key": "g_1a4f4d",
+    "fallback": "❌ 발송에 실패했습니다. 네트워크 상태를 확인해주세요."
+  },
+  {
+    "key": "g_856a13",
+    "fallback": "회원님, 재등록 기간입니다. 확인 부탁드려요! 🧘‍♀️"
+  },
+  {
+    "key": "g_e06687",
+    "fallback": "출석 알림 설정"
+  },
+  {
+    "key": "g_bccbb2",
+    "fallback": "앱 푸시 알림: 출석 시 자동 전송 (잔여 횟수 · 기간 정보 포함, 무료)"
+  },
+  {
+    "key": "g_d29b35",
+    "fallback": "출석 시 자동 SMS 발송"
+  },
+  {
+    "key": "g_61faf7",
+    "fallback": "⚠️ 건당 8.4원 비용 발생 • 잔여횟수 · 기간 · 만료일"
+  },
+  {
+    "key": "g_dae3ed",
+    "fallback": "회원"
+  },
+  {
+    "key": "g_284a69",
+    "fallback": "일 남음"
+  },
+  {
+    "key": "g_75aa13",
+    "fallback": "📤 지금 SMS로 잔여 정보 보내기"
+  },
+  {
+    "key": "g_31c66e",
+    "fallback": "(건당 8.4원)"
+  },
+  {
+    "key": "g_40b0e4",
+    "fallback": "📩 SMS 알림: 무제한 회원은 보내지 않습니다 (잔여 횟수 정보 없음)"
+  },
+  {
+    "key": "g_3ba4aa",
+    "fallback": "전송 방식"
+  },
+  {
+    "key": "g_3ed666",
+    "fallback": "발신자 번호가 등록되어 있지 않습니다.\\n\\nSMS 발송을 위해서는 발신자 번호 등록이 필요합니다.\\n패스플로우 카카오톡으로 문의하시겠습니까?"
+  },
+  {
+    "key": "g_7f4596",
+    "fallback": "등록 필요"
+  },
+  {
+    "key": "g_f3cd98",
+    "fallback": "회원에게 보낼 메시지를 입력하세요..."
+  },
+  {
+    "key": "g_a86264",
+    "fallback": "자"
+  },
+  {
+    "key": "g_f59605",
+    "fallback": "📱 앱 푸시 • 무료"
+  },
+  {
+    "key": "g_617718",
+    "fallback": "자 •"
+  },
+  {
+    "key": "g_80960b",
+    "fallback": "건당"
+  },
+  {
+    "key": "g_b2bffe",
+    "fallback": "⏰ 예약 발송"
+  },
+  {
+    "key": "g_e6e1a2",
+    "fallback": "처리 중..."
+  },
+  {
+    "key": "g_747549",
+    "fallback": "자주 쓰는 문구 (비용 절약 💡)"
+  },
+  {
+    "key": "g_32c991",
+    "fallback": "발송 이력 (개별 + 공지)"
+  },
+  {
+    "key": "g_e39238",
+    "fallback": "발송된 메시지가 없습니다."
+  },
+  {
+    "key": "g_c183e0",
+    "fallback": "공지"
+  },
+  {
+    "key": "g_150a12",
+    "fallback": "📱푸시"
+  },
+  {
+    "key": "g_d47f33",
+    "fallback": "전송 중..."
+  },
+  {
+    "key": "g_01dc34",
+    "fallback": "앱푸시 성공"
+  },
+  {
+    "key": "g_bdc168",
+    "fallback": "앱푸시 실패"
+  },
+  {
+    "key": "g_f4f786",
+    "fallback": "문자 성공"
+  },
+  {
+    "key": "g_5e9f6b",
+    "fallback": "알 수 없는 오류"
+  },
+  {
+    "key": "g_9ec5d3",
+    "fallback": "▿ 이전 메시지 더보기 (10개 추가)"
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "g_2b82c7",
+    "fallback": "등록은 완료되었으나, 출석 처리 중 오류가 발생했습니다. 출석부에서 수동으로 처리해주세요."
+  },
+  {
+    "key": "g_7eea37",
+    "fallback": "🗓️ 기존 만료 후 적용 (선등록)"
+  },
+  {
+    "key": "g_e82843",
+    "fallback": "등록 및 출석 처리가 완료되었습니다."
+  },
+  {
+    "key": "g_5e9f6b",
+    "fallback": "알 수 없는 오류"
+  },
+  {
+    "key": "g_1f45e2",
+    "fallback": "회원권 종류"
+  },
+  {
+    "key": "g_d2089e",
+    "fallback": "세부 옵션"
+  },
+  {
+    "key": "g_a3d754",
+    "fallback": "등록 기간"
+  },
+  {
+    "key": "g_d2dfd1",
+    "fallback": "개월"
+  },
+  {
+    "key": "g_cca4cd",
+    "fallback": "결제 방식"
+  },
+  {
+    "key": "g_7dedeb",
+    "fallback": "카드"
+  },
+  {
+    "key": "g_610240",
+    "fallback": "현금"
+  },
+  {
+    "key": "g_24cb57",
+    "fallback": "이체"
+  },
+  {
+    "key": "g_4a7d02",
+    "fallback": "수련 시작일"
+  },
+  {
+    "key": "g_06c366",
+    "fallback": "기존 마감 후 첫출석 시"
+  },
+  {
+    "key": "g_9d9464",
+    "fallback": "나중에 처음 올 때 자동 시작"
+  },
+  {
+    "key": "g_a1a97e",
+    "fallback": "시작일 직접 지정"
+  },
+  {
+    "key": "g_93b7af",
+    "fallback": "원하는 날짜를 직접 입력"
+  },
+  {
+    "key": "g_e37604",
+    "fallback": "등록 즉시 출석"
+  },
+  {
+    "key": "g_afc684",
+    "fallback": "오늘부터 시작 + 출석 처리"
+  },
+  {
+    "key": "g_98cea6",
+    "fallback": "첫 출석일에 시작일/마감일 자동 확정"
+  },
+  {
+    "key": "g_4d3041",
+    "fallback": "시작 + 출석 1회 자동 처리"
+  },
+  {
+    "key": "g_39489e",
+    "fallback": "📋 출석 정보 선택"
+  },
+  {
+    "key": "g_fc98e3",
+    "fallback": "마감일(종료일)"
+  },
+  {
+    "key": "g_fc98e3",
+    "fallback": "마감일(종료일)"
+  },
+  {
+    "key": "g_c09f7d",
+    "fallback": "첫 출석 시 자동 확정 (선등록)"
+  },
+  {
+    "key": "g_41777e",
+    "fallback": "ℹ️ 잔여 기간이 남아있어 선등록으로 처리됩니다."
+  },
+  {
+    "key": "g_794069",
+    "fallback": "원장 메모 (선택)"
+  },
+  {
+    "key": "g_111f0a",
+    "fallback": "특이사항이나 메모를 입력하세요"
+  },
+  {
+    "key": "g_d62fb3",
+    "fallback": "결제 금액"
+  },
+  {
+    "key": "g_21ba07",
+    "fallback": "원"
+  },
+  {
+    "key": "g_3ac452",
+    "fallback": "횟수"
+  },
+  {
+    "key": "g_98a1bf",
+    "fallback": "무제한"
+  },
+  {
+    "key": "g_2fc05c",
+    "fallback": "회"
+  },
+  {
+    "key": "g_e6e1a2",
+    "fallback": "처리 중..."
+  },
+  {
+    "key": "g_c2838e",
+    "fallback": "첫 출석 시 확정"
+  },
+  {
+    "key": "g_c5fd52",
+    "fallback": "이름과 전화번호는 필수입니다."
+  },
+  {
+    "key": "g_3754f7",
+    "fallback": "등록 당일 수련"
+  },
+  {
+    "key": "g_e096cf",
+    "fallback": "회원 등록 중 오류가 발생했습니다."
+  },
+  {
+    "key": "g_d2dfd1",
+    "fallback": "개월"
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "g_9dc8e0",
+    "fallback": " (-1회)"
+  },
+  {
+    "key": "g_7dedeb",
+    "fallback": "카드"
+  },
+  {
+    "key": "g_610240",
+    "fallback": "현금"
+  },
+  {
+    "key": "g_24cb57",
+    "fallback": "이체"
+  },
+  {
+    "key": "g_e6e1a2",
+    "fallback": "처리 중..."
+  },
+  {
+    "key": "g_bb546b",
+    "fallback": "이미지를 1개 이상 첨부해주세요."
+  },
+  {
+    "key": "g_020b42",
+    "fallback": "공지사항이 등록되었습니다."
+  },
+  {
+    "key": "g_590ea6",
+    "fallback": "공지사항 등록 중 오류가 발생했습니다."
+  },
+  {
+    "key": "g_e53d2f",
+    "fallback": "이미지는 최대 4장까지만 첨부할 수 있습니다."
+  },
+  {
+    "key": "g_5d6870",
+    "fallback": "저장 중..."
+  },
+  {
+    "key": "admin_trend_this_week",
+    "fallback": "이번 주"
+  },
+  {
+    "key": "admin_trend_mon_to_today",
+    "fallback": "월~오늘"
+  },
+  {
+    "key": "admin_trend_last_week",
+    "fallback": "지난 주"
+  },
+  {
+    "key": "admin_trend_vs_same_time",
+    "fallback": "동일 시점 대비"
+  },
+  {
+    "key": "admin_trend_collecting",
+    "fallback": "집계 중"
+  },
+  {
+    "key": "admin_trend_attendance",
+    "fallback": "출석"
+  },
+  {
+    "key": "admin_trend_new",
+    "fallback": "신규"
+  },
+  {
+    "key": "admin_trend_7d_avg",
+    "fallback": "7일 평균"
+  },
+  {
+    "key": "admin_trend_day_mon",
+    "fallback": "월"
+  },
+  {
+    "key": "admin_trend_hour_suffix",
+    "fallback": "시"
+  },
+  {
+    "key": "admin_trend_few",
+    "fallback": "적음"
+  },
+  {
+    "key": "admin_trend_moderate",
+    "fallback": "보통"
+  },
+  {
+    "key": "admin_trend_peak",
+    "fallback": "피크"
+  },
+  {
+    "key": "admin_trend_top5_class",
+    "fallback": "🏆 인기 수업 Top 5"
+  },
+  {
+    "key": "admin_trend_count_unit",
+    "fallback": "건"
+  },
+  {
+    "key": "admin_trend_no_data",
+    "fallback": "데이터 없음"
+  },
+  {
+    "key": "admin_trend_top5_inst",
+    "fallback": "⭐ 인기 강사 Top 5"
+  },
+  {
+    "key": "admin_trend_count_unit",
+    "fallback": "건"
+  },
+  {
+    "key": "admin_trend_no_data",
+    "fallback": "데이터 없음"
+  },
+  {
+    "key": "admin_trend_ratio_title_pp",
+    "fallback": "수강 인원 비율 (신규 vs 기존 회원)"
+  },
+  {
+    "key": "admin_trend_distinct_members",
+    "fallback": "순수 인원(명) 기준"
+  },
+  {
+    "key": "admin_trend_new",
+    "fallback": "신규"
+  },
+  {
+    "key": "admin_trend_existing",
+    "fallback": "기존"
+  },
+  {
+    "key": "admin_trend_new_pp",
+    "fallback": "신규 회원"
+  },
+  {
+    "key": "admin_trend_recent_30d",
+    "fallback": "최근 30일 등록"
+  },
+  {
+    "key": "admin_trend_existing_pp",
+    "fallback": "기존 회원"
+  },
+  {
+    "key": "admin_trend_day_sun",
+    "fallback": "일"
+  },
+  {
+    "key": "admin_trend_same_period",
+    "fallback": "동일 기간"
+  },
+  {
+    "key": "admin_trend_general",
+    "fallback": "일반"
+  },
+  {
+    "key": "admin_trend_unassigned",
+    "fallback": "미지정"
+  },
+  {
+    "key": "admin_trend_unassigned",
+    "fallback": "미지정"
+  },
+  {
+    "key": "admin_trend_analyzing",
+    "fallback": "출석 추세 분석 중..."
+  },
+  {
+    "key": "admin_trend_title",
+    "fallback": "출석 추세 분석"
+  },
+  {
+    "key": "admin_trend_tab_daily",
+    "fallback": "일별 추세"
+  },
+  {
+    "key": "admin_trend_tab_heatmap",
+    "fallback": "히트맵"
+  },
+  {
+    "key": "admin_trend_tab_ranking",
+    "fallback": "인기 분석"
+  },
+  {
+    "key": "admin_trend_filter_all",
+    "fallback": "📊 전체 통합"
+  },
+  {
+    "key": "admin_trend_1year",
+    "fallback": "1년"
+  },
+  {
+    "key": "admin_trend_tab_daily",
+    "fallback": "일별 추세"
+  },
+  {
+    "key": "admin_trend_daily_dot",
+    "fallback": "○ 점선 = 오늘(집계 중)"
+  },
+  {
+    "key": "g_0f8cd8",
+    "fallback": "최근"
+  },
+  {
+    "key": "g_0f8cd8",
+    "fallback": "최근"
+  },
+  {
+    "key": "g_f70065",
+    "fallback": "예약이 취소되었습니다."
+  },
+  {
+    "key": "g_5dd93c",
+    "fallback": "취소 실패: "
+  },
+  {
+    "key": "g_06cf3e",
+    "fallback": "일"
+  },
+  {
+    "key": "g_cdb423",
+    "fallback": "년"
+  },
+  {
+    "key": "g_5a62fd",
+    "fallback": "명"
+  },
+  {
+    "key": "g_df72a8",
+    "fallback": "대기"
+  },
+  {
+    "key": "g_cfad6d",
+    "fallback": "파일명이 올바르지 않습니다. \\"
+  },
+  {
+    "key": "g_28bee6",
+    "fallback": "⚠️ [주의] 실제 마이그레이션을 실행하면 기존 모든 회원, 매출, 출석, 푸시 데이터가 삭제된 후 새로 등록됩니다.\\n\\n정말로 진행하시겠습니까?"
+  },
+  {
+    "key": "g_ce7f1f",
+    "fallback": "삭제 및 이전을 확정하려면 \\"
+  },
+  {
+    "key": "g_b41aa0",
+    "fallback": "마이그레이션"
+  },
+  {
+    "key": "g_f36971",
+    "fallback": "입력이 올바르지 않아 취소되었습니다."
+  },
+  {
+    "key": "g_925d79",
+    "fallback": "🔍 검증 모드 (Dry Run)"
+  },
+  {
+    "key": "g_8ae049",
+    "fallback": "실제 데이터 변경 없이 CSV 파일 형식만 검증합니다."
+  },
+  {
+    "key": "g_30ba5b",
+    "fallback": "CSV 파일 읽는 중..."
+  },
+  {
+    "key": "g_f72491",
+    "fallback": "검증 모드"
+  },
+  {
+    "key": "g_5b307c",
+    "fallback": "기존 데이터 삭제 중..."
+  },
+  {
+    "key": "g_65a92c",
+    "fallback": "마이그레이션 완료"
+  },
+  {
+    "key": "g_974c63",
+    "fallback": "에러 로그 ("
+  },
+  {
+    "key": "g_305410",
+    "fallback": "URL 생성 중..."
+  },
+  {
+    "key": "g_e9d6e1",
+    "fallback": "영상"
+  },
+  {
+    "key": "g_545fdb",
+    "fallback": "지원 형식: MP4, WebM, MOV"
+  },
+  {
+    "key": "g_358faa",
+    "fallback": "선택 실패: "
+  },
+  {
+    "key": "g_6bafa7",
+    "fallback": "삭제 실패: "
+  },
+  {
+    "key": "g_51a448",
+    "fallback": "설정 변경 실패"
+  },
+  {
+    "key": "g_d2ba3a",
+    "fallback": "로고"
+  },
+  {
+    "key": "g_945e97",
+    "fallback": "변경 실패: "
+  },
+  {
+    "key": "g_d58fa7",
+    "fallback": "없음"
+  },
+  {
+    "key": "g_6bafa7",
+    "fallback": "삭제 실패: "
+  },
+  {
+    "key": "g_a40258",
+    "fallback": "클릭하여 업로드"
+  },
+  {
+    "key": "g_40da6b",
+    "fallback": "최대 5MB까지 업로드 가능합니다."
+  },
+  {
+    "key": "g_2a73af",
+    "fallback": "업로드 실패: "
+  },
+  {
+    "key": "g_934dd2",
+    "fallback": "전체"
+  },
+  {
+    "key": "g_d3ce2d",
+    "fallback": "점"
+  },
+  {
+    "key": "g_9cd844",
+    "fallback": "선택된 미디어"
+  },
+  {
+    "key": "g_545fdb",
+    "fallback": "지원 형식: MP4, WebM, MOV"
+  },
+  {
+    "key": "g_e6e1a2",
+    "fallback": "처리 중..."
+  },
+  {
+    "key": "g_3c593d",
+    "fallback": "개)"
+  },
+  {
+    "key": "g_41bd88",
+    "fallback": "🎬 영상"
+  },
+  {
+    "key": "g_33f12e",
+    "fallback": "출석기에 표시 중"
+  },
+  {
+    "key": "g_51a448",
+    "fallback": "설정 변경 실패"
+  },
+  {
+    "key": "g_51a448",
+    "fallback": "설정 변경 실패"
+  },
+  {
+    "key": "g_51a448",
+    "fallback": "설정 변경 실패"
+  },
+  {
+    "key": "g_aef1a1",
+    "fallback": "일반"
+  },
+  {
+    "key": "g_620be2",
+    "fallback": "선생님"
+  },
+  {
+    "key": "g_06cf3e",
+    "fallback": "일"
+  },
+  {
+    "key": "g_aef1a1",
+    "fallback": "일반"
+  },
+  {
+    "key": "g_620be2",
+    "fallback": "선생님"
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "g_2bdce5",
+    "fallback": "오늘"
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "g_2b8b8b",
+    "fallback": "⛔ 거부"
+  },
+  {
+    "key": "g_aef1a1",
+    "fallback": "일반"
+  },
+  {
+    "key": "g_620be2",
+    "fallback": "선생님"
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "단위_명",
+    "fallback": "명"
+  },
+  {
+    "key": "단위_명",
+    "fallback": "명"
+  },
+  {
+    "key": "g_aef1a1",
+    "fallback": "일반"
+  },
+  {
+    "key": "g_504b38",
+    "fallback": "위험"
+  },
+  {
+    "key": "g_934dd2",
+    "fallback": "전체"
+  },
+  {
+    "key": "단위_명",
+    "fallback": "명"
+  },
+  {
+    "key": "g_691170",
+    "fallback": "🔶 주의"
+  },
+  {
+    "key": "단위_명",
+    "fallback": "명"
+  },
+  {
+    "key": "단위_명",
+    "fallback": "명"
+  },
+  {
+    "key": "단위_원",
+    "fallback": "원"
+  },
+  {
+    "key": "g_4539db",
+    "fallback": "목록을"
+  },
+  {
+    "key": "g_2bdce5",
+    "fallback": "오늘"
+  },
+  {
+    "key": "g_5a292f",
+    "fallback": "일째 미출석"
+  },
+  {
+    "key": "g_1af066",
+    "fallback": "오늘 설치"
+  },
+  {
+    "key": "g_8e3bf1",
+    "fallback": "⛔ 출석거부 ("
+  },
+  {
+    "key": "g_aef1a1",
+    "fallback": "일반"
+  },
+  {
+    "key": "g_c4a07e",
+    "fallback": "선결제 잔여"
+  },
+  {
+    "key": "g_6d4ec1",
+    "fallback": "종료일:"
+  },
+  {
+    "key": "g_599737",
+    "fallback": "잔여"
+  },
+  {
+    "key": "g_6d4ec1",
+    "fallback": "종료일:"
+  },
+  {
+    "key": "g_90e697",
+    "fallback": "개 규칙"
+  },
+  {
+    "key": "g_62088d",
+    "fallback": "설정이 저장되었습니다."
+  },
+  {
+    "key": "g_5e9f6b",
+    "fallback": "알 수 없는 오류"
+  },
+  {
+    "key": "g_5d6870",
+    "fallback": "저장 중..."
+  },
+  {
+    "key": "g_666e3f",
+    "fallback": "파일 크기는 2MB 이하여야 합니다."
+  },
+  {
+    "key": "g_c0037d",
+    "fallback": "로고가 업로드되었습니다. 저장 버튼을 눌러 적용하세요."
+  },
+  {
+    "key": "g_24fcc4",
+    "fallback": "로고 업로드 실패: "
+  },
+  {
+    "key": "g_1e5a82",
+    "fallback": "업로드 중..."
+  },
+  {
+    "key": "g_bdd037",
+    "fallback": "전체 기간"
+  },
+  {
+    "key": "g_5d073b",
+    "fallback": "등록 기간 내 자유롭게 사용"
+  },
+  {
+    "key": "g_2d882c",
+    "fallback": "주간 단위"
+  },
+  {
+    "key": "g_305889",
+    "fallback": "주 N회 제한 (예: 주 3회)"
+  },
+  {
+    "key": "g_bccf3c",
+    "fallback": "현재 방식: 등록된 총 횟수에서 출석할 때마다 1회씩 차감됩니다."
+  },
+  {
+    "key": "g_60335b",
+    "fallback": "로고 아래 큰 프리뷰"
+  },
+  {
+    "key": "g_69d753",
+    "fallback": "크게"
+  },
+  {
+    "key": "g_c2102b",
+    "fallback": "새 지점 이름을 입력하세요:"
+  },
+  {
+    "key": "g_61a1eb",
+    "fallback": "관리자앱"
+  },
+  {
+    "key": "g_a58c21",
+    "fallback": "스튜디오 관리"
+  },
+  {
+    "key": "g_82042e",
+    "fallback": "강사앱"
+  },
+  {
+    "key": "g_bbe121",
+    "fallback": "출석 확인 & 일정"
+  },
+  {
+    "key": "g_68fa36",
+    "fallback": "회원앱"
+  },
+  {
+    "key": "g_4318a0",
+    "fallback": "출석 & 수업 정보"
+  },
+  {
+    "key": "g_17c4d8",
+    "fallback": "출석체크앱"
+  },
+  {
+    "key": "g_b9b504",
+    "fallback": "키오스크/태블릿"
+  },
+  {
+    "key": "g_a1d762",
+    "fallback": "✓ 복사됨!"
+  },
+  {
+    "key": "g_404b75",
+    "fallback": "URL 복사"
+  },
+  {
+    "key": "g_eed5e9",
+    "fallback": "강사 정보"
+  },
+  {
+    "key": "g_7beb57",
+    "fallback": "회원정보"
+  },
+  {
+    "key": "g_3a99de",
+    "fallback": "출석부"
+  },
+  {
+    "key": "g_fc669b",
+    "fallback": "재등록"
+  },
+  {
+    "key": "g_96330a",
+    "fallback": "메시지"
+  },
+  {
+    "key": "g_ded161",
+    "fallback": "푸시 ON"
+  },
+  {
+    "key": "g_f1bc79",
+    "fallback": "📸 AI 인식 가능"
+  },
+  {
+    "key": "g_2f4b75",
+    "fallback": "(학습일:"
+  },
+  {
+    "key": "g_155975",
+    "fallback": "⏸️ 홀딩 중"
+  },
+  {
+    "key": "g_2793fd",
+    "fallback": "선생님 (푸시 수신 전용 프로필)"
+  },
+  {
+    "key": "g_f7bc3a",
+    "fallback": "회 남음"
+  },
+  {
+    "key": "g_358863",
+    "fallback": "첫 출석 시 기간 확정"
+  },
+  {
+    "key": "g_58b2a9",
+    "fallback": "대기 중 (선등록)"
+  },
+  {
+    "key": "g_94b7db",
+    "fallback": "닫기"
+  },
+  {
+    "key": "g_29e585",
+    "fallback": "변경 사항 확인"
+  },
+  {
+    "key": "g_16c73a",
+    "fallback": "저장할 항목을 선택해주세요."
+  },
+  {
+    "key": "g_19b2d1",
+    "fallback": "취소"
+  },
+  {
+    "key": "g_e03450",
+    "fallback": "확인 부탁드립니다 🙏"
+  },
+  {
+    "key": "g_b040a8",
+    "fallback": "개 변경 저장"
+  },
+  {
+    "key": "g_314edd",
+    "fallback": "정말 이 회원권 종류를 삭제하시겠습니까?"
+  },
+  {
+    "key": "g_0f2027",
+    "fallback": "삭제되었습니다."
+  },
+  {
+    "key": "g_fb06e1",
+    "fallback": "저장 중 오류가 발생했습니다."
+  },
+  {
+    "key": "g_2e8547",
+    "fallback": "새 회원권"
+  },
+  {
+    "key": "g_02ad8a",
+    "fallback": "회원권 이름을 입력하세요."
+  },
+  {
+    "key": "g_d201d1",
+    "fallback": "저장되었습니다."
+  },
+  {
+    "key": "g_504690",
+    "fallback": "저장 실패"
+  },
+  {
+    "key": "g_6a7ffd",
+    "fallback": "오류 발생"
+  },
+  {
+    "key": "g_8f6098",
+    "fallback": "가격표 정보를 불러오는 중..."
+  },
+  {
+    "key": "g_c34bb1",
+    "fallback": "가격표 관리"
+  },
+  {
+    "key": "g_51b906",
+    "fallback": "새 가격표 추가"
+  },
+  {
+    "key": "g_10fe8e",
+    "fallback": "데이터 초기화란?"
+  },
+  {
+    "key": "g_465990",
+    "fallback": "* 예: 일반 1회권 25,000원, 심화 1회권 35,000원 등 스튜디오 평균 시세 기준"
+  },
+  {
+    "key": "g_a82ac8",
+    "fallback": "가격표를 초기 데이터로 복원하시겠습니까?\\n(기존 가격표가 모두 삭제되고 기본값으로 덮어씌워집니다)"
+  },
+  {
+    "key": "g_afd4b7",
+    "fallback": "실패: "
+  },
+  {
+    "key": "g_8c7db7",
+    "fallback": "오류: "
+  },
+  {
+    "key": "g_f09048",
+    "fallback": "가격표 초기화"
+  },
+  {
+    "key": "g_1e6a4a",
+    "fallback": "이름 없음"
+  },
+  {
+    "key": "g_9bf7b8",
+    "fallback": "옵션명 없음"
+  },
+  {
+    "key": "g_21ba07",
+    "fallback": "원"
+  },
+  {
+    "key": "g_f7b7b3",
+    "fallback": "3개월"
+  },
+  {
+    "key": "g_eba921",
+    "fallback": "(현금"
+  },
+  {
+    "key": "g_128a5e",
+    "fallback": "6개월"
+  },
+  {
+    "key": "g_eba921",
+    "fallback": "(현금"
+  },
+  {
+    "key": "g_c103da",
+    "fallback": "회원권 수정"
+  },
+  {
+    "key": "g_af6ee2",
+    "fallback": "회원권 이름"
+  },
+  {
+    "key": "g_9ad5ed",
+    "fallback": "적용 지점"
+  },
+  {
+    "key": "g_372c01",
+    "fallback": "세부 옵션 (기간/횟수)"
+  },
+  {
+    "key": "g_7f7442",
+    "fallback": "+ 옵션 추가"
+  },
+  {
+    "key": "g_7be993",
+    "fallback": "표시 이름"
+  },
+  {
+    "key": "g_450c9f",
+    "fallback": "예: 1개월 (주2회)"
+  },
+  {
+    "key": "g_9689df",
+    "fallback": "기본 가격"
+  },
+  {
+    "key": "g_d1d84b",
+    "fallback": "횟수 (무제한=9999)"
+  },
+  {
+    "key": "g_56ec9a",
+    "fallback": "유효 기간(개월)"
+  },
+  {
+    "key": "g_80577c",
+    "fallback": "유형"
+  },
+  {
+    "key": "g_7fa668",
+    "fallback": "기간제(월)"
+  },
+  {
+    "key": "g_a59218",
+    "fallback": "횟수권"
+  },
+  {
+    "key": "g_6c4f74",
+    "fallback": "3개월 할인가 (선택)"
+  },
+  {
+    "key": "g_6f5659",
+    "fallback": "비어있으면 기본값x3"
+  },
+  {
+    "key": "g_1373c8",
+    "fallback": "6개월 할인가 (선택)"
+  },
+  {
+    "key": "g_1968e9",
+    "fallback": "비어있으면 기본값x6"
+  },
+  {
+    "key": "g_33c05f",
+    "fallback": "💰 현금/이체 가격 (선택)"
+  },
+  {
+    "key": "g_be7bd5",
+    "fallback": "현금 고정가"
+  },
+  {
+    "key": "g_b569d0",
+    "fallback": "미설정 시 자동할인"
+  },
+  {
+    "key": "g_17be07",
+    "fallback": "현금 3개월"
+  },
+  {
+    "key": "g_d168f3",
+    "fallback": "미설정 시 카드가 적용"
+  },
+  {
+    "key": "g_262215",
+    "fallback": "현금 6개월"
+  },
+  {
+    "key": "g_d168f3",
+    "fallback": "미설정 시 카드가 적용"
+  },
+  {
+    "key": "g_426b6b",
+    "fallback": "* 비어있으면 카드 가격의 5% 할인(3개월 이상) 자동 적용"
+  },
+  {
+    "key": "g_5d6870",
+    "fallback": "저장 중..."
+  },
+  {
+    "key": "g_cdb423",
+    "fallback": "년"
+  },
+  {
+    "key": "g_7d8f1b",
+    "fallback": "전체 지점"
+  },
+  {
+    "key": "g_541ba0",
+    "fallback": "이번 달 누적 매출"
+  },
+  {
+    "key": "g_21ba07",
+    "fallback": "원"
+  },
+  {
+    "key": "g_5860d4",
+    "fallback": "(신규:"
+  },
+  {
+    "key": "g_fea767",
+    "fallback": "오늘 발생 매출"
+  },
+  {
+    "key": "g_4ad6b9",
+    "fallback": "오늘 매출 기준"
+  },
+  {
+    "key": "g_21ba07",
+    "fallback": "원"
+  },
+  {
+    "key": "g_04f3c7",
+    "fallback": "이번 달 결제 건수"
+  },
+  {
+    "key": "g_14f230",
+    "fallback": "총 결제 건수"
+  },
+  {
+    "key": "g_d202b4",
+    "fallback": "건"
+  },
+  {
+    "key": "g_24e8ea",
+    "fallback": "📈 최근 14일 일별 매출"
+  },
+  {
+    "key": "g_04835a",
+    "fallback": "📊 월별 매출 추이 (최근 6개월)"
+  },
+  {
+    "key": "ko-KR",
+    "fallback": "월 전체"
+  },
+  {
+    "key": "g_a4b541",
+    "fallback": "월 전체 매출"
+  },
+  {
+    "key": "g_0a8b86",
+    "fallback": "🏷️ 회원권별 판매 현황"
+  },
+  {
+    "key": "g_d202b4",
+    "fallback": "건"
+  },
+  {
+    "key": "g_21ba07",
+    "fallback": "원"
+  },
+  {
+    "key": "g_884009",
+    "fallback": "신규"
+  },
+  {
+    "key": "g_fc669b",
+    "fallback": "재등록"
+  },
+  {
+    "key": "g_884009",
+    "fallback": "신규"
+  },
+  {
+    "key": "g_fc669b",
+    "fallback": "재등록"
+  },
+  {
+    "key": "g_06cf3e",
+    "fallback": "일"
+  },
+  {
+    "key": "g_e15020",
+    "fallback": "신규:"
+  },
+  {
+    "key": "g_664391",
+    "fallback": "재등록:"
+  },
+  {
+    "key": "ko-KR",
+    "fallback": "원"
+  },
+  {
+    "key": "ko-KR",
+    "fallback": "총합"
+  },
+  {
+    "key": "g_467a35",
+    "fallback": "총합"
+  },
+  {
+    "key": "g_aef1a1",
+    "fallback": "일반"
+  },
+  {
+    "key": "g_ff51fe",
+    "fallback": "특별/심화"
+  },
+  {
+    "key": "g_06cf3e",
+    "fallback": "일"
+  },
+  {
+    "key": "g_5a62fd",
+    "fallback": "명"
+  },
+  {
+    "key": "g_cdb423",
+    "fallback": "년"
+  },
+  {
+    "key": "g_ca9937",
+    "fallback": "일일이 등록할 필요 없이, 지난 달 일정을 그대로 복사해서 편하게 시작하세요."
+  },
+  {
+    "key": "g_e2b9a9",
+    "fallback": "📥 지난달 스케줄 그대로 복사하기"
+  },
+  {
+    "key": "g_bdd9af",
+    "fallback": "이전 월"
+  },
+  {
+    "key": "g_cdb423",
+    "fallback": "년"
+  },
+  {
+    "key": "g_b8a987",
+    "fallback": "확정됨"
+  },
+  {
+    "key": "g_2ddd21",
+    "fallback": "미정"
+  },
+  {
+    "key": "g_fbb7c8",
+    "fallback": "다음 월"
+  },
+  {
+    "key": "g_956383",
+    "fallback": "백업 복원"
+  },
+  {
+    "key": "g_c14a56",
+    "fallback": "설정"
+  },
+  {
+    "key": "g_ff75b4",
+    "fallback": "초기화"
+  },
+  {
+    "key": "g_1c8f5d",
+    "fallback": "데이터 처리 중..."
+  },
+  {
+    "key": "g_924234",
+    "fallback": "수업 관리"
+  },
+  {
+    "key": "g_924234",
+    "fallback": "수업 관리"
+  },
+  {
+    "key": "g_0ff641",
+    "fallback": "배정된 수업이 없습니다."
+  },
+  {
+    "key": "g_550350",
+    "fallback": "수업"
+  },
+  {
+    "key": "g_ccc98d",
+    "fallback": "수업 추가"
+  },
+  {
+    "key": "g_19b2d1",
+    "fallback": "취소"
+  },
+  {
+    "key": "g_b2a40d",
+    "fallback": "📅 이 달의 모든"
+  },
+  {
+    "key": "g_c6cb8a",
+    "fallback": "요일 수정"
+  },
+  {
+    "key": "g_1f1712",
+    "fallback": "저장"
+  },
+  {
+    "key": "g_ff5126",
+    "fallback": "스케줄 초기화 확인"
+  },
+  {
+    "key": "g_8d1fa4",
+    "fallback": "스케줄 초기화"
+  },
+  {
+    "key": "g_67ea42",
+    "fallback": "정말로"
+  },
+  {
+    "key": "g_4ad95a",
+    "fallback": "(초기화 직전 상태는 임시 백업됩니다)"
+  },
+  {
+    "key": "g_19b2d1",
+    "fallback": "취소"
+  },
+  {
+    "key": "g_15c268",
+    "fallback": "네, 초기화합니다"
+  },
+  {
+    "key": "g_956383",
+    "fallback": "백업 복원"
+  },
+  {
+    "key": "g_47fc8e",
+    "fallback": "백업에서 복원하기"
+  },
+  {
+    "key": "g_7d1309",
+    "fallback": "스케줄을 초기화할 때마다 가장 최근 2개의 스케줄이 자동으로 백업됩니다. 이전 상태로 되돌리려면 아래 목록에서 선택하세요."
+  },
+  {
+    "key": "g_eb60af",
+    "fallback": "사용 가능한 백업이 없습니다."
+  },
+  {
+    "key": "g_c771f7",
+    "fallback": "에 백업됨"
+  },
+  {
+    "key": "g_10d96e",
+    "fallback": "총"
+  },
+  {
+    "key": "g_67d4b4",
+    "fallback": "가장 최근"
+  },
+  {
+    "key": "g_3ad441",
+    "fallback": "이 지점으로 복원"
+  },
+  {
+    "key": "kiosk_info_auto_checkin",
+    "fallback": "📸 얼굴을 비추면 자동 출석"
+  },
+  {
+    "key": "kiosk_info_touch_to_register",
+    "fallback": "📸 터치하여 얼굴 등록"
+  },
+  {
+    "key": "kiosk_info_privacy_mini",
+    "fallback": "🔐 사진 미저장 · 암호화 128숫자 변환 · 불가역적"
+  },
+  {
+    "key": "kiosk_info_ai_preparing",
+    "fallback": "AI가 오늘의 메시지를 준비하고 있어요"
+  },
+  {
+    "key": "kiosk_info_checking",
+    "fallback": "수련 정보를 확인하고 있습니다..."
+  },
+  {
+    "key": "kiosk_info_auto_checkin_short",
+    "fallback": "📸 자동 출석"
+  },
+  {
+    "key": "kiosk_info_touch_to_register_short",
+    "fallback": "📸 얼굴 등록"
+  },
+  {
+    "key": "kiosk_info_check_credits",
+    "fallback": "✓ 잔여 횟수 확인"
+  },
+  {
+    "key": "kiosk_info_view_schedule",
+    "fallback": "✓ 수업 일정 보기"
+  },
+  {
+    "key": "kiosk_info_get_notifications",
+    "fallback": "✓ 맞춤 알림 받기"
+  },
+  {
+    "key": "facereg_camera_preparing",
+    "fallback": "카메라 준비 중..."
+  },
+  {
+    "key": "facereg_camera_error_permission",
+    "fallback": "카메라에 접근할 수 없어요. 카메라 권한을 확인해주세요."
+  },
+  {
+    "key": "facereg_member_not_found",
+    "fallback": "등록된 회원이 없어요. 번호를 확인해주세요."
+  },
+  {
+    "key": "facereg_member_lookup_error",
+    "fallback": "회원 조회 중 문제가 생겼어요. 다시 시도해주세요."
+  },
+  {
+    "key": "facereg_camera_not_ready",
+    "fallback": "카메라가 준비되지 않았어요. 잠시 후 다시 시도해주세요."
+  },
+  {
+    "key": "facereg_analyzing_face",
+    "fallback": "얼굴 분석 중..."
+  },
+  {
+    "key": "facereg_loading_ai_models",
+    "fallback": "AI 모델 로딩 중..."
+  },
+  {
+    "key": "facereg_ai_timeout",
+    "fallback": "AI 모델 로딩 시간 초과. 다시 시도해주세요."
+  },
+  {
+    "key": "facereg_analyzing_face",
+    "fallback": "얼굴 분석 중..."
+  },
+  {
+    "key": "facereg_video_stream_error",
+    "fallback": "카메라 영상을 가져올 수 없어요. 카메라 권한을 확인해주세요."
+  },
+  {
+    "key": "facereg_face_not_detected",
+    "fallback": "얼굴을 인식하지 못했어요. 카메라를 정면으로 바라봐주세요."
+  },
+  {
+    "key": "facereg_saving",
+    "fallback": "저장 중..."
+  },
+  {
+    "key": "facereg_save_failed",
+    "fallback": "저장에 실패했어요. 다시 시도해주세요."
+  },
+  {
+    "key": "facereg_registration_error",
+    "fallback": "등록 중 문제가 생겼어요. 다시 시도해주세요."
+  },
+  {
+    "key": "facereg_privacy_title",
+    "fallback": "사진은 저장하지 않아요!"
+  },
+  {
+    "key": "facereg_privacy_desc1",
+    "fallback": "사진은 저장하지 않고 암호화되어 128개 숫자로만 기억해요. 이 숫자로는 얼굴을 다시 만들 수 없어요. (불가역적)"
+  },
+  {
+    "key": "facereg_privacy_desc2",
+    "fallback": "등록하면 다음부터 카메라 앞에 서기만 하면 자동으로 출석이 됩니다!"
+  },
+  {
+    "key": "facereg_later",
+    "fallback": "다음에 할게요"
+  },
+  {
+    "key": "facereg_register",
+    "fallback": "등록할게요!"
+  },
+  {
+    "key": "facereg_identity_verify",
+    "fallback": "본인 확인"
+  },
+  {
+    "key": "facereg_enter_pin",
+    "fallback": "핸드폰 번호 뒷 4자리를 눌러주세요"
+  },
+  {
+    "key": "facereg_clear",
+    "fallback": "지우기"
+  },
+  {
+    "key": "facereg_confirm",
+    "fallback": "확인"
+  },
+  {
+    "key": "facereg_who_are_you",
+    "fallback": "어느 분이신가요?"
+  },
+  {
+    "key": "facereg_multiple_members",
+    "fallback": "입력하신 번호와 일치하는 회원이 여러 명 있어요"
+  },
+  {
+    "key": "facereg_go_back",
+    "fallback": "뒤로 가기"
+  },
+  {
+    "key": "facereg_look_front",
+    "fallback": "정면을 바라보고 잠시만 기다려주세요"
+  },
+  {
+    "key": "facereg_camera_preparing",
+    "fallback": "카메라 준비 중..."
+  },
+  {
+    "key": "facereg_camera_inaccessible",
+    "fallback": "카메라 접근 불가"
+  },
+  {
+    "key": "g_784896",
+    "fallback": "분석 중..."
+  },
+  {
+    "key": "facereg_retry",
+    "fallback": "다시 시도"
+  },
+  {
+    "key": "facereg_done_title",
+    "fallback": "등록 완료!"
+  },
+  {
+    "key": "facereg_done_desc2",
+    "fallback": "다음부터 카메라 앞에 서면 자동으로 출석됩니다 🎉"
+  },
+  {
+    "key": "facereg_confirm",
+    "fallback": "확인"
+  },
+  {
+    "key": "g_36009e",
+    "fallback": "만료"
+  },
+  {
+    "key": "g_155e2c",
+    "fallback": "시스템"
+  },
+  {
+    "key": "g_732fe3",
+    "fallback": "실패"
+  },
+  {
+    "key": "kiosk_select_title",
+    "fallback": "회원 선택"
+  },
+  {
+    "key": "kiosk_select_desc",
+    "fallback": "해당하는 회원님을 선택해주세요"
+  },
+  {
+    "key": "kiosk_select_active_members",
+    "fallback": "✨ 이용 가능 회원"
+  },
+  {
+    "key": "kiosk_select_unlimited",
+    "fallback": "무제한"
+  },
+  {
+    "key": "kiosk_select_no_active_members",
+    "fallback": "활성 회원이 없습니다."
+  },
+  {
+    "key": "kiosk_select_inactive_title",
+    "fallback": "💤 만료/비활성"
+  },
+  {
+    "key": "kiosk_select_inactive_badge",
+    "fallback": "만료/비활성"
+  },
+  {
+    "key": "kiosk_select_none",
+    "fallback": "해당 없음"
+  },
+  {
+    "key": "kiosk_select_cancel",
+    "fallback": "취소 (닫기)"
+  },
+  {
+    "key": "kiosk_select_confirm",
+    "fallback": "선택한 회원으로 출석하기"
+  },
+  {
+    "key": "kiosk_topbar_instructor_only",
+    "fallback": "선생님 전용"
+  },
+  {
+    "key": "kiosk_topbar_instructor",
+    "fallback": "선생님"
+  },
+  {
+    "key": "kiosk_topbar_fullscreen_exit",
+    "fallback": "전체화면 종료"
+  },
+  {
+    "key": "g_4a3c78",
+    "fallback": "⚠️ 시스템 오류 발생"
+  },
+  {
+    "key": "g_30f38c",
+    "fallback": "드래그하여 이동"
+  },
+  {
+    "key": "g_d3a02e",
+    "fallback": "확대 보기"
+  },
+  {
+    "key": "g_574487",
+    "fallback": "대기 중인 데이터:"
+  },
+  {
+    "key": "g_752c68",
+    "fallback": "무료 체험이 종료되었습니다"
+  },
+  {
+    "key": "g_2bec30",
+    "fallback": "스튜디오"
+  },
+  {
+    "key": "g_412424",
+    "fallback": "🇰🇷 국내 계좌이체 (100,000원)"
+  },
+  {
+    "key": "g_fc521b",
+    "fallback": "MG새마을 9003-2623-9687-7"
+  },
+  {
+    "key": "g_41ceca",
+    "fallback": "예금주: 송대민"
+  },
+  {
+    "key": "g_30d293",
+    "fallback": "계좌번호가 복사되었습니다."
+  },
+  {
+    "key": "g_a55b1e",
+    "fallback": "복사"
+  },
+  {
+    "key": "g_4ed5f4",
+    "fallback": "* 입금 후"
+  },
+  {
+    "key": "g_c3bb7e",
+    "fallback": "(또는 도입 문의처)로 알려주시면 즉시 서비스가 연장됩니다."
+  },
+  {
+    "key": "g_53bcaa",
+    "fallback": "🌍 해외 결제: PayPal ($69)"
+  },
+  {
+    "key": "g_642f63",
+    "fallback": "⏰ 무료 체험 D-"
+  },
+  {
+    "key": "g_3b6150",
+    "fallback": "💳 페이팔 연장"
+  },
+  {
+    "key": "g_46b103",
+    "fallback": "❌ 이 브라우저는 알림을 지원하지 않습니다. "
+  },
+  {
+    "key": "g_cfc84b",
+    "fallback": "✅ 알림이 활성화되었습니다!"
+  },
+  {
+    "key": "g_7b5319",
+    "fallback": "❌ 토큰을 가져올 수 없습니다."
+  },
+  {
+    "key": "g_4cee70",
+    "fallback": "❌ 알림이 차단되었습니다. 브라우저 설정에서 허용해주세요."
+  },
+  {
+    "key": "g_63f731",
+    "fallback": "❌ 알림 설정 실패: "
+  },
+  {
+    "key": "g_9cbaec",
+    "fallback": "ℹ️ 브라우저 설정에서 알림을 끌 수 있습니다.\\n사이트 설정 > 알림 > 차단"
+  },
+  {
+    "key": "g_6bc54d",
+    "fallback": "ℹ️ 아이폰: Safari 하단 공유(↑) 클릭 > \\"
+  },
+  {
+    "key": "g_a80316",
+    "fallback": "ℹ️ 안드로이드: 브라우저 메뉴(⋮) 클릭 > \\"
+  },
+  {
+    "key": "g_b4df3f",
+    "fallback": "ℹ️ 브라우저 메뉴에서 \\"
+  },
+  {
+    "key": "g_7ba954",
+    "fallback": "예정"
+  },
+  {
+    "key": "g_7890ca",
+    "fallback": "진행 중"
+  },
+  {
+    "key": "g_cafdc6",
+    "fallback": "종료"
+  },
+  {
+    "key": "g_10d96e",
+    "fallback": "총"
+  },
+  {
+    "key": "g_884009",
+    "fallback": "신규"
+  },
+  {
+    "key": "g_d4edf3",
+    "fallback": "안면일치"
+  },
+  {
+    "key": "g_fc6a3e",
+    "fallback": "안면 인식 데이터가 삭제되었습니다."
+  },
+  {
+    "key": "g_6bafa7",
+    "fallback": "삭제 실패: "
+  },
+  {
+    "key": "g_b4d561",
+    "fallback": "삭제 중 오류가 발생했습니다."
+  },
+  {
+    "key": "g_2ffd1a",
+    "fallback": "클릭하여 안면 데이터 삭제"
+  },
+  {
+    "key": "g_ef43c1",
+    "fallback": "출석 데이터가 없습니다"
+  },
+  {
+    "key": "g_873180",
+    "fallback": "📋 오늘 나의 수업 출석 현황"
+  },
+  {
+    "key": "g_8038a0",
+    "fallback": "명)"
+  },
+  {
+    "key": "g_06e61b",
+    "fallback": "로딩 중..."
+  },
+  {
+    "key": "g_802f1e",
+    "fallback": "오늘은 수업 일정이 없습니다"
+  },
+  {
+    "key": "g_3fd487",
+    "fallback": "편안한 휴식과 충전의 시간 되시길 바랍니다!"
+  },
+  {
+    "key": "g_294547",
+    "fallback": "출석 현황"
+  },
+  {
+    "key": "g_7feae3",
+    "fallback": "나의 수업 출석회원 알림"
+  },
+  {
+    "key": "g_b995aa",
+    "fallback": "회원 출석 시 알림 받기"
+  },
+  {
+    "key": "g_c476cd",
+    "fallback": "알림 설정이 켜져 있습니다"
+  },
+  {
+    "key": "g_ed87c8",
+    "fallback": "토글을 눌러 알림을 끌 수 있습니다."
+  },
+  {
+    "key": "g_f0af9d",
+    "fallback": "설정 중... 팝업을 확인해주세요"
+  },
+  {
+    "key": "g_b92f83",
+    "fallback": "화면에 앱 보관하기"
+  },
+  {
+    "key": "g_489f35",
+    "fallback": "사파리(Safari)에서 홈 화면에 추가할 수 있습니다."
+  },
+  {
+    "key": "g_b84f07",
+    "fallback": "하단"
+  },
+  {
+    "key": "g_bbf57b",
+    "fallback": "공유 버튼"
+  },
+  {
+    "key": "g_100222",
+    "fallback": "홈 화면에 추가"
+  },
+  {
+    "key": "g_caa253",
+    "fallback": "폰에 앱 설치하기"
+  },
+  {
+    "key": "g_3857a0",
+    "fallback": "이름 또는 전화번호가 일치하지 않습니다"
+  },
+  {
+    "key": "g_6fa050",
+    "fallback": "  - 에러:"
+  },
+  {
+    "key": "g_8b3197",
+    "fallback": "인증 중 오류가 발생했습니다."
+  },
+  {
+    "key": "g_1d5134",
+    "fallback": "선생님 선택"
+  },
+  {
+    "key": "g_ee13ad",
+    "fallback": "전화번호 뒤 4자리"
+  },
+  {
+    "key": "g_b63929",
+    "fallback": "로그인 중..."
+  },
+  {
+    "key": "g_06cf3e",
+    "fallback": "일"
+  },
+  {
+    "key": "g_15b744",
+    "fallback": "신정"
+  },
+  {
+    "key": "g_b5031f",
+    "fallback": "설날"
+  },
+  {
+    "key": "g_8e793b",
+    "fallback": "삼일절"
+  },
+  {
+    "key": "g_f14f6c",
+    "fallback": "어린이날"
+  },
+  {
+    "key": "g_e0f35e",
+    "fallback": "석가탄신일"
+  },
+  {
+    "key": "g_bc3790",
+    "fallback": "현충일"
+  },
+  {
+    "key": "g_e2084c",
+    "fallback": "광복절"
+  },
+  {
+    "key": "g_60387c",
+    "fallback": "추석"
+  },
+  {
+    "key": "g_a32af9",
+    "fallback": "개천절"
+  },
+  {
+    "key": "g_cb4424",
+    "fallback": "한글날"
+  },
+  {
+    "key": "g_7a78ee",
+    "fallback": "크리스마스"
+  },
+  {
+    "key": "g_0b2766",
+    "fallback": "선거일"
+  },
+  {
+    "key": "g_b3854d",
+    "fallback": "식목일"
+  },
+  {
+    "key": "g_cdb423",
+    "fallback": "년"
+  },
+  {
+    "key": "g_0319b6",
+    "fallback": "👇 날짜를 터치하면 상세 시간표를 확인할 수 있어요"
+  },
+  {
+    "key": "g_2b9b17",
+    "fallback": "📅 지점별 일정 확인"
+  },
+  {
+    "key": "g_550350",
+    "fallback": "수업"
+  },
+  {
+    "key": "g_a06861",
+    "fallback": "수업이 없습니다"
+  },
+  {
+    "key": "g_f20e34",
+    "fallback": "휴강"
+  },
+  {
+    "key": "g_1384ec",
+    "fallback": "내 수업"
+  },
+  {
+    "key": "g_17f4b4",
+    "fallback": "예약"
+  },
+  {
+    "key": "g_611d6f",
+    "fallback": "📋 예약 명단"
+  },
+  {
+    "key": "g_f1a05a",
+    "fallback": "👥 출석 명단"
+  },
+  {
+    "key": "g_fcad99",
+    "fallback": "조회 중..."
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "g_5c1a70",
+    "fallback": "미지정"
+  },
+  {
+    "key": "g_12c651",
+    "fallback": "출석 회원이 없습니다"
+  },
+  {
+    "key": "g_5435ef",
+    "fallback": "지움"
+  },
+  {
+    "key": "g_6e081b",
+    "fallback": "한국어"
+  },
+  {
+    "key": "med_chat_ai_subtitle",
+    "fallback": "(마음 챙김이)"
+  },
+  {
+    "key": "med_chat_analyzing",
+    "fallback": "분석 중..."
+  },
+  {
+    "key": "med_chat_btn_start_immediate",
+    "fallback": "바로 시작"
+  },
+  {
+    "key": "med_chat_default_greeting",
+    "fallback": "오늘 하루는 어떠셨나요?"
+  },
+  {
+    "key": "med_chat_btn_start",
+    "fallback": "명상 시작하기"
+  },
+  {
+    "key": "med_chat_prepared_desc",
+    "fallback": "당신에게 맞는 명상을 준비했어요"
+  },
+  {
+    "key": "med_chat_waiting_reply",
+    "fallback": "답변을 기다리는 중..."
+  },
+  {
+    "key": "reset_failed",
+    "fallback": "재설정 실패"
+  },
+  {
+    "key": "g_5e9f6b",
+    "fallback": "알 수 없는 오류"
+  },
+  {
+    "key": "g_c99a30",
+    "fallback": "취소 처리 중 오류가 발생했습니다"
+  },
+  {
+    "key": "g_550350",
+    "fallback": "수업"
+  },
+  {
+    "key": "g_f91285",
+    "fallback": "정원"
+  },
+  {
+    "key": "g_5a62fd",
+    "fallback": "명"
+  },
+  {
+    "key": "g_94b7db",
+    "fallback": "닫기"
+  },
+  {
+    "key": "g_e6e1a2",
+    "fallback": "처리 중..."
+  },
+  {
+    "key": "g_e6e1a2",
+    "fallback": "처리 중..."
+  },
+  {
+    "key": "g_df72a8",
+    "fallback": "대기"
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "g_1dbb24",
+    "fallback": "내 예약"
+  },
+  {
+    "key": "member_crowd_level_1",
+    "fallback": "한산"
+  },
+  {
+    "key": "member_crowd_level_2",
+    "fallback": "여유"
+  },
+  {
+    "key": "member_crowd_level_3",
+    "fallback": "보통"
+  },
+  {
+    "key": "member_crowd_level_4",
+    "fallback": "혼잡"
+  },
+  {
+    "key": "member_crowd_level_5",
+    "fallback": "매우 혼잡"
+  },
+  {
+    "key": "member_crowd_day_sun",
+    "fallback": "일"
+  },
+  {
+    "key": "g_529272",
+    "fallback": "6-8시"
+  },
+  {
+    "key": "g_016c3e",
+    "fallback": "8-10시"
+  },
+  {
+    "key": "g_0ce3ea",
+    "fallback": "10-12시"
+  },
+  {
+    "key": "g_3484ac",
+    "fallback": "12-14시"
+  },
+  {
+    "key": "g_b53d90",
+    "fallback": "14-16시"
+  },
+  {
+    "key": "g_ebf72b",
+    "fallback": "16-18시"
+  },
+  {
+    "key": "g_80139e",
+    "fallback": "18-20시"
+  },
+  {
+    "key": "g_011822",
+    "fallback": "20-22시"
+  },
+  {
+    "key": "member_crowd_analyzing",
+    "fallback": "혼잡도 데이터 분석 중..."
+  },
+  {
+    "key": "member_crowd_day_mon",
+    "fallback": "월"
+  },
+  {
+    "key": "g_82aea5",
+    "fallback": "6시"
+  },
+  {
+    "key": "g_f41c9c",
+    "fallback": "8시"
+  },
+  {
+    "key": "g_a989b6",
+    "fallback": "10시"
+  },
+  {
+    "key": "g_6b3307",
+    "fallback": "12시"
+  },
+  {
+    "key": "g_42bc54",
+    "fallback": "14시"
+  },
+  {
+    "key": "g_bcfea5",
+    "fallback": "16시"
+  },
+  {
+    "key": "g_18575c",
+    "fallback": "18시"
+  },
+  {
+    "key": "g_5d3b6b",
+    "fallback": "20시"
+  },
+  {
+    "key": "member_crowd_title",
+    "fallback": "지점별 혼잡도"
+  },
+  {
+    "key": "member_crowd_subtitle",
+    "fallback": "최근 4주 출석 데이터 기반 · 한산한 시간에 방문하세요!"
+  },
+  {
+    "key": "member_crowd_visit_now",
+    "fallback": "지금 방문하면?"
+  },
+  {
+    "key": "member_crowd_level_1",
+    "fallback": "한산"
+  },
+  {
+    "key": "member_crowd_level_3",
+    "fallback": "보통"
+  },
+  {
+    "key": "member_crowd_level_4",
+    "fallback": "혼잡"
+  },
+  {
+    "key": "member_crowd_level_5",
+    "fallback": "매우 혼잡"
+  },
+  {
+    "key": "member_crowd_recommended",
+    "fallback": "추천 방문 시간"
+  },
+  {
+    "key": "g_4f0782",
+    "fallback": "💠 AI 출석 등록"
+  },
+  {
+    "key": "g_aa0cc0",
+    "fallback": "AI 출석 안내"
+  },
+  {
+    "key": "g_d4206d",
+    "fallback": "저장되지 않습니다."
+  },
+  {
+    "key": "g_c06b16",
+    "fallback": "첫 출석 시 재시작"
+  },
+  {
+    "key": "g_f8fc36",
+    "fallback": "빠름"
+  },
+  {
+    "key": "g_773a61",
+    "fallback": "열심히 하고 계세요! 이 페이스로 꾸준히!"
+  },
+  {
+    "key": "g_b777db",
+    "fallback": "적절"
+  },
+  {
+    "key": "g_491a53",
+    "fallback": "완벽한 페이스예요! 꾸준함이 건강의 비결!"
+  },
+  {
+    "key": "g_21460f",
+    "fallback": "조금 느림"
+  },
+  {
+    "key": "g_a16508",
+    "fallback": "조금 더 분발하면 수강권을 알차게 쓸 수 있어요!"
+  },
+  {
+    "key": "g_d7a0cb",
+    "fallback": "느림"
+  },
+  {
+    "key": "g_a95871",
+    "fallback": "수련하러 오세요! 남은 기간에 아직 충분히 할 수 있어요!"
+  },
+  {
+    "key": "g_77813b",
+    "fallback": "수강 페이스"
+  },
+  {
+    "key": "g_200a34",
+    "fallback": "회 사용 /"
+  },
+  {
+    "key": "g_75600e",
+    "fallback": "수강"
+  },
+  {
+    "key": "g_262233",
+    "fallback": "기간"
+  },
+  {
+    "key": "g_599737",
+    "fallback": "잔여"
+  },
+  {
+    "key": "g_1528ad",
+    "fallback": "완벽한 근면성실! 당신은 요가 마스터 🧘‍♀️"
+  },
+  {
+    "key": "g_8266c4",
+    "fallback": "훌륭해요! 꾸준함이 빛나는 수련자"
+  },
+  {
+    "key": "g_0a5a3c",
+    "fallback": "좋은 페이스! 조금만 더 규칙적으로"
+  },
+  {
+    "key": "g_c8db70",
+    "fallback": "가능성이 있어요! 습관을 만들어보세요"
+  },
+  {
+    "key": "g_24fb8a",
+    "fallback": "다시 시작해봐요! 작은 한 걸음부터"
+  },
+  {
+    "key": "g_3deaf3",
+    "fallback": "주간 출석"
+  },
+  {
+    "key": "g_88d2d2",
+    "fallback": "규칙성"
+  },
+  {
+    "key": "g_bab125",
+    "fallback": "매우 규칙적"
+  },
+  {
+    "key": "g_58a92c",
+    "fallback": "꾸준함"
+  },
+  {
+    "key": "g_b8ffad",
+    "fallback": "최근 활력"
+  },
+  {
+    "key": "g_91e95d",
+    "fallback": "근면성실도"
+  },
+  {
+    "key": "g_207753",
+    "fallback": "점 / 100"
+  },
+  {
+    "key": "g_a7762a",
+    "fallback": "시"
+  },
+  {
+    "key": "g_0b877b",
+    "fallback": "분"
+  },
+  {
+    "key": "g_620be2",
+    "fallback": "선생님"
+  },
+  {
+    "key": "g_363c34",
+    "fallback": "미등록"
+  },
+  {
+    "key": "g_453d0d",
+    "fallback": "레벨"
+  },
+  {
+    "key": "g_f6846c",
+    "fallback": "정상"
+  },
+  {
+    "key": "g_f20e34",
+    "fallback": "휴강"
+  },
+  {
+    "key": "g_ce0109",
+    "fallback": "변경"
+  },
+  {
+    "key": "g_d2e531",
+    "fallback": "선생님 & 수업 종류 관리"
+  },
+  {
+    "key": "g_d57caf",
+    "fallback": "선생님 목록"
+  },
+  {
+    "key": "g_5a62fd",
+    "fallback": "명"
+  },
+  {
+    "key": "g_85525d",
+    "fallback": "💡 선생님을 클릭하면 전화번호를 편집할 수 있습니다"
+  },
+  {
+    "key": "g_c3c6fb",
+    "fallback": "선생님 이름"
+  },
+  {
+    "key": "g_9c73bc",
+    "fallback": "전화번호 (선택)"
+  },
+  {
+    "key": "g_99b155",
+    "fallback": "선생님 추가 실패"
+  },
+  {
+    "key": "g_579429",
+    "fallback": "추가"
+  },
+  {
+    "key": "g_9a1c3a",
+    "fallback": "전화번호"
+  },
+  {
+    "key": "g_41b08f",
+    "fallback": "전화번호 저장 실패"
+  },
+  {
+    "key": "g_1f1712",
+    "fallback": "저장"
+  },
+  {
+    "key": "g_11685b",
+    "fallback": "클릭하여 전화번호 입력"
+  },
+  {
+    "key": "g_f3e768",
+    "fallback": "선생님 삭제 실패"
+  },
+  {
+    "key": "g_abd084",
+    "fallback": "수업 종류"
+  },
+  {
+    "key": "g_11600c",
+    "fallback": "개"
+  },
+  {
+    "key": "g_9d77d9",
+    "fallback": "수업 종류 입력"
+  },
+  {
+    "key": "g_791b55",
+    "fallback": "수업 종류 추가 실패"
+  },
+  {
+    "key": "g_579429",
+    "fallback": "추가"
+  },
+  {
+    "key": "g_3aadfe",
+    "fallback": "수업 종류 삭제 실패"
+  },
+  {
+    "key": "g_7b61bb",
+    "fallback": "수업 레벨"
+  },
+  {
+    "key": "g_11600c",
+    "fallback": "개"
+  },
+  {
+    "key": "g_7e6fdf",
+    "fallback": "레벨이 있는 수업용"
+  },
+  {
+    "key": "g_7198ea",
+    "fallback": "레벨 입력 (예: 0, 0.5, 1)"
+  },
+  {
+    "key": "g_708764",
+    "fallback": "이미 존재하는 레벨입니다."
+  },
+  {
+    "key": "g_061d94",
+    "fallback": "수업 레벨 추가 실패"
+  },
+  {
+    "key": "g_579429",
+    "fallback": "추가"
+  },
+  {
+    "key": "g_aae70b",
+    "fallback": "수업 레벨 삭제 실패"
+  },
+  {
+    "key": "g_660ceb",
+    "fallback": "출석체크"
+  },
+  {
+    "key": "g_ec873c",
+    "fallback": "관리자"
+  },
+  {
+    "key": "g_1d84d2",
+    "fallback": "내요가"
+  },
+  {
+    "key": "g_620be2",
+    "fallback": "선생님"
+  },
+  {
+    "key": "g_e225a6",
+    "fallback": "로그인"
+  },
+  {
+    "key": "g_31c9a1",
+    "fallback": "명상"
+  },
+  {
+    "key": "g_f23416",
+    "fallback": "온보딩"
+  },
+  {
+    "key": "g_90531c",
+    "fallback": "[스튜디오] 익명 인증 실패, 기본 설정으로 진행:"
+  },
+  {
+    "key": "g_951aa6",
+    "fallback": "[스튜디오] 초기 설정 저장 실패:"
+  },
+  {
+    "key": "g_4c2197",
+    "fallback": "[스튜디오] 설정 동기화 오류:"
+  },
+  {
+    "key": "g_aaf0ca",
+    "fallback": "[스튜디오] 설정 업데이트 실패:"
+  },
+  {
+    "key": "g_8916eb",
+    "fallback": "스튜디오 준비 중..."
+  },
+  {
+    "key": "g_d84ded",
+    "fallback": "당신은 최고의 요가 스튜디오 경영 컨설턴트입니다. 원장에게 종합적인 경영 브리핑을 제공하세요.\\n다음 영역을 모두 커버해주세요:\\n1. 📊 매출 분석: 월간 매출 현황, 일매출 추이, 전월 대비 변화\\n2. 👥 회원 관리: 활성/총 회원 비율, 신규 등록 vs 재등록, 만료 임박 회원 관리 전략\\n3. 🔄 재등록률 심층 분석: 누적 재등록률과 최근 3개월 재등록률 비교, 월별 트렌드 해석, 재등록률 개선 전략\\n4. ⚠️ 이탈 방지: 만료/거부 회원 현황, 선제적 리텐션 전략\\n5. 👩‍🏫 강사 평가 및 인사 관련: 강사별 수업 참여도 분석, 인기 강사와 관심이 필요한 강사 파악, 수업 편성 최적화 제안\\n6. 📱 디지털 전환: 앱 설치율과 푸시 도달률 분석, 디지털 마케팅 기회\\n7. 🔮 미래 전망: 현재 추세 기반 다음 달 예측, 계절적 요인 고려, 선제적 대응 전략\\n\\n톤: 전문적이면서도 실행 가능한 조언 위주. 숫자와 근거를 들어 설명. 4~6단락으로 구성.\\n절대로 데이터가 없는 영역을 꾸며내지 마세요. 실제 데이터 기반으로만 분석하세요."
+  },
+  {
+    "key": "g_3bbd84",
+    "fallback": "수업 전 (아침)"
+  },
+  {
+    "key": "g_99b3d6",
+    "fallback": "오전 수업 중"
+  },
+  {
+    "key": "g_92e742",
+    "fallback": "오후 수업 중"
+  },
+  {
+    "key": "g_ba5587",
+    "fallback": "오후 피크 시간대입니다. 현재까지의 실시간 출석 현황, 남은 수업, 오늘의 트렌드를 분석해주세요."
+  },
+  {
+    "key": "g_5ccaee",
+    "fallback": "마감 후 (저녁)"
+  },
+  {
+    "key": "g_db5d55",
+    "fallback": "오늘의 수업이 마무리되었습니다. 하루 전체 성과를 종합 리포트 형태로 정리해주세요."
+  },
+  {
+    "key": "g_5c1a70",
+    "fallback": "미지정"
+  },
+  {
+    "key": "g_e3de55",
+    "fallback": "승인 처리 중 오류 발생: "
+  },
+  {
+    "key": "g_04c18b",
+    "fallback": "이 발송 건을 삭제(거절)하시겠습니까?"
+  },
+  {
+    "key": "g_e2492d",
+    "fallback": "삭제 처리 중 오류 발생: "
+  },
+  {
+    "key": "g_06e329",
+    "fallback": "데이터 분석 중 오류가 발생했습니다."
+  },
+  {
+    "key": "g_9aa18e",
+    "fallback": "이름"
+  },
+  {
+    "key": "g_9a1c3a",
+    "fallback": "전화번호"
+  },
+  {
+    "key": "g_2b4122",
+    "fallback": "회원권 구분"
+  },
+  {
+    "key": "g_eac3a7",
+    "fallback": "세부 이용권"
+  },
+  {
+    "key": "g_6f8044",
+    "fallback": "등록일"
+  },
+  {
+    "key": "g_65812d",
+    "fallback": "수강 시작일"
+  },
+  {
+    "key": "g_cad7c8",
+    "fallback": "종료일"
+  },
+  {
+    "key": "g_029db5",
+    "fallback": "잔여 횟수"
+  },
+  {
+    "key": "g_d62fb3",
+    "fallback": "결제 금액"
+  },
+  {
+    "key": "g_f3ce23",
+    "fallback": "메모"
+  },
+  {
+    "key": "g_e5e21e",
+    "fallback": "변경 사항이 없습니다."
+  },
+  {
+    "key": "g_c9e7b4",
+    "fallback": "\\n\\n※ 매출 기록은 별도로 관리되므로 영향받지 않습니다."
+  },
+  {
+    "key": "g_d201d1",
+    "fallback": "저장되었습니다."
+  },
+  {
+    "key": "g_aafa04",
+    "fallback": "저장하지 않은 변경 사항이 있습니다. 변경을 취소하고 창을 닫으시겠습니까?"
+  },
+  {
+    "key": "g_1ec9ff",
+    "fallback": "수동 확인"
+  },
+  {
+    "key": "g_5500af",
+    "fallback": "수동 출석처리가 완료되었습니다."
+  },
+  {
+    "key": "g_7e55e8",
+    "fallback": "출석 처리에 실패했습니다: "
+  },
+  {
+    "key": "g_a40f19",
+    "fallback": "출석 처리에 실패했습니다."
+  },
+  {
+    "key": "g_1a60a7",
+    "fallback": "정말 삭제하시겠습니까?"
+  },
+  {
+    "key": "g_3f74e1",
+    "fallback": "삭제 실패"
+  },
+  {
+    "key": "g_5fde0b",
+    "fallback": "규칙적"
+  },
+  {
+    "key": "g_64e330",
+    "fallback": "마이그레이션"
+  },
+  {
+    "key": "g_30e15a",
+    "fallback": "삭제"
+  },
+  {
+    "key": "g_ebccbc",
+    "fallback": "관리자 모드를 종료하시겠습니까?"
+  },
+  {
+    "key": "g_08f9a3",
+    "fallback": "이미지 개수 변경에 실패했습니다."
+  },
+  {
+    "key": "g_af67a3",
+    "fallback": "파일 용량이 너무 큽니다. (최대 5MB)"
+  },
+  {
+    "key": "g_14affc",
+    "fallback": "이미지 업로드에 실패했습니다. (5MB 이하인지 확인해주세요)"
+  },
+  {
+    "key": "g_25340e",
+    "fallback": "삭제되거나 찾을 수 없는 회원입니다."
+  },
+  {
+    "key": "g_ee2134",
+    "fallback": "판매 기록 저장 중 오류가 발생했습니다."
+  },
+  {
+    "key": "g_ba6718",
+    "fallback": "이 기기에서 알림 수신을 껐습니다. (브라우저 권한은 유지됩니다)"
+  },
+  {
+    "key": "g_f3382b",
+    "fallback": "원격 푸시 알림 수신 대상으로 등록되었습니다."
+  },
+  {
+    "key": "g_a9bba7",
+    "fallback": "푸시 알림 권한이 거부되었습니다. 브라우저 설정에서 권한을 허용해주세요."
+  },
+  {
+    "key": "g_fa5cf7",
+    "fallback": "알림 설정 중 문제가 발생했습니다."
+  },
+  {
+    "key": "g_cb22c9",
+    "fallback": "AI 발송 제안 (승인 대기)"
+  },
+  {
+    "key": "g_c90b3e",
+    "fallback": "님께 제안"
+  },
+  {
+    "key": "g_0d80f6",
+    "fallback": "사유:"
+  },
+  {
+    "key": "g_fc81e2",
+    "fallback": "삭제"
+  },
+  {
+    "key": "g_fe5b40",
+    "fallback": "안부 메시지"
+  },
+  {
+    "key": "g_dcb51c",
+    "fallback": "승인 발송"
+  },
+  {
+    "key": "g_119476",
+    "fallback": "가격표 개요 (이미지)"
+  },
+  {
+    "key": "g_848c41",
+    "fallback": "이미지 개수:"
+  },
+  {
+    "key": "g_58426f",
+    "fallback": "1장"
+  },
+  {
+    "key": "g_4c7458",
+    "fallback": "2장"
+  },
+  {
+    "key": "g_8a0e7a",
+    "fallback": "3장"
+  },
+  {
+    "key": "g_59e9cd",
+    "fallback": "요금표 이미지"
+  },
+  {
+    "key": "g_35964c",
+    "fallback": "가격표"
+  },
+  {
+    "key": "g_94b6ad",
+    "fallback": "이미지가 등록되지 않았습니다"
+  },
+  {
+    "key": "g_c9ab86",
+    "fallback": "가격표 변경"
+  },
+  {
+    "key": "g_2dc2b9",
+    "fallback": "유효하지 않은 요청입니다. 링크가 올바른지 다시 확인해주세요."
+  },
+  {
+    "key": "g_ace592",
+    "fallback": "만료되었거나 유효하지 않은 비밀번호 재설정 링크입니다. 원장님께 새로운 링크 발급을 요청해주세요."
+  },
+  {
+    "key": "g_b126b0",
+    "fallback": "지원하지 않는 인증 모드입니다: "
+  },
+  {
+    "key": "g_0406bb",
+    "fallback": "비밀번호는 최소 6자 이상이어야 합니다."
+  },
+  {
+    "key": "g_2bb826",
+    "fallback": "비밀번호가 서로 일치하지 않습니다."
+  },
+  {
+    "key": "g_07d3fc",
+    "fallback": "비밀번호 변경에 실패했습니다: "
+  },
+  {
+    "key": "g_75df3a",
+    "fallback": "인증 정보를 확인하는 중입니다..."
+  },
+  {
+    "key": "g_bd6abd",
+    "fallback": "접근 오류"
+  },
+  {
+    "key": "g_964d15",
+    "fallback": "로그인 화면으로 돌아가기"
+  },
+  {
+    "key": "g_7fea9c",
+    "fallback": "비밀번호 설정 완료!"
+  },
+  {
+    "key": "g_27e600",
+    "fallback": "축하합니다. 관리자 계정의 비밀번호가 성공적으로 설정되었습니다."
+  },
+  {
+    "key": "g_13663e",
+    "fallback": "지금 바로 로그인하기"
+  },
+  {
+    "key": "g_3bf293",
+    "fallback": "관리자 비밀번호 설정"
+  },
+  {
+    "key": "g_665558",
+    "fallback": "환영합니다!"
+  },
+  {
+    "key": "g_a2c1cc",
+    "fallback": "계정의"
+  },
+  {
+    "key": "g_5a7ef7",
+    "fallback": "새 비밀번호 (6자 이상)"
+  },
+  {
+    "key": "g_6ce978",
+    "fallback": "안전한 비밀번호 입력"
+  },
+  {
+    "key": "g_768b58",
+    "fallback": "비밀번호 확인"
+  },
+  {
+    "key": "g_711154",
+    "fallback": "비밀번호 다시 입력"
+  },
+  {
+    "key": "g_1754bd",
+    "fallback": "설정 중..."
+  },
+  {
+    "key": "checkin_verifying",
+    "fallback": "출석 확인 중..."
+  },
+  {
+    "key": "g_ebb526",
+    "fallback": "방문 회원"
+  },
+  {
+    "key": "g_ebb526",
+    "fallback": "방문 회원"
+  },
+  {
+    "key": "g_dd529d",
+    "fallback": "자율수련"
+  },
+  {
+    "key": "g_2bdce5",
+    "fallback": "오늘"
+  },
+  {
+    "key": "g_2bdce5",
+    "fallback": "오늘"
+  },
+  {
+    "key": "g_ebb526",
+    "fallback": "방문 회원"
+  },
+  {
+    "key": "checkin_ai_peaceful",
+    "fallback": "오늘도 평온한 요가 안내해 드릴게요. 나마스테 🙏"
+  },
+  {
+    "key": "g_dae3ed",
+    "fallback": "회원"
+  },
+  {
+    "key": "checkin_member_not_found",
+    "fallback": "😔 등록되지 않은 번호입니다"
+  },
+  {
+    "key": "checkin_expired",
+    "fallback": "⏳ 수강권이 만료되었습니다"
+  },
+  {
+    "key": "checkin_expired_sub",
+    "fallback": "수강 기간이 지났거나 횟수가 소진되었습니다.\\n\\n프론트에 문의해 주세요."
+  },
+  {
+    "key": "checkin_failed",
+    "fallback": "❌ 출석 처리 실패"
+  },
+  {
+    "key": "checkin_failed_sub",
+    "fallback": "일시적인 오류가 발생했습니다.\\n잠시 후 다시 시도해 주세요."
+  },
+  {
+    "key": "checkin_system_error",
+    "fallback": "⚠️ 시스템 오류"
+  },
+  {
+    "key": "checkin_system_error_sub",
+    "fallback": "일시적인 시스템 오류가 발생했습니다.\\n잠시 후 다시 시도해 주세요."
+  },
+  {
+    "key": "inst_page_morning",
+    "fallback": "좋은 아침이에요"
+  },
+  {
+    "key": "g_754486",
+    "fallback": "월"
+  },
+  {
+    "key": "g_5c1a70",
+    "fallback": "미지정"
+  },
+  {
+    "key": "g_5c1a70",
+    "fallback": "미지정"
+  },
+  {
+    "key": "g_06cf3e",
+    "fallback": "일"
+  },
+  {
+    "key": "inst_page_logout_confirm",
+    "fallback": "로그아웃 하시겠습니까?"
+  },
+  {
+    "key": "inst_sch_loading",
+    "fallback": "로딩 중..."
+  },
+  {
+    "key": "g_d2ba3a",
+    "fallback": "로고"
+  },
+  {
+    "key": "inst_page_teacher_suffix",
+    "fallback": "선생님"
+  },
+  {
+    "key": "inst_page_teacher_suffix",
+    "fallback": "선생님"
+  },
+  {
+    "key": "inst_page_push_setting",
+    "fallback": "설정 중"
+  },
+  {
+    "key": "inst_page_ai_preparing",
+    "fallback": "AI가 오늘의 인사를 준비하고 있어요"
+  },
+  {
+    "key": "inst_nav_home",
+    "fallback": "홈"
+  },
+  {
+    "key": "inst_nav_schedule_book",
+    "fallback": "시간표/예약현황"
+  },
+  {
+    "key": "inst_nav_notice",
+    "fallback": "공지"
+  },
+  {
+    "key": "system_privacy",
+    "fallback": "개인정보처리방침"
+  },
+  {
+    "key": "g_dae3ed",
+    "fallback": "회원"
+  },
+  {
+    "key": "g_dae3ed",
+    "fallback": "회원"
+  },
+  {
+    "key": "g_f61acd",
+    "fallback": "AI 엔진 로딩에 실패했습니다. 네트워크를 확인해주세요."
+  },
+  {
+    "key": "g_1d81e4",
+    "fallback": "[Session] AI 연속 실패 — 35초 간격으로 전환"
+  },
+  {
+    "key": "g_9fec66",
+    "fallback": "마이크 권한이 필요합니다."
+  },
+  {
+    "key": "g_d9b2a4",
+    "fallback": "카메라 권한이 필요합니다. 설정에서 카메라 접근을 허용해주세요."
+  },
+  {
+    "key": "g_fc4231",
+    "fallback": "숨을 깊게 들이마시고 내쉬며, 당신만의 평온한 시간을 시작합니다."
+  },
+  {
+    "key": "g_4a6ff0",
+    "fallback": "조금 아쉽지만, 괜찮아요. 지금 느끼신 그대로 시작해볼게요. 🙏"
+  },
+  {
+    "key": "g_c7fb01",
+    "fallback": "명상을 통해 내면의 고요함을 경험했습니다."
+  },
+  {
+    "key": "g_dab83c",
+    "fallback": "AI 맞춤 명상"
+  },
+  {
+    "key": "g_c77cb7",
+    "fallback": "스튜디오가 즉시 생성되었습니다!"
+  },
+  {
+    "key": "g_4fd543",
+    "fallback": "✅ 2개월 무료 체험이 시작되었습니다"
+  },
+  {
+    "key": "g_b56ead",
+    "fallback": "내 스튜디오 바로 접속하기"
+  },
+  {
+    "key": "g_774275",
+    "fallback": "문의 로딩 실패:"
+  },
+  {
+    "key": "g_81a184",
+    "fallback": "번역 실패:"
+  },
+  {
+    "key": "g_84fd49",
+    "fallback": "관리자 목록 조회 실패: "
+  },
+  {
+    "key": "g_c5156e",
+    "fallback": "이메일과 역할은 필수입니다."
+  },
+  {
+    "key": "g_00693f",
+    "fallback": "일반 관리자는 업장을 선택해야 합니다."
+  },
+  {
+    "key": "g_1265fc",
+    "fallback": "이메일 전송 실패(무시됨):"
+  },
+  {
+    "key": "g_60c58a",
+    "fallback": "생성 실패: "
+  },
+  {
+    "key": "g_be3a8d",
+    "fallback": "비밀번호는 최소 6자 이상이어야 합니다."
+  },
+  {
+    "key": "g_8788a6",
+    "fallback": "비밀번호 변경 실패: "
+  },
+  {
+    "key": "g_3555a9",
+    "fallback": "권한 변경 실패: "
+  },
+  {
+    "key": "g_51acf1",
+    "fallback": "삭제 실패: "
+  },
+  {
+    "key": "g_41817d",
+    "fallback": "스튜디오 ID, 이름, 관리자 이메일은 필수입니다."
+  },
+  {
+    "key": "g_4c2636",
+    "fallback": "스튜디오 ID는 영문 소문자, 숫자, 하이픈만 가능합니다."
+  },
+  {
+    "key": "g_a27085",
+    "fallback": "✅ 승인 처리를 위해 부여할 영문 스튜디오 ID를 입력하세요\\n(예: namaste-yoga)"
+  },
+  {
+    "key": "g_483755",
+    "fallback": "영문 소문자, 숫자, 하이픈만 가능합니다."
+  },
+  {
+    "key": "g_513c81",
+    "fallback": " 원장님"
+  },
+  {
+    "key": "g_1265fc",
+    "fallback": "이메일 전송 실패(무시됨):"
+  },
+  {
+    "key": "g_9385ac",
+    "fallback": "🎉 스튜디오 승인 완료!\\\\n\\\\n1. 원장님 이메일로 접속 설정 안내가 자동 발송되었습니다.\\\\n2. (선택) 화면에 생성된 "
+  },
+  {
+    "key": "g_ac1c64",
+    "fallback": "계정 자동 생성 에러:"
+  },
+  {
+    "key": "g_032dcd",
+    "fallback": "승인 실패: "
+  },
+  {
+    "key": "g_f33e90",
+    "fallback": "❌ 반려 (거절) 사유를 입력하세요 (신청자에게 발송 안됨, 기록용):"
+  },
+  {
+    "key": "g_b4735a",
+    "fallback": "올바른 날짜 형식이 아닙니다. (예: 2026-03-31)"
+  },
+  {
+    "key": "g_35401c",
+    "fallback": "날짜가 수정되었습니다."
+  },
+  {
+    "key": "g_6cc3ad",
+    "fallback": "날짜 수정에 실패했습니다."
+  },
+  {
+    "key": "g_7b4d79",
+    "fallback": "운영중"
+  },
+  {
+    "key": "g_d59db9",
+    "fallback": "정지"
+  },
+  {
+    "key": "g_ab62a0",
+    "fallback": "체험"
+  },
+  {
+    "key": "g_667dd4",
+    "fallback": "무료"
+  },
+  {
+    "key": "g_d58f1c",
+    "fallback": "베이직"
+  },
+  {
+    "key": "g_56fcec",
+    "fallback": "프로"
+  },
+  {
+    "key": "g_4983a8",
+    "fallback": "정사각형 로고"
+  },
+  {
+    "key": "g_09656c",
+    "fallback": "가로형 로고"
+  },
+  {
+    "key": "g_16db03",
+    "fallback": "플랫폼 관리"
+  },
+  {
+    "key": "g_e54edb",
+    "fallback": "스튜디오"
+  },
+  {
+    "key": "g_c5529e",
+    "fallback": "관리자 계정"
+  },
+  {
+    "key": "g_99a17a",
+    "fallback": "도메인 관리"
+  },
+  {
+    "key": "g_cd3560",
+    "fallback": "문의 메시지"
+  },
+  {
+    "key": "g_862e2b",
+    "fallback": "Passflow Ai 및 요가원 방문자 트래픽 통계를 확인합니다"
+  },
+  {
+    "key": "g_dae181",
+    "fallback": "현재:"
+  },
+  {
+    "key": "g_98d480",
+    "fallback": "새 스튜디오"
+  },
+  {
+    "key": "g_74e00a",
+    "fallback": "불러오는 중..."
+  },
+  {
+    "key": "g_3477c1",
+    "fallback": "신규 가입 심사 대기소 ("
+  },
+  {
+    "key": "g_98afca",
+    "fallback": "❓ 새로 신청한 원장님들을 검토하고 스튜디오를 발급해주는 공간입니다."
+  },
+  {
+    "key": "g_b126c0",
+    "fallback": "📦 요금제:"
+  },
+  {
+    "key": "g_d053f5",
+    "fallback": "📥 첨부파일 #"
+  },
+  {
+    "key": "g_edb1cf",
+    "fallback": "📥 첨부파일 (1) 다운로드"
+  },
+  {
+    "key": "g_6c3c44",
+    "fallback": "이 버튼을 누르면 원장님 전용 DB가 자동으로 세팅되며 카톡 알림이 전송됩니다."
+  },
+  {
+    "key": "g_350916",
+    "fallback": "✅ 승인 및 ID 발급"
+  },
+  {
+    "key": "g_0b6761",
+    "fallback": "가짜 신청이거나 중복 신청일 경우 거절합니다."
+  },
+  {
+    "key": "g_457da6",
+    "fallback": "❌ 반려"
+  },
+  {
+    "key": "g_963144",
+    "fallback": "등록된 스튜디오 목록"
+  },
+  {
+    "key": "g_ae1d1f",
+    "fallback": "현재 접속중"
+  },
+  {
+    "key": "g_813c28",
+    "fallback": "클릭하여 시작(생성) 날짜를 수정합니다."
+  },
+  {
+    "key": "g_e51551",
+    "fallback": "[링크 복사] 이 스튜디오 전용 관리자 접속 주소를 복사하여 원장님 카카오톡으로 전달하세요."
+  },
+  {
+    "key": "g_1c631d",
+    "fallback": "[가입 해지] 이 요가원을 플랫폼 목록에서 아예 삭제합니다."
+  },
+  {
+    "key": "g_5fc089",
+    "fallback": "⛔ 체험 만료"
+  },
+  {
+    "key": "g_162657",
+    "fallback": "👥 회원"
+  },
+  {
+    "key": "g_83c5a3",
+    "fallback": "📦 가입 첨부파일"
+  },
+  {
+    "key": "g_b62339",
+    "fallback": "📦 가입 첨부파일 다운로드"
+  },
+  {
+    "key": "g_c5529e",
+    "fallback": "관리자 계정"
+  },
+  {
+    "key": "g_423c41",
+    "fallback": "새로고침"
+  },
+  {
+    "key": "g_2538d9",
+    "fallback": "새 관리자"
+  },
+  {
+    "key": "g_b79209",
+    "fallback": "새 관리자 추가 순서 (슈퍼어드민 숨김 방식)"
+  },
+  {
+    "key": "g_22877c",
+    "fallback": "우측 상단의"
+  },
+  {
+    "key": "g_d043d7",
+    "fallback": "이메일과 담당 업장만 선택하고 \\"
+  },
+  {
+    "key": "g_05990c",
+    "fallback": "성공하면 화면에"
+  },
+  {
+    "key": "g_71e171",
+    "fallback": "이 링크 복사 버튼을 눌러서 해당 원장님께 카톡/문자로 전달"
+  },
+  {
+    "key": "g_82c8bc",
+    "fallback": "원장님이 링크를 누르면 본인이 직접 사용할 비밀번호를 입력하고 저장"
+  },
+  {
+    "key": "g_14c0a5",
+    "fallback": "원장님은 설정한 비밀번호로 본인 업장에 로그인 (자신만의 단독 앱이라 인식)"
+  },
+  {
+    "key": "g_8d23a1",
+    "fallback": "조회 중..."
+  },
+  {
+    "key": "g_94de12",
+    "fallback": "👑 슈퍼어드민"
+  },
+  {
+    "key": "g_9ecb3c",
+    "fallback": "비번 변경"
+  },
+  {
+    "key": "g_f3784b",
+    "fallback": "담당 업장 ID:"
+  },
+  {
+    "key": "g_c8d56b",
+    "fallback": "업장 변경"
+  },
+  {
+    "key": "g_30e15a",
+    "fallback": "삭제"
+  },
+  {
+    "key": "g_bcc599",
+    "fallback": "새 비밀번호 (6자 이상)"
+  },
+  {
+    "key": "g_9be281",
+    "fallback": "변경"
+  },
+  {
+    "key": "g_e2f381",
+    "fallback": "마지막 로그인:"
+  },
+  {
+    "key": "g_c1d06a",
+    "fallback": "새 관리자 추가"
+  },
+  {
+    "key": "g_389baa",
+    "fallback": "✅ 관리자 계정 생성 완료!"
+  },
+  {
+    "key": "g_27a83f",
+    "fallback": "아래 링크를 관리자에게 전달하세요."
+  },
+  {
+    "key": "g_b42cbc",
+    "fallback": "복사됨"
+  },
+  {
+    "key": "g_4f8e30",
+    "fallback": "완료"
+  },
+  {
+    "key": "g_71ce1e",
+    "fallback": "이메일 *"
+  },
+  {
+    "key": "g_2904f9",
+    "fallback": "표시 이름"
+  },
+  {
+    "key": "g_4dec08",
+    "fallback": "예: 김원장"
+  },
+  {
+    "key": "g_c90de7",
+    "fallback": "역할 *"
+  },
+  {
+    "key": "g_3c9eb9",
+    "fallback": "🔒 일반 관리자 (특정 업장만)"
+  },
+  {
+    "key": "g_8241e3",
+    "fallback": "👑 슈퍼어드민 (모든 업장)"
+  },
+  {
+    "key": "g_d1a82e",
+    "fallback": "담당 업장 *"
+  },
+  {
+    "key": "g_c074e1",
+    "fallback": "업장 선택..."
+  },
+  {
+    "key": "g_f37390",
+    "fallback": "🔐 비밀번호는 관리자가 직접 설정합니다. 생성 후 비밀번호 설정 링크가 제공됩니다."
+  },
+  {
+    "key": "g_d9de21",
+    "fallback": "취소"
+  },
+  {
+    "key": "g_1c54a5",
+    "fallback": "생성중..."
+  },
+  {
+    "key": "g_3cebae",
+    "fallback": "새 스튜디오 등록"
+  },
+  {
+    "key": "g_344a41",
+    "fallback": "스튜디오 ID *"
+  },
+  {
+    "key": "g_7a2317",
+    "fallback": "예: namaste-yoga"
+  },
+  {
+    "key": "g_8d1071",
+    "fallback": "영문 소문자, 숫자, 하이픈만 가능"
+  },
+  {
+    "key": "g_2b5eb5",
+    "fallback": "스튜디오 이름 *"
+  },
+  {
+    "key": "g_bd1eb6",
+    "fallback": "예: 나마스테 요가"
+  },
+  {
+    "key": "g_dea9f2",
+    "fallback": "관리자 이메일 *"
+  },
+  {
+    "key": "g_d9de21",
+    "fallback": "취소"
+  },
+  {
+    "key": "g_e21a14",
+    "fallback": "등록중..."
+  },
+  {
+    "key": "g_dcce5d",
+    "fallback": "선점 완료된 Firebase Hosting 도메인 목록입니다. 다른 사용자가 절대 가져갈 수 없습니다."
+  },
+  {
+    "key": "g_ace280",
+    "fallback": "운영 중 (Active)"
+  },
+  {
+    "key": "g_1378bb",
+    "fallback": "복샘요가"
+  },
+  {
+    "key": "g_a20f83",
+    "fallback": "쌍문요가"
+  },
+  {
+    "key": "g_7b4d79",
+    "fallback": "운영중"
+  },
+  {
+    "key": "g_b25ed4",
+    "fallback": "선점 보관 중 (Reserved)"
+  },
+  {
+    "key": "g_cadba1",
+    "fallback": "복샘요가 (붙임)"
+  },
+  {
+    "key": "g_a20f83",
+    "fallback": "쌍문요가"
+  },
+  {
+    "key": "g_f6947c",
+    "fallback": "마포요가"
+  },
+  {
+    "key": "g_1954aa",
+    "fallback": "마포요가 (붙임)"
+  },
+  {
+    "key": "g_131dc3",
+    "fallback": "공덕요가"
+  },
+  {
+    "key": "g_39bc10",
+    "fallback": "공덕요가 (붙임)"
+  },
+  {
+    "key": "g_8fba09",
+    "fallback": "아현요가"
+  },
+  {
+    "key": "g_a73991",
+    "fallback": "아현요가 (붙임)"
+  },
+  {
+    "key": "g_346453",
+    "fallback": "이대요가"
+  },
+  {
+    "key": "g_dd49f2",
+    "fallback": "이대요가 (붙임)"
+  },
+  {
+    "key": "g_28b0c0",
+    "fallback": "신촌요가"
+  },
+  {
+    "key": "g_137714",
+    "fallback": "신촌요가 (붙임)"
+  },
+  {
+    "key": "g_66479b",
+    "fallback": "홍대요가"
+  },
+  {
+    "key": "g_5c2870",
+    "fallback": "홍대요가 (붙임)"
+  },
+  {
+    "key": "g_3865af",
+    "fallback": "망원요가"
+  },
+  {
+    "key": "g_807211",
+    "fallback": "망원요가 (붙임)"
+  },
+  {
+    "key": "g_5dae47",
+    "fallback": "합정요가"
+  },
+  {
+    "key": "g_e17925",
+    "fallback": "합정요가 (붙임)"
+  },
+  {
+    "key": "g_11da0f",
+    "fallback": "애오개요가"
+  },
+  {
+    "key": "g_e9a912",
+    "fallback": "애오개요가 (붙임)"
+  },
+  {
+    "key": "g_79cc63",
+    "fallback": "여의도요가"
+  },
+  {
+    "key": "g_55dfb0",
+    "fallback": "여의도요가 (붙임)"
+  },
+  {
+    "key": "g_14858e",
+    "fallback": "PassFlow 랜딩"
+  },
+  {
+    "key": "g_ef8c0a",
+    "fallback": "보관"
+  },
+  {
+    "key": "g_0b43f8",
+    "fallback": "📌 도메인 관리 안내"
+  },
+  {
+    "key": "g_faea2e",
+    "fallback": "• 모든 도메인은 Firebase Hosting에 선점 등록되어, 외부인이 동일 이름으로 사이트를 만들 수 없습니다."
+  },
+  {
+    "key": "g_f6b1bf",
+    "fallback": "(하이픈 포함)는 타 프로젝트에 선점되어 있어"
+  },
+  {
+    "key": "g_979ce3",
+    "fallback": "해외 고객 문의 메시지"
+  },
+  {
+    "key": "g_ee7f7e",
+    "fallback": "🔄 새로고침"
+  },
+  {
+    "key": "g_06057f",
+    "fallback": "로딩 중..."
+  },
+  {
+    "key": "g_c8c3e2",
+    "fallback": "아직 접수된 문의가 없습니다."
+  },
+  {
+    "key": "g_b76230",
+    "fallback": "시간 미상"
+  },
+  {
+    "key": "g_eabae3",
+    "fallback": "✅ 읽음"
+  },
+  {
+    "key": "g_1ea474",
+    "fallback": "🌍 랜딩페이지"
+  },
+  {
+    "key": "g_b59a09",
+    "fallback": "💬 원문"
+  },
+  {
+    "key": "g_f987f7",
+    "fallback": "🇰🇷 한국어 번역"
+  },
+  {
+    "key": "g_a212b8",
+    "fallback": "번역 중..."
+  },
+  {
+    "key": "g_21fa4c",
+    "fallback": "이메일로 답변"
+  },
+  {
+    "key": "g_e413a9",
+    "fallback": "이메일 복사"
+  },
+  {
+    "key": "badge_msg_steady",
+    "fallback": "꾸준함이 돋보이는 수련 흐름입니다."
+  },
+  {
+    "key": "badge_msg_welcome_back",
+    "fallback": "오랜만의 수련, 정말 반가워요!"
+  },
+  {
+    "key": "badge_msg_starter",
+    "fallback": "시작이 반! 꾸준히 함께해요."
+  },
+  {
+    "key": "badge_msg_encourage",
+    "fallback": "오늘도 매트 위에 선 당신을 응원합니다."
+  },
+  {
+    "key": "badge_msg_first_class",
+    "fallback": "첫 수련을 축하드려요!"
+  },
+  {
+    "key": "badge_msg_need_boost",
+    "fallback": "다시 운동 리듬을 찾아보세요! 화이팅!"
+  },
+  {
+    "key": "badge_msg_come_back",
+    "fallback": "다시 오셔서 기뻐요! 꾸준히 이어가봐요."
+  },
+  {
+    "key": "badge_msg_flowing",
+    "fallback": "연속 수련이라니! 몰입도가 대단하네요."
+  },
+  {
+    "key": "badge_msg_on_track",
+    "fallback": "이상적인 수련 주기를 유지하고 계시네요."
+  },
+  {
+    "key": "badge_msg_beautiful",
+    "fallback": "차곡차곡 쌓이는 수련이 아름답습니다."
+  }
+]
