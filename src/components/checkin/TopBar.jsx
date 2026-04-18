@@ -3,6 +3,7 @@ import { MapPin, Sun, Cloud, CloudRain, Snowflake, Lightning, Moon, CornersOut, 
 import { getKSTHour } from '../../utils/dates';
 import DigitalClock from './DigitalClock';
 import { useLanguageStore } from '../../stores/useLanguageStore';
+import { localizeBranchName } from '../../utils/demoLocalization';
 const getWeatherIcon = (code, isNight) => {
 
   if (code === 0) return isNight ? <Moon size={24} weight="fill" /> : <Sun size={24} weight="fill" />;
@@ -25,7 +26,8 @@ const TopBar = memo(({
   onInstructorClick
 }) => {
   const t = useLanguageStore(s => s.t);
-  const locale = language === 'ko' ? 'ko-KR' : language === 'en' ? 'en-US' : language === 'ru' ? 'ru-RU' : language === 'zh' ? 'zh-CN' : 'ja-JP';
+  const localeMap = { ko: 'ko-KR', en: 'en-US', ja: 'ja-JP', zh: 'zh-CN', ru: 'ru-RU', es: 'es-ES', pt: 'pt-BR', fr: 'fr-FR', de: 'de-DE', vi: 'vi-VN', th: 'th-TH' };
+  const locale = localeMap[language] || 'en-US';
   const now = new Date();
   return <div className="checkin-top-bar" style={{
     display: 'flex',
@@ -42,7 +44,7 @@ const TopBar = memo(({
       gap: '10px'
     }}>
                 {branches.length > 1 && branches.map(branch => <button key={branch.id} className={`branch-btn ${currentBranch === branch.id ? 'active' : ''}`} onClick={() => handleBranchChange(branch.id)}>
-                        <MapPin size={18} weight={currentBranch === branch.id ? 'fill' : 'regular'} /> {branch.name}
+                        <MapPin size={18} weight={currentBranch === branch.id ? 'fill' : 'regular'} /> {localizeBranchName(branch.name, language)}
                     </button>)}
             </div>
 

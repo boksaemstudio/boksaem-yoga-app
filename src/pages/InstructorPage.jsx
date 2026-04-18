@@ -23,7 +23,7 @@ const getDefaultGreeting = (name, h, day, t) => {
     name,
     timeGreeting,
     dayContext
-  }) || `${name} 선생님, ${timeGreeting} 🧘‍♀️ ${dayContext}`;
+  }) ?? `${name} ${t('inst_page_teacher_suffix') ?? "선생님"}, ${timeGreeting} 🧘‍♀️ ${dayContext}`;
 };
 
 // === Main Page ===
@@ -314,9 +314,10 @@ const InstructorPage = () => {
       lastAiFetchArgs.current = currentArgs;
       setAiGreetingLoading(true);
       try {
+        const currentLang = useLanguageStore.getState().language;
         const result = await storageService.getAIExperience(instructorName, 0,
         // attendance count는 AI에 꼭 필요하지 않음
-        dayOfWeek, hour, null, null, null, null, 'ko', null, 'instructor');
+        dayOfWeek, hour, null, null, null, null, currentLang, null, 'instructor');
         const greetingText = typeof result === 'string' ? result : result?.message || defaultMsg;
 
         // [FIX] 직접 aiGreeting을 교체 (aiEnhancedGreeting 대신) → 깜빡임 방지
@@ -432,12 +433,12 @@ const InstructorPage = () => {
             margin: 0,
             fontSize: '1.2rem',
             color: 'var(--primary-gold)'
-          }}>{config.IDENTITY?.NAME || 'Studio'} {t('inst_page_teacher_suffix') || t("g_620be2") || "선생님"}</h1>
+          }}>{config.IDENTITY?.NAME || 'Studio'} {t('inst_page_teacher_suffix') ?? t("g_620be2") ?? "선생님"}</h1>
                         <div style={{
             margin: '4px 0 0',
             fontSize: '0.9rem',
             color: 'var(--text-secondary)'
-          }}>{instructorName} {t('inst_page_teacher_suffix') || t("g_620be2") || "선생님"}</div>
+          }}>{instructorName} {t('inst_page_teacher_suffix') ?? t("g_620be2") ?? "선생님"}</div>
                     </div>
                 </div>
                 <div style={{

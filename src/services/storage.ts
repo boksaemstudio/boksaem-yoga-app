@@ -141,19 +141,28 @@ export const storageService = {
     },
 
     // ═══ MEMBER ═══
-    getMembers(): Member[] { return localizeMembers(memberService.getMembers(), useLanguageStore.getState().currentLanguage); },
+    getMembers(): Member[] { return localizeMembers(memberService.getMembers(), useLanguageStore.getState().language); },
     loadAllMembers(force = false) { return memberService.loadAllMembers(force); },
     _buildPhoneLast4Index() { return memberService._buildPhoneLast4Index(); },
-    findMembersByPhone(last4Digits: string) { return memberService.findMembersByPhone(last4Digits); },
+    findMembersByPhone(last4Digits: string) { 
+        const members = memberService.findMembersByPhone(last4Digits);
+        const { localizeMembers } = require('../utils/demoLocalization');
+        return localizeMembers(members, useLanguageStore.getState().language);
+    },
     _updateLocalMemberCache(memberId: string, updates: Partial<Member>) { return memberService._updateLocalMemberCache(memberId, updates); },
     updateMember(memberId: string, data: Partial<Member>) { return memberService.updateMember(memberId, data); },
     addMember(data: Partial<Member> & { phone: string }) { return memberService.addMember(data); },
     getMemberById(id: string) { 
         const member = memberService.getMemberById(id);
         const { localizeMember } = require('../utils/demoLocalization');
-        return localizeMember(member, useLanguageStore.getState().currentLanguage);
+        return localizeMember(member, useLanguageStore.getState().language);
     },
-    fetchMemberById(id: string) { return memberService.fetchMemberById(id); },
+    fetchMemberById(id: string) { 
+        return memberService.fetchMemberById(id).then(member => {
+            const { localizeMember } = require('../utils/demoLocalization');
+            return localizeMember(member, useLanguageStore.getState().language);
+        }); 
+    },
     getMemberStreak(memberId: string, attendance: Array<{ date?: string }>) { return memberService.getMemberStreak(memberId, attendance); },
     getMemberDiligence(memberId: string) { return memberService.getMemberDiligence(memberId); },
     getGreetingCache(memberId: string) { return memberService.getGreetingCache(memberId); },
@@ -203,7 +212,7 @@ export const storageService = {
 
     // ═══ SCHEDULE ═══
     getMonthlyClasses(branchId: string, year: number, month: number) { 
-        return localizeSchedules(scheduleService.getMonthlyClasses(branchId, year, month), useLanguageStore.getState().currentLanguage); 
+        return localizeSchedules(scheduleService.getMonthlyClasses(branchId, year, month), useLanguageStore.getState().language); 
     },
     getMonthlyScheduleStatus(branchId: string, year: number, month: number) { return scheduleService.getMonthlyScheduleStatus(branchId, year, month); },
     updateDailyClasses(branchId: string, date: string, classes: DailyClass[]) { return scheduleService.updateDailyClasses(branchId, date, classes); },
@@ -212,7 +221,7 @@ export const storageService = {
     copyMonthlySchedule(branchId: string, fromYear: number, fromMonth: number, toYear: number, toMonth: number) { return scheduleService.copyMonthlySchedule(branchId, fromYear, fromMonth, toYear, toMonth); },
     deleteMonthlySchedule(branchId: string, year: number, month: number) { return scheduleService.deleteMonthlySchedule(branchId, year, month); },
     getInstructors() { 
-        return localizeInstructors(scheduleService.getInstructors(), useLanguageStore.getState().currentLanguage); 
+        return localizeInstructors(scheduleService.getInstructors(), useLanguageStore.getState().language); 
     },
     updateInstructors(list: (string | Record<string, unknown>)[]) { return scheduleService.updateInstructors(list); },
     getClassTypes() { return scheduleService.getClassTypes(); },
@@ -228,7 +237,7 @@ export const storageService = {
     translateNotices(notices: Notice[], targetLang: string) { return noticeService.translateNotices(notices, targetLang); },
     getNotices(): Notice[] { 
         let notices = [...cachedNotices].sort((a, b) => new Date(b.timestamp || '0').getTime() - new Date(a.timestamp || '0').getTime());
-        return localizeNotices(notices, useLanguageStore.getState().currentLanguage);
+        return localizeNotices(notices, useLanguageStore.getState().language);
     },
     async loadNotices() { if (cachedNotices.length > 0) return cachedNotices; return noticeService.loadNotices(); },
 
@@ -264,14 +273,14 @@ export const storageService = {
     // ═══ CLASS ═══
     getCurrentClass(branchId: string, instructorName: string | null = null, membershipTypeHint: string | null = null) { return classService.getCurrentClass(branchId, instructorName, membershipTypeHint); },
     getDailyClasses(branchId: string, instructorName: string | null = null, date: string | null = null) { 
-        return localizeSchedules(classService.getDailyClasses(branchId, instructorName, date), useLanguageStore.getState().currentLanguage); 
+        return localizeSchedules(classService.getDailyClasses(branchId, instructorName, date), useLanguageStore.getState().language); 
     },
 
     // ═══ CONFIG ═══
     getImages() { 
         const imgs = { ...configService.getImages() };
         if (typeof window !== 'undefined' && getCurrentStudioId() === 'demo-yoga') {
-            const lang = useLanguageStore.getState().currentLanguage;
+            const lang = useLanguageStore.getState().language;
             if (lang && lang !== 'ko') {
                 ['timeTable1', 'timeTable2', 'priceTable1', 'priceTable2', 'memberBg'].forEach(key => {
                     if (imgs[`${key}_${lang}`]) imgs[key] = imgs[`${key}_${lang}`];
@@ -284,7 +293,7 @@ export const storageService = {
     getPricing() { 
         const pricing = configService.getPricing();
         if (!pricing) return pricing;
-        const lang = useLanguageStore.getState().currentLanguage;
+        const lang = useLanguageStore.getState().language;
         // Check if pricing is { passes: [], regular: [] } which is common structure
         const localized = { ...pricing };
         if (Array.isArray(localized.passes)) localized.passes = localizePricings(localized.passes, lang);

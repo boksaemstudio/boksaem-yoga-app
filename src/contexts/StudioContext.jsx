@@ -40,6 +40,16 @@ export const StudioProvider = ({ children }) => {
         });
     }, [studioId]);
 
+    // [i18n] Re-localize config when language changes
+    const currentLanguage = useLanguageStore(s => s.language);
+    useEffect(() => {
+        setConfig(prev => {
+            if (!prev || currentLanguage === 'ko') return prev;
+            return localizeConfig(prev, currentLanguage);
+        });
+    }, [currentLanguage]);
+
+
     useEffect(() => {
         const studioDocRef = doc(db, 'studios', studioId);
 
@@ -134,7 +144,7 @@ export const StudioProvider = ({ children }) => {
 
                 
 
-                let finalConfig = localizeConfig(merged, useLanguageStore.getState().currentLanguage);
+                let finalConfig = localizeConfig(merged, useLanguageStore.getState().language);
                 setConfig(finalConfig);
                 useStudioStore.getState().setConfig(finalConfig);
                 // Update CSS Variables dynamically

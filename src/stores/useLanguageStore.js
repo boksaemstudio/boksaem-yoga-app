@@ -47,22 +47,22 @@ export const useLanguageStore = create((set, get) => ({
 
         // 2. [핵심] 한국어 사용자 + 한국어 키인데 ko 사전에 없으면
         //    → en fallback으로 가면 영어가 나오므로, 키 자체를 바로 반환
-        if (!text && language === 'ko' && /[\uAC00-\uD7AF]/.test(key) && !key.includes('_')) {
+        if (text === undefined && language === 'ko' && /[\uAC00-\uD7AF]/.test(key) && !key.includes('_')) {
             text = key;
         }
 
         // 3. 비한국어 사용자: en → ko fallback
-        if (!text && language !== 'en') {
+        if (text === undefined && language !== 'en') {
             text = translations['en']?.[key];
         }
-        if (!text && language !== 'ko') {
+        if (text === undefined && language !== 'ko') {
             text = translations['ko']?.[key];
         }
 
         // 4. 어떤 사전에도 없는 경우:
         //    - 한국어 자연어(언더스코어 없음) → 키 자체가 번역
         //    - 프로그래밍 키 → undefined 반환 (|| fallback 작동)
-        if (!text) {
+        if (text === undefined) {
             const isKoreanSentence = /[\uAC00-\uD7AF]/.test(key) && !key.includes('_');
             if (isKoreanSentence) {
                 text = key;

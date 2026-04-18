@@ -35,6 +35,7 @@ import KioskInstallGuideModal from '../components/checkin/KioskInstallGuideModal
 import FaceRegistrationModal from '../components/checkin/FaceRegistrationModal';
 const CheckInPage = () => {
   const t = useLanguageStore(s => s.t);
+  const currentLanguage = useLanguageStore(s => s.language);
   const {
     config
   } = useStudioConfig();
@@ -207,7 +208,7 @@ const CheckInPage = () => {
     videoRef: faceVideoRef,
     onPersonDetected: useCallback(() => setKioskNoticeHidden(true), [setKioskNoticeHidden])
   });
-  const language = CHECKIN_CONFIG.LOCALE;
+  const language = useLanguageStore(s => s.language) || CHECKIN_CONFIG.LOCALE;
   const qrCodeUrl = `${CHECKIN_CONFIG.ASSETS.QR_CODE_BASE_URL}?${CHECKIN_CONFIG.ASSETS.QR_CODE_PARAMS}&data=${encodeURIComponent(window.location.origin + '/member')}`;
   const warmupFunctions = useCallback(() => {
     if (warmupTriggered.current) return;
@@ -291,7 +292,7 @@ const CheckInPage = () => {
       const h = getKSTHour();
       if (h < CHECKIN_CONFIG.SERVICE_HOURS.AI_READY_START || h >= CHECKIN_CONFIG.SERVICE_HOURS.AI_READY_END) {
         setAiExperience({
-          message: AIMessages.FALLBACK_MESSAGE_OUTSIDE_BUSINESS_HOURS,
+          message: getStaticStandbyMessage(h, '0', '', language) || AIMessages.FALLBACK_MESSAGE_OUTSIDE_BUSINESS_HOURS,
           isFallback: true
         });
         return;
@@ -299,7 +300,7 @@ const CheckInPage = () => {
       const info = await storageService.getCurrentClass(currentBranch);
       const title = info?.title || t("g_dd529d") || "자율수련";
       if (isStandby) {
-        const staticMsg = getStaticStandbyMessage(h, w?.weathercode || '0', title);
+        const staticMsg = getStaticStandbyMessage(h, w?.weathercode || '0', title, language);
         setAiExperience({
           message: staticMsg,
           isFallback: true
@@ -670,7 +671,7 @@ const CheckInPage = () => {
       } catch (e) {
         console.warn('[Fullscreen] Not supported:', e.message);
       }
-    }} language="ko" onInstructorClick={() => setShowInstructorQR(true)} />
+    }} language={currentLanguage} onInstructorClick={() => setShowInstructorQR(true)} />
 
             <div className="checkin-content" style={{
       zIndex: 5,

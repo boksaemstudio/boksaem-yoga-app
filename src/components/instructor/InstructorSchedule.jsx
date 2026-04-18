@@ -282,7 +282,7 @@ const InstructorSchedule = ({
                 <h2 style={{
         margin: 0,
         fontSize: '1.2rem'
-      }}>{year}{t("g_cdb423") || "년"}{month}{t("g_754486") || "월"}</h2>
+      }}>{t("g_year_month_format", { year, month }) || `${year}년 ${month}월`}</h2>
                 <button onClick={() => setCurrentDate(new Date(year, month, 1))} style={navBtnStyle}>▶</button>
             </div>
 

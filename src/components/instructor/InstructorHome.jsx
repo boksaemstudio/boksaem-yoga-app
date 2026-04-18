@@ -450,7 +450,7 @@ const InstructorHome = ({
                     <span style={{
           fontSize: '0.8rem',
           color: 'var(--text-secondary)'
-        }}>{todayStr} ({attendance.length}{t("g_8038a0") || "명)"}</span>
+        }}>{todayStr} ({attendance.length}{t("g_8038a0") || "명"})</span>
                 </div>
                 
                 {attendanceLoading ? <div style={{

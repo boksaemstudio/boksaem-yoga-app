@@ -5,7 +5,23 @@ import * as AIMessages from '../constants/aiMessages';
  * AI 스탠바이 응답을 위한 하드코딩 문구 선택 헬퍼 콜백 
  * - UI나 State 렌더링과 전혀 무관한 순수 자바스크립트 로직입니다.
  */
-export const getStaticStandbyMessage = (hour, weatherCode, classTitle) => {
+export const getStaticStandbyMessage = (hour, weatherCode, classTitle, language = 'ko') => {
+    if (language !== 'ko') {
+        const fallbacks = {
+            en: "May you find a precious moment to meet yourself on the mat today.",
+            ja: "今日もマットの上で自分自身と向き合う大切な時間となりますように。",
+            zh: "愿你今天在垫子上找到与自己相遇的珍贵时刻。",
+            es: "Que encuentres un momento precioso para encontrarte contigo mismo en la colchoneta hoy.",
+            pt: "Que você encontre um momento precioso para se encontrar no tapete hoje.",
+            ru: "Желаю вам найти драгоценный момент для встречи с собой на коврике сегодня.",
+            fr: "Puissiez-vous trouver un moment précieux pour vous retrouver sur le tapis aujourd'hui.",
+            de: "Mögen Sie heute einen kostbaren Moment finden, um sich selbst auf der Matte zu begegnen.",
+            vi: "Chúc bạn tìm thấy một khoảnh khắc quý giá để gặp gỡ chính mình trên thảm hôm nay.",
+            th: "ขอให้คุณพบช่วงเวลาอันมีค่าในการพบกับตัวเองบนเสื่อในวันนี้"
+        };
+        return fallbacks[language] || fallbacks['en'];
+    }
+
     let staticMsg = "";
 
     // 1. Weather Context (Priority 1)

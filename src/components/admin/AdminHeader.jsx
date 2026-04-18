@@ -1,5 +1,6 @@
 import { PlusCircle, SignOut, ToggleLeft, ToggleRight } from '@phosphor-icons/react';
 import { useLanguageStore } from '../../stores/useLanguageStore';
+import LanguageSelector from '../LanguageSelector';
 const AdminHeader = ({
   config,
   handleForceUpdate,
@@ -46,8 +47,8 @@ const AdminHeader = ({
           maxHeight: '24px',
           maxWidth: '100px',
           objectFit: 'contain',
-          background: 'rgba(255, 255, 255, 0.85)',
-          padding: '4px',
+          background: 'rgba(255, 255, 255, 0.5)',
+          padding: '1px',
           borderRadius: '6px'
         }} />
                     </div> : <div style={{
@@ -106,6 +107,9 @@ const AdminHeader = ({
       }} title={t('logout')} onMouseEnter={e => e.currentTarget.style.color = '#F43F5E'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}>
                     <SignOut size={16} />
                 </button>
+                <div style={{ marginLeft: '4px' }}>
+                    <LanguageSelector variant="minimal" />
+                </div>
             </div>
             
             <div style={{

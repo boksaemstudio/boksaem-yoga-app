@@ -247,7 +247,7 @@ const AdminScheduleManager = ({
           fontSize: '1.2rem',
           color: '#60A5FA',
           margin: '0 0 8px 0'
-        }}>{year}{t("g_cdb423") || "년"}{month}{t("g_31dd1a") || "월 일정이 비어 있습니다."}</h3>
+        }}>{t("g_year_month_format", { year, month }) || `${year}년 ${month}월`} {t("g_schedule_empty") || "일정이 비어 있습니다."}</h3>
                     <p style={{
           color: 'var(--text-secondary)',
           margin: 0,
@@ -300,7 +300,7 @@ const AdminScheduleManager = ({
           alignItems: 'center',
           gap: '10px'
         }}>
-                        {year}{t("g_cdb423") || "년"}{month}{t("g_754486") || "월"}{scheduleStatus === 'saved' ? <span style={{
+                        {t("g_year_month_format", { year, month }) || `${year}년 ${month}월`}{scheduleStatus === 'saved' ? <span style={{
             fontSize: '0.8rem',
             padding: '4px 10px',
             borderRadius: '20px',
@@ -434,7 +434,7 @@ const AdminScheduleManager = ({
           color: 'var(--text-secondary)',
           marginBottom: '24px',
           lineHeight: '1.5'
-        }}>{t("g_67ea42") || "정말로"}{year}{t("g_cdb423") || "년"}{month}{t("g_862241") || "월 스케줄을 초기화하시겠습니까?"}<br /><br />{t("g_08f8d3") || "모든 수업 데이터가 삭제되며, 상태가 [미정]으로 돌아갑니다."}<br />
+        }}>{t("g_67ea42") || "정말로 "}{t("g_year_month_format", { year, month }) || `${year}년 ${month}월`} {t("g_reset_schedule_prompt") || "스케줄을 초기화하시겠습니까?"}<br /><br />{t("g_08f8d3") || "모든 수업 데이터가 삭제되며, 상태가 [미정]으로 돌아갑니다."}<br />
                             <span style={{
             fontSize: '0.85rem',
             color: '#6366F1',

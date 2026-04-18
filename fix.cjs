@@ -1,0 +1,11 @@
+const fs = require('fs');
+let lines = fs.readFileSync('./src/utils/translations.js', 'utf8').split('\n');
+lines[4539] = '// ' + lines[4539];
+lines[4540] = '// ' + lines[4540];
+lines[4541] = '// ' + lines[4541];
+lines[4542] = '// ' + lines[4542];
+lines[4959] = '// ' + lines[4959];
+lines[4960] = '// ' + lines[4960];
+lines[11085] = lines[11085].replace(/\\'/g, "'");
+fs.writeFileSync('./src/utils/translations.js', lines.join('\n'));
+console.log('Fixed lint errors');

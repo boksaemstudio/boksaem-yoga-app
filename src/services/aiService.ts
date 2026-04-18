@@ -52,13 +52,22 @@ const FALLBACK_MESSAGES: Record<string, string> = {
     en: "May you find a precious moment to meet yourself on the mat today.",
     ru: "Желаю вам найти драгоценный момент для встречи с собой на коврике сегодня.",
     zh: "愿你今天在垫子上找到与自己相遇的珍贵时刻.",
-    ja: "今日もマットの上で自分自身と向き合う大切な時間となりますように。"
+    ja: "今日もマットの上で自分自身と向き合う大切な時間となりますように。",
+    es: "Que encuentres un momento precioso para encontrarte contigo mismo en la colchoneta hoy.",
+    pt: "Que você encontre um momento precioso para se encontrar no tapete hoje.",
+    fr: "Puissiez-vous trouver un moment précieux pour vous retrouver sur le tapis aujourd'hui.",
+    de: "Mögen Sie heute einen kostbaren Moment finden, um sich selbst auf der Matte zu begegnen.",
+    vi: "Chúc bạn tìm thấy một khoảnh khắc quý giá để gặp gỡ chính mình trên thảm hôm nay.",
+    th: "ขอให้คุณพบช่วงเวลาอันมีค่าในการพบกับตัวเองบนเสื่อในวันนี้"
 };
 
-const getInstructorFallback = (): AIExperienceResult => ({
-    message: INSTRUCTOR_QUOTES[Math.floor(Math.random() * INSTRUCTOR_QUOTES.length)],
-    bgTheme: "sunny", colorTone: "#FFFFFF", isFallback: true
-});
+const getInstructorFallback = (language: string = 'ko'): AIExperienceResult => {
+    if (language !== 'ko') return getFallback(language);
+    return {
+        message: INSTRUCTOR_QUOTES[Math.floor(Math.random() * INSTRUCTOR_QUOTES.length)],
+        bgTheme: "sunny", colorTone: "#FFFFFF", isFallback: true
+    };
+};
 
 const getFallback = (language: string): AIExperienceResult => ({
     message: FALLBACK_MESSAGES[language] || FALLBACK_MESSAGES['ko'],
@@ -88,13 +97,13 @@ export const getAIExperience = async (
         const data = res.data as AIExperienceResult | null;
 
         if (!data || (Array.isArray(data) && data.length === 0)) {
-            return (context === 'instructor' || memberName?.includes('선생님')) ? getInstructorFallback() : getFallback(language);
+            return (context === 'instructor' || memberName?.includes('선생님')) ? getInstructorFallback(language) : getFallback(language);
         }
         if (data && !data.isFallback) _safeSetItem(cacheKey, JSON.stringify(data));
         return data;
     } catch (error) {
         console.warn("AI Experience failed, using fallback:", error);
-        return (context === 'instructor' || memberName?.includes('선생님')) ? getInstructorFallback() : getFallback(language);
+        return (context === 'instructor' || memberName?.includes('선생님')) ? getInstructorFallback(language) : getFallback(language);
     }
 };
 
