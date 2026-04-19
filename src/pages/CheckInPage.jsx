@@ -183,7 +183,8 @@ const CheckInPage = () => {
     const interval = setInterval(checkOperatingHours, 60000); // Check every minute
     return () => clearInterval(interval);
   }, [rawKioskSettings?.autoOnOff, rawKioskSettings?.autoOnTime, rawKioskSettings?.autoOffTime, isOperatingHours]);
-  const photoEnabled = (config.POLICIES?.PHOTO_ENABLED === true || config.POLICIES?.SHOW_CAMERA_PREVIEW === true || faceRecognitionEnabled === true) && isOperatingHours;
+  // [FIX] 미니 캡처 카메라가 항상 화면에 렌더링되므로 운영시간 중에는 항상 사진 캡처 활성화
+  const photoEnabled = isOperatingHours;
   const {
     videoRef,
     canvasRef,
