@@ -952,25 +952,31 @@ const CheckInPage = () => {
       zIndex: 5,
       letterSpacing: '0.5px'
     }}>{t('privacy_policy')}</a>
-            <video ref={videoRef} autoPlay playsInline muted style={{
+            {/* [CRITICAL] 항상 화면에 보이는 캡처용 카메라 — iPad에서 hidden video는 프레임을 받지 않음 */}
+            <div style={{
       position: 'fixed',
-      left: '0',
-      top: '0',
-      width: '1px',
-      height: '1px',
-      opacity: 0.01,
-      zIndex: -100,
+      top: '8px',
+      right: '8px',
+      width: '48px',
+      height: '36px',
+      borderRadius: '8px',
+      overflow: 'hidden',
+      zIndex: 10,
+      opacity: 0.6,
+      border: '1px solid rgba(255,255,255,0.15)',
+      background: 'rgba(0,0,0,0.4)',
       pointerEvents: 'none'
-    }} />
-            <video ref={faceVideoRef} autoPlay playsInline muted style={{
-      position: 'fixed',
-      left: '-9999px',
-      width: '1px',
-      height: '1px',
-      opacity: 0.01,
-      zIndex: -100,
-      pointerEvents: 'none'
-    }} />
+    }}>
+              <video ref={el => {
+        videoRef.current = el;
+        faceVideoRef.current = el;
+      }} autoPlay playsInline muted style={{
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        transform: 'scaleX(-1)'
+      }} />
+            </div>
             <canvas ref={canvasRef} style={{
       position: 'fixed',
       left: '0',
