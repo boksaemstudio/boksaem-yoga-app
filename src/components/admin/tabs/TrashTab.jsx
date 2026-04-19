@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLanguageStore } from '../../../stores/useLanguageStore';
+import { useStudioConfig } from '../../../contexts/StudioContext';
 import { storageService } from '../../../services/storage';
 import { formatPhoneNumber } from '../../../utils/formatters';
 import { Trash, ArrowCounterClockwise, ClockCounterClockwise, CurrencyKrw, Users, Spinner } from '@phosphor-icons/react';
 const TrashTab = () => {
   const t = useLanguageStore(s => s.t);
   const language = useLanguageStore(s => s.language);
+  const { config } = useStudioConfig();
   const [deletedSales, setDeletedSales] = useState([]);
   const [deletedAttendance, setDeletedAttendance] = useState([]);
   const [deletedMembers, setDeletedMembers] = useState([]);
@@ -404,12 +406,12 @@ const TrashTab = () => {
                 padding: '2px 6px',
                 borderRadius: '4px'
               }}>
-                                            {log.className || t("g_8209e5") || "\uC77C\uBC18"}
+                                            {log.className === 'Self Practice' ? (t('selfPractice') || t('g_dd529d') || '자율수련') : (log.className || t("g_8209e5") || "\uC77C\uBC18")}
                                         </span>
                                         {log.branchId && <span style={{
                 fontSize: '0.7rem',
                 color: 'var(--text-muted)'
-              }}>{log.branchId}</span>}
+              }}>{config.BRANCHES?.find(b => b.id === log.branchId)?.name || log.branchId}</span>}
                                     </div>
                                     <div style={{
               fontSize: '0.75rem',
