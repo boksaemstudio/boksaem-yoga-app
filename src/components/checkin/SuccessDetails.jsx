@@ -47,16 +47,17 @@ const SuccessDetails = memo(({
     }}>{t('kiosk_success_expired') || t("g_0c9d60") || "\uB9CC\uB8CC"}</div>;
     return <div style={{
       display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center'
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      justifyContent: 'center',
+      gap: '12px'
     }}>
                 <div>D-{days}</div>
                 <div style={{
-        fontSize: '3.0rem',
-        fontWeight: 700,
-        color: 'rgba(255,255,255,0.85)',
-        marginTop: '6px',
-        letterSpacing: '2px'
+        fontSize: '2.0rem',
+        fontWeight: 600,
+        color: 'rgba(255,255,255,0.65)',
+        letterSpacing: '1px'
       }}>
                     {formatEndDate(member.endDate)}
                 </div>
@@ -91,9 +92,7 @@ const SuccessDetails = memo(({
           fontWeight: 800,
           color: 'var(--primary-gold)'
         }}>
-                        {t('kiosk_success_credits_count', {
-            credits
-          }) || `${credits}\uD68C`}
+                        {credits}{t("g_bcbcd4")?.replace('건', '회') || t("g_a0d062")?.replace('회 · 삭제:', '회') || "회"}
                     </div>
                 </div>
                 
