@@ -105,7 +105,7 @@ const MessageOverlay = memo(({
         <div className="message-text" style={{
           fontSize: isError ? 'clamp(1.8rem, 5vh, 3rem)' : 'clamp(2.2rem, 6vh, 4rem)',
           fontWeight: '900',
-          marginBottom: isError ? '16px' : '20px',
+          marginBottom: isError ? '16px' : '8px',
           letterSpacing: '-1.5px',
           color: isError ? '#FF6B6B' : 'inherit',
           lineHeight: 1.2
@@ -115,7 +115,7 @@ const MessageOverlay = memo(({
         
         {/* Sub Text (Description) */}
         {message.subText && <div className="message-subtext" style={{
-          marginBottom: '30px',
+          marginBottom: '12px',
           whiteSpace: 'pre-wrap',
           lineHeight: '1.5',
           fontSize: isError ? 'clamp(1rem, 2.5vh, 1.5rem)' : 'clamp(1.2rem, 3vh, 1.8rem)',
@@ -127,7 +127,7 @@ const MessageOverlay = memo(({
 
         {/* [AI] Personalized Feedback */}
         {isSuccess && aiExperience?.subMessage && <div className="ai-sub-message" style={{
-          marginTop: '10px',
+          marginTop: '4px',
           padding: '24px',
           background: 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.15), rgba(var(--primary-rgb), 0.05))',
           borderRadius: '24px',
