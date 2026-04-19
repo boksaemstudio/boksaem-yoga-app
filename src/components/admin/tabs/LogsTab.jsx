@@ -295,7 +295,7 @@ const LogsTab = ({
             fullDate: targetDateStr,
             timestamp: dObj.getTime(),
             count: count,
-            dayName: [t("g_06cf3e") || "Sun", t("g_754486") || "month", t("g_adb4a2") || "Tue", t("g_c04eb2") || "Wed", t("g_5664a6") || "Thu", t("g_cf5632") || "Fri", t("g_b9e406") || "Sat"][dayOfWeek]
+            dayName: new Intl.DateTimeFormat(({ ko: 'ko-KR', en: 'en-US', ja: 'ja-JP', zh: 'zh-CN', ru: 'ru-RU', es: 'es-ES', pt: 'pt-BR', fr: 'fr-FR', de: 'de-DE', vi: 'vi-VN', th: 'th-TH' })[language] || 'en-US', { weekday: 'short' }).format(dObj)
           });
         });
 
@@ -656,7 +656,7 @@ const LogsTab = ({
                 </div>}
 
             {/* ─── Class Summary Cards ─── */}
-            {!loadingHistorical && classCards.length > 0 && <CollapsibleCard id="logs-class-summary" title={`📊 ${isToday ? t("g_2bdce5") || "Today" : formatDisplayDate(selectedDate)} ${t('수업별 출석 요약')}`} titleExtra={`${classCards.length}${t('개 수업')}`} defaultOpen={false}>
+            {!loadingHistorical && classCards.length > 0 && <CollapsibleCard id="logs-class-summary" title={`📊 ${isToday ? t("g_2bdce5") || "Today" : formatDisplayDate(selectedDate)} ${t('classSummary') || t('g_class_summary') || "Class Attendance Summary"}`} titleExtra={`${classCards.length}${t('g_class_count') || t('classCount') || " classes"}`} defaultOpen={false}>
                     <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -782,7 +782,7 @@ const LogsTab = ({
                     fontSize: '0.85rem',
                     color: 'var(--text-secondary)'
                   }}>
-                                                {cls.className} · {cls.instructor} — {t('최근 3주 추세')}
+                                                {cls.className} · {cls.instructor} — {t('recentTrend') || t('g_recent_trend') || "Recent 3-week trend"}
                                             </span>
                                         </div>
                                         
