@@ -606,6 +606,10 @@ const CheckInPage = () => {
       proceedWithCheckIn(pinCode, false, null, facialTask);
     }
   }, [loading, currentBranch, config.POLICIES, faceModelsLoaded, capturePhoto]);
+
+  const handleQRInteraction = useCallback(() => setShowKioskInstallGuide(true), []);
+  const handleCameraTouch = useCallback(() => setShowFaceRegModal(true), []);
+
   const handleKeyPress = useCallback(n => {
     setPin(prev => {
       const next = prev + n;
@@ -753,7 +757,7 @@ const CheckInPage = () => {
       alignItems: 'stretch',
       overflow: 'hidden'
     }}>
-                <CheckInInfoSection pin={pin} loading={loading} aiExperience={aiExperience} aiEnhancedMsg={aiEnhancedMsg} aiLoading={aiLoading} kioskLogos={kioskLogos} qrCodeUrl={qrCodeUrl} handleQRInteraction={() => setShowKioskInstallGuide(true)} onCameraTouch={() => setShowFaceRegModal(true)} faceRecognitionEnabled={faceRecognitionEnabled} isScanning={isScanning} cameraVideoRef={faceVideoRef} cameraStream={cameraStream} attendanceVideoRef={videoRef} />
+                <CheckInInfoSection pin={pin} loading={loading} aiExperience={aiExperience} aiEnhancedMsg={aiEnhancedMsg} aiLoading={aiLoading} kioskLogos={kioskLogos} qrCodeUrl={qrCodeUrl} handleQRInteraction={handleQRInteraction} onCameraTouch={handleCameraTouch} faceRecognitionEnabled={faceRecognitionEnabled} isScanning={isScanning} cameraVideoRef={faceVideoRef} cameraStream={cameraStream} attendanceVideoRef={videoRef} />
                 <CheckInKeypadSection pin={pin} loading={loading} isReady={isReady} loadingMessage={loadingMessage} keypadLocked={keypadLocked} showSelectionModal={showSelectionModal} message={message} handleKeyPress={handleKeyPress} handleClear={handleClear} handleSubmit={handleSubmit} />
             </div>
 
