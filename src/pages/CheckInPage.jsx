@@ -593,8 +593,7 @@ const CheckInPage = () => {
         return null;
       });
     }
-    // [FIX] capturePhoto()는 handleKeyPress의 첫 키 입력 시 이미 호출됨 (카메라 프리뷰 활성 상태).
-    // handleSubmit에서 중복 호출하면 이미 캡처된 사진을 null로 덮어쓰는 문제 발생.
+    capturePhoto();
     const duplicateThresholdMs = 300000; // 5분 (백엔드 차단 시간과 동일)
     const isDup = recentCheckInsRef.current.some(e => e.pin === pinCode && Date.now() - e.timestamp < duplicateThresholdMs);
     if (isDup) {
@@ -606,7 +605,7 @@ const CheckInPage = () => {
     } else {
       proceedWithCheckIn(pinCode, false, null, facialTask);
     }
-  }, [loading, currentBranch, config.POLICIES, faceModelsLoaded]);
+  }, [loading, currentBranch, config.POLICIES, faceModelsLoaded, capturePhoto]);
 
   const handleQRInteraction = useCallback(() => setShowKioskInstallGuide(true), []);
   const handleCameraTouch = useCallback(() => setShowFaceRegModal(true), []);
@@ -953,18 +952,19 @@ const CheckInPage = () => {
       zIndex: 5,
       letterSpacing: '0.5px'
     }}>{t('privacy_policy')}</a>
-            <video ref={el => {
-      if (el) {
-        videoRef.current = el;
-        if (cameraStream && el.srcObject !== cameraStream) {
-          el.srcObject = cameraStream;
-          el.play().catch(() => {});
-        }
-      }
-    }} autoPlay playsInline muted style={{
+            <video ref={videoRef} autoPlay playsInline muted style={{
       position: 'fixed',
       left: '0',
       top: '0',
+      width: '1px',
+      height: '1px',
+      opacity: 0.01,
+      zIndex: -100,
+      pointerEvents: 'none'
+    }} />
+            <video ref={faceVideoRef} autoPlay playsInline muted style={{
+      position: 'fixed',
+      left: '-9999px',
       width: '1px',
       height: '1px',
       opacity: 0.01,
