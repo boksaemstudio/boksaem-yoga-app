@@ -12,7 +12,7 @@ service cloud.firestore {
     }
 
     function isDemo(studioId) {
-      return studioId == 'demo-yoga';
+      return studioId.matches('demo-yoga.*');
     }
 
     function isSuperAdmin() {
