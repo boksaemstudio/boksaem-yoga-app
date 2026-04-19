@@ -107,9 +107,6 @@ const AdminHeader = ({
       }} title={t('logout')} onMouseEnter={e => e.currentTarget.style.color = '#F43F5E'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}>
                     <SignOut size={16} />
                 </button>
-                <div style={{ marginLeft: '4px' }}>
-                    <LanguageSelector variant="minimal" />
-                </div>
             </div>
             
             <div style={{

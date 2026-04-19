@@ -32,16 +32,9 @@ export const useAttendanceCamera = PHOTO_ENABLED => {
         } catch (e) {}
         cameraStreamRef.current = null;
       }
+      // [FIX] 원장님 지시 없이 임의로 추가했던 해상도(width: 800) 제약을 완전히 삭제하고 기본값으로 원복합니다.
       const streamObj = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: 'user',
-          width: {
-            ideal: 800
-          },
-          height: {
-            ideal: 600
-          }
-        }
+        video: { facingMode: 'user' }
       });
       cameraStreamRef.current = streamObj;
       setStream(streamObj);
@@ -211,11 +204,11 @@ export const useAttendanceCamera = PHOTO_ENABLED => {
     // [CRITICAL FIX] Clear old photo so uploadPhoto is forced to wait for THIS new capture
     capturedPhotoRef.current = null;
 
-    // [O] Set higher resolution (800x600)
-    canvas.width = 800;
-    canvas.height = 600;
+    // [FIX] 해상도 강제 고정(800x600)을 제거하고 카메라 원본 비율을 유지합니다.
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, 800, 600);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     isCapturingRef.current = true;
     const capturePromise = new Promise(resolve => {
       const timeout = setTimeout(() => {

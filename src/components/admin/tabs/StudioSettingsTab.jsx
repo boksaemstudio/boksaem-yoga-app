@@ -8,6 +8,7 @@ import { tenantStoragePath } from '../../../utils/tenantStorage';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../../firebase';
 import { getCurrentStudioId } from '../../../utils/resolveStudioId';
+import LanguageSelector from '../../LanguageSelector';
 const StudioSettingsTab = () => {
   const t = useLanguageStore(s => s.t);
   const {
@@ -416,6 +417,26 @@ const StudioSettingsTab = () => {
                             </button>
                         </div>
                     </div>
+                </div>
+
+                {/* 시스템 언어 설정 */}
+                <div style={{
+                    marginTop: '20px',
+                    paddingTop: '20px',
+                    borderTop: '1px solid rgba(255,255,255,0.05)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                }}>
+                    <div>
+                        <div style={{ fontWeight: 'bold', fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '4px' }}>
+                            {t("g_system_lang") || "시스템 기본 언어 (System Language)"}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                            {t("g_lang_desc") || "관리자 대시보드 및 키오스크 화면에 표시될 언어를 선택합니다."}
+                        </div>
+                    </div>
+                    <LanguageSelector />
                 </div>
             </div>
 

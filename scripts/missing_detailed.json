@@ -1,0 +1,1750 @@
+[
+  {
+    "key": "aiRemainingToday",
+    "ko": "aiRemainingToday"
+  },
+  {
+    "key": "admin_trend_no_data",
+    "ko": "admin_trend_no_data"
+  },
+  {
+    "key": "admin_trend_dist_time",
+    "ko": "admin_trend_dist_time"
+  },
+  {
+    "key": "admin_trend_dist_time_desc",
+    "ko": "admin_trend_dist_time_desc"
+  },
+  {
+    "key": "admin_trend_rev",
+    "ko": "admin_trend_rev"
+  },
+  {
+    "key": "admin_trend_rev_dist",
+    "ko": "admin_trend_rev_dist"
+  },
+  {
+    "key": "admin_trend_rev_desc",
+    "ko": "admin_trend_rev_desc"
+  },
+  {
+    "key": "admin_trend_mem_status",
+    "ko": "admin_trend_mem_status"
+  },
+  {
+    "key": "admin_trend_mem_desc_html",
+    "ko": "admin_trend_mem_desc_html"
+  },
+  {
+    "key": "confirm_adjust_end_date",
+    "ko": "confirm_adjust_end_date"
+  },
+  {
+    "key": "confirm_sync_receipt",
+    "ko": "confirm_sync_receipt"
+  },
+  {
+    "key": "alert_sync_success",
+    "ko": "alert_sync_success"
+  },
+  {
+    "key": "confirm_delete_payment",
+    "ko": "confirm_delete_payment"
+  },
+  {
+    "key": "confirm_delete_member",
+    "ko": "Delete this member?\n\nDeleted members can be restored from Trash."
+  },
+  {
+    "key": "confirm_bulk_send",
+    "ko": "confirm_bulk_send"
+  },
+  {
+    "key": "admin_trend_this_week",
+    "ko": "admin_trend_this_week"
+  },
+  {
+    "key": "admin_trend_mon_to_today",
+    "ko": "admin_trend_mon_to_today"
+  },
+  {
+    "key": "admin_trend_last_week",
+    "ko": "admin_trend_last_week"
+  },
+  {
+    "key": "admin_trend_vs_same_time",
+    "ko": "admin_trend_vs_same_time"
+  },
+  {
+    "key": "admin_trend_collecting",
+    "ko": "admin_trend_collecting"
+  },
+  {
+    "key": "admin_trend_attendance",
+    "ko": "admin_trend_attendance"
+  },
+  {
+    "key": "admin_trend_count_unit",
+    "ko": "admin_trend_count_unit"
+  },
+  {
+    "key": "admin_trend_in_progress",
+    "ko": "admin_trend_in_progress"
+  },
+  {
+    "key": "admin_trend_new",
+    "ko": "admin_trend_new"
+  },
+  {
+    "key": "admin_trend_existing",
+    "ko": "admin_trend_existing"
+  },
+  {
+    "key": "admin_trend_7d_avg",
+    "ko": "admin_trend_7d_avg"
+  },
+  {
+    "key": "admin_trend_day_mon",
+    "ko": "admin_trend_day_mon"
+  },
+  {
+    "key": "admin_trend_day_tue",
+    "ko": "admin_trend_day_tue"
+  },
+  {
+    "key": "admin_trend_day_wed",
+    "ko": "admin_trend_day_wed"
+  },
+  {
+    "key": "admin_trend_day_thu",
+    "ko": "admin_trend_day_thu"
+  },
+  {
+    "key": "admin_trend_day_fri",
+    "ko": "admin_trend_day_fri"
+  },
+  {
+    "key": "admin_trend_day_sat",
+    "ko": "admin_trend_day_sat"
+  },
+  {
+    "key": "admin_trend_day_sun",
+    "ko": "admin_trend_day_sun"
+  },
+  {
+    "key": "admin_trend_hour_suffix",
+    "ko": "admin_trend_hour_suffix"
+  },
+  {
+    "key": "admin_trend_few",
+    "ko": "admin_trend_few"
+  },
+  {
+    "key": "admin_trend_moderate",
+    "ko": "admin_trend_moderate"
+  },
+  {
+    "key": "admin_trend_peak",
+    "ko": "admin_trend_peak"
+  },
+  {
+    "key": "admin_trend_top5_class",
+    "ko": "admin_trend_top5_class"
+  },
+  {
+    "key": "admin_trend_top5_inst",
+    "ko": "admin_trend_top5_inst"
+  },
+  {
+    "key": "admin_trend_ratio_title_pp",
+    "ko": "admin_trend_ratio_title_pp"
+  },
+  {
+    "key": "admin_trend_distinct_members",
+    "ko": "admin_trend_distinct_members"
+  },
+  {
+    "key": "admin_trend_new_pp",
+    "ko": "admin_trend_new_pp"
+  },
+  {
+    "key": "admin_trend_recent_30d",
+    "ko": "admin_trend_recent_30d"
+  },
+  {
+    "key": "admin_trend_existing_pp",
+    "ko": "admin_trend_existing_pp"
+  },
+  {
+    "key": "admin_trend_same_period",
+    "ko": "admin_trend_same_period"
+  },
+  {
+    "key": "admin_trend_general",
+    "ko": "admin_trend_general"
+  },
+  {
+    "key": "admin_trend_unassigned",
+    "ko": "admin_trend_unassigned"
+  },
+  {
+    "key": "admin_trend_admin",
+    "ko": "admin_trend_admin"
+  },
+  {
+    "key": "admin_trend_analyzing",
+    "ko": "admin_trend_analyzing"
+  },
+  {
+    "key": "admin_trend_title",
+    "ko": "admin_trend_title"
+  },
+  {
+    "key": "admin_trend_tab_daily",
+    "ko": "admin_trend_tab_daily"
+  },
+  {
+    "key": "admin_trend_tab_heatmap",
+    "ko": "admin_trend_tab_heatmap"
+  },
+  {
+    "key": "admin_trend_tab_ranking",
+    "ko": "admin_trend_tab_ranking"
+  },
+  {
+    "key": "admin_trend_filter_all",
+    "ko": "admin_trend_filter_all"
+  },
+  {
+    "key": "admin_trend_1year",
+    "ko": "admin_trend_1year"
+  },
+  {
+    "key": "admin_trend_daily_dot",
+    "ko": "admin_trend_daily_dot"
+  },
+  {
+    "key": "confirm_cancel_booking",
+    "ko": "confirm_cancel_booking"
+  },
+  {
+    "key": "confirm_delete_media",
+    "ko": "confirm_delete_media"
+  },
+  {
+    "key": "deniedAttemptMessage",
+    "ko": "출석 시도가 거부되었습니다"
+  },
+  {
+    "key": "classParticipation",
+    "ko": "수업 참여"
+  },
+  {
+    "key": "classSummary",
+    "ko": "수업별 출석 요약"
+  },
+  {
+    "key": "classCount",
+    "ko": "개 수업"
+  },
+  {
+    "key": "recentTrend",
+    "ko": "최근 3주 추세"
+  },
+  {
+    "key": "todayActivityLog",
+    "ko": "todayActivityLog"
+  },
+  {
+    "key": "단위_명",
+    "ko": "단위_명"
+  },
+  {
+    "key": "단위_원",
+    "ko": "단위_원"
+  },
+  {
+    "key": "단위_일",
+    "ko": "단위_일"
+  },
+  {
+    "key": "g_att_refusal_desc",
+    "ko": "기간 만료 또는 잔여 횟수가 0인 회원이 키오스크에 출석을 시도하면 자동으로 출석이 거부됩니다. (화면에 사유 표시)"
+  },
+  {
+    "key": "g_hold_desc",
+    "ko": "회원의 수강을 일시적으로 정지합니다. 정지 기간 중 출석하면 홀딩이 자동 해제되며, 정지된 일수만큼 수강 종료일이 연장됩니다."
+  },
+  {
+    "key": "g_hold_current",
+    "ko": "현재 설정된 규칙"
+  },
+  {
+    "key": "g_months",
+    "ko": "개월"
+  },
+  {
+    "key": "g_weeks",
+    "ko": "주"
+  },
+  {
+    "key": "g_rules_set",
+    "ko": "개 규칙 설정됨"
+  },
+  {
+    "key": "g_days_inactive",
+    "ko": "일간 미출석"
+  },
+  {
+    "key": "g_days_before_end",
+    "ko": "일 전부터 표시"
+  },
+  {
+    "key": "g_enddate_calc_desc",
+    "ko": "종료일은 항상 '시작일 + 수강기간(개월) - 1일'로 자동 계산됩니다. 예: 시작일 3/25 + 3개월 = 종료일 6/24"
+  },
+  {
+    "key": "g_booking_window_desc",
+    "ko": "g_booking_window_desc"
+  },
+  {
+    "key": "g_days_before",
+    "ko": "일 전"
+  },
+  {
+    "key": "g_max_booking_desc",
+    "ko": "g_max_booking_desc"
+  },
+  {
+    "key": "g_active",
+    "ko": "개 유지"
+  },
+  {
+    "key": "g_per_day",
+    "ko": "회/일"
+  },
+  {
+    "key": "g_capacity_desc",
+    "ko": "g_capacity_desc"
+  },
+  {
+    "key": "g_capacity",
+    "ko": "정원"
+  },
+  {
+    "key": "g_noshow_desc",
+    "ko": "g_noshow_desc"
+  },
+  {
+    "key": "g_noshow_deduct",
+    "ko": "노쇼 차감"
+  },
+  {
+    "key": "g_cancel_desc",
+    "ko": "g_cancel_desc"
+  },
+  {
+    "key": "g_before_class",
+    "ko": "시간 전"
+  },
+  {
+    "key": "g_weekly_mode_desc",
+    "ko": "주간 모드: 매주 횟수가 갱신됩니다. 회원별 주간 최대 출석 횟수 제한이 적용됩니다."
+  },
+  {
+    "key": "g_notif_approval_tip",
+    "ko": "메시지 발송 전 반드시 관리자의 승인(검토)을 거치도록 설정되어 있어 안전합니다."
+  },
+  {
+    "key": "g_system_lang",
+    "ko": "시스템 기본 언어 (System Language)"
+  },
+  {
+    "key": "g_lang_desc",
+    "ko": "관리자 대시보드 및 키오스크 화면에 표시될 언어를 선택합니다."
+  },
+  {
+    "key": "confirm_delete_branch",
+    "ko": "confirm_delete_branch"
+  },
+  {
+    "key": "g_revenue_summary",
+    "ko": "매출 요약"
+  },
+  {
+    "key": "g_partial_month",
+    "ko": "당월 누적"
+  },
+  {
+    "key": "g_partial_revenue",
+    "ko": "당월 누적"
+  },
+  {
+    "key": "g_settlement_calendar",
+    "ko": "정산 달력"
+  },
+  {
+    "key": "g_schedule_empty",
+    "ko": "Schedule is empty."
+  },
+  {
+    "key": "g_reset_schedule_prompt",
+    "ko": "스케줄을 초기화하시겠습니까?"
+  },
+  {
+    "key": "kiosk_keypad_verifying",
+    "ko": "kiosk_keypad_verifying"
+  },
+  {
+    "key": "kiosk_keypad_please_wait",
+    "ko": "kiosk_keypad_please_wait"
+  },
+  {
+    "key": "kiosk_keypad_system_readying",
+    "ko": "kiosk_keypad_system_readying"
+  },
+  {
+    "key": "kiosk_dup_title",
+    "ko": "kiosk_dup_title"
+  },
+  {
+    "key": "kiosk_dup_subtitle1_part1",
+    "ko": "kiosk_dup_subtitle1_part1"
+  },
+  {
+    "key": "kiosk_dup_subtitle1_highlight",
+    "ko": "kiosk_dup_subtitle1_highlight"
+  },
+  {
+    "key": "kiosk_dup_subtitle1_part2",
+    "ko": "kiosk_dup_subtitle1_part2"
+  },
+  {
+    "key": "kiosk_dup_subtitle2_part1",
+    "ko": "kiosk_dup_subtitle2_part1"
+  },
+  {
+    "key": "kiosk_dup_subtitle2_highlight",
+    "ko": "kiosk_dup_subtitle2_highlight"
+  },
+  {
+    "key": "kiosk_dup_subtitle2_part2",
+    "ko": "kiosk_dup_subtitle2_part2"
+  },
+  {
+    "key": "kiosk_dup_cancel_btn",
+    "ko": "kiosk_dup_cancel_btn"
+  },
+  {
+    "key": "kiosk_dup_cancel_desc",
+    "ko": "kiosk_dup_cancel_desc"
+  },
+  {
+    "key": "kiosk_dup_confirm_btn",
+    "ko": "kiosk_dup_confirm_btn"
+  },
+  {
+    "key": "kiosk_dup_confirm_desc",
+    "ko": "kiosk_dup_confirm_desc"
+  },
+  {
+    "key": "kiosk_dup_footer_text",
+    "ko": "kiosk_dup_footer_text"
+  },
+  {
+    "key": "kiosk_dup_footer_timer_part1",
+    "ko": "kiosk_dup_footer_timer_part1"
+  },
+  {
+    "key": "kiosk_dup_footer_timer_highlight",
+    "ko": "kiosk_dup_footer_timer_highlight"
+  },
+  {
+    "key": "kiosk_dup_footer_timer_part2",
+    "ko": "kiosk_dup_footer_timer_part2"
+  },
+  {
+    "key": "facereg_camera_preparing",
+    "ko": "facereg_camera_preparing"
+  },
+  {
+    "key": "facereg_camera_error_permission",
+    "ko": "facereg_camera_error_permission"
+  },
+  {
+    "key": "facereg_member_not_found",
+    "ko": "facereg_member_not_found"
+  },
+  {
+    "key": "facereg_member_lookup_error",
+    "ko": "facereg_member_lookup_error"
+  },
+  {
+    "key": "facereg_camera_not_ready",
+    "ko": "facereg_camera_not_ready"
+  },
+  {
+    "key": "facereg_analyzing_face",
+    "ko": "facereg_analyzing_face"
+  },
+  {
+    "key": "facereg_loading_ai_models",
+    "ko": "facereg_loading_ai_models"
+  },
+  {
+    "key": "facereg_ai_timeout",
+    "ko": "facereg_ai_timeout"
+  },
+  {
+    "key": "facereg_video_stream_error",
+    "ko": "facereg_video_stream_error"
+  },
+  {
+    "key": "facereg_face_not_detected",
+    "ko": "facereg_face_not_detected"
+  },
+  {
+    "key": "facereg_saving",
+    "ko": "facereg_saving"
+  },
+  {
+    "key": "facereg_save_failed",
+    "ko": "facereg_save_failed"
+  },
+  {
+    "key": "facereg_registration_error",
+    "ko": "facereg_registration_error"
+  },
+  {
+    "key": "facereg_privacy_title",
+    "ko": "facereg_privacy_title"
+  },
+  {
+    "key": "facereg_privacy_desc1",
+    "ko": "facereg_privacy_desc1"
+  },
+  {
+    "key": "facereg_privacy_desc2",
+    "ko": "facereg_privacy_desc2"
+  },
+  {
+    "key": "facereg_later",
+    "ko": "facereg_later"
+  },
+  {
+    "key": "facereg_register",
+    "ko": "facereg_register"
+  },
+  {
+    "key": "facereg_identity_verify",
+    "ko": "facereg_identity_verify"
+  },
+  {
+    "key": "facereg_clear",
+    "ko": "facereg_clear"
+  },
+  {
+    "key": "facereg_confirm",
+    "ko": "facereg_confirm"
+  },
+  {
+    "key": "facereg_who_are_you",
+    "ko": "facereg_who_are_you"
+  },
+  {
+    "key": "facereg_multiple_members",
+    "ko": "facereg_multiple_members"
+  },
+  {
+    "key": "facereg_status_active",
+    "ko": "facereg_status_active"
+  },
+  {
+    "key": "facereg_go_back",
+    "ko": "facereg_go_back"
+  },
+  {
+    "key": "facereg_look_at_camera",
+    "ko": "facereg_look_at_camera"
+  },
+  {
+    "key": "facereg_look_front",
+    "ko": "facereg_look_front"
+  },
+  {
+    "key": "facereg_camera_inaccessible",
+    "ko": "facereg_camera_inaccessible"
+  },
+  {
+    "key": "facereg_retry",
+    "ko": "facereg_retry"
+  },
+  {
+    "key": "facereg_done_title",
+    "ko": "facereg_done_title"
+  },
+  {
+    "key": "facereg_done_desc1",
+    "ko": "facereg_done_desc1"
+  },
+  {
+    "key": "facereg_done_desc2",
+    "ko": "facereg_done_desc2"
+  },
+  {
+    "key": "kiosk_guide_title",
+    "ko": "kiosk_guide_title"
+  },
+  {
+    "key": "kiosk_guide_desc",
+    "ko": "kiosk_guide_desc"
+  },
+  {
+    "key": "kiosk_guide_android_browser_req",
+    "ko": "kiosk_guide_android_browser_req"
+  },
+  {
+    "key": "kiosk_guide_android_step1_title",
+    "ko": "kiosk_guide_android_step1_title"
+  },
+  {
+    "key": "kiosk_guide_android_step1_desc",
+    "ko": "kiosk_guide_android_step1_desc"
+  },
+  {
+    "key": "kiosk_guide_step2_title",
+    "ko": "kiosk_guide_step2_title"
+  },
+  {
+    "key": "g_103566",
+    "ko": "'홈 화면에 추가' 선택"
+  },
+  {
+    "key": "kiosk_guide_android_step2_desc",
+    "ko": "kiosk_guide_android_step2_desc"
+  },
+  {
+    "key": "kiosk_guide_install_btn",
+    "ko": "kiosk_guide_install_btn"
+  },
+  {
+    "key": "kiosk_guide_step3_title",
+    "ko": "kiosk_guide_step3_title"
+  },
+  {
+    "key": "kiosk_guide_android_step3_desc",
+    "ko": "kiosk_guide_android_step3_desc"
+  },
+  {
+    "key": "kiosk_guide_ios_browser_req",
+    "ko": "kiosk_guide_ios_browser_req"
+  },
+  {
+    "key": "kiosk_guide_ios_step1_title",
+    "ko": "kiosk_guide_ios_step1_title"
+  },
+  {
+    "key": "kiosk_guide_ios_step1_desc",
+    "ko": "kiosk_guide_ios_step1_desc"
+  },
+  {
+    "key": "kiosk_guide_ios_step2_desc",
+    "ko": "kiosk_guide_ios_step2_desc"
+  },
+  {
+    "key": "kiosk_guide_add_btn",
+    "ko": "kiosk_guide_add_btn"
+  },
+  {
+    "key": "kiosk_guide_ios_step3_desc",
+    "ko": "kiosk_guide_ios_step3_desc"
+  },
+  {
+    "key": "kiosk_select_title",
+    "ko": "kiosk_select_title"
+  },
+  {
+    "key": "kiosk_select_desc",
+    "ko": "kiosk_select_desc"
+  },
+  {
+    "key": "kiosk_select_timeout",
+    "ko": "kiosk_select_timeout"
+  },
+  {
+    "key": "kiosk_select_active_members",
+    "ko": "kiosk_select_active_members"
+  },
+  {
+    "key": "kiosk_select_unlimited",
+    "ko": "kiosk_select_unlimited"
+  },
+  {
+    "key": "kiosk_select_sessions_count",
+    "ko": "kiosk_select_sessions_count"
+  },
+  {
+    "key": "kiosk_select_no_active_members",
+    "ko": "kiosk_select_no_active_members"
+  },
+  {
+    "key": "kiosk_select_inactive_title",
+    "ko": "kiosk_select_inactive_title"
+  },
+  {
+    "key": "kiosk_select_inactive_badge",
+    "ko": "kiosk_select_inactive_badge"
+  },
+  {
+    "key": "kiosk_select_none",
+    "ko": "kiosk_select_none"
+  },
+  {
+    "key": "kiosk_select_cancel",
+    "ko": "kiosk_select_cancel"
+  },
+  {
+    "key": "kiosk_select_confirm",
+    "ko": "kiosk_select_confirm"
+  },
+  {
+    "key": "kiosk_select_disabled",
+    "ko": "kiosk_select_disabled"
+  },
+  {
+    "key": "kiosk_success_credits_count",
+    "ko": "kiosk_success_credits_count"
+  },
+  {
+    "key": "demo_readonly",
+    "ko": "데모 환경에서는 안면 데이터를 삭제할 수 없습니다."
+  },
+  {
+    "key": "confirm_delete_face_data",
+    "ko": "confirm_delete_face_data"
+  },
+  {
+    "key": "med_chat_default_greeting",
+    "ko": "med_chat_default_greeting"
+  },
+  {
+    "key": "med_chat_ai_listening",
+    "ko": "med_chat_ai_listening"
+  },
+  {
+    "key": "med_chat_btn_start",
+    "ko": "med_chat_btn_start"
+  },
+  {
+    "key": "med_chat_prepared_desc",
+    "ko": "med_chat_prepared_desc"
+  },
+  {
+    "key": "med_chat_input_placeholder",
+    "ko": "med_chat_input_placeholder"
+  },
+  {
+    "key": "med_feedback_title",
+    "ko": "med_feedback_title"
+  },
+  {
+    "key": "med_feedback_ai_log",
+    "ko": "med_feedback_ai_log"
+  },
+  {
+    "key": "med_feedback_no_log",
+    "ko": "med_feedback_no_log"
+  },
+  {
+    "key": "med_feedback_stability",
+    "ko": "med_feedback_stability"
+  },
+  {
+    "key": "med_feedback_energy",
+    "ko": "med_feedback_energy"
+  },
+  {
+    "key": "med_feedback_analyzing",
+    "ko": "med_feedback_analyzing"
+  },
+  {
+    "key": "med_feedback_btn_close",
+    "ko": "med_feedback_btn_close"
+  },
+  {
+    "key": "med_vol_title",
+    "ko": "med_vol_title"
+  },
+  {
+    "key": "med_vol_voice",
+    "ko": "med_vol_voice"
+  },
+  {
+    "key": "med_vol_ambient",
+    "ko": "med_vol_ambient"
+  },
+  {
+    "key": "med_vol_frequency",
+    "ko": "med_vol_frequency"
+  },
+  {
+    "key": "med_vol_mute",
+    "ko": "med_vol_mute"
+  },
+  {
+    "key": "med_vol_unmute",
+    "ko": "med_vol_unmute"
+  },
+  {
+    "key": "med_session_detecting",
+    "ko": "med_session_detecting"
+  },
+  {
+    "key": "med_session_voice_on",
+    "ko": "med_session_voice_on"
+  },
+  {
+    "key": "med_session_data_local",
+    "ko": "med_session_data_local"
+  },
+  {
+    "key": "med_session_volume",
+    "ko": "med_session_volume"
+  },
+  {
+    "key": "med_session_volume_hint",
+    "ko": "med_session_volume_hint"
+  },
+  {
+    "key": "med_chat_ai_subtitle",
+    "ko": "med_chat_ai_subtitle"
+  },
+  {
+    "key": "med_chat_analyzing",
+    "ko": "med_chat_analyzing"
+  },
+  {
+    "key": "med_chat_thinking",
+    "ko": "med_chat_thinking"
+  },
+  {
+    "key": "med_chat_voice_on",
+    "ko": "med_chat_voice_on"
+  },
+  {
+    "key": "med_chat_btn_start_immediate",
+    "ko": "med_chat_btn_start_immediate"
+  },
+  {
+    "key": "med_chat_waiting_reply",
+    "ko": "med_chat_waiting_reply"
+  },
+  {
+    "key": "med_prep_s1_title",
+    "ko": "med_prep_s1_title"
+  },
+  {
+    "key": "med_prep_s1_desc_html",
+    "ko": "med_prep_s1_desc_html"
+  },
+  {
+    "key": "med_prep_s1_alert_title",
+    "ko": "med_prep_s1_alert_title"
+  },
+  {
+    "key": "med_prep_s1_alert_desc",
+    "ko": "med_prep_s1_alert_desc"
+  },
+  {
+    "key": "med_prep_btn_confirmed",
+    "ko": "med_prep_btn_confirmed"
+  },
+  {
+    "key": "med_intent_title_today",
+    "ko": "med_intent_title_today"
+  },
+  {
+    "key": "med_intent_btn_exit",
+    "ko": "med_intent_btn_exit"
+  },
+  {
+    "key": "med_intent_q1_html",
+    "ko": "med_intent_q1_html"
+  },
+  {
+    "key": "med_intent_desc1",
+    "ko": "med_intent_desc1"
+  },
+  {
+    "key": "med_intent_q2",
+    "ko": "med_intent_q2"
+  },
+  {
+    "key": "med_prep_chair_title",
+    "ko": "med_prep_chair_title"
+  },
+  {
+    "key": "med_prep_chair_desc",
+    "ko": "med_prep_chair_desc"
+  },
+  {
+    "key": "med_prep_chair_s1",
+    "ko": "med_prep_chair_s1"
+  },
+  {
+    "key": "med_prep_chair_s2",
+    "ko": "med_prep_chair_s2"
+  },
+  {
+    "key": "med_prep_chair_s3",
+    "ko": "med_prep_chair_s3"
+  },
+  {
+    "key": "med_prep_floor_title",
+    "ko": "med_prep_floor_title"
+  },
+  {
+    "key": "med_prep_floor_desc",
+    "ko": "med_prep_floor_desc"
+  },
+  {
+    "key": "med_prep_floor_s1",
+    "ko": "med_prep_floor_s1"
+  },
+  {
+    "key": "med_prep_floor_s2",
+    "ko": "med_prep_floor_s2"
+  },
+  {
+    "key": "med_prep_floor_s3",
+    "ko": "med_prep_floor_s3"
+  },
+  {
+    "key": "med_prep_lying_title",
+    "ko": "med_prep_lying_title"
+  },
+  {
+    "key": "med_prep_lying_desc",
+    "ko": "med_prep_lying_desc"
+  },
+  {
+    "key": "med_prep_lying_s1",
+    "ko": "med_prep_lying_s1"
+  },
+  {
+    "key": "med_prep_lying_s2",
+    "ko": "med_prep_lying_s2"
+  },
+  {
+    "key": "med_prep_lying_s3",
+    "ko": "med_prep_lying_s3"
+  },
+  {
+    "key": "med_prep_header",
+    "ko": "med_prep_header"
+  },
+  {
+    "key": "med_prep_title",
+    "ko": "med_prep_title"
+  },
+  {
+    "key": "g_11f163",
+    "ko": "g_11f163"
+  },
+  {
+    "key": "med_prep_s3_title",
+    "ko": "med_prep_s3_title"
+  },
+  {
+    "key": "med_prep_posture_format",
+    "ko": "med_prep_posture_format"
+  },
+  {
+    "key": "med_prep_btn_goto_device",
+    "ko": "med_prep_btn_goto_device"
+  },
+  {
+    "key": "med_prep_s2_title",
+    "ko": "med_prep_s2_title"
+  },
+  {
+    "key": "med_prep_s2_cam",
+    "ko": "med_prep_s2_cam"
+  },
+  {
+    "key": "med_prep_s2_mic",
+    "ko": "med_prep_s2_mic"
+  },
+  {
+    "key": "med_prep_s2_base",
+    "ko": "med_prep_s2_base"
+  },
+  {
+    "key": "med_prep_s2_tip_mic",
+    "ko": "med_prep_s2_tip_mic"
+  },
+  {
+    "key": "med_prep_btn_ready",
+    "ko": "med_prep_btn_ready"
+  },
+  {
+    "key": "med_wiz_default_summary",
+    "ko": "med_wiz_default_summary"
+  },
+  {
+    "key": "med_wiz_title_ai_analysis",
+    "ko": "med_wiz_title_ai_analysis"
+  },
+  {
+    "key": "med_wiz_btn_select_mode",
+    "ko": "med_wiz_btn_select_mode"
+  },
+  {
+    "key": "med_wiz_title_select_intent",
+    "ko": "med_wiz_title_select_intent"
+  },
+  {
+    "key": "med_wiz_desc_select_intent",
+    "ko": "med_wiz_desc_select_intent"
+  },
+  {
+    "key": "med_wiz_duration_title",
+    "ko": "med_wiz_duration_title"
+  },
+  {
+    "key": "med_wiz_ambient_title",
+    "ko": "med_wiz_ambient_title"
+  },
+  {
+    "key": "med_wiz_btn_start_prep",
+    "ko": "med_wiz_btn_start_prep"
+  },
+  {
+    "key": "med_wiz_btn_need_selection",
+    "ko": "med_wiz_btn_need_selection"
+  },
+  {
+    "key": "med_wiz_title_ai_prescription",
+    "ko": "med_wiz_title_ai_prescription"
+  },
+  {
+    "key": "med_wiz_ai_analysis_res",
+    "ko": "med_wiz_ai_analysis_res"
+  },
+  {
+    "key": "med_wiz_ai_recommendation",
+    "ko": "med_wiz_ai_recommendation"
+  },
+  {
+    "key": "med_wiz_type_bodyscan",
+    "ko": "med_wiz_type_bodyscan"
+  },
+  {
+    "key": "med_wiz_type_breath",
+    "ko": "med_wiz_type_breath"
+  },
+  {
+    "key": "med_wiz_type_posture",
+    "ko": "med_wiz_type_posture"
+  },
+  {
+    "key": "med_wiz_change_options",
+    "ko": "med_wiz_change_options"
+  },
+  {
+    "key": "med_wiz_ambient_title_short",
+    "ko": "med_wiz_ambient_title_short"
+  },
+  {
+    "key": "med_wiz_btn_start_now",
+    "ko": "med_wiz_btn_start_now"
+  },
+  {
+    "key": "med_wiz_btn_reselect",
+    "ko": "med_wiz_btn_reselect"
+  },
+  {
+    "key": "med_weather_title",
+    "ko": "med_weather_title"
+  },
+  {
+    "key": "med_weather_q1",
+    "ko": "med_weather_q1"
+  },
+  {
+    "key": "med_weather_desc1",
+    "ko": "med_weather_desc1"
+  },
+  {
+    "key": "med_diag_manual_title",
+    "ko": "med_diag_manual_title"
+  },
+  {
+    "key": "med_diag_manual_desc",
+    "ko": "med_diag_manual_desc"
+  },
+  {
+    "key": "reset_failed",
+    "ko": "Reset Failed"
+  },
+  {
+    "key": "member_crowd_level_1",
+    "ko": "member_crowd_level_1"
+  },
+  {
+    "key": "member_crowd_level_2",
+    "ko": "member_crowd_level_2"
+  },
+  {
+    "key": "member_crowd_level_3",
+    "ko": "member_crowd_level_3"
+  },
+  {
+    "key": "member_crowd_level_4",
+    "ko": "member_crowd_level_4"
+  },
+  {
+    "key": "member_crowd_level_5",
+    "ko": "member_crowd_level_5"
+  },
+  {
+    "key": "member_crowd_day_sun",
+    "ko": "member_crowd_day_sun"
+  },
+  {
+    "key": "member_crowd_day_mon",
+    "ko": "member_crowd_day_mon"
+  },
+  {
+    "key": "member_crowd_day_tue",
+    "ko": "member_crowd_day_tue"
+  },
+  {
+    "key": "member_crowd_day_wed",
+    "ko": "member_crowd_day_wed"
+  },
+  {
+    "key": "member_crowd_day_thu",
+    "ko": "member_crowd_day_thu"
+  },
+  {
+    "key": "member_crowd_day_fri",
+    "ko": "member_crowd_day_fri"
+  },
+  {
+    "key": "member_crowd_day_sat",
+    "ko": "member_crowd_day_sat"
+  },
+  {
+    "key": "member_crowd_hour_range",
+    "ko": "member_crowd_hour_range"
+  },
+  {
+    "key": "member_crowd_analyzing",
+    "ko": "member_crowd_analyzing"
+  },
+  {
+    "key": "member_crowd_hour_label",
+    "ko": "member_crowd_hour_label"
+  },
+  {
+    "key": "member_crowd_title",
+    "ko": "member_crowd_title"
+  },
+  {
+    "key": "member_crowd_subtitle",
+    "ko": "member_crowd_subtitle"
+  },
+  {
+    "key": "member_crowd_visit_now",
+    "ko": "member_crowd_visit_now"
+  },
+  {
+    "key": "member_crowd_recommended",
+    "ko": "member_crowd_recommended"
+  },
+  {
+    "key": "weekly_attendance_desc",
+    "ko": "weekly_attendance_desc"
+  },
+  {
+    "key": "recent_4weeks_desc",
+    "ko": "recent_4weeks_desc"
+  },
+  {
+    "key": "recent_2weeks_desc",
+    "ko": "recent_2weeks_desc"
+  },
+  {
+    "key": "accountCopied",
+    "ko": "accountCopied"
+  },
+  {
+    "key": "workoutReport",
+    "ko": "workoutReport"
+  },
+  {
+    "key": "member_workout_avg_hr",
+    "ko": "member_workout_avg_hr"
+  },
+  {
+    "key": "member_workout_duration",
+    "ko": "member_workout_duration"
+  },
+  {
+    "key": "member_workout_max_hr",
+    "ko": "member_workout_max_hr"
+  },
+  {
+    "key": "member_workout_close",
+    "ko": "member_workout_close"
+  },
+  {
+    "key": "confirm_delete_instructor",
+    "ko": "confirm_delete_instructor"
+  },
+  {
+    "key": "confirm_delete_class_type",
+    "ko": "confirm_delete_class_type"
+  },
+  {
+    "key": "confirm_delete_level",
+    "ko": "confirm_delete_level"
+  },
+  {
+    "key": "confirm_approve_push",
+    "ko": "Approve this push notification?"
+  },
+  {
+    "key": "confirm_field_change",
+    "ko": "confirm_field_change"
+  },
+  {
+    "key": "confirm_apply_standard",
+    "ko": "confirm_apply_standard"
+  },
+  {
+    "key": "confirm_copy_schedule",
+    "ko": "confirm_copy_schedule"
+  },
+  {
+    "key": "confirm_update_past_attendance",
+    "ko": "confirm_update_past_attendance"
+  },
+  {
+    "key": "confirm_bulk_update_day",
+    "ko": "confirm_bulk_update_day"
+  },
+  {
+    "key": "confirm_clear_cache",
+    "ko": "Clear all caches and refresh? (You may be logged out)"
+  },
+  {
+    "key": "checkin_verifying",
+    "ko": "checkin_verifying"
+  },
+  {
+    "key": "checkin_success",
+    "ko": "checkin_success"
+  },
+  {
+    "key": "checkin_extra",
+    "ko": "checkin_extra"
+  },
+  {
+    "key": "checkin_consecutive",
+    "ko": "checkin_consecutive"
+  },
+  {
+    "key": "checkin_expired_contact_teacher",
+    "ko": "checkin_expired_contact_teacher"
+  },
+  {
+    "key": "checkin_credits_empty_contact_teacher",
+    "ko": "checkin_credits_empty_contact_teacher"
+  },
+  {
+    "key": "checkin_last_session",
+    "ko": "checkin_last_session"
+  },
+  {
+    "key": "checkin_ai_peaceful",
+    "ko": "checkin_ai_peaceful"
+  },
+  {
+    "key": "checkin_member_not_found",
+    "ko": "checkin_member_not_found"
+  },
+  {
+    "key": "checkin_member_not_found_sub",
+    "ko": "일치하는 회원을 찾을 수 없습니다.\n입력하신 번호를 다시 한 번 확인해 주세요."
+  },
+  {
+    "key": "checkin_expired",
+    "ko": "checkin_expired"
+  },
+  {
+    "key": "checkin_expired_sub",
+    "ko": "checkin_expired_sub"
+  },
+  {
+    "key": "checkin_failed",
+    "ko": "checkin_failed"
+  },
+  {
+    "key": "checkin_failed_sub",
+    "ko": "checkin_failed_sub"
+  },
+  {
+    "key": "checkin_system_error",
+    "ko": "checkin_system_error"
+  },
+  {
+    "key": "checkin_system_error_sub",
+    "ko": "checkin_system_error_sub"
+  },
+  {
+    "key": "inst_page_logout_confirm",
+    "ko": "inst_page_logout_confirm"
+  },
+  {
+    "key": "inst_sch_loading",
+    "ko": "inst_sch_loading"
+  },
+  {
+    "key": "inst_page_push_setting",
+    "ko": "inst_page_push_setting"
+  },
+  {
+    "key": "inst_page_push_on",
+    "ko": "inst_page_push_on"
+  },
+  {
+    "key": "inst_page_push_off",
+    "ko": "inst_page_push_off"
+  },
+  {
+    "key": "inst_page_ai_preparing",
+    "ko": "inst_page_ai_preparing"
+  },
+  {
+    "key": "inst_nav_home",
+    "ko": "inst_nav_home"
+  },
+  {
+    "key": "inst_nav_schedule_book",
+    "ko": "inst_nav_schedule_book"
+  },
+  {
+    "key": "inst_nav_schedule",
+    "ko": "inst_nav_schedule"
+  },
+  {
+    "key": "inst_nav_notice",
+    "ko": "inst_nav_notice"
+  },
+  {
+    "key": "system_privacy",
+    "ko": "system_privacy"
+  },
+  {
+    "key": "demoStudioName",
+    "ko": "demoStudioName"
+  },
+  {
+    "key": "member_mbti_step1_label",
+    "ko": "member_mbti_step1_label"
+  },
+  {
+    "key": "member_mbti_step1_opt1_title",
+    "ko": "member_mbti_step1_opt1_title"
+  },
+  {
+    "key": "member_mbti_step1_opt1_desc",
+    "ko": "member_mbti_step1_opt1_desc"
+  },
+  {
+    "key": "member_mbti_step1_opt2_title",
+    "ko": "member_mbti_step1_opt2_title"
+  },
+  {
+    "key": "member_mbti_step1_opt2_desc",
+    "ko": "member_mbti_step1_opt2_desc"
+  },
+  {
+    "key": "member_mbti_step2_label",
+    "ko": "member_mbti_step2_label"
+  },
+  {
+    "key": "member_mbti_step2_opt1_title",
+    "ko": "member_mbti_step2_opt1_title"
+  },
+  {
+    "key": "member_mbti_step2_opt1_desc",
+    "ko": "member_mbti_step2_opt1_desc"
+  },
+  {
+    "key": "member_mbti_step2_opt2_title",
+    "ko": "member_mbti_step2_opt2_title"
+  },
+  {
+    "key": "member_mbti_step2_opt2_desc",
+    "ko": "member_mbti_step2_opt2_desc"
+  },
+  {
+    "key": "member_mbti_step3_label",
+    "ko": "member_mbti_step3_label"
+  },
+  {
+    "key": "member_mbti_step3_opt1_title",
+    "ko": "member_mbti_step3_opt1_title"
+  },
+  {
+    "key": "member_mbti_step3_opt1_desc",
+    "ko": "member_mbti_step3_opt1_desc"
+  },
+  {
+    "key": "member_mbti_step3_opt2_title",
+    "ko": "member_mbti_step3_opt2_title"
+  },
+  {
+    "key": "member_mbti_step3_opt2_desc",
+    "ko": "member_mbti_step3_opt2_desc"
+  },
+  {
+    "key": "member_mbti_step4_label",
+    "ko": "member_mbti_step4_label"
+  },
+  {
+    "key": "member_mbti_step4_opt1_title",
+    "ko": "member_mbti_step4_opt1_title"
+  },
+  {
+    "key": "member_mbti_step4_opt1_desc",
+    "ko": "member_mbti_step4_opt1_desc"
+  },
+  {
+    "key": "member_mbti_step4_opt2_title",
+    "ko": "member_mbti_step4_opt2_title"
+  },
+  {
+    "key": "member_mbti_step4_opt2_desc",
+    "ko": "member_mbti_step4_opt2_desc"
+  },
+  {
+    "key": "member_health_sync_title",
+    "ko": "member_health_sync_title"
+  },
+  {
+    "key": "member_health_sync_on",
+    "ko": "member_health_sync_on"
+  },
+  {
+    "key": "member_health_sync_off",
+    "ko": "member_health_sync_off"
+  },
+  {
+    "key": "member_mbti_title",
+    "ko": "member_mbti_title"
+  },
+  {
+    "key": "member_mbti_badge_desc_set",
+    "ko": "member_mbti_badge_desc_set"
+  },
+  {
+    "key": "member_mbti_badge_desc_unset",
+    "ko": "member_mbti_badge_desc_unset"
+  },
+  {
+    "key": "member_mbti_btn_complete",
+    "ko": "member_mbti_btn_complete"
+  },
+  {
+    "key": "member_mbti_btn_reselect",
+    "ko": "member_mbti_btn_reselect"
+  },
+  {
+    "key": "member_footer_privacy",
+    "ko": "member_footer_privacy"
+  },
+  {
+    "key": "confirm_delete_admin",
+    "ko": "Permanently delete this admin account? This action cannot be undone."
+  },
+  {
+    "key": "confirm_remove_studio",
+    "ko": "confirm_remove_studio"
+  },
+  {
+    "key": "confirm_change_start_date",
+    "ko": "confirm_change_start_date"
+  },
+  {
+    "key": "g_d043d7",
+    "ko": "g_d043d7"
+  },
+  {
+    "key": "g_11ad7f",
+    "ko": "g_11ad7f"
+  },
+  {
+    "key": "g_6dc2ce",
+    "ko": "g_6dc2ce"
+  },
+  {
+    "key": "nonexistent_key",
+    "ko": "nonexistent_key"
+  },
+  {
+    "key": "badge_msg_streak_fire",
+    "ko": "badge_msg_streak_fire"
+  },
+  {
+    "key": "badge_msg_high_freq",
+    "ko": "badge_msg_high_freq"
+  },
+  {
+    "key": "badge_msg_steady",
+    "ko": "꾸준함이 돋보이는 수련 흐름입니다."
+  },
+  {
+    "key": "badge_msg_welcome_back",
+    "ko": "오랜만의 수련, 정말 반가워요!"
+  },
+  {
+    "key": "badge_msg_starter",
+    "ko": "시작이 반! 꾸준히 함께해요."
+  },
+  {
+    "key": "badge_msg_encourage",
+    "ko": "오늘도 매트 위에 선 당신을 응원합니다."
+  },
+  {
+    "key": "badge_msg_first_class",
+    "ko": "첫 수련을 축하드려요!"
+  },
+  {
+    "key": "badge_msg_need_boost",
+    "ko": "다시 운동 리듬을 찾아보세요! 화이팅!"
+  },
+  {
+    "key": "badge_msg_come_back",
+    "ko": "다시 오셔서 기뻐요! 꾸준히 이어가봐요."
+  },
+  {
+    "key": "badge_msg_flowing",
+    "ko": "연속 수련이라니! 몰입도가 대단하네요."
+  },
+  {
+    "key": "badge_msg_on_track",
+    "ko": "이상적인 수련 주기를 유지하고 계시네요."
+  },
+  {
+    "key": "badge_msg_beautiful",
+    "ko": "차곡차곡 쌓이는 수련이 아름답습니다."
+  },
+  {
+    "key": "g_7b3c6e",
+    "ko": "명"
+  },
+  {
+    "key": "g_5b6e04",
+    "ko": "메시지를 받을 수 있는 인원"
+  },
+  {
+    "key": "g_111824",
+    "ko": "AI 이탈 예측이란?"
+  },
+  {
+    "key": "g_91674a",
+    "ko": "안 된 활성 회원 수"
+  },
+  {
+    "key": "g_5956ba",
+    "ko": "잔여 횟수가 0이지만 종료일이 아직 남아있는 경우 재등록하면, 선택한 시작일부터 새 수강권 기간만큼 종료일이 산정됩니다. 기존의 남은 기간은 무시됩니다."
+  },
+  {
+    "key": "g_facb40",
+    "ko": "수업당 최대 인원"
+  },
+  {
+    "key": "g_5a62fd",
+    "ko": "명"
+  },
+  {
+    "key": "g_9265c3",
+    "ko": "명에게 전송"
+  },
+  {
+    "key": "g_4b3a51",
+    "ko": "AI 마이그레이션"
+  },
+  {
+    "key": "g_4122ad",
+    "ko": "데이터 저장 중 오류가 발생했습니다: "
+  },
+  {
+    "key": "g_ccc4ba",
+    "ko": " 저장 중..."
+  },
+  {
+    "key": "g_9f6e4a",
+    "ko": " 데이터 저장하기"
+  },
+  {
+    "key": "g_0bfa3d",
+    "ko": "전송 실패: "
+  },
+  {
+    "key": "g_c4eaa1",
+    "ko": "순수 인원(명) 기준"
+  },
+  {
+    "key": "g_5dd886",
+    "ko": "복원 실패: "
+  },
+  {
+    "key": "g_9daa95",
+    "ko": "영구 삭제 실패: "
+  },
+  {
+    "key": "g_df355c",
+    "ko": "명)"
+  },
+  {
+    "key": "g_c31d4c",
+    "ko": "회 \\xB7 출석"
+  },
+  {
+    "key": "g_deade2",
+    "ko": "혹시 "
+  },
+  {
+    "key": "g_79ee03",
+    "ko": "아니라면, 아래 "
+  },
+  {
+    "key": "g_38f886",
+    "ko": "초 뒤 자동으로 "
+  },
+  {
+    "key": "g_88ea49",
+    "ko": "목록에서 "
+  },
+  {
+    "key": "g_d7c24e",
+    "ko": "메뉴를 위로 끌어올려 "
+  },
+  {
+    "key": "g_a9ed4a",
+    "ko": "우측 상단의 "
+  },
+  {
+    "key": "g_8038a0",
+    "ko": "명)"
+  },
+  {
+    "key": "g_c85116",
+    "ko": "AI가 생각하고 있어요"
+  },
+  {
+    "key": "g_9c7b8c",
+    "ko": "방해받지 않도록 <br/>기기를 &apos;무음&apos; 또는 &apos;방해금지&apos; 모드로 <br/>설정해주셨나요?"
+  },
+  {
+    "key": "g_73b7f2",
+    "ko": "&apos;무음&apos;이나 &apos;방해금지&apos; 모드에서도 **명상 가이드와 배경음은 정상적으로 들립니다.** 외부 알림만 차단되니 안심하고 설정해주세요."
+  },
+  {
+    "key": "g_229a69",
+    "ko": "방해받지 않도록 <br/>기기를 "
+  },
+  {
+    "key": "g_c8423c",
+    "ko": "AI 마음 분석"
+  },
+  {
+    "key": "g_ad5238",
+    "ko": "AI 심리 분석 결과"
+  },
+  {
+    "key": "g_500870",
+    "ko": "AI 강력 추천"
+  },
+  {
+    "key": "g_f33ee1",
+    "ko": "AI 추천 로딩 중..."
+  },
+  {
+    "key": "g_9ce64c",
+    "ko": "📋 복사하기"
+  },
+  {
+    "key": "g_3390c3",
+    "ko": "あなたはトップレベルのヨガ/フィットネススタジオ経営コンサルタントです。オーナーに総合的な経営ブリーフィングを提供してください。\\n以下の領域をカバーしてください：\\n1. 📊 売上分析：月間売上状況、日別推移、前月比\\n2. 👥 会員管理：アクティブ/全体比率、新規vs再登録、期限切れ会員対策\\n3. 🔄 再登録率分析：累計vs直近3ヶ月の再登録率、月別トレンド\\n4. ⚠️ 離脱防止：期限切れ/拒否会員の現状、先制的リテンション戦略\\n5. 👩‍🏫 講師評価：講師別クラス参加度、人気講師と要注意講師の把握\\n6. 📱 デジタル推進：アプリ導入率、プッシュ到達率分析\\n7. 🔮 将来展望：現在のトレンドに基づく来月予測\\n\\nトーン：プロフェッショナルかつ実行可能なアドバイス中心。データと根拠を示す。4〜6段落構成。\\nデータがない領域を作り上げないでください。実際のデータのみで分析してください。"
+  },
+  {
+    "key": "g_4b29d0",
+    "ko": "useMemberUI — 통합 테스트 (RTL renderHook)"
+  },
+  {
+    "key": "g_8f1d5c",
+    "ko": "초기 activeTab이 \\"
+  },
+  {
+    "key": "g_6dc4e2",
+    "ko": "setActiveTab으로 탭 전환"
+  },
+  {
+    "key": "g_9faf4d",
+    "ko": "loginForm 초기값 + setLoginFormValue"
+  },
+  {
+    "key": "g_7fd6e3",
+    "ko": "scheduleView 기본값 calendar"
+  },
+  {
+    "key": "g_427f22",
+    "ko": "scheduleMonth 기본값 current"
+  },
+  {
+    "key": "g_9322f6",
+    "ko": "생성 중 오류가 발생했습니다: "
+  },
+  {
+    "key": "g_8b4400",
+    "ko": "초기화 중 오류가 발생했습니다: "
+  },
+  {
+    "key": "g_cc7f1e",
+    "ko": "사람들과 어울리며 에너지 충전"
+  },
+  {
+    "key": "g_8875c3",
+    "ko": "사람과 관계를 먼저 고려"
+  },
+  {
+    "key": "g_67ba8d",
+    "ko": "Apple/Samsung Health 연결됨"
+  },
+  {
+    "key": "g_34061b",
+    "ko": " — AI 인사말과 맞춤 코칭에 반영돼요"
+  },
+  {
+    "key": "g_76520e",
+    "ko": " 완료 ✓"
+  },
+  {
+    "key": "g_b99c6e",
+    "ko": "(이하 \\"
+  },
+  {
+    "key": "g_203560",
+    "ko": "회사는 이용자에게 편리한 접속 환경(간편 로그인 유지 등)을 제공하기 위해 이용정보를 저장하고 수시로 불러오는 "
+  },
+  {
+    "key": "g_4f2420",
+    "ko": "Google Cloud Platform(Firebase) 기반의 인프라를 사용하며, Google의 보안 표준에 따라 데이터가 보호됩니다"
+  }
+]

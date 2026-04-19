@@ -29,7 +29,9 @@ export const useLanguageStore = create((set, get) => ({
             }
             // 2. localStorage
             const stored = localStorage.getItem('appLanguage');
-            if (stored && translations[stored]) return stored;
+            if (stored && translations[stored]) {
+                return stored;
+            }
 
             // [AUTO-DETECT] 3. navigator.language (접속 국가 자동 감지)
             if (navigator && navigator.language) {

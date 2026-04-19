@@ -593,7 +593,7 @@ const CheckInPage = () => {
         return null;
       });
     }
-    setTimeout(() => capturePhoto(), 0);
+    capturePhoto();
     const duplicateThresholdMs = 300000; // 5분 (백엔드 차단 시간과 동일)
     const isDup = recentCheckInsRef.current.some(e => e.pin === pinCode && Date.now() - e.timestamp < duplicateThresholdMs);
     if (isDup) {
@@ -616,7 +616,7 @@ const CheckInPage = () => {
         checkConnection();
         warmupFunctions();
       }, 50);
-      setTimeout(() => capturePhoto(), 300);
+      capturePhoto();
     }
     const nextLength = pinRef.current.length + 1;
     if (nextLength === 4) {
