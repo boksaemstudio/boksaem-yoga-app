@@ -63,8 +63,8 @@ export const STUDIO_CONFIG = {
       // 미사용 주간 크레딧 이 여부
       weeklyLimitSource: 'plan' // 'plan' = 요금제 기준, 'member' = Member별 수동
     },
-    PHOTO_ENABLED: false,
-    // 배경 무음 촬영 모드 (기본 OFF)
+    PHOTO_ENABLED: true,
+    // 배경 무음 촬영 모드 (기본 ON — 카메라가 있으면 자동 촬영)
     SHOW_CAMERA_PREVIEW: false // 키오스크 카메라 프리뷰 (기본 OFF)
   },
   // 3. Asset Nexus (이미지 및 자원 매핑) — SaaS 중립적 기본 경로
