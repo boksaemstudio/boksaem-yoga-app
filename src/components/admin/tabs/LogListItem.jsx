@@ -44,6 +44,10 @@ const LogListItem = memo(({
       }
     }
   };
+  const displayName = log.memberName || log.name || '';
+  const nameInitial = displayName.charAt(0) || '?';
+  const avatarHue = (displayName.charCodeAt(0) * 37) % 360;
+
   return <div key={log.id || index} onClick={handleClick} className="log-item" style={{
     cursor: log.memberId ? 'pointer' : 'default',
     borderLeft: `3px solid ${log.status === 'denied' ? '#ff4d4f' : log.type === 'checkin' ? 'var(--accent-success)' : log.type === 'register' ? 'var(--primary-gold)' : log.type === 'extend' ? '#3B82F6' : 'var(--text-secondary)'}`
@@ -57,11 +61,25 @@ const LogListItem = memo(({
       })}
             </div>
 
-            {log.photoUrl && <div className="log-item__avatar" onClick={e => {
+            {log.photoUrl ? <div className="log-item__avatar" onClick={e => {
       e.stopPropagation();
       onImageClick(log.photoUrl);
     }}>
                     <img src={log.photoUrl} alt="" />
+                </div> : <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: `hsl(${avatarHue}, 40%, 32%)`,
+      color: '#fff',
+      fontWeight: 'bold',
+      fontSize: '0.85rem',
+      width: '36px',
+      height: '36px',
+      borderRadius: '50%',
+      flexShrink: 0
+    }}>
+                    {nameInitial}
                 </div>}
 
             <div style={{
@@ -76,7 +94,7 @@ const LogListItem = memo(({
       }}>
                     <span style={{
           fontWeight: 'bold'
-        }}>{log.memberName || log.name || t("g_80601c") || "\uC54C \uC218 \uC5C6\uC74C"}</span>
+        }}>{displayName || t("g_80601c") || "\uC54C \uC218 \uC5C6\uC74C"}</span>
                     <span style={{
           fontSize: '0.7rem',
           color: 'var(--primary-gold)',
@@ -84,7 +102,7 @@ const LogListItem = memo(({
           padding: '1px 6px',
           borderRadius: '4px'
         }}>
-                        {log.className === 'Self Practice' ? (t('selfPractice') || t('g_dd529d') || '자율수련') : (log.className || t("g_8209e5") || "일반")}
+                        {log.className === 'Self Practice' ? (t('selfPractice') || t('g_dd529d') || '\uC790\uC728\uC218\uB828') : (log.className || t("g_8209e5") || "\uC77C\uBC18")}
                     </span>
                     <span className="badge" style={{
           fontSize: '0.65rem',
@@ -125,7 +143,7 @@ const LogListItem = memo(({
         marginTop: '2px',
         color: log.status === 'denied' ? '#ff4d4f' : 'inherit'
       }}>
-                    {log.status === 'denied' ? `${t('출석 시도가 거부되었습니다')} (${log.denialReason === 'expired' ? t("g_94dcd3") || "\uAE30\uAC04\uB9CC\uB8CC" : t("g_7174c2") || "\uD69F\uC218\uC18C\uC9C4"})` : log.action?.includes(t("g_b31acb") || "\uCD9C\uC11D") ? `${log.className === 'Self Practice' ? (t('selfPractice') || t('g_dd529d') || '자율수련') : (log.className || t("g_8209e5") || "일반")} ${t('수업 참여')} (${log.instructor === 'Member' ? (t('g_dae3ed') || '회원') : (log.instructor || t("g_0cb522") || "\uAD00\uB9AC\uC790")} ${t("g_9564f6")})` : log.action}
+                    {log.status === 'denied' ? `${t('deniedAttemptMessage') || "\uCD9C\uC11D \uC2DC\uB3C4\uAC00 \uAC70\uBD80\uB418\uC5C8\uC2B5\uB2C8\uB2E4"} (${log.denialReason === 'expired' ? t("g_94dcd3") || "\uAE30\uAC04\uB9CC\uB8CC" : t("g_7174c2") || "\uD69F\uC218\uC18C\uC9C4"})` : log.action?.includes(t("g_b31acb") || "\uCD9C\uC11D") ? `${log.className === 'Self Practice' ? (t('selfPractice') || t('g_dd529d') || '\uC790\uC728\uC218\uB828') : (log.className || t("g_8209e5") || "\uC77C\uBC18")} ${t('classParticipation') || "\uC218\uC5C5 \uCC38\uC5EC"} (${log.instructor === 'Member' ? (t('g_dae3ed') || '\uD68C\uC6D0') : (log.instructor || t("g_0cb522") || "\uAD00\uB9AC\uC790")} ${t("g_9564f6")})` : log.action}
                 </div>
             </div>
 

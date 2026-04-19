@@ -54,18 +54,18 @@ const AdminRevenue = ({
           fontSize: '1.8rem',
           fontWeight: 700
         }}>
-                        {new Intl.DateTimeFormat(language === 'ko' ? 'ko-KR' : language === 'ja' ? 'ja-JP' : language === 'zh' ? 'zh-CN' : 'en-US', { year: 'numeric', month: 'long' }).format(currentDate)}</h2>
+                        {new Intl.DateTimeFormat(({ ko: 'ko-KR', ja: 'ja-JP', zh: 'zh-CN', es: 'es-ES', fr: 'fr-FR', de: 'de-DE', pt: 'pt-BR', ru: 'ru-RU', vi: 'vi-VN', th: 'th-TH' })[language] || 'en-US', { year: 'numeric', month: 'long' }).format(currentDate)}</h2>
                     <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))} className="nav-btn">
                         <CaretRight size={20} />
                     </button>
                 </div>
                 <div className="branch-badge">
-                    {currentBranch === 'all' ? t("g_7d8f1b") || "All Branches" : getBranchName(currentBranch)}
+                    {currentBranch === 'all' ? t("g_7d8f1b") || "전체 지점" : getBranchName(currentBranch)}
                 </div>
             </div>
 
             {/* Total Month Summary */}
-            <CollapsibleCard id="revenue-summary" title={`${new Intl.DateTimeFormat(language === 'ko' ? 'ko-KR' : 'en-US', { year: 'numeric', month: 'long' }).format(currentDate)} ${t("g_revenue_summary") || 'Revenue Summary'}`} titleExtra={formatCurrency(monthlyStats.totalRevenue)} defaultOpen={true}>
+            <CollapsibleCard id="revenue-summary" title={`${new Intl.DateTimeFormat(({ ko: 'ko-KR', ja: 'ja-JP', zh: 'zh-CN', es: 'es-ES', fr: 'fr-FR', de: 'de-DE', pt: 'pt-BR', ru: 'ru-RU', vi: 'vi-VN', th: 'th-TH' })[language] || 'en-US', { year: 'numeric', month: 'long' }).format(currentDate)} ${t("g_revenue_summary") || "매출 요약"}`} titleExtra={formatCurrency(monthlyStats.totalRevenue)} defaultOpen={true}>
                 <div className="dashboard-card revenue-summary-card" style={{
         marginTop: '0',
         overflow: 'hidden',
@@ -89,7 +89,7 @@ const AdminRevenue = ({
               lineHeight: '1.2'
             }}>
                                     {formatCurrency(monthlyStats.totalRevenue)}</div>
-                                <div className="revenue-summary-details">({t("g_884009") || "New"}: <span className="revenue-new">{formatCurrency(monthlyStats.totalRevenueNew)}</span> / {t("g_fc669b") || "Renewal"}: <span className="revenue-rereg">{formatCurrency(monthlyStats.totalRevenueReReg)}</span>)
+                                <div className="revenue-summary-details">({t("g_884009") || "신규"}: <span className="revenue-new">{formatCurrency(monthlyStats.totalRevenueNew)}</span> / {t("g_fc669b") || "재등록"}: <span className="revenue-rereg">{formatCurrency(monthlyStats.totalRevenueReReg)}</span>)
                                 </div>
                             </div>
                             <div style={{
@@ -167,7 +167,7 @@ const AdminRevenue = ({
                                                 <strong>{t("g_14f230") || "총 결제 건수"}</strong><br />{t("g_f5f17c") || "이번 달 발생한 승인 완료된 결제의 총 횟수입니다."}</div>
                                         </div>
                                     </div>
-                                    <div className="revenue-count">{monthlyStats.totalCount} {t("g_d202b4") || "cases"}</div>
+                                    <div className="revenue-count">{monthlyStats.totalCount} {t("g_d202b4") || "건"}</div>
                                 </div>
                             </div>
                         </div>
@@ -237,7 +237,7 @@ const AdminRevenue = ({
                 padding: '8px 10px',
                 fontSize: '0.75rem',
                 whiteSpace: 'nowrap'
-              }} formatter={(value, name) => [formatCurrency(value), name === 'amount' || name === 'partialAmount' ? name === 'amount' ? t("g_b982a3") || "Total" : t("g_partial_month") || "To date" : name]} itemStyle={{
+              }} formatter={(value, name) => [formatCurrency(value), name === 'amount' || name === 'partialAmount' ? name === 'amount' ? t("g_b982a3") || "총매출" : t("g_partial_month") || "당월 누적" : name]} itemStyle={{
                 color: 'var(--primary-theme-color)',
                 fontSize: '0.75rem'
               }} labelStyle={{
@@ -250,8 +250,8 @@ const AdminRevenue = ({
                 color: '#a1a1aa',
                 paddingTop: '10px'
               }} formatter={value => {
-                if (value === 'amount') return t("g_a4b541") || "Total Revenue";
-                if (value === 'partialAmount') return t("g_partial_revenue") || "Revenue to date";
+                if (value === 'amount') return t("g_a4b541") || "총 매출";
+                if (value === 'partialAmount') return t("g_partial_revenue") || "당월 누적";
                 return value;
               }} />
                                 
@@ -313,7 +313,7 @@ const AdminRevenue = ({
                                             <strong style={{
                   color: 'var(--primary-theme-color)',
                   fontSize: '1rem'
-                }}>{ms.count}</strong> {t("g_d202b4") || "cases"}<span style={{
+                }}>{ms.count}</strong> {t("g_d202b4") || "건"}<span style={{
                   margin: '0 6px',
                   opacity: 0.3
                 }}>|</span>
@@ -360,8 +360,8 @@ const AdminRevenue = ({
               }}>
                                             {ms.newCount > 0 && <span style={{
                   marginRight: '8px'
-                }}>{t("g_884009") || "New"}{ms.newCount}</span>}
-                                            {ms.reregCount > 0 && <span>{t("g_fc669b") || "Renewal"}{ms.reregCount}</span>}
+                }}>{t("g_884009") || "신규"}{ms.newCount}</span>}
+                                            {ms.reregCount > 0 && <span>{t("g_fc669b") || "재등록"}{ms.reregCount}</span>}
                                         </div>
                                     </div>
                                 </div>;
@@ -385,7 +385,7 @@ const AdminRevenue = ({
             height: '12px',
             borderRadius: '3px',
             background: '#4ade80'
-          }} />{t("g_884009") || "New"}</div>
+          }} />{t("g_884009") || "신규"}</div>
                         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -399,12 +399,12 @@ const AdminRevenue = ({
             borderRadius: '3px',
             background: 'var(--primary-theme-color)',
             opacity: 0.7
-          }} />{t("g_fc669b") || "Renewal"}</div>
+          }} />{t("g_fc669b") || "재등록"}</div>
                     </div>
                 </CollapsibleCard>}
 
             {/* Calendar View */}
-            <CollapsibleCard id="revenue-calendar" title={`📅 ${new Intl.DateTimeFormat(language === 'ko' ? 'ko-KR' : 'en-US', { year: 'numeric', month: 'long' }).format(currentDate)} ${t("g_settlement_calendar") || 'Settlement Calendar'}`} defaultOpen={true}>
+            <CollapsibleCard id="revenue-calendar" title={`📅 ${new Intl.DateTimeFormat(({ ko: 'ko-KR', ja: 'ja-JP', zh: 'zh-CN', es: 'es-ES', fr: 'fr-FR', de: 'de-DE', pt: 'pt-BR', ru: 'ru-RU', vi: 'vi-VN', th: 'th-TH' })[language] || 'en-US', { year: 'numeric', month: 'long' }).format(currentDate)} ${t("g_settlement_calendar") || "정산 달력"}`} defaultOpen={true}>
                 <div style={{
         overflowX: 'auto',
         WebkitOverflowScrolling: 'touch',
@@ -416,9 +416,14 @@ const AdminRevenue = ({
           minWidth: '600px'
         }}>
                     {/* Header */}
-                    {[t("g_06cf3e") || "Sun", t("g_754486") || "month", t("g_adb4a2") || "Tue", t("g_c04eb2") || "Wed", t("g_5664a6") || "Thu", t("g_cf5632") || "Fri", t("g_b9e406") || "Sat"].map((dayName, index) => <div key={`header-${index}`} className={`calendar-header-cell ${index === 0 ? 'sun' : index === 6 ? 'sat' : ''}`}>
+                    {(() => {
+                      const localeMap = { ko: 'ko-KR', en: 'en-US', ja: 'ja-JP', zh: 'zh-CN', ru: 'ru-RU', es: 'es-ES', pt: 'pt-BR', fr: 'fr-FR', de: 'de-DE', vi: 'vi-VN', th: 'th-TH' };
+                      const currentLocale = localeMap[language] || 'en-US';
+                      const weekdayFormatter = new Intl.DateTimeFormat(currentLocale, { weekday: 'short' });
+                      return Array.from({length: 7}, (_, i) => weekdayFormatter.format(new Date(1970, 0, 4 + i))).map((dayName, index) => <div key={`header-${index}`} className={`calendar-header-cell ${index === 0 ? 'sun' : index === 6 ? 'sat' : ''}`}>
                             {dayName}
-                        </div>)}
+                        </div>);
+                    })()}
 
                     {/* Empty cells for start of month */}
                     {(() => {
@@ -546,7 +551,7 @@ const StraightLineChart = ({
         }} itemStyle={{
           color: 'var(--primary-theme-color)',
           fontSize: '0.72rem'
-        }} formatter={(value, name) => [globalFormatCurrency(value, language), name === 'amount' ? t("g_467a35") || "Total" : name]} labelStyle={{
+        }} formatter={(value, name) => [globalFormatCurrency(value, language), name === 'amount' ? t("g_467a35") || "총합" : name]} labelStyle={{
           color: '#a1a1aa',
           marginBottom: '2px',
           fontSize: '0.65rem'

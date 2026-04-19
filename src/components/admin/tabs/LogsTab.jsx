@@ -656,7 +656,7 @@ const LogsTab = ({
                 </div>}
 
             {/* ─── Class Summary Cards ─── */}
-            {!loadingHistorical && classCards.length > 0 && <CollapsibleCard id="logs-class-summary" title={`📊 ${isToday ? t("g_2bdce5") || "Today" : formatDisplayDate(selectedDate)} ${t('classSummary') || t('g_class_summary') || "Class Attendance Summary"}`} titleExtra={`${classCards.length}${t('g_class_count') || t('classCount') || " classes"}`} defaultOpen={false}>
+            {!loadingHistorical && classCards.length > 0 && <CollapsibleCard id="logs-class-summary" title={`📊 ${isToday ? t("g_2bdce5") || "Today" : formatDisplayDate(selectedDate)} ${t('classSummary') || "수업별 출석 요약"}`} titleExtra={`${classCards.length}${t('classCount') || "개 수업"}`} defaultOpen={false}>
                     <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -782,7 +782,7 @@ const LogsTab = ({
                     fontSize: '0.85rem',
                     color: 'var(--text-secondary)'
                   }}>
-                                                {cls.className} · {cls.instructor} — {t('recentTrend') || t('g_recent_trend') || "Recent 3-week trend"}
+                                                {cls.className} · {cls.instructor} — {t('recentTrend') || "최근 3주 추세"}
                                             </span>
                                         </div>
                                         

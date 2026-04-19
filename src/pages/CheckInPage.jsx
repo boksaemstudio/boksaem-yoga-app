@@ -101,13 +101,13 @@ const CheckInPage = () => {
     if (h >= 17 && h < 21) return 'evening';
     return 'night';
   });
-  const [bgImageIndex, setBgImageIndex] = useState(0);
+  const [bgImageIndex, setBgImageIndex] = useState(() => Math.floor(Math.random() * ROTATING_BACKGROUNDS.length));
 
   // Background Rotation
   useEffect(() => {
     const intervalId = setInterval(() => {
       setBgImageIndex(prev => (prev + 1) % ROTATING_BACKGROUNDS.length);
-    }, 3000000); // 50 minutes rotation
+    }, 600000); // 10 minutes rotation
     return () => clearInterval(intervalId);
   }, []);
 
