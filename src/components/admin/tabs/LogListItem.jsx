@@ -143,7 +143,7 @@ const LogListItem = memo(({
         marginTop: '2px',
         color: log.status === 'denied' ? '#ff4d4f' : 'inherit'
       }}>
-                    {log.status === 'denied' ? `${t('deniedAttemptMessage') || "\uCD9C\uC11D \uC2DC\uB3C4\uAC00 \uAC70\uBD80\uB418\uC5C8\uC2B5\uB2C8\uB2E4"} (${log.denialReason === 'expired' ? t("g_94dcd3") || "\uAE30\uAC04\uB9CC\uB8CC" : t("g_7174c2") || "\uD69F\uC218\uC18C\uC9C4"})` : log.action?.includes(t("g_b31acb") || "\uCD9C\uC11D") ? `${log.className === 'Self Practice' ? (t('selfPractice') || t('g_dd529d') || '\uC790\uC728\uC218\uB828') : (log.className || t("g_8209e5") || "\uC77C\uBC18")} ${t('classParticipation') || "\uC218\uC5C5 \uCC38\uC5EC"} (${log.instructor === 'Member' ? (t('g_dae3ed') || '\uD68C\uC6D0') : (log.instructor || t("g_0cb522") || "\uAD00\uB9AC\uC790")} ${t("g_9564f6")})` : log.action}
+                    {log.status === 'denied' ? `${t('deniedAttemptMessage') || "\uCD9C\uC11D \uC2DC\uB3C4\uAC00 \uAC70\uBD80\uB418\uC5C8\uC2B5\uB2C8\uB2E4"} (${log.denialReason === 'expired' ? t("g_94dcd3") || "\uAE30\uAC04\uB9CC\uB8CC" : t("g_7174c2") || "\uD69F\uC218\uC18C\uC9C4"})` : (!log.action || log.action?.includes(t("g_b31acb") || "\uCD9C\uC11D")) ? `${log.className === 'Self Practice' ? (t('selfPractice') || t('g_dd529d') || '\uC790\uC728\uC218\uB828') : (log.className || t("g_8209e5") || "\uC77C\uBC18")} ${t('classParticipation') || "\uC218\uC5C5 \uCC38\uC5EC"} (${log.instructor === 'Member' ? (t('g_dae3ed') || '\uD68C\uC6D0') : (log.instructor || t("g_0cb522") || "\uAD00\uB9AC\uC790")} ${t("g_9564f6") || "\uC2B9\uC778"})` : log.action}
                 </div>
             </div>
 
