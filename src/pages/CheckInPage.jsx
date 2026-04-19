@@ -183,7 +183,7 @@ const CheckInPage = () => {
     const interval = setInterval(checkOperatingHours, 60000); // Check every minute
     return () => clearInterval(interval);
   }, [rawKioskSettings?.autoOnOff, rawKioskSettings?.autoOnTime, rawKioskSettings?.autoOffTime, isOperatingHours]);
-  const photoEnabled = (config.POLICIES?.PHOTO_ENABLED === true || faceRecognitionEnabled === true) && isOperatingHours;
+  const photoEnabled = (config.POLICIES?.PHOTO_ENABLED === true || config.POLICIES?.SHOW_CAMERA_PREVIEW === true || faceRecognitionEnabled === true) && isOperatingHours;
   const {
     videoRef,
     canvasRef,
