@@ -50,7 +50,7 @@ const LogListItem = memo(({
 
   return <div key={log.id || index} onClick={handleClick} className="log-item" style={{
     cursor: log.memberId ? 'pointer' : 'default',
-    borderLeft: `3px solid ${log.status === 'denied' ? '#ff4d4f' : log.type === 'checkin' ? 'var(--accent-success)' : log.type === 'register' ? 'var(--primary-gold)' : log.type === 'extend' ? '#3B82F6' : 'var(--text-secondary)'}`
+    borderLeft: `3px solid ${log.status === 'denied' ? '#ff4d4f' : log.type === 'extend' ? '#3B82F6' : log.type === 'register' ? 'var(--primary-gold)' : 'var(--accent-success)'}`
   }}>
             <div className="log-item__time">
                 {new Date(log.timestamp).toLocaleTimeString('ko-KR', {
@@ -147,7 +147,7 @@ const LogListItem = memo(({
                 </div>
             </div>
 
-            {(log.type === 'checkin' || log.type === 'register') && isToday && <button onClick={handleDelete} style={{
+            {log.status !== 'denied' && log.type !== 'extend' && isToday && <button onClick={handleDelete} style={{
       background: 'none',
       border: 'none',
       color: 'rgba(244, 63, 94, 0.5)',
