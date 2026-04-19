@@ -148,13 +148,12 @@ const LogListItem = memo(({
           return `${t('deniedAttemptMessage') || "\uCD9C\uC11D \uC2DC\uB3C4\uAC00 \uAC70\uBD80\uB418\uC5C8\uC2B5\uB2C8\uB2E4"} (${log.denialReason === 'expired' ? t("g_94dcd3") || "\uAE30\uAC04\uB9CC\uB8CC" : t("g_7174c2") || "\uD69F\uC218\uC18C\uC9C4"})`;
         }
         if (!log.action || log.action?.includes(t("g_b31acb") || "\uCD9C\uC11D")) {
-          const cls = log.className === 'Self Practice' ? (t('selfPractice') || '\uC790\uC728\uC218\uB828') : (log.className || t("g_8209e5") || "\uC77C\uBC18");
           const inst = (!log.instructor || log.instructor === 'Unassigned')
-            ? (t('unassigned_instructor') || '\uB2F4\uB2F9 \uBBF8\uC9C0\uC815')
+            ? (t('unassigned_instructor') || '\uBBF8\uC9C0\uC815 \uC120\uC0DD\uB2D8')
             : log.instructor === 'Member'
               ? (t('g_dae3ed') || '\uD68C\uC6D0')
-              : log.instructor;
-          return `${cls} ${t('classParticipationShort') || "\uCD9C\uC11D"} (${inst} ${t("g_9564f6") || "\uC2B9\uC778"})`;
+              : `${log.instructor} ${t('g_teacher_suffix') || '\uC120\uC0DD\uB2D8'}`;
+          return inst;
         }
         return log.action;
       })()}
