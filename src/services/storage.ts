@@ -35,8 +35,19 @@ import {
     localizeSchedules, 
     localizeNotices, 
     localizeInstructors,
-    localizePricings
+    localizePricings,
+    localizeMember,
+    localizeMembers,
+    localizeAttendance,
+    isDemoEnvironment
 } from '../utils/demoLocalization';
+import {
+    generateDemoSchedule,
+    generateDemoAttendance,
+    generateDemoSales,
+    generateDemoInstructors,
+    generateDemoPricing
+} from '../utils/demoDataEngine';
 
 // ── Types ──
 type EventType = 'members' | 'logs' | 'sales' | 'images' | 'notices' | 'general';
@@ -144,9 +155,9 @@ export const storageService = {
     getMembers(): Member[] { return localizeMembers(memberService.getMembers(), useLanguageStore.getState().language); },
     loadAllMembers(force = false) { return memberService.loadAllMembers(force); },
     _buildPhoneLast4Index() { return memberService._buildPhoneLast4Index(); },
-    findMembersByPhone(last4Digits: string) { 
-        const members = memberService.findMembersByPhone(last4Digits);
-        const { localizeMembers } = require('../utils/demoLocalization');
+    async findMembersByPhone(last4Digits: string) { 
+        const members = await memberService.findMembersByPhone(last4Digits);
+        
         return localizeMembers(members, useLanguageStore.getState().language);
     },
     _updateLocalMemberCache(memberId: string, updates: Partial<Member>) { return memberService._updateLocalMemberCache(memberId, updates); },
@@ -154,12 +165,12 @@ export const storageService = {
     addMember(data: Partial<Member> & { phone: string }) { return memberService.addMember(data); },
     getMemberById(id: string) { 
         const member = memberService.getMemberById(id);
-        const { localizeMember } = require('../utils/demoLocalization');
+        
         return localizeMember(member, useLanguageStore.getState().language);
     },
     fetchMemberById(id: string) { 
         return memberService.fetchMemberById(id).then(member => {
-            const { localizeMember } = require('../utils/demoLocalization');
+            
             return localizeMember(member, useLanguageStore.getState().language);
         }); 
     },
@@ -175,9 +186,27 @@ export const storageService = {
     deleteFaceDescriptor(memberId: string) { return memberService.deleteFaceDescriptor(memberId); },
 
     // ═══ ATTENDANCE ═══
-    getAttendance(): AttendanceLog[] { return attendanceService.getAttendance(); },
+    getAttendance(): AttendanceLog[] {
+        const real = attendanceService.getAttendance();
+        const lang = useLanguageStore.getState().language;
+        if (isDemoEnvironment() && lang !== 'ko' && real.length === 0) {
+            const now = new Date();
+            const demo = generateDemoAttendance(lang, now.getFullYear(), now.getMonth() + 1, null);
+            return (demo || []) as unknown as AttendanceLog[];
+        }
+        return real;
+    },
     getAttendanceByMemberId(memberId: string) { return attendanceService.getAttendanceByMemberId(memberId); },
-    getAttendanceByDate(dateStr: string, branchId: string | null = null) { return attendanceService.getAttendanceByDate(dateStr, branchId); },
+    async getAttendanceByDate(dateStr: string, branchId: string | null = null) {
+        const real = await attendanceService.getAttendanceByDate(dateStr, branchId);
+        const lang = useLanguageStore.getState().language;
+        if (isDemoEnvironment() && lang !== 'ko' && (!real || real.length === 0)) {
+            const now = new Date();
+            const allDemo = generateDemoAttendance(lang, now.getFullYear(), now.getMonth() + 1, null);
+            return ((allDemo || []).filter((a: any) => a.date === dateStr)) as unknown as AttendanceLog[];
+        }
+        return real;
+    },
     subscribeAttendance(dateStr: string, branchId: string | null = null, callback: (records: AttendanceLog[]) => void) { return attendanceService.subscribeAttendance(dateStr, branchId, callback); },
     checkInById(memberId: string, branchId: string, force = false, eventId?: string, facialMatched?: boolean, source: string = 'pin') { return attendanceService.checkInById(memberId, branchId, force, eventId, facialMatched, source); },
     deleteAttendance(logId: string, restoreCredit?: boolean) { return attendanceService.deleteAttendance(logId, restoreCredit); },
@@ -189,7 +218,15 @@ export const storageService = {
     permanentDeleteAttendance(logId: string) { return attendanceService.permanentDeleteAttendance(logId); },
 
     // ═══ PAYMENT ═══
-    getSales() { return paymentService.getSales(); },
+    async getSales() {
+        const real = await paymentService.getSales();
+        const lang = useLanguageStore.getState().language;
+        if (isDemoEnvironment() && lang !== 'ko' && (!real || real.length === 0)) {
+            const now = new Date();
+            return (generateDemoSales(lang, now.getFullYear(), now.getMonth() + 1, null) || []) as unknown as SalesRecord[];
+        }
+        return real;
+    },
     getRevenueStats() { return paymentService.getRevenueStats(); },
     getAllSales() { return paymentService.getAllSales(); },
     getSalesHistory(memberId: string) { return paymentService.getSalesHistory(memberId); },
@@ -211,8 +248,18 @@ export const storageService = {
     sendBulkPushCampaign(targetMemberIds: string[], title: string, body: string) { return messageService.sendBulkPushCampaign(targetMemberIds, title, body); },
 
     // ═══ SCHEDULE ═══
-    getMonthlyClasses(branchId: string, year: number, month: number) { 
-        return localizeSchedules(scheduleService.getMonthlyClasses(branchId, year, month), useLanguageStore.getState().language); 
+    async getMonthlyClasses(branchId: string, year: number, month: number) { 
+        const real = await scheduleService.getMonthlyClasses(branchId, year, month);
+        const lang = useLanguageStore.getState().language;
+        if (isDemoEnvironment() && lang !== 'ko' && (!real || real.length === 0)) {
+            const demoSchedule = generateDemoSchedule(lang, year, month, branchId);
+            if (demoSchedule) {
+                const allClasses: any[] = [];
+                Object.values(demoSchedule).forEach((dayClasses: any) => allClasses.push(...dayClasses));
+                return allClasses;
+            }
+        }
+        return localizeSchedules(real, lang); 
     },
     getMonthlyScheduleStatus(branchId: string, year: number, month: number) { return scheduleService.getMonthlyScheduleStatus(branchId, year, month); },
     updateDailyClasses(branchId: string, date: string, classes: DailyClass[]) { return scheduleService.updateDailyClasses(branchId, date, classes); },
@@ -220,8 +267,13 @@ export const storageService = {
     createMonthlySchedule(branchId: string, year: number, month: number) { return scheduleService.createMonthlySchedule(branchId, year, month); },
     copyMonthlySchedule(branchId: string, fromYear: number, fromMonth: number, toYear: number, toMonth: number) { return scheduleService.copyMonthlySchedule(branchId, fromYear, fromMonth, toYear, toMonth); },
     deleteMonthlySchedule(branchId: string, year: number, month: number) { return scheduleService.deleteMonthlySchedule(branchId, year, month); },
-    getInstructors() { 
-        return localizeInstructors(scheduleService.getInstructors(), useLanguageStore.getState().language); 
+    async getInstructors() { 
+        const real = await scheduleService.getInstructors();
+        const lang = useLanguageStore.getState().language;
+        if (isDemoEnvironment() && lang !== 'ko' && (!real || real.length === 0)) {
+            return (generateDemoInstructors(lang) || []) as any[];
+        }
+        return localizeInstructors(real, lang); 
     },
     updateInstructors(list: (string | Record<string, unknown>)[]) { return scheduleService.updateInstructors(list); },
     getClassTypes() { return scheduleService.getClassTypes(); },
@@ -272,8 +324,9 @@ export const storageService = {
 
     // ═══ CLASS ═══
     getCurrentClass(branchId: string, instructorName: string | null = null, membershipTypeHint: string | null = null) { return classService.getCurrentClass(branchId, instructorName, membershipTypeHint); },
-    getDailyClasses(branchId: string, instructorName: string | null = null, date: string | null = null) { 
-        return localizeSchedules(classService.getDailyClasses(branchId, instructorName, date), useLanguageStore.getState().language); 
+    async getDailyClasses(branchId: string, instructorName: string | null = null, date: string | null = null) { 
+        const classes = await classService.getDailyClasses(branchId, instructorName, date);
+        return localizeSchedules(classes, useLanguageStore.getState().language); 
     },
 
     // ═══ CONFIG ═══
@@ -290,11 +343,14 @@ export const storageService = {
         return imgs;
     },
     updateImage(id: string, base64: string) { return configService.updateImage(id, base64, notifyListeners); },
-    getPricing() { 
-        const pricing = configService.getPricing();
-        if (!pricing) return pricing;
+    async getPricing() { 
+        const pricing = await configService.getPricing();
         const lang = useLanguageStore.getState().language;
-        // Check if pricing is { passes: [], regular: [] } which is common structure
+        if (isDemoEnvironment() && lang !== 'ko') {
+            const demoPricing = generateDemoPricing(lang);
+            if (demoPricing) return demoPricing;
+        }
+        if (!pricing) return pricing;
         const localized = { ...pricing };
         if (Array.isArray(localized.passes)) localized.passes = localizePricings(localized.passes, lang);
         if (Array.isArray(localized.regular)) localized.regular = localizePricings(localized.regular, lang);

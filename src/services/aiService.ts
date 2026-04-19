@@ -41,10 +41,10 @@ const _safeGetItem = (key: string): string | null => { try { return localStorage
 const _safeSetItem = (key: string, value: string): void => { try { localStorage.setItem(key, value); } catch { /* ignore */ } };
 
 const INSTRUCTOR_QUOTES = [
-    "매트 위에서 나를 만나는 소중한 시간입니다.", "오늘도 회원들에게 따뜻한 에너지를 전해주세요.",
-    "선생님의 미소가 스튜디오를 밝힙니다.", "호흡을 통해 마음의 평온을 찾으세요.",
+    "매트 위에서 나를 만나는 소중한 시간입니다.", "오늘도 Member들에게 따뜻한 에너지를 전해주세요.",
+    "Instructor의 미소가 스튜디오를 밝힙니다.", "호흡을 통해 마음의 평온을 찾으세요.",
     "오늘 하루도 건강하고 행복하게!", "수련의 깊이가 더해지는 하루가 되길 바랍니다.",
-    "나눔의 기쁨을 실천하는 멋진 선생님.", "잠시 멈추어 내면의 소리에 귀 기울여보세요.", "오늘도 즐거운 수련 되세요!"
+    "나눔의 기쁨을 실천하는 멋진 Instructor.", "잠시 멈추어 내면의 소리에 귀 기울여보세요.", "오늘도 즐거운 수련 되세요!"
 ];
 
 const FALLBACK_MESSAGES: Record<string, string> = {
@@ -92,18 +92,18 @@ export const getAIExperience = async (
 
     try {
         const genAI = httpsCallable(functions, 'generatePageExperienceV2');
-        const isGeneric = !memberName || ["방문 회원", "방문회원", "visitor", "Guest"].includes(memberName);
+        const isGeneric = !memberName || ["방문 Member", "방문Member", "visitor", "Guest"].includes(memberName);
         const res = await genAI({ memberName, attendanceCount, dayOfWeek: day, timeOfDay: hour, upcomingClass, weather, credits, remainingDays, language, diligence, role: isGeneric ? 'visitor' : 'member', type: 'experience', context, mbti, studioId: getCurrentStudioId() });
         const data = res.data as AIExperienceResult | null;
 
         if (!data || (Array.isArray(data) && data.length === 0)) {
-            return (context === 'instructor' || memberName?.includes('선생님')) ? getInstructorFallback(language) : getFallback(language);
+            return (context === 'instructor' || memberName?.includes('Instructor')) ? getInstructorFallback(language) : getFallback(language);
         }
         if (data && !data.isFallback) _safeSetItem(cacheKey, JSON.stringify(data));
         return data;
     } catch (error) {
         console.warn("AI Experience failed, using fallback:", error);
-        return (context === 'instructor' || memberName?.includes('선생님')) ? getInstructorFallback(language) : getFallback(language);
+        return (context === 'instructor' || memberName?.includes('Instructor')) ? getInstructorFallback(language) : getFallback(language);
     }
 };
 
@@ -174,7 +174,7 @@ export const getChurnAnalysis = async (
         return data;
     } catch (error) {
         console.warn("AI Churn Analysis failed, using fallback:", error);
-        return { message: `이탈 위험 회원 ${churnData.criticalCount + churnData.highCount + churnData.mediumCount}명 감지.`, isFallback: true };
+        return { message: `이탈 위험 Member ${churnData.criticalCount + churnData.highCount + churnData.mediumCount}명 감지.`, isFallback: true };
     }
 };
 
@@ -204,7 +204,7 @@ export const generateChurnMessage = async (
         return msg;
     } catch (error) {
         console.warn("AI Churn Message failed:", error);
-        return `${memberInfo.name} 회원님, 안녕하세요! 요즘 어떻게 지내세요? 😊 다시 뵙기를 기다리고 있어요 🧘‍♀️`;
+        return `${memberInfo.name} Member, Hello! How have you been? 😊 We're looking forward to seeing you again 🧘‍♀️`;
     }
 };
 

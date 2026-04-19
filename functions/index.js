@@ -29,6 +29,7 @@ const adminClaimsFunctions = require('./modules/adminClaims');
 const ssrMetaFunctions = require('./modules/ssrMeta');
 const adminAssistantFunctions = require('./modules/adminAssistant');
 const superAdminFunctions = require('./modules/superAdmin');
+const kioskAuthFunctions = require('./modules/kioskAuth');
 
 // Re-export all functions
 module.exports = {
@@ -75,5 +76,8 @@ module.exports = {
     ...adminAssistantFunctions,
 
     // SaaS 플랫폼 통합 관리 리포트
-    ...superAdminFunctions
+    ...superAdminFunctions,
+
+    // Kiosk Auth
+    ...kioskAuthFunctions
 };

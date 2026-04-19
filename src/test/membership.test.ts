@@ -28,31 +28,31 @@ describe('isTBD', () => {
 // 2. calculateEndDate 날짜 산수
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 describe('calculateEndDate', () => {
-    it('1개월: 3/20 → 4/19', () => {
+    it('1개: 3/20 → 4/19', () => {
         expect(calculateEndDate('2026-03-20', 1)).toBe('2026-04-19');
     });
 
-    it('3개월: 3/20 → 6/19', () => {
+    it('3개: 3/20 → 6/19', () => {
         expect(calculateEndDate('2026-03-20', 3)).toBe('2026-06-19');
     });
 
-    it('6개월: 3/20 → 9/19', () => {
+    it('6개: 3/20 → 9/19', () => {
         expect(calculateEndDate('2026-03-20', 6)).toBe('2026-09-19');
     });
 
-    it('4/1에서 3개월 → 6/30', () => {
+    it('4/1에서 3개 → 6/30', () => {
         expect(calculateEndDate('2026-04-01', 3)).toBe('2026-06-30');
     });
 
-    it('5/1에서 1개월 → 5/31', () => {
+    it('5/1에서 1개 → 5/31', () => {
         expect(calculateEndDate('2026-05-01', 1)).toBe('2026-05-31');
     });
 
-    it('연도 넘김: 12/1 + 3개월 → 2027-02-28', () => {
+    it('연도 넘김: 12/1 + 3개 → 2027-02-28', () => {
         expect(calculateEndDate('2026-12-01', 3)).toBe('2027-02-28');
     });
 
-    it('1/31 + 1개월 = JS overflow 동작 (3/2)', () => {
+    it('1/31 + 1개 = JS overflow 동작 (3/2)', () => {
         // JS: Jan31 + 1month = Mar3 (Feb overflow) → -1day = Mar2
         expect(calculateEndDate('2026-01-31', 1)).toBe('2026-03-02');
     });
@@ -123,7 +123,7 @@ describe('evaluateUpcomingActivation', () => {
         expect(result.shouldActivate).toBe(false);
     });
 
-    it('durationMonths 없으면 fallback 1개월', () => {
+    it('durationMonths 없으면 fallback 1개', () => {
         const member = {
             credits: 0, endDate: '2026-04-30',
             upcomingMembership: { startDate: 'TBD', endDate: 'TBD', credits: 10 }
@@ -147,7 +147,7 @@ describe('재등록 시나리오', () => {
         return { startDate, endDate };
     }
 
-    it('만료 회원 TBD 3개월 → 첫 출석 시 해소', () => {
+    it('만료 Member TBD 3개 → 첫 출석 시 해소', () => {
         const member = { endDate: '2025-07-02', credits: 0 };
         const updateData = { startDate: 'TBD', endDate: 'TBD', credits: 10, duration: 3 };
         
@@ -163,7 +163,7 @@ describe('재등록 시나리오', () => {
         expect(updateData.credits - 1).toBe(9); // 출석 후 크레딧
     });
 
-    it('만료 회원 즉시출석 3개월 → 오늘부터 시작', () => {
+    it('만료 Member 즉시출석 3개 → 오늘부터 시작', () => {
         const finalStartDate = TODAY;
         const finalEndDate = calculateEndDate(TODAY, 3);
         
@@ -171,18 +171,18 @@ describe('재등록 시나리오', () => {
         expect(finalEndDate).toBe('2026-06-19');
     });
 
-    it('1년 전 만료 회원 TBD 6개월 → 6/15 첫 출석', () => {
+    it('1년 전 만료 Member TBD 6개 → 6/15 첫 출석', () => {
         const resolved = resolveTBD(6, '2026-06-15');
         expect(resolved.startDate).toBe('2026-06-15');
         expect(resolved.endDate).toBe('2026-12-14');
     });
 
-    it('duration 없는 레거시 회원 → fallback 1개월', () => {
+    it('duration 없는 레거시 Member → fallback 1개', () => {
         const resolved = resolveTBD(undefined, TODAY);
         expect(resolved.endDate).toBe('2026-04-19');
     });
 
-    it('활성 회원 선등록 TBD → 현재 소진 후 활성화', () => {
+    it('활성 Member 선등록 TBD → 현재 소진 후 활성화', () => {
         const member = {
             credits: 0, endDate: '2026-05-15',
             upcomingMembership: { startDate: 'TBD', endDate: 'TBD', durationMonths: 3, credits: 20 }

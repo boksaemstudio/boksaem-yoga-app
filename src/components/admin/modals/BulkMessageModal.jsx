@@ -1,3 +1,4 @@
+import { formatCurrency } from '../../../utils/formatters';
 import { useState, useRef } from 'react';
 import { useLanguageStore } from '../../../stores/useLanguageStore';
 import { X, PaperPlaneTilt, Calendar } from '@phosphor-icons/react';
@@ -38,6 +39,7 @@ const BulkMessageModal = ({
   memberCount
 }) => {
   const t = useLanguageStore(s => s.t);
+  const language = useLanguageStore(s => s.language);
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [isScheduled, setIsScheduled] = useState(false);
@@ -78,7 +80,7 @@ const BulkMessageModal = ({
       return;
     }
     const modeLabel = (() => { const m = SEND_MODES.find(m => m.id === sendMode); return m ? (t(m.labelKey) || m.labelFallback) : sendMode; })();
-    const costText = sendMode === 'push_only' ? t("g_667dd4") || "\uBB34\uB8CC" : `약 ${costInfo.totalCost.toLocaleString()}원`;
+    const costText = sendMode === 'push_only' ? t("g_667dd4") || "\uBB34\uB8CC" : `약 ${formatCurrency(costInfo.totalCost, language)}`;
     if (!confirm((t('confirm_bulk_send') || `Send to ${memberCount} members via ${modeLabel}?\nEstimated cost: ${costText}`).replace('{count}', memberCount).replace('{mode}', modeLabel).replace('{cost}', costText))) {
       return;
     }
@@ -150,7 +152,7 @@ const BulkMessageModal = ({
           gap: '8px'
         }}>
                         <PaperPlaneTilt weight="fill" color="var(--primary-gold)" />
-                        {t('단체 메시지 전송')}
+                        {t("g_6b4d62")}
                     </h3>
                     <button onClick={onClose} disabled={sending} style={{
           background: 'none',
@@ -171,7 +173,7 @@ const BulkMessageModal = ({
                     <span style={{
           color: 'var(--primary-gold)',
           fontWeight: 'bold'
-        }}>{memberCount}{t("g_7b3c6e") || "\uBA85"}</span>{t('의 회원에게 메시지를 보냅니다.')}
+        }}>{memberCount}{t("g_7b3c6e") || "\uBA85"}</span>{t("g_3606ed")}
                 </div>
 
                 {/* [NEW] Send Mode Selection — 3-way button group */}
@@ -183,7 +185,7 @@ const BulkMessageModal = ({
           marginBottom: '6px',
           fontSize: '0.85rem',
           color: '#a1a1aa'
-        }}>{t('전송 방식')}</label>
+        }}>{t("g_519b69")}</label>
                     <div style={{
           display: 'flex',
           gap: '6px'
@@ -237,7 +239,7 @@ const BulkMessageModal = ({
         borderRadius: '12px',
         marginBottom: '16px'
       }}>
-                    <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder={t('전송할 내용을 입력하세요...')} style={{
+                    <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder={t("g_2507a4")} style={{
           width: '100%',
           height: '120px',
           background: 'transparent',
@@ -268,7 +270,7 @@ const BulkMessageModal = ({
                                 <span style={{
               color: '#10b981',
               fontWeight: '600'
-            }}>{t('📱 앱 푸시 • 무료')}</span>
+            }}>{t("g_fd4d48")}</span>
                             </div> : <div style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -339,7 +341,7 @@ const BulkMessageModal = ({
           alignItems: 'center',
           gap: '6px'
         }}>
-                        <Calendar size={16} /> {t('예약 발송')}
+                        <Calendar size={16} /> {t("g_acab93")}
                     </label>
                     {isScheduled && <input ref={scheduleInputRef} type="datetime-local" value={scheduledTime} onChange={e => setScheduledTime(e.target.value)} onClick={() => {
           try {
@@ -365,7 +367,7 @@ const BulkMessageModal = ({
           color: '#a1a1aa',
           fontSize: '0.85rem',
           marginBottom: '8px'
-        }}>{t('자주 쓰는 문구')}</p>
+        }}>{t("g_330665")}</p>
                     <div style={{
           display: 'flex',
           flexWrap: 'wrap',

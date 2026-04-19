@@ -64,7 +64,7 @@ async function getStudioConfig(studioId) {
 // 홈 화면 아이콘 + 앱 이름에 100% 동적 반영됩니다.
 // ──────────────────────────────────────────────────────────────
 function generateManifest(config, roleType) {
-    const studioName = config.IDENTITY?.NAME || '요가 스튜디오';
+    const studioName = config.IDENTITY?.NAME || 'Studio';
     const logoUrl = config.IDENTITY?.LOGO_URL || '/logo_circle.png';
     const themeColor = config.THEME?.PRIMARY_COLOR || '#D4AF37';
     const gcmSenderId = "103953800507";
@@ -214,7 +214,7 @@ exports.serveDynamicSaaS = onRequest(
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             // [Route 2] HTML 페이지 요청 → 동적 메타태그 치환
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            const studioName = config.IDENTITY?.NAME || '요가 스튜디오';
+            const studioName = config.IDENTITY?.NAME || 'Studio';
             const desc = config.IDENTITY?.DESCRIPTION || '스마트 출석·운영 기록 시스템';
             let logoUrl = config.IDENTITY?.LOGO_URL || '/assets/passflow_square_logo.png';
             

@@ -11,9 +11,9 @@ describe('guessClassTime', () => {
         expect(guessClassTime({})).toBeNull();
     });
 
-    it('should return actual time for 자율수련', () => {
+    it('should return actual time for Self Practice', () => {
         const log = {
-            className: '자율수련',
+            className: 'Self Practice',
             timestamp: '2026-03-16T11:30:00',
             branchId: 'branch_a'
         };
@@ -46,15 +46,15 @@ describe('guessClassInfo', () => {
         expect(guessClassInfo({})).toBeNull();
     });
 
-    it('should return class info for 자율수련', () => {
+    it('should return class info for Self Practice', () => {
         const log = {
-            className: '자율수련',
+            className: 'Self Practice',
             timestamp: '2026-03-16T11:30:00',
             branchId: 'branch_a'
         };
         const info = guessClassInfo(log);
         expect(info).not.toBeNull();
-        expect(info!.className).toBe('자율수련');
+        expect(info!.className).toBe('Self Practice');
         expect(info!.startTime).toBe('11:30');
     });
 
@@ -80,17 +80,17 @@ describe('guessClassInfo', () => {
         };
         const info = guessClassInfo(log);
         expect(info!.className).toBe('일반');
-        expect(info!.instructor).toBe('미지정');
+        expect(info!.instructor).toBe('Unassigned');
     });
 
     it('should return 일반 for className equal to 일반', () => {
         const log = {
             className: '일반',
-            instructor: '선생님',
+            instructor: 'Instructor',
             timestamp: '2026-03-16T10:00:00'
         };
         const info = guessClassInfo(log);
         expect(info!.className).toBe('일반');
-        expect(info!.instructor).toBe('미지정');
+        expect(info!.instructor).toBe('Unassigned');
     });
 });

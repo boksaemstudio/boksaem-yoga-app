@@ -18,17 +18,17 @@ import InstallBanner from '../components/common/InstallBanner';
 const getDefaultGreeting = (name, h, day, t) => {
 
   const timeGreeting = h < 12 ? t('inst_page_morning') || t("g_69c40d") || "좋은 아침이에요" : h < 17 ? t('inst_page_afternoon') || t("g_0afaa0") || "오늘도 좋은 오후예요" : t('inst_page_evening') || t("g_3b6240") || "수고하셨어요";
-  const dayContext = day === (t("g_754486") || "월") ? t('inst_page_day_mon') || t("g_71a096") || "새로운 한 주의 시작!" : day === (t("g_cf5632") || "금") ? t('inst_page_day_fri') || t("g_7e763e") || "즐거운 금요일!" : day === (t("g_b9e406") || "토") || day === (t("g_06cf3e") || "일") ? t('inst_page_day_weekend') || t("g_81cdb0") || "행복한 주말!" : '';
+  const dayContext = day === (t("g_754486") || "month") ? t('inst_page_day_mon') || t("g_71a096") || "새로운 한 주의 시작!" : day === (t("g_cf5632") || "Fri") ? t('inst_page_day_fri') || t("g_7e763e") || "즐거운 금요일!" : day === (t("g_b9e406") || "Sat") || day === (t("g_06cf3e") || "Sun") ? t('inst_page_day_weekend') || t("g_81cdb0") || "행복한 주말!" : '';
   return t('inst_page_greeting_format', {
     name,
     timeGreeting,
     dayContext
-  }) ?? `${name} ${t('inst_page_teacher_suffix') ?? "선생님"}, ${timeGreeting} 🧘‍♀️ ${dayContext}`;
+  }) ?? `${name} ${t('inst_page_teacher_suffix') ?? "Instructor"}, ${timeGreeting} 🧘‍♀️ ${dayContext}`;
 };
 
 // === Main Page ===
 const InstructorPage = () => {
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   const {
     config
   } = useStudioConfig();
@@ -50,7 +50,7 @@ const InstructorPage = () => {
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [activeTab]);
+  }, [activeTab, language]);
 
   const [loading, setLoading] = useState(true);
 
@@ -75,7 +75,7 @@ const InstructorPage = () => {
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [showInstallGuide]);
+  }, [showInstallGuide, language]);
   const safeSetShowInstallGuide = open => {
     if (open && !window.history.state?.installGuideOpen) {
       window.history.pushState({
@@ -120,7 +120,7 @@ const InstructorPage = () => {
       }
     };
     loadInstructors();
-  }, []);
+  }, [language]);
 
   // [Deep Link] Parse 'tab' from URL to auto-navigate
   useEffect(() => {
@@ -151,7 +151,7 @@ const InstructorPage = () => {
       window.removeEventListener('popstate', handleLocationChange);
       window.removeEventListener('hashchange', handleLocationChange);
     };
-  }, []);
+  }, [language]);
 
   // [PWA] Install Guide State is handled via InstallBanner component now.
 
@@ -177,7 +177,7 @@ const InstructorPage = () => {
       unsubAuth();
     });
     return () => unsubAuth();
-  }, [instructorName]);
+  }, [instructorName, language]);
 
   // Load Attendance & Schedule in Real-time
   useEffect(() => {
@@ -220,7 +220,7 @@ const InstructorPage = () => {
             const recordInstructor = r.instructor ? r.instructor.trim() : '';
             const currentInstructor = instructorName.trim();
             const isExactMatch = recordInstructor === currentInstructor;
-            const isUndesignated = recordInstructor === (t("g_5c1a70") || "미지정") || !recordInstructor;
+            const isUndesignated = recordInstructor === (t("g_5c1a70") || "Unassigned") || !recordInstructor;
             const isClassMatch = myClassTitles.has(r.className);
 
             // Debug logging for unmatched but potential candidates
@@ -254,7 +254,7 @@ const InstructorPage = () => {
                 const recordInstructor = r.instructor ? r.instructor.trim() : '';
                 const currentInstructor = instructorName.trim();
                 const isExactMatch = recordInstructor === currentInstructor;
-                const isUndesignated = recordInstructor === (t("g_5c1a70") || "미지정") || !recordInstructor;
+                const isUndesignated = recordInstructor === (t("g_5c1a70") || "Unassigned") || !recordInstructor;
                 const isClassMatch = myClassTitles.has(r.className);
                 return isExactMatch || isUndesignated && isClassMatch;
               }).map(r => ({
@@ -286,13 +286,13 @@ const InstructorPage = () => {
         unsubscribesRef.current.forEach(unsub => unsub());
       }
     };
-  }, [instructorName, todayStr, branches]);
+  }, [instructorName, todayStr, branches, language]);
 
   // Initialize AI Greeting (Instant + Background Fetch)
   // [FIX] 의존성에서 attendance.length 제거 → 깜빡임 방지
   useEffect(() => {
     if (!instructorName) return;
-    const dayOfWeek = [t("g_06cf3e") || "일", t("g_754486") || "월", t("g_adb4a2") || "화", t("g_c04eb2") || "수", t("g_5664a6") || "목", t("g_cf5632") || "금", t("g_b9e406") || "토"][getKSTDayOfWeek()];
+    const dayOfWeek = [t("g_06cf3e") || "Sun", t("g_754486") || "month", t("g_adb4a2") || "Tue", t("g_c04eb2") || "Wed", t("g_5664a6") || "Thu", t("g_cf5632") || "Fri", t("g_b9e406") || "Sat"][getKSTDayOfWeek()];
 
     // 1. Try Cache First for instant display
     const cacheKey = `ai_greeting_${instructorName}_${todayStr}_${hour}`;
@@ -335,7 +335,7 @@ const InstructorPage = () => {
     // 약간의 딜레이 후 AI 호출 (초기 렌더 안정화)
     const timer = setTimeout(fetchAI, 1000);
     return () => clearTimeout(timer);
-  }, [instructorName, hour, todayStr]); // [FIX] attendance.length, attendanceLoading 제거
+  }, [instructorName, hour, todayStr, language]); // [FIX] attendance.length, attendanceLoading 제거
 
   const handleLogout = () => {
 
@@ -433,12 +433,12 @@ const InstructorPage = () => {
             margin: 0,
             fontSize: '1.2rem',
             color: 'var(--primary-gold)'
-          }}>{config.IDENTITY?.NAME || 'Studio'} {t('inst_page_teacher_suffix') ?? t("g_620be2") ?? "선생님"}</h1>
+          }}>{config.IDENTITY?.NAME || 'Studio'} {t('inst_page_teacher_suffix') ?? t("g_620be2") ?? "Instructor"}</h1>
                         <div style={{
             margin: '4px 0 0',
             fontSize: '0.9rem',
             color: 'var(--text-secondary)'
-          }}>{instructorName} {t('inst_page_teacher_suffix') ?? t("g_620be2") ?? "선생님"}</div>
+          }}>{instructorName} {t('inst_page_teacher_suffix') ?? t("g_620be2") ?? "Instructor"}</div>
                     </div>
                 </div>
                 <div style={{
@@ -589,8 +589,8 @@ const InstructorPage = () => {
       zIndex: 10
     }}>
                 <TabButton icon={<House size={24} />} label={t('inst_nav_home') || t("g_13a46f") || "홈"} active={activeTab === 'home'} onClick={() => setActiveTab('home')} />
-                <TabButton icon={<CalendarBlank size={24} />} label={config?.POLICIES?.ALLOW_BOOKING ? t('inst_nav_schedule_book') || t("g_72ffa1") || "시간표/예약현황" : t('inst_nav_schedule') || t("g_78222f") || "시간표"} active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} />
-                <TabButton icon={<Bell size={24} />} label={t('inst_nav_notice') || t("g_c183e0") || "공지"} active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} />
+                <TabButton icon={<CalendarBlank size={24} />} label={config?.POLICIES?.ALLOW_BOOKING ? t('inst_nav_schedule_book') || t("g_72ffa1") || "Schedule/예약현황" : t('inst_nav_schedule') || t("g_78222f") || "Timetable"} active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} />
+                <TabButton icon={<Bell size={24} />} label={t('inst_nav_notice') || t("g_c183e0") || "Notice"} active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} />
             </div>
 
             <InstallBanner onManualInstallClick={() => safeSetShowInstallGuide(true)} />

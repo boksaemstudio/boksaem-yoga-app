@@ -8,14 +8,14 @@ import { useLanguage } from '../../hooks/useLanguage';
  * 
  * [개선사항]
  * 1. 카드 2개 → 1개로 통합 (중복 제거)
- * 2. MBTI + 날씨/온도 + 회원 수련이력 기반 매일 다른 콘텐츠
+ * 2. MBTI + 날씨/온도 + Member 수련이력 기반 매일 다른 콘텐츠
  * 3. 날짜+MBTI+날씨 조합으로 캐시 키 생성 → 같은 조건이면 캐시, 다르면 새로 생성
  */
 
 const HomeYogaCard = ({
   pose
 }) => {
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   if (!pose) return null;
   return <div style={{
     background: 'rgba(255,255,255,0.04)',
@@ -78,7 +78,7 @@ const HomeYogaSection = ({
     t: localT
   } = useLanguage();
 
-  // 회원의 주요 수련 종목 분석
+  // Member의 주요 수련 종목 분석
   const primaryClass = useMemo(() => {
     if (!logs || logs.length === 0) return null;
     const classCounts = {};
@@ -88,7 +88,7 @@ const HomeYogaSection = ({
     });
     const sorted = Object.entries(classCounts).sort((a, b) => b[1] - a[1]);
     return sorted[0]?.[0] || null;
-  }, [logs]);
+  }, [logs, language]);
 
   // 날씨/온도 정보 추출
   const weatherInfo = useMemo(() => {
@@ -100,7 +100,7 @@ const HomeYogaSection = ({
       weather: weatherData.description || weatherData.main || null,
       temp: weatherData.temp || weatherData.temperature || null
     };
-  }, [weatherData]);
+  }, [weatherData, language]);
   useEffect(() => {
     const loadPose = async () => {
       setLoading(true);

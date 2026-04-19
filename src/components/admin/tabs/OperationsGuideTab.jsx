@@ -4,8 +4,8 @@ import { CaretDown, CaretUp, CheckCircle, Clock, CalendarCheck, Bell, Robot, Shi
 import { useStudioConfig } from '../../../contexts/StudioContext';
 
 /**
- * 운영 가이드 탭 — 업장의 모든 비즈니스 규칙을 원장이 이해하기 쉬운 말로 설명
- * Firestore 호출 없이 현재 config에서 실제 설정값을 읽어 동적으로 표시
+ * Operations Guide Tab — Explains all business rules in plain language
+ * Reads actual settings from config and displays dynamically without Firestore calls
  */
 const OperationsGuideTab = () => {
   const t = useLanguageStore(s => s.t);
@@ -166,7 +166,7 @@ const OperationsGuideTab = () => {
     gap: '16px'
   }}>
 
-            {/* 헤더 */}
+            {/* Header */}
             <div style={{
       textAlign: 'center',
       padding: '20px 0 10px'
@@ -176,48 +176,48 @@ const OperationsGuideTab = () => {
         fontSize: '1.3rem',
         fontWeight: '800',
         margin: '0 0 6px'
-      }}>{t('📖 운영 가이드')}</h2>
+      }}>{t("g_142faf")}</h2>
                 <p style={{
         color: '#71717a',
         fontSize: '0.85rem',
         margin: 0
-      }}>{t('이 앱의 모든 자동화 규칙과 정책을 한 눈에 확인하세요')}</p>
+      }}>{t("g_2d8c42")}</p>
             </div>
 
-            {/* ━━━ 1. 회원 & 출석 ━━━ */}
-            <SectionHeader sectionKey="members" icon={<Users size={18} weight="fill" color="var(--primary-gold)" />} title={t('회원 & 출석')} count={7} />
+            {/* ━━━ 1. Members & Attendance ━━━ */}
+            <SectionHeader sectionKey="members" icon={<Users size={18} weight="fill" color="var(--primary-gold)" />} title={t("g_6c98b9")} count={7} />
             {openSections.members && <div style={{
       display: 'flex',
       flexDirection: 'column',
       gap: '10px',
       paddingLeft: '4px'
     }}>
-                    <RuleCard icon={<CheckCircle size={20} weight="fill" color="#10b981" />} title={t('출석 체크 & 횟수 차감')} description={t('키오스크에서 회원이 출석하면 잔여 횟수가 자동으로 1회 차감됩니다. 관리자가 수동 출석 처리 시에는 차감 여부를 선택할 수 있습니다.')} tip={t('같은 날 여러 수업 출석도 가능합니다(다중 출석). 각 출석마다 1회씩 차감됩니다.')} />
-                    <RuleCard icon={<Warning size={20} weight="fill" color="#ef4444" />} title={t('출석 거부 (자동 차단)')} description={t('기간이 만료(종료일 초과)되었거나 잔여 횟수가 0인 회원은 키오스크에서 자동으로 출석이 거부됩니다. 화면에 \'기간 만료\' 또는 \'횟수 부족\' 사유가 표시됩니다.')} tip={t('관리자 대시보드에서는 거부된 출석 시도도 기록으로 남아 확인할 수 있습니다.')} />
-                    <RuleCard icon={<Clock size={20} weight="fill" color="#3b82f6" />} title={t('TBD: 시작일 미확정 등록')} description={t("g_bed607") || "회원 등록 시 시작일을 \"TBD(미정)\"로 설정할 수 있습니다. 이 회원이 처음 출석하는 날이 자동으로 시작일이 되고, 수강 기간에 따라 종료일이 자동 계산됩니다."} badge={t('첫 출석 시 자동 확정')} tip={t('예: 3개월 수강권을 TBD로 등록 → 4월 1일 첫 출석 → 시작일 4/1, 종료일 6/30 자동 설정')} />
-                    <RuleCard icon={<Clock size={20} weight="fill" color="#f59e0b" />} title={t('홀딩 (수강 일시정지)')} description={`회원의 수강권을 일시정지할 수 있습니다. 홀딩 중에 출석하면 자동으로 해제되며, 실제 정지한 일수만큼 종료일이 자동 연장됩니다.${holdRules.length > 0 ? ` 현재 설정된 홀딩 규칙: ${holdRules.map(r => `${r.durationMonths}개월권 → 최대 ${r.maxCount}회, ${r.maxWeeks}주`).join(' | ')}` : ''}`} badge={holdRules.length > 0 ? `${holdRules.length}개 규칙 설정됨` : t("g_c6c674") || "미설정"} tip={t('예: 7일 홀딩 후 출석 → 종료일이 7일 뒤로 자동 연장')} />
-                    <RuleCard icon={<CalendarCheck size={20} weight="fill" color="#8b5cf6" />} title={t('선등록 (미래 수강권 예약)')} description={t('현재 수강권이 진행 중인 회원에게 다음 수강권을 미리 등록할 수 있습니다. 기존 횟수가 소진되거나 기간이 만료되면 첫 출석 시 선등록 수강권이 자동 활성화됩니다. 활성화 시 기존 잔여 횟수는 무조건 0이 되고, 새 수강권의 횟수와 기간으로 교체됩니다.')} badge={t('소진/만료 시 자동 전환')} tip={t('선등록 수강권은 시작일 옵션(TBD/직접지정/즉시출석)에 따라 종료일이 산정됩니다.')} />
-                    <RuleCard icon={<Users size={20} weight="fill" color="#71717a" />} title={t('잠든 회원 자동 분류')} description={(t("g_00a928") || "잔여 횟수가 있지만 일정 기간 출석하지 않은 회원은 '잠든 회원'으로 자동 분류됩니다. 대시보드에서 이 회원들을 한 눈에 확인하고 관리할 수 있습니다.")} badge={`${policies.DORMANT_THRESHOLD_DAYS || 14}일 미출석`} />
-                    <RuleCard icon={<Bell size={20} weight="fill" color="#f43f5e" />} title={t('만료 임박 알림')} description={(t("g_42608c") || "종료일이 가까워진 회원을 미리 파악할 수 있습니다. 대시보드에 만료 임박 배지가 표시되며, 자동 알림을 보낼 수 있습니다.")} badge={`종료 ${policies.EXPIRING_THRESHOLD_DAYS || 7}일 전부터`} />
+                    <RuleCard icon={<CheckCircle size={20} weight="fill" color="#10b981" />} title={t("g_3b30db")} description={t("g_659448")} tip={t("g_b3a503")} />
+                    <RuleCard icon={<Warning size={20} weight="fill" color="#ef4444" />} title={t("g_903bc8")} description={t("g_att_refusal_desc") || "기간 만료 또는 잔여 횟수가 0인 회원이 키오스크에 출석을 시도하면 자동으로 출석이 거부됩니다. (화면에 사유 표시)"} tip={t("g_d1d6ca")} />
+                    <RuleCard icon={<Clock size={20} weight="fill" color="#3b82f6" />} title={t("g_37dcab")} description={t("g_bed607") || "수강권 등록 시 시작일을 '미확정(TBD)'으로 설정할 수 있습니다. 회원이 처음 출석하는 날이 자동으로 시작일로 지정되며, 이에 따라 종료일도 자동 계산됩니다."} badge={t("g_71cb52")} tip={t("g_10eef2")} />
+                    <RuleCard icon={<Clock size={20} weight="fill" color="#f59e0b" />} title={t("g_cf74e3")} description={`${t("g_hold_desc") || "회원의 수강을 일시적으로 정지합니다. 정지 기간 중 출석하면 홀딩이 자동 해제되며, 정지된 일수만큼 수강 종료일이 연장됩니다."}${holdRules.length > 0 ? ` ${t("g_hold_current") || "현재 설정된 규칙"}: ${holdRules.map(r => `${r.durationMonths}${t("g_months") || "개월"} → max ${r.maxCount}x, ${r.maxWeeks}${t("g_weeks") || "주"}`).join(' | ')}` : ''}`} badge={holdRules.length > 0 ? `${holdRules.length} ${t("g_rules_set") || "개 규칙 설정됨"}` : t("g_c6c674") || "설정 안 됨"} tip={t("g_cc0c9d")} />
+                    <RuleCard icon={<CalendarCheck size={20} weight="fill" color="#8b5cf6" />} title={t("g_87daa9")} description={t("g_cdb53b")} badge={t("g_2d0195")} tip={t("g_6ceff0")} />
+                    <RuleCard icon={<Users size={20} weight="fill" color="#71717a" />} title={t("g_f0db5c")} description={(t("g_00a928") || "잔여 횟수가 있지만 일정 기간 출석하지 않은 회원은 '잠든 회원'으로 자동 분류됩니다. 대시보드에서 조회할 수 있습니다.")} badge={`${policies.DORMANT_THRESHOLD_DAYS || 14} ${t("g_days_inactive") || "일간 미출석"}`} />
+                    <RuleCard icon={<Bell size={20} weight="fill" color="#f43f5e" />} title={t("g_e0d5d1")} description={(t("g_42608c") || "수강 종료일이 다가오는 회원을 식별합니다. 대시보드에 만료 임박 뱃지가 표시되며 안내 메시지를 보낼 수 있습니다.")} badge={`${policies.EXPIRING_THRESHOLD_DAYS || 7} ${t("g_days_before_end") || "일 전부터 표시"}`} />
                 </div>}
 
-            {/* ━━━ 1-2. 회원권 등록/재등록 로직 ━━━ */}
-            <SectionHeader sectionKey="membership" icon={<CreditCard size={18} weight="fill" color="#10b981" />} title={t('회원권 등록 · 재등록 로직')} count={5} color="#10b981" />
+            {/* ━━━ 1-2. Membership Registration Logic ━━━ */}
+            <SectionHeader sectionKey="membership" icon={<CreditCard size={18} weight="fill" color="#10b981" />} title={t("g_86d85f")} count={5} color="#10b981" />
             {openSections.membership && <div style={{
       display: 'flex',
       flexDirection: 'column',
       gap: '10px',
       paddingLeft: '4px'
     }}>
-                    <RuleCard icon={<CreditCard size={20} weight="fill" color="#10b981" />} title={t('종료일 산정 기준')} description={t('종료일은 항상 \'시작일 + 수강권 기간(개월) - 1일\'로 자동 계산됩니다. 예를 들어 시작일이 3월 25일이고 3개월 수강권이면 종료일은 6월 24일입니다.')} badge={t('시작일 기준 자동 계산')} tip={t('예: 3/25 + 1개월 → 4/24 | 3/25 + 3개월 → 6/24 | 4/1 + 3개월 → 6/30')} />
-                    <RuleCard icon={<ArrowsClockwise size={20} weight="fill" color="#3b82f6" />} title={t('횟수 0 + 기간 남음 → 재등록')} description={t('잔여 횟수가 0이지만 종료일이 아직 남아있는 경우 재등록하면, 선택한 시작일부터 새 수강권 기간만큼 종료일이 산정됩니다. 기존의 남은 기간은 무시됩니다.')} badge={t('시작일부터 새로 계산')} />
-                    <RuleCard icon={<ArrowsClockwise size={20} weight="fill" color="#f59e0b" />} title={t('횟수 남음 + 기간 종료 → 재등록')} description={t('기간이 만료되었지만 잔여 횟수가 남아있는 경우 재등록하면, 기존 잔여 횟수는 삭제(0)되고 새 수강권의 횟수가 부여됩니다. 종료일도 새 수강권 기간에 따라 새로 산정됩니다.')} badge={t('기존 횟수 삭제 → 새로 부여')} tip={t('예: 기존 5회 남았지만 기간 만료 → 재등록 시 새 수강권 35회로 교체')} />
-                    <RuleCard icon={<ArrowsClockwise size={20} weight="fill" color="#ef4444" />} title={t('횟수 0 + 기간 종료 → 재등록 (신규와 동일)')} description={t('횟수도 0이고 기간도 지난 경우 재등록하면, 신규 등록과 완전히 동일하게 처리됩니다. 선택한 시작일부터 수강권 기간에 따라 종료일이 산정되고 새 횟수가 부여됩니다.')} badge={t('신규 등록과 동일')} />
-                    <RuleCard icon={<CalendarCheck size={20} weight="fill" color="#8b5cf6" />} title={t('선등록 시 회원권 전환')} description={t('현재 수강권이 활성 상태인 회원에게 선등록하면, 기존 횟수가 소진되거나 기간이 만료되었을 때 첫 출석 시 자동으로 전환됩니다. 전환 시 기존 잔여 횟수는 0이 되고, 새 수강권의 횟수와 기간으로 완전히 교체됩니다.')} badge={t('기존 횟수 사라짐')} tip={t('시작일 옵션(TBD/직접지정/즉시출석)에 따라 종료일이 산정됩니다. 어떤 경우든 기존 횟수는 보존되지 않습니다.')} />
+                    <RuleCard icon={<CreditCard size={20} weight="fill" color="#10b981" />} title={t("g_174339")} description={t("g_enddate_calc_desc") || "종료일은 항상 '시작일 + 수강기간(개월) - 1일'로 자동 계산됩니다. 예: 시작일 3/25 + 3개월 = 종료일 6/24"} badge={t("g_97c0ec")} tip={t("g_c162b8")} />
+                    <RuleCard icon={<ArrowsClockwise size={20} weight="fill" color="#3b82f6" />} title={t("g_4a25a0")} description={t("g_5956ba")} badge={t("g_ad23a4")} />
+                    <RuleCard icon={<ArrowsClockwise size={20} weight="fill" color="#f59e0b" />} title={t("g_537220")} description={t("g_a6202a")} badge={t("g_d77f76")} tip={t("g_1ee0fd")} />
+                    <RuleCard icon={<ArrowsClockwise size={20} weight="fill" color="#ef4444" />} title={t("g_d233cf")} description={t("g_fa4940")} badge={t("g_ef4d34")} />
+                    <RuleCard icon={<CalendarCheck size={20} weight="fill" color="#8b5cf6" />} title={t("g_a072f1")} description={t("g_028afd")} badge={t("g_7d8844")} tip={t("g_e1f1a3")} />
                 </div>}
 
-            {/* ━━━ 2. 예약 시스템 ━━━ */}
-            <SectionHeader sectionKey="booking" icon={<CalendarCheck size={18} weight="fill" color="#3b82f6" />} title={t('예약 시스템')} count={6} color="#3b82f6" />
+            {/* ━━━ 2. Booking System ━━━ */}
+            <SectionHeader sectionKey="booking" icon={<CalendarCheck size={18} weight="fill" color="#3b82f6" />} title={t("g_91df7a")} count={6} color="#3b82f6" />
             {openSections.booking && <div style={{
       display: 'flex',
       flexDirection: 'column',
@@ -235,53 +235,53 @@ const OperationsGuideTab = () => {
         alignItems: 'center',
         gap: '8px'
       }}>
-                            <Info size={16} weight="fill" /> {t('현재 예약 기능이 비활성화되어 있습니다. 설정 탭에서 활성화할 수 있습니다.')}
+                            <Info size={16} weight="fill" /> {t("g_800777")}
                         </div>}
-                    <RuleCard icon={<CalendarCheck size={20} weight="fill" color="#3b82f6" />} title={t('예약 가능 기간')} description={`수업 시작 ${bookingRules.windowDays || 7}일 전부터 예약할 수 있습니다. 지난 수업은 예약할 수 없습니다.`} badge={`${bookingRules.windowDays || 7}일 전부터`} />
-                    <RuleCard icon={<Users size={20} weight="fill" color="#6366f1" />} title={t('동시 예약 & 하루 예약 한도')} description={`한 회원이 동시에 유지할 수 있는 예약은 최대 ${bookingRules.maxActiveBookings || 3}건, 하루에 예약할 수 있는 수업은 최대 ${bookingRules.maxDailyBookings || 2}건입니다.`} badge={`동시 ${bookingRules.maxActiveBookings || 3}건 / 하루 ${bookingRules.maxDailyBookings || 2}건`} />
-                    <RuleCard icon={<Users size={20} weight="fill" color="#10b981" />} title={t('정원 관리 & 대기열')} description={`수업당 정원은 기본 ${bookingRules.defaultCapacity || 15}명입니다. 정원이 차면 ${bookingRules.enableWaitlist !== false ? t("g_662e6c") || "자동으로 대기열에 등록되며, 누군가 취소하면 대기 1번째 회원이 자동으로 예약 확정되고 푸시 알림을 받습니다." : t("g_fcc7d1") || "예약이 거부됩니다 (대기열 비활성화)."}`} badge={`정원 ${bookingRules.defaultCapacity || 15}명`} tip={bookingRules.enableWaitlist !== false ? t("g_627804") || "대기열 활성화 상태: 취소 발생 시 자동 승격 + 알림" : undefined} />
-                    <RuleCard icon={<Warning size={20} weight="fill" color="#ef4444" />} title={t('노쇼 (미출석) 자동 처리')} description={`예약 후 수업에 출석하지 않으면 수업 시간이 지난 후 자동으로 '노쇼'로 처리됩니다. 노쇼 시 잔여 횟수가 ${bookingRules.noshowCreditDeduct || 1}회 차감되며, 관리자에게 알림이 발송됩니다.`} badge={`노쇼 시 ${bookingRules.noshowCreditDeduct || 1}회 차감`} tip={t('매시간 자동으로 체크합니다. 수업 시간이 지나야 노쇼로 처리됩니다.')} />
-                    <RuleCard icon={<Clock size={20} weight="fill" color="#f59e0b" />} title={t('취소 마감 시간')} description={`수업 시작 ${bookingRules.cancelDeadlineHours || 3}시간 전까지만 취소할 수 있습니다. 마감 이후에는 취소가 불가능하며 출석하지 않으면 노쇼 처리됩니다.`} badge={`수업 ${bookingRules.cancelDeadlineHours || 3}시간 전`} />
-                    <RuleCard icon={<Info size={20} weight="fill" color="#8b5cf6" />} title={t('크레딧 정책 모드')} description={creditRules.mode === 'weekly' ? `주간 모드: 매주 ${[t("g_06cf3e") || "일", t("g_754486") || "월", t("g_adb4a2") || "화", t("g_c04eb2") || "수", t("g_5664a6") || "목", t("g_cf5632") || "금", t("g_b9e406") || "토"][creditRules.weeklyResetDay || 1]}요일에 주간 횟수가 리셋됩니다. 회원별 주간 수강 횟수 제한이 적용됩니다.` : t("g_91c1ba") || "총횟수 모드: 등록 시 부여된 총 횟수에서 출석/예약마다 1회씩 차감됩니다. 주간 제한 없이 원하는 만큼 수강 가능합니다."} badge={creditRules.mode === 'weekly' ? t("g_ff872c") || "주간 리셋 모드" : t("g_32e689") || "총횟수 차감 모드"} />
+                    <RuleCard icon={<CalendarCheck size={20} weight="fill" color="#3b82f6" />} title={t("g_eb1f56")} description={`${t("g_booking_window_desc") || `수업 시작 ${bookingRules.windowDays || 7}일 전부터 예약이 열립니다. 지난 수업은 예약 불가합니다.`}`} badge={`${bookingRules.windowDays || 7} ${t("g_days_before") || "일 전"}`} />
+                    <RuleCard icon={<Users size={20} weight="fill" color="#6366f1" />} title={t("g_bfc02d")} description={`${t("g_max_booking_desc") || `동시에 최대 ${bookingRules.maxActiveBookings || 3}개 예약 가능하며, 하루 최대 ${bookingRules.maxDailyBookings || 2}회 예약 가능합니다.`}`} badge={`${bookingRules.maxActiveBookings || 3} ${t("g_active") || "개 유지"} / ${bookingRules.maxDailyBookings || 2} ${t("g_per_day") || "회/일"}`} />
+                    <RuleCard icon={<Users size={20} weight="fill" color="#10b981" />} title={t("g_a0f8d2")} description={`${t("g_capacity_desc") || `기본 정원은 수업당 ${bookingRules.defaultCapacity || 15}명입니다. 정원이 다 차면`} ${bookingRules.enableWaitlist !== false ? t("g_662e6c") || "자동으로 대기 명단에 등록됩니다. 취소자가 생기면 대기 1순위 회원이 자동 확정되고 알림이 발송됩니다." : t("g_fcc7d1") || "예약이 거부됩니다 (대기 명단 비활성화)."}`} badge={`${t("g_capacity") || "정원"}: ${bookingRules.defaultCapacity || 15}`} tip={bookingRules.enableWaitlist !== false ? t("g_627804") || "대기 명단 활성화: 취소 발생 시 자동 승급 및 알림 발송" : undefined} />
+                    <RuleCard icon={<Warning size={20} weight="fill" color="#ef4444" />} title={t("g_6655b5")} description={`${t("g_noshow_desc") || `예약 후 출석하지 않으면 수업 종료 후 자동으로 노쇼(No-show) 처리됩니다. 횟수가 ${bookingRules.noshowCreditDeduct || 1}회 차감되며 관리자에게 알림 전송.`}`} badge={`${t("g_noshow_deduct") || "노쇼 차감"}: -${bookingRules.noshowCreditDeduct || 1}`} tip={t("g_bcb1e9")} />
+                    <RuleCard icon={<Clock size={20} weight="fill" color="#f59e0b" />} title={t("g_97eaa7")} description={`${t("g_cancel_desc") || `수업 시작 ${bookingRules.cancelDeadlineHours || 3}시간 전까지만 취소 가능합니다. 마감 시간 이후에는 취소 불가(노쇼 처리).`}`} badge={`${bookingRules.cancelDeadlineHours || 3}h ${t("g_before_class") || "시간 전"}`} />
+                    <RuleCard icon={<Info size={20} weight="fill" color="#8b5cf6" />} title={t("g_3957df")} description={creditRules.mode === 'weekly' ? `${t("g_weekly_mode_desc") || "주간 모드: 매주 횟수가 갱신됩니다. 회원별 주간 최대 출석 횟수 제한이 적용됩니다."}` : t("g_91c1ba") || "전체 횟수 모드: 등록 시 부여된 총 횟수에서 출석/예약 시마다 1회씩 차감됩니다. 주간 제한 없음."} badge={creditRules.mode === 'weekly' ? t("g_ff872c") || "주간 갱신 모드" : t("g_32e689") || "전체 횟수 모드"} />
                 </div>}
 
-            {/* ━━━ 3. 알림 & 보안 ━━━ */}
-            <SectionHeader sectionKey="alerts" icon={<Bell size={18} weight="fill" color="#f43f5e" />} title={t('알림 & 보안')} count={3} color="#f43f5e" />
+            {/* ━━━ 3. Alerts & Security ━━━ */}
+            <SectionHeader sectionKey="alerts" icon={<Bell size={18} weight="fill" color="#f43f5e" />} title={t("g_445472")} count={3} color="#f43f5e" />
             {openSections.alerts && <div style={{
       display: 'flex',
       flexDirection: 'column',
       gap: '10px',
       paddingLeft: '4px'
     }}>
-                    <RuleCard icon={<Bell size={20} weight="fill" color="#f43f5e" />} title={t('크레딧 소진 알림')} description={t('회원의 잔여 횟수가 0이 되면 AI가 해당 회원의 수강 패턴을 분석하여 맞춤형 알림 메시지를 자동 생성합니다. 관리자가 승인하면 회원에게 푸시 알림으로 발송됩니다.')} tip={t('자동 발송이 아닌 \'관리자 승인 후 발송\' 방식이므로 안심하셔도 됩니다.')} />
-                    <RuleCard icon={<ShieldCheck size={20} weight="fill" color="#10b981" />} title={t('일일 리포트 (매일 23시)')} description={t('매일 밤 11시에 오늘의 출석 수, 신규 가입 수, 보안 이상 여부를 정리한 요약 보고서가 관리자에게 푸시 알림으로 발송됩니다.')} badge={t('매일 23:00')} />
-                    <RuleCard icon={<Clock size={20} weight="fill" color="#6366f1" />} title={t('예약 메시지 자동 발송')} description={t('관리자가 예약한 알림 메시지(수업 리마인더, 이벤트 안내 등)는 10분 간격으로 자동 발송됩니다. 푸시 알림 우선이며, 푸시 실패 시 SMS로 대체 발송합니다.')} badge={t('10분 주기')} tip={t('푸시 → SMS 순서로 발송합니다. 앱 미설치 회원에게도 SMS로 전달됩니다.')} />
+                    <RuleCard icon={<Bell size={20} weight="fill" color="#f43f5e" />} title={t("g_129193")} description={t("g_22398c")} tip={t("g_notif_approval_tip") || "메시지 발송 전 반드시 관리자의 승인(검토)을 거치도록 설정되어 있어 안전합니다."} />
+                    <RuleCard icon={<ShieldCheck size={20} weight="fill" color="#10b981" />} title={t("g_b5358f")} description={t("g_c2729f")} badge={t("g_968f63")} />
+                    <RuleCard icon={<Clock size={20} weight="fill" color="#6366f1" />} title={t("g_279785")} description={t("g_bb4c8d")} badge={t("g_702647")} tip={t("g_1f4f53")} />
                 </div>}
 
-            {/* ━━━ 4. AI & 자동화 ━━━ */}
-            <SectionHeader sectionKey="automation" icon={<Robot size={18} weight="fill" color="#8b5cf6" />} title={t('AI & 자동화')} count={3} color="#8b5cf6" />
+            {/* ━━━ 4. AI & Automation ━━━ */}
+            <SectionHeader sectionKey="automation" icon={<Robot size={18} weight="fill" color="#8b5cf6" />} title={t("g_a984c7")} count={3} color="#8b5cf6" />
             {openSections.automation && <div style={{
       display: 'flex',
       flexDirection: 'column',
       gap: '10px',
       paddingLeft: '4px'
     }}>
-                    <RuleCard icon={<Robot size={20} weight="fill" color="#8b5cf6" />} title={t('AI 대시보드 브리핑')} description={t('관리자 대시보드에 접속하면 AI가 현재 시간대에 맞는 전략적 분석을 제공합니다. 활성 회원 수, 매출, 출석률 등 실시간 데이터를 기반으로 실행 가능한 인사이트를 생성합니다.')} tip={t('AI는 제공된 데이터의 정확한 수치만 사용하며, 임의의 숫자를 생성하지 않습니다.')} />
-                    <RuleCard icon={<ShieldCheck size={20} weight="fill" color="#10b981" />} title={t('데이터 자동 백업')} description={t('매일 오전과 오후, 하루 2회 Firestore 데이터가 자동으로 백업됩니다. 데이터 손실 시 백업 시점으로 복원할 수 있습니다.')} badge={t('1일 2회')} />
-                    <RuleCard icon={<Warning size={20} weight="fill" color="#f59e0b" />} title={t('유령 토큰 자동 정리')} description={t('60일 이상 업데이트되지 않은 만료된 푸시 알림 토큰을 자동으로 정리합니다. 이를 통해 불필요한 알림 발송 시도를 줄이고 시스템 효율을 유지합니다.')} badge={t('60일 초과 시 삭제')} />
+                    <RuleCard icon={<Robot size={20} weight="fill" color="#8b5cf6" />} title={t("g_bcf36d")} description={t("g_b8d960")} tip={t("g_a22f86")} />
+                    <RuleCard icon={<ShieldCheck size={20} weight="fill" color="#10b981" />} title={t("g_c104d8")} description={t("g_01ed30")} badge={t("g_c685c1")} />
+                    <RuleCard icon={<Warning size={20} weight="fill" color="#f59e0b" />} title={t("g_a313bf")} description={t("g_160b40")} badge={t("g_6d9d1a")} />
                 </div>}
 
-            {/* 하단 안내 */}
+            {/* Footer */}
             <div style={{
       textAlign: 'center',
       padding: '20px 0',
       color: '#52525b',
       fontSize: '0.78rem'
     }}>
-                <p>{t('위 설정값은 현재 업장의 실제 설정을 반영합니다.')}</p>
-                <p>{t('설정 변경은')} <strong style={{
+                <p>{t("g_a702ee")}</p>
+                <p>{t("g_4f1777")} <strong style={{
           color: '#a1a1aa'
-        }}>{t('⚙️ 설정')}</strong> {t('탭에서 할 수 있습니다.')}</p>
+        }}>{t("g_dbd740")}</strong> {t("g_3614c7")}</p>
             </div>
         </div>;
 };

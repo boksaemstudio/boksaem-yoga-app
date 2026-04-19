@@ -40,7 +40,7 @@ const LogListItem = memo(({
           storageService.notifyListeners('members');
         }, 500);
       } else {
-        alert(`삭제 실패: ${result.message}`);
+        alert(`Delete failed: ${result.message}`);
       }
     }
   };
@@ -84,7 +84,7 @@ const LogListItem = memo(({
           padding: '1px 6px',
           borderRadius: '4px'
         }}>
-                        {log.className || t("g_8209e5") || "\uC77C\uBC18"}
+                        {log.className === 'Self Practice' ? (t('selfPractice') || t('g_dd529d') || '자율수련') : (log.className || t("g_8209e5") || "일반")}
                     </span>
                     <span className="badge" style={{
           fontSize: '0.65rem',
@@ -116,7 +116,7 @@ const LogListItem = memo(({
           gap: '3px'
         }}>
                             <UserFocus size={10} weight="fill" />
-                            {t('안면 일치')}
+                            {t("g_654b4e")}
                         </span>}
                 </div>
                 <div style={{
@@ -125,7 +125,7 @@ const LogListItem = memo(({
         marginTop: '2px',
         color: log.status === 'denied' ? '#ff4d4f' : 'inherit'
       }}>
-                    {log.status === 'denied' ? `${t('출석 시도가 거부되었습니다')} (${log.denialReason === 'expired' ? t("g_94dcd3") || "\uAE30\uAC04\uB9CC\uB8CC" : t("g_7174c2") || "\uD69F\uC218\uC18C\uC9C4"})` : log.action?.includes(t("g_b31acb") || "\uCD9C\uC11D") ? `${log.className || t("g_8209e5") || "\uC77C\uBC18"} ${t('수업 참여')} (${log.instructor || t("g_0cb522") || "\uAD00\uB9AC\uC790"} ${t('선생님')})` : log.action}
+                    {log.status === 'denied' ? `${t('출석 시도가 거부되었습니다')} (${log.denialReason === 'expired' ? t("g_94dcd3") || "\uAE30\uAC04\uB9CC\uB8CC" : t("g_7174c2") || "\uD69F\uC218\uC18C\uC9C4"})` : log.action?.includes(t("g_b31acb") || "\uCD9C\uC11D") ? `${log.className === 'Self Practice' ? (t('selfPractice') || t('g_dd529d') || '자율수련') : (log.className || t("g_8209e5") || "일반")} ${t('수업 참여')} (${log.instructor === 'Member' ? (t('g_dae3ed') || '회원') : (log.instructor || t("g_0cb522") || "\uAD00\uB9AC\uC790")} ${t("g_9564f6")})` : log.action}
                 </div>
             </div>
 

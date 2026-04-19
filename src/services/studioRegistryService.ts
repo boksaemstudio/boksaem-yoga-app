@@ -72,10 +72,10 @@ export const studioRegistryService = {
             // 1. 중복 검사
             const existing = await this.getStudio(studioId);
             if (existing) {
-                return { success: false, message: `이미 등록된 스튜디오 ID입니다: ${studioId}` };
+                return { success: false, message: `Studio ID already registered: ${studioId}` };
             }
 
-            // 2. 레지스트리에 등록 (2개월 무료 체험 기본)
+            // 2. 레지스트리에 등록 (2개 무료 체험 기본)
             const now = new Date();
             const trialEnd = new Date(now);
             trialEnd.setDate(trialEnd.getDate() + 60);
@@ -116,10 +116,10 @@ export const studioRegistryService = {
             };
             await setDoc(doc(db, 'studios', studioId), seedConfig);
 
-            return { success: true, message: `${name} 스튜디오가 등록되었습니다.` };
+            return { success: true, message: `${name} Studio has been registered.` };
         } catch (e) {
             console.error('[Registry] Register failed:', e);
-            return { success: false, message: `등록 실패: ${(e as Error).message}` };
+            return { success: false, message: `Registration failed: ${(e as Error).message}` };
         }
     },
 
@@ -149,7 +149,7 @@ export const studioRegistryService = {
     // 🚀 Onboarding & Pending Studios
     // ==========================================
 
-    /** 대기 중인 온보딩 신청 목록 조회 */
+    /** Waitlisted at position 중인 온보딩 신청 목록 조회 */
     async listPendingStudios() {
         try {
             const q = query(collection(db, 'platform/registry/pending_studios'), orderBy('createdAt', 'desc'));
@@ -177,7 +177,7 @@ export const studioRegistryService = {
                 .toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').substring(0, 20);
             const studioId = `${baseName}-${Date.now().toString(36)}`;
 
-            // 3. 즉시 스튜디오 등록 (2개월 무료 체험)
+            // 3. 즉시 스튜디오 등록 (2개 무료 체험)
             const regResult = await this.registerStudio({
                 studioId,
                 name: data.name,
@@ -203,8 +203,8 @@ export const studioRegistryService = {
             try {
                 const noticeRef = doc(collection(db, 'studios/boksaem-yoga/notices'));
                 await setDoc(noticeRef, {
-                    title: `🆕 새 스튜디오 가입: ${data.name}`,
-                    content: `${data.name} (${data.ownerEmail})이 PassFlow AI에 가입했습니다. 스튜디오ID: ${studioId}`,
+                    title: `🆕 New studio signup: ${data.name}`,
+                    content: `${data.name} (${data.ownerEmail}) has joined PassFlow AI. Studio ID: ${studioId}`,
                     date: new Date().toISOString().split('T')[0],
                     timestamp: new Date().toISOString(),
                     images: [],

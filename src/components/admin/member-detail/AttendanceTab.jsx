@@ -15,7 +15,7 @@ const AttendanceTab = ({
   logLimit,
   setLogLimit
 }) => {
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   const {
     config
   } = useStudioConfig();
@@ -45,11 +45,11 @@ const AttendanceTab = ({
       }
     };
     fetchClasses();
-  }, [manualBranch, manualDate]);
+  }, [manualBranch, manualDate, language]);
 
-  // 수업 목록: 선택 지점의 해당 날짜 수업 + 자율수련(시간만)
+  // 수업 목록: 선택 지점의 해당 날짜 수업 + Self Practice(시간만)
   const classOptions = useMemo(() => {
-    // 자율수련 포함 - 선택된 지점의 이름 찾기
+    // Self Practice 포함 - 선택된 지점의 이름 찾기
     const options = [{
       value: t("g_2b3da3") || "\uC790\uC728\uC218\uB828",
       label: t("g_2b3da3") || "\uC790\uC728\uC218\uB828",
@@ -76,12 +76,12 @@ const AttendanceTab = ({
       });
     }
     return options;
-  }, [dailyClasses, manualBranch, branches]);
+  }, [dailyClasses, manualBranch, branches, language]);
 
   // 지점이나 날짜 변경 시 수업 선택 초기화
   useEffect(() => {
     setManualClassName(t("g_2b3da3") || "\uC790\uC728\uC218\uB828");
-  }, [manualBranch, manualDate]);
+  }, [manualBranch, manualDate, language]);
   return <div>
             <h3 style={{
       color: 'var(--primary-gold)',

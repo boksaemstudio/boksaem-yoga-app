@@ -135,7 +135,7 @@ export function useFacialRecognition({
         // [강화 v3] 임계값을 대폭 강화 — 오인식 근본 차단
         // Level 1 (극고신뢰): dist <= 0.30 && gap >= 0.15 → 자동 출석
         // Level 2 (고신뢰):   dist <= 0.35 && gap >= 0.12 → 자동 출석
-        // Level 3 (중신뢰):   dist <= 0.42 → 확인 요청 ("OO님 맞나요?")
+        // Level 3 (중신뢰):   dist <= 0.42 → 확인 요청 ("OO 맞나요?")
         // Level 4 (저신뢰):   dist > 0.42 → 무시
         const THRESHOLD_AUTO = 0.35;
         const THRESHOLD_CONFIRM = 0.42;

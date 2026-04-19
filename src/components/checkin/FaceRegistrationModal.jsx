@@ -138,7 +138,7 @@ const FaceRegistrationModal = ({
     try {
       const members = await memberService.findMembersByPhone(pin);
       if (members.length === 0) {
-        setError(t('facereg_member_not_found') || t("g_9a762b") || "등록된 회원이 없어요. 번호를 확인해주세요.");
+        setError(t('facereg_member_not_found') || t("g_9a762b") || "등록된 Member이 없어요. 번호를 확인해주세요.");
         return;
       }
       if (members.length > 1) {
@@ -149,7 +149,7 @@ const FaceRegistrationModal = ({
         setStep(3); // → useEffect가 initCamera 호출
       }
     } catch (e) {
-      setError(t('facereg_member_lookup_error') || t("g_9f1598") || "회원 조회 중 문제가 생겼어요. 다시 시도해주세요.");
+      setError(t('facereg_member_lookup_error') || t("g_9f1598") || "Member 조회 중 문제가 생겼어요. 다시 시도해주세요.");
     }
   }, [pin]);
   const startCountdown = useCallback(() => {
@@ -432,7 +432,7 @@ const FaceRegistrationModal = ({
             color: pin.length === 4 ? '#000' : 'rgba(255,255,255,0.3)',
             border: 'none',
             cursor: pin.length === 4 ? 'pointer' : 'default'
-          }}>{t('facereg_confirm') || t("g_468266") || "확인"}</button>
+          }}>{t('facereg_confirm') || t("g_468266") || "Confirm"}</button>
                         </div>
 
                         {error && <div style={{
@@ -451,7 +451,7 @@ const FaceRegistrationModal = ({
           color: 'rgba(255,255,255,0.4)',
           fontSize: '0.85rem',
           cursor: 'pointer'
-        }}>{t('cancel') || t("g_19b2d1") || "취소"}</button>
+        }}>{t('cancel') || t("g_19b2d1") || "Cancel"}</button>
                     </div>}
 
                 {/* Step 2.5: 멤버 선택 (동명이인/동일번호) */}
@@ -474,7 +474,7 @@ const FaceRegistrationModal = ({
           color: 'rgba(255,255,255,0.6)',
           marginBottom: '24px'
         }}>
-                            {t('facereg_multiple_members') || t("g_c03e30") || "입력하신 번호와 일치하는 회원이 여러 명 있어요"}
+                            {t('facereg_multiple_members') || t("g_c03e30") || "입력하신 번호와 일치하는 Member이 여러 명 있어요"}
                         </p>
                         
                         <div style={{
@@ -534,7 +534,7 @@ const FaceRegistrationModal = ({
         }}>
                             {t('facereg_look_at_camera', {
             name: matchedMember?.name
-          }) || `${matchedMember?.name}님, 카메라를 봐주세요!`}
+          }) || `${matchedMember?.name}, 카메라를 봐주세요!`}
                         </h2>
                         <p style={{
           fontSize: '0.9rem',
@@ -698,7 +698,7 @@ const FaceRegistrationModal = ({
           color: 'rgba(255,255,255,0.4)',
           fontSize: '0.85rem',
           cursor: 'pointer'
-        }}>{t('cancel') || t("g_19b2d1") || "취소"}</button>
+        }}>{t('cancel') || t("g_19b2d1") || "Cancel"}</button>
                     </div>}
 
                 {/* Step 4: 완료 */}
@@ -724,7 +724,7 @@ const FaceRegistrationModal = ({
         }} dangerouslySetInnerHTML={{
           __html: t('facereg_done_desc1', {
             name: matchedMember?.name
-          }) || `<strong>${matchedMember?.name}</strong>님의 얼굴이 등록되었어요.`
+          }) || `<strong>${matchedMember?.name}</strong>의 얼굴이 등록되었어요.`
         }}>
                         </p>
                         <p style={{
@@ -743,7 +743,7 @@ const FaceRegistrationModal = ({
           fontWeight: 'bold',
           border: 'none',
           cursor: 'pointer'
-        }}>{t('facereg_confirm') || t("g_468266") || "확인"}</button>
+        }}>{t('facereg_confirm') || t("g_468266") || "Confirm"}</button>
                     </div>}
             </div>
         </div>;

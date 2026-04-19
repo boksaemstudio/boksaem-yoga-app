@@ -38,8 +38,8 @@ export const guessClassInfo = (log: AttendanceLog): ClassInfo | null => {
     if (!log.timestamp) return null;
     
     const time = guessClassTime(log);
-    const className = (log.className && log.className !== '일반') ? log.className : '일반';
-    const instructor = (log.instructor && log.instructor !== '선생님') ? log.instructor : '미지정';
+    const className = (log.className && log.className !== 'General' && log.className !== '일반') ? log.className : 'General';
+    const instructor = (log.instructor && log.instructor !== 'Instructor') ? log.instructor : 'Unassigned';
 
     return { 
         startTime: time || '00:00', 

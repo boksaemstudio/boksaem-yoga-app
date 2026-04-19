@@ -1,5 +1,5 @@
 /**
- * 회원권 타입 라벨 중앙 변환 유틸리티 (SaaS 범용)
+ * Member권 타입 라벨 중앙 변환 유틸리티 (SaaS 범용)
  * 
  * 우선순위:
  * 1. config.PRICING[key].label — Firestore 데이터 (요가원별 커스텀)
@@ -19,7 +19,7 @@ interface MembershipConfig {
 }
 
 export const getMembershipLabel = (key: string | null | undefined, config: MembershipConfig | null | undefined): string => {
-    if (!key) return '일반';
+    if (!key) return 'General';
     const pricing = config?.PRICING || {};
     const typeMap = config?.MEMBERSHIP_TYPE_MAP || {};
     return pricing[key]?.label || typeMap[key] || key;

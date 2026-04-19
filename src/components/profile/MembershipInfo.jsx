@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useStudioConfig } from '../../contexts/StudioContext';
 import { getMembershipLabel } from '../../utils/membershipLabels';
 import { toKSTDateString } from '../../utils/dates';
+import { formatPhoneNumber } from '../../utils/formatters';
 import { functions } from '../../firebase';
 import { httpsCallable } from 'firebase/functions';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 const MembershipInfo = ({
   member,
   daysRemaining,
@@ -13,13 +15,14 @@ const MembershipInfo = ({
   const {
     config
   } = useStudioConfig();
+  const language = useLanguageStore(s => s.language);
   const [showHoldModal, setShowHoldModal] = useState(false);
   const [holdDays, setHoldDays] = useState(7);
   const [holdLoading, setHoldLoading] = useState(false);
   const allowSelfHold = config.POLICIES?.ALLOW_SELF_HOLD || false;
   let holdRules = config.POLICIES?.HOLD_RULES || [];
 
-  // [옵션B] duration이 명시적으로 있는 회원만 홀딩 가능
+  // [옵션B] duration이 명시적으로 있는 Member만 홀딩 가능
   const memberDuration = member.duration || 0;
 
   // duration이 없으면 홀딩 불가
@@ -132,7 +135,7 @@ const MembershipInfo = ({
         padding: '3px 10px',
         borderRadius: '5px',
         fontSize: '0.75rem'
-      }}>{member.phone}</span>
+      }}>{formatPhoneNumber(member.phone, language)}</span>
             </div>
             {/* [NEW] 안면인식 안심 문구 */}
             {member.hasFaceDescriptor && <div style={{
@@ -157,7 +160,7 @@ const MembershipInfo = ({
                         <span style={{
           color: '#818CF8',
           fontWeight: 'bold'
-        }}>{t("g_aa0cc0") || "AI 출석 안내"}</span>{t("g_7487f8") || "— \n                        회원님의 사진은"}<b style={{
+        }}>{t("g_aa0cc0") || "AI 출석 안내"}</span>{t("g_7487f8") || "— \n                        Member의 사진은"}<b style={{
           color: 'rgba(255,255,255,0.85)'
         }}>{t("g_d4206d") || "저장되지 않습니다."}</b>{t("g_898d03") || "얼굴 특징이 128차원 숫자(벡터)로 변환되어 안전하게 보관되며, 원본 이미지는 즉시 삭제됩니다. 숫자 데이터로는 얼굴을 복원할 수 없습니다."}</div>
                 </div>}
@@ -467,7 +470,7 @@ const MembershipInfo = ({
               }} />{t("g_262233") || "기간"}{timeRatio}%
                                 </span>
                             </div>
-                            <span>{t("g_599737") || "잔여"}{remainingCredits}{t("g_2fc05c") || "회"}</span>
+                            <span>{t("g_599737") || "Remaining "}{remainingCredits}{t("g_2fc05c") || "회"}</span>
                         </div>
                         
                         {/* AI Motivation Comment */}
@@ -569,7 +572,7 @@ const MembershipInfo = ({
       }, {
         label: t("g_88d2d2") || "규칙성",
         score: regularityScore,
-        desc: stdDev < 2 ? t("g_bab125") || "매우 규칙적" : stdDev < 4 ? t("g_d82985") || "규칙적" : t("g_7582c5") || "불규칙"
+        desc: stdDev < 2 ? t("g_bab125") || "매우 규칙적" : stdDev < 4 ? t("g_d82985") || "Regular" : t("g_7582c5") || "Irregular"
       }, {
         label: t("g_58a92c") || "꾸준함",
         score: consistencyScore,

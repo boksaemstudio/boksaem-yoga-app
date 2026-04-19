@@ -43,12 +43,12 @@ const NoticesTab = ({
           fontSize: '1.4rem',
           fontWeight: 700,
           margin: 0
-        }}>{t('소식 및 공지 관리')}</h3>
+        }}>{t("g_f5adbf")}</h3>
                     <p style={{
           margin: '5px 0 0 0',
           opacity: 0.5,
           fontSize: '0.85rem'
-        }}>{t('회원용 앱의 메인 화면에 표시되는 공지사항입니다.')}</p>
+        }}>{t("g_00cca2")}</p>
                 </div>
                 <button onClick={() => setShowNoticeModal(true)} className="action-btn" style={{
         width: 'auto',
@@ -79,7 +79,7 @@ const NoticesTab = ({
         e.currentTarget.style.boxShadow = '0 4px 15px rgba(var(--primary-rgb), 0.4)';
       }}>
                     <Plus size={20} weight="black" /> 
-                    {t('공지 작성하기')}
+                    {t("g_a8fc7f")}
                 </button>
             </div>
             <div className="card-list">
@@ -91,7 +91,7 @@ const NoticesTab = ({
                         <Megaphone size={48} style={{
           marginBottom: '15px'
         }} />
-                        <p>{t('등록된 공지사항이 없습니다.')}</p>
+                        <p>{t("g_1d610b")}</p>
                     </div> : [...notices].filter(n => !n.isSystemNotice).sort((a, b) => new Date(b.timestamp || b.date || 0) - new Date(a.timestamp || a.date || 0)).map(notice => <div key={notice.id} className="glass-panel" style={{
         marginBottom: '20px',
         padding: '24px',
@@ -129,7 +129,7 @@ const NoticesTab = ({
             padding: '8px',
             color: 'rgba(255,107,107,0.7)',
             backgroundColor: 'transparent'
-          }} title={t('공지 삭제')}>
+          }} title={t("g_f0572b")}>
                                     <Trash size={20} />
                                 </button>
                             </div>
@@ -161,7 +161,7 @@ const NoticesTab = ({
               borderRadius: '8px',
               border: '1px solid rgba(255,255,255,0.1)',
               scrollSnapAlign: 'start'
-            }} />) : <img src={notice.image} alt={t('공지 이미지')} style={{
+            }} />) : <img src={notice.image} alt={t("g_c14462")} style={{
               width: '100%',
               borderRadius: '8px',
               maxHeight: '400px',

@@ -7,7 +7,7 @@ import '../../styles/landing.css';
 export default function ContactModal({ isOpen, onClose }) {
     const t = useLanguageStore(s => s.t);
     const lang = useLanguageStore(s => s.language) || 'ko';
-    const [inquiryForm, setInquiryForm] = useState({ name: '', phone: '', email: '', message: '' });
+    const [inquiryForm, setInquiryForm] = useState({ name: '', email: '', message: '' });
     const [inquirySent, setInquirySent] = useState(false);
 
     if (!isOpen) return null;
@@ -25,7 +25,7 @@ export default function ContactModal({ isOpen, onClose }) {
             setTimeout(() => {
                 onClose();
                 setInquirySent(false);
-                setInquiryForm({ name: '', phone: '', email: '', message: '' });
+                setInquiryForm({ name: '', email: '', message: '' });
             }, 3000);
         } catch (error) {
             console.error('Inquiry submission failed:', error);
@@ -50,10 +50,6 @@ export default function ContactModal({ isOpen, onClose }) {
                         <div className="i-group">
                             <label>{t('contact_name_label') || 'Name / Studio Name'}</label>
                             <input type="text" required value={inquiryForm.name} onChange={e => setInquiryForm({...inquiryForm, name: e.target.value})} />
-                        </div>
-                        <div className="i-group">
-                            <label>{t('contact_phone_label') || 'Phone (Optional)'}</label>
-                            <input type="text" value={inquiryForm.phone} onChange={e => setInquiryForm({...inquiryForm, phone: e.target.value})} />
                         </div>
                         <div className="i-group">
                             <label>{t('contact_email_label') || 'Email Address'}</label>

@@ -70,7 +70,7 @@ const demoDatasets = {
         ],
         classes: {
             morning: ['アシュタンガ・プライマリー', 'ハタヨガ', 'リフォーマー・コア', 'バレル基礎'],
-            afternoon: ['ハタ・インテンシブ', 'ヴィンヤサ・フロー', '陰ヨガセラピー', 'リラクゼーションヨガ'],
+            afternoon: ['ハタ・イン텐シブ', 'ヴィンヤサ・フロー', '陰ヨガセラピー', 'リラクゼーションヨガ'],
             evening: ['キャデラック・グループ', 'エアリアル基礎', 'マシンピラティス']
         },
         members: {
@@ -117,6 +117,184 @@ const demoDatasets = {
             timetable1: '/assets/timetable_zh.png', timetable2: '/assets/timetable_zh.png',
             pricing1: '/assets/pricing_zh.png', pricing2: '/assets/pricing_zh.png'
         }
+    },
+    vi: {
+        studioName: 'PassFlow Yoga & Pilates (Hà Nội)',
+        instructors: [
+            { id: 'ins-master', name: 'Nguyễn Thị Hoa', phone: '090-111-1111', role: 'Giám đốc' },
+            { id: 'ins-01', name: 'Trần Văn Hùng', phone: '090-222-2222', role: 'Giáo viên chính' },
+            { id: 'ins-02', name: 'Lê Thu Hương', phone: '090-333-3333', role: 'Giáo viên sáng' },
+            { id: 'ins-03', name: 'Phạm Minh Đức', phone: '090-444-4444', role: 'Pilates' }
+        ],
+        classes: {
+            morning: ['Ashtanga Cơ Bản', 'Hatha Yoga', 'Reformer Cốt Lõi', 'Barrel Cơ Bản'],
+            afternoon: ['Hatha Nâng Cao', 'Vinyasa Dòng Chảy', 'Yoga Trị Liệu Âm', 'Yoga Phục Hồi'],
+            evening: ['Nhóm Cadillac', 'Yoga Võng Cơ Bản', 'Máy Pilates']
+        },
+        members: {
+            lastNames: ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Huỳnh', 'Phan', 'Vũ', 'Võ', 'Đặng'],
+            firstNames: ['Anh', 'Huy', 'Tuấn', 'Minh', 'Khoa', 'Bảo', 'Vy', 'Linh', 'Ngọc', 'Trang']
+        },
+        pricing: {
+            p1: 'Yoga 1 Tháng Không Giới Hạn', p2: 'Yoga 3 Tháng (36 Buổi)', p3: 'Pilates Máy 12 Tuần', p4: '1:1 Cá Nhân 10 Buổi', p5: 'Đào Tạo Huấn Luyện Viên (TTC)'
+        },
+        notices: [
+            { title: '[Quan trọng] Nâng cấp bảo mật nhận diện khuôn mặt', content: 'Hệ thống máy chủ PassFlow AI đã hoàn tất sao lưu kép, tăng cường an ninh dữ liệu tối đa.', type: 'notice', isImportant: true },
+            { title: 'Khuyến mãi mùa hè: Đổi mới lịch học nhóm', content: 'Lớp Ashtanga 7:00 sáng hiện tăng lên 5 buổi/tuần.', type: 'event', isImportant: false }
+        ],
+        assets: {
+            timetable1: '/assets/timetable_vi.png', timetable2: '/assets/timetable_vi.png',
+            pricing1: '/assets/pricing_vi.png', pricing2: '/assets/pricing_vi.png'
+        }
+    },
+    th: {
+        studioName: 'PassFlow โยคะและพิลาทิส (กรุงเทพฯ)',
+        instructors: [
+            { id: 'ins-master', name: 'มาลี (ผู้อำนวยการ)', phone: '081-111-1111', role: 'ผู้อำนวยการ' },
+            { id: 'ins-01', name: 'สมชาย (ครูสอนหลัก)', phone: '081-222-2222', role: 'ครูสอนประจำ' },
+            { id: 'ins-02', name: 'ศิริพร', phone: '081-333-3333', role: 'สอนช่วงเช้า' },
+            { id: 'ins-03', name: 'ณัฐวุฒิ (พิลาทิส)', phone: '081-444-4444', role: 'ครูสอนพาร์ทไทม์' }
+        ],
+        classes: {
+            morning: ['อัษฎางคโยคะเบื้องต้น', 'หฐโยคะ', 'รีฟอร์มเมอร์คอร์', 'บาร์เรลพื้นฐาน'],
+            afternoon: ['หฐโยคะเข้มข้น', 'วินยาสะโฟลว์', 'โยคะบำบัด', 'โยคะฟื้นฟู'],
+            evening: ['กลุ่มคาดิลแลค', 'โยคะฟลายเบื้องต้น', 'เครื่องพิลาทิส']
+        },
+        members: {
+            lastNames: ['รัตนพันธ์', 'สุขสวัสดิ์', 'เจริญผล', 'ศิริสมบัติ', 'พงษ์ศักดิ์'],
+            firstNames: ['สมชาย', 'สมหญิง', 'ศิริพร', 'ณัฐวุฒิ', 'มาลี', 'วิชัย', 'สุชาติ', 'ปรีชา', 'อารีย์', 'กมล']
+        },
+        pricing: {
+            p1: 'โยคะ 1 เดือน ไม่จำกัด', p2: 'โยคะ 3 เดือน (36 ครั้ง)', p3: 'พิลาทิสเครื่อง 12 สัปดาห์', p4: 'ส่วนตัว 1:1 (10 ครั้ง)', p5: 'หลักสูตรครูสอนโยคะ (TTC)'
+        },
+        notices: [
+            { title: '[สำคัญ] อัปเกรดความปลอดภัยข้อมูลการจดจำใบหน้า', content: 'เซิร์ฟเวอร์ PassFlow AI สำรองข้อมูลเสร็จสมบูรณ์เพื่อเพิ่มความปลอดภัยให้มากที่สุด', type: 'notice', isImportant: true },
+            { title: 'โปรโมชั่นฤดูร้อน: ปรับปรุงตารางเรียนกลุ่ม', content: 'คลาสอัษฎางคโยคะเวลา 7:00 น. ขยายเป็น 5 วันต่อสัปดาห์', type: 'event', isImportant: false }
+        ],
+        assets: {
+            timetable1: '/assets/timetable_th.png', timetable2: '/assets/timetable_th.png',
+            pricing1: '/assets/pricing_th.png', pricing2: '/assets/pricing_th.png'
+        }
+    },
+    ru: {
+        studioName: 'PassFlow Йога и Пилатес (Москва)',
+        instructors: [
+            { id: 'ins-master', name: 'Елена (Директор)', phone: '+7 900 111-11-11', role: 'Директор' },
+            { id: 'ins-01', name: 'Игорь Петров', phone: '+7 900 222-22-22', role: 'Старший инструктор' },
+            { id: 'ins-02', name: 'Светлана Иванова', phone: '+7 900 333-33-33', role: 'Йога-терапевт' }
+        ],
+        classes: {
+            morning: ['Аштанга Йога', 'Хатха Основы', 'Пилатес Реформер'],
+            afternoon: ['Хатха Интенсив', 'Виньяса Флоу', 'Инь Йога'],
+            evening: ['Групповой Пилатес', 'Аэройога', 'Медитация']
+        },
+        members: {
+            lastNames: ['Иванов', 'Смирнов', 'Кузнецов', 'Попов', 'Васильев', 'Петров', 'Соколов', 'Михайлов'],
+            firstNames: ['Александр', 'Максим', 'Иван', 'Артем', 'Дмитрий', 'Мария', 'Анна', 'Елена', 'Ольга']
+        },
+        pricing: {
+            p1: 'Йога 1 Месяц (Безлимит)', p2: 'Йога 3 Месяца (36 Занятий)', p3: 'Пилатес 12 Недель', p4: '1:1 Персонально (10)', p5: 'Курс Преподавателей (TTC)'
+        },
+        notices: [
+            { title: '[Важно] Обновление безопасности биометрических данных', content: 'Сервер PassFlow AI завершил репликацию для максимальной защиты данных.', type: 'notice', isImportant: true }
+        ],
+        assets: { timetable1: '/assets/timetable_en.png', timetable2: '/assets/timetable_en.png', pricing1: '/assets/pricing_en.png', pricing2: '/assets/pricing_en.png' }
+    },
+    fr: {
+        studioName: 'PassFlow Yoga & Pilates (Paris)',
+        instructors: [
+            { id: 'ins-master', name: 'Chloé (Directrice)', phone: '01 23 45 67 89', role: 'Directrice' },
+            { id: 'ins-01', name: 'Lucas Martin', phone: '01 23 45 67 90', role: 'Instructeur Chef' },
+            { id: 'ins-02', name: 'Sophie Bernard', phone: '01 23 45 67 91', role: 'Yoga Vinyasa' }
+        ],
+        classes: {
+            morning: ['Ashtanga Base', 'Hatha Yoga', 'Reformer Core'],
+            afternoon: ['Hatha Intensif', 'Vinyasa Flow', 'Yin Yoga'],
+            evening: ['Pilates Appareil', 'Yoga Aérien', 'Relaxation']
+        },
+        members: {
+            lastNames: ['Martin', 'Bernard', 'Thomas', 'Petit', 'Robert', 'Richard', 'Durand', 'Dubois'],
+            firstNames: ['Jean', 'Pierre', 'Marie', 'Julie', 'Nicolas', 'Thomas', 'Camille', 'Léa']
+        },
+        pricing: {
+            p1: 'Yoga 1 Mois Illimité', p2: 'Yoga 3 Mois (36 Séances)', p3: 'Pilates 12 Semaines', p4: '1:1 Coaching (10)', p5: 'Formation Professeur (TTC)'
+        },
+        notices: [
+            { title: '[Important] Mise à jour de la sécurité biométrique', content: 'Le serveur PassFlow AI a terminé la réplication pour une protection maximale.', type: 'notice', isImportant: true }
+        ],
+        assets: { timetable1: '/assets/timetable_en.png', timetable2: '/assets/timetable_en.png', pricing1: '/assets/pricing_en.png', pricing2: '/assets/pricing_en.png' }
+    },
+    es: {
+        studioName: 'PassFlow Yoga & Pilates (Madrid)',
+        instructors: [
+            { id: 'ins-master', name: 'Elena (Directora)', phone: '912 345 678', role: 'Directora' },
+            { id: 'ins-01', name: 'Javier López', phone: '912 345 679', role: 'Instructor Principal' },
+            { id: 'ins-02', name: 'Carmen García', phone: '912 345 680', role: 'Hatha Experta' }
+        ],
+        classes: {
+            morning: ['Ashtanga Básico', 'Hatha Yoga', 'Reformer Core'],
+            afternoon: ['Hatha Intensivo', 'Vinyasa Flow', 'Yin Yoga'],
+            evening: ['Pilates Máquinas', 'Yoga Aéreo', 'Meditación']
+        },
+        members: {
+            lastNames: ['García', 'Rodríguez', 'González', 'Fernández', 'López', 'Martínez', 'Sánchez', 'Pérez'],
+            firstNames: ['Antonio', 'Manuel', 'José', 'Francisco', 'David', 'María', 'Carmen', 'Ana']
+        },
+        pricing: {
+            p1: 'Yoga 1 Mes Ilimitado', p2: 'Yoga 3 Meses (36 Sesiones)', p3: 'Pilates 12 Semanas', p4: '1:1 Personal (10)', p5: 'Formación Instructores (TTC)'
+        },
+        notices: [
+            { title: '[Importante] Actualización de seguridad biométrica', content: 'El servidor PassFlow AI ha completado la replicación para mayor seguridad.', type: 'notice', isImportant: true }
+        ],
+        assets: { timetable1: '/assets/timetable_en.png', timetable2: '/assets/timetable_en.png', pricing1: '/assets/pricing_en.png', pricing2: '/assets/pricing_en.png' }
+    },
+    de: {
+        studioName: 'PassFlow Yoga & Pilates (Berlin)',
+        instructors: [
+            { id: 'ins-master', name: 'Emma (Direktorin)', phone: '030 1234567', role: 'Direktorin' },
+            { id: 'ins-01', name: 'Lukas Schmidt', phone: '030 1234568', role: 'Cheflehrer' },
+            { id: 'ins-02', name: 'Sarah Meyer', phone: '030 1234569', role: 'Vinyasa Spezialistin' }
+        ],
+        classes: {
+            morning: ['Ashtanga Basics', 'Hatha Yoga', 'Reformer Fokus'],
+            afternoon: ['Hatha Intensiv', 'Vinyasa Flow', 'Yin Yoga'],
+            evening: ['Geräte Pilates', 'Aerial Yoga', 'Meditation']
+        },
+        members: {
+            lastNames: ['Müller', 'Schmidt', 'Schneider', 'Fischer', 'Meyer', 'Weber', 'Schulz', 'Wagner'],
+            firstNames: ['Lukas', 'Leon', 'Finn', 'Elias', 'Mia', 'Emma', 'Sofia', 'Hannah']
+        },
+        pricing: {
+            p1: 'Yoga 1 Monat Unbegrenzt', p2: 'Yoga 3 Monate (36 Einheiten)', p3: 'Pilates 12 Wochen', p4: '1:1 Training (10)', p5: 'Lehrerausbildung (TTC)'
+        },
+        notices: [
+            { title: '[Wichtig] Upgrade der biometrischen Sicherheit', content: 'Der PassFlow AI-Server wurde für maximale Datensicherheit repliziert.', type: 'notice', isImportant: true }
+        ],
+        assets: { timetable1: '/assets/timetable_en.png', timetable2: '/assets/timetable_en.png', pricing1: '/assets/pricing_en.png', pricing2: '/assets/pricing_en.png' }
+    },
+    pt: {
+        studioName: 'PassFlow Yoga & Pilates (Lisboa)',
+        instructors: [
+            { id: 'ins-master', name: 'Beatriz (Diretora)', phone: '212 345 678', role: 'Diretora' },
+            { id: 'ins-01', name: 'Tiago Silva', phone: '212 345 679', role: 'Instrutor Principal' },
+            { id: 'ins-02', name: 'Ana Costa', phone: '212 345 680', role: 'Especialista Hatha' }
+        ],
+        classes: {
+            morning: ['Ashtanga Básico', 'Hatha Yoga', 'Reformer Core'],
+            afternoon: ['Hatha Intensivo', 'Vinyasa Flow', 'Yin Yoga'],
+            evening: ['Pilates Máquinas', 'Yoga Aéreo', 'Meditação']
+        },
+        members: {
+            lastNames: ['Silva', 'Santos', 'Ferreira', 'Pereira', 'Oliveira', 'Costa', 'Rodrigues', 'Martins'],
+            firstNames: ['João', 'Rodrigo', 'Martim', 'Francisco', 'Maria', 'Leonor', 'Matilde', 'Beatriz']
+        },
+        pricing: {
+            p1: 'Yoga 1 Mês Ilimitado', p2: 'Yoga 3 Meses (36 Sessões)', p3: 'Pilates 12 Semanas', p4: '1:1 Personal (10)', p5: 'Formação Instrutores (TTC)'
+        },
+        notices: [
+            { title: '[Importante] Atualização de segurança biométrica', content: 'O servidor PassFlow AI concluiu a replicação para segurança máxima.', type: 'notice', isImportant: true }
+        ],
+        assets: { timetable1: '/assets/timetable_en.png', timetable2: '/assets/timetable_en.png', pricing1: '/assets/pricing_en.png', pricing2: '/assets/pricing_en.png' }
     }
 };
 
@@ -129,9 +307,12 @@ async function processTenantSeeding(tenantId, langCode) {
 
     // 0. 필수 설정 복원
     await tenantDb.set({
-        BRANCHES: [{ id: 'main', name: data.studioName, color: '#D4AF37', themeColor: '#FBB117' }],
+        BRANCHES: [
+        { id: 'main', name: data.studioName, color: '#D4AF37', themeColor: '#FBB117' },
+        { id: 'branch2', name: data.studioName + (langCode === 'ko' ? ' 2호점' : (langCode === 'ja' ? ' 2号店' : (langCode === 'zh' ? ' 2号店' : ' Branch 2'))), color: '#333333', themeColor: '#222222' }
+    ],
         IDENTITY: { NAME: data.studioName, LOGO_URL: '/assets/demo_logo_v2.png' },
-        FEATURES: { MULTI_BRANCH: false },
+        FEATURES: { MULTI_BRANCH: true },
         lang: langCode
     }, { merge: true });
 
@@ -154,9 +335,12 @@ async function processTenantSeeding(tenantId, langCode) {
         await deleteCollection(coll);
     }
 
-    const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-    const today = new Date();
-    const threeMonthsAgo = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
+    // 해당 테넌트의 타임존 오프셋 설정 (기본 9: 한국)
+    const tzOffsets = { ko: 9, ja: 9, zh: 8, vi: 7, th: 7, ru: 3, fr: 2, de: 2, es: 2, pt: 1, en: -5 };
+    const offset = tzOffsets[langCode] || 9;
+
+    const todayStr = new Date(new Date().getTime() + (offset - 9) * 3600000).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+    const today = new Date(new Date().getTime() + (offset - 9) * 3600000);
 
     let batchCount = 0;
     let currentBatch = db.batch();
@@ -189,12 +373,14 @@ async function processTenantSeeding(tenantId, langCode) {
         { name: data.pricing.p5, category: 'special', price: 2500000, validDays: 180, useCount: 1 }
     ];
     for (const [idx, pr] of prices.entries()) {
-        await addOp(() => currentBatch.set(tenantDb.collection('settings').collection('pricingPlans').doc(`p_${idx}`), pr));
+        await addOp(() => currentBatch.set(tenantDb.collection('pricing').doc(`p_${idx}`), pr));
     }
 
     // 4. 회원 데이터
     const getRandomName = () => {
-        if(langCode === 'en') return data.members.firstNames[Math.floor(Math.random() * 10)] + ' ' + data.members.lastNames[Math.floor(Math.random() * 10)];
+        if(langCode === 'en' || langCode === 'ru' || langCode === 'fr' || langCode === 'es' || langCode === 'de' || langCode === 'pt') {
+            return data.members.firstNames[Math.floor(Math.random() * data.members.firstNames.length)] + ' ' + data.members.lastNames[Math.floor(Math.random() * data.members.lastNames.length)];
+        }
         return data.members.lastNames[Math.floor(Math.random() * data.members.lastNames.length)] + data.members.firstNames[Math.floor(Math.random() * data.members.firstNames.length)];
     };
     const memberIds = [];
@@ -204,7 +390,7 @@ async function processTenantSeeding(tenantId, langCode) {
         const id = isDemo ? 'demo-member' : tenantDb.collection('members').doc().id;
         memberIds.push(id);
         const name = isDemo ? (langCode==='ko'?'최우수회원 (데모)':(langCode==='ja'?'最高会員(デモ)':'VIP Demo Member')) : getRandomName();
-        // Generate valid locale phone
+        
         let phone = `010-${String(Math.floor(Math.random() * 8999) + 1000)}-${String(Math.floor(Math.random() * 8999) + 1000)}`;
         if (langCode === 'en') phone = `212-${String(Math.floor(Math.random() * 899) + 100)}-${String(Math.floor(Math.random() * 8999) + 1000)}`;
         
@@ -213,7 +399,7 @@ async function processTenantSeeding(tenantId, langCode) {
         await addOp(() => {
             currentBatch.set(tenantDb.collection('members').doc(id), {
                 id, name, phone, membershipType: 'yoga_unlimited', credits, originalCredits: 999,
-                regDate: new Date().toLocaleDateString('sv-SE'),
+                regDate: todayStr,
                 hasFaceDescriptor: Math.random() > 0.15, status: 'active',
                 createdAt: new Date().toISOString(), branchId: 'main',
                 lastAttendance: new Date().toISOString()
@@ -237,12 +423,11 @@ async function processTenantSeeding(tenantId, langCode) {
         }));
     }
 
-    // 6. 스케줄 배분 (간략화된 7일 스케줄 복사)
+    // 6. 스케줄 배분
     for (let d = 0; d <= 28; d++) {
         const date = new Date(today);
         date.setDate(today.getDate() - 14 + d);
         const dateStr = date.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-        const dayOfWeek = date.getDay();
         
         const slotTimes = ['07:00','10:00','18:30','19:30'];
         const dailyClasses = [];
@@ -258,14 +443,15 @@ async function processTenantSeeding(tenantId, langCode) {
                 time, title: className, instructor: insName, status: 'normal', capacity: 20, attendees, duration: 60, level: ''
             });
 
-            // 지난 일자면 출석 로그 생성
             if (date.getTime() < today.getTime()) {
                 for (const memberId of attendees) {
                     const logId = tenantDb.collection('attendance').doc().id;
                     const mData = membersDataMap[memberId];
+                    // 타임존 보정된 타임스탬프
+                    const timestamp = new Date(`${dateStr}T${time}:00`).getTime() - (offset * 3600000);
                     await addOp(() => currentBatch.set(tenantDb.collection('attendance').doc(logId), {
                         id: logId, memberId, memberName: mData.name, memberPhone: mData.phone,
-                        timestamp: new Date(`${dateStr}T${time}:00+09:00`).toISOString(),
+                        timestamp: new Date(timestamp).toISOString(),
                         date: dateStr, className, classTime: time, instructor: insName,
                         status: 'approved', branchId: 'main'
                     }));
@@ -295,12 +481,18 @@ async function processTenantSeeding(tenantId, langCode) {
 async function refreshDemoData() {
     console.log('🔄 [슈퍼 시더] 글로벌 다중 데모 (Multi-Tenant Demo) 환경 시딩 시작...');
     
-    // 글로벌 4개 언어 테넌트를 순차적으로 초기화 및 생성
     const targets = [
-        { id: 'demo-yoga', lang: 'ko' },       // 기본 한국어 데모
-        { id: 'demo-yoga-en', lang: 'en' },    // 영어 데모
-        { id: 'demo-yoga-ja', lang: 'ja' },    // 일본어 데모
-        { id: 'demo-yoga-zh', lang: 'zh' }     // 중국어 데모
+        { id: 'demo-yoga', lang: 'ko' },
+        { id: 'demo-yoga-en', lang: 'en' },
+        { id: 'demo-yoga-ja', lang: 'ja' },
+        { id: 'demo-yoga-zh', lang: 'zh' },
+        { id: 'demo-yoga-vi', lang: 'vi' },
+        { id: 'demo-yoga-th', lang: 'th' },
+        { id: 'demo-yoga-ru', lang: 'ru' },
+        { id: 'demo-yoga-fr', lang: 'fr' },
+        { id: 'demo-yoga-es', lang: 'es' },
+        { id: 'demo-yoga-de', lang: 'de' },
+        { id: 'demo-yoga-pt', lang: 'pt' }
     ];
 
     for (const target of targets) {

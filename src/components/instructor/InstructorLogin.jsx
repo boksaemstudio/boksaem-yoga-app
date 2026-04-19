@@ -25,11 +25,11 @@ const InstructorLogin = ({
       if (result.success) {
         onLogin(result.name);
       } else {
-        setError(result.message || t("g_3857a0") || "이름 또는 전화번호가 일치하지 않습니다");
+        setError(result.message || t("g_3857a0") || "Name or phone number does not match");
       }
     } catch (e) {
-      console.error(t("g_6fa050") || "  - 에러:", e);
-      setError(t("g_8b3197") || "인증 중 오류가 발생했습니다.");
+      console.error(t("g_6fa050") || "  - Error:", e);
+      setError(t("g_8b3197") || "Authentication error occurred.");
     } finally {
       setLoading(false);
     }
@@ -74,7 +74,7 @@ const InstructorLogin = ({
             fontSize: '1rem',
             outline: 'none'
           }}>
-                            <option value="">{t("g_1d5134") || "선생님 선택"}</option>
+                            <option value="">{t("g_1d5134") || "Select Instructor"}</option>
                             {instructors.map(inst => {
               const instName = typeof inst === 'string' ? inst : inst.name;
               return <option key={instName} value={instName}>{instName}</option>;
@@ -93,7 +93,7 @@ const InstructorLogin = ({
                         <input type="tel" value={phoneLast4} onChange={e => {
             const value = e.target.value.replace(/[^0-9]/g, ''); // 숫자만 허용
             setPhoneLast4(value.slice(0, 4));
-          }} placeholder={t("g_ee13ad") || "전화번호 뒤 4자리"} maxLength={4} inputMode="numeric" pattern="[0-9]*" style={{
+          }} placeholder={t("g_ee13ad") || "Last 4 digits of phone"} maxLength={4} inputMode="numeric" pattern="[0-9]*" style={{
             flex: 1,
             background: 'transparent',
             border: 'none',
@@ -121,8 +121,33 @@ const InstructorLogin = ({
         fontSize: '1rem',
         cursor: 'pointer'
       }}>
-                    {loading ? t("g_b63929") || "로그인 중..." : t("g_e225a6") || "로그인"}
+                    {loading ? t("g_b63929") || "로그인 중..." : t("g_e225a6") || "Login"}
                 </button>
+
+                {/* SaaS Demo Quick Login Button */}
+                {typeof window !== 'undefined' && (window.location.hostname.includes('passflow') || config?.tenantId === 'demo-yoga' || window.location.hostname === 'localhost') && instructors && instructors.length > 0 && <button type="button" onClick={e => {
+          e.preventDefault();
+          const demoInstName = typeof instructors[0] === 'string' ? instructors[0] : instructors[0].name;
+          setName(demoInstName);
+          setPhoneLast4("1234");
+          setTimeout(() => {
+            storageService.loginInstructor(demoInstName, "1234").then(result => {
+                if (result.success) onLogin(result.name);
+                else setError(result.message || t("g_3857a0"));
+            }).catch(() => setError(t("g_8b3197")));
+          }, 100);
+        }} disabled={loading} style={{
+          width: '100%',
+          padding: '14px',
+          borderRadius: '10px',
+          border: '1px solid rgba(212, 175, 55, 0.4)',
+          background: 'rgba(212, 175, 55, 0.15)',
+          color: 'var(--primary-gold)',
+          fontWeight: 'bold',
+          fontSize: '1rem',
+          cursor: 'pointer',
+          marginTop: '12px'
+        }}>{t("g_f52787") || "\uD83D\uDE80 \uB370\uBAA8 \uACC4\uC815 \uAC04\uD3B8 \uC2DC\uC791"}</button>}
 
             </div>
         </div>;

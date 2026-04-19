@@ -69,7 +69,7 @@ const AdminMemberDetailModal = ({
     icon: <User size={20} />
   }] : [{
     id: 'info',
-    label: t("g_7beb57") || "회원정보",
+    label: t("g_7beb57") || "Member정보",
     icon: <User size={20} />
   }, {
     id: 'attendance',
@@ -77,14 +77,14 @@ const AdminMemberDetailModal = ({
     icon: <Calendar size={20} />
   }, {
     id: 'registration',
-    label: t("g_fc669b") || "재등록",
+    label: t("g_fc669b") || "Renewal",
     icon: <CreditCard size={20} />
   }, {
     id: 'messages',
-    label: t("g_96330a") || "메시지",
+    label: t("g_96330a") || "Message",
     icon: <Chats size={20} />
   }];
-  return <div className="modal-overlay" role="dialog" aria-modal="true" aria-label={`${member.name} 회원 상세`} style={{
+  return <div className="modal-overlay" role="dialog" aria-modal="true" aria-label={`${member.name} Member 상세`} style={{
     zIndex: 1100
   }}>
             <div className="detail-modal-container">
@@ -127,7 +127,7 @@ const AdminMemberDetailModal = ({
             gap: '8px',
             marginTop: '6px',
             fontWeight: 'bold'
-          }}>{t("g_2793fd") || "선생님 (푸시 수신 전용 프로필)"}</div> : <div style={{
+          }}>{t("g_2793fd") || "Instructor (푸시 수신 전용 프로필)"}</div> : <div style={{
             fontSize: '0.8rem',
             color: determineStatusColor(member),
             display: 'flex',
@@ -146,7 +146,7 @@ const AdminMemberDetailModal = ({
             }}>
                                     <span style={{
                 fontWeight: 'bold'
-              }}>{member.credits}{t("g_f7bc3a") || "회 남음"}</span>
+              }}>{member.credits}{t("g_f7bc3a") || " remaining"}</span>
                                 </div>
                                 <span> | {member.endDate === 'TBD' ? t("g_358863") || "첫 출석 시 기간 확정" : member.endDate ? `~ ${member.endDate}` : t("g_6adc9a") || "만료일 미설정"}</span>
                                 {(() => {
@@ -154,13 +154,13 @@ const AdminMemberDetailModal = ({
                 timeZone: 'Asia/Seoul'
               });
               if (member.startDate && member.startDate > todayStr) {
-                return <span className="status-badge--preregistered">{t("g_58b2a9") || "대기 중 (선등록)"}</span>;
+                return <span className="status-badge--preregistered">{t("g_58b2a9") || "Waitlisted at position 중 (선등록)"}</span>;
               }
               return null;
             })()}
                             </div>}
                     </div>
-                    <button onClick={handleSafeClose} className="detail-modal-close" aria-label={t("g_94b7db") || "닫기"}>
+                    <button onClick={handleSafeClose} className="detail-modal-close" aria-label={t("g_94b7db") || "Close"}>
                         <X size={24} />
                     </button>
                 </div>
@@ -287,7 +287,7 @@ const AdminMemberDetailModal = ({
             border: '1px solid #52525b',
             color: '#a1a1aa',
             borderRadius: '8px'
-          }}>{t("g_19b2d1") || "취소"}</button>
+          }}>{t("g_19b2d1") || "Cancel"}</button>
                             <button onClick={() => {
             const d = {};
             selectedChangeKeys.forEach(key => {
@@ -299,7 +299,7 @@ const AdminMemberDetailModal = ({
             const hasImportantChange = selectedChangeKeys.has('credits') || selectedChangeKeys.has('endDate') || selectedChangeKeys.has('startDate');
             if (hasImportantChange) {
               const changes = pendingChanges.filter(c => selectedChangeKeys.has(c.key));
-              const lines = [`${member.name} 회원님, 수강권 정보가 변경되었습니다.`, '', ...changes.map(c => `• ${c.label}: ${c.oldValue} → ${c.newValue}`), '', t("g_e03450") || "확인 부탁드립니다 🙏"];
+              const lines = [`${member.name} Member, 수강권 정보가 변경되었습니다.`, '', ...changes.map(c => `• ${c.label}: ${c.oldValue} → ${c.newValue}`), '', t("g_e03450") || "확인 부탁드립니다 🙏"];
               setPrefillMessage(lines.join('\n'));
             }
             handleFinalSave(d);

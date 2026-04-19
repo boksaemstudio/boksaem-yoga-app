@@ -227,18 +227,18 @@ const getStudioName = async (overrideStudioId) => {
         const sid = overrideStudioId || process.env.STUDIO_ID || STUDIO_ID;
         const doc = await admin.firestore().collection('studios').doc(sid).get();
         if (doc.exists) {
-            return doc.data().IDENTITY?.NAME || "요가 스튜디오";
+            return doc.data().IDENTITY?.NAME || "Studio";
         }
         // Legacy fallback — 테넌트 경로에서 settings/identity 조회
         const tdb = tenantDb(sid);
         const oldDoc = await tdb.collection('settings').doc('identity').get();
         if (oldDoc.exists) {
-            return oldDoc.data().studioName || "요가 스튜디오";
+            return oldDoc.data().studioName || "Studio";
         }
     } catch (e) {
         console.warn("Failed to fetch studio name:", e);
     }
-    return "요가 스튜디오";
+    return "Studio";
 };
 
 /**

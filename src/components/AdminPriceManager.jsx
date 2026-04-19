@@ -55,7 +55,7 @@ const AdminPriceManager = () => {
     setShowEditModal(true);
   };
   const handleDeleteCategory = async key => {
-    if (!confirm(t("g_314edd") || "정말 이 회원권 종류를 삭제하시겠습니까?")) return;
+    if (!confirm(t("g_314edd") || "정말 이 Member권 종류를 삭제하시겠습니까?")) return;
     const newPricing = {
       ...pricing
     };
@@ -72,14 +72,14 @@ const AdminPriceManager = () => {
     const newKey = `custom_${Date.now()}`;
     setEditingCategoryKey(newKey);
     setEditingCategory({
-      label: t("g_2e8547") || "새 회원권",
+      label: t("g_2e8547") || "새 Member권",
       branches: (config.BRANCHES || []).map(b => b.id),
       options: [] // Empty options initially
     });
     setShowEditModal(true);
   };
   const handleSaveCategory = async () => {
-    if (!editingCategory.label) return alert(t("g_02ad8a") || "회원권 이름을 입력하세요.");
+    if (!editingCategory.label) return alert(t("g_02ad8a") || "Member권 이름을 입력하세요.");
     setIsSubmitting(true);
     const newPricing = {
       ...pricing,
@@ -239,10 +239,10 @@ const AdminPriceManager = () => {
             textAlign: 'left',
             zIndex: 10
           }}>
-                            <strong>{t("g_10fe8e") || "데이터 초기화란?"}</strong><br />{t("g_9b7986") || "기존에 추가/수정한 가격표를 지우고, 패스플로우 Ai 제공"}<strong>{t("g_5bec6f") || "표준 가격표 템플릿(심화, 일반, 하타인텐시브, 키즈플라잉)"}</strong>{t("g_4ce3cf") || "으로 되돌립니다."}<br /><span style={{
+                            <strong>{t("g_10fe8e") || "What is data reset?"}</strong><br />{t("g_9b7986") || "Delete existing pricing and restore PassFlow AI default"}<strong>{t("g_5bec6f") || "standard pricing template"}</strong>{t("g_4ce3cf") || "will be restored."}<br /><span style={{
               fontSize: '0.85em',
               color: '#ff6b6b'
-            }}>{t("g_465990") || "* 예: 일반 1회권 25,000원, 심화 1회권 35,000원 등 스튜디오 평균 시세 기준"}</span>
+            }}>{t("g_465990") || "* Example: pricing based on average studio rates"}</span>
                         </div>
                     </div>
                     <button onClick={async () => {
@@ -255,7 +255,7 @@ const AdminPriceManager = () => {
               const data = await storageService.getPricing();
               setPricing(data);
             } else {
-              alert((t("g_afd4b7") || "실패: ") + (res.data.error || t("g_5e9f6b") || "알 수 없는 오류"));
+              alert((t("g_afd4b7") || "실패: ") + (res.data.error || t("g_5e9f6b") || "Unknown error"));
             }
           } catch (e) {
             console.error(e);
@@ -367,7 +367,7 @@ const AdminPriceManager = () => {
                                         <span>{opt?.label || t("g_9bf7b8") || "옵션명 없음"}</span>
                                         <span style={{
                 fontWeight: 'bold'
-              }}>{opt?.basePrice?.toLocaleString() || 0}{t("g_21ba07") || "원"}</span>
+              }}>{opt?.basePrice?.toLocaleString() || 0}{t("g_21ba07") || ""}</span>
                                     </div>
                                     {(opt.discount3 || opt.discount6) && <div style={{
               display: 'flex',
@@ -377,13 +377,13 @@ const AdminPriceManager = () => {
             }}>
                                             {opt.discount3 && <span style={{
                 color: '#10B981'
-              }}>{t("g_f7b7b3") || "3개월"}{opt.discount3.toLocaleString()}{t("g_21ba07") || "원"}{opt.cashDiscount3 && <span style={{
+              }}>{t("g_f7b7b3") || "3개"}{opt.discount3.toLocaleString()}{t("g_21ba07") || ""}{opt.cashDiscount3 && <span style={{
                   color: '#f59e0b'
                 }}>{t("g_eba921") || "(현금"}{opt.cashDiscount3.toLocaleString()})</span>}
                                                 </span>}
                                             {opt.discount6 && <span style={{
                 color: '#10B981'
-              }}>{t("g_128a5e") || "6개월"}{opt.discount6.toLocaleString()}{t("g_21ba07") || "원"}{opt.cashDiscount6 && <span style={{
+              }}>{t("g_128a5e") || "6개"}{opt.discount6.toLocaleString()}{t("g_21ba07") || ""}{opt.cashDiscount6 && <span style={{
                   color: '#f59e0b'
                 }}>{t("g_eba921") || "(현금"}{opt.cashDiscount6.toLocaleString()})</span>}
                                                 </span>}
@@ -402,7 +402,7 @@ const AdminPriceManager = () => {
         overflowY: 'auto'
       }}>
                         <div className="modal-header">
-                            <h3>{t("g_c103da") || "회원권 수정"}</h3>
+                            <h3>{t("g_c103da") || "Member권 수정"}</h3>
                             <button onClick={() => setShowEditModal(false)} className="close-btn"><X size={24} /></button>
                         </div>
                         <div className="modal-body" style={{
@@ -417,7 +417,7 @@ const AdminPriceManager = () => {
             gap: '15px',
             alignItems: 'center'
           }}>
-                                <label>{t("g_af6ee2") || "회원권 이름"}</label>
+                                <label>{t("g_af6ee2") || "Member권 이름"}</label>
                                 <input type="text" className="styled-input" value={editingCategory.label} onChange={e => updateCategoryField('label', e.target.value)} />
 
                                 <label>{t("g_9ad5ed") || "적용 지점"}</label>
@@ -492,7 +492,7 @@ const AdminPriceManager = () => {
                       fontSize: '0.8rem',
                       opacity: 0.7
                     }}>{t("g_7be993") || "표시 이름"}</label>
-                                                    <input type="text" className="styled-input" value={opt.label} placeholder={t("g_450c9f") || "예: 1개월 (주2회)"} onChange={e => updateOption(idx, 'label', e.target.value)} />
+                                                    <input type="text" className="styled-input" value={opt.label} placeholder={t("g_450c9f") || "예: 1개 (주2회)"} onChange={e => updateOption(idx, 'label', e.target.value)} />
                                                 </div>
                                                 <div>
                                                     <label style={{
@@ -512,7 +512,7 @@ const AdminPriceManager = () => {
                                                     <label style={{
                       fontSize: '0.8rem',
                       opacity: 0.7
-                    }}>{t("g_56ec9a") || "유효 기간(개월)"}</label>
+                    }}>{t("g_56ec9a") || "유효 기간(개)"}</label>
                                                     <input type="number" className="styled-input" value={opt.months} onChange={e => updateOption(idx, 'months', parseInt(e.target.value) || 1)} />
                                                 </div>
                                                 <div>
@@ -521,7 +521,7 @@ const AdminPriceManager = () => {
                       opacity: 0.7
                     }}>{t("g_80577c") || "유형"}</label>
                                                     <select className="styled-select" value={opt.type} onChange={e => updateOption(idx, 'type', e.target.value)}>
-                                                        <option value="subscription">{t("g_7fa668") || "기간제(월)"}</option>
+                                                        <option value="subscription">{t("g_7fa668") || "기간제()"}</option>
                                                         <option value="ticket">{t("g_a59218") || "횟수권"}</option>
                                                     </select>
                                                 </div>
@@ -541,7 +541,7 @@ const AdminPriceManager = () => {
                                                         <label style={{
                       fontSize: '0.75rem',
                       opacity: 0.6
-                    }}>{t("g_6c4f74") || "3개월 할인가 (선택)"}</label>
+                    }}>{t("g_6c4f74") || "3개 할인가 (선택)"}</label>
                                                         <input type="number" className="styled-input" style={{
                       fontSize: '0.9rem',
                       padding: '6px'
@@ -553,7 +553,7 @@ const AdminPriceManager = () => {
                                                         <label style={{
                       fontSize: '0.75rem',
                       opacity: 0.6
-                    }}>{t("g_1373c8") || "6개월 할인가 (선택)"}</label>
+                    }}>{t("g_1373c8") || "6개 할인가 (선택)"}</label>
                                                         <input type="number" className="styled-input" style={{
                       fontSize: '0.9rem',
                       padding: '6px'
@@ -602,7 +602,7 @@ const AdminPriceManager = () => {
                                                                 <label style={{
                           fontSize: '0.7rem',
                           opacity: 0.6
-                        }}>{t("g_17be07") || "현금 3개월"}</label>
+                        }}>{t("g_17be07") || "현금 3개"}</label>
                                                                 <input type="number" className="styled-input" style={{
                           fontSize: '0.85rem',
                           padding: '6px'
@@ -615,7 +615,7 @@ const AdminPriceManager = () => {
                                                                 <label style={{
                           fontSize: '0.7rem',
                           opacity: 0.6
-                        }}>{t("g_262215") || "현금 6개월"}</label>
+                        }}>{t("g_262215") || "현금 6개"}</label>
                                                                 <input type="number" className="styled-input" style={{
                           fontSize: '0.85rem',
                           padding: '6px'
@@ -627,7 +627,7 @@ const AdminPriceManager = () => {
                     fontSize: '0.65rem',
                     color: 'rgba(245,158,11,0.5)',
                     marginTop: '6px'
-                  }}>{t("g_426b6b") || "* 비어있으면 카드 가격의 5% 할인(3개월 이상) 자동 적용"}</div>
+                  }}>{t("g_426b6b") || "* 비어있으면 카드 가격의 5% 할인(3개 이상) 자동 적용"}</div>
                                             </div>
                                         </div>)}
                                     <div ref={optionsEndRef} />

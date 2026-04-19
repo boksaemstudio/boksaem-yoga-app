@@ -19,8 +19,8 @@ const db = admin.firestore();
 const STUDIO_ID = 'demo-yoga'; // Target Tenant
 const tenantDb = db.collection('studios').doc(STUDIO_ID);
 
-const FIRST_NAMES = ['김','??,'�?,'�?,'??,'�?,'�?,'??,'??,'??,'??,'??,'??,'??,'�?,'??,'??,'??,'??,'??];
-const LAST_NAMES = ['민�?','?��?','?�윤','?��?','?�우','?��?','지??,'주원','지??,'준??,'?�연','?�윤','지??,'?�현','?��?','?�윤','민서','지??,'?�서','지�?,'?�아','지??];
+const FIRST_NAMES = ['송', '김', '이', '박', '최', '정', '강', '조', '윤', '장', '임', '한', '오', '서', '신', '권', '황', '안', '송', '전', '홍'];
+const LAST_NAMES = ['민준', '서준', '도윤', '예준', '시우', '하준', '지호', '주원', '지훈', '준우', '서연', '서윤', '지우', '서현', '하은', '하윤', '민서', '지유', '윤서', '지민', '채원', '수아'];
 
 function getRandomName() {
     const first = FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)];
@@ -44,7 +44,7 @@ async function deleteCollection(collectionRef) {
 }
 
 async function seedData() {
-    console.log(`?�� [SaaS Demo] Seeding data for tenant: ${STUDIO_ID}`);
+    console.log(`✅ [SaaS Demo] Seeding data for tenant: ${STUDIO_ID}`);
 
     console.log('Clearing old demo data...');
     const collections = ['members', 'daily_classes', 'attendance', 'sales', 'notices', 'push_messages'];
@@ -52,7 +52,7 @@ async function seedData() {
         await deleteCollection(tenantDb.collection(coll));
     }
     await deleteCollection(tenantDb.collection('settings')); // Including pricing, instructors
-    console.log('??Old data cleared');
+    console.log('✅ Old data cleared');
 
     // 1. Studio Configuration
     const configData = {
@@ -62,8 +62,8 @@ async function seedData() {
         status: 'active',
         settings: {
             IDENTITY: {
-                NAME: 'PassFlow Ai Yoga & Pilates',
-                SLOGAN: '최고???��? ?�튜?�오 ?�동???�루??
+                NAME: '요가&필라테스 패스플로우 (본점)',
+                SLOGAN: '최고의 요가 스튜디오, 감동의 하루'
             },
             THEME: {
                 PRIMARY_COLOR: '#8B5CF6', 
@@ -78,33 +78,33 @@ async function seedData() {
             },
             BRANCHES: [
                 { id: 'A', name: '강남본점', color: '#8B5CF6' },
-                { id: 'B', name: '?��?DI??, color: '#3B82F6' }
+                { id: 'B', name: '잠실지점', color: '#3B82F6' }
             ],
             MEMBERSHIP: {
-                TYPES: { 'MTypeA': '기구?�라?�스 30?�권', 'MTypeB': '?�라?�요가 1개월�?, 'MTypeC': '빈야??무제???�스', 'MTypeD': '?�데???�래?? }
+                TYPES: { 'MTypeA': '기구필라테스 30회권', 'MTypeB': '플라잉요가 1개월권', 'MTypeC': '빈야사 무제한 패스', 'MTypeD': '원데이 클래스' }
             },
             POLICIES: { ENABLE_EXPIRATION_BLOCK: true, ENABLE_NEGATIVE_CREDITS: false }
         },
         updatedAt: new Date().toISOString()
     };
     await tenantDb.set(configData, { merge: true });
-    console.log('??1. Config seeded');
+    console.log('✅ 1. Config seeded');
 
     // 1-1. Settings (Pricing, Instructors, App Settings)
     const pricingData = {
         "group": {
-            "label": "그룹 ?�슨",
+            "label": "그룹 레슨",
             "branches": ["A", "B"],
             "options": [
-                { "id": "1month", "label": "1개월 무제??, "price": 180000, "duration": 1, "popular": true, "discount": "" },
-                { "id": "3months", "label": "3개월 30??, "price": 450000, "duration": 3, "credits": 30, "popular": false, "discount": "20% ?�인" }
+                { "id": "1month", "label": "1개월 무제한", "price": 180000, "duration": 1, "popular": true, "discount": "" },
+                { "id": "3months", "label": "3개월 30회", "price": 450000, "duration": 3, "credits": 30, "popular": false, "discount": "20% 할인" }
             ]
         },
         "private": {
-            "label": "1:1 집중 ?�슨",
+            "label": "1:1 집중 레슨",
             "branches": ["A", "B"],
             "options": [
-                { "id": "10sessions", "label": "10?�권", "price": 700000, "duration": 3, "credits": 10, "popular": true, "discount": "" }
+                { "id": "10sessions", "label": "10회권", "price": 700000, "duration": 3, "credits": 10, "popular": true, "discount": "" }
             ]
         }
     };
@@ -112,28 +112,28 @@ async function seedData() {
     
     const instructorData = {
         list: [
-            { name: "?�마 ?�장", role: "admin", photo: "" },
-            { name: "?�피 지?�장", role: "manager", photo: "" },
+            { name: "엠마 원장", role: "admin", photo: "" },
+            { name: "소피 지점장", role: "manager", photo: "" },
             { name: "루시 강사", role: "instructor", photo: "" },
-            { name: "?�리비아 강사", role: "instructor", photo: "" }
+            { name: "올리비아 강사", role: "instructor", photo: "" }
         ]
     };
     await tenantDb.collection('settings').doc('instructors').set(instructorData);
 
     const classTypesData = {
-        list: ["빈야??, "?��?", "?�쉬?��?", "기구?�라?�스", "?�요가", "?�링?��?"]
+        list: ["빈야사", "하타", "아쉬탕가", "기구필라테스", "인요가", "힐링요가"]
     };
     await tenantDb.collection('settings').doc('classTypes').set(classTypesData);
 
     // Insert a Notice
     await tenantDb.collection('notices').doc('demo_notice_1').set({
-        title: "[공�?] 봄맞???�스?�로???�모 ?�데?�트 ?�내",
-        content: "?�녕?�세?? ?�벽???�튜?�오 관리�? ?�는 ?�스?�로?�입?�다. ?�로??AI 브리??기능??추�??�었?�니??",
+        title: "[공지] 봄맞이 패스플로우 데모 업데이트 안내",
+        content: "안녕하세요! 완벽한 스튜디오 관리를 돕는 패스플로우입니다. 새로운 AI 브리핑 기능이 추가되었습니다.",
         author: "관리자",
         createdAt: new Date().toISOString(),
         isPinned: true
     });
-    console.log('??1-1. Settings & Notices seeded');
+    console.log('✅ 1-1. Settings & Notices seeded');
 
 
     // 2. Members
@@ -195,9 +195,9 @@ async function seedData() {
 
     // 3. Classes
     console.log('Generating Classes for past 30 days...');
-    const classNames = ['모닝 빈야??, '기구 ?�라?�스', '?�라???��?', '?�???��?', '?�링 ?�라??, '코어 ?�텐?�브'];
+    const classNames = ['모닝 빈야사', '기구 필라테스', '플라잉 요가', '하타 요가', '힐링 요가', '코어 인텐시브'];
     const classTimes = ['07:00', '10:00', '14:00', '19:00', '21:00'];
-    const instructors = ['?�마 ?�장', '?�피 지?�장', '루시 강사', '?�리비아 강사'];
+    const instructors = ['엠마 원장', '소피 지점장', '루시 강사', '올리비아 강사'];
     
     // Generate classes for past 30 days and future 7 days
     for (let d = -30; d <= 7; d++) {
@@ -274,7 +274,7 @@ async function seedData() {
                         timestamp: saleDate.toISOString(),
                         branchId: branchId,
                         itemType: Math.random() > 0.7 ? 'MTypeA' : 'MTypeB',
-                        itemName: '?�강�?결제',
+                        itemName: '수강권 결제',
                         memberName: getRandomName(),
                         memberId: memberIds[Math.floor(Math.random() * memberIds.length)],
                         paymentMethod: Math.random() > 0.5 ? 'card' : 'cash',

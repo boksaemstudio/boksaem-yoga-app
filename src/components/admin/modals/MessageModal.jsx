@@ -19,7 +19,7 @@ const MessageModal = ({
     }
     try {
       await storageService.addMessage(member.id, messageText);
-      alert(`${member.name}님에게 메시지를 전송했습니다.`);
+      alert(`${member.name} — message sent.`);
       setMessageText('');
       onClose();
     } catch (error) {
@@ -35,22 +35,22 @@ const MessageModal = ({
         fontSize: '0.9rem',
         opacity: 0.7
       }}>
-                    {t('메시지를 전송하면 해당 회원의 앱으로 푸시 알림이 발송됩니다.')}
+                    {t("g_b25fb2")}
                 </p>
                 <textarea className="form-input" style={{
         height: '150px',
         resize: 'none',
         marginBottom: '20px'
-      }} placeholder={t('전송할 내용을 입력하세요...')} value={messageText} onChange={e => setMessageText(e.target.value)} />
+      }} placeholder={t("g_2507a4")} value={messageText} onChange={e => setMessageText(e.target.value)} />
                 <div className="modal-actions">
                     <button onClick={onClose} style={{
           padding: '10px 20px',
           color: 'var(--text-secondary)'
-        }}>{t('취소')}</button>
+        }}>{t("g_d9de21")}</button>
                     <button onClick={handleSendMessage} className="action-btn primary">
                         <ChatCircleText size={18} style={{
             marginRight: '6px'
-          }} /> {t('메시지 보내기')}
+          }} /> {t("g_35c97a")}
                     </button>
                 </div>
             </div>

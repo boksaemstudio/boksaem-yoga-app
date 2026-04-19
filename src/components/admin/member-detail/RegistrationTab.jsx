@@ -1,3 +1,4 @@
+import { formatCurrency } from '../../../utils/formatters';
 import { useLanguageStore } from '../../../stores/useLanguageStore';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import CustomDatePicker from '../../common/CustomDatePicker';
@@ -12,7 +13,7 @@ const RegistrationTab = ({
   setActiveTab,
   setPrefillMessage
 }) => {
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   const {
     config
   } = useStudioConfig();
@@ -29,8 +30,8 @@ const RegistrationTab = ({
     return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   });
   const [immediateBranch, setImmediateBranch] = useState(member.homeBranch || (branches.length > 0 ? branches[0].id : ''));
-  // [FIX] 수업 선택값을 '자율수련' 또는 'time__title' 형식의 고유키로 관리
-  const [immediateClassKey, setImmediateClassKey] = useState(t("g_dd529d") || "자율수련");
+  // [FIX] 수업 선택값을 'Self Practice' 또는 'time__title' 형식의 고유키로 관리
+  const [immediateClassKey, setImmediateClassKey] = useState(t("g_dd529d") || "Self Practice");
   const [immediateInstructor, setImmediateInstructor] = useState('');
   const [immediateDailyClasses, setImmediateDailyClasses] = useState([]);
 
@@ -41,7 +42,7 @@ const RegistrationTab = ({
   const [paymentMethod, setPaymentMethod] = useState('card');
 
   // [Smart Date Logic] — 3가지 시작일 모드: 'tbd' | 'manual' | 'immediate'
-  // [FIX] 만료/소진 회원도 항상 모든 옵션 사용 가능
+  // [FIX] 만료/소진 Member도 항상 모든 옵션 사용 가능
   const [startDateMode, setStartDateMode] = useState('tbd');
   const [startDate, setStartDate] = useState(() => {
     const today = new Date();
@@ -73,7 +74,7 @@ const RegistrationTab = ({
       const filteredOpts = pricingConfig[membershipType].options.filter(opt => !(opt.type === 'ticket' && opt.credits === 1));
       setSelectedOption(filteredOpts[0]?.id || '');
     }
-  }, [membershipType, pricingConfig]);
+  }, [membershipType, pricingConfig, language]);
 
   // Calculation Logic - Use useMemo for derived values
   // [FIX] durationMonths를 useMemo 반환값으로 이동 (setState in useMemo 안티패턴 제거)
@@ -102,7 +103,7 @@ const RegistrationTab = ({
     let label = option.label;
     let fallbackMonths = 1;
     if (option.label) {
-      const match = option.label.match(/(\d+)개월/);
+      const match = option.label.match(/(\d+)개/);
       if (match) fallbackMonths = parseInt(match[1], 10);
     }
     
@@ -140,19 +141,19 @@ const RegistrationTab = ({
       calculatedEndDate: end.toLocaleDateString('sv-SE', {
         timeZone: 'Asia/Seoul'
       }),
-      calculatedProductName: `${label} ${duration > 1 && option.type !== 'ticket' ? `(${duration}개월)` : ''}`,
+      calculatedProductName: `${label} ${duration > 1 && option.type !== 'ticket' ? `(${duration}개)` : ''}`,
       durationMonths: months
     };
-  }, [membershipType, selectedOption, duration, paymentMethod, startDate, startDateMode, immediateDate, pricingConfig]);
+  }, [membershipType, selectedOption, duration, paymentMethod, startDate, startDateMode, immediateDate, pricingConfig, language]);
   useEffect(() => {
     setPrice(calculatedPrice);
-  }, [calculatedPrice]);
+  }, [calculatedPrice, language]);
   useEffect(() => {
     setCustomEndDate(calculatedEndDate);
-  }, [calculatedEndDate]);
+  }, [calculatedEndDate, language]);
   useEffect(() => {
     setCustomCredits(calculatedCredits);
-  }, [calculatedCredits]);
+  }, [calculatedCredits, language]);
 
   // ─── 즉시 출석: 선택 날짜/지점의 수업 목록 fetch ───
   useEffect(() => {
@@ -167,17 +168,17 @@ const RegistrationTab = ({
       }
     };
     fetchClasses();
-  }, [startDateMode, immediateBranch, immediateDate]);
+  }, [startDateMode, immediateBranch, immediateDate, language]);
 
   // ─── 즉시 출석: 수업 옵션 ───
   // [FIX] value를 'time__title' 형식의 고유키로 사용하여 동일 수업명 중복 문제 해결
   const immediateClassOptions = useMemo(() => {
     const options = [{
-      value: t("g_dd529d") || "자율수련",
-      label: t("g_dd529d") || "자율수련",
+      value: t("g_dd529d") || "Self Practice",
+      label: t("g_dd529d") || "Self Practice",
       time: '',
       instructor: '',
-      className: t("g_dd529d") || "자율수련"
+      className: t("g_dd529d") || "Self Practice"
     }];
     if (immediateDailyClasses.length > 0) {
       immediateDailyClasses.forEach(cls => {
@@ -198,20 +199,20 @@ const RegistrationTab = ({
       });
     }
     return options;
-  }, [immediateDailyClasses]);
+  }, [immediateDailyClasses, language]);
 
   // ─── 즉시 출석: 지점/날짜 변경 시 수업 선택 초기화 ───
   useEffect(() => {
-    setImmediateClassKey(t("g_dd529d") || "자율수련");
+    setImmediateClassKey(t("g_dd529d") || "Self Practice");
     setImmediateInstructor('');
-  }, [immediateBranch, immediateDate]);
+  }, [immediateBranch, immediateDate, language]);
 
   // ─── 즉시 출석: 선택된 수업에서 실제 className, time, instructor 추출 ───
   const selectedClassInfo = useMemo(() => {
     const found = immediateClassOptions.find(opt => opt.value === immediateClassKey);
-    if (!found || immediateClassKey === (t("g_dd529d") || "자율수련")) {
+    if (!found || immediateClassKey === (t("g_dd529d") || "Self Practice")) {
       return {
-        className: t("g_dd529d") || "자율수련",
+        className: t("g_dd529d") || "Self Practice",
         time: immediateTime,
         instructor: '',
         isFreePractice: true
@@ -223,9 +224,9 @@ const RegistrationTab = ({
       instructor: found.instructor,
       isFreePractice: false
     };
-  }, [immediateClassKey, immediateClassOptions, immediateTime]);
+  }, [immediateClassKey, immediateClassOptions, immediateTime, language]);
 
-  // [INFO] 선등록 여부 확인 — 현재 회원권이 활성 상태인지 체크
+  // [INFO] 선등록 여부 확인 — 현재 Member권이 활성 상태인지 체크
   const todayStr = new Date().toLocaleDateString('sv-SE', {
     timeZone: 'Asia/Seoul'
   });
@@ -249,7 +250,7 @@ const RegistrationTab = ({
       console.warn('[RegistrationTab] Duplicate submission blocked');
       return;
     }
-    let confirmMsg = `${calculatedProductName}\n금액: ${price.toLocaleString()}원\n\n등록하시겠습니까?`;
+    let confirmMsg = `${calculatedProductName}\n금액: ${formatCurrency(price, language)}\n\n등록하시겠습니까?`;
     if (!confirm(confirmMsg)) return;
     isSubmittingRef.current = true;
     setIsSubmitting(true);
@@ -300,7 +301,7 @@ const RegistrationTab = ({
       }
       await onUpdateMember(member.id, updateData);
 
-      // [FIX] 즉시 출석 모드일 때 등록과 동시에 출석 처리 (선택한 시간/수업 사용)
+      // [FIX] 즉시 출석 모드일 때 등록과 Max 출석 처리 (선택한 시간/수업 사용)
       if (isImmediate && onManualAttendance) {
         try {
           // [FIX] 선택된 수업의 시간/강사명을 정확하게 전달
@@ -317,7 +318,7 @@ const RegistrationTab = ({
 
       // [NEW] Auto-Message Redirect
       if (setPrefillMessage && setActiveTab) {
-        const msgLines = [`${member.name} 회원님, 수강권 등록/연장이 확정되었습니다.`, '', `• 등록 항목: ${calculatedProductName}`, `• 등록 상태: ${isAdvance ? t("g_7eea37") || "🗓️ 기존 만료 후 적용 (선등록)" : t("g_871a3d") || "✅ 진행 중"}`, `• 잔여 횟수: ${customCredits >= 999 ? t("g_0e7942") || "무제한 횟수" : customCredits + (t("g_2fc05c") || "회")}`, `• 이용 기간: ${finalStartDate === 'TBD' ? t("g_c2838e") || "첫 출석 시 확정" : finalStartDate} ~ ${finalEndDate === 'TBD' ? t("g_c2838e") || "첫 출석 시 확정" : finalEndDate}`, '', t("g_d85a4a") || "오늘도 건강한 하루 보내세요! 🙏"];
+        const msgLines = [`${member.name} Member, 수강권 등록/연장이 확정되었습니다.`, '', `• 등록 항목: ${calculatedProductName}`, `• 등록 상태: ${isAdvance ? t("g_7eea37") || "🗓️ 기존 만료 후 적용 (선등록)" : t("g_871a3d") || "✅ 진행 중"}`, `• 잔여 횟수: ${customCredits >= 999 ? t("g_0e7942") || "무제한 횟수" : customCredits + (t("g_2fc05c") || "회")}`, `• 이용 기간: ${finalStartDate === 'TBD' ? t("g_c2838e") || "첫 출석 시 확정" : finalStartDate} ~ ${finalEndDate === 'TBD' ? t("g_c2838e") || "첫 출석 시 확정" : finalEndDate}`, '', t("g_d85a4a") || "오늘도 건강한 Max 보내세요! 🙏"];
         setPrefillMessage(msgLines.join('\n'));
         setTimeout(() => setActiveTab('messages'), 300);
       } else {
@@ -325,7 +326,7 @@ const RegistrationTab = ({
       }
     } catch (err) {
       console.error('Registration error:', err);
-      alert(`등록 중 오류가 발생했습니다.\n상세: ${err.message || t("g_5e9f6b") || "알 수 없는 오류"}`);
+      alert(`등록 중 오류가 발생했습니다.\n상세: ${err.message || t("g_5e9f6b") || "Unknown error"}`);
     } finally {
       setIsSubmitting(false);
       isSubmittingRef.current = false;
@@ -336,9 +337,9 @@ const RegistrationTab = ({
     flexDirection: 'column',
     gap: '14px'
   }}>
-            {/* 회원권 종류 */}
+            {/* Member권 종류 */}
             <div className="form-group">
-                <label className="form-label">{t("g_1f45e2") || "회원권 종류"}</label>
+                <label className="form-label">{t("g_1f45e2") || "Member권 종류"}</label>
                 <select className="form-select" style={{
         fontFamily: 'var(--font-main)'
       }} value={membershipType} onChange={e => {
@@ -381,7 +382,7 @@ const RegistrationTab = ({
               fontSize: '1rem',
               fontWeight: 'bold'
             }} onClick={() => setDuration(m)}>
-                                        {m}{t("g_d2dfd1") || "개월"}</button>)}
+                                        {m}{t("g_d2dfd1") || "개"}</button>)}
                             </div>
                         </div>;
       }
@@ -545,7 +546,7 @@ const RegistrationTab = ({
               flexWrap: 'wrap',
               alignItems: 'center'
             }}>
-                                    {/* [FIX] 시간 입력: 자율수련일 때만 표시 (스케줄 수업은 시간이 자동 결정) */}
+                                    {/* [FIX] 시간 입력: Self Practice일 때만 표시 (스케줄 수업은 시간이 자동 결정) */}
                                     {selectedClassInfo.isFreePractice && <input type="time" value={immediateTime} onChange={e => setImmediateTime(e.target.value)} className="form-input" style={{
                 flex: 1,
                 minWidth: '100px',
@@ -677,7 +678,7 @@ const RegistrationTab = ({
             fontSize: '1.4rem',
             fontWeight: '900',
             color: 'var(--primary-gold)'
-          }}>{t("g_21ba07") || "원"}</span>
+          }}>{t("g_21ba07") || ""}</span>
                     </div>
                 </div>
                 <div style={{

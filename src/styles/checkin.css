@@ -176,7 +176,7 @@
   color: var(--text-primary);
   text-align: center;
   font-weight: 700;
-  margin-top: 1.5vh;
+  margin-top: 0;
   line-height: 1.4;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
@@ -495,16 +495,36 @@
 }
 
 /* Keypad Floating Instruction */
-@keyframes soft-pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.4; }
-  100% { opacity: 1; }
+@keyframes teleport-fade {
+  /* Position 1: Top Left */
+  0%   { opacity: 0; top: 15%; left: 30%; }
+  3%   { opacity: 1; top: 15%; left: 30%; }
+  20%  { opacity: 1; top: 15%; left: 30%; }
+  23%  { opacity: 0; top: 15%; left: 30%; }
+
+  /* Position 2: Bottom Right */
+  24%  { opacity: 0; top: 75%; left: 65%; }
+  28%  { opacity: 1; top: 75%; left: 65%; }
+  45%  { opacity: 1; top: 75%; left: 65%; }
+  48%  { opacity: 0; top: 75%; left: 65%; }
+
+  /* Position 3: Middle Left */
+  49%  { opacity: 0; top: 45%; left: 20%; }
+  53%  { opacity: 1; top: 45%; left: 20%; }
+  70%  { opacity: 1; top: 45%; left: 20%; }
+  73%  { opacity: 0; top: 45%; left: 20%; }
+
+  /* Position 4: Top Right */
+  74%  { opacity: 0; top: 10%; left: 75%; }
+  78%  { opacity: 1; top: 10%; left: 75%; }
+  95%  { opacity: 1; top: 10%; left: 75%; }
+  98%  { opacity: 0; top: 10%; left: 75%; }
+
+  100% { opacity: 0; top: 15%; left: 30%; }
 }
 
 .keypad-floating-instruction {
   position: absolute;
-  top: 22.5%;
-  left: 50%;
   transform: translateX(-50%);
   background: var(--primary-theme-color);
   color: #121212;
@@ -516,8 +536,8 @@
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.5), 0 10px 25px var(--primary-theme-color-glow);
   z-index: 100;
   pointer-events: none;
-  animation: soft-pulse 2s infinite ease-in-out;
-  will-change: opacity;
+  animation: teleport-fade 20s infinite linear;
+  will-change: top, left, opacity;
   border: 4px solid #1a1a1a;
 }
 

@@ -9,6 +9,7 @@ import { tenantDb } from '../utils/tenantDb';
 import { storageService } from '../services/storage';
 import { safeLocalStorage } from '../utils/safeLocalStorage';
 import { getDaysRemaining, getKSTHour, getKSTMonth, getKSTDayNameEN } from '../utils/dates';
+import { getLocalizedWeather } from '../utils/weather';
 
 /**
  * @param {Object} options
@@ -77,7 +78,7 @@ export function useMemberData({ t, language, setLoginFormValue, setLoginForm }) 
       const exp = await storageService.getAIExperience(
         m.name, m.attendanceCount || validAttendance.length, day, hour,
         null,
-        wData ? `${t('weather_' + wData.key)} (${wData.temp}°C)` : 'Sunny',
+        wData ? `${t('weather_' + wData.key)} (${wData.temp}${wData.unit})` : 'Sunny',
         m.credits || 0, getDaysRemaining(m.endDate), language,
         { streak, lastAttendanceAt: lastAtt }, 'profile'
       );
@@ -93,18 +94,7 @@ export function useMemberData({ t, language, setLoginFormValue, setLoginForm }) 
   // ── Weather Fetcher ──
   const fetchWeather = async () => {
     try {
-      const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.9780&current_weather=true');
-      const data = await res.json();
-      const wc = data.current_weather.weathercode;
-      let key = 'clear';
-      if (wc >= 1 && wc <= 3) key = 'partly_cloudy';
-      if (wc > 3) key = 'cloudy';
-      if (wc >= 45 && wc <= 48) key = 'fog';
-      if (wc >= 51 && wc <= 67) key = 'rain';
-      if (wc >= 71 && wc <= 77) key = 'snow';
-      if (wc >= 95) key = 'thunderstorm';
-
-      const wData = { key, temp: data.current_weather.temperature };
+      const wData = await getLocalizedWeather(language);
       setWeatherData(wData);
       return wData;
     } catch {

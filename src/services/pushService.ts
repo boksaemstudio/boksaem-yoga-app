@@ -112,7 +112,7 @@ export const pushService = {
                     }
                     if (data.memberId) await updateDoc(tenantDb.doc('members', data.memberId), { pushEnabled: false });
                 }
-                // role 필터 없으면 기존처럼 삭제 (회원용)
+                // role 필터 없으면 기존처럼 삭제 (Member용)
                 if (!role || (tokenSnap.exists() && (tokenSnap.data() as PushToken).role === role)) {
                     await deleteDoc(tenantDb.doc('fcm_tokens', token));
                 }
@@ -257,7 +257,7 @@ export const pushService = {
     async verifyServiceWorkerRegistration(): Promise<ServiceWorkerRegistration> {
         if (!('serviceWorker' in navigator)) throw new Error('이 브라우저는 푸시 알림을 지원하지 않습니다.');
         try { return await navigator.serviceWorker.ready; }
-        catch (e) { throw new Error(`Service Worker 확인 실패: ${(e as Error).message}`); }
+        catch (e) { throw new Error(`Service Worker check failed: ${(e as Error).message}`); }
     },
 
     async checkPushNotificationStatus(): Promise<PushStatus> {
@@ -321,7 +321,7 @@ export const pushService = {
             return { success: true, token, message: '푸시 알림이 성공적으로 설정되었습니다!' };
         } catch (error) {
             const msg = (error as Error).message;
-            return { success: false, error: msg, message: `푸시 알림 설정 실패: ${msg}` };
+            return { success: false, error: msg, message: `Push notification setup failed: ${msg}` };
         }
     },
 

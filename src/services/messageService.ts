@@ -97,7 +97,7 @@ export const messageService = {
     async sendBulkMessages(memberIds: string[], content: string, scheduledAt: string | null = null, sendMode: string = 'push_first'): Promise<{ success: boolean; count: number }> {
         if (!memberIds || memberIds.length === 0) throw new Error("No members selected");
         if (!content) throw new Error("Content is empty");
-        if (isSendingBulkLock) throw new Error("현재 전송이 진행 중입니다. 중복 발송을 방지하기 위해 잠시 대기 중입니다.");
+        if (isSendingBulkLock) throw new Error("현재 전송이 진행 중입니다. 중복 발송을 방지하기 위해 잠시 Waitlisted at position 중입니다.");
         
         isSendingBulkLock = true;
         try {

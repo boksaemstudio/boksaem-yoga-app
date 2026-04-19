@@ -194,7 +194,8 @@ exports.memberLoginV2Call = onCall({
             token = await admin.auth().createCustomToken(uid, { 
                 member: true,
                 name: data.name,
-                memberId: targetDoc.id
+                memberId: targetDoc.id,
+                studioId: request.data.studioId
             });
         } catch (tokenError) {
             console.error("[memberLoginV2Call] Error creating custom token:", tokenError);
@@ -284,7 +285,8 @@ exports.verifyInstructorV2Call = onCall({
                 const uid = `instructor_${trimmedLast4}`;
                 const token = await admin.auth().createCustomToken(uid, { 
                     instructor: true,
-                    name: instructorName
+                    name: instructorName,
+                    studioId: request.data.studioId
                 });
                 
                 return { success: true, name: instructorName, token };
@@ -409,7 +411,7 @@ exports.applyMemberHoldCall = onCall({
         }
 
         if (!allowSelfHold) {
-            throw new HttpsError('failed-precondition', '이 요가원에서는 자가 홀딩 기능이 비활성화되어 있습니다.');
+            throw new HttpsError('failed-precondition', '이 스튜디오에서는 자가 홀딩 기능이 비활성화되어 있습니다.');
         }
 
         // 회원의 수강 기간(개월 수) 판별 — duration 필드 없으면 startDate/endDate로 역산

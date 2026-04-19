@@ -183,14 +183,14 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
 
   // ─── Field Labels ───
   const FIELD_LABELS = {
-    name: t("g_9aa18e") || "이름",
-    phone: t("g_9a1c3a") || "전화번호",
-    membershipType: t("g_2b4122") || "회원권 구분",
+    name: t("g_9aa18e") || "Name",
+    phone: t("g_9a1c3a") || "Phone",
+    membershipType: t("g_2b4122") || "Member권 구분",
     subject: t("g_eac3a7") || "세부 이용권",
     regDate: t("g_6f8044") || "등록일",
     startDate: t("g_65812d") || "수강 시작일",
-    endDate: t("g_cad7c8") || "종료일",
-    credits: t("g_029db5") || "잔여 횟수",
+    endDate: t("g_cad7c8") || "End Date",
+    credits: t("g_029db5") || "Remaining Credits",
     price: t("g_d62fb3") || "결제 금액",
     notes: t("g_f3ce23") || "메모"
   };
@@ -290,7 +290,7 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
         const [hh, mm] = timeStr.split(':');
         combinedDateStr = `${dateStr}T${hh}:${mm}:00+09:00`;
       }
-      const result = await storageService.addManualAttendance(member.id, combinedDateStr, branchId, className || t("g_1ec9ff") || "수동 확인", instructorName || t("g_ec873c") || "관리자");
+      const result = await storageService.addManualAttendance(member.id, combinedDateStr, branchId, className || t("g_1ec9ff") || "Manual Check-in", instructorName || t("g_ec873c") || "Admin");
       if (result.success) {
         if (member.startDate === 'TBD') {
           const startDateStr = dateStr;
@@ -331,7 +331,7 @@ export const useAdminMemberDetail = (initialMember, propMemberLogs, {
         }
         alert(t("g_5500af") || "수동 출석처리가 완료되었습니다.");
       } else {
-        alert((t("g_7e55e8") || "출석 처리에 실패했습니다: ") + (result.message || t("g_5e9f6b") || "알 수 없는 오류"));
+        alert((t("g_7e55e8") || "출석 처리에 실패했습니다: ") + (result.message || t("g_5e9f6b") || "Unknown error"));
       }
     } catch (e) {
       console.error(e);

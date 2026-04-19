@@ -68,7 +68,7 @@ exports.generatePageExperienceV2 = onCall({
                     : '';
 
                 prompt = `
-                    You are a world-class Business Consultant and Yoga Studio Strategy Expert (Digital Yard Management).
+                    You are a world-class Business Consultant and Fitness Studio Strategy Expert (Digital Yard Management).
                     Analyze the following data for ${branchInfo} and provide a high-level strategic briefing in ${targetLang}.
                     
                     Data Summary:
@@ -116,7 +116,7 @@ exports.generatePageExperienceV2 = onCall({
                 const isAdmin = role === 'admin';
                 
                 prompt = `
-                    You are a caring yoga studio instructor and wellness advisor.
+                    You are a caring fitness studio instructor and wellness advisor.
                     Analyze the following INDIVIDUAL MEMBER's practice data and provide a personalized analysis in ${targetLang}.
 
                     Member Name: ${memberName || '회원'}
@@ -152,7 +152,7 @@ exports.generatePageExperienceV2 = onCall({
             ).join('\n');
 
             prompt = `
-                당신은 요가/필라테스 스튜디오 운영 전문 AI 컨설턴트입니다.
+                당신은 피트니스/웰니스 스튜디오 운영 전문 AI 컨설턴트입니다.
                 아래는 "${branchName}" 업장의 실제 회원 이탈 위험 데이터입니다.
                 
                 📊 업장 현황:
@@ -199,7 +199,7 @@ exports.generatePageExperienceV2 = onCall({
             const studioName = request.data.studioName || '스튜디오';
             
             prompt = `
-                당신은 "${studioName}"의 따뜻한 요가 선생님입니다.
+                당신은 "${studioName}"의 따뜻한 선생님입니다.
                 아래 회원에게 보낼 개인 맞춤 안부 메시지를 작성해주세요.
                 
                 📌 회원 정보:
@@ -226,7 +226,7 @@ exports.generatePageExperienceV2 = onCall({
             const mbti = request.data.mbti || null;
             const mbtiContext = mbti ? `MBTI: ${mbti}. Consider their personality type when crafting the greeting (e.g., introverts might prefer calmer tones, extraverts more energetic).` : '';
             prompt = `
-                Generate a warm greeting for someone arriving at a yoga studio.
+                Generate a warm greeting for someone arriving at a fitness studio.
                 Do NOT address them by any name or title (no "회원님", no "방문자님", no names).
                 Streak: ${streak}, TimeOfDay: ${timeOfDay}h, Weather: ${weather}.
                 ${mbtiContext}
@@ -269,7 +269,7 @@ exports.translateNoticesV2 = onCall({
 });
 
 /**
- * 오늘의 요가 자세 추천
+ * 오늘의 운동 자세 추천
  */
 exports.generateDailyYogaV2 = onCall({ 
     region: "asia-northeast3", 

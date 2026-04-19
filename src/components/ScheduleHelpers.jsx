@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Plus, X } from '@phosphor-icons/react';
 import { storageService } from '../services/storage';
 import { useStudioConfig } from '../contexts/StudioContext';
+import { formatPhoneNumber } from '../utils/formatters';
 const ScheduleClassEditor = ({
   cls,
   idx,
@@ -13,6 +14,7 @@ const ScheduleClassEditor = ({
   classLevels
 }) => {
   const t = useLanguageStore(s => s.t);
+  const language = useLanguageStore(s => s.language);
   const selectStyle = {
     // fallback generic styles
     fontSize: '0.9rem',
@@ -116,7 +118,7 @@ const ScheduleClassEditor = ({
         flex: 1.5,
         minWidth: '100px'
       }}>
-                    <option value="">{t("g_620be2") || "선생님"}</option>
+                    <option value="">{t("g_620be2") || "Instructor"}</option>
                     {cls.instructor && !instructors.some(i => (typeof i === 'string' ? i : i.name) === cls.instructor) && <option value={cls.instructor}>{t("g_363c34") || "미등록"}</option>}
                     {instructors.map(inst => {
           const name = typeof inst === 'string' ? inst : inst.name;
@@ -179,6 +181,7 @@ const SettingsModal = ({
   setClassLevels
 }) => {
   const t = useLanguageStore(s => s.t);
+  const language = useLanguageStore(s => s.language);
   const {
     config
   } = useStudioConfig();
@@ -253,7 +256,7 @@ const SettingsModal = ({
             margin: 0,
             fontSize: '1.25rem',
             fontWeight: '600'
-          }}>{t("g_d2e531") || "선생님 & 수업 종류 관리"}</h3>
+          }}>{t("g_d2e531") || "Instructor & 수업 종류 관리"}</h3>
                     </div>
                     <button onClick={onClose} style={closeButtonStyle} onMouseEnter={e => e.target.style.background = 'rgba(255,255,255,0.1)'} onMouseLeave={e => e.target.style.background = 'transparent'}>
                         <X size={22} color="var(--text-secondary)" />
@@ -262,7 +265,7 @@ const SettingsModal = ({
 
                 {/* Scrollable Content */}
                 <div style={scrollContainerStyle}>
-                    {/* 선생님 관리 섹션 */}
+                    {/* Instructor 관리 섹션 */}
                     <div style={sectionCardStyle}>
                         <div style={sectionHeaderStyle}>
                             <div style={{
@@ -277,7 +280,7 @@ const SettingsModal = ({
                 margin: 0,
                 color: config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)',
                 fontWeight: '600'
-              }}>{t("g_d57caf") || "선생님 목록"}</h4>
+              }}>{t("g_d57caf") || "Instructor 목록"}</h4>
                                 <span style={{
                 background: 'rgba(var(--primary-rgb), 0.2)',
                 color: config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)',
@@ -285,12 +288,12 @@ const SettingsModal = ({
                 borderRadius: '12px',
                 fontSize: '0.75rem',
                 fontWeight: '600'
-              }}>{normalizedInstructors.length}{t("g_5a62fd") || "명"}</span>
+              }}>{normalizedInstructors.length}{t("g_5a62fd") || "people"}</span>
                             </div>
                         </div>
-                        <p style={hintTextStyle}>{t("g_85525d") || "💡 선생님을 클릭하면 전화번호를 편집할 수 있습니다"}</p>
+                        <p style={hintTextStyle}>{t("g_85525d") || "💡 Instructor을 클릭하면 전화번호를 편집할 수 있습니다"}</p>
                         <div style={inputRowStyle}>
-                            <input type="text" value={newInstructor} onChange={e => setNewInstructor(e.target.value)} placeholder={t("g_c3c6fb") || "선생님 이름"} style={{
+                            <input type="text" value={newInstructor} onChange={e => setNewInstructor(e.target.value)} placeholder={t("g_c3c6fb") || "Instructor 이름"} style={{
               ...improvedInputStyle,
               flex: 1
             }} onKeyDown={e => e.key === 'Enter' && newInstructor.trim() && document.getElementById('add-instructor-btn')?.click()} />
@@ -311,11 +314,11 @@ const SettingsModal = ({
                   setNewPhone('');
                 } catch (e) {
                   console.error('Failed to add instructor:', e);
-                  alert(t("g_99b155") || "선생님 추가 실패");
+                  alert(t("g_99b155") || "Instructor 추가 실패");
                 }
               }
             }} style={improvedActionBtnStyle}>
-                                <Plus size={18} weight="bold" />{t("g_579429") || "추가"}</button>
+                                <Plus size={18} weight="bold" />{t("g_579429") || "Add"}</button>
                         </div>
                         <div style={tagContainerStyle}>
                             {normalizedInstructors.map((inst, idx) => <div key={inst.name} style={getTagStyle('instructor', `inst-${idx}`, !!inst.phone)} onMouseEnter={() => setHoveredTag(`inst-${idx}`)} onMouseLeave={() => setHoveredTag(null)}>
@@ -324,7 +327,7 @@ const SettingsModal = ({
                   fontWeight: '600',
                   color: config.THEME?.PRIMARY_COLOR || 'var(--primary-gold)'
                 }}>{inst.name}</span>
-                                            <input type="tel" value={editPhone} onChange={e => setEditPhone(e.target.value)} placeholder={t("g_9a1c3a") || "전화번호"} style={{
+                                            <input type="tel" value={editPhone} onChange={e => setEditPhone(e.target.value)} placeholder={t("g_9a1c3a") || "Phone"} style={{
                   ...improvedInputStyle,
                   width: '110px',
                   padding: '4px 10px',
@@ -353,14 +356,14 @@ const SettingsModal = ({
                   borderRadius: '6px',
                   fontWeight: '600',
                   fontSize: '0.85rem'
-                }}>{t("g_1f1712") || "저장"}</button>
+                }}>{t("g_1f1712") || "Save"}</button>
                                         </> : <>
                                             <span onClick={() => {
                   setEditingIdx(idx);
                   setEditPhone(inst.phone || '');
                 }} style={{
                   fontWeight: '500'
-                }} title={inst.phone ? `📞 ${inst.phone}` : t("g_11685b") || "클릭하여 전화번호 입력"}>
+                }} title={inst.phone ? `📞 ${formatPhoneNumber(inst.phone, language)}` : t("g_11685b") || "클릭하여 전화번호 입력"}>
                                                 {inst.name}
                                                 {inst.phone && <span style={{
                     fontSize: '0.75rem',
@@ -377,7 +380,7 @@ const SettingsModal = ({
                       setInstructors(updated);
                     } catch (e) {
                       console.error('Failed to delete instructor:', e);
-                      alert(t("g_f3e768") || "선생님 삭제 실패");
+                      alert(t("g_f3e768") || "Instructor 삭제 실패");
                     }
                   }
                 }} style={deleteIconBtnStyle}>
@@ -411,7 +414,7 @@ const SettingsModal = ({
                 fontWeight: '600',
                 background: 'rgba(0,206,201,0.2)',
                 color: '#00cec9'
-              }}>{classTypes.length}{t("g_11600c") || "개"}</span>
+              }}>{classTypes.length}{t("g_11600c") || ""}</span>
                             </div>
                         </div>
                         <div style={inputRowStyle}>
@@ -435,7 +438,7 @@ const SettingsModal = ({
               ...improvedActionBtnStyle,
               background: '#00cec9'
             }}>
-                                <Plus size={18} weight="bold" />{t("g_579429") || "추가"}</button>
+                                <Plus size={18} weight="bold" />{t("g_579429") || "Add"}</button>
                         </div>
                         <div style={tagContainerStyle}>
                             {classTypes.map((ct, idx) => <div key={ct} style={getTagStyle('classType', `ct-${idx}`)} onMouseEnter={() => setHoveredTag(`ct-${idx}`)} onMouseLeave={() => setHoveredTag(null)}>
@@ -483,7 +486,7 @@ const SettingsModal = ({
                 fontWeight: '600',
                 background: 'rgba(155,89,182,0.2)',
                 color: '#9b59b6'
-              }}>{classLevels?.length || 0}{t("g_11600c") || "개"}</span>
+              }}>{classLevels?.length || 0}{t("g_11600c") || ""}</span>
                             </div>
                             <span style={{
               fontSize: '0.8rem',
@@ -517,7 +520,7 @@ const SettingsModal = ({
               background: '#9b59b6',
               color: 'white'
             }}>
-                                    <Plus size={18} weight="bold" />{t("g_579429") || "추가"}</button>
+                                    <Plus size={18} weight="bold" />{t("g_579429") || "Add"}</button>
                             </div>
                         <div style={tagContainerStyle}>
                             {classLevels?.map((level, idx) => <div key={level} style={getTagStyle('level', `lv-${idx}`)} onMouseEnter={() => setHoveredTag(`lv-${idx}`)} onMouseLeave={() => setHoveredTag(null)}>

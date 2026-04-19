@@ -551,7 +551,7 @@ async function checkAssistantQuota(studioId) {
 // 4. AGENT LOOP — Tool-Calling 에이전트 메인 루프
 // ═══════════════════════════════════════════════════════════
 
-const SYSTEM_PROMPT = `당신은 요가/필라테스 스튜디오 전담 AI 비서입니다.
+const SYSTEM_PROMPT = `당신은 피트니스/웰니스 스튜디오 전담 AI 비서입니다.
 제공된 도구(Tool)를 사용하여 스튜디오의 실제 운영 데이터를 조회하고, 정확한 답변을 제공합니다.
 
 역할:

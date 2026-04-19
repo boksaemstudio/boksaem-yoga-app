@@ -39,7 +39,7 @@ const StatsTab = ({
                     <span style={{
           fontSize: '0.9rem',
           fontWeight: 'bold'
-        }}>{t('얼굴 등록 현황')}</span>
+        }}>{t("g_467548")}</span>
                     <div className="tooltip-container" style={{
           display: 'inline-flex',
           cursor: 'pointer'
@@ -63,7 +63,7 @@ const StatsTab = ({
             color: '#fff',
             fontSize: '0.8rem'
           }}>
-                            {t('키오스크 얼굴인식 출석을 위해')}<br />{t('얼굴 데이터를 등록한 활성 회원의')}<br />{t('비율입니다.')}
+                            {t("g_e11dce")}<br />{t("g_b6fcb9")}<br />{t("g_245667")}
                         </div>
                     </div>
                 </div>
@@ -80,7 +80,7 @@ const StatsTab = ({
                     <span style={{
           fontSize: '1rem',
           opacity: 0.6
-        }}>{t('명 등록')}</span>
+        }}>{t("g_2e8f6e")}</span>
                     <span style={{
           marginLeft: 'auto',
           fontSize: '1.4rem',
@@ -114,7 +114,7 @@ const StatsTab = ({
                         <span style={{
           fontSize: '0.8rem',
           color: '#34D399'
-        }}>{t('✨ 오늘 AI 자동 인식 출석')}</span>
+        }}>{t("g_bfa173")}</span>
                         <div style={{
           textAlign: 'right'
         }}>
@@ -150,7 +150,7 @@ const StatsTab = ({
         }}>
                         <h3 className="card-label" style={{
             margin: 0
-          }}>{t('시간대별 이용 현황')}</h3>
+          }}>{t("g_b3bbef")}</h3>
                         <div className="tooltip-container" style={{
             display: 'inline-flex',
             cursor: 'pointer'
@@ -174,7 +174,7 @@ const StatsTab = ({
               color: '#fff',
               fontSize: '0.8rem'
             }}>
-                                {t('몇 시에 회원이 가장 많이')}<br />{t('오는지 한눈에 보여줍니다.')}
+                                {t("g_f1bf0a")}<br />{t("g_70fb50")}
                             </div>
                         </div>
                     </div>
@@ -223,7 +223,7 @@ const StatsTab = ({
         }}>
                         <h3 className="card-label" style={{
             margin: 0
-          }}>{t('수업별 인기 현황')}</h3>
+          }}>{t("g_123336")}</h3>
                         <div className="tooltip-container" style={{
             display: 'inline-flex',
             cursor: 'pointer'
@@ -248,7 +248,7 @@ const StatsTab = ({
               color: '#fff',
               fontSize: '0.8rem'
             }}>
-                                {t('어떤 수업이 가장 인기있는지')}<br />{t('참석 횟수 기준으로 보여줍니다.')}
+                                {t("g_1d5ae8")}<br />{t("g_2da733")}
                             </div>
                         </div>
                     </div>

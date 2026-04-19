@@ -84,7 +84,7 @@ export const PreparationView = ({
             fontWeight: 600
           }}>{t('med_prep_header', {
               step: prepStep
-            }) || `준비 단계 (${prepStep}/3)`}</div>
+            }) || `Preparation Stage (${prepStep}/3)`}</div>
                         <div style={{
             fontSize: '1.1rem',
             fontWeight: 700,
@@ -233,7 +233,7 @@ export const PreparationView = ({
               marginBottom: '12px'
             }}>{t('med_prep_posture_format', {
                 title: PREPARATION_GUIDES[prepSelections.posture].title
-              }) || `${PREPARATION_GUIDES[prepSelections.posture].title} 자세`}</div>
+              }) || `${PREPARATION_GUIDES[prepSelections.posture].title} Posture`}</div>
                                 <div style={{
               display: 'flex',
               flexDirection: 'column',

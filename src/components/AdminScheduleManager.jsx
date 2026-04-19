@@ -15,7 +15,7 @@ const ColorLegend = memo(({
   } = useStudioConfig();
   const t = useLanguageStore(s => s.t);
   const items = config.SCHEDULE_LEGEND || [{
-    label: t("g_aef1a1") || "일반",
+    label: t("g_aef1a1") || "General",
     color: '#FFFFFF',
     border: '#DDDDDD',
     branches: (config.BRANCHES || []).map(b => b.id)
@@ -127,7 +127,7 @@ const AdminScheduleManager = ({
         gap: '4px',
         minWidth: '800px'
       }}>
-                    {[t("g_06cf3e") || "일", t("g_754486") || "월", t("g_adb4a2") || "화", t("g_c04eb2") || "수", t("g_5664a6") || "목", t("g_cf5632") || "금", t("g_b9e406") || "토"].map(d => <div key={d} style={{
+                    {[t("g_06cf3e") || "Sun", t("g_754486") || "month", t("g_adb4a2") || "Tue", t("g_c04eb2") || "Wed", t("g_5664a6") || "Thu", t("g_cf5632") || "Fri", t("g_b9e406") || "Sat"].map(d => <div key={d} style={{
           textAlign: 'center',
           fontWeight: 'bold',
           padding: '8px',
@@ -214,7 +214,7 @@ const AdminScheduleManager = ({
                         color: bookedCount >= capacity ? '#ff4757' : '#3B82F6',
                         display: 'block'
                       }}>
-                                                                📋 {bookedCount}/{capacity}{t("g_5a62fd") || "명"}</span>;
+                                                                📋 {bookedCount}/{capacity}{t("g_5a62fd") || "people"}</span>;
                     })()}
                                                 </div>;
                 })}
@@ -247,7 +247,7 @@ const AdminScheduleManager = ({
           fontSize: '1.2rem',
           color: '#60A5FA',
           margin: '0 0 8px 0'
-        }}>{t("g_year_month_format", { year, month }) || `${year}년 ${month}월`} {t("g_schedule_empty") || "일정이 비어 있습니다."}</h3>
+        }}>{t("g_year_month_format", { year, month }) || `${year}년 ${month}`} {t("g_schedule_empty") || "Schedule is empty."}</h3>
                     <p style={{
           color: 'var(--text-secondary)',
           margin: 0,
@@ -292,7 +292,7 @@ const AdminScheduleManager = ({
         alignItems: 'center',
         gap: '10px'
       }}>
-                    <button onClick={handlePrevMonth} className="nav-btn-circle" aria-label={t("g_bdd9af") || "이전 월"}><CaretLeft /></button>
+                    <button onClick={handlePrevMonth} className="nav-btn-circle" aria-label={t("g_bdd9af") || "이전 "}><CaretLeft /></button>
                     <h2 style={{
           margin: 0,
           fontSize: '1.5rem',
@@ -300,7 +300,7 @@ const AdminScheduleManager = ({
           alignItems: 'center',
           gap: '10px'
         }}>
-                        {t("g_year_month_format", { year, month }) || `${year}년 ${month}월`}{scheduleStatus === 'saved' ? <span style={{
+                        {t("g_year_month_format", { year, month }) || `${year}년 ${month}`}{scheduleStatus === 'saved' ? <span style={{
             fontSize: '0.8rem',
             padding: '4px 10px',
             borderRadius: '20px',
@@ -314,7 +314,7 @@ const AdminScheduleManager = ({
             color: 'white'
           }}>{t("g_2ddd21") || "미정"}</span>}
                     </h2>
-                    <button onClick={handleNextMonth} className="nav-btn-circle" aria-label={t("g_fbb7c8") || "다음 월"}><CaretRight /></button>
+                    <button onClick={handleNextMonth} className="nav-btn-circle" aria-label={t("g_fbb7c8") || "다음 "}><CaretRight /></button>
                 </div>
                 <div style={{
         display: 'flex',
@@ -336,7 +336,7 @@ const AdminScheduleManager = ({
           backgroundColor: '#EF4444',
           opacity: 0.8
         }}>
-                            <Trash size={18} />{t("g_ff75b4") || "초기화"}</button>}
+                            <Trash size={18} />{t("g_ff75b4") || "Reset"}</button>}
                 </div>
             </div>
 
@@ -381,7 +381,7 @@ const AdminScheduleManager = ({
                             {dayClasses.map((cls, idx) => <ScheduleClassEditor key={idx} cls={cls} idx={idx} dayClasses={dayClasses} setDayClasses={setDayClasses} instructors={instructors} classTypes={classTypes} classLevels={classLevels} />)}
                             <button onClick={() => setDayClasses([...dayClasses, {
             time: '10:00',
-            title: classTypes[0] || t("g_550350") || "수업",
+            title: classTypes[0] || t("g_550350") || "Class",
             instructor: instructors[0] || '',
             status: 'normal',
             duration: 60,
@@ -406,13 +406,13 @@ const AdminScheduleManager = ({
             backgroundColor: 'var(--bg-input)',
             color: 'var(--text-primary)',
             border: '1px solid var(--border-color)'
-          }}>{t("g_19b2d1") || "취소"}</button>
+          }}>{t("g_19b2d1") || "Cancel"}</button>
                             <button onClick={() => handleSave(true)} className="action-btn-gold" style={{
             backgroundColor: '#8B5CF6'
           }}>{t("g_b2a40d") || "📅 이 달의 모든"}{new Date(selectedDate).toLocaleString('ko-KR', {
               weekday: 'short'
             })}{t("g_c6cb8a") || "요일 수정"}</button>
-                            <button onClick={() => handleSave(false)} className="action-btn-gold">{t("g_1f1712") || "저장"}</button>
+                            <button onClick={() => handleSave(false)} className="action-btn-gold">{t("g_1f1712") || "Save"}</button>
                         </div>
                     </div>
                 </div>}
@@ -434,7 +434,7 @@ const AdminScheduleManager = ({
           color: 'var(--text-secondary)',
           marginBottom: '24px',
           lineHeight: '1.5'
-        }}>{t("g_67ea42") || "정말로 "}{t("g_year_month_format", { year, month }) || `${year}년 ${month}월`} {t("g_reset_schedule_prompt") || "스케줄을 초기화하시겠습니까?"}<br /><br />{t("g_08f8d3") || "모든 수업 데이터가 삭제되며, 상태가 [미정]으로 돌아갑니다."}<br />
+        }}>{t("g_67ea42") || "정말로 "}{t("g_year_month_format", { year, month }) || `${year}년 ${month}`} {t("g_reset_schedule_prompt") || "스케줄을 초기화하시겠습니까?"}<br /><br />{t("g_08f8d3") || "모든 수업 데이터가 삭제되며, 상태가 [미정]으로 돌아갑니다."}<br />
                             <span style={{
             fontSize: '0.85rem',
             color: '#6366F1',
@@ -452,7 +452,7 @@ const AdminScheduleManager = ({
             color: 'var(--text-primary)',
             border: '1px solid var(--border-color)',
             flex: 1
-          }}>{t("g_19b2d1") || "취소"}</button>
+          }}>{t("g_19b2d1") || "Cancel"}</button>
                             <button onClick={confirmReset} className="action-btn-gold" style={{
             backgroundColor: '#EF4444',
             flex: 1

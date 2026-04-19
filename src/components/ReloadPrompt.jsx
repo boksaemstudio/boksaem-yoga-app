@@ -6,8 +6,8 @@ import { useLanguageStore } from '../stores/useLanguageStore';
 /**
  * PWA 업데이트 관리
  * 
- * - 키오스크(/checkin): SW controller 교체 감지 → 30초 유휴 대기 → 자동 새로고침
- * - 관리자/회원: 업데이트 배너 표시 (수동 클릭)
+ * - 키오스크(/checkin): SW controller 교체 감지 → 30초 유휴 Waitlisted at position → 자동 새로고침
+ * - 관리자/Member: 업데이트 배너 표시 (수동 클릭)
  */
 const IDLE_TIMEOUT_MS = 30_000;
 function ReloadPrompt() {
@@ -102,7 +102,7 @@ function ReloadPrompt() {
     }
   }, [needRefresh, isAlwaysOn, startIdleReloadLoop]);
 
-  // ━━━━ 수동 업데이트 (관리자/회원 앱용) ━━━━
+  // ━━━━ 수동 업데이트 (관리자/Member 앱용) ━━━━
   const handleUpdate = async () => {
     if (updating) return;
     setUpdating(true);
@@ -155,7 +155,7 @@ function ReloadPrompt() {
         gap: '8px'
       }}>
                  <ArrowsClockwise size={20} weight="bold" className="spin-hover" />
-                 {t('새로운 버전이 준비되었습니다')}
+                 {t("g_1eab9f")}
              </div>
              <button onClick={() => setNeedRefresh(false)} style={{
         background: 'none',
@@ -173,7 +173,7 @@ function ReloadPrompt() {
       opacity: 0.8,
       fontWeight: '500'
     }}>
-            {t('새로운 기능 활성화 및 최적화를 위해')}<br />{t('지금 업데이트를 진행해주세요.')}
+            {t("g_0860fd")}<br />{t("g_fb99fb")}
         </div>
         <button onClick={handleUpdate} disabled={updating} style={{
       background: 'black',
@@ -187,7 +187,7 @@ function ReloadPrompt() {
       marginTop: '4px',
       opacity: updating ? 0.7 : 1
     }}>
-            {updating ? t('업데이트 중...') : t('클릭하여 업데이트 및 재시작')}
+            {updating ? t("g_7781fb") : t("g_a11f94")}
         </button>
     </div>;
 }

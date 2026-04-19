@@ -61,9 +61,9 @@ const LoginPage = () => {
         window.demoAdminLoginTriggered = true;
         setEmail('demo@passflow.kr');
         setPassword('passflowdemo!');
-        setTimeout(() => {
-          handleLogin(null, 'demo@passflow.kr', 'passflowdemo!');
-        }, 100);
+        // setTimeout(() => {
+        //   handleLogin(null, 'demo@passflow.kr', 'passflowdemo!');
+        // }, 100);
       }
     }
   }, []);

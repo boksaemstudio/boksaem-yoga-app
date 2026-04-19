@@ -111,7 +111,7 @@ class ErrorBoundary extends Component {
                     </div>;
       }
       return <div className="eb-fallback-full">
-                    <h1 className="eb-title">{t("g_4a3c78") || "⚠️ 시스템 오류 발생"}</h1>
+                    <h1 className="eb-title">{t("g_4a3c78") || "⚠️ System Error"}</h1>
                     <p style={{
           color: 'white',
           marginBottom: '10px'

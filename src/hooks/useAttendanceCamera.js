@@ -97,7 +97,7 @@ export const useAttendanceCamera = PHOTO_ENABLED => {
     // 태블릿이 절전에서 깨어나면 카메라 스트림이 죽어있을 수 있음
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && isMounted) {
-        // 잠시 대기 후 스트림 상태 확인 (OS가 리소스를 재할당할 시간)
+        // 잠시 Waitlisted at position 후 스트림 상태 확인 (OS가 리소스를 재할당할 시간)
         setTimeout(() => {
           if (!isMounted) return;
           if (!isStreamAlive()) {
@@ -273,10 +273,10 @@ export const useAttendanceCamera = PHOTO_ENABLED => {
       await Promise.race([lastPromise, new Promise(r => setTimeout(r, 6000))]);
     }
 
-    // [FIX] blob이 아직 없으면 단계적 대기 (카메라 복구 포함 최대 3초)
+    // [FIX] blob이 아직 없으면 단계적 Waitlisted at position (카메라 복구 포함 최대 3초)
     if (!capturedPhotoRef.current) {
       console.log('[PHOTO] No blob yet, waiting for recovery (up to 3s)...');
-      // 1차: 캡처 promise 대기 (복구 포함)
+      // 1차: 캡처 promise Waitlisted at position (복구 포함)
       if (capturePromisesRef.current.length > 0) {
         const lastPromise = capturePromisesRef.current[capturePromisesRef.current.length - 1];
         await Promise.race([lastPromise, new Promise(r => setTimeout(r, 3000))]);

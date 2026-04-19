@@ -21,13 +21,25 @@ import { translations } from '../utils/translations';
 export const useLanguageStore = create((set, get) => ({
     language: (() => {
         try {
-            // [ROOT FIX] URL ?lang= 파라미터가 최우선 → localStorage → 기본값 'ko'
+            // [ROOT FIX] 1. URL ?lang= parameter 
             const urlLang = new URLSearchParams(window.location.search).get('lang');
             if (urlLang && translations[urlLang]) {
                 localStorage.setItem('appLanguage', urlLang);
                 return urlLang;
             }
-            return localStorage.getItem('appLanguage') || 'ko';
+            // 2. localStorage
+            const stored = localStorage.getItem('appLanguage');
+            if (stored && translations[stored]) return stored;
+
+            // [AUTO-DETECT] 3. navigator.language (접속 국가 자동 감지)
+            if (navigator && navigator.language) {
+                const browserLang = navigator.language.split('-')[0].toLowerCase();
+                if (translations[browserLang]) {
+                    localStorage.setItem('appLanguage', browserLang);
+                    return browserLang;
+                }
+            }
+            return 'ko'; // Fallback
         }
         catch { return 'ko'; }
     })(),
@@ -51,8 +63,8 @@ export const useLanguageStore = create((set, get) => ({
             text = key;
         }
 
-        // 3. 비한국어 사용자: en → ko fallback
-        if (text === undefined && language !== 'en') {
+        // 3. 비한국어 사용자: en → ko fallback. 단, 한국어 사용자(ko)는 en으로 폴백하지 않음!
+        if (text === undefined && language !== 'en' && language !== 'ko') {
             text = translations['en']?.[key];
         }
         if (text === undefined && language !== 'ko') {
@@ -64,7 +76,7 @@ export const useLanguageStore = create((set, get) => ({
         //    - 프로그래밍 키 → undefined 반환 (|| fallback 작동)
         if (text === undefined) {
             const isKoreanSentence = /[\uAC00-\uD7AF]/.test(key) && !key.includes('_');
-            if (isKoreanSentence) {
+            if (isKoreanSentence && language === 'ko') {
                 text = key;
             } else {
                 return undefined;

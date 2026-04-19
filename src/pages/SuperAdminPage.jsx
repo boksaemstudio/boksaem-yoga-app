@@ -233,6 +233,25 @@ const SuperAdminPage = () => {
       setAdminsLoading(false);
     }
   };
+  const handleSetKioskPin = async studio => {
+    const pin = window.prompt(`[${studio.name}] 출석체크 태블릿(키오스크) 전용 비밀번호(4자리 숫자)를 입력하세요:`);
+    if (!pin) return;
+    if (!/^\d{4}$/.test(pin)) {
+      alert("비밀번호는 4자리 숫자로 입력해야 합니다.");
+      return;
+    }
+    try {
+      const { setDoc } = await import('firebase/firestore');
+      const db = getFirestore();
+      await setDoc(doc(db, "studios", studio.id, "settings", "kiosk"), {
+        kioskPassword: pin
+      }, { merge: true });
+      alert(`[${studio.name}] 키오스크 비밀번호가 설정되었습니다.`);
+    } catch (e) {
+      console.error(e);
+      alert("비밀번호 설정 중 오류가 발생했습니다.");
+    }
+  };
   const handleRegister = async () => {
     if (!registerForm.studioId || !registerForm.name || !registerForm.ownerEmail) {
       alert(t("g_41817d") || "스튜디오 ID, 이름, 관리자 이메일은 필수입니다.");

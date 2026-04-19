@@ -80,7 +80,7 @@ export function evaluateCreditPolicy(params: {
 export function getWeeklyRemainingText(sessionsPerWeek: number, weeklyUsed: number): string {
     if (sessionsPerWeek <= 0) return '';
     const remaining = Math.max(0, sessionsPerWeek - weeklyUsed);
-    return `이번 주 ${remaining}/${sessionsPerWeek}회 남음`;
+    return `This week ${remaining}/${sessionsPerWeek} remaining`;
 }
 
 function formatDate(date: Date): string {

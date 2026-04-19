@@ -456,7 +456,7 @@ const OnboardingPage = () => {
               color: '#4ade80',
               marginBottom: '12px'
             }}>
-                                    🎉 {lang === 'ko' ? t("g_c77cb7") || "스튜디오가 즉시 생성되었습니다!" : 'Your studio is ready!'}
+                                    🎉 {lang === 'ko' ? t("g_c77cb7") || "Studio created instantly!" : 'Your studio is ready!'}
                                 </div>
                                 <div style={{
               fontSize: '0.85rem',
@@ -472,7 +472,7 @@ const OnboardingPage = () => {
               color: '#94a3b8',
               marginBottom: '4px'
             }}>
-                                    {lang === 'ko' ? t("g_4fd543") || "✅ 2개월 무료 체험이 시작되었습니다" : '✅ Your 2-month free trial has started'}
+                                    {lang === 'ko' ? t("g_4fd543") || "✅ 2-month free trial started" : '✅ Your 2-month free trial has started'}
                                 </div>
                             </div>}
 
@@ -558,7 +558,7 @@ const OnboardingPage = () => {
             textDecoration: 'none',
             marginBottom: '12px'
           }}>
-                                🚀 {lang === 'ko' ? t("g_b56ead") || "내 스튜디오 바로 접속하기" : 'Go to My Studio Now'}
+                                🚀 {lang === 'ko' ? t("g_b56ead") || "Go to my studio now" : 'Go to My Studio Now'}
                             </a>}
                         <button style={{
             ...buttonStyle,

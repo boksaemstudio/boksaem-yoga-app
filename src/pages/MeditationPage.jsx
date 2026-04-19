@@ -143,12 +143,12 @@ const MeditationPage = ({
       const stored = localStorage.getItem('member');
       if (stored) {
         const member = JSON.parse(stored);
-        return member.name || t("g_dae3ed") || "회원";
+        return member.name || t("g_dae3ed") || "Member";
       }
     } catch (e) {
       console.warn("Failed to load member name", e);
     }
-    return t("g_dae3ed") || "회원";
+    return t("g_dae3ed") || "Member";
   });
 
   // 🛠️ DEBUG MODE STATES (User Request)
@@ -279,7 +279,7 @@ const MeditationPage = ({
     goal: null
   });
 
-  // 🌊 [최적화] TimeContext만 계산 — options_refresh CF 호출 + 강제 2초 대기 제거
+  // 🌊 [최적화] TimeContext만 계산 — options_refresh CF 호출 + 강제 2초 Waitlisted at position 제거
   useEffect(() => {
     logDebug("Mount", {
       step,
@@ -294,7 +294,7 @@ const MeditationPage = ({
   }, []);
 
   // V3 Pose States
-  const [, setPoseData] = useState(null); // 실시간 자세 데이터
+  const [, setPoseData] = useState(null); // 실시간 Posture 데이터
   const [, setIsPoseLoading] = useState(false);
   const [, setAlignmentScore] = useState(100); // 0-100 정렬 점수
 
@@ -747,7 +747,7 @@ const MeditationPage = ({
           if (isPlayingRef.current) {
             if (introTTS.data?.message) {
               // ✅ AI가 새로운 메시지를 줬다면 화면 텍스트도 동기화 (텍스트 불일치 해결)
-              const finalIntroMsg = introTTS.data.message.replace(/OO님/g, `${memberName}님`);
+              const finalIntroMsg = introTTS.data.message.replace(/OO/g, `${memberName}`);
               setAiMessage(finalIntroMsg);
             }
             if (introTTS.data?.audioContent) {
@@ -835,7 +835,7 @@ const MeditationPage = ({
     setTimeout(() => {
       setIsAnalyzing(false);
       stopSession(true); // Stop background audio if any
-      setStep('interaction_select'); // Move to meditation type selection (바디스캔/호흡몰입/자세교정)
+      setStep('interaction_select'); // Move to meditation type selection (바디스캔/호흡몰입/Posture교정)
     }, forceStart && chatHistory.length < 3 ? 3000 : 2000);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatHistory.length, ttcEnabled, speak]);
@@ -876,11 +876,11 @@ const MeditationPage = ({
         if (fbResult.data) {
           // Personalize
           if (fbResult.data.message) {
-            fbResult.data.message = fbResult.data.message.replace(/OO님/g, `${memberName}님`);
+            fbResult.data.message = fbResult.data.message.replace(/OO/g, `${memberName}`);
           }
           if (fbResult.data.feedbackPoints) {
             // Assuming backend returns points
-            fbResult.data.feedbackPoints = fbResult.data.feedbackPoints.map(p => p.replace(/OO님/g, `${memberName}님`));
+            fbResult.data.feedbackPoints = fbResult.data.feedbackPoints.map(p => p.replace(/OO/g, `${memberName}`));
           }
           setFeedbackData(fbResult.data);
           if (fbResult.data.audioContent) {
@@ -893,7 +893,7 @@ const MeditationPage = ({
         console.error("Feedback Generation Failed:", e);
         // Fallback Feedback
         setFeedbackData({
-          message: `${memberName}님, 오늘 명상으로 마음이 한결 편안해지셨길 바래요.`,
+          message: `${memberName}, 오늘 명상으로 마음이 한결 편안해지셨길 바래요.`,
           feedbackPoints: [t("g_c7fb01") || "명상을 통해 내면의 고요함을 경험했습니다.", t("g_a97bb0") || "호흡에 집중하며 현재에 머무르는 연습을 했습니다.", t("g_749d85") || "긴장했던 몸과 마음이 조금 더 이완되었습니다.", t("g_0dedea") || "오늘 하루도 평온한 마음으로 이어가세요."]
         });
       } finally {

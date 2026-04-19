@@ -88,7 +88,7 @@ const isMemberDormant = (m, logs, isMemberActiveFn) => {
   return lastAttDate && lastAttDate < twoWeeksAgo;
 };
 const AdminDashboard = () => {
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   const lang = useLanguageStore(s => s.language) || 'ko';
   const {
     config,
@@ -162,15 +162,15 @@ const AdminDashboard = () => {
     // [ROOT SOLUTION] 가격 정보 실시간 동기화 구독
     const unsubscribe = storageService.subscribe(() => {
       loadPricing();
-    }, ['settings']);
+    }, ['settings', language]);
 
     // [ROOT FIX] 푸시 토큰 Role 수동 복원 (관리자 앱 열 때마다 FCM 갱신)
-    // 회원이 Member앱을 열어 토큰이 member로 갱신되더라도, 관리자 앱을 열면 'admin' role 누적 추가
+    // Member이 Member앱을 열어 토큰이 member로 갱신되더라도, 관리자 앱을 열면 'admin' role 누적 추가
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && localStorage.getItem('admin_push_enabled') === 'true') {
       storageService.requestPushPermission(undefined, 'admin').catch(() => {});
     }
     return () => unsubscribe();
-  }, [config]);
+  }, [config, language]);
 
   // [REFACTOR] Filters & Pagination Hook
   const {
@@ -211,7 +211,7 @@ const AdminDashboard = () => {
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [activeTab]);
+  }, [activeTab, language]);
 
   // 전부 펼치기/접기 토글
 
@@ -337,20 +337,20 @@ const AdminDashboard = () => {
       }
       return String(a.name || '').localeCompare(String(b.name || ''), 'ko');
     });
-  }, [members, logs, searchTerm, filterType, currentBranch, isMemberActive, isMemberExpiring, todayReRegMemberIds, pushTokens]);
+  }, [members, logs, searchTerm, filterType, currentBranch, isMemberActive, isMemberExpiring, todayReRegMemberIds, pushTokens, language]);
   const dormantCount = useMemo(() => {
     return members.filter(m => {
       if (currentBranch !== 'all' && m.homeBranch !== currentBranch) return false;
       return isMemberDormant(m, logs, isMemberActive);
     }).length;
-  }, [members, logs, currentBranch, isMemberActive]);
+  }, [members, logs, currentBranch, isMemberActive, language]);
 
   // [NEW] Dormant members list for ChurnReportPanel
   const dormantMembersList = useMemo(() => {
     const branchMembers = members.filter(m => currentBranch === 'all' || m.homeBranch === currentBranch);
     const segments = getDormantSegments(branchMembers);
     return segments['all'] || [];
-  }, [members, currentBranch, getDormantSegments]);
+  }, [members, currentBranch, getDormantSegments, language]);
 
   // [FIX] bioMissingCount & facialDataRatio 계산 추가
   const {
@@ -368,7 +368,7 @@ const AdminDashboard = () => {
       facialDataRatio: ratio,
       facialDataCount: withFaceCount
     };
-  }, [members, currentBranch, isMemberActive]);
+  }, [members, currentBranch, isMemberActive, language]);
   const extendedSummary = {
     ...summary,
     dormantMembersCount: dormantCount,
@@ -515,9 +515,9 @@ const AdminDashboard = () => {
     if (member) {
       handleOpenEdit(member);
     } else {
-      alert(t("g_25340e") || "삭제되거나 찾을 수 없는 회원입니다.");
+      alert(t("g_25340e") || "삭제되거나 찾을 수 없는 Member입니다.");
     }
-  }, [members, pushTokens]);
+  }, [members, pushTokens, language]);
   const handleAddSalesRecord = async salesData => {
     try {
       await storageService.addSalesRecord(salesData);
@@ -645,12 +645,12 @@ const AdminDashboard = () => {
                       fontSize: '0.9rem',
                       fontWeight: 'bold',
                       color: 'var(--text-primary)'
-                    }}>{item.memberName}{t("g_c90b3e") || "님께 제안"}</div>
+                    }}>{item.memberName}{t("g_c90b3e") || "께 제안"}</div>
                                                     <div style={{
                       fontSize: '0.75rem',
                       color: 'var(--primary-gold)',
                       marginTop: '2px'
-                    }}>{t("g_0d80f6") || "사유:"}{item.reason || t("g_044bb1") || "관리 필요 회원"}</div>
+                    }}>{t("g_0d80f6") || "사유:"}{item.reason || t("g_044bb1") || "관리 필요 Member"}</div>
                                                 </div>
                                                 <div style={{
                     display: 'flex',
@@ -661,7 +661,7 @@ const AdminDashboard = () => {
                       background: 'rgba(244, 63, 94, 0.1)',
                       color: '#F43F5E',
                       border: '1px solid rgba(244, 63, 94, 0.2)'
-                    }}>{t("g_fc81e2") || "삭제"}</button>
+                    }}>{t("g_fc81e2") || "Delete"}</button>
                                                     <button onClick={() => handleApprovePush(item.id, item.title || t("g_fe5b40") || "안부 메시지")} className="action-btn sm primary" style={{
                       width: 'auto',
                       boxShadow: '0 4px 12px var(--primary-gold-glow)'
@@ -754,7 +754,7 @@ const AdminDashboard = () => {
                     marginBottom: '15px',
                     color: 'rgba(255,255,255,0.7)'
                   }}>{t("g_59e9cd") || "요금표 이미지"}{index}</h3>
-                                            {imgSrc ? <img src={imgSrc} alt={`${t("g_35964c") || "가격표"} ${index}`} style={{
+                                            {imgSrc ? <img src={imgSrc} alt={`${t("g_35964c") || "Pricing"} ${index}`} style={{
                     width: '100%',
                     borderRadius: '12px',
                     marginBottom: '15px'

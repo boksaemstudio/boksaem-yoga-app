@@ -64,10 +64,10 @@ export const useMeditationAI = ({
       setAiLatency(Date.now() - startTime);
       if (prescResult.data) {
         if (prescResult.data.prescriptionReason) {
-          prescResult.data.prescriptionReason = prescResult.data.prescriptionReason.replace(/OO님/g, `${memberName}님`);
+          prescResult.data.prescriptionReason = prescResult.data.prescriptionReason.replace(/OO/g, `${memberName}`);
         }
         if (prescResult.data.message) {
-          prescResult.data.message = prescResult.data.message.replace(/OO님/g, `${memberName}님`);
+          prescResult.data.message = prescResult.data.message.replace(/OO/g, `${memberName}`);
         }
         setAiPrescription(prescResult.data);
         setPrescriptionReason(prescResult.data.prescriptionReason || prescResult.data.message || '');
@@ -88,7 +88,7 @@ export const useMeditationAI = ({
     // [NEW] Progressive Initialization: Immediately show a welcoming message
     if (isInitial && history.length === 0) {
       const intentionLabel = selectedIntention?.label || t("g_540235") || "\uBA85\uC0C1";
-      const initialMessage = `${intentionLabel} 시간을 가져볼까요? 오늘 하루 마음이 어떠셨나요?`;
+      const initialMessage = `${intentionLabel} 시간을 가져볼까요? 오늘 Max 마음이 어떠셨나요?`;
       setCurrentAIChat({
         message: initialMessage,
         isFinalAnalysis: false,
@@ -134,8 +134,8 @@ export const useMeditationAI = ({
       clearTimeout(timeoutId);
       if (requestId !== currentRequestIdRef.current) return;
       if (result.data) {
-        if (result.data.message) result.data.message = result.data.message.replace(/OO님/g, `${memberName}님`);
-        if (result.data.question) result.data.question = result.data.question.replace(/OO님/g, `${memberName}님`);
+        if (result.data.message) result.data.message = result.data.message.replace(/OO/g, `${memberName}`);
+        if (result.data.question) result.data.question = result.data.question.replace(/OO/g, `${memberName}`);
         if (result.data.isFinalAnalysis) {
           result.data.options = [];
           result.data.isTransition = true;
@@ -207,7 +207,7 @@ export const useMeditationAI = ({
   }, [manualInput, handleChatResponse]);
   const handleReturnToChat = useCallback(async () => {
     setIsAILoading(true);
-    const warmReconnectMsg = `${memberName}님, 다시 돌아오셨네요. 혹시 더 나누고 싶은 이야기가 있으신가요?`;
+    const warmReconnectMsg = `${memberName}, 다시 돌아오셨네요. 혹시 더 나누고 싶은 이야기가 있으신가요?`;
     setCurrentAIChat({
       message: warmReconnectMsg,
       options: [t("g_d7fbec") || "\uB124, \uC788\uC5B4\uC694", t("g_249065") || "\uAD1C\uCC2E\uC544\uC694, \uBA85\uC0C1\uD560\uAC8C\uC694"]
@@ -249,7 +249,7 @@ export const useMeditationAI = ({
       setAiLatency(Date.now() - startTime);
       if (result.data && result.data.error) throw new Error("Backend Returned Error: " + result.data.error);
       if (result.data && result.data.message) {
-        const personalizedMsg = result.data.message.replace(/OO님/g, `${memberName}님`);
+        const personalizedMsg = result.data.message.replace(/OO/g, `${memberName}`);
         if (isPlayingRef.current) {
           setAiMessage(personalizedMsg);
           messageIndexRef.current = currentIndex + 1;
@@ -297,7 +297,7 @@ export const useMeditationAI = ({
         // API might return message as well
         const rawMsg = data.message ? data.message + '\n\n' + points.join('\n') : points.join('\n');
         setFeedbackData({
-          message: rawMsg ? rawMsg.replace(/OO님/g, `${memberName}님`) : t("g_691ffa") || "\uBA85\uC0C1 \uAD00\uCC30 \uC77C\uC9C0\uAC00 \uC900\uBE44\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4.",
+          message: rawMsg ? rawMsg.replace(/OO/g, `${memberName}`) : t("g_691ffa") || "\uBA85\uC0C1 \uAD00\uCC30 \uC77C\uC9C0\uAC00 \uC900\uBE44\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4.",
           analysis: data.analysis
         });
       }

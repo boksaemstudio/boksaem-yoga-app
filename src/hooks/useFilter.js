@@ -2,9 +2,9 @@ import { useMemo } from 'react';
 
 /**
  * Custom hook for filtering and sorting members
- * 회원 필터링 및 정렬을 위한 커스텀 훅
+ * Member 필터링 및 정렬을 위한 커스텀 훅
  * 
- * @param {Array} members - 전체 회원 배열
+ * @param {Array} members - 전체 Member 배열
  * @param {string} currentBranch - 현재 선택된 지점 ID ('all' 또는 'gwangheungchang' 또는 'mapo')
  * @param {string} searchTerm - 검색어
  * @param {string} filterType - 필터 타입 ('all', 'active', 'expiring', 'expired')
@@ -104,12 +104,12 @@ export const useFilteredMembers = (members, currentBranch, searchTerm = '', filt
 
 /**
  * Custom hook for sorting members
- * 회원 정렬을 위한 커스텀 훅
+ * Member 정렬을 위한 커스텀 훅
  * 
- * @param {Array} members - 회원 배열
+ * @param {Array} members - Member 배열
  * @param {string} sortBy - 정렬 기준 ('name', 'credits', 'endDate', 'lastAttended')
  * @param {string} sortOrder - 정렬 순서 ('asc', 'desc')
- * @returns {Array} 정렬된 회원 배열
+ * @returns {Array} 정렬된 Member 배열
  */
 export const useSortedMembers = (members, sortBy = 'name', sortOrder = 'asc') => {
   return useMemo(() => {

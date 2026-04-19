@@ -209,7 +209,7 @@ const KioskSettingsTab = () => {
       }
       setGallery(prev => prev.filter(g => g.url !== item.url));
     } catch (err) {
-      alert((t("g_6bafa7") || "삭제 실패: ") + err.message);
+      alert((t("g_6bafa7") || "Delete failed: ") + err.message);
     }
   };
   const handleToggleActive = async () => {
@@ -239,7 +239,7 @@ const KioskSettingsTab = () => {
       marginBottom: '20px'
     }}>
                 <Image size={24} weight="fill" color="var(--primary-gold)" />
-                {t('키오스크 화면 설정')}
+                {t("g_59689b")}
             </h3>
 
             {/* ━━━ 출석 화면 로고 설정 (SaaS) ━━━ */}
@@ -257,7 +257,7 @@ const KioskSettingsTab = () => {
         alignItems: 'center',
         gap: '8px'
       }}>
-                    {t('📷 출석 화면 로고')}
+                    {t("g_5baadf")}
                 </h4>
                 <p style={{
         margin: '0 0 20px 0',
@@ -265,13 +265,13 @@ const KioskSettingsTab = () => {
         color: 'var(--text-secondary)',
         lineHeight: '1.6'
       }}>
-                    {t('출석체크 키오스크 숫자패드 위에 표시될 로고입니다. 최대 2개까지 등록할 수 있습니다.')}
+                    {t("g_f51194")}
                     <br />
                     <span style={{
           fontSize: '0.8rem',
           color: 'var(--text-tertiary)'
         }}>
-                        {t('등록하지 않으면 설정 탭의 스튜디오 로고가 표시됩니다.')}
+                        {t("g_af5a8a")}
                     </span>
                 </p>
 
@@ -345,7 +345,7 @@ const KioskSettingsTab = () => {
                 fontSize: '0.7rem',
                 color: 'var(--text-secondary)'
               }}>
-                                            <span>{t('배경:')}</span>
+                                            <span>{t("g_6b1e0d")}</span>
                                             {['transparent', 'white', 'black'].map(bgValue => <label key={bgValue} style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -368,7 +368,7 @@ const KioskSettingsTab = () => {
                       alert((t("g_945e97") || "변경 실패: ") + e.message);
                     }
                   }} />
-                                                    {bgValue === 'transparent' ? t("g_d58fa7") || "없음" : bgValue === 'white' ? t("g_7ac84b") || "흰" : t("g_a2a7e6") || "검"}
+                                                    {bgValue === 'transparent' ? t("g_d58fa7") || "None" : bgValue === 'white' ? t("g_7ac84b") || "흰" : t("g_a2a7e6") || "검"}
                                                 </label>)}
                                         </div>
 
@@ -422,7 +422,7 @@ const KioskSettingsTab = () => {
                   color: 'var(--text-tertiary)',
                   marginBottom: '4px'
                 }}>
-                                                    <span>{t('농도 조절')}</span>
+                                                    <span>{t("g_f5eeb0")}</span>
                                                     <span>{Math.round(currentOpacity * 100)}%</span>
                                                 </div>
                                                 <input type="range" min="0.1" max="1.0" step="0.05" value={currentOpacity} onChange={e => setTempOpacities(prev => ({
@@ -473,7 +473,7 @@ const KioskSettingsTab = () => {
                   background: 'rgba(255,255,255,0.1)',
                   color: 'var(--text-secondary)',
                   border: '1px solid rgba(255,255,255,0.1)'
-                }}>{t('변경')}</label>
+                }}>{t("g_9be281")}</label>
                                             <button onClick={async () => {
                   const newLogos = [...logos];
                   const newBgs = [...bgs];
@@ -493,7 +493,7 @@ const KioskSettingsTab = () => {
                     });
                     await refreshConfig();
                   } catch (e) {
-                    alert((t("g_6bafa7") || "삭제 실패: ") + e.message);
+                    alert((t("g_6bafa7") || "Delete failed: ") + e.message);
                   }
                 }} style={{
                   padding: '4px 10px',
@@ -503,7 +503,7 @@ const KioskSettingsTab = () => {
                   background: 'rgba(244,63,94,0.1)',
                   color: '#F43F5E',
                   border: '1px solid rgba(244,63,94,0.3)'
-                }}>{t('삭제')}</button>
+                }}>{t("g_30e15a")}</button>
                                         </div>
                                     </> : <label htmlFor={inputId} style={{
               cursor: 'pointer',
@@ -596,24 +596,24 @@ const KioskSettingsTab = () => {
           margin: '0 0 10px 0',
           color: 'var(--text-primary)',
           fontWeight: 'bold'
-        }}>{t('키오스크 공지 기능 안내')}</p>
-                    {t('출석체크 태블릿 화면에 이미지나 영상을 표시할 수 있습니다.')}
+        }}>{t("g_53cc87")}</p>
+                    {t("g_8c86eb")}
                     <br /><strong style={{
           color: 'var(--primary-gold)'
-        }}>{t('사용 방법:')}</strong>
+        }}>{t("g_180a18")}</strong>
                     <ol style={{
           margin: '6px 0 6px 0',
           paddingLeft: '18px',
           lineHeight: '1.8'
         }}>
-                        <li>{t('아래')} <strong>{t('📎 업로드')}</strong> {t('버튼으로 이미지 또는 영상 파일을 올립니다')}</li>
-                        <li>{t('갤러리에서')} <strong>{t('표시할 미디어를 선택')}</strong>{t('합니다')}</li>
-                        <li>{t('하단의')} <strong>{t('"출석기에 표시"')}</strong> {t('토글을 켜면 태블릿에 표시됩니다')}</li>
+                        <li>{t("g_14df98")} <strong>{t("g_ca7938")}</strong> {t("g_d1224f")}</li>
+                        <li>{t("g_39f139")} <strong>{t("g_f78b8f")}</strong>{t("g_67e25f")}</li>
+                        <li>{t("g_8e3ff1")} <strong>{t("g_f3e5be")}</strong> {t("g_129df1")}</li>
                     </ol>
                     <span style={{
           fontSize: '0.8rem',
           opacity: 0.7
-        }}>{t('지원 파일: 이미지(최대 10MB) | 영상(최대 50MB, MP4/WebM/MOV)')}</span>
+        }}>{t("g_f353ae")}</span>
                 </div>
             </div>
 
@@ -625,7 +625,7 @@ const KioskSettingsTab = () => {
     }}>
                     {[{
         id: 'all',
-        label: t("g_934dd2") || "전체"
+        label: t("g_934dd2") || "All"
       }, ...branches.map(b => ({
         id: b.id,
         label: b.name.replace(t("g_d3ce2d") || "점", '')
@@ -709,7 +709,7 @@ const KioskSettingsTab = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '4px'
-            }}>{t('📎 업로드')}</label>
+            }}>{t("g_ca7938")}</label>
                         </div>
                     </div>
 
@@ -729,7 +729,7 @@ const KioskSettingsTab = () => {
             height: 'auto',
             maxHeight: '400px',
             objectFit: 'contain'
-          }} /> : <img src={settings.imageUrl} alt={t('키오스크 공지')} style={{
+          }} /> : <img src={settings.imageUrl} alt={t("g_299108")} style={{
             width: '100%',
             height: 'auto',
             maxHeight: '400px',
@@ -743,12 +743,12 @@ const KioskSettingsTab = () => {
               marginBottom: '8px',
               opacity: 0.5
             }} />
-                                <div>{t('아래 갤러리에서 선택하거나')}</div>
+                                <div>{t("g_32e0ab")}</div>
                                 <div style={{
               fontSize: '0.8rem',
               marginTop: '4px',
               opacity: 0.6
-            }}>{t('위 버튼으로 새로 업로드하세요')}</div>
+            }}>{t("g_33603f")}</div>
                             </div>}
                         {isUploading && <div style={{
             position: 'absolute',
@@ -789,7 +789,7 @@ const KioskSettingsTab = () => {
           alignItems: 'center',
           gap: '8px'
         }}>
-                        {t('📂 미디어 갤러리')}
+                        {t("g_2d9010")}
                         <span style={{
             fontSize: '0.8rem',
             color: 'var(--text-secondary)',
@@ -802,12 +802,12 @@ const KioskSettingsTab = () => {
           textAlign: 'center',
           padding: '30px',
           color: 'var(--text-tertiary)'
-        }}>{t('불러오는 중...')}</div> : gallery.length === 0 ? <div style={{
+        }}>{t("g_74e00a")}</div> : gallery.length === 0 ? <div style={{
           textAlign: 'center',
           padding: '30px',
           color: 'var(--text-tertiary)'
         }}>
-                            {t('업로드된 미디어가 없습니다')}
+                            {t("g_8ee925")}
                         </div> : <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
@@ -899,7 +899,7 @@ const KioskSettingsTab = () => {
                 alignItems: 'center',
                 gap: '3px'
               }}>
-                                            <Trash size={12} /> {t('삭제')}
+                                            <Trash size={12} /> {t("g_30e15a")}
                                         </button>
                                     </div>
                                 </div>)}
@@ -931,7 +931,7 @@ const KioskSettingsTab = () => {
             fontSize: '0.85rem',
             color: 'var(--text-secondary)'
           }}>
-                            {t('활성화하면 태블릿 화면에 선택한 미디어가 우선 표시됩니다. (터치하면 닫힘)')}
+                            {t("g_8608ff")}
                         </p>
                     </div>
                     <button onClick={handleToggleActive} style={{
@@ -962,7 +962,7 @@ const KioskSettingsTab = () => {
           margin: 0,
           fontSize: '1rem',
           color: 'var(--text-primary)'
-        }}>{t('⚙️ 공지 화면 옵션')}</h4>
+        }}>{t("g_c5a69b")}</h4>
 
                     {/* 터치 안내 텍스트 */}
                     <div style={{
@@ -979,13 +979,13 @@ const KioskSettingsTab = () => {
               color: 'var(--text-primary)',
               marginBottom: '4px'
             }}>
-                                {t('터치 안내 텍스트 표시')}
+                                {t("g_7cb129")}
                             </div>
                             <div style={{
               fontSize: '0.8rem',
               color: 'var(--text-secondary)'
             }}>
-                                {t('하단에 "👆 화면을 터치하면 출석부로 이동합니다" 안내 표시')}
+                                {t("g_37c7d4")}
                             </div>
                         </div>
                         <button onClick={async () => {
@@ -1028,13 +1028,13 @@ const KioskSettingsTab = () => {
               color: 'var(--text-primary)',
               marginBottom: '4px'
             }}>
-                                {t('근접 감지 자동 복귀')}
+                                {t("g_beb4b6")}
                             </div>
                             <div style={{
               fontSize: '0.8rem',
               color: 'var(--text-secondary)'
             }}>
-                                {t('카메라로 사람 접근 감지 시 자동으로 출석체크 화면 전환')}
+                                {t("g_1ff31e")}
                             </div>
                         </div>
                         <button onClick={async () => {
@@ -1078,7 +1078,7 @@ const KioskSettingsTab = () => {
           margin: 0,
           fontSize: '1rem',
           color: 'var(--text-primary)'
-        }}>{t('⏰ 키오스크 운영 시간 (자동 ON/OFF)')}</h4>
+        }}>{t("g_731b09")}</h4>
 
                     {/* 운영 시간 자동화 토글 */}
                     <div style={{
@@ -1095,13 +1095,13 @@ const KioskSettingsTab = () => {
               color: 'var(--text-primary)',
               marginBottom: '4px'
             }}>
-                                {t('자동 ON/OFF 스케줄 사용')}
+                                {t("g_bcdca3")}
                             </div>
                             <div style={{
               fontSize: '0.8rem',
               color: 'var(--text-secondary)'
             }}>
-                                {t('설정된 운영 시간 외에는 화면과 동작을 끄고 절전(대기) 모드 진입')}
+                                {t("g_d08740")}
                             </div>
                         </div>
                         <button onClick={async () => {
@@ -1144,7 +1144,7 @@ const KioskSettingsTab = () => {
               color: 'var(--text-secondary)',
               display: 'block',
               marginBottom: '8px'
-            }}>{t('시작 시간 (켜짐)')}</label>
+            }}>{t("g_8b8b15")}</label>
                                 <input type="time" value={settings.autoOnTime || '06:00'} onChange={async e => {
               const newVal = e.target.value;
               setSettings(prev => ({
@@ -1175,7 +1175,7 @@ const KioskSettingsTab = () => {
               color: 'var(--text-secondary)',
               display: 'block',
               marginBottom: '8px'
-            }}>{t('종료 시간 (꺼짐)')}</label>
+            }}>{t("g_746e5e")}</label>
                                 <input type="time" value={settings.autoOffTime || '23:00'} onChange={async e => {
               const newVal = e.target.value;
               setSettings(prev => ({

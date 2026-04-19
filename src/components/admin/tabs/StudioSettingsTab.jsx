@@ -57,7 +57,7 @@ const StudioSettingsTab = () => {
       alert(t("g_62088d") || "설정이 저장되었습니다.");
     } catch (error) {
       console.error('Failed to save config:', error);
-      alert(`설정 저장 실패: ${error.message || t("g_5e9f6b") || "알 수 없는 오류"}`);
+      alert(`설정 저장 실패: ${error.message || t("g_5e9f6b") || "Unknown error"}`);
     } finally {
       setIsSaving(false);
     }
@@ -78,7 +78,7 @@ const StudioSettingsTab = () => {
   if (loading && !localConfig.IDENTITY) return <div style={{
     padding: '40px',
     textAlign: 'center'
-  }}>{t('설정 로드 중...')}</div>;
+  }}>{t("g_9d062e")}</div>;
 
   // 재사용: 토글 스위치 컴포넌트
   const ToggleSwitch = ({
@@ -208,7 +208,7 @@ const StudioSettingsTab = () => {
         gap: '10px'
       }}>
                     <Gear size={32} weight="fill" color="var(--primary-theme-color)" />
-                    {t('우리 스튜디오 설정')}
+                    {t("g_7d1c83")}
                 </h2>
                 <div style={{
         display: 'flex',
@@ -222,7 +222,7 @@ const StudioSettingsTab = () => {
           color: 'var(--text-secondary)',
           border: 'none'
         }}>
-                        <ArrowsClockwise size={16} /> {t('새로고침')}
+                        <ArrowsClockwise size={16} /> {t("g_423c41")}
                     </button>
                     <button onClick={handleSave} disabled={isSaving} className="action-btn sm primary" style={{
           display: 'flex',
@@ -247,7 +247,7 @@ const StudioSettingsTab = () => {
         gap: '8px',
         marginBottom: '20px'
       }}>
-                    {t('🏠 우리 스튜디오')}
+                    {t("g_d1d7dc")}
                 </h3>
 
                 {/* 로고 업로드 */}
@@ -273,7 +273,7 @@ const StudioSettingsTab = () => {
           justifyContent: 'center',
           background: 'rgba(0,0,0,0.3)'
         }}>
-                        {localConfig.IDENTITY?.LOGO_URL ? <img src={localConfig.IDENTITY.LOGO_URL} alt={t('로고')} style={{
+                        {localConfig.IDENTITY?.LOGO_URL ? <img src={localConfig.IDENTITY.LOGO_URL} alt={t("g_0d69c1")} style={{
             width: '100%',
             height: '100%',
             objectFit: 'cover'
@@ -287,12 +287,12 @@ const StudioSettingsTab = () => {
             color: 'var(--text-primary)',
             marginBottom: '6px',
             fontSize: '0.95rem'
-          }}>{t('스튜디오 로고')}</div>
+          }}>{t("g_f66ec0")}</div>
                         <div style={{
             fontSize: '0.75rem',
             color: 'var(--text-tertiary)',
             marginBottom: '10px'
-          }}>{t('회원 앱과 알림에 표시돼요')}</div>
+          }}>{t("g_35dcc1")}</div>
                         <input ref={logoInputRef} type="file" accept="image/*" style={{
             display: 'none'
           }} onChange={async e => {
@@ -339,11 +339,11 @@ const StudioSettingsTab = () => {
         gap: '20px'
       }}>
                     <div className="input-group">
-                        <label>{t('스튜디오 이름')}</label>
+                        <label>{t("g_6bb4e0")}</label>
                         <input type="text" className="styled-input" value={localConfig.IDENTITY?.NAME || ''} onChange={e => handleChange('IDENTITY.NAME', e.target.value)} />
                     </div>
                     <div className="input-group">
-                        <label>{t('한 줄 소개')}</label>
+                        <label>{t("g_8b9074")}</label>
                         <input type="text" className="styled-input" value={localConfig.IDENTITY?.SLOGAN || ''} onChange={e => handleChange('IDENTITY.SLOGAN', e.target.value)} />
                     </div>
                     <div className="input-group" style={{
@@ -355,7 +355,7 @@ const StudioSettingsTab = () => {
             gap: '4px',
             marginBottom: '12px'
           }}>
-                            <Globe size={14} /> {t('외부 링크 관리 (SNS, 블로그 등)')}
+                            <Globe size={14} /> {t("g_3f39c8")}
                         </label>
                         <div style={{
             display: 'flex',
@@ -366,7 +366,7 @@ const StudioSettingsTab = () => {
               display: 'flex',
               gap: '10px'
             }}>
-                                    <input type="text" placeholder={t('이름 (예: 인스타그램)')} className="styled-input" style={{
+                                    <input type="text" placeholder={t("g_bd59bc")} className="styled-input" style={{
                 flex: 1,
                 minWidth: '120px'
               }} value={link.label || ''} onChange={e => {
@@ -396,7 +396,7 @@ const StudioSettingsTab = () => {
                 newLinks.splice(idx, 1);
                 handleChange('IDENTITY.SOCIAL_LINKS', newLinks);
               }}>
-                                        {t('삭제')}
+                                        {t("g_30e15a")}
                                     </button>
                                 </div>)}
                             <button className="action-btn sm" style={{
@@ -412,7 +412,7 @@ const StudioSettingsTab = () => {
               }];
               handleChange('IDENTITY.SOCIAL_LINKS', newLinks);
             }}>
-                                {t('+ 링크 추가')}
+                                {t("g_c0b8e6")}
                             </button>
                         </div>
                     </div>
@@ -427,10 +427,10 @@ const StudioSettingsTab = () => {
         gap: '8px',
         marginBottom: '20px'
       }}>
-                    {t('📋 운영 규칙')}
+                    {t("g_afdd89")}
                 </h3>
 
-                {/* ── 2-1. 회원 홀딩 ── */}
+                {/* ── 2-1. Member 홀딩 ── */}
                 <div style={featureCardStyle}>
                     <div style={featureHeaderStyle}>
                         <div>
@@ -439,11 +439,11 @@ const StudioSettingsTab = () => {
               fontSize: '0.95rem',
               color: 'var(--text-primary)',
               marginBottom: '4px'
-            }}>{t('⏸️ 회원 홀딩 (일시정지)')}</div>
+            }}>{t("g_dd577e")}</div>
                             <div style={{
               fontSize: '0.75rem',
               color: 'var(--text-tertiary)'
-            }}>{t('회원이 앱에서 수강권을 일시정지할 수 있습니다')}</div>
+            }}>{t("g_826d4e")}</div>
                         </div>
                         <ToggleSwitch checked={localConfig.POLICIES?.ALLOW_SELF_HOLD || false} onChange={e => handleChange('POLICIES.ALLOW_SELF_HOLD', e.target.checked)} />
                     </div>
@@ -458,7 +458,7 @@ const StudioSettingsTab = () => {
             fontWeight: 'bold',
             color: 'var(--text-secondary)',
             marginBottom: '4px'
-          }}>{t('홀딩 규칙 (수강권별)')}</div>
+          }}>{t("g_2d63cd")}</div>
                             {(localConfig.POLICIES?.HOLD_RULES || []).map((rule, rIdx) => <div key={rIdx} style={{
             display: 'flex',
             gap: '8px',
@@ -477,7 +477,7 @@ const StudioSettingsTab = () => {
                 fontSize: '0.65rem',
                 color: 'var(--text-tertiary)',
                 marginBottom: '6px'
-              }}>{t('수강 기간')}</div>
+              }}>{t("g_6e96bd")}</div>
                                         <Stepper value={rule.durationMonths || 1} onChange={v => {
                 const rules = [...(localConfig.POLICIES?.HOLD_RULES || [])];
                 rules[rIdx] = {
@@ -485,7 +485,7 @@ const StudioSettingsTab = () => {
                   durationMonths: v
                 };
                 handleChange('POLICIES.HOLD_RULES', rules);
-              }} unit={t('개월')} />
+              }} unit={t("g_f667f2")} />
                                     </div>
                                     <div style={{
               flex: 1,
@@ -495,7 +495,7 @@ const StudioSettingsTab = () => {
                 fontSize: '0.65rem',
                 color: 'var(--text-tertiary)',
                 marginBottom: '6px'
-              }}>{t('최대 횟수')}</div>
+              }}>{t("g_036f61")}</div>
                                         <Stepper value={rule.maxCount || 1} onChange={v => {
                 const rules = [...(localConfig.POLICIES?.HOLD_RULES || [])];
                 rules[rIdx] = {
@@ -503,7 +503,7 @@ const StudioSettingsTab = () => {
                   maxCount: v
                 };
                 handleChange('POLICIES.HOLD_RULES', rules);
-              }} unit={t('회')} />
+              }} unit={t("g_8a602f")} />
                                     </div>
                                     <div style={{
               flex: 1,
@@ -513,7 +513,7 @@ const StudioSettingsTab = () => {
                 fontSize: '0.65rem',
                 color: 'var(--text-tertiary)',
                 marginBottom: '6px'
-              }}>{t('1회 최대')}</div>
+              }}>{t("g_cc5401")}</div>
                                         <Stepper value={rule.maxWeeks || 1} onChange={v => {
                 const rules = [...(localConfig.POLICIES?.HOLD_RULES || [])];
                 rules[rIdx] = {
@@ -521,7 +521,7 @@ const StudioSettingsTab = () => {
                   maxWeeks: v
                 };
                 handleChange('POLICIES.HOLD_RULES', rules);
-              }} unit={t('주')} />
+              }} unit={t("g_c826a1")} />
                                     </div>
                                     <button onClick={() => {
               const rules = [...(localConfig.POLICIES?.HOLD_RULES || [])];
@@ -536,7 +536,7 @@ const StudioSettingsTab = () => {
               padding: '4px 8px',
               alignSelf: 'flex-start',
               marginTop: '16px'
-            }} title={t('삭제')}>✕</button>
+            }} title={t("g_30e15a")}>✕</button>
                                 </div>)}
                             <button className="action-btn sm" style={{
             alignSelf: 'flex-start',
@@ -551,7 +551,7 @@ const StudioSettingsTab = () => {
               maxWeeks: 2
             }];
             handleChange('POLICIES.HOLD_RULES', rules);
-          }}>{t('+ 규칙 추가')}</button>
+          }}>{t("g_77f49c")}</button>
                         </div>}
                 </div>
 
@@ -564,11 +564,11 @@ const StudioSettingsTab = () => {
               fontSize: '0.95rem',
               color: 'var(--text-primary)',
               marginBottom: '4px'
-            }}>{t('🔢 수강 횟수 관리 방식')}</div>
+            }}>{t("g_91dc8d")}</div>
                             <div style={{
               fontSize: '0.75rem',
               color: 'var(--text-tertiary)'
-            }}>{t('회원의 수강 횟수를 전체 기간/주간/일간 단위로 관리합니다')}</div>
+            }}>{t("g_8040ba")}</div>
                         </div>
                     </div>
 
@@ -643,7 +643,7 @@ const StudioSettingsTab = () => {
                 fontSize: '0.65rem',
                 color: 'var(--text-tertiary)',
                 marginBottom: '6px'
-              }}>{t('주간 리셋 요일')}</div>
+              }}>{t("g_3b87ec")}</div>
                                     <select value={localConfig.POLICIES?.CREDIT_RULES?.weeklyResetDay ?? 1} onChange={e => handleChange('POLICIES.CREDIT_RULES', {
                 ...(localConfig.POLICIES?.CREDIT_RULES || {}),
                 weeklyResetDay: parseInt(e.target.value)
@@ -652,13 +652,13 @@ const StudioSettingsTab = () => {
                 fontSize: '0.85rem',
                 maxWidth: '120px'
               }}>
-                                        <option value={1}>{t('월요일')}</option>
-                                        <option value={2}>{t('화요일')}</option>
-                                        <option value={3}>{t('수요일')}</option>
-                                        <option value={4}>{t('목요일')}</option>
-                                        <option value={5}>{t('금요일')}</option>
-                                        <option value={6}>{t('토요일')}</option>
-                                        <option value={0}>{t('일요일')}</option>
+                                        <option value={1}>{t("g_678771")}</option>
+                                        <option value={2}>{t("g_bff43d")}</option>
+                                        <option value={3}>{t("g_f36964")}</option>
+                                        <option value={4}>{t("g_c9b38a")}</option>
+                                        <option value={5}>{t("g_4def5d")}</option>
+                                        <option value={6}>{t("g_463453")}</option>
+                                        <option value={0}>{t("g_90963b")}</option>
                                     </select>
                                 </div>
                                 <div style={{
@@ -669,7 +669,7 @@ const StudioSettingsTab = () => {
                 fontSize: '0.65rem',
                 color: 'var(--text-tertiary)',
                 marginBottom: '6px'
-              }}>{t('주간 한도 기준')}</div>
+              }}>{t("g_3eae1b")}</div>
                                     <select value={localConfig.POLICIES?.CREDIT_RULES?.weeklyLimitSource || 'plan'} onChange={e => handleChange('POLICIES.CREDIT_RULES', {
                 ...(localConfig.POLICIES?.CREDIT_RULES || {}),
                 weeklyLimitSource: e.target.value
@@ -678,8 +678,8 @@ const StudioSettingsTab = () => {
                 fontSize: '0.85rem',
                 maxWidth: '160px'
               }}>
-                                        <option value="plan">{t('요금제 자동 계산')}</option>
-                                        <option value="member">{t('회원별 수동 설정')}</option>
+                                        <option value="plan">{t("g_43ac91")}</option>
+                                        <option value="member">{t("g_24ab8c")}</option>
                                     </select>
                                 </div>
                             </div>}
@@ -694,7 +694,7 @@ const StudioSettingsTab = () => {
             borderRadius: '8px',
             border: '1px solid rgba(255,255,255,0.05)'
           }}>
-                            💡 {(localConfig.POLICIES?.CREDIT_RULES?.mode || 'total') === 'total' ? t("g_bccf3c") || "현재 방식: 등록된 총 횟수에서 출석할 때마다 1회씩 차감됩니다." : t("g_53f0e0") || "주간 방식: 요금제의 주당 횟수(예: 월 12회 → 주 3회)를 초과하면 출석이 제한됩니다. 총 잔여 횟수도 함께 차감됩니다."}
+                            💡 {(localConfig.POLICIES?.CREDIT_RULES?.mode || 'total') === 'total' ? t("g_bccf3c") || "현재 방식: 등록된 총 횟수에서 출석할 때마다 1회씩 차감됩니다." : t("g_53f0e0") || "주간 방식: 요금제의 주당 횟수(예:  12회 → 주 3회)를 초과하면 출석이 제한됩니다. 총 잔여 횟수도 함께 차감됩니다."}
                         </div>
                     </div>
                 </div>
@@ -706,11 +706,11 @@ const StudioSettingsTab = () => {
               fontSize: '0.95rem',
               color: 'var(--text-primary)',
               marginBottom: '4px'
-            }}>{t('📅 수업 예약')}</div>
+            }}>{t("g_10bbe7")}</div>
                             <div style={{
               fontSize: '0.75rem',
               color: 'var(--text-tertiary)'
-            }}>{t('회원이 앱에서 수업을 미리 예약할 수 있습니다')}</div>
+            }}>{t("g_6c79e2")}</div>
                         </div>
                         <ToggleSwitch checked={localConfig.POLICIES?.ALLOW_BOOKING || false} onChange={e => handleChange('POLICIES.ALLOW_BOOKING', e.target.checked)} />
                     </div>
@@ -729,7 +729,7 @@ const StudioSettingsTab = () => {
             borderRadius: '8px',
             border: '1px solid rgba(255,255,255,0.05)'
           }}>
-                                {t('💡 예약 기능을 켜도, 예약 없이 직접 오는 회원은 기존처럼 출석 가능합니다. 다만 정원이 찬 수업은 워크인이 제한될 수 있습니다.')}
+                                {t("g_b62689")}
                             </div>
 
                             {/* 정원 */}
@@ -752,12 +752,12 @@ const StudioSettingsTab = () => {
                 fontWeight: 'bold',
                 color: 'var(--text-secondary)',
                 marginBottom: '4px'
-              }}>{t('수업당 최대 인원')}</div>
+              }}>{t("g_facb40")}</div>
                                     <div style={{
                 fontSize: '0.7rem',
                 color: 'var(--text-tertiary)',
                 marginBottom: '8px'
-              }}>{t('시간표에서 수업별로 따로 정할 수도 있습니다')}</div>
+              }}>{t("g_181f85")}</div>
                                     {(localConfig.BRANCHES?.length || 0) >= 2 ? <div style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -772,11 +772,11 @@ const StudioSettingsTab = () => {
                     fontSize: '0.7rem',
                     color: 'var(--text-tertiary)',
                     minWidth: '50px'
-                  }}>{t('기본값')}</span>
+                  }}>{t("g_8106b9")}</span>
                                                 <Stepper value={bookingRules.defaultCapacity || 15} onChange={v => handleChange('POLICIES.BOOKING_RULES', {
                     ...bookingRules,
                     defaultCapacity: v
-                  })} unit={t('명')} />
+                  })} unit={t("g_7b3c6e")} />
                                             </div>
                                             {localConfig.BRANCHES.map(branch => <div key={branch.id} style={{
                   display: 'flex',
@@ -798,12 +798,12 @@ const StudioSettingsTab = () => {
                       ...bookingRules,
                       branchCapacity: bc
                     });
-                  }} unit={t('명')} />
+                  }} unit={t("g_7b3c6e")} />
                                                 </div>)}
                                         </div> : <Stepper value={bookingRules.defaultCapacity || 15} onChange={v => handleChange('POLICIES.BOOKING_RULES', {
                 ...bookingRules,
                 defaultCapacity: v
-              })} unit={t('명')} />}
+              })} unit={t("g_7b3c6e")} />}
                                 </div>
                             </div>
 
@@ -826,11 +826,11 @@ const StudioSettingsTab = () => {
                 fontSize: '0.65rem',
                 color: 'var(--text-tertiary)',
                 marginBottom: '6px'
-              }}>{t('예약 가능 기간')}</div>
+              }}>{t("g_eb1f56")}</div>
                                     <Stepper value={bookingRules.windowDays || 7} onChange={v => handleChange('POLICIES.BOOKING_RULES', {
                 ...bookingRules,
                 windowDays: v
-              })} unit={t('일 전부터')} />
+              })} unit={t("g_e85b9f")} />
                                 </div>
                                 <div style={{
               flex: 1,
@@ -840,11 +840,11 @@ const StudioSettingsTab = () => {
                 fontSize: '0.65rem',
                 color: 'var(--text-tertiary)',
                 marginBottom: '6px'
-              }}>{t('예약 마감')}</div>
+              }}>{t("g_aab855")}</div>
                                     <Stepper value={bookingRules.deadlineHours || 1} onChange={v => handleChange('POLICIES.BOOKING_RULES', {
                 ...bookingRules,
                 deadlineHours: v
-              })} unit={t('시간 전')} />
+              })} unit={t("g_c61da2")} />
                                 </div>
                                 <div style={{
               flex: 1,
@@ -854,11 +854,11 @@ const StudioSettingsTab = () => {
                 fontSize: '0.65rem',
                 color: 'var(--text-tertiary)',
                 marginBottom: '6px'
-              }}>{t('취소 마감')}</div>
+              }}>{t("g_db2cb6")}</div>
                                     <Stepper value={bookingRules.cancelDeadlineHours || 3} onChange={v => handleChange('POLICIES.BOOKING_RULES', {
                 ...bookingRules,
                 cancelDeadlineHours: v
-              })} unit={t('시간 전')} />
+              })} unit={t("g_c61da2")} />
                                 </div>
                             </div>
 
@@ -881,11 +881,11 @@ const StudioSettingsTab = () => {
                 fontSize: '0.65rem',
                 color: 'var(--text-tertiary)',
                 marginBottom: '6px'
-              }}>{t('동시 예약 한도')}</div>
+              }}>{t("g_881b7c")}</div>
                                     <Stepper value={bookingRules.maxActiveBookings || 3} onChange={v => handleChange('POLICIES.BOOKING_RULES', {
                 ...bookingRules,
                 maxActiveBookings: v
-              })} unit={t('건')} />
+              })} unit={t("g_230561")} />
                                 </div>
                                 <div style={{
               flex: 1,
@@ -895,11 +895,11 @@ const StudioSettingsTab = () => {
                 fontSize: '0.65rem',
                 color: 'var(--text-tertiary)',
                 marginBottom: '6px'
-              }}>{t('하루 최대 예약')}</div>
+              }}>{t("g_2fa84f")}</div>
                                     <Stepper value={bookingRules.maxDailyBookings || 2} onChange={v => handleChange('POLICIES.BOOKING_RULES', {
                 ...bookingRules,
                 maxDailyBookings: v
-              })} unit={t('건')} />
+              })} unit={t("g_230561")} />
                                 </div>
                             </div>
 
@@ -923,16 +923,16 @@ const StudioSettingsTab = () => {
                 fontWeight: 'bold',
                 color: 'var(--text-secondary)',
                 marginBottom: '8px'
-              }}>{t('노쇼 (예약 후 미출석)')}</div>
+              }}>{t("g_cb635d")}</div>
                                     <div style={{
                 fontSize: '0.65rem',
                 color: 'var(--text-tertiary)',
                 marginBottom: '6px'
-              }}>{t('미출석 시 횟수 차감')}</div>
+              }}>{t("g_6c2495")}</div>
                                     <Stepper value={bookingRules.noshowCreditDeduct || 1} onChange={v => handleChange('POLICIES.BOOKING_RULES', {
                 ...bookingRules,
                 noshowCreditDeduct: v
-              })} min={0} unit={t('회 차감')} />
+              })} min={0} unit={t("g_19082f")} />
                                 </div>
                             </div>
 
@@ -952,11 +952,11 @@ const StudioSettingsTab = () => {
                 fontWeight: 'bold',
                 color: 'var(--text-secondary)',
                 marginBottom: '4px'
-              }}>{t('대기열')}</div>
+              }}>{t("g_1912bb")}</div>
                                     <div style={{
                 fontSize: '0.65rem',
                 color: 'var(--text-tertiary)'
-              }}>{t('정원 초과 시 대기 → 취소 발생 시 자동 예약 + 알림')}</div>
+              }}>{t("g_9cca75")}</div>
                                 </div>
                                 <ToggleSwitch checked={bookingRules.enableWaitlist !== false} onChange={e => handleChange('POLICIES.BOOKING_RULES', {
               ...bookingRules,
@@ -975,11 +975,11 @@ const StudioSettingsTab = () => {
               fontSize: '0.95rem',
               color: 'var(--text-primary)',
               marginBottom: '4px'
-            }}>{t('📷 출석 화면 카메라')}</div>
+            }}>{t("g_2c47b5")}</div>
                             <div style={{
               fontSize: '0.75rem',
               color: 'var(--text-tertiary)'
-            }}>{t('출석체크 화면에 카메라 영상을 표시합니다')}</div>
+            }}>{t("g_73a95a")}</div>
                         </div>
                         <ToggleSwitch checked={localConfig.POLICIES?.SHOW_CAMERA_PREVIEW || false} onChange={e => handleChange('POLICIES.SHOW_CAMERA_PREVIEW', e.target.checked)} />
                     </div>
@@ -1002,7 +1002,7 @@ const StudioSettingsTab = () => {
                 fontSize: '0.9rem',
                 color: 'var(--text-primary)',
                 marginBottom: '4px'
-              }}>{t('📐 프리뷰 크기')}</div>
+              }}>{t("g_8f8e8a")}</div>
                                     <div style={{
                 fontSize: '0.72rem',
                 color: 'var(--text-tertiary)'
@@ -1038,11 +1038,11 @@ const StudioSettingsTab = () => {
                 fontSize: '0.9rem',
                 color: 'var(--text-primary)',
                 marginBottom: '4px'
-              }}>{t('🧠 안면인식 자동 출석')}</div>
+              }}>{t("g_f6e7fa")}</div>
                                     <div style={{
                 fontSize: '0.72rem',
                 color: 'var(--text-tertiary)'
-              }}>{t('등록된 회원의 얼굴을 인식하면 자동으로 출석 처리합니다')}</div>
+              }}>{t("g_d5c6da")}</div>
                                 </div>
                                 <ToggleSwitch checked={localConfig.POLICIES?.FACE_RECOGNITION_ENABLED || false} onChange={e => handleChange('POLICIES.FACE_RECOGNITION_ENABLED', e.target.checked)} />
                             </div>
@@ -1058,7 +1058,7 @@ const StudioSettingsTab = () => {
         gap: '8px',
         marginBottom: '20px'
       }}>
-                        <MapPin size={20} weight="fill" color="var(--primary-theme-color)" /> {t('지점 관리')}
+                        <MapPin size={20} weight="fill" color="var(--primary-theme-color)" /> {t("g_bd50b5")}
                     </h3>
                     <div style={{
         display: 'flex',
@@ -1100,7 +1100,7 @@ const StudioSettingsTab = () => {
               handleChange('BRANCHES', newBranches);
             }
           }}>
-                                        {t('삭제')}
+                                        {t("g_30e15a")}
                                     </button>}
                             </div>)}
                         <button className="action-btn sm" style={{
@@ -1122,7 +1122,7 @@ const StudioSettingsTab = () => {
             handleChange('BRANCHES', newBranches);
           }
         }}>
-                            {t('+ 지점 추가')}
+                            {t("g_9ea7c1")}
                         </button>
                     </div>
                     {/* ⚠️ 지점 관리 주의사항 */}
@@ -1142,10 +1142,10 @@ const StudioSettingsTab = () => {
           marginBottom: '6px',
           fontSize: '0.8rem'
         }}>
-                            {t('⚠️ 지점 관리 주의사항')}
+                            {t("g_76bbb9")}
                         </div>
-                        <div>{t('• 지점을 삭제하면, 해당 지점의 출석/매출/시간표 기록에서 지점 정보가 사라질 수 있습니다.')}</div>
-                        <div>{t('• 기존 회원의 소속 지점이 삭제된 경우, "전체" 보기에는 포함되지만 지점별 필터링이 불가합니다.')}</div>
+                        <div>{t("g_daf020")}</div>
+                        <div>{t("g_5a984e")}</div>
                     </div>
                 </div>}
             
@@ -1163,14 +1163,14 @@ const StudioSettingsTab = () => {
         marginBottom: '20px'
       }}>
                     <Globe size={24} weight="fill" color="var(--primary-gold)" />
-                    {t('앱 URL 및 QR 코드')}
+                    {t("g_b36e99")}
                 </h3>
                 <p style={{
         fontSize: '0.85rem',
         color: 'var(--text-secondary)',
         marginBottom: '20px'
       }}>
-                    {t('각 앱의 URL을 복사하거나 QR 코드를 공유할 수 있습니다.')}
+                    {t("g_a86849")}
                 </p>
                 <div style={{
         display: 'grid',
@@ -1188,7 +1188,7 @@ const StudioSettingsTab = () => {
           icon: '🧘',
           desc: t("g_bbe121") || "출석 확인 & 일정"
         }, {
-          label: t("g_68fa36") || "회원앱",
+          label: t("g_68fa36") || "Member앱",
           path: '/member',
           icon: '📱',
           desc: t("g_4318a0") || "출석 & 수업 정보"
@@ -1240,7 +1240,7 @@ const StudioSettingsTab = () => {
               borderRadius: '12px',
               cursor: 'pointer',
               transition: 'transform 0.2s'
-            }} onClick={() => window.open(fullUrl, '_blank')} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'} title={t('클릭하여 새 탭에서 열기')}>
+            }} onClick={() => window.open(fullUrl, '_blank')} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'} title={t("g_baac83")}>
                                     <img src={qrUrl} alt={`${app.label} QR`} style={{
                 width: '120px',
                 height: '120px',
@@ -1277,7 +1277,7 @@ const StudioSettingsTab = () => {
               fontWeight: 'bold',
               cursor: 'pointer',
               fontSize: '0.9rem'
-            }}>{t('URL 복사')}</button>
+            }}>{t("g_290145")}</button>
                             </div>;
         })}
                 </div>
@@ -1293,7 +1293,7 @@ const StudioSettingsTab = () => {
         color: 'var(--text-tertiary)',
         textDecoration: 'none'
       }}>
-                    {t('🔒 개인정보처리방침')}
+                    {t("g_46db58")}
                 </a>
             </div>
             <div style={{

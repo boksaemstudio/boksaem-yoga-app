@@ -90,7 +90,7 @@ export const classService = {
         // Priority 0: Membership Type Hint Matching
         if (membershipTypeHint) {
             const keyword = membershipTypeHint.trim().toLowerCase();
-            const ignoredHints = ['일반', '심화', 'ttc (지도자과정)'];
+            const ignoredHints = ['일반', 'General', '심화', 'Advanced', 'ttc (지도자과정)'];
             if (!ignoredHints.includes(keyword)) {
                 const hintMatchedClass = classes.find(c => {
                     const title = (c.title || c.className || '').toLowerCase();
@@ -101,7 +101,7 @@ export const classService = {
                         title: hintMatchedClass.title || hintMatchedClass.className || '',
                         instructor: hintMatchedClass.instructor || '',
                         time: hintMatchedClass.time,
-                        debugReason: `회원권 기반 매칭: ${membershipTypeHint}`
+                        debugReason: `Member권 기반 매칭: ${membershipTypeHint}`
                     };
                 }
             }
@@ -116,7 +116,7 @@ export const classService = {
             const endMinutes = startMinutes + duration;
 
             if (currentMinutes >= startMinutes - 30 && currentMinutes < startMinutes) {
-                selectedClass = cls; logicReason = `수업 예정: ${cls.time}`; break;
+                selectedClass = cls; logicReason = `Upcoming class: ${cls.time}`; break;
             }
             if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
                 const nextCls = classes[i + 1];
@@ -124,10 +124,10 @@ export const classService = {
                     const [nh, nm] = nextCls.time.split(':').map(Number);
                     const nextStart = nh * 60 + nm;
                     if (currentMinutes >= nextStart - 30) {
-                        selectedClass = nextCls; logicReason = `다음 수업 우선: ${nextCls.time}`; break;
+                        selectedClass = nextCls; logicReason = `Next class priority: ${nextCls.time}`; break;
                     }
                 }
-                selectedClass = cls; logicReason = `수업 진행 중: ${cls.time}`; break;
+                selectedClass = cls; logicReason = `Class in progress: ${cls.time}`; break;
             }
             if (currentMinutes >= startMinutes - 60 && currentMinutes < startMinutes - 30) {
                 const prevCls = classes[i - 1];
@@ -137,7 +137,7 @@ export const classService = {
                     const prevEnd = (ph * 60 + pm) + (prevCls.duration || 60);
                     if (currentMinutes < prevEnd) isBlocked = true;
                 }
-                if (!isBlocked) { selectedClass = cls; logicReason = `조기 출석: ${cls.time}`; break; }
+                if (!isBlocked) { selectedClass = cls; logicReason = `Early check-in: ${cls.time}`; break; }
             }
         }
 
@@ -150,7 +150,7 @@ export const classService = {
                 const endMinutes = (h * 60 + m) + duration;
                 if (currentMinutes >= endMinutes && currentMinutes <= endMinutes + 30) {
                     selectedClass = cls;
-                    logicReason = `수업 종료 직후: ${cls.time} (종료 ${currentMinutes - endMinutes}분 경과)`;
+                    logicReason = `Post-class grace: ${cls.time} (${currentMinutes - endMinutes}min after end)`;
                     break;
                 }
             }

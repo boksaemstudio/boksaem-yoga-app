@@ -81,14 +81,14 @@ const TopBar = memo(({
           alignItems: 'center',
           gap: '10px'
         }}>
-                            {getWeatherIcon(weather.weathercode, getKSTHour() >= 18 || getKSTHour() < 6)}
+                            {getWeatherIcon(weather.key, getKSTHour() >= 18 || getKSTHour() < 6)}
                             <span className="weather-temp" style={{
             fontSize: '1.4rem',
             fontWeight: 600,
             color: 'rgba(255,255,255,0.95)',
             lineHeight: 1
           }}>
-                                {weather.temperature}°C
+                                {weather.temp}{weather.unit}
                             </span>
                         </div>
 
@@ -123,7 +123,7 @@ const TopBar = memo(({
       gap: '20px',
       alignItems: 'center'
     }}>
-                <button className="instructor-btn" onClick={onInstructorClick} aria-label={t('kiosk_topbar_instructor_only') || t("g_69cd4e") || "선생님 전용"} style={{
+                <button className="instructor-btn" onClick={onInstructorClick} aria-label={t('kiosk_topbar_instructor_only') || t("g_69cd4e") || "Instructor Only"} style={{
         background: 'rgba(var(--primary-rgb), 0.15)',
         border: '1px solid rgba(var(--primary-rgb), 0.4)',
         borderRadius: '22px',
@@ -138,11 +138,11 @@ const TopBar = memo(({
         transition: 'none'
       }}>
                     <Chalkboard size={20} weight="duotone" />
-                    {t('kiosk_topbar_instructor') || t("g_620be2") || "선생님"}
+                    {t('kiosk_topbar_instructor') || t("g_620be2") || "Instructor"}
                 </button>
 
 
-                <button className="fullscreen-btn" onClick={toggleFullscreen} aria-label={isFullscreen ? t('kiosk_topbar_fullscreen_exit') || t("g_330054") || "전체화면 종료" : t('kiosk_topbar_fullscreen_enter') || t("g_641b14") || "전체화면 시작"} style={{
+                <button className="fullscreen-btn" onClick={toggleFullscreen} aria-label={isFullscreen ? t('kiosk_topbar_fullscreen_exit') || t("g_330054") || "Exit Fullscreen" : t('kiosk_topbar_fullscreen_enter') || t("g_641b14") || "Enter Fullscreen"} style={{
         background: 'rgba(255, 255, 255, 0.1)',
         border: '1px solid rgba(255, 255, 255, 0.2)',
         borderRadius: '50%',

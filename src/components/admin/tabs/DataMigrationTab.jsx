@@ -21,9 +21,9 @@ export default function DataMigrationTab() {
     const file = event.target.files[0];
     if (!file) return;
 
-    // 파일명 검증 (회원현황_YYYYMMDD.csv 형식)
-    if (!file.name.match(/회원현황_\d{8}\.csv/)) {
-      alert(t("g_cfad6d") || "파일명이 올바르지 않습니다. \"회원현황_YYYYMMDD.csv\" 형식이어야 합니다.");
+    // 파일명 검증 (Member현황_YYYYMMDD.csv 형식)
+    if (!file.name.match(/Member현황_\d{8}\.csv/)) {
+      alert(t("g_cfad6d") || "파일명이 올바르지 않습니다. \"Member현황_YYYYMMDD.csv\" 형식이어야 합니다.");
       return;
     }
     try {
@@ -32,10 +32,10 @@ export default function DataMigrationTab() {
         // [Agent Admin Mode] Skip explicit confirmation if in agent mode
         const isAgentMode = window.__AGENT_ADMIN_MODE__ === true;
         if (!isAgentMode) {
-          const confirmed = window.confirm(t("g_28bee6") || "⚠️ [주의] 실제 마이그레이션을 실행하면 기존 모든 회원, 매출, 출석, 푸시 데이터가 삭제된 후 새로 등록됩니다.\n\n정말로 진행하시겠습니까?");
+          const confirmed = window.confirm(t("g_28bee6") || "⚠️ [주의] 실제 마이그레이션을 실행하면 기존 모든 Member, 매출, 출석, 푸시 데이터가 삭제된 후 새로 등록됩니다.\n\n정말로 진행하시겠습니까?");
           if (!confirmed) return;
           const secondConfirm = window.prompt(t("g_ce7f1f") || "삭제 및 이전을 확정하려면 \"마이그레이션\"이라고 입력해주세요.");
-          if (secondConfirm !== (t("g_b41aa0") || "마이그레이션")) {
+          if (secondConfirm !== (t("g_b41aa0") || "Migration")) {
             alert(t("g_f36971") || "입력이 올바르지 않아 취소되었습니다.");
             return;
           }
@@ -96,7 +96,7 @@ export default function DataMigrationTab() {
       marginBottom: '20px',
       color: 'var(--text-primary)'
     }}>
-                {t('CSV 회원 데이터 마이그레이션')}
+                {t("g_774794")}
             </h2>
 
             {/* Dry Run 모드 토글 */}
@@ -130,7 +130,7 @@ export default function DataMigrationTab() {
             fontSize: '0.85rem',
             opacity: 0.8
           }}>
-                            {isDryRun ? t("g_8ae049") || "실제 데이터 변경 없이 CSV 파일 형식만 검증합니다." : t("g_0d3acc") || "기존 데이터를 모두 지우고 CSV 기반으로 새로 시작합니다. (회원/매출/출석/푸시 삭제)"}
+                            {isDryRun ? t("g_8ae049") || "실제 데이터 변경 없이 CSV 파일 형식만 검증합니다." : t("g_0d3acc") || "기존 데이터를 모두 지우고 CSV 기반으로 새로 시작합니다. (Member/매출/출석/푸시 삭제)"}
                         </div>
                     </div>
                 </label>
@@ -152,14 +152,14 @@ export default function DataMigrationTab() {
         marginBottom: '8px',
         color: 'var(--text-primary)'
       }}>
-                        {t('CSV 파일 업로드 (마이그레이션 실행)')}
+                        {t("g_aca729")}
                     </p>
                     <p style={{
         fontSize: '0.85rem',
         color: 'var(--text-secondary)',
         marginBottom: '20px'
       }}>
-                        {t('파일명:')} <code>{t('회원현황_YYYYMMDD.csv')}</code>
+                        {t("g_df4b96")} <code>{t("g_56bd4c")}</code>
                     </p>
                     <label style={{
         display: 'inline-block',
@@ -170,7 +170,7 @@ export default function DataMigrationTab() {
         cursor: 'pointer',
         fontWeight: 'bold'
       }}>
-                        {t('파일 선택')}
+                        {t("g_11f4a3")}
                         <input type="file" accept=".csv" onChange={handleFileUpload} style={{
           display: 'none'
         }} />
@@ -192,7 +192,7 @@ export default function DataMigrationTab() {
       }}>
                         {migrationStatus === 'uploading' && (t("g_30ba5b") || "CSV 파일 읽는 중...")}
                         {migrationStatus === 'processing' && `마이그레이션 진행 중 (${isDryRun ? t("g_f72491") || "검증 모드" : t("g_7df3c2") || "실제 모드"})`}
-                        {migrationStatus === 'cleaning' && (t("g_5b307c") || "기존 데이터 삭제 중...")}
+                        {migrationStatus === 'cleaning' && (t("g_5b307c") || "기존 데이터 Deleting...")}
                     </div>
                     {migrationStatus === 'processing' && <>
                             <div style={{
@@ -260,7 +260,7 @@ export default function DataMigrationTab() {
                                 <div style={{
               fontSize: '0.8rem',
               opacity: 0.8
-            }}>{t('성공')}</div>
+            }}>{t("g_13e288")}</div>
                             </div>
                             <div style={{
             padding: '12px',
@@ -276,7 +276,7 @@ export default function DataMigrationTab() {
                                 <div style={{
               fontSize: '0.8rem',
               opacity: 0.8
-            }}>{t('실패')}</div>
+            }}>{t("g_086147")}</div>
                             </div>
                             <div style={{
             padding: '12px',
@@ -292,7 +292,7 @@ export default function DataMigrationTab() {
                                 <div style={{
               fontSize: '0.8rem',
               opacity: 0.8
-            }}>{t('건너뜀')}</div>
+            }}>{t("g_dc99d1")}</div>
                             </div>
                             <div style={{
             padding: '12px',
@@ -308,7 +308,7 @@ export default function DataMigrationTab() {
                                 <div style={{
               fontSize: '0.8rem',
               opacity: 0.8
-            }}>{t('매출 기록')}</div>
+            }}>{t("g_47bb17")}</div>
                             </div>
                         </div>
                     </div>
@@ -353,7 +353,7 @@ export default function DataMigrationTab() {
         cursor: 'pointer',
         width: '100%'
       }}>
-                        {t('새 파일 업로드')}
+                        {t("g_42a8f0")}
                     </button>
                 </div>}
 
@@ -371,7 +371,7 @@ export default function DataMigrationTab() {
                     <p style={{
         fontSize: '1rem',
         marginBottom: '20px'
-      }}>{t('마이그레이션 중 오류가 발생했습니다.')}</p>
+      }}>{t("g_82e910")}</p>
                     <button onClick={resetMigration} style={{
         padding: '12px 24px',
         background: 'var(--primary-gold)',
@@ -381,7 +381,7 @@ export default function DataMigrationTab() {
         fontWeight: 'bold',
         cursor: 'pointer'
       }}>
-                        {t('다시 시도')}
+                        {t("g_09c041")}
                     </button>
                 </div>}
 
@@ -400,7 +400,7 @@ export default function DataMigrationTab() {
         marginBottom: '8px'
       }}>
                     <FileText size={20} color="var(--primary-gold)" />
-                    <strong>{t('사용 안내')}</strong>
+                    <strong>{t("g_5a67f5")}</strong>
                 </div>
                 <ul style={{
         fontSize: '0.85rem',
@@ -408,10 +408,10 @@ export default function DataMigrationTab() {
         paddingLeft: '28px',
         opacity: 0.9
       }}>
-                    <li>{t('먼저')} <strong>{t('검증 모드')}</strong>{t('로 테스트하여 데이터를 확인하세요.')}</li>
-                    <li>{t('검증 완료 후')} <strong>{t('실제 마이그레이션 모드')}</strong>{t('로 전환하여 진행하세요.')}</li>
-                    <li>{t('중복 전화번호가 있으면 기존 회원 데이터를 업데이트합니다.')}</li>
-                    <li>{t('판매금액이 0이 아닌 경우 자동으로 매출 기록이 추가됩니다.')}</li>
+                    <li>{t("g_bc09d8")} <strong>{t("g_cecc21")}</strong>{t("g_1eeea3")}</li>
+                    <li>{t("g_ad637f")} <strong>{t("g_a39ac0")}</strong>{t("g_bff667")}</li>
+                    <li>{t("g_7ae11b")}</li>
+                    <li>{t("g_c4e8e2")}</li>
                 </ul>
             </div>
         </div>;

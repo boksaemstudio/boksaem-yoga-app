@@ -53,7 +53,7 @@ export interface WeeklyTemplateClass {
 type ScheduleResult = { success: boolean; message?: string; error?: unknown; backupId?: string; count?: number };
 
 // ── Helpers ──
-const getDayName = (date: Date): string => ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
+const getDayName = (date: Date): string => ['일', '', '화', '수', '목', '금', '토'][date.getDay()];
 
 // ── Service — Queries ──
 export const getMonthlyClasses = async (branchId: string, year: number, month: number): Promise<Record<string, DailyClass[]>> => {
@@ -127,7 +127,7 @@ const generateScheduleFromTemplateImpl = async (branchId: string, year: number, 
         const dayName = getDayName(date);
         const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const classes = templateMap[dayName] || [];
-        const cleanedClasses: DailyClass[] = classes.map(cls => ({ time: cls.startTime, title: cls.className, instructor: cls.instructor || '미지정', status: 'normal', level: cls.level || '', duration: cls.duration || 60 }));
+        const cleanedClasses: DailyClass[] = classes.map(cls => ({ time: cls.startTime, title: cls.className, instructor: cls.instructor || 'Unassigned', status: 'normal', level: cls.level || '', duration: cls.duration || 60 }));
         updates.push({ date: dateStr, classes: cleanedClasses });
     }
     await batchUpdateDailyClasses(branchId, updates);
@@ -143,8 +143,8 @@ export const createMonthlySchedule = async (branchId: string, year: number, mont
         if (templateSnap.exists()) {
             template = (templateSnap.data() as { classes: WeeklyTemplateClass[] }).classes || [];
         } else {
-            console.warn(`[Schedule] weekly_templates/${branchId} not found. 관리자 페이지에서 시간표 템플릿을 설정해주세요.`);
-            return { success: false, message: '주간 시간표 템플릿이 없습니다. 관리자 페이지에서 먼저 설정해주세요.' };
+            console.warn(`[Schedule] weekly_templates/${branchId} not found. Please set up schedule templates in the admin dashboard.`);
+            return { success: false, message: '주간 Schedule 템플릿이 없습니다. 관리자 페이지에서 먼저 설정해주세요.' };
         }
         return generateScheduleFromTemplateImpl(branchId, year, month, template);
     } catch (e) { console.error("Create monthly schedule failed:", e); throw e; }
@@ -199,7 +199,7 @@ export const copyMonthlySchedule = async (branchId: string, fromYear: number, fr
         if (updates.length > 0) {
             await batchUpdateDailyClasses(branchId, updates);
             await setDoc(tenantDb.doc('monthly_schedules', `${branchId}_${toYear}_${toMonth}`), { branchId, year: toYear, month: toMonth, isSaved: true, createdAt: new Date().toISOString(), createdBy: auth.currentUser?.email || 'admin' });
-            return { success: true, message: `지난달 데이터를 기반으로 새 스케줄이 생성되었습니다.\n(평일: ${bestWeekNum || 1}주차 패턴, 주말: 순차 적용)` };
+            return { success: true, message: `New schedule generated based on last month's data.\n(Weekdays: ${bestWeekNum || 1} week pattern, Weekends: sequential)` };
         }
         return { success: false, message: "복사할 데이터가 없습니다." };
     } catch (e) { console.error("Copy schedule failed:", e); throw e; }

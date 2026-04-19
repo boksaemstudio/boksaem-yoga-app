@@ -5,7 +5,7 @@ import * as bookingService from '../services/bookingService';
 
 /**
  * useScheduleData — AdminScheduleManager 데이터 로직 훅
- * 월별 스케줄 CRUD, 백업/복원, 마스터 데이터 로드 관리.
+ * 별 스케줄 CRUD, 백업/복원, 마스터 데이터 로드 관리.
  *
  * @param {string} branchId
  * @param {Object} config

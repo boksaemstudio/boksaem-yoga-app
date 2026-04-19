@@ -8,7 +8,7 @@ const MemberAddModal = ({
   onClose,
   onSuccess
 }) => {
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   const {
     config
   } = useStudioConfig();
@@ -48,7 +48,7 @@ const MemberAddModal = ({
       if (data) setPricingConfig(data);
     };
     if (isOpen) loadPricing();
-  }, [isOpen]);
+  }, [isOpen, language]);
 
   // [NEW] 선택 지점의 오늘 수업 목록 가져오기
   useEffect(() => {
@@ -66,7 +66,7 @@ const MemberAddModal = ({
       }
     };
     fetchClasses();
-  }, [isOpen, newMember.branch]);
+  }, [isOpen, newMember.branch, language]);
 
   // [Smart Calculation Logic for New Member]
   const {
@@ -117,7 +117,7 @@ const MemberAddModal = ({
     let label = option.label;
     let fallbackMonths = 1;
     if (option.label) {
-      const match = option.label.match(/(\d+)개월/);
+      const match = option.label.match(/(\d+)개/);
       if (match) fallbackMonths = parseInt(match[1], 10);
     }
 
@@ -160,10 +160,10 @@ const MemberAddModal = ({
       calculatedCredits: c,
       calculatedEndDate: newMember.autoStart ? t("g_c2838e") || "첫 출석 시 확정" : newMember.manualEndDate ? newMember.manualEndDate : realEnd,
       calculatedRealEndDate: newMember.manualEndDate ? newMember.manualEndDate : realEnd,
-      calculatedProductName: `${label} ${duration > 1 && option.type !== 'ticket' ? `(${duration}개월)` : ''}`,
-      durationMonths: months // [FIX] 실제 계산된 유효기간(개월) — ticket/subscription 무관하게 정확한 값
+      calculatedProductName: `${label} ${duration > 1 && option.type !== 'ticket' ? `(${duration}개)` : ''}`,
+      durationMonths: months // [FIX] 실제 계산된 유효기간(개) — ticket/subscription 무관하게 정확한 값
     };
-  }, [newMember, pricingConfig, isOpen]);
+  }, [newMember, pricingConfig, isOpen, language]);
 
   // Sync newMember state with calculated values
   useEffect(() => {
@@ -177,7 +177,7 @@ const MemberAddModal = ({
       subject: calculatedProductName,
       manualEndDate: '' // [FIX] 시작일이나 결제기간 변경 시 수동 마감일 초기화하여 자동계산값 노출 보장
     }));
-  }, [calculatedPrice, calculatedCredits, calculatedEndDate, calculatedRealEndDate, calculatedProductName, isOpen]);
+  }, [calculatedPrice, calculatedCredits, calculatedEndDate, calculatedRealEndDate, calculatedProductName, isOpen, language]);
 
   // pricingConfig/branch/모달열림 변경 시 membershipType과 selectedOption을 항상 동시 검증
   const getBranchName = id => branches.find(b => b.id === id)?.name || id;
@@ -188,7 +188,7 @@ const MemberAddModal = ({
     const branchName = getBranchName(newMember.branch);
     const availableTypes = validKeys.filter(key => {
       const cfg = pricingConfig[key];
-      return !cfg?.branches || cfg.branches.includes(newMember.branch) || cfg.branches.includes(branchName);
+      return !cfg?.branches || cfg.branches.length === 0 || cfg.branches.includes(newMember.branch) || cfg.branches.includes(branchName);
     });
     if (availableTypes.length === 0) return;
 
@@ -215,7 +215,7 @@ const MemberAddModal = ({
         } : {})
       }));
     }
-  }, [newMember.branch, newMember.membershipType, newMember.selectedOption, isOpen, pricingConfig]);
+  }, [newMember.branch, newMember.membershipType, newMember.selectedOption, isOpen, pricingConfig, language]);
   const handleAddMember = async () => {
     if (!newMember.name || !newMember.phone) {
       alert(t("g_c5fd52") || "이름과 전화번호는 필수입니다.");
@@ -299,7 +299,7 @@ const MemberAddModal = ({
       });
     } catch (err) {
       console.error('Error adding member:', err);
-      alert(t("g_e096cf") || "회원 등록 중 오류가 발생했습니다.");
+      alert(t("g_e096cf") || "Member 등록 중 오류가 발생했습니다.");
     } finally {
       setIsSubmitting(false);
       isSubmittingRef.current = false;
@@ -317,8 +317,8 @@ const MemberAddModal = ({
       margin: '0 auto',
       borderRadius: 'min(24px, 5vw)'
     }}>
-                <div className="modal-header">
-                    <h2 className="modal-title">{t('회원 등록')}</h2>
+                <div className="modal-header" style={{ marginBottom: '0px' }}>
+                    <h2 className="modal-title">{t("g_d8f1df")}</h2>
                     <button onClick={onClose} style={{
           color: 'white',
           display: 'flex',
@@ -333,7 +333,7 @@ const MemberAddModal = ({
       }}>
                     <label className="form-label" style={{
           marginBottom: '6px'
-        }}>{t('이름')}</label>
+        }}>{t("g_6eb5cd")}</label>
                     <input className="form-input" style={{
           fontFamily: 'var(--font-main)',
           padding: '14px 18px',
@@ -341,14 +341,14 @@ const MemberAddModal = ({
         }} value={newMember.name} onChange={e => setNewMember({
           ...newMember,
           name: e.target.value
-        })} lang="ko" inputMode="text" autoComplete="name" spellCheck="false" autoCorrect="off" placeholder={t('회원 이름 입력')} />
+        })} lang="ko" inputMode="text" autoComplete="name" spellCheck="false" autoCorrect="off" placeholder={t("g_4e2a8c")} />
                 </div>
                 <div className="form-group" style={{
         marginBottom: '14px'
       }}>
                     <label className="form-label" style={{
           marginBottom: '6px'
-        }}>{t('전화번호')}</label>
+        }}>{t("g_ba8df0")}</label>
                     <div style={{
           display: 'flex',
           gap: '8px',
@@ -367,7 +367,7 @@ const MemberAddModal = ({
             fontFamily: 'var(--font-main)',
             padding: '14px 18px',
             fontSize: '1.1rem'
-          }} placeholder={t('뒷자리 8자리 숫자')} maxLength={8} inputMode="numeric" value={newMember.phone.replace('010', '')} onChange={e => {
+          }} placeholder={t("g_2b80a4")} maxLength={8} inputMode="numeric" value={newMember.phone.replace('010', '')} onChange={e => {
             const clean = e.target.value.replace(/[^0-9]/g, '');
             setNewMember({
               ...newMember,
@@ -377,7 +377,7 @@ const MemberAddModal = ({
                     </div>
                 </div>
                 <div className="form-group">
-                    <label className="form-label">{t('지점')}</label>
+                    <label className="form-label">{t("g_274785")}</label>
                     <select className="form-select" style={{
           fontFamily: 'var(--font-main)'
         }} value={newMember.branch} onChange={e => {
@@ -391,7 +391,7 @@ const MemberAddModal = ({
                     </select>
                 </div>
                 <div className="form-group">
-                    <label className="form-label">{t('회원권 종류')}</label>
+                    <label className="form-label">{t("g_dd1b38")}</label>
                     <select className="form-select" style={{
           fontFamily: 'var(--font-main)'
         }} value={newMember.membershipType} onChange={e => {
@@ -406,11 +406,11 @@ const MemberAddModal = ({
             duration: 1
           });
         }}>
-                        {Object.entries(pricingConfig).filter(([key, value]) => key !== '_meta' && (!value.branches || value.branches.includes(newMember.branch) || value.branches.includes(getBranchName(newMember.branch)))).map(([key, value]) => <option key={key} value={key}>{value.label || key}</option>)}
+                        {Object.entries(pricingConfig).filter(([key, value]) => key !== '_meta' && (!value.branches || value.branches.length === 0 || value.branches.includes(newMember.branch) || value.branches.includes(getBranchName(newMember.branch)))).map(([key, value]) => <option key={key} value={key}>{value.label || key}</option>)}
                     </select>
                 </div>
                 <div className="form-group">
-                    <label className="form-label">{t('세부 옵션')}</label>
+                    <label className="form-label">{t("g_b9497e")}</label>
                     <select className="form-select" style={{
           fontFamily: 'var(--font-main)'
         }} value={newMember.selectedOption} onChange={e => setNewMember({
@@ -425,7 +425,7 @@ const MemberAddModal = ({
         const currentOption = pricingConfig[newMember.membershipType]?.options.find(o => o.id === newMember.selectedOption);
         if (currentOption && currentOption.type === 'subscription') {
           return <div className="form-group">
-                                <label className="form-label">{t('등록 기간')}</label>
+                                <label className="form-label">{t("g_87aba3")}</label>
                                 <div style={{
               display: 'flex',
               gap: '8px'
@@ -440,7 +440,7 @@ const MemberAddModal = ({
                 ...newMember,
                 duration: m
               })}>
-                                            {m}{t("g_d2dfd1") || "개월"}</button>)}
+                                            {m}{t("g_d2dfd1") || "개"}</button>)}
                                 </div>
                             </div>;
         }
@@ -453,7 +453,7 @@ const MemberAddModal = ({
         gap: '15px'
       }}>
                     <div className="form-group">
-                        <label className="form-label">{t('등록일')}</label>
+                        <label className="form-label">{t("g_252d4d")}</label>
                         <div style={{
             position: 'relative'
           }}>
@@ -475,7 +475,7 @@ const MemberAddModal = ({
             justifyContent: 'space-between',
             alignItems: 'center'
           }}>
-                            <span>{t('수련 시작일')}</span>
+                            <span>{t("g_ace73a")}</span>
                         </label>
                         <div style={{
             display: 'flex',
@@ -510,7 +510,7 @@ const MemberAddModal = ({
                   autoStart: e.target.checked,
                   includeToday: e.target.checked ? false : newMember.includeToday
                 })} />
-                                    {t('첫 출석일 시작')}
+                                    {t("g_bcb9f8")}
                                 </label>
                                 <label style={{
                 flex: 1,
@@ -552,7 +552,7 @@ const MemberAddModal = ({
                     }) : newMember.startDate
                   });
                 }} />
-                                    {t('오늘 수련 포함')}
+                                    {t("g_ec42d2")}
                                 </label>
                             </div>
 
@@ -581,12 +581,12 @@ const MemberAddModal = ({
                 cursor: 'pointer'
               }} value={(() => {
                 const cls = newMember.todayClass;
-                if (!cls) return t("g_dd529d") || "자율수련";
+                if (!cls) return t("g_dd529d") || "Self Practice";
                 // [FIX] 고유키(time__title) 사용하여 동일 수업명 중복 시에도 정확한 선택 보장
-                return cls._key || cls.title || t("g_dd529d") || "자율수련";
+                return cls._key || cls.title || t("g_dd529d") || "Self Practice";
               })()} onChange={e => {
                 const selectedKey = e.target.value;
-                if (selectedKey === (t("g_dd529d") || "자율수련")) {
+                if (selectedKey === (t("g_dd529d") || "Self Practice")) {
                   setNewMember({
                     ...newMember,
                     todayClass: null
@@ -611,7 +611,7 @@ const MemberAddModal = ({
                   });
                 }
               }}>
-                                        <option value={t('자율수련')}>{t('자율수련 (-1회)')}</option>
+                                        <option value={t("g_2b3da3")}>{t("g_e4f1cb")}</option>
                                         {dailyClasses.map((cls, idx) => {
                   const title = cls.title || cls.className || '';
                   const time = cls.time || '';
@@ -633,11 +633,11 @@ const MemberAddModal = ({
                 justifyContent: 'space-between',
                 alignItems: 'center'
               }}>
-                                    <span>{t('마감일(종료일)')}</span>
+                                    <span>{t("g_b004a1")}</span>
                                     {newMember.autoStart && <span style={{
                   fontSize: '0.75rem',
                   color: 'var(--primary-gold)'
-                }}>{t('*첫 출석 시 조정됨')}</span>}
+                }}>{t("g_92cd5c")}</span>}
                                 </label>
                                 <input type="date" className="form-input" style={{
                 width: '100%',
@@ -651,7 +651,7 @@ const MemberAddModal = ({
                 color: 'rgba(255,255,255,0.4)',
                 marginTop: '4px'
               }}>
-                                    {t('* 날짜 선택 시 수동 적용. 비우면 자동 계산.')}
+                                    {t("g_c82fe8")}
                                 </div>
                             </div>
                         </div>
@@ -659,7 +659,7 @@ const MemberAddModal = ({
                 </div>
 
                 <div className="form-group">
-                    <label className="form-label">{t('결제 방식')}</label>
+                    <label className="form-label">{t("g_41f75e")}</label>
                     <div style={{
           display: 'flex',
           gap: '10px'
@@ -703,7 +703,7 @@ const MemberAddModal = ({
             fontSize: '0.85rem',
             color: 'rgba(255,255,255,0.6)',
             fontWeight: 'bold'
-          }}>{t('결제 금액')}</span>
+          }}>{t("g_ada266")}</span>
                         <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -731,7 +731,7 @@ const MemberAddModal = ({
               fontSize: '1.4rem',
               fontWeight: '900',
               color: 'var(--primary-gold)'
-            }}>{t('원')}</span>
+            }}>{t("g_771dc3")}</span>
                         </div>
                     </div>
                     <div style={{
@@ -746,10 +746,10 @@ const MemberAddModal = ({
         }}>
                         <span style={{
             fontWeight: 600
-          }}>{t('횟수')}</span>
+          }}>{t("g_705bfc")}</span>
                         {newMember.credits > 200 ? <span style={{
             fontWeight: 600
-          }}>{t('무제한')}</span> : <div style={{
+          }}>{t("g_7fe271")}</span> : <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: '4px'
@@ -770,7 +770,7 @@ const MemberAddModal = ({
             })} />
                                 <span style={{
               fontWeight: 600
-            }}>{t('회')}</span>
+            }}>{t("g_8a602f")}</span>
                             </div>}
                     </div>
                 </div>
@@ -780,7 +780,7 @@ const MemberAddModal = ({
       }}>
                     <label className="form-label" style={{
           marginBottom: '6px'
-        }}>{t('원장 메모 (선택)')}</label>
+        }}>{t("g_e0dc09")}</label>
                     <textarea className="form-input" style={{
           fontFamily: 'var(--font-main)',
           padding: '14px 18px',
@@ -790,7 +790,7 @@ const MemberAddModal = ({
         }} value={newMember.notes || ''} onChange={e => setNewMember({
           ...newMember,
           notes: e.target.value
-        })} placeholder={t('특이사항이나 메모를 입력하세요')} />
+        })} placeholder={t("g_78b50d")} />
                 </div>
 
                 <div className="modal-actions" style={{
@@ -805,7 +805,7 @@ const MemberAddModal = ({
           fontSize: '1rem',
           background: 'rgba(255,255,255,0.05)',
           borderRadius: '16px'
-        }}>{t('취소')}</button>
+        }}>{t("g_d9de21")}</button>
                     <button onClick={handleAddMember} className="action-btn primary" style={{
           flex: 2,
           padding: '18px 0',
@@ -814,7 +814,7 @@ const MemberAddModal = ({
           borderRadius: '16px',
           boxShadow: '0 10px 20px rgba(var(--primary-rgb), 0.2)'
         }} disabled={isSubmitting}>
-                        {isSubmitting ? t("g_e6e1a2") || "처리 중..." : t("g_b5685a") || "회원 등록 완료"}
+                        {isSubmitting ? t("g_e6e1a2") || "처리 중..." : t("g_b5685a") || "Member 등록 완료"}
                     </button>
                 </div>
             </div>

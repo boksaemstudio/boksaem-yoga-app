@@ -531,6 +531,17 @@ function App() {
     }
     return () => window.removeEventListener('SYNC_OFFLINE_QUEUE', handleSyncTrigger);
   }, []);
+
+  // [DEEP LOCALIZATION] RTL Support and HTML lang attribute
+  const language = useLanguageStore(s => s.language);
+  useEffect(() => {
+    // Determine RTL (Right-to-Left) languages
+    const rtlLangs = ['ar', 'he', 'fa', 'ur'];
+    const isRTL = rtlLangs.includes(language);
+    document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
+    document.documentElement.lang = language || 'ko';
+  }, [language]);
+
   return <BrowserRouter>
       <StudioProvider>
           <PWAProvider>

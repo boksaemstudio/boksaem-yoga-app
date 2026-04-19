@@ -40,7 +40,7 @@ export const useTTS = () => {
         window.speechSynthesis.speak(wakeUp);
       }
 
-      // [FIX] 기존 재생 중인 오디오와 대기 중인 타이머 취소 (겹침 방지)
+      // [FIX] 기존 재생 중인 오디오와 Waitlisted at position 중인 타이머 취소 (겹침 방지)
       if (currentTimeout) {
         clearTimeout(currentTimeout);
         currentTimeout = null;
@@ -50,7 +50,7 @@ export const useTTS = () => {
         currentAudio.currentTime = 0;
       }
 
-      // 대기 시간을 최소화하여 화면 팝업과 동시에 소리가 나도록 수정
+      // Waitlisted at position 시간을 최소화하여 화면 팝업과 Max 소리가 나도록 수정
       currentAudio = new Audio(source);
       currentTimeout = setTimeout(() => {
         if (currentAudio) {

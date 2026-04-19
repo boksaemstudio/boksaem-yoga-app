@@ -44,7 +44,7 @@ const PriceTab = ({
     return a.localeCompare(b);
   }) : [];
   return <div className="fade-in">
-            {/* 회원 결제 내역 */}
+            {/* Member 결제 내역 */}
             {member && memberId && <MemberSalesHistory memberId={memberId} member={member} />}
 
             {/* 가격표 테이블 뷰 */}

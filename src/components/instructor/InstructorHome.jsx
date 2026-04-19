@@ -339,7 +339,7 @@ const InstructorHome = ({
                   padding: '1px 6px',
                   borderRadius: '4px',
                   fontWeight: 'bold'
-                }}>{t("g_884009") || "신규"}</span>;
+                }}>{t("g_884009") || "New"}</span>;
                 return null;
               })()}
                                         {record.facialMatched && <span style={{
@@ -362,13 +362,17 @@ const InstructorHome = ({
                 return memberData.hasFaceDescriptor ? <span onClick={e => {
                   e.stopPropagation();
                   if (deletingFaceMemberId) return;
+                  if (isDemo) {
+                    alert(t('demo_readonly') || "데모 환경에서는 안면 데이터를 삭제할 수 없습니다.");
+                    return;
+                  }
                   if (!confirm((t('confirm_delete_face_data') || `Delete facial recognition data for ${record.memberName}?\n\nThey can re-register at the kiosk.`).replace('{name}', record.memberName))) return;
                   setDeletingFaceMemberId(record.memberId);
                   memberService.deleteFaceDescriptor(record.memberId).then(result => {
                     if (result.success) {
                       alert(t("g_fc6a3e") || "안면 인식 데이터가 삭제되었습니다.");
                     } else {
-                      alert((t("g_6bafa7") || "삭제 실패: ") + (result.error || t("g_5e9f6b") || "알 수 없는 오류"));
+                      alert((t("g_6bafa7") || "Delete failed: ") + (result.error || t("g_5e9f6b") || "Unknown error"));
                     }
                   }).catch(() => alert(t("g_b4d561") || "삭제 중 오류가 발생했습니다.")).finally(() => setDeletingFaceMemberId(null));
                 }} style={{
@@ -450,7 +454,7 @@ const InstructorHome = ({
                     <span style={{
           fontSize: '0.8rem',
           color: 'var(--text-secondary)'
-        }}>{todayStr} ({attendance.length}{t("g_8038a0") || "명"})</span>
+        }}>{todayStr} ({attendance.length}{t("g_8038a0") || "people"})</span>
                 </div>
                 
                 {attendanceLoading ? <div style={{
@@ -505,12 +509,12 @@ const InstructorHome = ({
                         <h3 style={{
             margin: 0,
             fontSize: '1rem'
-          }}>{t("g_7feae3") || "나의 수업 출석회원 알림"}</h3>
+          }}>{t("g_7feae3") || "나의 수업 출석Member 알림"}</h3>
                         <div style={{
             margin: '2px 0 0',
             fontSize: '0.8rem',
             color: 'var(--text-secondary)'
-          }}>{t("g_b995aa") || "회원 출석 시 알림 받기"}</div>
+          }}>{t("g_b995aa") || "Member 출석 시 알림 받기"}</div>
                     </div>
                     {/* Toggle Switch */}
                     <div onClick={() => pushEnabled ? handleDisablePush() : handleEnablePush()} style={{

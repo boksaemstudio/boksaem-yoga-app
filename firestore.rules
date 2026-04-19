@@ -4,244 +4,123 @@ service cloud.firestore {
     
     // ========================================
     // 🔐 Studio SaaS Firestore Security Rules
-    // 2026-03-15 Anonymous Auth Compatible
+    // 2026-04-19 Role-based Access Control & Public Data
     // ========================================
-    // [NOTE] 현재 모든 Firebase Auth 사용자가 anonymous auth (custom claim 없음)
-    // 따라서 isStaff()/isAdmin() 대신 isAuth()를 사용
-    // 향후 admin claim 설정 후 보안 강화 예정
 
-    // Helper: Check if authenticated
     function isAuth() {
       return request.auth != null;
     }
 
+    function isDemo(studioId) {
+      return studioId == 'demo-yoga';
+    }
+
+    function isSuperAdmin() {
+      return isAuth() && ('role' in request.auth.token) && request.auth.token.role == 'superadmin';
+    }
+
+    function isAdmin(studioId) {
+      return isSuperAdmin() || (isAuth() && ('role' in request.auth.token) && request.auth.token.role == 'admin' && ('studioId' in request.auth.token) && request.auth.token.studioId == studioId);
+    }
+
+    function isInstructor(studioId) {
+      return isAuth() && ('instructor' in request.auth.token) && request.auth.token.instructor == true && ('studioId' in request.auth.token) && request.auth.token.studioId == studioId;
+    }
+
+    function isMember(studioId) {
+      return isAuth() && ('member' in request.auth.token) && request.auth.token.member == true && ('studioId' in request.auth.token) && request.auth.token.studioId == studioId;
+    }
+
+    function isKiosk(studioId) {
+      return isAuth() && ('role' in request.auth.token) && request.auth.token.role == 'kiosk' && ('studioId' in request.auth.token) && request.auth.token.studioId == studioId;
+    }
+
+    function hasPrivateTenantAccess(studioId) {
+      return isDemo(studioId) || isAdmin(studioId) || isInstructor(studioId) || isMember(studioId) || isKiosk(studioId);
+    }
+
     // ========================================
-    // 🏢 Studios - SaaS 테넌트 및 하위 컬렉션
+    // 🏢 Studios - SaaS 테넌트 격리 영역
     // ========================================
     match /studios/{studioId} {
-      // 스튜디오 글로벌 문서 자체에에 대한 권한
-      allow read, write: if isAuth();
+      // 🔓 PUBLIC DATA: Branding, Settings, Pricing, Schedule
+      // 익명 사용자도 브랜딩 테마 및 요금표를 읽어야 랜딩페이지가 그려짐
+      allow read: if isAuth(); 
+      allow write: if isAdmin(studioId) || isDemo(studioId);
       
-      // 스튜디오 하위의 테넌트 격리 데이터 (members, sales, attendance 등)
+      match /settings/{docId} { allow read: if isAuth(); allow write: if isDemo(studioId) || isAdmin(studioId); }
+      match /config/{docId} { allow read: if isAuth(); allow write: if isDemo(studioId) || isAdmin(studioId); }
+      match /notices/{docId} { allow read: if isAuth(); allow write: if isDemo(studioId) || isAdmin(studioId); }
+      match /images/{docId} { allow read: if isAuth(); allow write: if isDemo(studioId) || isAdmin(studioId); }
+      match /daily_classes/{classId} { allow read: if isAuth(); allow write: if isDemo(studioId) || isAdmin(studioId) || isInstructor(studioId); }
+      match /monthly_schedules/{docId} { allow read: if isAuth(); allow write: if isDemo(studioId) || isAdmin(studioId); }
+      match /weekly_templates/{docId} { allow read: if isAuth(); allow write: if isDemo(studioId) || isAdmin(studioId); }
+
+      // 🔒 PRIVATE DATA: Members, Sales, Attendance, Biometrics
+      match /members/{memberId} {
+        allow read: if isDemo(studioId) || isAdmin(studioId) || isInstructor(studioId) || isKiosk(studioId) || (isMember(studioId) && ('memberId' in request.auth.token) && request.auth.token.memberId == memberId);
+        allow update: if isDemo(studioId) || isAdmin(studioId) || (isMember(studioId) && ('memberId' in request.auth.token) && request.auth.token.memberId == memberId);
+        allow create, delete: if isDemo(studioId) || isAdmin(studioId);
+      }
+
+      match /face_biometrics/{memberId} {
+        allow read, write: if isDemo(studioId) || isAdmin(studioId) || isKiosk(studioId) || (isMember(studioId) && ('memberId' in request.auth.token) && request.auth.token.memberId == memberId);
+      }
+
+      match /attendance/{attendanceId} {
+        allow read: if hasPrivateTenantAccess(studioId);
+        allow write: if isDemo(studioId) || isAdmin(studioId) || isInstructor(studioId) || isKiosk(studioId);
+      }
+
+      match /sales/{saleId} {
+        allow read: if isDemo(studioId) || isAdmin(studioId) || (isMember(studioId) && ('memberId' in request.auth.token) && resource.data.memberId == request.auth.token.memberId);
+        allow write: if isDemo(studioId) || isAdmin(studioId);
+      }
+      
+      // 💬 Messages & Push
+      match /messages/{docId} { allow read: if hasPrivateTenantAccess(studioId); allow write: if isDemo(studioId) || isAdmin(studioId); }
+      match /push_history/{docId} { allow read, write: if isDemo(studioId) || isAdmin(studioId); }
+      match /fcm_tokens/{docId} { allow read, write: if hasPrivateTenantAccess(studioId); }
+      match /message_approvals/{docId} { allow read, write: if isDemo(studioId) || isAdmin(studioId); }
+      match /bookings/{docId} { allow read: if hasPrivateTenantAccess(studioId); allow write: if isDemo(studioId) || isAdmin(studioId) || isMember(studioId); }
+
+      // Fallback for any other studio collections (Strictly Admin only)
       match /{document=**} {
-        // [TODO] 향후 token.studioId == studioId 비교 로직으로 보안성 극대화 필요
-        allow read, write: if isAuth();
+        allow read, write: if isDemo(studioId) || isAdmin(studioId);
       }
     }
-    
-    // ========================================
-    // 📋 Members - 회원 정보
-    // ========================================
-    match /members/{memberId} {
-      allow read: if isAuth();
-      allow create: if isAuth() && (request.resource.data.credits >= 0 || !("credits" in request.resource.data));
-      allow update: if isAuth() && (request.resource.data.credits >= 0 || !("credits" in request.resource.data));
-      allow delete: if isAuth();
-    }
 
     // ========================================
-    // 🧬 Biometrics - 안면 인식 생체 정보
-    // ========================================
-    match /face_biometrics/{memberId} {
-      allow read, write: if isAuth();
-    }
-    
-    // ========================================
-    // ✅ Attendance - 출석 기록
-    // ========================================
-    match /attendance/{attendanceId} {
-      allow read, write: if isAuth();
-    }
-    
-    // ========================================
-    // 📢 Notices - 공지사항
-    // ========================================
-    match /notices/{noticeId} {
-      allow read, write: if isAuth();
-    }
-    
-    // ========================================
-    // 💬 Messages - 개인 메시지
-    // ========================================
-    match /messages/{messageId} {
-      allow read, write: if isAuth();
-    }
-    
-    // ========================================
-    // 🖼️ Images - 갤러리 이미지
-    // ========================================
-    match /images/{imageId} {
-      allow read, write: if isAuth();
-    }
-    
-    // ========================================
-    // 🔔 FCM Tokens - 푸시 토큰
-    // ========================================
-    match /fcm_tokens/{tokenId} {
-      allow read, write: if isAuth();
-    }
-    
-    match /fcmTokens/{tokenId} {
-      allow read, write: if isAuth();
-    }
-    
-    match /push_tokens/{tokenId} {
-      allow read, write: if isAuth();
-    }
-    
-    // ========================================
-    // 💰 Sales - 매출 기록
-    // ========================================
-    match /sales/{saleId} {
-      allow read, write: if isAuth();
-    }
-    
-    // ========================================
-    // 📅 Daily Classes - 일일 수업
-    // ========================================
-    match /daily_classes/{classId} {
-      allow read, write: if isAuth();
-    }
-    
-    // ========================================
-    // 🤖 AI Error Logs
-    // ========================================
-    match /ai_error_logs/{logId} {
-      allow read: if isAuth();
-      allow write: if false; // Only Cloud Functions with Admin SDK
-    }
-    
-    // ========================================
-    // 📣 Push Campaigns - 푸시 캠페인
-    // ========================================
-    match /push_campaigns/{campaignId} {
-      allow read, write: if isAuth();
-    }
-    
-    // ========================================
-    // ⚙️ App Config - 앱 설정
-    // ========================================
-    match /config/{configId} {
-      allow read, write: if isAuth();
-    }
-    
-    // ========================================
-    // 📊 AI Usage Logs
-    // ========================================
-    match /ai_usage/{usageId} {
-      allow read: if isAuth();
-      allow write: if false; // Only Cloud Functions
-    }
-
-    // ========================================
-    // 🗓️ Monthly Schedules - 월간 스케줄
-    // ========================================
-    match /monthly_schedules/{scheduleId} {
-      allow read, write: if isAuth();
-    }
-
-    // ========================================
-    // 📋 Weekly Templates - 주간 스케줄 템플릿
-    // ========================================
-    match /weekly_templates/{templateId} {
-      allow read, write: if isAuth();
-    }
-
-    // ========================================
-    // ⚙️ Settings - 환경 설정
-    // ========================================
-    match /settings/{settingId} {
-      allow read, write: if isAuth();
-    }
-
-    // ========================================
-    // 🧘 Member Diligence - 성실도 점수
-    // ========================================
-    match /member_diligence/{memberId} {
-      allow read: if isAuth();
-      allow write: if false; // Only Cloud Functions
-    }
-
-    // ========================================
-    // 🐛 Client Error Logs
-    // ========================================
-    match /error_logs/{logId} {
-      allow read, write: if isAuth();
-    }
-
-    // ========================================
-    // 📢 Push History & Approvals
-    // ========================================
-    match /push_history/{historyId} {
-      allow read, write: if isAuth();
-    }
-    
-    match /message_approvals/{approvalId} {
-      allow read, write: if isAuth();
-    }
-
-    // ========================================
-    // 🛡️ System & Backend Collections
-    // ========================================
-    match /rate_limits/{docId} { allow read: if isAuth(); }
-    match /meditation_ai_logs/{docId} { allow read: if isAuth(); }
-    match /practice_events/{docId} { allow read: if isAuth(); }
-    match /ai_quota/{docId} { allow read: if isAuth(); }
-    match /pending_approvals/{docId} { allow read, write: if isAuth(); }
-    match /stats/{docId} {
-      allow read: if isAuth();
-      allow write: if false; // Only Cloud Functions update aggregated stats
-    }
-
-    match /system_state/{docId} {
-      allow read, write: if isAuth();
-    }
-    
-    match /ai_request_logs/{docId} {
-      allow read: if isAuth();
-      allow write: if false; // Only Cloud Functions
-    }
-
-    // ========================================
-    // ⏳ Pending Attendance - 오프라인 대기 출석
-    // ========================================
-    match /pending_attendance/{id} {
-      allow read, write: if isAuth();
-    }
-
-    // ========================================
-    // 📅 Bookings - 수업 예약
-    // ========================================
-    match /bookings/{bookingId} {
-      allow read, write: if isAuth();
-    }
-
-    // ========================================
-    // 📊 Booking Stats & Logs
-    // ========================================
-    match /booking_stats/{docId} {
-      allow read: if isAuth();
-      allow write: if false; // Only Cloud Functions
-    }
-    match /booking_logs/{docId} {
-      allow read: if isAuth();
-      allow write: if false; // Only Cloud Functions
-    }
-
-    // ========================================
-    // 🌍 Platform Registry (SaaS Administration)
+    // 🌍 Platform & Root Collections
     // ========================================
     match /platform/{document=**} {
-      allow read, write: if isAuth();
+      allow read, write: if isSuperAdmin();
+    }
+    
+    match /rate_limits/{docId} {
+      allow read: if isAuth();
+      allow write: if false; // Cloud Functions only
     }
 
-    // ========================================
-    // 📨 Inquiries - 해외 고객 문의 메시지
-    // ========================================
     match /inquiries/{inquiryId} {
-      allow create: if true; // 비인증 사용자도 문의 가능 (랜딩 페이지)
-      allow read, update: if isAuth(); // 슈퍼어드민만 읽기/상태 변경
-      allow delete: if false; // 삭제 금지
+      allow create: if true;
+      allow read, update: if isSuperAdmin();
+      allow delete: if false;
     }
+
+    match /stats/{docId} {
+      allow read: if isAuth();
+      allow write: if false; // Cloud Functions only
+    }
+
+    match /error_logs/{docId} {
+      allow create: if isAuth();
+      allow read, delete: if isSuperAdmin();
+      allow update: if false;
+    }
+
+    match /ai_error_logs/{docId} { allow read: if isSuperAdmin(); allow write: if false; }
+    match /ai_usage/{docId} { allow read: if isSuperAdmin(); allow write: if false; }
+    match /ai_request_logs/{docId} { allow read: if isSuperAdmin(); allow write: if false; }
   }
 }

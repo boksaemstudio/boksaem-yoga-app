@@ -66,7 +66,7 @@ const MessagesTab = ({
   };
   const [message, setMessage] = useState('');
 
-  // 변경 내역 자동 채우기 (회원정보 저장 후 메시지 탭 이동 시)
+  // 변경 내역 자동 채우기 (Member정보 저장 후 메시지 탭 이동 시)
   useEffect(() => {
     if (prefillMessage) {
       setMessage(prefillMessage);
@@ -162,7 +162,7 @@ const MessagesTab = ({
       setSending(false);
     }
   };
-  const templates = [t("g_856a13") || "회원님, 재등록 기간입니다. 확인 부탁드려요! 🧘‍♀️", t("g_6f10a5") || "오랜만이네요! 수련하러 오세요 ✨", t("g_b3f1ed") || "수강권이 곧 만료됩니다. 재등록을 안내드려요!", t("g_827e88") || "잔여 횟수가 얼마 남지 않았어요. 확인해주세요!"];
+  const templates = [t("g_856a13") || "Member, 재등록 기간입니다. 확인 부탁드려요! 🧘‍♀️", t("g_6f10a5") || "오랜만이네요! 수련하러 오세요 ✨", t("g_b3f1ed") || "수강권이 곧 만료됩니다. 재등록을 안내드려요!", t("g_827e88") || "잔여 횟수가 얼마 남지 않았어요. 확인해주세요!"];
   return <div className="fade-in" style={{
     display: 'flex',
     flexDirection: 'column',
@@ -279,17 +279,17 @@ const MessagesTab = ({
                         {/* 지금 보내기 버튼 */}
                         <button onClick={() => {
           setSendMode('sms_only');
-          const name = member?.name || t("g_dae3ed") || "회원";
+          const name = member?.name || t("g_dae3ed") || "Member";
           const credits = member?.credits;
           const endDate = member?.endDate;
           const count = member?.attendanceCount || 0;
-          const parts = [`${name} 회원님 출석 현황 안내`];
+          const parts = [`${name} Member 출석 현황 안내`];
           if (credits !== undefined && credits < 999999) parts.push(`잔여 ${credits}회`);
           if (endDate && endDate !== 'TBD' && endDate !== 'unlimited') {
             const today = new Date();
             const end = new Date(endDate);
             const diff = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
-            parts.push(`기간: ~${endDate.slice(5)} (${diff >= 0 ? diff + (t("g_284a69") || "일 남음") : t("g_36009e") || "만료"})`);
+            parts.push(`기간: ~${endDate.slice(5)} (${diff >= 0 ? diff + (t("g_284a69") || "일 남음") : t("g_36009e") || "Expired"})`);
           }
           if (count > 0) parts.push(`누적 ${count}회 출석`);
           setMessage(parts.join('\n'));
@@ -320,7 +320,7 @@ const MessagesTab = ({
         border: '1px solid rgba(255,255,255,0.08)',
         fontSize: '0.78rem',
         color: '#71717a'
-      }}>{t("g_40b0e4") || "📩 SMS 알림: 무제한 회원은 보내지 않습니다 (잔여 횟수 정보 없음)"}</div>}
+      }}>{t("g_40b0e4") || "📩 SMS 알림: 무제한 Member은 보내지 않습니다 (잔여 횟수 정보 없음)"}</div>}
             </div>
 
             {/* Input Area */}
@@ -388,7 +388,7 @@ const MessagesTab = ({
                     </div>
                 </div>
 
-                <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder={t("g_f3cd98") || "회원에게 보낼 메시지를 입력하세요..."} style={{
+                <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder={t("g_f3cd98") || "Member에게 보낼 메시지를 입력하세요..."} style={{
         width: '100%',
         height: '80px',
         background: 'transparent',
@@ -457,7 +457,7 @@ const MessagesTab = ({
                                 <span style={{
               color: isLMS ? '#f59e0b' : '#10b981',
               fontWeight: '600'
-            }}>{t("g_80960b") || "건당"}{cost}{t("g_21ba07") || "원"}{sendMode === 'push_first' ? t("g_589cdf") || " (푸시 실패 시)" : ''}
+            }}>{t("g_80960b") || "건당"}{cost}{t("g_21ba07") || ""}{sendMode === 'push_first' ? t("g_589cdf") || " (푸시 실패 시)" : ''}
                                 </span>
                             </div>;
         })()}
@@ -601,7 +601,7 @@ const MessagesTab = ({
                   background: log.type === 'notice' ? 'rgba(var(--primary-rgb), 0.15)' : 'rgba(59, 130, 246, 0.15)',
                   borderRadius: '4px'
                 }}>
-                                                {log.type === 'notice' ? t("g_c183e0") || "공지" : t("g_b79ea4") || "개별"}
+                                                {log.type === 'notice' ? t("g_c183e0") || "Notice" : t("g_b79ea4") || "개별"}
                                             </span>
                                             {/* Send Mode Badge */}
                                             {log.sendMode && <span style={{
@@ -658,7 +658,7 @@ const MessagesTab = ({
                     background: 'rgba(239, 68, 68, 0.1)',
                     padding: '2px 6px',
                     borderRadius: '4px'
-                  }} title={st.error || t("g_5e9f6b") || "알 수 없는 오류"}>{t("g_40f442") || "문자 실패"}</span>;
+                  }} title={st.error || t("g_5e9f6b") || "Unknown error"}>{t("g_40f442") || "문자 실패"}</span>;
                 })()}
                                             </div>}
                                     </div>

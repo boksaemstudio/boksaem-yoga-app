@@ -20,10 +20,10 @@ const onboardingI18n = {
     nextBtn: "\uB2E4\uC74C",
     prevBtn: "\uC774\uC804",
     // Step 2: Logo
-    logoTitle: name => `${name}의 로고`,
+    logoTitle: name => `${name}'s Logo`,
     logoDesc: "\uB85C\uACE0\uAC00 \uC5C6\uC73C\uC2DC\uBA74 AI\uAC00 \uC2A4\uD29C\uB514\uC624 \uC774\uB984\uC5D0 \uB9DE\uB294 \uB85C\uACE0\uB97C \uB9CC\uB4E4\uC5B4 \uB4DC\uB9BD\uB2C8\uB2E4.",
     logoAi: "AI \uB85C\uACE0 \uC790\uB3D9 \uC0DD\uC131",
-    logoAiDesc: name => `"${name}" 이름에 맞는 로고를 AI가 만들어 드립니다`,
+    logoAiDesc: name => `"${name}" AI will create a logo matching your name`,
     logoRegenerate: "\uB2E4\uB978 \uC0C9\uC0C1 \uBF51\uAE30",
     logoUpload: "\uB0B4 \uB85C\uACE0 \uC5C5\uB85C\uB4DC",
     logoUploadDesc: "\uC774\uBBF8 \uB85C\uACE0\uAC00 \uC788\uB2E4\uBA74 \uC774\uBBF8\uC9C0 \uD30C\uC77C\uC744 \uC62C\uB824\uC8FC\uC138\uC694",
@@ -49,7 +49,7 @@ const onboardingI18n = {
     submitBtn: "\uC2E0\uCCAD\uC11C \uC81C\uCD9C\uD558\uAE30",
     // Step 5: Success
     successTitle: "\uC2E0\uCCAD\uC774 \uC644\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4! \uD83C\uDF89",
-    successDesc: email => `슈퍼어드민이 승인하는 즉시,\n${email} 주소로\n초기 비밀번호와 접속 링크를 보내드립니다.`,
+    successDesc: email => `Once approved by Super Admin,\n${email} to the address\nwe will send the initial password and access link.`,
     aiLogoDone: "AI \uB85C\uACE0 \uC0DD\uC131 \uC644\uB8CC!",
     aiLogoApplied: "\uC2A4\uD29C\uB514\uC624 \uC2B9\uC778 \uC2DC \uC774 \uB85C\uACE0\uAC00 \uC790\uB3D9 \uC801\uC6A9\uB429\uB2C8\uB2E4.",
     goHome: "\uD648\uC73C\uB85C \uB3CC\uC544\uAC00\uAE30",

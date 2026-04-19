@@ -70,11 +70,11 @@ export const PWAProvider = ({ children }) => {
         const langParam = new URLSearchParams(location.search).get('lang') || 'ko';
         const t = useLanguageStore.getState().t;
         const titleMap = {
-            checkin: { ko: (t("g_660ceb") || "출석체크"), en: 'Check-in', ja: (t("g_0cd193") || "出席チェック"), zh: (t("g_6a0e66") || "签到"), es: 'Registro', de: 'Check-in', fr: 'Pointage', pt: 'Check-in', ru: 'Отметка' },
-            admin: { ko: (t("g_ec873c") || "관리자"), en: 'Admin', ja: (t("g_9b4f13") || "管理者"), zh: (t("g_ef84e7") || "管理员"), es: 'Admin', de: 'Admin', fr: 'Admin', pt: 'Admin', ru: 'Админ' },
-            member: { ko: (t("g_1d84d2") || "내요가"), en: 'My Yoga', ja: 'マイヨガ', zh: (t("g_ad3047") || "我的瑜伽"), es: 'Mi Yoga', de: 'Mein Yoga', fr: 'Mon Yoga', pt: 'Meu Yoga', ru: 'Моя Йога' },
-            instructor: { ko: (t("g_620be2") || "선생님"), en: 'Instructor', ja: 'インストラクター', zh: (t("g_0b5dd0") || "讲师"), es: 'Instructor', de: 'Trainer', fr: 'Instructeur', pt: 'Instrutor', ru: 'Тренер' },
-            login: { ko: (t("g_e225a6") || "로그인"), en: 'Login', ja: 'ログイン', zh: (t("g_21f1e8") || "登录"), es: 'Iniciar sesión', de: 'Anmelden', fr: 'Connexion', pt: 'Login', ru: 'Вход' },
+            checkin: { ko: (t("g_660ceb") || "Check-in"), en: 'Check-in', ja: (t("g_0cd193") || "出席チェック"), zh: (t("g_6a0e66") || "签到"), es: 'Registro', de: 'Check-in', fr: 'Pointage', pt: 'Check-in', ru: 'Отметка' },
+            admin: { ko: (t("g_ec873c") || "Admin"), en: 'Admin', ja: (t("g_9b4f13") || "管理者"), zh: (t("g_ef84e7") || "管理员"), es: 'Admin', de: 'Admin', fr: 'Admin', pt: 'Admin', ru: 'Админ' },
+            member: { ko: (t("g_1d84d2") || "My Yoga"), en: 'My Yoga', ja: 'マイヨガ', zh: (t("g_ad3047") || "我的瑜伽"), es: 'Mi Yoga', de: 'Mein Yoga', fr: 'Mon Yoga', pt: 'Meu Yoga', ru: 'Моя Йога' },
+            instructor: { ko: (t("g_620be2") || "Instructor"), en: 'Instructor', ja: 'インストラクター', zh: (t("g_0b5dd0") || "讲师"), es: 'Instructor', de: 'Trainer', fr: 'Instructeur', pt: 'Instrutor', ru: 'Тренер' },
+            login: { ko: (t("g_e225a6") || "Login"), en: 'Login', ja: 'ログイン', zh: (t("g_21f1e8") || "登录"), es: 'Iniciar sesión', de: 'Anmelden', fr: 'Connexion', pt: 'Login', ru: 'Вход' },
             meditation: { ko: (t("g_31c9a1") || "명상"), en: 'Meditation', ja: (t("g_88bf24") || "瞑想"), zh: (t("g_9f834a") || "冥想"), es: 'Meditación', de: 'Meditation', fr: 'Méditation', pt: 'Meditação', ru: 'Медитация' },
             onboarding: { ko: (t("g_f23416") || "온보딩"), en: 'Onboarding', ja: 'オンボーディング', zh: (t("g_ef7e05") || "入职"), es: 'Incorporación', de: 'Onboarding', fr: 'Inscription', pt: 'Onboarding', ru: 'Онбординг' },
         };

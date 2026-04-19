@@ -10,6 +10,7 @@ import { AIMessages } from '../constants/aiMessages';
 import { CHECKIN_CONFIG } from '../constants/CheckInConfig';
 import { extractFaceDescriptor } from '../services/facialService';
 import { memberService } from '../services/memberService';
+import { getLocalizedWeather } from '../utils/weather';
 
 // Hooks
 import { useAlwaysOnGuardian } from '../hooks/useAlwaysOnGuardian';
@@ -91,7 +92,7 @@ const CheckInPage = () => {
   const [duplicateTimer, setDuplicateTimer] = useState(config.POLICIES?.SESSION_AUTO_CLOSE_SEC || 25);
   const [isDuplicateFlow, setIsDuplicateFlow] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState(t('checkin_verifying') || t("g_a81959") || "출석 확인 중...");
-  // [안면인식 확인 모달] 중신뢰 매칭 시 "OO회원님 맞나요?" 표시
+  // [안면인식 확인 모달] 중신뢰 매칭 시 "OOMember 맞나요?" 표시
   const [faceConfirmMember, setFaceConfirmMember] = useState(null);
   const [period, setPeriod] = useState(() => {
     const h = getKSTHour();
@@ -114,6 +115,13 @@ const CheckInPage = () => {
   const [monthlyClasses, setMonthlyClasses] = useState({});
   const [isOperatingHours, setIsOperatingHours] = useState(true);
   const [isOnline, setIsOnline] = useState(true);
+  
+  // [NEW] Kiosk Device Auth State
+  const [needsDeviceAuth, setNeedsDeviceAuth] = useState(false);
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Refs
   const timerRef = useRef(null);
@@ -251,15 +259,29 @@ const CheckInPage = () => {
             resolve(user);
           });
         });
-        if (!auth.currentUser) {
-          await signInAnonymously(auth);
+        
+        if (!auth.currentUser || auth.currentUser.isAnonymous) {
+          // setNeedsDeviceAuth(true); // DISABLED BY USER REQUEST: Bypass Setup PIN
+        } else {
+          // Validate token claims to ensure it has a studioId (admin or specific kiosk claim)
+          auth.currentUser.getIdTokenResult(true).then(tokenResult => {
+             const claims = tokenResult.claims;
+             if (!claims.studioId && claims.role !== 'superadmin') {
+                // setNeedsDeviceAuth(true); // DISABLED
+             } else {
+                setNeedsDeviceAuth(false);
+             }
+          }).catch(() => { /* setNeedsDeviceAuth(true); */ });
         }
       } catch (e) {}
-      await storageService.initialize({
-        mode: 'kiosk'
-      });
-      setIsReady(true);
-      fetchWeatherAndAI();
+      
+      if (!needsDeviceAuth) {
+         await storageService.initialize({
+           mode: 'kiosk'
+         });
+         setIsReady(true);
+         fetchWeatherAndAI();
+      }
     };
     init();
     const vh = () => document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
@@ -286,8 +308,8 @@ const CheckInPage = () => {
   }, [period]);
 
   // ── Business Logic ──
-  const loadAIExperience = async (name = (t("g_ebb526") || "방문 회원"), credits = null, days = null, w = null) => {
-    const isStandby = name === (t("g_ebb526") || "방문 회원");
+  const loadAIExperience = async (name = (t("g_ebb526") || "방문 Member"), credits = null, days = null, w = null) => {
+    const isStandby = name === (t("g_ebb526") || "방문 Member");
     try {
       const h = getKSTHour();
       if (h < CHECKIN_CONFIG.SERVICE_HOURS.AI_READY_START || h >= CHECKIN_CONFIG.SERVICE_HOURS.AI_READY_END) {
@@ -298,7 +320,7 @@ const CheckInPage = () => {
         return;
       }
       const info = await storageService.getCurrentClass(currentBranch);
-      const title = info?.title || t("g_dd529d") || "자율수련";
+      const title = info?.title || t("g_dd529d") || "Self Practice";
       if (isStandby) {
         const staticMsg = getStaticStandbyMessage(h, w?.weathercode || '0', title, language);
         setAiExperience({
@@ -306,7 +328,7 @@ const CheckInPage = () => {
           isFallback: true
         });
         setAiLoading(true);
-        storageService.getAIExperience(name, 0, t("g_2bdce5") || "오늘", h, title, w, null, null, language, null, 'visitor', 'checkin').then(res => {
+        storageService.getAIExperience(name, 0, t("g_2bdce5") || "Today", h, title, w, null, null, language, null, 'visitor', 'checkin').then(res => {
           if (res?.message && !res.isFallback) {
             const refined = res.message.replace(/나마스테[.]?\s*🙏?/gi, '').trim();
             setAiEnhancedMsg(refined);
@@ -314,7 +336,7 @@ const CheckInPage = () => {
           }
         }).finally(() => setAiLoading(false));
       } else {
-        const exp = await storageService.getAIExperience(name, 0, t("g_2bdce5") || "오늘", h, title, w, credits, days, language, null, 'member', 'checkin');
+        const exp = await storageService.getAIExperience(name, 0, t("g_2bdce5") || "Today", h, title, w, credits, days, language, null, 'member', 'checkin');
         if (exp) setAiExperience({
           ...exp,
           message: exp.message.replace(/나마스테[.]?\s*🙏?/gi, '').trim()
@@ -324,10 +346,9 @@ const CheckInPage = () => {
   };
   const fetchWeatherAndAI = async () => {
     try {
-      const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.9780&current_weather=true');
-      const d = await r.json();
-      setWeather(d.current_weather);
-      loadAIExperience(t("g_ebb526") || "방문 회원", null, null, d.current_weather);
+      const wData = await getLocalizedWeather(currentLanguage);
+      setWeather(wData);
+      loadAIExperience(t("g_ebb526") || "방문 Member", null, null, wData);
     } catch (e) {
       loadAIExperience();
     }
@@ -398,7 +419,7 @@ const CheckInPage = () => {
         if (members) {
           setFaceConfirmMember({
             id: memberIdToForce,
-            name: members.name || t("g_dae3ed") || "회원"
+            name: members.name || t("g_dae3ed") || "Member"
           });
           return;
         }
@@ -432,16 +453,16 @@ const CheckInPage = () => {
           setMessage({
             type: 'error',
             text: t('checkin_member_not_found') || (t("g_04cdab") || "😔 등록되지 않은 번호입니다"),
-            subText: t('checkin_member_not_found_sub') || 'No member found matching the last 4 digits of this phone number.\n\nPlease check and try again.'
+            subText: t('checkin_member_not_found_sub') || '일치하는 회원을 찾을 수 없습니다.\n입력하신 번호를 다시 한 번 확인해 주세요.'
           });
           return;
         }
         if (members.length > 1) {
-          // [FIX] 비활성 회원 제외 (수강권 만료/횟수 소진)
+          // [FIX] 비활성 Member 제외 (수강권 만료/횟수 소진)
           const activeMembers = members.filter(m => isMemberActive(m));
           const candidateMembers = activeMembers.length > 0 ? activeMembers : members;
           if (candidateMembers.length === 1) {
-            // 활성 회원이 1명뿐이면 바로 선택
+            // 활성 Member이 1명뿐이면 바로 선택
             targetMemberId = candidateMembers[0].id;
           } else if (candidateMembers.length > 1) {
             // [FIX] 전원 안면 데이터가 있을 때만 자동 판단
@@ -629,6 +650,55 @@ const CheckInPage = () => {
   }, [duplicateTimer, showDuplicateConfirm, pendingPin]);
 
   // ── Render ──
+  if (needsDeviceAuth) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#000', color: 'white', padding: '20px' }}>
+         <div style={{ background: 'rgba(30, 30, 40, 0.95)', padding: '40px', borderRadius: '16px', maxWidth: '400px', width: '100%', textAlign: 'center', border: '1px solid rgba(255,215,0,0.3)' }}>
+            <h2 style={{ color: 'var(--primary-gold)', marginBottom: '10px' }}>출석체크 기기 등록</h2>
+            <p style={{ color: '#aaa', marginBottom: '30px', fontSize: '0.9rem', lineHeight: '1.5' }}>
+              슈퍼어드민에서 설정한 <strong>키오스크 접속용 비밀번호(PIN)</strong>를 입력해주세요.<br/>
+              (안전한 생체정보 보호를 위해 1회 인증이 필요합니다)
+            </p>
+            <form onSubmit={async (e) => {
+               e.preventDefault();
+               setIsLoggingIn(true);
+               setLoginError('');
+               try {
+                  const { httpsCallable } = await import('firebase/functions');
+                  const { signInWithCustomToken } = await import('firebase/auth');
+                  const { functions } = await import('../firebase');
+                  const { getCurrentStudioId } = await import('../utils/resolveStudioId');
+                  
+                  const verifyFn = httpsCallable(functions, 'verifyKioskPasswordCall');
+                  const result = await verifyFn({
+                    studioId: getCurrentStudioId(),
+                    password: loginPassword
+                  });
+                  
+                  if (result.data && result.data.token) {
+                    await signInWithCustomToken(auth, result.data.token);
+                    // Verification will happen via onAuthStateChanged
+                    window.location.reload();
+                  } else {
+                    throw new Error('토큰 발급 실패');
+                  }
+               } catch (err) {
+                  console.error('[KioskAuth]', err);
+                  setLoginError(err.message || '인증에 실패했습니다. 비밀번호를 다시 확인해주세요.');
+                  setIsLoggingIn(false);
+               }
+            }} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+               <input type="password" placeholder="키오스크 접속 비밀번호" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', border: 'none', background: '#2a2a35', color: 'white', fontSize: '1rem', textAlign: 'center', letterSpacing: '4px' }} />
+               {loginError && <p style={{ color: '#ef4444', fontSize: '0.85rem' }}>{loginError}</p>}
+               <button type="submit" disabled={isLoggingIn} style={{ marginTop: '10px', padding: '14px', borderRadius: '8px', border: 'none', background: 'var(--primary-gold)', color: '#000', fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer', opacity: isLoggingIn ? 0.7 : 1 }}>
+                 {isLoggingIn ? '인증 중...' : '기기 등록하기'}
+               </button>
+            </form>
+         </div>
+      </div>
+    );
+  }
+
   return <div className="checkin-wrapper" style={{
     position: 'relative',
     width: '100%',
@@ -773,7 +843,7 @@ const CheckInPage = () => {
                         </div>}
                 </div>}
 
-            {/* ── 안면인식 확인 모달: "OO회원님 맞나요?" ── */}
+            {/* ── 안면인식 확인 모달: "OOMember 맞나요?" ── */}
             {faceConfirmMember && <div style={{
       position: 'fixed',
       inset: 0,

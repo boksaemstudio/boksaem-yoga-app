@@ -67,7 +67,7 @@ export const parseCSV = (csvText) => {
 };
 
 /**
- * 상품명에서 기간(개월수) 추출
+ * 상품명에서 기간(개수) 추출
  */
 export function extractMonthsFromProduct(productName) {
     if (!productName) return 3;
@@ -76,7 +76,7 @@ export function extractMonthsFromProduct(productName) {
         return 6;
     }
 
-    const monthMatch = productName.match(/(\d+)개월/);
+    const monthMatch = productName.match(/(\d+)개/);
     if (monthMatch) {
         return parseInt(monthMatch[1], 10);
     }
@@ -89,7 +89,7 @@ export function extractMonthsFromProduct(productName) {
 }
 
 /**
- * 판매일자에 개월수를 더해 만기일자 계산
+ * 판매일자에 개수를 더해 만기일자 계산
  */
 export function calculateEndDate(saleDate, months) {
     if (!saleDate) return '';
@@ -129,7 +129,7 @@ export function extractEndDateFromPeriod(periodStr) {
 }
 
 /**
- * 회원번호를 branchId로 변환
+ * Member번호를 branchId로 변환
  */
 export function convertToBranchId(memberNum, branches = []) {
     // [STUDIO-AGNOSTIC] Find branch by matching its name in the member number string (fallback: first branch)

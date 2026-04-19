@@ -160,11 +160,11 @@ const ImageLightbox = ({
       textAlign: 'center',
       pointerEvents: 'none'
     }}>
-                {scale > 1 ? t("g_30f38c") || "드래그하여 이동" : t("g_c6ff2c") || "두 손가락으로 확대 • 더블 탭으로 줌"}
+                {scale > 1 ? t("g_30f38c") || "Drag to move" : t("g_c6ff2c") || "Pinch to zoom • Double tap to zoom"}
             </div>
 
             {/* 이미지 */}
-            <img src={src} alt={t("g_d3a02e") || "확대 보기"} onClick={handleDoubleTap} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{
+            <img src={src} alt={t("g_d3a02e") || "Zoom In"} onClick={handleDoubleTap} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{
       maxWidth: '95vw',
       maxHeight: '90vh',
       objectFit: 'contain',

@@ -259,7 +259,7 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch, reve
     for (let i = 5; i >= 0; i--) {
       const d = new Date(year, month - 1 - i, 1);
       const mStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      const label = `${d.getMonth() + 1}월`;
+      const label = `${d.getMonth() + 1}`;
       let amount = 0;
       let partialAmount = 0;
       let branches = {};
@@ -298,7 +298,7 @@ export const useRevenueStats = (sales, members, currentDate, currentBranch, reve
       });
     }
 
-    // 6. Membership Type Sales (회원권별 판매수)
+    // 6. Membership Type Sales (Member권별 판매수)
     const membershipMap = new Map();
     finalItems.forEach(item => {
       if (!item.date.startsWith(monthStr)) return;

@@ -1,5 +1,5 @@
 /**
- * 회원권 관련 공통 유틸리티
+ * Member권 관련 공통 유틸리티
  * TBD 판단, upcoming 활성화 로직 등을 중앙화하여
  * attendance.js(CF), attendanceService.js(프론트) 간 로직 일관성 보장
  */
@@ -21,7 +21,7 @@ export const toKSTDateString = (date) => {
 };
 
 /**
- * 기간(개월) 기반 종료일 계산
+ * 기간(개) 기반 종료일 계산
  * @param {string} startDateStr - YYYY-MM-DD
  * @param {number} durationMonths
  * @returns {string} YYYY-MM-DD
@@ -38,7 +38,7 @@ export const calculateEndDate = (startDateStr, durationMonths) => {
 /**
  * upcomingMembership 활성화 판단 및 새로운 필드 계산
  * 
- * @param {Object} memberData - 현재 회원 데이터 (credits, endDate, upcomingMembership)
+ * @param {Object} memberData - 현재 Member 데이터 (credits, endDate, upcomingMembership)
  * @param {string} todayStr - 오늘 날짜 YYYY-MM-DD
  * @returns {{ shouldActivate: boolean, newFields: Object|null }}
  *   - shouldActivate: true이면 upcoming을 활성화해야 함
@@ -56,7 +56,7 @@ export const evaluateUpcomingActivation = (memberData, todayStr) => {
   let newEndDate = upcoming.endDate;
 
   if (isUpcomingTBD) {
-    // TBD: 현재 회원권이 소진/만료된 상태에서만 활성화
+    // TBD: 현재 Member권이 소진/만료된 상태에서만 활성화
     const currentCredits = memberData.credits || 0;
     const isCurrentExpired = memberData.endDate
       ? (new Date(todayStr) > new Date(memberData.endDate))

@@ -93,7 +93,7 @@ describe('getDaysRemaining', () => {
 describe('dayNameToNumber / numberToDayName', () => {
   it('should convert Korean day names to numbers', () => {
     expect(dayNameToNumber('일')).toBe(0);
-    expect(dayNameToNumber('월')).toBe(1);
+    expect(dayNameToNumber('')).toBe(1);
     expect(dayNameToNumber('토')).toBe(6);
   });
 

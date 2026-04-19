@@ -89,14 +89,14 @@ const SelectionModal = memo(({
         fontSize: '2rem',
         marginBottom: '5px',
         textAlign: 'center'
-      }}>{t('kiosk_select_title') || t("g_a33420") || "회원 선택"}</h2>
+      }}>{t('kiosk_select_title') || t("g_a33420") || "Member 선택"}</h2>
                 <p style={{
         textAlign: 'center',
         opacity: 0.7,
         marginBottom: '10px',
         fontSize: '0.95rem'
       }}>
-                    {t('kiosk_select_desc') || t("g_dd7f6a") || "해당하는 회원님을 선택해주세요"}
+                    {t('kiosk_select_desc') || t("g_dd7f6a") || "해당하는 Member을 선택해주세요"}
                     <span style={{
           marginLeft: '10px',
           fontSize: '0.85em',
@@ -126,7 +126,7 @@ const SelectionModal = memo(({
             borderBottom: '1px solid rgba(var(--primary-rgb), 0.3)',
             paddingBottom: '8px'
           }}>
-                            {t('kiosk_select_active_members') || t("g_5a90d0") || "✨ 이용 가능 회원"}
+                            {t('kiosk_select_active_members') || t("g_5a90d0") || "✨ 이용 가능 Member"}
                         </h3>
                         <div style={{
             display: 'flex',
@@ -203,7 +203,7 @@ const SelectionModal = memo(({
               fontSize: '1.2rem',
               padding: '30px'
             }}>
-                                    {t('kiosk_select_no_active_members') || t("g_9257d3") || "활성 회원이 없습니다."}
+                                    {t('kiosk_select_no_active_members') || t("g_9257d3") || "활성 Member이 없습니다."}
                                 </div>}
                         </div>
                     </div>
@@ -312,7 +312,7 @@ const SelectionModal = memo(({
           cursor: selectedMemberId ? 'pointer' : 'not-allowed',
           boxShadow: selectedMemberId ? '0 4px 15px rgba(var(--primary-rgb), 0.3)' : 'none'
         }}>
-                        {selectedMemberId ? t('kiosk_select_confirm') || t("g_4cfaa4") || "선택한 회원으로 출석하기" : t('kiosk_select_disabled') || t("g_b23634") || "회원을 먼저 선택해주세요"}
+                        {selectedMemberId ? t('kiosk_select_confirm') || t("g_4cfaa4") || "선택한 Member으로 출석하기" : t('kiosk_select_disabled') || t("g_b23634") || "Member을 먼저 선택해주세요"}
                     </button>
                 </div>
             </div>

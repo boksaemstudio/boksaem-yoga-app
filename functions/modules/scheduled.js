@@ -190,7 +190,7 @@ exports.sendScheduledMessages = onSchedule({
                 
                 if (tokens.length > 0) {
                     const payload = {
-                        notification: { title: "내요가 예약 알림", body: content },
+                        notification: { title: `${await getStudioName(STUDIO_ID)} 알림`, body: content },
                         data: { url: getStudioUrl('/member?tab=messages') }
                     };
                     const response = await admin.messaging().sendEachForMulticast({
@@ -271,7 +271,7 @@ exports.sendScheduledMessages = onSchedule({
 });
 
 /**
- * 데모 요가원 자동화 (KST 00:05 실행)
+ * 데모 스튜디오 자동화 (KST 00:05 실행)
  * 살아있는 데모 사이트 유지를 위해 매일 자정 직후 가짜 데이터를 리필합니다.
  */
 exports.refreshDemoDataDaily = onSchedule({

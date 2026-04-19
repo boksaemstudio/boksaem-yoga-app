@@ -6,7 +6,7 @@ describe('classNameMap', () => {
     expect(classNameMap['하타']).toBe('hatha');
     expect(classNameMap['빈야사']).toBe('vinyasa');
     expect(classNameMap['플라잉']).toBe('flying');
-    expect(classNameMap['자율수련']).toBe('selfPractice');
+    expect(classNameMap['Self Practice']).toBe('selfPractice');
     expect(classNameMap['자율수업']).toBe('selfPractice');
   });
 
@@ -32,8 +32,8 @@ describe('getTranslatedClass', () => {
     return translations[key] || key;
   };
 
-  it('should translate 자율수련 using selfPractice key', () => {
-    expect(getTranslatedClass('자율수련', mockT)).toBe('Self Practice');
+  it('should translate Self Practice using selfPractice key', () => {
+    expect(getTranslatedClass('Self Practice', mockT)).toBe('Self Practice');
     expect(getTranslatedClass('자율수업', mockT)).toBe('Self Practice');
   });
 

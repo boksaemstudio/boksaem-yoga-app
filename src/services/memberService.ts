@@ -126,7 +126,7 @@ export const memberService = {
             else {
                 try {
                     const getSecureMember = httpsCallable(functions, 'getSecureMemberV2Call');
-                    const result = await withTimeout(getSecureMember({ phoneLast4: last4Digits, studioId: getCurrentStudioId() }), 15000, '회원 조회 시간 초과');
+                    const result = await withTimeout(getSecureMember({ phoneLast4: last4Digits, studioId: getCurrentStudioId() }), 15000, 'Member 조회 시간 초과');
                     let fetchedMembers = ((result.data as { members?: Member[] }).members || []) as Member[];
                     // 백엔드 반환 결과 중 소프트 삭제된 멤버 클라이언트단에서 2중 차단
                     members = fetchedMembers.filter(m => !(m as Record<string, unknown>).deletedAt);
@@ -164,7 +164,7 @@ export const memberService = {
             const docSnap = await getDoc(tenantDb.doc('members', id));
             if (docSnap.exists()) {
                 const data: Member = { id: docSnap.id, ...docSnap.data() } as Member;
-                // [보안] 소프트 삭제된 회원이라면 캐시에 담지 않고 즉시 null 반환 (조회 불가 처리)
+                // [보안] 소프트 삭제된 Member이라면 캐시에 담지 않고 즉시 null 반환 (조회 불가 처리)
                 if ((data as Record<string, unknown>).deletedAt) return null;
                 
                 if (!cachedMembers.some(m => m.id === id)) { cachedMembers.push(data); this._buildPhoneLast4Index(); }

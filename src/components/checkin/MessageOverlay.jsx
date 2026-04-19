@@ -96,9 +96,9 @@ const MessageOverlay = memo(({
           marginBottom: '16px',
           animation: 'bounceIn 0.5s ease-out'
         }}>
-          {message.text?.includes((t("g_36009e") || "만료")) || message.text?.includes('⏳') ? '⏳' :
-           message.text?.includes((t("g_155e2c") || "시스템")) || message.text?.includes('⚠') ? '⚠️' :
-           message.text?.includes((t("g_732fe3") || "실패")) || message.text?.includes('❌') ? '❌' : '😔'}
+          {message.text?.includes((t("g_36009e") || "Expired")) || message.text?.includes('⏳') ? '⏳' :
+           message.text?.includes((t("g_155e2c") || "System")) || message.text?.includes('⚠') ? '⚠️' :
+           message.text?.includes((t("g_732fe3") || "Failed")) || message.text?.includes('❌') ? '❌' : '😔'}
         </div>}
 
         {/* Title Text */}

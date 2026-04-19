@@ -18,7 +18,7 @@ export const isMemberActive = (m: Member): boolean => {
 };
 
 export const isMemberExpiring = (m: Member): boolean => {
-    // 이미 만료된 회원은 '만료 예정(위험)'이 아니라 '만료' 상태이므로 제외
+    // 이미 만료된 Member은 '만료 예정(위험)'이 아니라 '만료' 상태이므로 제외
     if (!isMemberActive(m)) return false;
 
     const credits = Number(m.credits || 0);
@@ -240,13 +240,13 @@ export const calculateDerivedData = (
     });
 
     // ━━━━ 재등록률 계산 (유일한 계산 소스 — Single Source of Truth) ━━━━
-    // ⚠️ 서버(stats.js)의 'reReg'는 금액 기준 (재등록 매출액)이며, 여기서 계산하는 것은 회원 수 기준
-    // 정의: 해당 월에 결제한 회원 중, 그 월 이전에도 결제 이력이 있으면 "재등록 회원"
-    //       reRegistrationRate = 재등록 회원 수 / 전체 결제 회원 수 × 100
+    // ⚠️ 서버(stats.js)의 'reReg'는 금액 기준 (재등록 매출액)이며, 여기서 계산하는 것은 Member 수 기준
+    // 정의: 해당 에 결제한 Member 중, 그  이전에도 결제 이력이 있으면 "재등록 Member"
+    //       reRegistrationRate = 재등록 Member 수 / 전체 결제 Member 수 × 100
     // 이 로직만이 관리자 대시보드에 표시되는 유일한 재등록률 소스입니다.
     // ※ 서버 revenue_summary.monthly.reReg는 '재등록 매출 금액'이며, 이 비율과 무관합니다.
 
-    // Step 1: 회원별 결제 월 수집
+    // Step 1: Member별 결제  수집
     const salesMonthsByMember = new Map<string, Set<string>>();  // memberId -> Set<"2026-03">
     enrichedSales.forEach(s => {
         if (!s.parsedDate || !s.memberId) return;
@@ -258,7 +258,7 @@ export const calculateDerivedData = (
 
     const membersWithSales = salesMonthsByMember.size;
 
-    // Step 2: 월별 트렌드 (최근 6개월) — 기준 정의
+    // Step 2: 별 트렌드 (최근 6개) — 기준 정의
     const monthlyReRegTrend: { month: string; monthKey: string; total: number; reReg: number; rate: number | null }[] = [];
     const recentMonthKeys: string[] = [];
 
@@ -266,7 +266,7 @@ export const calculateDerivedData = (
         const d = new Date();
         d.setMonth(d.getMonth() - i);
         const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-        const monthLabel = `${d.getMonth() + 1}월`;
+        const monthLabel = `${d.getMonth() + 1}`;
         recentMonthKeys.push(monthStr);
 
         let totalMembers = 0;
@@ -275,7 +275,7 @@ export const calculateDerivedData = (
         salesMonthsByMember.forEach((months, memberId) => {
             if (!months.has(monthStr)) return;
             totalMembers++;
-            // 이 회원이 이번 달 이전에 결제한 적이 있으면 → 재등록
+            // 이 Member이 이번 달 이전에 결제한 적이 있으면 → 재등록
             const hasPriorMonth = Array.from(months).some(m => m < monthStr);
             if (hasPriorMonth) reRegMembers++;
         });
@@ -290,11 +290,11 @@ export const calculateDerivedData = (
         });
     }
 
-    // Step 3: 누적 재등록률 — 2개 이상 서로 다른 월에 결제한 회원
+    // Step 3: 누적 재등록률 — 2개 이상 서로 다른 에 결제한 Member
     const membersReRegistered = Array.from(salesMonthsByMember.values()).filter(months => months.size >= 2).length;
     const reRegistrationRate = membersWithSales > 0 ? Math.round((membersReRegistered / membersWithSales) * 100) : 0;
 
-    // Step 4: 최근 3개월 재등록률 — 월별 트렌드의 최근 3개월 합산
+    // Step 4: 최근 3개 재등록률 — 별 트렌드의 최근 3개 합산
     const recent3 = monthlyReRegTrend.slice(-3);
     const recent3Total = recent3.reduce((sum, m) => sum + m.total, 0);
     const recent3ReReg = recent3.reduce((sum, m) => sum + m.reReg, 0);
@@ -321,12 +321,12 @@ export const calculateDerivedData = (
         deniedNoCreditsCount,
         // 재등록률 지표
         reRegistrationRate,        // 누적 재등록률 (%)
-        recentReRegRate,           // 최근 3개월 재등록률 (%)
+        recentReRegRate,           // 최근 3개 재등록률 (%)
         recentExpiredCount,
         recentReRegisteredCount: recentReRegistered,
         membersWithSales,
         membersReRegistered,
-        monthlyReRegTrend,         // 월별 트렌드 [{month, total, reReg, rate}]
+        monthlyReRegTrend,         // 별 트렌드 [{month, total, reReg, rate}]
         installedCount: uniqueMembers.filter(m => isMemberInBranch(m) && pushTokens.some(t => t.memberId === m.id)).length,
         todayInstalledCount: uniqueMembers.filter(m => isMemberInBranch(m) && m.installedAt && toKSTDateString(new Date(m.installedAt)) === todayStr).length,
         pushEnabledCount: uniqueMembers.filter(m => isMemberInBranch(m) && pushTokens.some(t => t.memberId === m.id) && m.pushEnabled !== false).length,
@@ -343,19 +343,19 @@ export const calculateDerivedData = (
     todayLogs.forEach(log => {
         const info = guessClassInfo(log as any);
         const classTime = info?.startTime || '00:00';
-        const canonicalClassName = info?.className || log.className || '일반';
-        const canonicalInstructor = info?.instructor || log.instructor || '선생님';
+        const canonicalClassName = info?.className || log.className || 'General';
+        const canonicalInstructor = info?.instructor || log.instructor || 'Instructor';
 
-        const key = canonicalClassName === '자율수련'
+        const key = canonicalClassName === 'Self Practice'
             ? `${canonicalClassName}-${log.branchId}`
             : `${canonicalClassName}-${canonicalInstructor}-${log.branchId}-${classTime}`;
         
         if (!classGroups[key]) {
             classGroups[key] = {
                 className: canonicalClassName,
-                instructor: canonicalClassName === '자율수련' ? '회원' : canonicalInstructor,
+                instructor: canonicalClassName === 'Self Practice' ? 'Member' : canonicalInstructor,
                 branchId: log.branchId,
-                classTime: canonicalClassName === '자율수련' ? '' : classTime,
+                classTime: canonicalClassName === 'Self Practice' ? '' : classTime,
                 count: 0,
                 deniedCount: 0,
                 memberNames: [] as string[]
@@ -417,7 +417,7 @@ export const calculateChartData = (currentSales: SalesRecord[], uniqueMembers: M
             })
             .reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
 
-        trends.push({ month: `${mm}월`, amount: monthRevenue, fullKey: key });
+        trends.push({ month: `${mm}`, amount: monthRevenue, fullKey: key });
     }
 
     let activeCount = 0;

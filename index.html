@@ -14,26 +14,7 @@
     }
   </script>
 
-  <!-- [FIX] 2. Poisoned Cache Guard (For old WebViews/Tablets stuck with old ServiceWorker) -->
-  <script>
-    (function() {
-      // If the browser does not support <script type="module"> natively, then 
-      // the new module scripts won't run, BUT the ServiceWorker might still be serving old HTML!
-      var isModuleSupported = 'noModule' in HTMLScriptElement.prototype;
-      if (!isModuleSupported && 'serviceWorker' in navigator) {
-        // This is a hopelessly old browser that somehow registered a SW (e.g. Chrome 59 Android).
-        // Nuke the service worker to force a clean fetch of the legacy bundles!
-        navigator.serviceWorker.getRegistrations().then(function(regs) {
-          if (regs.length > 0) {
-            console.warn('[Cache Guard] Legacy browser detected. Purging poisoned ServiceWorkers...');
-            regs.forEach(function(r) { r.unregister(); });
-            // Add a small delay to ensure unregister completes before reload
-            setTimeout(function() { window.location.reload(true); }, 500);
-          }
-        });
-      }
-    })();
-  </script>
+  <!-- Removed Poisoned Cache Guard to allow Background Sync Service Worker -->
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -97,7 +78,32 @@
   /* Reset some defaults for clean start */
   body { background-color: #08080A; }
 </style>
-  <title>Studio</title>
+  <script>
+    // 동적 현지화 창/앱 타이틀 설정
+    (function() {
+      var path = window.location.pathname;
+      var lang = path.split('/')[1];
+      var titles = {
+        'ko': '패스플로우 요가 & 필라테스',
+        'ja': 'PassFlow ヨガ＆ピラティス',
+        'zh': 'PassFlow 瑜伽与普拉提',
+        'fr': 'PassFlow Yoga & Pilates',
+        'es': 'PassFlow Yoga & Pilates',
+        'de': 'PassFlow Yoga & Pilates',
+        'vi': 'PassFlow Yoga & Pilates',
+        'th': 'PassFlow โยคะและพิลาทิส',
+        'ru': 'PassFlow Йога и Пилатес'
+      };
+      if (titles[lang]) {
+        document.title = titles[lang];
+      } else {
+        document.title = 'PassFlow Studio';
+      }
+      
+      // 동적 html lang 속성 설정 (웹 접근성 및 SEO)
+      document.documentElement.lang = lang || 'ko';
+    })();
+  </script>
 </head>
 
 <body>

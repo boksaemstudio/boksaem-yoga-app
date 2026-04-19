@@ -108,7 +108,7 @@ const InstructorSchedule = ({
     return () => unsubs.forEach(u => u());
   }, [selectedDate, allowBooking, branches]);
 
-  // [실시간] 월간 예약 수 요약 구독
+  // [실시간] 간 예약 수 요약 구독
   useEffect(() => {
     if (!allowBooking || branches.length === 0) {
       setMonthlyBookingCounts({});
@@ -136,7 +136,12 @@ const InstructorSchedule = ({
   }, [year, month, allowBooking, branches]);
   const daysInMonth = new Date(year, month, 0).getDate();
   const firstDay = new Date(year, month - 1, 1).getDay();
-  const dayNames = [t("g_06cf3e") || "일", t("g_754486") || "월", t("g_adb4a2") || "화", t("g_c04eb2") || "수", t("g_5664a6") || "목", t("g_cf5632") || "금", t("g_b9e406") || "토"];
+
+  // Dynamic localized weekday names
+  const localeMap = { ko: 'ko-KR', en: 'en-US', ja: 'ja-JP', zh: 'zh-CN', ru: 'ru-RU', es: 'es-ES', pt: 'pt-BR', fr: 'fr-FR', de: 'de-DE', vi: 'vi-VN', th: 'th-TH' };
+  const currentLocale = localeMap[language] || 'en-US';
+  const weekdayFormatter = new Intl.DateTimeFormat(currentLocale, { weekday: 'short' });
+  const dayNames = Array.from({length: 7}, (_, i) => weekdayFormatter.format(new Date(1970, 0, 4 + i)));
   const getBranchStatus = dateStr => {
     const classes = monthlyData[dateStr] || [];
     const myClasses = classes.filter(cls => {
@@ -282,7 +287,7 @@ const InstructorSchedule = ({
                 <h2 style={{
         margin: 0,
         fontSize: '1.2rem'
-      }}>{t("g_year_month_format", { year, month }) || `${year}년 ${month}월`}</h2>
+      }}>{t("g_year_month_format", { year, month }) || `${year}년 ${month}`}</h2>
                 <button onClick={() => setCurrentDate(new Date(year, month, 1))} style={navBtnStyle}>▶</button>
             </div>
 
@@ -293,7 +298,7 @@ const InstructorSchedule = ({
       fontSize: '0.85rem',
       color: 'var(--text-secondary)',
       animation: 'fadeIn 1s ease'
-    }}>{t("g_0319b6") || "👇 날짜를 터치하면 상세 시간표를 확인할 수 있어요"}</div>
+    }}>{t("g_0319b6") || "👇 날짜를 터치하면 상세 Schedule를 확인할 수 있어요"}</div>
 
             {/* Branch Legend (다중 지점일 때만 노출) */}
             {branches.length > 1 && <div style={{
@@ -368,7 +373,7 @@ const InstructorSchedule = ({
                     <h3 style={{
         marginBottom: '12px',
         fontSize: '1rem'
-      }}>{selectedDate}{t("g_550350") || "수업"}</h3>
+      }}>{selectedDate}{t("g_550350") || "Class"}</h3>
                     {selectedClasses.length === 0 ? <p style={{
         color: 'var(--text-secondary)'
       }}>{t("g_a06861") || "수업이 없습니다"}</p> : <div style={{
@@ -476,7 +481,7 @@ const InstructorSchedule = ({
                     background: bookedCount >= capacity ? 'rgba(255,71,87,0.15)' : 'rgba(var(--primary-rgb), 0.15)',
                     color: bookedCount >= capacity ? '#ff4757' : 'var(--primary-gold)',
                     border: `1px solid ${bookedCount >= capacity ? 'rgba(255,71,87,0.3)' : 'rgba(var(--primary-rgb), 0.3)'}`
-                  }}>{t("g_17f4b4") || "예약"}{bookedCount}/{capacity}</span>;
+                  }}>{t("g_17f4b4") || "Booking"}{bookedCount}/{capacity}</span>;
                 })()}
                                                 <span style={{
                   fontSize: '0.85rem',
@@ -541,8 +546,8 @@ const InstructorSchedule = ({
                   const filtered = dateAttendance.filter(a => {
                     // [FIX] Primary: Match by classTime + branchId (most reliable)
                     // Secondary: Match by className (fallback)
-                    const attClass = (a.className || t("g_dd529d") || "자율수련").trim();
-                    const clsClass = (cls.title || t("g_dd529d") || "자율수련").trim();
+                    const attClass = (a.className || t("g_dd529d") || "Self Practice").trim();
+                    const clsClass = (cls.title || t("g_dd529d") || "Self Practice").trim();
                     const attInst = (a.instructor || '').trim();
                     const clsInst = (cls.instructor || '').trim();
 
@@ -559,14 +564,14 @@ const InstructorSchedule = ({
                     // Strategy 2: className match (flexible - includes or equals)
                     const matchClassExact = attClass === clsClass;
                     const matchClassFuzzy = attClass.includes(clsClass) || clsClass.includes(attClass);
-                    const matchInst = attInst === clsInst || !attInst || attInst === (t("g_5c1a70") || "미지정");
+                    const matchInst = attInst === clsInst || !attInst || attInst === (t("g_5c1a70") || "Unassigned");
                     return (matchClassExact || matchClassFuzzy) && matchInst;
                   });
                   return filtered.length === 0 ? <div style={{
                     fontSize: '0.8rem',
                     color: 'var(--text-secondary)',
                     fontStyle: 'italic'
-                  }}>{t("g_12c651") || "출석 회원이 없습니다"}</div> : filtered.map((att, aidx) => <div key={att.id || aidx} style={{
+                  }}>{t("g_12c651") || "출석 Member이 없습니다"}</div> : filtered.map((att, aidx) => <div key={att.id || aidx} style={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     background: 'rgba(255,255,255,0.05)',

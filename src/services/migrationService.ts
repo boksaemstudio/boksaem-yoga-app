@@ -67,7 +67,7 @@ export const migrationService = {
 
         if (!dryRun && cleanupFn) {
             if (onProgress) onProgress(0, 0, '기존 데이터 정리 중...');
-            await cleanupFn((current, total, colName) => { if (onProgress) onProgress(0, 0, `${colName} 삭제 중...`); });
+            await cleanupFn((current, total, colName) => { if (onProgress) onProgress(0, 0, `${colName} Deleting...`); });
         }
 
         for (let i = 0; i < csvData.length; i++) {
@@ -76,7 +76,7 @@ export const migrationService = {
                 if (onProgress) onProgress(i + 1, csvData.length, row['이름']);
                 if (!row['이름'] || !row['휴대폰1']) { results.skipped++; results.errors.push({ row: i + 1, name: row['이름'], error: '필수 필드 누락' }); continue; }
 
-                const branchId = convertToBranchId(row['회원번호']);
+                const branchId = convertToBranchId(row['Member번호']);
                 const credits = parseCredits(row['남은횟수']);
                 const phone = row['휴대폰1'].trim();
                 const phoneLast4 = phone.slice(-4);

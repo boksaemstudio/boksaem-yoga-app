@@ -4,6 +4,7 @@ import { Trash, PencilSimple, UserFocus, CaretDown, CaretUp } from '@phosphor-ic
 import { storageService } from '../../../services/storage';
 import { memberService } from '../../../services/memberService';
 import { getMembershipLabel } from '../../../utils/membershipLabels';
+import { formatPhoneNumber } from '../../../utils/formatters';
 import { useStudioConfig } from '../../../contexts/StudioContext';
 import CustomDatePicker from '../../common/CustomDatePicker';
 const inputStyle = {
@@ -55,6 +56,7 @@ const BasicInfoBlock = ({
   originalData
 }) => {
   const t = useLanguageStore(s => s.t);
+  const language = useLanguageStore(s => s.language);
   const [isDeletingFace, setIsDeletingFace] = useState(false);
   return <div style={{
     display: 'flex',
@@ -66,11 +68,11 @@ const BasicInfoBlock = ({
       margin: 0,
       fontSize: '1rem'
     }}>{t("g_eb7f50") || "기본 정보"}</h3>
-            <InputGroup label={t("g_9aa18e") || "이름"} value={editData.name} onChange={v => setEditData({
+            <InputGroup label={t("g_9aa18e") || "Name"} value={editData.name} onChange={v => setEditData({
       ...editData,
       name: v
     })} lang="ko" autoComplete="off" />
-            <InputGroup label={t("g_9a1c3a") || "전화번호"} value={editData.phone} onChange={v => setEditData({
+            <InputGroup label={t("g_9a1c3a") || "Phone"} value={formatPhoneNumber(editData.phone, language)} onChange={v => setEditData({
       ...editData,
       phone: v
     })} type="tel" inputMode="numeric" pattern="[0-9]*" autoComplete="off" />
@@ -142,7 +144,7 @@ const BasicInfoBlock = ({
               alert(t("g_5559ed") || "안면 인식 데이터가 삭제되었습니다.\n키오스크에서 다시 등록해주세요.");
               storageService.notifyListeners('members');
             } else {
-              alert((t("g_2e3339") || "삭제에 실패했습니다: ") + (result.error || t("g_5e9f6b") || "알 수 없는 오류"));
+              alert((t("g_2e3339") || "삭제에 실패했습니다: ") + (result.error || t("g_5e9f6b") || "Unknown error"));
             }
           } catch (e) {
             console.error('Face delete failed:', e);
@@ -164,7 +166,7 @@ const BasicInfoBlock = ({
           alignItems: 'center',
           gap: '5px'
         }}>
-                                <Trash size={14} /> {isDeletingFace ? t("g_d2884b") || "삭제 중..." : t("g_7e9088") || "삭제 후 재등록"}
+                                <Trash size={14} /> {isDeletingFace ? t("g_d2884b") || "Deleting..." : t("g_7e9088") || "삭제 후 재등록"}
                             </button>}
                     </div>
                 </div>}
@@ -178,6 +180,7 @@ const AdminHoldBlock = ({
   originalData
 }) => {
   const t = useLanguageStore(s => s.t);
+  const language = useLanguageStore(s => s.language);
   const [isHolding, setIsHolding] = useState(false);
   const [holdLoading, setHoldLoading] = useState(false);
 
@@ -258,7 +261,7 @@ const AdminHoldBlock = ({
         holdStartDate: today,
         holdHistory: history
       });
-      alert((t("g_525dc8") || "✅ 성공적으로 수강권 홀딩이 시작되었습니다!\\n\\n회원 상태가 '홀딩 일시정지 중'으로 변경되었으며, 회원이 복귀하여 첫 출석체크를 하는 순간 홀딩이 해제되고 쉰 날짜만큼 연장됩니다."));
+      alert((t("g_525dc8") || "✅ 성공적으로 수강권 홀딩이 시작되었습니다!\\n\\nMember 상태가 '홀딩 일시정지 중'으로 변경되었으며, Member이 복귀하여 첫 출석체크를 하는 순간 홀딩이 해제되고 쉰 날짜만큼 연장됩니다."));
     } catch (e) {
       alert((t("g_ddfe4b") || "적용 중 오류 발생: ") + e.message);
     } finally {
@@ -313,7 +316,7 @@ const AdminHoldBlock = ({
         fontSize: '0.75rem',
         color: 'rgba(255,255,255,0.5)',
         lineHeight: '1.4'
-      }}>{t("g_698649") || "회원의 앱에서 '회원 자가 홀딩' 설정을 켜지 않더라도 이 화면에서 관리자가 직접 수강권을 일시정지할 수 있습니다."}</div>}
+      }}>{t("g_698649") || "Member의 앱에서 'Member 자가 홀딩' 설정을 켜지 않더라도 이 화면에서 관리자가 직접 수강권을 일시정지할 수 있습니다."}</div>}
             </div>
 
             {/* Custom Modals */}
@@ -351,7 +354,7 @@ const AdminHoldBlock = ({
           margin: '0 0 16px',
           color: '#a1a1aa',
           fontSize: '0.9rem'
-        }}>{t("g_fe2b3e") || "회원의 수강권을 일시정지 하시겠습니까?"}</p>
+        }}>{t("g_fe2b3e") || "Member의 수강권을 일시정지 하시겠습니까?"}</p>
                         <div style={{
           background: 'rgba(255,255,255,0.03)',
           padding: '12px',
@@ -376,7 +379,7 @@ const AdminHoldBlock = ({
             }}>{t("g_aab40b") || "적용 즉시 수강권 이용이 정지되며 기간 차감이 멈춥니다."}</li>
                                 <li style={{
               marginBottom: '6px'
-            }}>{t("g_863851") || "회원이 복귀하여"}<strong style={{
+            }}>{t("g_863851") || "Member이 복귀하여"}<strong style={{
                 color: 'white'
               }}>{t("g_6c0ecb") || "처음 출석체크"}</strong>{t("g_da884f") || "를 하는 날 바로 홀딩이 풀리며, 쉬었던 기간만큼 종료일이 자동으로 연장됩니다."}</li>
                                 <li>{t("g_75ddf4") || "언제든 이 화면에서 관리자가 수동으로 홀딩을 해제할 수 있습니다."}</li>
@@ -395,7 +398,7 @@ const AdminHoldBlock = ({
             color: 'white',
             fontWeight: 'bold',
             cursor: 'pointer'
-          }}>{t("g_19b2d1") || "취소"}</button>
+          }}>{t("g_19b2d1") || "Cancel"}</button>
                             <button onClick={executeApplyHold} style={{
             flex: 1,
             padding: '12px',
@@ -466,7 +469,7 @@ const AdminHoldBlock = ({
             lineHeight: '1.5'
           }}>{t("g_651116") || "지금까지 쉬었던 일수(최대 한도 내)를 계산하여 즉시"}<strong style={{
               color: 'white'
-            }}>{t("g_1c09ee") || "회원권 만료일을 연장"}</strong>{t("g_d147bf") || "하고, 상태를 '이용 중'으로 되돌립니다."}</p>
+            }}>{t("g_1c09ee") || "Member권 만료일을 연장"}</strong>{t("g_d147bf") || "하고, 상태를 '이용 중'으로 되돌립니다."}</p>
                         </div>
                         <div style={{
           display: 'flex',
@@ -481,7 +484,7 @@ const AdminHoldBlock = ({
             color: 'white',
             fontWeight: 'bold',
             cursor: 'pointer'
-          }}>{t("g_19b2d1") || "취소"}</button>
+          }}>{t("g_19b2d1") || "Cancel"}</button>
                             <button onClick={executeReleaseHold} style={{
             flex: 1,
             padding: '12px',
@@ -499,7 +502,7 @@ const AdminHoldBlock = ({
 };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 블록 2: 회원권 현황 (읽기전용 카드 + 수동 조정)
+// 블록 2: Member권 현황 (읽기전용 카드 + 수동 조정)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const MembershipBlock = ({
   editData,
@@ -509,12 +512,13 @@ const MembershipBlock = ({
   getTypeLabel
 }) => {
   const t = useLanguageStore(s => s.t);
+  const language = useLanguageStore(s => s.language);
   const todayStr = new Date().toLocaleDateString('sv-SE', {
     timeZone: 'Asia/Seoul'
   });
   const upcoming = originalData?.upcomingMembership;
 
-  // 현재 회원권 상태 판정
+  // 현재 Member권 상태 판정
   const credits = Number(originalData?.credits || 0);
   const endDate = originalData?.endDate;
   const isTBD = endDate === 'TBD';
@@ -545,9 +549,9 @@ const MembershipBlock = ({
       color: 'white',
       margin: 0,
       fontSize: '1rem'
-    }}>{t("g_b4d9ba") || "회원권 현황"}</h3>
+    }}>{t("g_b4d9ba") || "Member권 현황"}</h3>
 
-            {/* ── 현재 활성 회원권 카드 ── */}
+            {/* ── 현재 활성 Member권 카드 ── */}
             <div style={{
       background: 'rgba(255,255,255,0.04)',
       border: '1px solid rgba(255,255,255,0.1)',
@@ -591,7 +595,7 @@ const MembershipBlock = ({
           color: 'var(--primary-gold)',
           fontWeight: 'bold'
         }}>
-                            {originalData.price.toLocaleString()}{t("g_21ba07") || "원"}</span>}
+                            {originalData.price.toLocaleString()}{t("g_21ba07") || ""}</span>}
                 </div>
                 <div style={{
         display: 'grid',
@@ -608,7 +612,7 @@ const MembershipBlock = ({
             fontSize: '0.7rem',
             color: '#71717a',
             marginBottom: '4px'
-          }}>{t("g_453c56") || "시작일"}</div>
+          }}>{t("g_453c56") || "Start Date"}</div>
                         <div style={{
             fontSize: '0.85rem',
             color: 'white',
@@ -627,7 +631,7 @@ const MembershipBlock = ({
             fontSize: '0.7rem',
             color: '#71717a',
             marginBottom: '4px'
-          }}>{t("g_cad7c8") || "종료일"}</div>
+          }}>{t("g_cad7c8") || "End Date"}</div>
                         <div style={{
             fontSize: '0.85rem',
             color: statusColor,
@@ -646,7 +650,7 @@ const MembershipBlock = ({
             fontSize: '0.7rem',
             color: '#71717a',
             marginBottom: '4px'
-          }}>{t("g_599737") || "잔여"}</div>
+          }}>{t("g_599737") || "Remaining "}</div>
                         <div style={{
             fontSize: '0.85rem',
             color: credits <= 2 ? '#f59e0b' : 'white',
@@ -780,7 +784,7 @@ const MembershipBlock = ({
             fontSize: '0.7rem',
             color: '#a1a1aa',
             marginBottom: '4px'
-          }}>{t("g_453c56") || "시작일"}</div>
+          }}>{t("g_453c56") || "Start Date"}</div>
                             <div style={{
             fontSize: '0.85rem',
             color: 'var(--primary-gold)',
@@ -799,7 +803,7 @@ const MembershipBlock = ({
             fontSize: '0.7rem',
             color: '#a1a1aa',
             marginBottom: '4px'
-          }}>{t("g_cad7c8") || "종료일"}</div>
+          }}>{t("g_cad7c8") || "End Date"}</div>
                             <div style={{
             fontSize: '0.85rem',
             color: 'var(--primary-gold)',
@@ -835,7 +839,7 @@ const MembershipBlock = ({
       }}>{t("g_d3a053") || "결제 금액:"}<span style={{
           color: 'var(--primary-gold)',
           fontWeight: 'bold'
-        }}>{upcoming.price.toLocaleString()}{t("g_21ba07") || "원"}</span>
+        }}>{upcoming.price.toLocaleString()}{t("g_21ba07") || ""}</span>
                         </div>}
                 </div>}
 
@@ -861,7 +865,7 @@ const MembershipBlock = ({
           fontWeight: '600'
         }}>{t("g_e545bc") || "관리자 수동 조정"}</span>
                     </div>
-                    <InputGroup label={t("g_2b4122") || "회원권 구분"} value={editData.membershipType} onChange={v => setEditData({
+                    <InputGroup label={t("g_2b4122") || "Member권 구분"} value={editData.membershipType} onChange={v => setEditData({
         ...editData,
         membershipType: v
       })} type="select" options={(() => {
@@ -888,7 +892,7 @@ const MembershipBlock = ({
         gridTemplateColumns: '1fr 1fr',
         gap: '10px'
       }}>
-                        <InputGroup label={t("g_453c56") || "시작일"} value={editData.startDate || ''} onChange={v => {
+                        <InputGroup label={t("g_453c56") || "Start Date"} value={editData.startDate || ''} onChange={v => {
           const updates = {
             startDate: v
           };
@@ -909,7 +913,7 @@ const MembershipBlock = ({
             ...updates
           });
         }} type="date" />
-                        <InputGroup label={t("g_cad7c8") || "종료일"} value={editData.endDate || ''} onChange={v => setEditData({
+                        <InputGroup label={t("g_cad7c8") || "End Date"} value={editData.endDate || ''} onChange={v => setEditData({
           ...editData,
           endDate: v
         })} type="date" />
@@ -925,7 +929,7 @@ const MembershipBlock = ({
                         <span style={{
           color: '#a1a1aa',
           fontSize: '0.8rem'
-        }}>{t("g_029db5") || "잔여 횟수"}</span>
+        }}>{t("g_029db5") || "Remaining Credits"}</span>
                         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -998,7 +1002,7 @@ const MembershipBlock = ({
                             <span style={{
             color: '#a1a1aa',
             fontSize: '0.9rem'
-          }}>{t("g_21ba07") || "원"}</span>
+          }}>{t("g_21ba07") || ""}</span>
                         </div>
                     </div>
                 </div>}
@@ -1013,6 +1017,7 @@ const PaymentHistoryBlock = ({
   getTypeLabel
 }) => {
   const t = useLanguageStore(s => s.t);
+  const language = useLanguageStore(s => s.language);
   const [isOpen, setIsOpen] = useState(false);
   const [history, setHistory] = useState([]);
   const [editingSale, setEditingSale] = useState(null);
@@ -1050,7 +1055,7 @@ const PaymentHistoryBlock = ({
         let syncTarget = null; // 'current' | 'upcoming' | null
 
         if (hasDateChange) {
-          // 확인: 이 영수증이 현재 회원권인지, 다가올 회원권인지 추정
+          // 확인: 이 영수증이 현재 Member권인지, 다가올 Member권인지 추정
           if (originalData.startDate === editingSale.startDate && originalData.endDate === editingSale.endDate) syncTarget = 'current';else if (originalData.upcomingMembership?.startDate === editingSale.startDate && originalData.upcomingMembership?.endDate === editingSale.endDate) syncTarget = 'upcoming';
           if (syncTarget) {
             const targetName = syncTarget === 'current' ? t("g_f41ed0") || "현재 이용 중인 수강권" : t("g_eadcde") || "다가올 수강권(선등록)";
@@ -1072,7 +1077,7 @@ const PaymentHistoryBlock = ({
               storageService.notifyListeners('members');
             }
           } else {
-            alert(t("g_b09ac9") || "영수증 내역만 변경되었습니다.\n(참고: 회원의 실제 출석 기간 변경이 필요하면 상단의 \"수동 조정\"을 이용하세요.)");
+            alert(t("g_b09ac9") || "영수증 내역만 변경되었습니다.\n(참고: Member의 실제 출석 기간 변경이 필요하면 상단의 \"수동 조정\"을 이용하세요.)");
           }
         }
         await storageService.updateSalesRecord(editingSale.id, updates);
@@ -1156,7 +1161,7 @@ const PaymentHistoryBlock = ({
           padding: '2px 8px',
           borderRadius: '10px'
         }}>
-                        {history.length}{t("g_d202b4") || "건"}</span>
+                        {history.length}{t("g_d202b4") || "cases"}</span>
                 </div>
                 {isOpen ? <CaretUp size={18} color="#a1a1aa" /> : <CaretDown size={18} color="#a1a1aa" />}
             </button>
@@ -1202,7 +1207,7 @@ const PaymentHistoryBlock = ({
             borderRadius: '4px',
             fontSize: '0.8rem',
             cursor: 'pointer'
-          }}>{t("g_19b2d1") || "취소"}</button>
+          }}>{t("g_19b2d1") || "Cancel"}</button>
                             </div>
                             <InputGroup label={t("g_0b2ca6") || "수강권 항목 이름"} value={saleEditData.item || ''} onChange={v => setSaleEditData({
           ...saleEditData,
@@ -1213,11 +1218,11 @@ const PaymentHistoryBlock = ({
           gridTemplateColumns: '1fr 1fr',
           gap: '10px'
         }}>
-                                <InputGroup label={t("g_453c56") || "시작일"} value={saleEditData.startDate || ''} onChange={v => setSaleEditData({
+                                <InputGroup label={t("g_453c56") || "Start Date"} value={saleEditData.startDate || ''} onChange={v => setSaleEditData({
             ...saleEditData,
             startDate: v
           })} type="date" />
-                                <InputGroup label={t("g_cad7c8") || "종료일"} value={saleEditData.endDate || ''} onChange={v => setSaleEditData({
+                                <InputGroup label={t("g_cad7c8") || "End Date"} value={saleEditData.endDate || ''} onChange={v => setSaleEditData({
             ...saleEditData,
             endDate: v
           })} type="date" />
@@ -1266,7 +1271,7 @@ const PaymentHistoryBlock = ({
               }} />
                                         <span style={{
                 color: '#a1a1aa'
-              }}>{t("g_21ba07") || "원"}</span>
+              }}>{t("g_21ba07") || ""}</span>
                                     </div>
                                 </div>
                             </div>
@@ -1345,7 +1350,7 @@ const PaymentHistoryBlock = ({
               fontWeight: 'bold',
               fontSize: '0.9rem'
             }}>
-                                            {(record.amount || 0).toLocaleString()}{t("g_21ba07") || "원"}</span>
+                                            {(record.amount || 0).toLocaleString()}{t("g_21ba07") || ""}</span>
                                     </div>
                                     <div style={{
             display: 'flex',
@@ -1384,7 +1389,7 @@ const PaymentHistoryBlock = ({
                 fontSize: '0.72rem',
                 cursor: 'pointer'
               }}>
-                                                <PencilSimple size={12} />{t("g_e1407b") || "수정"}</button>
+                                                <PencilSimple size={12} />{t("g_e1407b") || "Edit"}</button>
                                             <button onClick={e => {
                 e.stopPropagation();
                 handleDeleteSale(record.id, record.item);
@@ -1400,7 +1405,7 @@ const PaymentHistoryBlock = ({
                 fontSize: '0.72rem',
                 cursor: 'pointer'
               }}>
-                                                <Trash size={12} />{t("g_fc81e2") || "삭제"}</button>
+                                                <Trash size={12} />{t("g_fc81e2") || "Delete"}</button>
                                         </div>
                                     </div>
                                 </div>;
@@ -1421,6 +1426,7 @@ const MemberInfoTab = ({
   isDirtyByUser
 }) => {
   const t = useLanguageStore(s => s.t);
+  const language = useLanguageStore(s => s.language);
   const {
     config
   } = useStudioConfig();
@@ -1441,7 +1447,7 @@ const MemberInfoTab = ({
         margin: '0'
       }} />
 
-            {/* ━━━ 블록 2: 회원권 현황 ━━━ */}
+            {/* ━━━ 블록 2: Member권 현황 ━━━ */}
             {originalData?.role !== 'instructor' && <MembershipBlock editData={editData} setEditData={setEditData} originalData={originalData} pricingConfig={pricingConfig} getTypeLabel={getTypeLabel} />}
 
             {/* ━━━ 저장 버튼 ━━━ */}
@@ -1462,7 +1468,7 @@ const MemberInfoTab = ({
           color: 'var(--text-on-primary)',
           fontWeight: 'bold',
           fontSize: '1.1rem'
-        }}>{t("g_af4ca1") || "회원정보 저장하기"}</button>;
+        }}>{t("g_af4ca1") || "Member정보 저장하기"}</button>;
       })()}
 
             {/* ━━━ 구분선 ━━━ */}
@@ -1478,7 +1484,7 @@ const MemberInfoTab = ({
             {/* ━━━ 블록 3: 수강권 타임라인 ━━━ */}
             <PaymentHistoryBlock originalData={originalData} getTypeLabel={getTypeLabel} />
 
-            {/* ━━━ 회원 삭제 ━━━ */}
+            {/* ━━━ Member 삭제 ━━━ */}
             {(() => {
         const credits = Number(originalData.credits || 0);
         const endDate = originalData.endDate;
@@ -1505,7 +1511,7 @@ const MemberInfoTab = ({
               fontSize: '0.75rem',
               color: '#71717a'
             }}>
-                                {isTBD ? t("g_08a272") || "🔒 선등록 회원은 삭제할 수 없습니다. 수강 만료 후 삭제가 가능합니다." : `🔒 활성 회원은 삭제할 수 없습니다. (잔여 ${credits}회 / 만료 ${endDate})`}
+                                {isTBD ? t("g_08a272") || "🔒 선등록 Member은 삭제할 수 없습니다. 수강 만료 후 삭제가 가능합니다." : `🔒 활성 Member은 삭제할 수 없습니다. (잔여 ${credits}회 / 만료 ${endDate})`}
                             </p>
                         </div>;
         }
@@ -1520,10 +1526,10 @@ const MemberInfoTab = ({
             try {
               const result = await storageService.softDeleteMember(originalData.id);
               if (result.success) {
-                alert(t("g_46cad8") || "회원이 삭제되었습니다.\n휴지통 탭에서 복원할 수 있습니다.");
+                alert(t("g_46cad8") || "Member이 삭제되었습니다.\n휴지통 탭에서 복원할 수 있습니다.");
                 if (typeof window !== 'undefined') window.dispatchEvent(new Event('member-deleted'));
               } else {
-                alert((t("g_6bafa7") || "삭제 실패: ") + (result.error || t("g_5e9f6b") || "알 수 없는 오류"));
+                alert((t("g_6bafa7") || "Delete failed: ") + (result.error || t("g_5e9f6b") || "Unknown error"));
               }
             } catch (e) {
               alert((t("g_d25e2e") || "삭제 중 오류: ") + e.message);
@@ -1543,13 +1549,13 @@ const MemberInfoTab = ({
             justifyContent: 'center',
             gap: '6px'
           }}>
-                            <Trash size={16} weight="fill" />{t("g_dd2807") || "회원 삭제 (휴지통으로 이동)"}</button>
+                            <Trash size={16} weight="fill" />{t("g_dd2807") || "Member 삭제 (휴지통으로 이동)"}</button>
                         <p style={{
             margin: '8px 0 0',
             fontSize: '0.72rem',
             color: '#71717a',
             textAlign: 'center'
-          }}>{t("g_1c10d3") || "삭제된 회원은 회원 목록에서 사라지며, 휴지통 탭에서 언제든 복원할 수 있습니다."}</p>
+          }}>{t("g_1c10d3") || "삭제된 Member은 Member 목록에서 사라지며, 휴지통 탭에서 언제든 복원할 수 있습니다."}</p>
                     </div>;
       })()}
         </div>

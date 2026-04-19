@@ -19,7 +19,7 @@ const NoticeModal = ({
   const handleCreateNotice = async () => {
     if (!newNotice.title || !newNotice.content) return;
     if (newNotice.images.length === 0) {
-      alert(t("g_bb546b") || "이미지를 1개 이상 첨부해주세요.");
+      alert(t("g_bb546b") || "Please attach at least 1 image.");
       return;
     }
     if (isSubmitting) return;
@@ -32,12 +32,12 @@ const NoticeModal = ({
         images: [],
         sendPush: true
       });
-      alert(t("g_020b42") || "공지사항이 등록되었습니다.");
+      alert(t("g_020b42") || "Notice has been posted.");
       onSuccess();
       onClose();
     } catch (err) {
       console.error('Error creating notice:', err);
-      alert(t("g_590ea6") || "공지사항 등록 중 오류가 발생했습니다.");
+      alert(t("g_590ea6") || "Error posting notice.");
     } finally {
       setIsSubmitting(false);
     }
@@ -46,7 +46,7 @@ const NoticeModal = ({
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
     if (newNotice.images.length + files.length > 4) {
-      alert(t("g_e53d2f") || "이미지는 최대 4장까지만 첨부할 수 있습니다.");
+      alert(t("g_e53d2f") || "Maximum 4 images allowed.");
       return;
     }
     files.forEach(file => {
@@ -96,12 +96,12 @@ const NoticeModal = ({
       overflowY: 'auto'
     }}>
                 <div className="modal-header">
-                    <h2 className="modal-title">{t('공지사항 작성')}</h2>
+                    <h2 className="modal-title">{t("g_b4a169")}</h2>
                     <button onClick={onClose}><X size={24} /></button>
                 </div>
                 <div className="form-group">
-                    <label className="form-label">{t('제목')}</label>
-                    <input className="form-input" placeholder={t('예: [안내] 동절기 수업 시간 변경')} value={newNotice.title} onChange={e => setNewNotice({
+                    <label className="form-label">{t("g_df7719")}</label>
+                    <input className="form-input" placeholder={t("g_456fc4")} value={newNotice.title} onChange={e => setNewNotice({
           ...newNotice,
           title: e.target.value
         })} lang="ko" style={{
@@ -111,14 +111,14 @@ const NoticeModal = ({
         />
                 </div>
                 <div className="form-group">
-                    <label className="form-label">{t('내용')}</label>
+                    <label className="form-label">{t("g_191df8")}</label>
                     <textarea className="form-input" style={{
           height: '150px',
           resize: 'none',
           userSelect: 'text',
           WebkitUserSelect: 'text'
         }} // ✨ FIX: Enable copy/paste menu
-        placeholder={t('공지할 내용을 상세히 입력해주세요.')} value={newNotice.content} onChange={e => setNewNotice({
+        placeholder={t("g_003090")} value={newNotice.content} onChange={e => setNewNotice({
           ...newNotice,
           content: e.target.value
         })} lang="ko" />
@@ -129,10 +129,10 @@ const NoticeModal = ({
           display: 'flex',
           justifyContent: 'space-between'
         }}>
-                        <span>{t('이미지 첨부')} <span style={{
+                        <span>{t("g_46819d")} <span style={{
               color: '#ff6b6b',
               fontWeight: 700
-            }}>{t('*필수')}</span></span>
+            }}>{t("g_639d82")}</span></span>
                         <span style={{
             fontSize: '0.8rem',
             opacity: 0.7
@@ -152,7 +152,7 @@ const NoticeModal = ({
             width: '100px',
             height: '100px'
           }}>
-                                <img src={imgSrc} alt={`공지사항 첨부 이미지 ${idx + 1}`} style={{
+                                <img src={imgSrc} alt={`Notice attachment image ${idx + 1}`} style={{
               width: '100%',
               height: '100%',
               objectFit: 'cover',
@@ -195,7 +195,7 @@ const NoticeModal = ({
                                 <Plus size={24} style={{
               marginBottom: '4px'
             }} />
-                                <span>{t('추가하기')}</span>
+                                <span>{t("g_818cb2")}</span>
                                 <input type="file" accept="image/*" multiple onChange={handleImageUpload} style={{
               display: 'none'
             }} />
@@ -230,11 +230,11 @@ const NoticeModal = ({
                             <span style={{
               fontWeight: 'bold',
               fontSize: '0.95rem'
-            }}>{t('전체 푸시 알림 보내기')}</span>
+            }}>{t("g_2e3090")}</span>
                             <span style={{
               fontSize: '0.8rem',
               color: 'rgba(255,255,255,0.5)'
-            }}>{t('체크 해제 시 알림 없이 조용히 등록됩니다.')}</span>
+            }}>{t("g_4189dd")}</span>
                         </div>
                     </label>
                 </div>
@@ -242,7 +242,7 @@ const NoticeModal = ({
                     <button onClick={onClose} style={{
           padding: '10px 20px',
           color: 'var(--text-secondary)'
-        }}>{t('취소')}</button>
+        }}>{t("g_d9de21")}</button>
                     <button onClick={handleCreateNotice} className="action-btn primary" disabled={isSubmitting}>
                         {isSubmitting ? t("g_5d6870") || "저장 중..." : t("g_8c04ab") || "등록하기"}
                     </button>

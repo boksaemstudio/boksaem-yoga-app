@@ -73,7 +73,7 @@ export const authService = {
                 catch (authErr) { console.error('[Auth] Custom token auth failed:', authErr); return { success: false, error: 'AUTH_FAILED', message: '인증 세션 생성에 실패했습니다.' }; }
                 return { success: true, member: { ...data.member, displayName: name.trim() } };
             } else {
-                const errorMsg = data.message || '일치하는 회원 정보가 없습니다.';
+                const errorMsg = data.message || 'No matching member found.';
                 await logLoginFailure('member', name, last4Digits, errorMsg);
                 return { success: false, error: 'NOT_FOUND', message: errorMsg };
             }
@@ -85,10 +85,10 @@ export const authService = {
                 'internal': '서버 오류가 발생했습니다.', 'unavailable': '서버에 연결할 수 없습니다.',
                 'deadline-exceeded': '서버 응답 시간이 초과되었습니다.', 'unauthenticated': '인증 정보가 올바르지 않습니다.',
                 'permission-denied': '접근 권한이 없습니다.', 'resource-exhausted': '너무 많은 시도입니다.',
-                'invalid-argument': '입력 정보를 확인해주세요.', 'not-found': '일치하는 회원 정보가 없습니다.'
+                'invalid-argument': '입력 정보를 확인해주세요.', 'not-found': '일치하는 Member 정보가 없습니다.'
             };
             const errorCode = (err.code || '').replace('functions/', '');
-            return { success: false, error: 'SYSTEM_ERROR', message: firebaseErrorMessages[errorCode] || '로그인 중 오류가 발생했습니다.' };
+            return { success: false, error: 'SYSTEM_ERROR', message: firebaseErrorMessages[errorCode] || 'Login error occurred.' };
         }
     },
 
@@ -96,7 +96,7 @@ export const authService = {
         try {
             const verifyInstructor = httpsCallable(functions, 'verifyInstructorV2Call');
             const safeName = String(name || '').trim();
-            const response = await withTimeout(verifyInstructor({ name: safeName, phoneLast4: last4Digits, studioId: getCurrentStudioId() }), 10000, '선생님 인증 시간 초과');
+            const response = await withTimeout(verifyInstructor({ name: safeName, phoneLast4: last4Digits, studioId: getCurrentStudioId() }), 10000, 'Instructor 인증 시간 초과');
             const data = response.data as { success: boolean; token?: string; name?: string; message?: string };
 
             if (data.success) {
@@ -106,8 +106,8 @@ export const authService = {
                 localStorage.setItem('instructorName', data.name || '');
                 return { success: true, name: data.name, authEstablished };
             } else {
-                await logLoginFailure('instructor', name, last4Digits, data.message || '인증 실패');
-                return { success: false, message: data.message || '인증 실패' };
+                await logLoginFailure('instructor', name, last4Digits, data.message || 'Authentication Failed');
+                return { success: false, message: data.message || 'Authentication Failed' };
             }
         } catch (e: unknown) {
             const err = e as Error;

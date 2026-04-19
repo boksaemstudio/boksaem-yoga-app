@@ -48,7 +48,7 @@ describe('tenantDb.doc', () => {
         expect(mockDoc).toHaveBeenCalledWith(db, 'studios/test-studio/members', 'abc123');
     });
 
-    it('ID 미지정 시 collection 기반 자동 ID doc 생성', () => {
+    it('ID Unassigned 시 collection 기반 자동 ID doc 생성', () => {
         tenantDb.doc('members');
 
         expect(resolveStudioId).toHaveBeenCalled();

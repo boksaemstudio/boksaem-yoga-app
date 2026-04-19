@@ -11,7 +11,7 @@ const WeeklyComparisonCards = memo(({
   lastWeekSameCount,
   lastWeekLabel
 }) => {
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   const diff = thisWeekCount - lastWeekSameCount;
   const pct = lastWeekSameCount > 0 ? Math.round(diff / lastWeekSameCount * 100) : thisWeekCount > 0 ? 100 : 0;
   const isUp = diff > 0;
@@ -22,7 +22,7 @@ const WeeklyComparisonCards = memo(({
     gap: '10px',
     marginBottom: '18px'
   }}>
-            {/* 이번 주 (월~오늘) */}
+            {/* This week (~오늘) */}
             <div style={{
       padding: '14px 12px',
       borderRadius: '10px',
@@ -34,7 +34,7 @@ const WeeklyComparisonCards = memo(({
         fontSize: '0.8rem',
         color: 'var(--text-secondary)',
         marginBottom: '6px'
-      }}>{t('admin_trend_this_week') || t("g_89ea2d") || "이번 주"}</div>
+      }}>{t('admin_trend_this_week') || t("g_89ea2d") || "This Week"}</div>
                 <div style={{
         fontSize: '1.4rem',
         fontWeight: '800',
@@ -44,7 +44,7 @@ const WeeklyComparisonCards = memo(({
         fontSize: '0.7rem',
         color: 'var(--text-secondary)',
         marginTop: '2px'
-      }}>{t('admin_trend_mon_to_today') || t("g_302c3f") || "월~오늘"}</div>
+      }}>{t('admin_trend_mon_to_today') || t("g_302c3f") || "~오늘"}</div>
             </div>
             {/* 지난 주 동일 시점 */}
             <div style={{
@@ -107,7 +107,7 @@ const DailyTooltip = ({
   active,
   payload
 }) => {
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   return <div style={{
@@ -129,21 +129,21 @@ const DailyTooltip = ({
       fontWeight: 'bold',
       fontSize: '1rem'
     }}>
-                {t('admin_trend_attendance') || t("g_937c42") || "출석"}: {d.count}{t('admin_trend_count_unit') || t("g_d202b4") || "건"}{d.isToday ? ' (' + (t('admin_trend_in_progress') || t("g_7890ca") || "진행 중") + ')' : ''}
+                {t('admin_trend_attendance') || t("g_937c42") || "Attendance"}: {d.count}{t('admin_trend_count_unit') || t("g_d202b4") || "cases"}{d.isToday ? ' (' + (t('admin_trend_in_progress') || t("g_7890ca") || "진행 중") + ')' : ''}
             </div>
             {d.newCount != null && d.newCount > 0 && <div style={{
       color: '#86efac',
       fontSize: '0.8rem',
       marginTop: '2px'
     }}>
-                    {t('admin_trend_new') || t("g_884009") || "신규"}: {d.newCount}{t('admin_trend_count_unit') || t("g_d202b4") || "건"} | {t('admin_trend_existing') || t("g_e75f4c") || "기존"}: {d.existingCount}{t('admin_trend_count_unit') || t("g_d202b4") || "건"}
+                    {t('admin_trend_new') || t("g_884009") || "New"}: {d.newCount}{t('admin_trend_count_unit') || t("g_d202b4") || "cases"} | {t('admin_trend_existing') || t("g_e75f4c") || "기존"}: {d.existingCount}{t('admin_trend_count_unit') || t("g_d202b4") || "cases"}
                 </div>}
             {d.ma7 != null && <div style={{
       color: 'rgba(255,255,255,0.5)',
       fontSize: '0.8rem',
       marginTop: '2px'
     }}>
-                    {t('admin_trend_7d_avg') || t("g_b14575") || "7일 평균"}: {d.ma7}{t('명')}
+                    {t('admin_trend_7d_avg') || t("g_b14575") || "7일 평균"}: {d.ma7}{t("g_7b3c6e")}
                 </div>}
         </div>;
 };
@@ -152,9 +152,9 @@ const DailyTooltip = ({
 const HeatmapChart = memo(({
   data
 }) => {
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   // data: { [dayIdx]: { [hourBucket]: count } }
-  const dayLabels = [t('admin_trend_day_mon') || t("g_754486") || "월", t('admin_trend_day_tue') || t("g_adb4a2") || "화", t('admin_trend_day_wed') || t("g_c04eb2") || "수", t('admin_trend_day_thu') || t("g_5664a6") || "목", t('admin_trend_day_fri') || t("g_cf5632") || "금", t('admin_trend_day_sat') || t("g_b9e406") || "토", t('admin_trend_day_sun') || t("g_06cf3e") || "일"];
+  const dayLabels = [t('admin_trend_day_mon') || t("g_754486") || "month", t('admin_trend_day_tue') || t("g_adb4a2") || "Tue", t('admin_trend_day_wed') || t("g_c04eb2") || "Wed", t('admin_trend_day_thu') || t("g_5664a6") || "Thu", t('admin_trend_day_fri') || t("g_cf5632") || "Fri", t('admin_trend_day_sat') || t("g_b9e406") || "Sat", t('admin_trend_day_sun') || t("g_06cf3e") || "Sun"];
   const hourBuckets = ['06', '08', '10', '12', '14', '16', '18', '20'];
   const hourSuffix = t('admin_trend_hour_suffix') || t("g_a7762a") || "시";
   const hourLabels = ['6' + hourSuffix, '8' + hourSuffix, '10' + hourSuffix, '12' + hourSuffix, '14' + hourSuffix, '16' + hourSuffix, '18' + hourSuffix, '20' + hourSuffix];
@@ -163,7 +163,7 @@ const HeatmapChart = memo(({
   let maxCount = 0;
   dayLabels.forEach((_, di) => {
     hourBuckets.forEach(h => {
-      const dayIdx = [1, 2, 3, 4, 5, 6, 0][di]; // 월~일 순서
+      const dayIdx = [1, 2, 3, 4, 5, 6, 0][di]; // ~일 순서
       const v = data[dayIdx]?.[h] || 0;
       if (v > maxCount) maxCount = v;
     });
@@ -277,7 +277,7 @@ const PopularityRanking = memo(({
   classRanking,
   instructorRanking
 }) => {
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   return <div style={{
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
@@ -324,7 +324,7 @@ const PopularityRanking = memo(({
           fontWeight: '700',
           color: 'var(--text-secondary)'
         }}>
-                            {c.count}{t('admin_trend_count_unit') || t("g_d202b4") || "건"}
+                            {c.count}{t('admin_trend_count_unit') || t("g_d202b4") || "cases"}
                         </span>
                     </div>)}
                 {classRanking.length === 0 && <div style={{
@@ -375,7 +375,7 @@ const PopularityRanking = memo(({
           fontWeight: '700',
           color: 'var(--text-secondary)'
         }}>
-                            {c.count}{t('admin_trend_count_unit') || t("g_d202b4") || "건"}
+                            {c.count}{t('admin_trend_count_unit') || t("g_d202b4") || "cases"}
                         </span>
                     </div>)}
                 {instructorRanking.length === 0 && <div style={{
@@ -389,12 +389,12 @@ const PopularityRanking = memo(({
 });
 PopularityRanking.displayName = 'PopularityRanking';
 
-// ─── 신규/기존 회원 비율 ───
+// ─── 신규/기존 Member 비율 ───
 const NewVsReturningBar = memo(({
   newCount,
   existingCount
 }) => {
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   const total = newCount + existingCount;
   if (total === 0) return null;
   const newPct = Math.round(newCount / total * 100);
@@ -416,7 +416,7 @@ const NewVsReturningBar = memo(({
         alignItems: 'center',
         gap: '4px'
       }}>
-                    <Users size={14} /> {t('admin_trend_ratio_title_pp') || t("g_3e2266") || "수강 인원 비율 (신규 vs 기존 회원)"}
+                    <Users size={14} /> {t('admin_trend_ratio_title_pp') || t("g_3e2266") || "수강 인원 비율 (신규 vs 기존 Member)"}
                 </span>
                 <span style={{
         fontSize: '0.75rem',
@@ -443,7 +443,7 @@ const NewVsReturningBar = memo(({
         whiteSpace: 'nowrap',
         overflow: 'hidden'
       }}>
-                        {newPct >= 18 ? `${t('admin_trend_new') || t("g_884009") || "신규"} ${newPct}%` : ''}
+                        {newPct >= 18 ? `${t('admin_trend_new') || t("g_884009") || "New"} ${newPct}%` : ''}
                     </div>}
                 {existingCount > 0 && <div style={{
         width: `${existPct}%`,
@@ -473,7 +473,7 @@ const NewVsReturningBar = memo(({
         color: '#34d399',
         fontWeight: '600',
         whiteSpace: 'nowrap'
-      }}>{t('admin_trend_new_pp') || t("g_30d937") || "신규 회원"} {newCount}{t('명')} <span style={{
+      }}>{t('admin_trend_new_pp') || t("g_30d937") || "신규 Member"} {newCount}{t("g_7b3c6e")} <span style={{
           fontSize: '0.7rem',
           opacity: 0.8
         }}>({t('admin_trend_recent_30d') || t("g_29e8c6") || "최근 30일 등록"})</span></span>
@@ -481,7 +481,7 @@ const NewVsReturningBar = memo(({
         color: '#60a5fa',
         fontWeight: '600',
         whiteSpace: 'nowrap'
-      }}>{t('admin_trend_existing_pp') || t("g_737348") || "기존 회원"} {existingCount}{t('명')}</span>
+      }}>{t('admin_trend_existing_pp') || t("g_737348") || "기존 Member"} {existingCount}{t("g_7b3c6e")}</span>
             </div>
         </div>;
 });
@@ -491,7 +491,7 @@ NewVsReturningBar.displayName = 'NewVsReturningBar';
 const formatPeriodLabel = days => {
   if (days <= 14) return `${days}일`;
   if (days < 60) return `${Math.round(days / 7)}주`;
-  return `${Math.round(days / 30)}개월`;
+  return `${Math.round(days / 30)}개`;
 };
 
 // ─── Main Component ───
@@ -499,7 +499,7 @@ const AttendanceTrendChart = memo(({
   selectedDate,
   members = []
 }) => {
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   const {
     config
   } = useStudioConfig();
@@ -515,7 +515,7 @@ const AttendanceTrendChart = memo(({
     setSliderDays(val);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => setPeriodDays(val), 400);
-  }, []);
+  }, [language]);
   const todayStr = new Date().toLocaleDateString('sv-SE', {
     timeZone: 'Asia/Seoul'
   });
@@ -528,7 +528,7 @@ const AttendanceTrendChart = memo(({
       if (m.id) map[m.id] = m;
     });
     return map;
-  }, [members]);
+  }, [members, language]);
 
   // Fetch N days of raw log data (periodDays)
   useEffect(() => {
@@ -563,7 +563,7 @@ const AttendanceTrendChart = memo(({
     return () => {
       isMounted = false;
     };
-  }, [baseDate, periodDays]);
+  }, [baseDate, periodDays, language]);
 
   // ─── Computed Data ───
   const computed = useMemo(() => {
@@ -575,7 +575,7 @@ const AttendanceTrendChart = memo(({
       filteredLogs[dateStr] = branchFilter === 'all' ? logs : logs.filter(l => l.branchId === branchFilter);
     });
     const sortedDates = Object.keys(filteredLogs).sort();
-    const dayNames = [t('admin_trend_day_sun') || t("g_06cf3e") || "일", t('admin_trend_day_mon') || t("g_754486") || "월", t('admin_trend_day_tue') || t("g_adb4a2") || "화", t('admin_trend_day_wed') || t("g_c04eb2") || "수", t('admin_trend_day_thu') || t("g_5664a6") || "목", t('admin_trend_day_fri') || t("g_cf5632") || "금", t('admin_trend_day_sat') || t("g_b9e406") || "토"];
+    const dayNames = [t('admin_trend_day_sun') || t("g_06cf3e") || "Sun", t('admin_trend_day_mon') || t("g_754486") || "month", t('admin_trend_day_tue') || t("g_adb4a2") || "Tue", t('admin_trend_day_wed') || t("g_c04eb2") || "Wed", t('admin_trend_day_thu') || t("g_5664a6") || "Thu", t('admin_trend_day_fri') || t("g_cf5632") || "Fri", t('admin_trend_day_sat') || t("g_b9e406") || "Sat"];
     const thirtyDaysAgo = new Date(baseDate + 'T00:00:00+09:00');
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const thirtyDaysAgoMs = thirtyDaysAgo.getTime();
@@ -641,7 +641,7 @@ const AttendanceTrendChart = memo(({
     // ── 주간 비교 (동일 시점) ──
     const bd = new Date(baseDate + 'T00:00:00+09:00');
     const bdDow = bd.getDay(); // 0=Sunday
-    const mondayOffset = bdDow === 0 ? 6 : bdDow - 1; // 이번 주 월요일부터 오늘까지의 일 수
+    const mondayOffset = bdDow === 0 ? 6 : bdDow - 1; // This week 요일부터 오늘까지의 일 수
 
     let thisWeek = 0;
     let lastWeekSame = 0;
@@ -679,10 +679,10 @@ const AttendanceTrendChart = memo(({
     const instructorCounts = {};
     sortedDates.forEach(dateStr => {
       filteredLogs[dateStr].forEach(log => {
-        const cls = log.className || t('admin_trend_general') || (t("g_aef1a1") || "일반");
-        const inst = log.instructor || t('admin_trend_unassigned') || (t("g_5c1a70") || "미지정");
+        const cls = log.className || t('admin_trend_general') || (t("g_aef1a1") || "General");
+        const inst = log.instructor || t('admin_trend_unassigned') || (t("g_5c1a70") || "Unassigned");
         classCounts[cls] = (classCounts[cls] || 0) + 1;
-        if (inst !== (t('admin_trend_unassigned') || (t("g_5c1a70") || "미지정")) && inst !== (t("g_5c1a70") || "미지정") && inst !== (t('admin_trend_admin') || (t("g_ec873c") || "관리자")) && inst !== (t("g_ec873c") || "관리자")) {
+        if (inst !== (t('admin_trend_unassigned') || (t("g_5c1a70") || "Unassigned")) && inst !== (t("g_5c1a70") || "Unassigned") && inst !== (t('admin_trend_admin') || (t("g_ec873c") || "Admin")) && inst !== (t("g_ec873c") || "Admin")) {
           instructorCounts[inst] = (instructorCounts[inst] || 0) + 1;
         }
       });
@@ -706,7 +706,7 @@ const AttendanceTrendChart = memo(({
       totalNewCount: newMembersSet.size,
       totalExistingCount: existingMembersSet.size
     };
-  }, [rawLogs, baseDate, todayStr, memberMap, branchFilter]);
+  }, [rawLogs, baseDate, todayStr, memberMap, branchFilter, language]);
   if (loading) {
     return <div className="dashboard-card" style={{
       border: '1px solid rgba(var(--primary-rgb), 0.1)',
@@ -918,7 +918,7 @@ const AttendanceTrendChart = memo(({
             borderRadius: '1px',
             borderTop: '2px dashed rgba(255,255,255,0.25)'
           }} />
-                            {t('7일 이동평균')}
+                            {t("g_d5ecf8")}
                         </span>
                         <span style={{
           display: 'flex',
@@ -1000,7 +1000,7 @@ const AttendanceTrendChart = memo(({
         fontSize: '0.85rem',
         color: 'var(--text-secondary)',
         marginBottom: '12px'
-      }}>{t("g_0f8cd8") || "최근"}{formatPeriodLabel(periodDays)}{t("g_21d1e4") || "기준, 요일×시간대별 출석 분포"}{branchFilter !== 'all' ? `(${branches.find(b => b.id === branchFilter)?.name || branchFilter})` : t("g_c52bb4") || "(전체)"}
+      }}>{t("g_0f8cd8") || "Recent"}{formatPeriodLabel(periodDays)}{t("g_21d1e4") || "기준, 요일×시간대별 출석 분포"}{branchFilter !== 'all' ? `(${branches.find(b => b.id === branchFilter)?.name || branchFilter})` : t("g_c52bb4") || "(전체)"}
                     </div>
                     <HeatmapChart data={heatmapData} />
                 </> : <>
@@ -1008,7 +1008,7 @@ const AttendanceTrendChart = memo(({
         fontSize: '0.85rem',
         color: 'var(--text-secondary)',
         marginBottom: '12px'
-      }}>{t("g_0f8cd8") || "최근"}{formatPeriodLabel(periodDays)}{t("g_2e0212") || "기준, 수업/강사별 총 출석 수"}{branchFilter !== 'all' ? `(${branches.find(b => b.id === branchFilter)?.name || branchFilter})` : t("g_c52bb4") || "(전체)"}
+      }}>{t("g_0f8cd8") || "Recent"}{formatPeriodLabel(periodDays)}{t("g_2e0212") || "기준, 수업/강사별 총 출석 수"}{branchFilter !== 'all' ? `(${branches.find(b => b.id === branchFilter)?.name || branchFilter})` : t("g_c52bb4") || "(전체)"}
                     </div>
                     <PopularityRanking classRanking={classRanking} instructorRanking={instructorRanking} />
                 </>}

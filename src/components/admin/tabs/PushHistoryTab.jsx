@@ -11,7 +11,7 @@ const PushHistoryTab = ({
   onApprove,
   onReject
 }) => {
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   const {
     config
   } = useStudioConfig();
@@ -32,12 +32,12 @@ const PushHistoryTab = ({
       setIsLoading(false);
     });
     return () => unsub();
-  }, []);
+  }, [language]);
 
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [statusFilter, dateFilter, searchText]);
+  }, [statusFilter, dateFilter, searchText, language]);
 
   // Filtered data
   const filteredHistory = useMemo(() => {
@@ -62,7 +62,7 @@ const PushHistoryTab = ({
       }
       return true;
     });
-  }, [history, statusFilter, dateFilter, searchText]);
+  }, [history, statusFilter, dateFilter, searchText, language]);
 
   // Pagination
   const totalPages = Math.max(1, Math.ceil(filteredHistory.length / PAGE_SIZE));
@@ -72,7 +72,7 @@ const PushHistoryTab = ({
       textAlign: 'center',
       padding: '100px 0',
       opacity: 0.5
-    }}>{t('로딩 중...')}</div>;
+    }}>{t("g_06057f")}</div>;
   }
   return <div className="dashboard-card shadow-lg" style={{
     background: 'rgba(25,25,25,0.7)',
@@ -91,12 +91,12 @@ const PushHistoryTab = ({
           fontSize: '1.4rem',
           fontWeight: 700,
           margin: 0
-        }}>{t('알림 발송 기록')}</h3>
+        }}>{t("g_eafb3f")}</h3>
                     <p style={{
           margin: '5px 0 0 0',
           opacity: 0.5,
           fontSize: '0.85rem'
-        }}>{t('단체 및 개별 푸시 알림 발송 이력입니다.')}</p>
+        }}>{t("g_a71cf9")}</p>
                 </div>
                 <div style={{
         textAlign: 'right'
@@ -183,10 +183,10 @@ const PushHistoryTab = ({
         background: 'rgba(239,68,68,0.1)',
         color: '#EF4444',
         cursor: 'pointer'
-      }}>{t('날짜 초기화')}</button>}
+      }}>{t("g_49c8f5")}</button>}
 
                 {/* Search */}
-                <input type="text" placeholder={t('회원명/내용 검색...')} value={searchText} onChange={e => setSearchText(e.target.value)} style={{
+                <input type="text" placeholder={t("g_d616cf")} value={searchText} onChange={e => setSearchText(e.target.value)} style={{
         flex: 1,
         minWidth: '120px',
         padding: '5px 12px',
@@ -282,7 +282,7 @@ const PushHistoryTab = ({
                 background: 'transparent',
                 color: '#FFF',
                 cursor: 'pointer'
-              }}>{t('삭제')}</button>
+              }}>{t("g_30e15a")}</button>
                                         <button onClick={() => onApprove(item.id, item.title)} style={{
                 padding: '8px 20px',
                 borderRadius: '8px',
@@ -291,7 +291,7 @@ const PushHistoryTab = ({
                 color: 'var(--text-on-primary)',
                 fontWeight: 'bold',
                 cursor: 'pointer'
-              }}>{t('승인 및 발송')}</button>
+              }}>{t("g_c06268")}</button>
                                     </div>
                                 </div>
                             </div>)}
@@ -300,7 +300,7 @@ const PushHistoryTab = ({
                 <h4 style={{
         margin: '0 0 15px 0',
         opacity: 0.7
-      }}>{t('발송 이력')}</h4>
+      }}>{t("g_849d93")}</h4>
                 {pagedHistory.length === 0 ? <div style={{
         textAlign: 'center',
         padding: '60px 0',
@@ -456,7 +456,7 @@ const PushHistoryTab = ({
           background: currentPage === 1 ? 'transparent' : 'rgba(255,255,255,0.05)',
           color: currentPage === 1 ? '#52525b' : '#fff',
           cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
-        }}><CaretLeft size={14} /> {t('이전')}</button>
+        }}><CaretLeft size={14} /> {t("g_cb1dc9")}</button>
 
                         <span style={{
           fontSize: '0.85rem',
@@ -479,7 +479,7 @@ const PushHistoryTab = ({
           background: currentPage === totalPages ? 'transparent' : 'rgba(255,255,255,0.05)',
           color: currentPage === totalPages ? '#52525b' : '#fff',
           cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
-        }}>{t('다음')} <CaretRight size={14} /></button>
+        }}>{t("g_fe6879")} <CaretRight size={14} /></button>
                     </div>}
             </div>
         </div>;

@@ -12,7 +12,7 @@ import CollapsibleCard from '../CollapsibleCard';
 
 // [i18n] Day names map - shared between MiniCalendar and LogsTab
 const dayNamesMap = {
-  ko: ["일", "월", "화", "수", "목", "금", "토"],
+  ko: ["일", "", "화", "수", "목", "금", "토"],
   en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
   ja: ["日", "月", "火", "水", "木", "金", "土"],
   zh: ["日", "一", "二", "三", "四", "五", "六"],
@@ -39,8 +39,7 @@ const MiniCalendar = memo(({
   });
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
   const startDay = new Date(viewYear, viewMonth, 1).getDay();
-  const language = useLanguageStore(s => s.language);
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   const dayNames = dayNamesMap[language] || dayNamesMap['en'];
   const dates = [];
   for (let i = 0; i < startDay; i++) dates.push(null);
@@ -177,7 +176,7 @@ const MiniCalendar = memo(({
         fontWeight: 'bold',
         fontSize: '0.8rem',
         cursor: 'pointer'
-      }}>{t('오늘로 이동')}</button>
+      }}>{t("g_b3c05f")}</button>
             </div>
         </div>;
 });
@@ -193,7 +192,7 @@ const LogsTab = ({
   onMemberClick,
   summary
 }) => {
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   const {
     config
   } = useStudioConfig();
@@ -227,17 +226,17 @@ const LogsTab = ({
     } finally {
       setLoadingHistorical(false);
     }
-  }, [todayStr]);
+  }, [todayStr, language]);
   useEffect(() => {
     if (!isToday) {
       fetchHistoricalData(selectedDate);
     }
     setSelectedClassKey(null);
     setCurrentLogPage(1);
-  }, [selectedDate, isToday, fetchHistoricalData, setCurrentLogPage]);
+  }, [selectedDate, isToday, fetchHistoricalData, setCurrentLogPage, language]);
   useEffect(() => {
     setCurrentLogPage(1);
-  }, [searchTerm, localBranch, setCurrentLogPage]);
+  }, [searchTerm, localBranch, setCurrentLogPage, language]);
   const [trendData, setTrendData] = useState(null);
   const [loadingTrend, setLoadingTrend] = useState(false);
 
@@ -254,7 +253,7 @@ const LogsTab = ({
       try {
         // 선택된 날짜의 요일을 구합니다 (같은 요일에만 반복 수업이 있으므로)
         const selectedDayObj = new Date(selectedDate + 'T00:00:00+09:00');
-        const selectedDayOfWeek = selectedDayObj.getDay(); // 0=일, 1=월, ...
+        const selectedDayOfWeek = selectedDayObj.getDay(); // 0=일, 1=, ...
 
         // 과거 21일(3주) 중 같은 요일인 날짜만 추출
         const datesToFetch = [];
@@ -280,8 +279,8 @@ const LogsTab = ({
           let count = 0;
           dayLogs.forEach(log => {
             const info = guessClassInfo(log);
-            const cName = info?.className || log.className || t("g_aef1a1") || "일반";
-            const cInst = info?.instructor || log.instructor || t("g_620be2") || "선생님";
+            const cName = info?.className || log.className || t("g_aef1a1") || "General";
+            const cInst = info?.instructor || log.instructor || t("g_620be2") || "Instructor";
 
             // [FIX] 수업명 + 강사명만 매칭 (시간은 무시 — 같은 수업이라도 시간대가 변경될 수 있음)
             if (log.status !== 'denied' && cName === tName && cInst === tInst) {
@@ -296,7 +295,7 @@ const LogsTab = ({
             fullDate: targetDateStr,
             timestamp: dObj.getTime(),
             count: count,
-            dayName: [t("g_06cf3e") || "일", t("g_754486") || "월", t("g_adb4a2") || "화", t("g_c04eb2") || "수", t("g_5664a6") || "목", t("g_cf5632") || "금", t("g_b9e406") || "토"][dayOfWeek]
+            dayName: [t("g_06cf3e") || "Sun", t("g_754486") || "month", t("g_adb4a2") || "Tue", t("g_c04eb2") || "Wed", t("g_5664a6") || "Thu", t("g_cf5632") || "Fri", t("g_b9e406") || "Sat"][dayOfWeek]
           });
         });
 
@@ -315,7 +314,7 @@ const LogsTab = ({
     return () => {
       isMounted = false;
     };
-  }, [selectedClassKey, selectedDate]);
+  }, [selectedClassKey, selectedDate, language]);
 
   // 현재 표시할 로그 결정
   const activeLogs = (() => {
@@ -368,7 +367,7 @@ const LogsTab = ({
       memberAttCountMap: countMap,
       memberSessionRankMap: rankMap
     };
-  }, [activeLogs]);
+  }, [activeLogs, language]);
   const multiAttMemberIds = useMemo(() => Object.entries(memberAttCountMap).filter(([, c]) => c >= 2).map(([id]) => id), [memberAttCountMap]);
   const classCards = (() => {
     if (isToday) return todayClasses;
@@ -376,15 +375,15 @@ const LogsTab = ({
     activeLogs.forEach(log => {
       const info = guessClassInfo(log);
       const classTime = info?.startTime || '00:00';
-      const canonicalClassName = info?.className || log.className || t("g_aef1a1") || "일반";
-      const canonicalInstructor = info?.instructor || log.instructor || t("g_620be2") || "선생님";
-      const key = canonicalClassName === (t("g_dd529d") || "자율수련") ? `${canonicalClassName}-${log.branchId}` : `${canonicalClassName}-${canonicalInstructor}-${log.branchId}-${classTime}`;
+      const canonicalClassName = info?.className || log.className || t("g_aef1a1") || "General";
+      const canonicalInstructor = info?.instructor || log.instructor || t("g_620be2") || "Instructor";
+      const key = canonicalClassName === (t("g_dd529d") || "Self Practice") ? `${canonicalClassName}-${log.branchId}` : `${canonicalClassName}-${canonicalInstructor}-${log.branchId}-${classTime}`;
       if (!groups[key]) {
         groups[key] = {
           className: canonicalClassName,
-          instructor: canonicalClassName === (t("g_dd529d") || "자율수련") ? t("g_dae3ed") || "회원" : canonicalInstructor,
+          instructor: canonicalClassName === (t("g_dd529d") || "Self Practice") ? t("g_dae3ed") || "Member" : canonicalInstructor,
           branchId: log.branchId,
-          classTime: canonicalClassName === (t("g_dd529d") || "자율수련") ? '' : classTime,
+          classTime: canonicalClassName === (t("g_dd529d") || "Self Practice") ? '' : classTime,
           count: 0,
           deniedCount: 0,
           memberNames: []
@@ -392,7 +391,7 @@ const LogsTab = ({
       }
       if (log.status === 'denied') groups[key].deniedCount++;else {
         groups[key].count++;
-        // [FIX] 다회 출석 회원 자동 감지 (DB 필드 불필요)
+        // [FIX] 다회 출석 Member 자동 감지 (DB 필드 불필요)
         if (log.memberName && log.memberId && multiAttMemberIds.includes(log.memberId)) {
           if (!groups[key].memberNames.includes(log.memberName)) {
             groups[key].memberNames.push(log.memberName);
@@ -409,7 +408,7 @@ const LogsTab = ({
     });
   })();
   const handleClassClick = cls => {
-    const key = cls.className === (t("g_dd529d") || "자율수련") ? `${cls.className}-${cls.branchId}` : `${cls.className}-${cls.instructor}-${cls.branchId}-${cls.classTime || 'no-time'}`;
+    const key = cls.className === (t("g_dd529d") || "Self Practice") ? `${cls.className}-${cls.branchId}` : `${cls.className}-${cls.instructor}-${cls.branchId}-${cls.classTime || 'no-time'}`;
     // [UX] Toggle selection: if already selected, deselect (show all)
     setSelectedClassKey(prev => prev === key ? null : key);
     setCurrentLogPage(1);
@@ -433,7 +432,7 @@ const LogsTab = ({
     if (nextStr <= todayStr) setSelectedDate(nextStr);
   };
 
-  // 날짜 포맷: "2월 16일 (일)"
+  // 날짜 포맷: "2 16일 (일)"
   const formatDisplayDate = dateStr => {
     const d = new Date(dateStr + 'T00:00:00+09:00');
     const lang = useLanguageStore.getState().language || 'ko';
@@ -441,7 +440,7 @@ const LogsTab = ({
     const m = d.getMonth() + 1;
     const day = d.getDate();
     const dayName = dNames[d.getDay()];
-    if (lang === 'ko') return `${m}월 ${day}일 (${dayName})`;
+    if (lang === 'ko') return `${m} ${day}일 (${dayName})`;
     if (lang === 'ja') return `${m}月 ${day}日 (${dayName})`;
     if (lang === 'zh') return `${m}月${day}日 (${dayName})`;
     return `${m}/${day} (${dayName})`;
@@ -453,7 +452,7 @@ const LogsTab = ({
     payload,
     label
   }) => {
-    const t = useLanguageStore(s => s.t);
+    const { t, language } = useLanguageStore();
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return <div style={{
@@ -475,7 +474,7 @@ const LogsTab = ({
           fontWeight: 'bold',
           fontSize: '1rem'
         }}>
-                        {t('attendance')}: {payload[0].value}{t('명')}
+                        {t('attendance')}: {payload[0].value}{t("g_7b3c6e")}
                     </div>
                 </div>;
     }
@@ -492,13 +491,13 @@ const LogsTab = ({
                 <button onClick={handlePrevDay} className="nav-btn-circle" style={{
           width: '36px',
           height: '36px'
-        }} aria-label={t('이전 날')}><CaretLeft size={18} weight="bold" /></button>
+        }} aria-label={t("g_db55c1")}><CaretLeft size={18} weight="bold" /></button>
                 <button onClick={() => setShowCalendar(v => !v)} className={`date-nav__btn ${isToday ? 'date-nav__btn--today' : ''}`} style={{
           color: isToday ? undefined : 'var(--text-primary)'
         }}>
                     <CalendarBlank size={18} />
                     {formatDisplayDate(selectedDate)}
-                    {isToday && <span className="date-nav__today-tag">{t('오늘')}</span>}
+                    {isToday && <span className="date-nav__today-tag">{t("g_e1e8a7")}</span>}
                 </button>
                 <button onClick={handleNextDay} disabled={selectedDate >= todayStr} className="nav-btn-circle" style={{
           width: '36px',
@@ -507,7 +506,7 @@ const LogsTab = ({
           cursor: selectedDate >= todayStr ? 'not-allowed' : 'pointer'
         }}><CaretRight size={18} weight="bold" /></button>
 
-                {!isToday && <button onClick={() => setSelectedDate(todayStr)} className="date-nav__jump-today">{t('오늘')}</button>}
+                {!isToday && <button onClick={() => setSelectedDate(todayStr)} className="date-nav__jump-today">{t("g_e1e8a7")}</button>}
 
                 {showCalendar && <MiniCalendar selectedDate={selectedDate} onSelect={handleDateChange} onClose={() => setShowCalendar(false)} config={config} />}
             </div>
@@ -527,7 +526,7 @@ const LogsTab = ({
             fontSize: '0.8rem',
             color: 'var(--text-secondary)',
             marginBottom: '8px'
-          }}>{t('총 출석 완료')}</div>
+          }}>{t("g_807e10")}</div>
                             <div style={{
             display: 'flex',
             alignItems: 'baseline',
@@ -541,7 +540,7 @@ const LogsTab = ({
                                 <span style={{
               fontSize: '0.85rem',
               opacity: 0.6
-            }}>{t('건')}</span>
+            }}>{t("g_230561")}</span>
                             </div>
                         </div>
                         <div className="dashboard-card" style={{
@@ -554,7 +553,7 @@ const LogsTab = ({
             fontSize: '0.8rem',
             color: 'var(--text-secondary)',
             marginBottom: '8px'
-          }}>{t('다회 출석 (열성 회원)')}</div>
+          }}>{t("g_da9172")}</div>
                             <div style={{
             display: 'flex',
             alignItems: 'baseline',
@@ -568,7 +567,7 @@ const LogsTab = ({
                                 <span style={{
               fontSize: '0.85rem',
               opacity: 0.6
-            }}>{t('명')}</span>
+            }}>{t("g_7b3c6e")}</span>
                             </div>
                         </div>
                         {activeLogs.filter(l => l.status === 'denied').length > 0 && <div className="dashboard-card" style={{
@@ -582,7 +581,7 @@ const LogsTab = ({
             color: '#F43F5E',
             marginBottom: '8px',
             fontWeight: 'bold'
-          }}>{t('⚠️ 출석 제한·거부')}</div>
+          }}>{t("g_b5a5db")}</div>
                                 <div style={{
             display: 'flex',
             alignItems: 'baseline',
@@ -596,7 +595,7 @@ const LogsTab = ({
                                     <span style={{
               fontSize: '0.85rem',
               opacity: 0.8
-            }}>{t('건 발생 (조치 필요)')}</span>
+            }}>{t("g_15282d")}</span>
                                 </div>
                             </div>}
                         {classCards.length > 0 && (() => {
@@ -611,7 +610,7 @@ const LogsTab = ({
               fontSize: '0.8rem',
               color: 'var(--text-secondary)',
               marginBottom: '8px'
-            }}>{t('가장 붐비는 수업')}</div>
+            }}>{t("g_d4c3b0")}</div>
                                     <div style={{
               fontSize: '1.1rem',
               fontWeight: '700',
@@ -619,7 +618,7 @@ const LogsTab = ({
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis'
-            }}>{maxClass.className} <span style={{
+            }}>{maxClass.className === 'Self Practice' ? (t('selfPractice') || t('g_dd529d') || '자율수련') : maxClass.className} <span style={{
                 fontSize: '0.8rem',
                 opacity: 0.6
               }}>{maxClass.classTime && `(${maxClass.classTime})`}</span></div>
@@ -627,13 +626,13 @@ const LogsTab = ({
               fontSize: '0.85rem',
               color: 'var(--primary-gold)',
               marginTop: '4px'
-            }}>{maxClass.count}{t('명 참여')}</div>
+            }}>{maxClass.count}{t("g_8ded5e")}</div>
                                 </div> : null;
         })()}
             </div>
 
             {/* ─── Attendance Trend Analytics ─── */}
-            <CollapsibleCard id="logs-trend" title={t('📈 출석 추세 분석')} defaultOpen={false}>
+            <CollapsibleCard id="logs-trend" title={t("g_bcd933")} defaultOpen={false}>
                 <AttendanceTrendChart selectedDate={selectedDate} members={members} />
             </CollapsibleCard>
 
@@ -652,19 +651,19 @@ const LogsTab = ({
           animation: 'spin 0.8s linear infinite',
           margin: '0 auto 12px'
         }} />
-                    {t('출석 데이터를 불러오는 중...')}
+                    {t("g_f2d66b")}
                     <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
                 </div>}
 
             {/* ─── Class Summary Cards ─── */}
-            {!loadingHistorical && classCards.length > 0 && <CollapsibleCard id="logs-class-summary" title={`📊 ${isToday ? t("g_2bdce5") || "오늘" : formatDisplayDate(selectedDate)} ${t('수업별 출석 요약')}`} titleExtra={`${classCards.length}${t('개 수업')}`} defaultOpen={false}>
+            {!loadingHistorical && classCards.length > 0 && <CollapsibleCard id="logs-class-summary" title={`📊 ${isToday ? t("g_2bdce5") || "Today" : formatDisplayDate(selectedDate)} ${t('수업별 출석 요약')}`} titleExtra={`${classCards.length}${t('개 수업')}`} defaultOpen={false}>
                     <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           gap: '12px'
         }}>
                         {classCards.map((cls, idx) => {
-            const key = cls.className === (t("g_dd529d") || "자율수련") ? `${cls.className}-${cls.branchId}` : `${cls.className}-${cls.instructor}-${cls.branchId}-${cls.classTime || 'no-time'}`;
+            const key = cls.className === (t("g_dd529d") || "Self Practice") ? `${cls.className}-${cls.branchId}` : `${cls.className}-${cls.instructor}-${cls.branchId}-${cls.classTime || 'no-time'}`;
             const isSelected = selectedClassKey === key;
             return <React.Fragment key={key}>
                                 <div onClick={() => handleClassClick(cls)} style={{
@@ -699,7 +698,7 @@ const LogsTab = ({
                       fontSize: '0.9rem',
                       fontWeight: 'bold',
                       color: isSelected ? 'var(--primary-gold)' : 'inherit'
-                    }}>{cls.className}</div>
+                    }}>{cls.className === 'Self Practice' ? (t('selfPractice') || t('g_dd529d') || '자율수련') : cls.className}</div>
                                         </div>
                                         <span style={{
                     fontSize: '0.65rem',
@@ -717,7 +716,7 @@ const LogsTab = ({
                   fontSize: '0.75rem',
                   opacity: 0.6,
                   marginBottom: '8px'
-                }}>{cls.instructor}</div>
+                }}>{cls.instructor === 'Member' ? (t('g_dae3ed') || '회원') : cls.instructor}</div>
                                     <div style={{
                   display: 'flex',
                   alignItems: 'flex-end',
@@ -732,7 +731,7 @@ const LogsTab = ({
                                         <span style={{
                     fontSize: '0.8rem',
                     opacity: 0.5
-                  }}>{t('명 참여')}</span>
+                  }}>{t("g_8ded5e")}</span>
                                         {cls.deniedCount > 0 && <span style={{
                     fontSize: '0.7rem',
                     color: '#ff4d4f',
@@ -742,7 +741,7 @@ const LogsTab = ({
                     border: '1px solid rgba(255, 77, 79, 0.2)',
                     fontWeight: 'bold',
                     marginLeft: '6px'
-                  }}>{t("g_2b8b8b") || "⛔ 거부"}{cls.deniedCount}{t("g_5a62fd") || "명"}</span>}
+                  }}>{t("g_2b8b8b") || "⛔ 거부"}{cls.deniedCount}{t("g_5a62fd") || "people"}</span>}
                                     </div>
                                     {/* [NEW] Show multi-attendance member names */}
                                     {cls.memberNames?.length > 0 && <div style={{
@@ -795,7 +794,7 @@ const LogsTab = ({
                   color: 'var(--text-secondary)',
                   fontSize: '0.85rem'
                 }}>
-                                                {t('데이터 분석 중...')}
+                                                {t("g_1a7678")}
                                             </div> : trendData && trendData.length > 0 ? <div style={{
                   width: '100%',
                   height: '160px'
@@ -842,7 +841,7 @@ const LogsTab = ({
                   color: 'var(--text-secondary)',
                   fontSize: '0.8rem'
                 }}>
-                                                {t('최근 3주 내에 동일한 시간대의 수업 기록이 없습니다.')}
+                                                {t("g_d2467f")}
                                             </div>}
                                     </div>}
                                 </React.Fragment>;
@@ -871,12 +870,12 @@ const LogsTab = ({
           fontSize: '0.85rem',
           opacity: 0.6
         }}>
-                        {t('다른 날짜를 선택해보세요.')}
+                        {t("g_229ef8")}
                     </div>
                 </div>}
 
             {/* ─── Activity Log List ─── */}
-            {!loadingHistorical && <CollapsibleCard id="logs-activity" title={isToday ? t('todayActivityLog') : `${formatDisplayDate(selectedDate)} ${t('activityLog')}`} titleExtra={`${activeLogs.length}${t('건')}`} defaultOpen={false}>
+            {!loadingHistorical && <CollapsibleCard id="logs-activity" title={isToday ? t('todayActivityLog') : `${formatDisplayDate(selectedDate)} ${t('activityLog')}`} titleExtra={`${activeLogs.length}${t("g_230561")}`} defaultOpen={false}>
                         <div style={{
           display: 'flex',
           gap: '10px',
@@ -898,12 +897,12 @@ const LogsTab = ({
             gap: '4px',
             whiteSpace: 'nowrap'
           }}>
-                                    <ClockCounterClockwise size={14} /> {t('필터 해제')}
+                                    <ClockCounterClockwise size={14} /> {t("g_17eb09")}
                                 </button>}
                             
                             {/* Branch Filter (다중 지점일 때만 노출) */}
                             {branches.length > 1 && <select value={localBranch} onChange={e => setLocalBranch(e.target.value)} className="filter-select">
-                                    <option value="all">{t('전체 지점')}</option>
+                                    <option value="all">{t("g_9c8d1a")}</option>
                                     {(config.BRANCHES || []).map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                                 </select>}
 
@@ -911,7 +910,7 @@ const LogsTab = ({
                             <div style={{
             position: 'relative'
           }}>
-                                <input type="text" placeholder={t('이름 검색...')} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="filter-input" style={{
+                                <input type="text" placeholder={t("g_98bffa")} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="filter-input" style={{
               paddingRight: '25px'
             }} />
                                 {searchTerm && <button onClick={() => setSearchTerm('')} className="filter-clear-btn">×</button>}
@@ -924,9 +923,9 @@ const LogsTab = ({
             const filteredLogs = (selectedClassKey ? activeLogs.filter(l => {
               const info = guessClassInfo(l);
               const classTime = info?.startTime || '00:00';
-              const canonicalClassName = info?.className || l.className || t("g_aef1a1") || "일반";
-              const canonicalInstructor = info?.instructor || l.instructor || t("g_620be2") || "선생님";
-              const logKey = canonicalClassName === (t("g_dd529d") || "자율수련") ? `${canonicalClassName}-${l.branchId}` : `${canonicalClassName}-${canonicalInstructor}-${l.branchId}-${classTime}`;
+              const canonicalClassName = info?.className || l.className || t("g_aef1a1") || "General";
+              const canonicalInstructor = info?.instructor || l.instructor || t("g_620be2") || "Instructor";
+              const logKey = canonicalClassName === (t("g_dd529d") || "Self Practice") ? `${canonicalClassName}-${l.branchId}` : `${canonicalClassName}-${canonicalInstructor}-${l.branchId}-${classTime}`;
               return logKey === selectedClassKey;
             }) : activeLogs).filter(l => {
               // Apply local filters
@@ -944,7 +943,7 @@ const LogsTab = ({
                 padding: '20px',
                 color: 'var(--text-secondary)',
                 fontSize: '0.9rem'
-              }}>{t('표시할 로그가 없습니다.')}</div>;
+              }}>{t("g_79f7d4")}</div>;
             }
             return <>
                                     {paginatedLogs.map((log, index) => <LogListItem key={log.id || index} log={log} index={index} isToday={isToday} members={members} onMemberClick={onMemberClick} onImageClick={setLightboxImage} getBranchName={getBranchName} getBranchColor={getBranchColor} getBranchThemeColor={getBranchThemeColor} summary={summary} sessionRank={memberSessionRankMap[log.id]} totalSessions={memberAttCountMap[log.memberId]} isMultiAttMember={multiAttMemberIds.includes(log.memberId)} />)}

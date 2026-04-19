@@ -203,6 +203,8 @@ const CheckInInfoSection = memo(({
                         </div>
                     </div>}
 
+                <div style={{ flex: 1, minHeight: '2vh' }} /> {/* Top Spacer for Perfect Centering */}
+                
                 <div className="message-container" style={{
         flex: '0 0 auto',
         background: 'rgba(30, 20, 5, 0.85)',
@@ -307,6 +309,8 @@ const CheckInInfoSection = memo(({
                             </div>}
                     </div>
                 </div>
+                
+                <div style={{ flex: 1, minHeight: '2vh' }} /> {/* Bottom Spacer for Perfect Centering */}
             </div>
 
             {/* QR코드 영역 + small 카메라 */}

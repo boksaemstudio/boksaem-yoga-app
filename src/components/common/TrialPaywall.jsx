@@ -5,7 +5,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { resolveStudioId } from '../../utils/resolveStudioId';
 
 /**
- * TrialPaywall — 2개월 무료 체험 만료 시 어드민 접근 차단
+ * TrialPaywall — 2개 무료 체험 만료 시 어드민 접근 차단
  * registry에서 trial 정보를 확인하고:
  *   - 만료 전: 상단 알림 배너 표시
  *   - 만료 후: 전체 차단 + PayPal 결제 유도
@@ -109,7 +109,7 @@ const TrialPaywall = ({
           lineHeight: '1.6',
           marginBottom: '32px'
         }}>
-                        {trialInfo.name || t("g_2bec30") || "스튜디오"}{t("g_dc947e") || "의 2개월 무료 체험 기간이 만료되었습니다."}<br />{t("g_190abc") || "연간 $69 (약 10만원) 으로 모든 기능을 계속 사용하세요."}</p>
+                        {trialInfo.name || t("g_2bec30") || "스튜디오"}{t("g_dc947e") || "의 2개 무료 체험 기간이 만료되었습니다."}<br />{t("g_190abc") || "연간 $69 (약 10만원) 으로 모든 기능을 계속 사용하세요."}</p>
                     
                     <div style={{
           background: 'rgba(255,255,255,0.08)',

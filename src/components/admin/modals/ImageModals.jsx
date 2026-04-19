@@ -61,7 +61,7 @@ export const TimeTableModal = ({
       maxWidth: '800px'
     }}>
                 <div className="modal-header">
-                    <h2 className="modal-title">{t('시간표 확인 및 관리')}</h2>
+                    <h2 className="modal-title">{t("g_596554")}</h2>
                     <button onClick={onClose}><X size={24} /></button>
                 </div>
                 <div style={{
@@ -95,10 +95,10 @@ export const TimeTableModal = ({
               fontWeight: 'bold',
               cursor: 'pointer'
             }}>
-                                    {t('이미지 변경')}
+                                    {t("g_9da6e0")}
                                 </button>
                             </div>
-                            <img src={getImage(`timetable_${branch.id}`, config.ASSETS?.LOGO?.WIDE)} alt={`${branch.name} 시간표`} style={{
+                            <img src={getImage(`timetable_${branch.id}`, config.ASSETS?.LOGO?.WIDE)} alt={`${branch.name} Schedule`} style={{
             width: '100%',
             borderRadius: '12px'
           }} />
@@ -125,7 +125,7 @@ export const PriceTableModal = ({
       maxWidth: '800px'
     }}>
                 <div className="modal-header">
-                    <h2 className="modal-title">{t('가격표 확인 및 관리')}</h2>
+                    <h2 className="modal-title">{t("g_c0d8d0")}</h2>
                     <button onClick={onClose}><X size={24} /></button>
                 </div>
                 <div style={{
@@ -147,13 +147,13 @@ export const PriceTableModal = ({
           }}>
                             <h3 style={{
               margin: 0
-            }}>{t('가격표 1')}</h3>
+            }}>{t("g_5419d1")}</h3>
                             <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'price_table_1', setOptimisticImages)} style={{
               display: 'none'
             }} id="up-price-1" />
-                            <label htmlFor="up-price-1" className="action-btn sm"><Plus size={16} /> {t('변경')}</label>
+                            <label htmlFor="up-price-1" className="action-btn sm"><Plus size={16} /> {t("g_9be281")}</label>
                         </div>
-                        <img src={getImage('price_table_1', config.ASSETS?.LOGO?.WIDE)} alt={t('가격표 1')} style={{
+                        <img src={getImage('price_table_1', config.ASSETS?.LOGO?.WIDE)} alt={t("g_5419d1")} style={{
             width: '100%',
             borderRadius: '12px'
           }} />
@@ -172,13 +172,13 @@ export const PriceTableModal = ({
           }}>
                             <h3 style={{
               margin: 0
-            }}>{t('가격표 2')}</h3>
+            }}>{t("g_bc719e")}</h3>
                             <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'price_table_2', setOptimisticImages)} style={{
               display: 'none'
             }} id="up-price-2" />
-                            <label htmlFor="up-price-2" className="action-btn sm"><Plus size={16} /> {t('변경')}</label>
+                            <label htmlFor="up-price-2" className="action-btn sm"><Plus size={16} /> {t("g_9be281")}</label>
                         </div>
-                        <img src={getImage('price_table_2', config.ASSETS?.LOGO?.WIDE)} alt={t('가격표 2')} style={{
+                        <img src={getImage('price_table_2', config.ASSETS?.LOGO?.WIDE)} alt={t("g_bc719e")} style={{
             width: '100%',
             borderRadius: '12px'
           }} />

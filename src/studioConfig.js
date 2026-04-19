@@ -1,23 +1,23 @@
-// Yoga Studio Configuration (범용 기본값)
-// 이 파일은 새로운 요가원의 기본 설정 템플릿입니다.
+// Studio Configuration (범용 기본값)
+// 이 파일은 새로운 스튜디오의 기본 설정 템플릿입니다.
 // 실제 운영 데이터는 Firestore(studios/{studioId})에서 실시간으로 로드되어 이 값을 덮어씁니다.
 // → StudioContext.jsx의 deepMerge + auto-seeding 참조
 
 export const STUDIO_CONFIG = {
-  // 1. Identity Module (브랜드 정체성) — 새 요가원 기본값
+  // 1. Identity Module (브랜드 정체성) — 새 스튜디오 기본값
   IDENTITY: {
-    NAME: "\uC694\uAC00 \uC2A4\uD29C\uB514\uC624",
-    NAME_ENGLISH: "Yoga Studio",
-    LOGO_TEXT: "YOGA",
+    NAME: "Studio",
+    NAME_ENGLISH: "Studio",
+    LOGO_TEXT: "STUDIO",
     SLOGAN: "\uB098\uB97C \uB9CC\uB098\uB294 \uACE0\uC694\uD55C \uC2DC\uAC04",
-    DESCRIPTION: "\uC694\uAC00\uC640 \uD568\uAED8\uD558\uB294 \uAC74\uAC15\uD55C \uC77C\uC0C1",
-    APP_VERSION: "2026.04.18 12:31",
+    DESCRIPTION: "\uC2A4\uB9C8\uD2B8 \uCD9C\uC11D\xB7\uC6B4\uC601 \uAE30\uB85D \uC2DC\uC2A4\uD15C",
+    APP_VERSION: "2026.04.18 13:13",
     FAVICON: "/favicon.ico"
   },
   // 2. Operational Policy Engine (운영 정책) — 합리적 기본값
   POLICIES: {
     DORMANT_THRESHOLD_DAYS: 14,
-    // 잠든 회원 기준 (14일 미출석)
+    // 잠든 Member 기준 (14일 미출석)
     EXPIRING_THRESHOLD_DAYS: 7,
     // 만료 임박 알림 기준
     CHECKIN_TIMEOUT_MS: 10000,
@@ -25,7 +25,7 @@ export const STUDIO_CONFIG = {
     SESSION_AUTO_CLOSE_SEC: 25,
     // 중복 확인 모달 자동 닫기
     ALLOW_SELF_HOLD: false,
-    // 회원 자가 홀딩 기능 (기본 OFF)
+    // Member 자가 홀딩 기능 (기본 OFF)
     HOLD_RULES: [{
       durationMonths: 3,
       maxCount: 1,
@@ -49,7 +49,7 @@ export const STUDIO_CONFIG = {
       maxActiveBookings: 3,
       // 동시 예약 한도
       maxDailyBookings: 2,
-      // 하루 최대 예약
+      // Max 최대 예약
       noshowCreditDeduct: 1,
       // 노쇼 시 횟수 차감
       enableWaitlist: true // 대기열 기능
@@ -58,10 +58,10 @@ export const STUDIO_CONFIG = {
       mode: 'total',
       // 'total' | 'weekly'
       weeklyResetDay: 1,
-      // 0=일, 1=월, ..., 6=토
+      // 0=일, 1=, ..., 6=토
       allowCarryOver: false,
-      // 미사용 주간 크레딧 이월 여부
-      weeklyLimitSource: 'plan' // 'plan' = 요금제 기준, 'member' = 회원별 수동
+      // 미사용 주간 크레딧 이 여부
+      weeklyLimitSource: 'plan' // 'plan' = 요금제 기준, 'member' = Member별 수동
     },
     PHOTO_ENABLED: false,
     // 배경 무음 촬영 모드 (기본 OFF)
@@ -130,7 +130,7 @@ export const STUDIO_CONFIG = {
   INSTRUCTORS: [],
   // 10. 소셜 미디어 링크 — 빈 기본값 (관리자 설정에서 추가)
   SOCIAL: {},
-  // 11. 기본 스케줄 템플릿 — 빈 기본값 (관리자가 시간표에서 직접 설정)
+  // 11. 기본 스케줄 템플릿 — 빈 기본값 (관리자가 Schedule에서 직접 설정)
   DEFAULT_SCHEDULE_TEMPLATE: {}
 };
 export const getBranchName = id => {

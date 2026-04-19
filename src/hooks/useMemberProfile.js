@@ -5,6 +5,7 @@ import { tenantDb } from '../utils/tenantDb';
 import { storageService } from '../services/storage';
 import { safeLocalStorage } from '../utils/safeLocalStorage';
 import { getDaysRemaining, getKSTHour, getKSTMonth, getKSTDayNameEN, toKSTDateString } from '../utils/dates';
+import { getLocalizedWeather } from '../utils/weather';
 
 /**
  * useMemberProfile — MemberProfile 페이지의 모든 데이터 로딩/리스너/AI 로직을 관리하는 훅
@@ -96,10 +97,10 @@ export const useMemberProfile = (language, t) => {
           grade,
           score: totalScore,
           weeklyAvg: weeklyAvg.toFixed(1),
-          regularity: stdDev < 2 ? t("g_5fde0b") || "Highly Regular" : stdDev < 4 ? t("g_fa06c1") || "규칙적" : t("g_6ef51b") || "불규칙"
+          regularity: stdDev < 2 ? t("g_5fde0b") || "Highly Regular" : stdDev < 4 ? t("g_fa06c1") || "Regular" : t("g_6ef51b") || "Irregular"
         };
       }
-      const exp = await storageService.getAIExperience(m.name, m.attendanceCount || validAttendance.length, day, hour, null, wData ? `${t('weather_' + wData.key)} (${wData.temp}°C)` : 'Sunny', m.credits || 0, getDaysRemaining(m.endDate), language, {
+      const exp = await storageService.getAIExperience(m.name, m.attendanceCount || validAttendance.length, day, hour, null, wData ? `${t('weather_' + wData.key)} (${wData.temp}${wData.unit})` : 'Sunny', m.credits || 0, getDaysRemaining(m.endDate), language, {
         streak,
         lastAttendanceAt: lastAtt,
         diligence: diligenceGrade
@@ -123,26 +124,13 @@ export const useMemberProfile = (language, t) => {
   // ─── Weather ───
   const fetchWeather = useCallback(async () => {
     try {
-      const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.9780&current_weather=true');
-      const data = await res.json();
-      const weatherCode = data.current_weather.weathercode;
-      let weatherKey = 'clear';
-      if (weatherCode >= 1 && weatherCode <= 3) weatherKey = 'partly_cloudy';
-      if (weatherCode > 3) weatherKey = 'cloudy';
-      if (weatherCode >= 45 && weatherCode <= 48) weatherKey = 'fog';
-      if (weatherCode >= 51 && weatherCode <= 67) weatherKey = 'rain';
-      if (weatherCode >= 71 && weatherCode <= 77) weatherKey = 'snow';
-      if (weatherCode >= 95) weatherKey = 'thunderstorm';
-      const wData = {
-        key: weatherKey,
-        temp: data.current_weather.temperature
-      };
+      const wData = await getLocalizedWeather(language);
       setWeatherData(wData);
       return wData;
     } catch {
       return null;
     }
-  }, []);
+  }, [language]);
 
   // ─── Main Data Loader ───
   const loadMemberData = useCallback(async memberId => {
@@ -336,7 +324,7 @@ export const useMemberProfile = (language, t) => {
         }
       }
     } else if (isDemoSite) {
-      // [DEMO] 데모 사이트: 로그인 없이 첫 번째 회원으로 자동 로그인
+      // [DEMO] 데모 사이트: 로그인 없이 첫 번째 Member으로 자동 로그인
       import('firebase/auth').then(({
         signInAnonymously
       }) => {

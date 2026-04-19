@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLanguageStore } from '../../../stores/useLanguageStore';
 import { storageService } from '../../../services/storage';
+import { formatPhoneNumber } from '../../../utils/formatters';
 import { Trash, ArrowCounterClockwise, ClockCounterClockwise, CurrencyKrw, Users, Spinner } from '@phosphor-icons/react';
 const TrashTab = () => {
   const t = useLanguageStore(s => s.t);
+  const language = useLanguageStore(s => s.language);
   const [deletedSales, setDeletedSales] = useState([]);
   const [deletedAttendance, setDeletedAttendance] = useState([]);
   const [deletedMembers, setDeletedMembers] = useState([]);
@@ -123,7 +125,7 @@ const TrashTab = () => {
                 <Spinner size={24} className="spin" style={{
         marginRight: '8px'
       }} />
-                {t('삭제된 항목 불러오는 중...')}
+                {t("g_2afd64")}
             </div>;
   }
   return <div style={{
@@ -166,7 +168,7 @@ const TrashTab = () => {
                     <ArrowCounterClockwise size={14} style={{
           marginRight: '4px'
         }} />
-                    {t('새로고침')}
+                    {t("g_423c41")}
                 </button>
             </div>
 
@@ -227,12 +229,12 @@ const TrashTab = () => {
         color: 'var(--text-secondary)',
         fontSize: '0.95rem',
         margin: 0
-      }}>{t('삭제된 항목이 없습니다')}</p>
+      }}>{t("g_f19952")}</p>
                     <p style={{
         color: 'var(--text-muted)',
         fontSize: '0.8rem',
         marginTop: '8px'
-      }}>{t('회원, 출석 또는 매출을 삭제하면 이곳에 보관됩니다')}</p>
+      }}>{t("g_4f3a5c")}</p>
                 </div>}
 
             {/* Deleted Members */}
@@ -285,7 +287,7 @@ const TrashTab = () => {
                 padding: '2px 6px',
                 borderRadius: '4px'
               }}>
-                                                {member.phone}
+                                                {formatPhoneNumber(member.phone, language)}
                                             </span>}
                                         {member.membershipType && <span style={{
                 fontSize: '0.7rem',
@@ -345,7 +347,7 @@ const TrashTab = () => {
               e.currentTarget.style.color = 'var(--text-muted)';
               e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
             }}>
-                                        {t('완전 삭제')}
+                                        {t("g_873c32")}
                                     </button>
                                 </div>
                             </div>)}
@@ -457,7 +459,7 @@ const TrashTab = () => {
               e.currentTarget.style.color = 'var(--text-muted)';
               e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
             }}>
-                                        {t('완전 삭제')}
+                                        {t("g_873c32")}
                                     </button>
                                 </div>
                             </div>)}
@@ -572,7 +574,7 @@ const TrashTab = () => {
               e.currentTarget.style.color = 'var(--text-muted)';
               e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
             }}>
-                                        {t('완전 삭제')}
+                                        {t("g_873c32")}
                                     </button>
                                 </div>
                             </div>)}

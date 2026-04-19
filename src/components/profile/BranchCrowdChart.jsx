@@ -159,7 +159,7 @@ const BranchCrowdChart = memo(() => {
 
       // Find best (least crowded) times with at least some traffic
       const rankings = [];
-      const dayLabels = [t('member_crowd_day_sun') || t("g_06cf3e") || "일", t('member_crowd_day_mon') || t("g_754486") || "월", t('member_crowd_day_tue') || t("g_adb4a2") || "화", t('member_crowd_day_wed') || t("g_c04eb2") || "수", t('member_crowd_day_thu') || t("g_5664a6") || "목", t('member_crowd_day_fri') || t("g_cf5632") || "금", t('member_crowd_day_sat') || t("g_b9e406") || "토"];
+      const dayLabels = [t('member_crowd_day_sun') || t("g_06cf3e") || "Sun", t('member_crowd_day_mon') || t("g_754486") || "month", t('member_crowd_day_tue') || t("g_adb4a2") || "Tue", t('member_crowd_day_wed') || t("g_c04eb2") || "Wed", t('member_crowd_day_thu') || t("g_5664a6") || "Thu", t('member_crowd_day_fri') || t("g_cf5632") || "Fri", t('member_crowd_day_sat') || t("g_b9e406") || "Sat"];
       const hourLabels = {
         '06': t('member_crowd_hour_range', {
           start: '6',
@@ -246,7 +246,7 @@ const BranchCrowdChart = memo(() => {
   if (!computed) return null;
   const branchData = computed[activeBranch];
   if (!branchData) return null;
-  const dayLabels = [t('member_crowd_day_mon') || t("g_754486") || "월", t('member_crowd_day_tue') || t("g_adb4a2") || "화", t('member_crowd_day_wed') || t("g_c04eb2") || "수", t('member_crowd_day_thu') || t("g_5664a6") || "목", t('member_crowd_day_fri') || t("g_cf5632") || "금", t('member_crowd_day_sat') || t("g_b9e406") || "토", t('member_crowd_day_sun') || t("g_06cf3e") || "일"];
+  const dayLabels = [t('member_crowd_day_mon') || t("g_754486") || "month", t('member_crowd_day_tue') || t("g_adb4a2") || "Tue", t('member_crowd_day_wed') || t("g_c04eb2") || "Wed", t('member_crowd_day_thu') || t("g_5664a6") || "Thu", t('member_crowd_day_fri') || t("g_cf5632") || "Fri", t('member_crowd_day_sat') || t("g_b9e406") || "Sat", t('member_crowd_day_sun') || t("g_06cf3e") || "Sun"];
   const dayIndices = [1, 2, 3, 4, 5, 6, 0];
   const hourBuckets = ['06', '08', '10', '12', '14', '16', '18', '20'];
   const hourLabels = [t('member_crowd_hour_label', {

@@ -34,15 +34,15 @@ export const getMemberBookingHistory = async (memberId: string): Promise<Booking
 // ── Validation ──
 export const validateBooking = async (memberId: string, date: string, classIndex: number, branchId: string, config: StudioConfig): Promise<{ ok: boolean; reason?: string }> => {
     const rules = getBookingRules(config); const now = new Date();
-    if (!config?.POLICIES?.ALLOW_BOOKING) return { ok: false, reason: '예약 기능이 비활성화되어 있습니다' };
+    if (!config?.POLICIES?.ALLOW_BOOKING) return { ok: false, reason: 'Booking is disabled' };
     const classDate = new Date(date); const diffDays = Math.ceil((classDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    if (diffDays > rules.windowDays) return { ok: false, reason: `예약은 ${rules.windowDays}일 전부터 가능합니다` };
-    if (diffDays < 0) return { ok: false, reason: '지난 수업은 예약할 수 없습니다' };
+    if (diffDays > rules.windowDays) return { ok: false, reason: `Bookings open ${rules.windowDays} days before` };
+    if (diffDays < 0) return { ok: false, reason: 'Cannot book past classes' };
     const activeBookings = await getActiveBookings(memberId);
-    if (activeBookings.length >= rules.maxActiveBookings) return { ok: false, reason: `동시에 ${rules.maxActiveBookings}건까지만 예약 가능합니다` };
-    if (activeBookings.filter(b => b.date === date).length >= rules.maxDailyBookings) return { ok: false, reason: `하루 ${rules.maxDailyBookings}건까지만 예약 가능합니다` };
+    if (activeBookings.length >= rules.maxActiveBookings) return { ok: false, reason: `Max ${rules.maxActiveBookings} bookings allowed` };
+    if (activeBookings.filter(b => b.date === date).length >= rules.maxDailyBookings) return { ok: false, reason: `Max ${rules.maxDailyBookings} bookings allowed` };
     const existing = await getBooking(date, classIndex, memberId);
-    if (existing && existing.status !== 'cancelled') return { ok: false, reason: '이미 이 수업에 예약되어 있습니다' };
+    if (existing && existing.status !== 'cancelled') return { ok: false, reason: 'Already booked for this class' };
 
     // [SaaS] Weekly credit limit check for bookings
     const creditRules = config?.POLICIES?.CREDIT_RULES as { mode?: string; weeklyResetDay?: number } | undefined;
@@ -65,7 +65,7 @@ export const validateBooking = async (memberId: string, date: string, classIndex
             const weekAttCount = weekAttSnap.docs.filter(d => (d.data() as Record<string, unknown>).status === 'valid').length;
             const totalWeekUsage = weekBookings.length + weekAttCount;
             if (totalWeekUsage >= sessionsPerWeek) {
-                return { ok: false, reason: `이번 주 ${sessionsPerWeek}회 수강 제한을 초과합니다` };
+                return { ok: false, reason: `This week ${sessionsPerWeek} sessions exceeded` };
             }
         }
     }
@@ -78,11 +78,11 @@ export const createBooking = async (memberId: string, memberName: string, date: 
     const rules = getBookingRules(config); const capacity = getClassCapacity(classInfo, branchId, config);
     const currentBookings = await getClassBookings(date, classIndex, branchId); const confirmedCount = currentBookings.filter(b => b.status === 'booked').length;
     let status = 'booked'; let waitlistPosition: number | null = null;
-    if (confirmedCount >= capacity) { if (!rules.enableWaitlist) return { ok: false, reason: '정원이 찼습니다' }; status = 'waitlisted'; waitlistPosition = currentBookings.filter(b => b.status === 'waitlisted').length + 1; }
+    if (confirmedCount >= capacity) { if (!rules.enableWaitlist) return { ok: false, reason: 'Class is full' }; status = 'waitlisted'; waitlistPosition = currentBookings.filter(b => b.status === 'waitlisted').length + 1; }
     const bookingId = `${date}_${classIndex}_${memberId}`;
     const bookingData: BookingData = { id: bookingId, memberId, memberName, date, classIndex, className: classInfo?.name || '', classTime: classInfo?.time || '', instructor: classInfo?.instructor || '', branchId: branchId || '', status, waitlistPosition };
     await setDoc(tenantDb.doc('bookings', bookingId), { ...bookingData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-    return { ok: true, booking: bookingData, message: status === 'waitlisted' ? `대기 ${waitlistPosition}번째로 등록되었습니다` : '예약이 완료되었습니다' };
+    return { ok: true, booking: bookingData, message: status === 'waitlisted' ? `Waitlisted at position ${waitlistPosition}` : 'Booking confirmed' };
 };
 
 const promoteWaitlist = async (date: string, classIndex: number, branchId: string): Promise<BookingData | null> => {
@@ -95,21 +95,21 @@ const promoteWaitlist = async (date: string, classIndex: number, branchId: strin
 
 export const cancelBooking = async (date: string, classIndex: number, memberId: string, branchId: string, config: StudioConfig): Promise<BookingResult> => {
     try { const rules = getBookingRules(config); const bookingRef = tenantDb.doc('bookings', `${date}_${classIndex}_${memberId}`); const snap = await getDoc(bookingRef);
-    if (!snap.exists()) return { ok: false, reason: '예약을 찾을 수 없습니다' }; const booking = snap.data() as BookingData;
-    if (booking.status === 'cancelled') return { ok: false, reason: '이미 취소된 예약입니다' };
+    if (!snap.exists()) return { ok: false, reason: 'Booking not found' }; const booking = snap.data() as BookingData;
+    if (booking.status === 'cancelled') return { ok: false, reason: 'Already cancelled' };
     await setDoc(bookingRef, { status: 'cancelled', cancelledAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
     if (booking.status === 'booked' && rules.enableWaitlist) await promoteWaitlist(date, classIndex, branchId);
-    return { ok: true, message: '예약이 취소되었습니다' }; } catch (error) { console.error('[bookingService] cancelBooking error:', error); return { ok: false, reason: '예약 취소 중 에러가 발생했습니다.' }; }
+    return { ok: true, message: 'Booking cancelled' }; } catch (error) { console.error('[bookingService] cancelBooking error:', error); return { ok: false, reason: 'Error cancelling booking.' }; }
 };
 
 export const markAttendance = async (date: string, classIndex: number, memberId: string): Promise<BookingResult> => {
     try { await setDoc(tenantDb.doc('bookings', `${date}_${classIndex}_${memberId}`), { status: 'attended', attendedAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true }); return { ok: true }; }
-    catch (error) { console.error('[bookingService] markAttendance error:', error); return { ok: false, reason: '출석 처리 중 에러가 발생했습니다.' }; }
+    catch (error) { console.error('[bookingService] markAttendance error:', error); return { ok: false, reason: 'Error processing attendance.' }; }
 };
 
 export const markNoshow = async (date: string, classIndex: number, memberId: string, config: StudioConfig): Promise<BookingResult> => {
     try { const rules = getBookingRules(config); await setDoc(tenantDb.doc('bookings', `${date}_${classIndex}_${memberId}`), { status: 'noshow', noshowAt: serverTimestamp(), creditDeducted: rules.noshowCreditDeduct, updatedAt: serverTimestamp() }, { merge: true }); return { ok: true, creditDeducted: rules.noshowCreditDeduct }; }
-    catch (error) { console.error('[bookingService] markNoshow error:', error); return { ok: false, reason: '노쇼 처리 중 에러가 발생했습니다.' }; }
+    catch (error) { console.error('[bookingService] markNoshow error:', error); return { ok: false, reason: 'Error processing no-show.' }; }
 };
 
 // ── Subscriptions ──

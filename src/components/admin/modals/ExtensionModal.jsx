@@ -40,7 +40,7 @@ const ExtensionModal = ({
       borderRadius: 'min(24px, 5vw)'
     }}>
                 <div className="modal-header">
-                    <h2 className="modal-title">{t('수강권 연장(재등록)')}</h2>
+                    <h2 className="modal-title">{t("g_9d720a")}</h2>
                     <button onClick={onClose} style={{
           color: 'white',
           display: 'flex',
@@ -69,7 +69,7 @@ const ExtensionModal = ({
                 </div>
 
                 <div className="form-group">
-                    <label className="form-label">{t('연장 기간')}</label>
+                    <label className="form-label">{t("g_0cdbe9")}</label>
                     <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr 1fr',
@@ -83,7 +83,7 @@ const ExtensionModal = ({
                 </div>
 
                 <div className="form-group">
-                    <label className="form-label">{t('결제 방식')}</label>
+                    <label className="form-label">{t("g_41f75e")}</label>
                     <div style={{
           display: 'flex',
           gap: '10px'
@@ -101,7 +101,7 @@ const ExtensionModal = ({
                     <button onClick={onClose} style={{
           padding: '10px 20px',
           color: 'var(--text-secondary)'
-        }}>{t('취소')}</button>
+        }}>{t("g_d9de21")}</button>
                     <button onClick={handleExtendMember} className="action-btn primary" disabled={isSubmitting}>
                         {isSubmitting ? t("g_a8d064") || "\uCC98\uB9AC \uC911..." : t("g_8e70d0") || "\uC5F0\uC7A5\uD558\uAE30"}
                     </button>

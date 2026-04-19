@@ -5,6 +5,7 @@ import { CaretLeft, CaretRight } from '@phosphor-icons/react';
 import CollapsibleCard from './admin/CollapsibleCard';
 import { useRevenueStats } from '../hooks/useRevenueStats';
 import { useStudioConfig } from '../contexts/StudioContext';
+import { formatCurrency as globalFormatCurrency } from '../utils/formatters';
 const AdminRevenue = ({
   members,
   sales,
@@ -12,6 +13,7 @@ const AdminRevenue = ({
   revenueStats
 }) => {
   const t = useLanguageStore(s => s.t);
+  const language = useLanguageStore(s => s.language) || 'ko';
   const {
     config
   } = useStudioConfig();
@@ -26,7 +28,7 @@ const AdminRevenue = ({
     monthlyTrend,
     membershipSales
   } = useRevenueStats(sales, members, currentDate, currentBranch, revenueStats);
-  const formatCurrency = val => new Intl.NumberFormat('ko-KR').format(val);
+  const formatCurrency = val => globalFormatCurrency(val, language);
   return <div className="revenue-container fade-in" style={{
     display: 'flex',
     flexDirection: 'column',
@@ -52,18 +54,18 @@ const AdminRevenue = ({
           fontSize: '1.8rem',
           fontWeight: 700
         }}>
-                        {currentDate.getFullYear()}{t("g_cdb423") || "년"}{currentDate.getMonth() + 1}{t("g_754486") || "월"}</h2>
+                        {new Intl.DateTimeFormat(language === 'ko' ? 'ko-KR' : language === 'ja' ? 'ja-JP' : language === 'zh' ? 'zh-CN' : 'en-US', { year: 'numeric', month: 'long' }).format(currentDate)}</h2>
                     <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))} className="nav-btn">
                         <CaretRight size={20} />
                     </button>
                 </div>
                 <div className="branch-badge">
-                    {currentBranch === 'all' ? t("g_7d8f1b") || "전체 지점" : getBranchName(currentBranch)}
+                    {currentBranch === 'all' ? t("g_7d8f1b") || "All Branches" : getBranchName(currentBranch)}
                 </div>
             </div>
 
             {/* Total Month Summary */}
-            <CollapsibleCard id="revenue-summary" title={`${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월 총 매출 요약`} titleExtra={`${formatCurrency(monthlyStats.totalRevenue)}원`} defaultOpen={true}>
+            <CollapsibleCard id="revenue-summary" title={`${new Intl.DateTimeFormat(language === 'ko' ? 'ko-KR' : 'en-US', { year: 'numeric', month: 'long' }).format(currentDate)} ${t("g_revenue_summary") || 'Revenue Summary'}`} titleExtra={formatCurrency(monthlyStats.totalRevenue)} defaultOpen={true}>
                 <div className="dashboard-card revenue-summary-card" style={{
         marginTop: '0',
         overflow: 'hidden',
@@ -86,8 +88,8 @@ const AdminRevenue = ({
               whiteSpace: 'normal',
               lineHeight: '1.2'
             }}>
-                                    {formatCurrency(monthlyStats.totalRevenue)}{t("g_21ba07") || "원"}</div>
-                                <div className="revenue-summary-details">{t("g_5860d4") || "(신규:"}<span className="revenue-new">{formatCurrency(monthlyStats.totalRevenueNew)}{t("g_21ba07") || "원"}</span>{t("g_7c492c") || "/ \n                                     재등록:"}<span className="revenue-rereg">{formatCurrency(monthlyStats.totalRevenueReReg)}{t("g_21ba07") || "원"}</span>)
+                                    {formatCurrency(monthlyStats.totalRevenue)}</div>
+                                <div className="revenue-summary-details">({t("g_884009") || "New"}: <span className="revenue-new">{formatCurrency(monthlyStats.totalRevenueNew)}</span> / {t("g_fc669b") || "Renewal"}: <span className="revenue-rereg">{formatCurrency(monthlyStats.totalRevenueReReg)}</span>)
                                 </div>
                             </div>
                             <div style={{
@@ -131,7 +133,7 @@ const AdminRevenue = ({
                 fontSize: '1.4rem',
                 color: 'var(--primary-theme-color)'
               }}>
-                                        {formatCurrency(comparativeStats.today)}{t("g_21ba07") || "원"}</div>
+                                        {formatCurrency(comparativeStats.today)}</div>
                                 </div>
                                 <div>
                                     <div className="revenue-count-title" style={{
@@ -165,7 +167,7 @@ const AdminRevenue = ({
                                                 <strong>{t("g_14f230") || "총 결제 건수"}</strong><br />{t("g_f5f17c") || "이번 달 발생한 승인 완료된 결제의 총 횟수입니다."}</div>
                                         </div>
                                     </div>
-                                    <div className="revenue-count">{monthlyStats.totalCount}{t("g_d202b4") || "건"}</div>
+                                    <div className="revenue-count">{monthlyStats.totalCount} {t("g_d202b4") || "cases"}</div>
                                 </div>
                             </div>
                         </div>
@@ -178,7 +180,7 @@ const AdminRevenue = ({
             </CollapsibleCard>
 
             {/* Monthly Bar Chart */}
-            <CollapsibleCard id="revenue-monthly" title={t("g_04835a") || "📊 월별 매출 추이 (최근 6개월)"} defaultOpen={true}>
+            <CollapsibleCard id="revenue-monthly" title={t("g_04835a") || "📊 별 매출 추이 (최근 6개)"} defaultOpen={true}>
                 <div style={{
         height: '360px',
         display: 'flex',
@@ -218,7 +220,7 @@ const AdminRevenue = ({
                                 <YAxis stroke="#71717a" tick={{
                 fill: '#71717a',
                 fontSize: 12
-              }} tickFormatter={value => value === 0 ? '0' : `${(value / 10000).toLocaleString()}만`} axisLine={false} tickLine={false} width={60} />
+              }} tickFormatter={value => value === 0 ? '0' : language === 'ko' ? `${(value / 10000).toLocaleString()}만` : value >= 1000000 ? `${(value / 1000000).toFixed(1)}M` : value >= 1000 ? `${(value / 1000).toFixed(0)}K` : value.toString()} axisLine={false} tickLine={false} width={60} />
                                 <Tooltip cursor={{
                 fill: 'rgba(255,255,255,0.05)'
               }} wrapperStyle={{
@@ -235,7 +237,7 @@ const AdminRevenue = ({
                 padding: '8px 10px',
                 fontSize: '0.75rem',
                 whiteSpace: 'nowrap'
-              }} formatter={(value, name) => [`${new Intl.NumberFormat('ko-KR').format(value)}원`, name === 'amount' || name === 'partialAmount' ? name === 'amount' ? t("g_b982a3") || "월 전체" : `${currentDate.getDate()}일까지` : name]} itemStyle={{
+              }} formatter={(value, name) => [formatCurrency(value), name === 'amount' || name === 'partialAmount' ? name === 'amount' ? t("g_b982a3") || "Total" : t("g_partial_month") || "To date" : name]} itemStyle={{
                 color: 'var(--primary-theme-color)',
                 fontSize: '0.75rem'
               }} labelStyle={{
@@ -248,8 +250,8 @@ const AdminRevenue = ({
                 color: '#a1a1aa',
                 paddingTop: '10px'
               }} formatter={value => {
-                if (value === 'amount') return t("g_a4b541") || "월 전체 매출";
-                if (value === 'partialAmount') return `${currentDate.getDate()}일까지 매출`;
+                if (value === 'amount') return t("g_a4b541") || "Total Revenue";
+                if (value === 'partialAmount') return t("g_partial_revenue") || "Revenue to date";
                 return value;
               }} />
                                 
@@ -272,7 +274,7 @@ const AdminRevenue = ({
             </CollapsibleCard>
 
             {/* Membership Type Sales */}
-            {membershipSales && membershipSales.length > 0 && <CollapsibleCard id="revenue-membership" title={t("g_0a8b86") || "🏷️ 회원권별 판매 현황"} titleExtra={`${membershipSales.length}종`} defaultOpen={true}>
+            {membershipSales && membershipSales.length > 0 && <CollapsibleCard id="revenue-membership" title={t("g_0a8b86") || "🏷️ Member권별 판매 현황"} titleExtra={`${membershipSales.length}종`} defaultOpen={true}>
                     <div style={{
         display: 'flex',
         flexDirection: 'column',
@@ -311,11 +313,11 @@ const AdminRevenue = ({
                                             <strong style={{
                   color: 'var(--primary-theme-color)',
                   fontSize: '1rem'
-                }}>{ms.count}</strong>{t("g_d202b4") || "건"}<span style={{
+                }}>{ms.count}</strong> {t("g_d202b4") || "cases"}<span style={{
                   margin: '0 6px',
                   opacity: 0.3
                 }}>|</span>
-                                            {formatCurrency(ms.revenue)}{t("g_21ba07") || "원"}</span>
+                                            {formatCurrency(ms.revenue)}</span>
                                     </div>
                                     <div style={{
               position: 'relative',
@@ -358,8 +360,8 @@ const AdminRevenue = ({
               }}>
                                             {ms.newCount > 0 && <span style={{
                   marginRight: '8px'
-                }}>{t("g_884009") || "신규"}{ms.newCount}</span>}
-                                            {ms.reregCount > 0 && <span>{t("g_fc669b") || "재등록"}{ms.reregCount}</span>}
+                }}>{t("g_884009") || "New"}{ms.newCount}</span>}
+                                            {ms.reregCount > 0 && <span>{t("g_fc669b") || "Renewal"}{ms.reregCount}</span>}
                                         </div>
                                     </div>
                                 </div>;
@@ -383,7 +385,7 @@ const AdminRevenue = ({
             height: '12px',
             borderRadius: '3px',
             background: '#4ade80'
-          }} />{t("g_884009") || "신규"}</div>
+          }} />{t("g_884009") || "New"}</div>
                         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -397,12 +399,12 @@ const AdminRevenue = ({
             borderRadius: '3px',
             background: 'var(--primary-theme-color)',
             opacity: 0.7
-          }} />{t("g_fc669b") || "재등록"}</div>
+          }} />{t("g_fc669b") || "Renewal"}</div>
                     </div>
                 </CollapsibleCard>}
 
             {/* Calendar View */}
-            <CollapsibleCard id="revenue-calendar" title={`📅 ${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월 정산 달력`} defaultOpen={true}>
+            <CollapsibleCard id="revenue-calendar" title={`📅 ${new Intl.DateTimeFormat(language === 'ko' ? 'ko-KR' : 'en-US', { year: 'numeric', month: 'long' }).format(currentDate)} ${t("g_settlement_calendar") || 'Settlement Calendar'}`} defaultOpen={true}>
                 <div style={{
         overflowX: 'auto',
         WebkitOverflowScrolling: 'touch',
@@ -414,7 +416,7 @@ const AdminRevenue = ({
           minWidth: '600px'
         }}>
                     {/* Header */}
-                    {[t("g_06cf3e") || "일", t("g_754486") || "월", t("g_adb4a2") || "화", t("g_c04eb2") || "수", t("g_5664a6") || "목", t("g_cf5632") || "금", t("g_b9e406") || "토"].map((dayName, index) => <div key={`header-${index}`} className={`calendar-header-cell ${index === 0 ? 'sun' : index === 6 ? 'sat' : ''}`}>
+                    {[t("g_06cf3e") || "Sun", t("g_754486") || "month", t("g_adb4a2") || "Tue", t("g_c04eb2") || "Wed", t("g_5664a6") || "Thu", t("g_cf5632") || "Fri", t("g_b9e406") || "Sat"].map((dayName, index) => <div key={`header-${index}`} className={`calendar-header-cell ${index === 0 ? 'sun' : index === 6 ? 'sat' : ''}`}>
                             {dayName}
                         </div>)}
 
@@ -473,12 +475,13 @@ const CompCard = ({
   amount
 }) => {
   const t = useLanguageStore(s => s.t);
+  const language = useLanguageStore(s => s.language) || 'ko';
   return <div className="dashboard-card" style={{
     padding: '15px'
   }}>
     <div className="comp-card-title">{title}</div>
     <div className={`comp-card-amount ${amount > 0 ? 'positive' : ''}`}>
-      {new Intl.NumberFormat('ko-KR').format(amount)}{t("g_21ba07") || "원"}</div>
+      {globalFormatCurrency(amount, language)}</div>
   </div>;
 };
 const StraightLineChart = ({
@@ -487,6 +490,7 @@ const StraightLineChart = ({
   showBranches
 }) => {
   const t = useLanguageStore(s => s.t);
+  const language = useLanguageStore(s => s.language) || 'ko';
   // Keep data order as is (earliest to latest) so the latest date is on the right
   // Transform data to flatten branch keys
   const chartData = data.map(d => {
@@ -524,7 +528,7 @@ const StraightLineChart = ({
                     <YAxis stroke="#71717a" tick={{
           fill: '#71717a',
           fontSize: 11
-        }} tickFormatter={val => val === 0 ? '0' : `${(val / 10000).toLocaleString()}만`} axisLine={false} tickLine={false} domain={[0, yMax]} />
+        }} tickFormatter={val => val === 0 ? '0' : language === 'ko' ? `${(val / 10000).toLocaleString()}만` : val >= 1000000 ? `${(val / 1000000).toFixed(1)}M` : val >= 1000 ? `${(val / 1000).toFixed(0)}K` : val.toString()} axisLine={false} tickLine={false} domain={[0, yMax]} />
                     <Tooltip wrapperStyle={{
           maxWidth: '160px',
           fontSize: '0.72rem',
@@ -542,7 +546,7 @@ const StraightLineChart = ({
         }} itemStyle={{
           color: 'var(--primary-theme-color)',
           fontSize: '0.72rem'
-        }} formatter={(value, name) => [`${new Intl.NumberFormat('ko-KR').format(value)}원`, name === 'amount' ? t("g_467a35") || "총합" : name]} labelStyle={{
+        }} formatter={(value, name) => [globalFormatCurrency(value, language), name === 'amount' ? t("g_467a35") || "Total" : name]} labelStyle={{
           color: '#a1a1aa',
           marginBottom: '2px',
           fontSize: '0.65rem'

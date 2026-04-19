@@ -131,10 +131,10 @@ export const getDaysRemaining = (endDate: string | null | undefined): number | n
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
 
-type KoreanDayName = '일' | '월' | '화' | '수' | '목' | '금' | '토';
+type KoreanDayName = '일' | '' | '화' | '수' | '목' | '금' | '토';
 
-const DAY_NAMES: KoreanDayName[] = ['일', '월', '화', '수', '목', '금', '토'];
-const DAY_MAP: Record<string, number> = { '일': 0, '월': 1, '화': 2, '수': 3, '목': 4, '금': 5, '토': 6 };
+const DAY_NAMES: KoreanDayName[] = ['일', '', '화', '수', '목', '금', '토'];
+const DAY_MAP: Record<string, number> = { '일': 0, '': 1, '화': 2, '수': 3, '목': 4, '금': 5, '토': 6 };
 
 /**
  * 요일 이름을 숫자로 변환
@@ -189,7 +189,7 @@ export const getKSTTotalMinutes = (): number => {
 };
 
 /**
- * KST 기준 현재 월을 반환 (1-12)
+ * KST 기준 현재 을 반환 (1-12)
  */
 export const getKSTMonth = (): number => {
     return parseInt(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul', month: 'numeric' }), 10);
@@ -203,7 +203,7 @@ export const getKSTYear = (): number => {
 };
 
 /**
- * KST 기준 현재 요일 숫자를 반환 (0=일, 1=월, ... 6=토)
+ * KST 기준 현재 요일 숫자를 반환 (0=일, 1=, ... 6=토)
  */
 export const getKSTDayOfWeek = (): number => {
     const d = new Date();
@@ -221,7 +221,7 @@ export const getKSTDayNameEN = (): string => {
 };
 
 /**
- * KST 기준 현재 요일을 한글 이름으로 반환 ('일', '월', ...)
+ * KST 기준 현재 요일을 한글 이름으로 반환 ('일', '', ...)
  */
 export const getKSTDayNameKR = (): string => {
     return DAY_NAMES[getKSTDayOfWeek()];

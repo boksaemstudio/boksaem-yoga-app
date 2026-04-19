@@ -278,8 +278,8 @@ export const attendanceService = {
         try {
             const checkInMember = httpsCallable(functions, 'checkInMemberV2Call');
             const currentClassInfo = await deps.getCurrentClass(branchId);
-            const classTitle = currentClassInfo?.title || '자율수련';
-            const instructor = currentClassInfo?.instructor || '미지정';
+            const classTitle = currentClassInfo?.title || 'Self Practice';
+            const instructor = currentClassInfo?.instructor || 'Unassigned';
             let lastErr: Error | null = null;
 
             for (let attempt = 1; attempt <= 2; attempt++) {
@@ -292,7 +292,7 @@ export const attendanceService = {
                     if (data.success) {
                         return {
                             success: true,
-                            message: data.isMultiSession ? `[${classTitle}] ${data.sessionCount}회차 출석되었습니다!` : `[${classTitle}] 출석되었습니다!`,
+                            message: data.isMultiSession ? `[${classTitle}] ${data.sessionCount} check-in!` : `[${classTitle}] Checked in!`,
                             attendanceId: data.attendanceId as string, attendanceStatus: data.attendanceStatus as string,
                             denialReason: data.denialReason as string, isDuplicate: data.isDuplicate as boolean,
                             member: { id: memberId, name: data.memberName, credits: data.newCredits, attendanceCount: data.attendanceCount, streak: data.streak, startDate: data.startDate, endDate: data.endDate, isMultiSession: data.isMultiSession, sessionCount: data.sessionCount }
@@ -347,7 +347,7 @@ export const attendanceService = {
             if ((pendingData.activatedUpcomingMembership as Record<string, unknown> | null)) { updatePayload.membershipType = member?.membershipType; updatePayload.startDate = member?.startDate; updatePayload.endDate = member?.endDate; updatePayload.upcomingMembership = null; }
             if (member) memberService._updateLocalMemberCache(memberId, updatePayload);
 
-            return { success: true, isOffline: true, message: `[${classTitle}] 출석되었습니다!`, member: { ...(member || {}), name: member?.name || '회원', credits: newCredits, attendanceCount: newCount, membershipType: (updatePayload.membershipType || member?.membershipType) as string, startDate: (updatePayload.startDate || member?.startDate) as string, endDate: (updatePayload.endDate || member?.endDate) as string } };
+            return { success: true, isOffline: true, message: `[${classTitle}] Checked in!`, member: { ...(member || {}), name: member?.name || 'Member', credits: newCredits, attendanceCount: newCount, membershipType: (updatePayload.membershipType || member?.membershipType) as string, startDate: (updatePayload.startDate || member?.startDate) as string, endDate: (updatePayload.endDate || member?.endDate) as string } };
         } catch (error) { return { success: false, message: (error as Error).message }; }
     },
 

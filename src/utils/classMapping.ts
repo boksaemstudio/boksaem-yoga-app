@@ -17,14 +17,14 @@ export const classNameMap: Record<string, string> = {
     "일반": "regular",
     "테라피": "healing",
     "소도구 테라피": "healing",
-    "자율수련": "selfPractice",
+    "Self Practice": "selfPractice",
     "자율수업": "selfPractice"
 };
 
 export const getTranslatedClass = (title: string, t: (key: string) => string): string => {
     if (!title) return "";
 
-    if (title === "자율수련" || title === "자율수업") {
+    if (title === "Self Practice" || title === "자율수업") {
         return t('selfPractice');
     }
 

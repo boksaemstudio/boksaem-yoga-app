@@ -8,7 +8,7 @@ import { useLanguageStore } from '../stores/useLanguageStore';
 // [i18n] AI briefing prompts per language
 const getAIBriefingGuidance = (lang, t) => {
   const guidances = {
-    ko: (t("g_d84ded") || "당신은 최고의 요가 스튜디오 경영 컨설턴트입니다. 원장에게 종합적인 경영 브리핑을 제공하세요.\n다음 영역을 모두 커버해주세요:\n1. 📊 매출 분석: 월간 매출 현황, 일매출 추이, 전월 대비 변화\n2. 👥 회원 관리: 활성/총 회원 비율, 신규 등록 vs 재등록, 만료 임박 회원 관리 전략\n3. 🔄 재등록률 심층 분석: 누적 재등록률과 최근 3개월 재등록률 비교, 월별 트렌드 해석, 재등록률 개선 전략\n4. ⚠️ 이탈 방지: 만료/거부 회원 현황, 선제적 리텐션 전략\n5. 👩‍🏫 강사 평가 및 인사 관련: 강사별 수업 참여도 분석, 인기 강사와 관심이 필요한 강사 파악, 수업 편성 최적화 제안\n6. 📱 디지털 전환: 앱 설치율과 푸시 도달률 분석, 디지털 마케팅 기회\n7. 🔮 미래 전망: 현재 추세 기반 다음 달 예측, 계절적 요인 고려, 선제적 대응 전략\n\n톤: 전문적이면서도 실행 가능한 조언 위주. 숫자와 근거를 들어 설명. 4~6단락으로 구성.\n절대로 데이터가 없는 영역을 꾸며내지 마세요. 실제 데이터 기반으로만 분석하세요."),
+    ko: (t("g_d84ded") || "당신은 최고의 요가 스튜디오 경영 컨설턴트입니다. 원장에게 종합적인 경영 브리핑을 제공하세요.\n다음 영역을 모두 커버해주세요:\n1. 📊 매출 분석: 간 매출 현황, 일매출 추이, 전 대비 변화\n2. 👥 Member 관리: 활성/총 Member 비율, 신규 등록 vs 재등록, 만료 임박 Member 관리 전략\n3. 🔄 재등록률 심층 분석: 누적 재등록률과 최근 3개 재등록률 비교, 별 트렌드 해석, 재등록률 개선 전략\n4. ⚠️ 이탈 방지: 만료/거부 Member 현황, 선제적 리텐션 전략\n5. 👩‍🏫 강사 평가 및 인사 관련: 강사별 수업 참여도 분석, 인기 강사와 관심이 필요한 강사 파악, 수업 편성 최적화 제안\n6. 📱 디지털 전환: 앱 설치율과 푸시 도달률 분석, 디지털 마케팅 기회\n7. 🔮 미래 전망: 현재 추세 기반 다음 달 예측, 계절적 요인 고려, 선제적 대응 전략\n\n톤: 전문적이면서도 실행 가능한 조언 위주. 숫자와 근거를 들어 설명. 4~6단락으로 구성.\n절대로 데이터가 없는 영역을 꾸며내지 마세요. 실제 데이터 기반으로만 분석하세요."),
     en: `You are a top-tier yoga/fitness studio management consultant. Provide a comprehensive business briefing to the studio owner.
 Cover these areas:
 1. 📊 Revenue Analysis: Monthly revenue status, daily trends, month-over-month changes
@@ -44,7 +44,7 @@ const getTimeContextByLang = (hour, classStartHour, lang, t) => {
     };
     return {
       period: t("g_5ccaee") || "마감 후 (저녁)",
-      guidance: t("g_db5d55") || "오늘의 수업이 마무리되었습니다. 하루 전체 성과를 종합 리포트 형태로 정리해주세요."
+      guidance: t("g_db5d55") || "오늘의 수업이 마무리되었습니다. Max 전체 성과를 종합 리포트 형태로 정리해주세요."
     };
   }
   if (lang === 'ja') {
@@ -87,7 +87,7 @@ const getTimeContextByLang = (hour, classStartHour, lang, t) => {
 // [i18n] Fallback message per language
 const getFallbackMessage = (lang, activeMembers, todayAttendance) => {
   const msgs = {
-    ko: `현재 ${activeMembers}명의 회원이 활동 중이며, 오늘 ${todayAttendance}명이 출석했습니다. 안정적인 센터 운영이 이어지고 있습니다.`,
+    ko: `현재 ${activeMembers}명의 Member이 활동 중이며, 오늘 ${todayAttendance}명이 출석했습니다. 안정적인 센터 운영이 이어지고 있습니다.`,
     en: `Currently ${activeMembers} active members, with ${todayAttendance} check-ins today. Studio operations are running smoothly.`,
     ja: `現在${activeMembers}名の会員がアクティブで、本日${todayAttendance}名がチェックインしました。スタジオは安定して運営されています。`,
     zh: `当前有${activeMembers}名活跃会员，今天${todayAttendance}人已签到。工作室运营稳定。`,
@@ -145,7 +145,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
     });
     const dailyCacheKey = `ai_admin_briefing_${todayStr}`;
 
-    // 하루 1회 마감 시간(20시 이후) 전략: 캐시가 있으면 그대로 사용
+    // Max 1회 마감 시간(20시 이후) 전략: 캐시가 있으면 그대로 사용
     const cachedBriefing = localStorage.getItem(dailyCacheKey);
     if (cachedBriefing) {
       try {
@@ -178,15 +178,15 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
       }
       const currentHour = getKSTHour();
 
-      // [FIX] 시간표에서 첫 수업 시작 시간 동적 추출 (하드코딩 제거)
+      // [FIX] Schedule에서 첫 수업 시작 시간 동적 추출 (하드코딩 제거)
       const getFirstClassHour = classes => {
-        if (!classes || classes.length === 0) return 10; // 시간표 없을 때 기본값
+        if (!classes || classes.length === 0) return 10; // Schedule 없을 때 기본값
         const hours = classes.map(c => c.classTime).filter(Boolean).map(item => parseInt(item.split(':')[0], 10)).filter(h => !isNaN(h));
         return hours.length > 0 ? Math.min(...hours) : 10;
       };
       const firstClassHour = getFirstClassHour(currentTodayClasses);
 
-      // [NEW] Time-aware context for AI briefing (시간표 기반 동적 판단)
+      // [NEW] Time-aware context for AI briefing (Schedule 기반 동적 판단)
       // [i18n] Use language-aware time context
       const currentLang = useLanguageStore.getState().language || 'ko';
       const timeCtx = getTimeContextByLang(currentHour, firstClassHour, currentLang, t);
@@ -204,12 +204,12 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         // ── 매출 분석 ──
         monthlyRevenue: currentSummary.monthlyRevenue,
         todayRevenue: currentSummary.totalRevenueToday,
-        // ── 재등록률 (회원 수 기준 — 유일한 소스: adminCalculations.ts) ──
+        // ── 재등록률 (Member 수 기준 — 유일한 소스: adminCalculations.ts) ──
         // ※ 서버 revenue_summary.monthly.reReg는 금액 기반이므로 별개의 지표입니다.
         reRegistrationRate: currentSummary.reRegistrationRate || 0,
         // 누적 재등록률 (%)
         recentReRegRate: currentSummary.recentReRegRate || 0,
-        // 최근 3개월 재등록률 (%)
+        // 최근 3개 재등록률 (%)
         recentExpiredCount: currentSummary.recentExpiredCount || 0,
         recentReRegisteredCount: currentSummary.recentReRegisteredCount || 0,
         membersWithSales: currentSummary.membersWithSales || 0,
@@ -235,7 +235,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
         instructorStats: (() => {
           const instructorMap = {};
           (currentTodayClasses || []).forEach(cls => {
-            const name = cls.instructor || t("g_5c1a70") || "미지정";
+            const name = cls.instructor || t("g_5c1a70") || "Unassigned";
             if (!instructorMap[name]) instructorMap[name] = {
               totalStudents: 0,
               classCount: 0,
@@ -278,7 +278,7 @@ export const useAdminData = (activeTab, initialBranch = 'all') => {
       const insight = await Promise.race([aiPromise, timeoutPromise]);
       if (insight) {
         setAiInsight(insight);
-        // 하루 캐시 저장 (다음 접속 시 즉시 로드)
+        // Max 캐시 저장 (다음 접속 시 즉시 로드)
         if (!insight.isFallback) {
           try {
             localStorage.setItem(dailyCacheKey, JSON.stringify({

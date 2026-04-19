@@ -39,7 +39,7 @@ const ScheduleTab = ({
         color: scheduleSubTab === 'monthly' ? 'black' : 'white',
         fontWeight: 'bold',
         cursor: 'pointer'
-      }}>{t('월간 시간표')}</button>
+      }}>{t("g_c57998")}</button>
                 <button onClick={() => setScheduleSubTab('weekly')} style={{
         flex: 1,
         padding: '10px',
@@ -49,7 +49,7 @@ const ScheduleTab = ({
         color: scheduleSubTab === 'weekly' ? 'black' : 'white',
         fontWeight: 'bold',
         cursor: 'pointer'
-      }}>{t('주간 시간표')}</button>
+      }}>{t("g_7279e5")}</button>
             </div>
 
             {scheduleSubTab === 'monthly' ? <div style={{
@@ -106,7 +106,7 @@ const ScheduleTab = ({
     }}>
                     <h3 className="card-label" style={{
         marginBottom: '20px'
-      }}>{t('주간 시간표 (이미지)')}</h3>
+      }}>{t("g_ea2180")}</h3>
                     <div style={{
         display: 'flex',
         flexDirection: 'column',
@@ -162,7 +162,7 @@ const ScheduleTab = ({
                     width: '100%'
                   }} /> : <span style={{
                     color: 'var(--text-secondary)'
-                  }}>{t('이미지 없음')}</span>}
+                  }}>{t("g_172ee2")}</span>}
                                             </div>
                                             <div style={{
                   textAlign: 'right'
@@ -174,7 +174,7 @@ const ScheduleTab = ({
                     padding: '6px 12px',
                     fontSize: '0.8rem',
                     cursor: 'pointer'
-                  }}>{t('이미지 변경')}</label>
+                  }}>{t("g_9da6e0")}</label>
                                             </div>
                                         </div>
                                         <div style={{
@@ -200,7 +200,7 @@ const ScheduleTab = ({
                     width: '100%'
                   }} /> : <span style={{
                     color: 'var(--text-secondary)'
-                  }}>{t('이미지 없음')}</span>}
+                  }}>{t("g_172ee2")}</span>}
                                             </div>
                                             <div style={{
                   textAlign: 'right'
@@ -212,7 +212,7 @@ const ScheduleTab = ({
                     padding: '6px 12px',
                     fontSize: '0.8rem',
                     cursor: 'pointer'
-                  }}>{t('이미지 등록/변경')}</label>
+                  }}>{t("g_2af195")}</label>
                                             </div>
                                         </div>
                                     </div>

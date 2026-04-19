@@ -182,7 +182,7 @@ export const MemberStatusPie = ({
           color: '#fff',
           fontSize: '0.8rem'
         }} dangerouslySetInnerHTML={{
-          __html: t('admin_trend_mem_desc_html') || `<strong>활동중:</strong> 정상적인 수강 가능 회원<br/><strong>주춤(잠듦):</strong> 활성 상태이나 14일 이상 미출석<br/><strong>만료:</strong> 잔여 횟수 소진 및 기한 만료`
+          __html: t('admin_trend_mem_desc_html') || `<strong>활동중:</strong> 정상적인 수강 가능 Member<br/><strong>주춤(잠듦):</strong> 활성 상태이나 14일 이상 미출석<br/><strong>만료:</strong> 잔여 횟수 소진 및 기한 만료`
         }}>
                     </div>
                 </div>

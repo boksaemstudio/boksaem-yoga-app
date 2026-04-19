@@ -36,7 +36,7 @@ export const getStaticStandbyMessage = (hour, weatherCode, classTitle, language 
     }
 
     // 2. Class Context (Priority 2)
-    if (!staticMsg && classTitle && classTitle !== "자율수련" && Math.random() > 0.5) {
+    if (!staticMsg && classTitle && classTitle !== "Self Practice" && Math.random() > 0.5) {
         if (classTitle.includes("플라잉")) {
             staticMsg = AIMessages.CLASS_TYPES.FLYING[Math.floor(Math.random() * AIMessages.CLASS_TYPES.FLYING.length)];
         } else if (classTitle.includes("테라피") || classTitle.includes("힐링")) {

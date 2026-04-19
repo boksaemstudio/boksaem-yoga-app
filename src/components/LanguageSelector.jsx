@@ -11,19 +11,19 @@ const LanguageSelector = ({
   } = useLanguage();
   const languages = [{
     code: 'ko',
-    label: t("g_6e081b") || "한국어"
+    label: "한국어"
   }, {
     code: 'en',
     label: 'English'
   }, {
     code: 'ja',
-    label: (t("g_c12140") || "日本語")
+    label: "日本語"
   }, {
     code: 'ru',
     label: 'Русский'
   }, {
     code: 'zh',
-    label: (t("g_7be2d2") || "中文")
+    label: "中文"
   }, {
     code: 'es',
     label: 'Español'

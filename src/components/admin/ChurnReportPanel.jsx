@@ -1,3 +1,5 @@
+import { formatCurrency } from '../../utils/formatters';
+import { formatPhoneNumber } from '../../utils/formatters';
 import { useLanguageStore } from '../../stores/useLanguageStore';
 import { useState, useMemo, useRef } from 'react';
 import { Warning, PaperPlaneTilt, X, PencilSimple } from '@phosphor-icons/react';
@@ -11,7 +13,7 @@ const KAKAO_PASSFLOW_URL = 'http://pf.kakao.com/_zDxiMX/chat';
 /**
  * getChurnRisk — 이탈 위험도 계산
  * 
- * @param {Object} member - 회원 객체
+ * @param {Object} member - Member 객체
  * @returns {{ level: 'critical'|'high'|'medium', label: string, color: string, daysSince: number, reason: string }}
  */
 const getChurnRisk = (member) => {
@@ -71,12 +73,12 @@ const getChurnRisk = (member) => {
 const getRecommendedMessage = (member, risk) => {
   const name = member.name;
   if (risk.level === 'critical') {
-    return `${name} 회원님, 안녕하세요! 요즘 못 뵈어서 궁금했어요 😊 몸 상태는 괜찮으신가요? 다시 함께 수련할 수 있으면 좋겠어요. 언제든 편하게 오세요! 🧘‍♀️`;
+    return `${name} Member, 안녕하세요! 요즘 못 뵈어서 궁금했어요 😊 몸 상태는 괜찮으신가요? 다시 함께 수련할 수 있으면 좋겠어요. 언제든 편하게 오세요! 🧘‍♀️`;
   }
   if (risk.level === 'high') {
-    return `${name} 회원님, 요즘 바쁘신가 봐요! 틈날 때 한 번 오시면 몸이 가벼워질 거예요 ✨ 기다리고 있을게요! 🧘‍♀️`;
+    return `${name} Member, 요즘 바쁘신가 봐요! 틈날 때 한 번 오시면 몸이 가벼워질 거예요 ✨ 기다리고 있을게요! 🧘‍♀️`;
   }
-  return `${name} 회원님, 오랜만이에요! 수련하러 오세요 😊 함께하면 더 좋아요! 🧘‍♀️`;
+  return `${name} Member, 오랜만이에요! 수련하러 오세요 😊 함께하면 더 좋아요! 🧘‍♀️`;
 };
 const ChurnReportPanel = ({
   dormantMembers,
@@ -84,7 +86,7 @@ const ChurnReportPanel = ({
   onClose,
   sales
 }) => {
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   const [sendingId, setSendingId] = useState(null);
   const [sentIds, setSentIds] = useState(new Set());
   const [sendMode, setSendMode] = useState('push_first');
@@ -105,7 +107,7 @@ const ChurnReportPanel = ({
     if (!dormantMembers || dormantMembers.length === 0) return [];
     return dormantMembers.map(m => ({
       member: m,
-      risk: getChurnRisk(m)
+      risk: getChurnRisk(m, language)
     })).sort((a, b) => {
       const levelOrder = {
         critical: 0,
@@ -117,12 +119,12 @@ const ChurnReportPanel = ({
       }
       return b.risk.daysSince - a.risk.daysSince;
     });
-  }, [dormantMembers]);
+  }, [dormantMembers, language]);
   const criticalCount = analysisResults.filter(r => r.risk.level === 'critical').length;
   const highCount = analysisResults.filter(r => r.risk.level === 'high').length;
   const mediumCount = analysisResults.filter(r => r.risk.level === 'medium').length;
 
-  // 예상 손실 금액 계산 — sales에서 회원별 마지막 결제 금액 lookup
+  // 예상 손실 금액 계산 — sales에서 Member별 마지막 결제 금액 lookup
   const lastPaymentMap = useMemo(() => {
     const map = new Map(); // memberId -> lastAmount
     if (!sales || sales.length === 0) return map;
@@ -139,7 +141,7 @@ const ChurnReportPanel = ({
       }
     });
     return map;
-  }, [sales]);
+  }, [sales, language]);
   const getMemberLoss = member => {
     // 1순위: sales의 마지막 결제 금액
     if (lastPaymentMap.has(member.id)) return lastPaymentMap.get(member.id);
@@ -165,7 +167,7 @@ const ChurnReportPanel = ({
         name: member.name,
         daysSince: risk.daysSince,
         credits: Number(member.credits || 0),
-        subject: member.subject || t("g_aef1a1") || "일반",
+        subject: member.subject || t("g_aef1a1") || "General",
         level: risk.level === 'critical' ? t("g_504b38") || "위험" : risk.level === 'high' ? t("g_33f311") || "주의" : t("g_d7c2ad") || "관찰"
       });
       setEditMessage(aiMsg);
@@ -192,7 +194,7 @@ const ChurnReportPanel = ({
     try {
       await storageService.addMessage(member.id, editMessage.trim(), null, sendMode);
       setSentIds(prev => new Set([...prev, member.id]));
-      alert(`✅ ${member.name} 회원에게 전송되었습니다.`);
+      alert(`✅ ${member.name} Member에게 전송되었습니다.`);
     } catch (err) {
       console.error('[ChurnReport] Send failed:', err);
       alert((t("g_690b54") || "전송 실패: ") + err.message);
@@ -221,7 +223,7 @@ const ChurnReportPanel = ({
     setBulkLoading(true);
     setBulkMessages([]);
 
-    // 각 회원별 AI 메시지 생성 (병렬 처리)
+    // 각 Member별 AI 메시지 생성 (병렬 처리)
     const msgPromises = targets.map(async ({
       member,
       risk
@@ -231,7 +233,7 @@ const ChurnReportPanel = ({
           name: member.name,
           daysSince: risk.daysSince,
           credits: Number(member.credits || 0),
-          subject: member.subject || t("g_aef1a1") || "일반",
+          subject: member.subject || t("g_aef1a1") || "General",
           level: risk.level === 'critical' ? t("g_504b38") || "위험" : risk.level === 'high' ? t("g_33f311") || "주의" : t("g_d7c2ad") || "관찰"
         });
         return {
@@ -286,11 +288,11 @@ const ChurnReportPanel = ({
         color: '#10b981',
         fontWeight: '700',
         marginTop: '10px'
-      }}>{t("g_de97a2") || "이탈 위험 회원이 없습니다!"}</p>
+      }}>{t("g_de97a2") || "이탈 위험 Member이 없습니다!"}</p>
                 <p style={{
         color: '#a1a1aa',
         fontSize: '0.9rem'
-      }}>{t("g_2fbff8") || "모든 활성 회원이 최근 2주 내에 출석하고 있습니다."}</p>
+      }}>{t("g_2fbff8") || "모든 활성 Member이 최근 2주 내에 출석하고 있습니다."}</p>
             </div>;
   }
   return <div className="fade-in" style={{
@@ -351,11 +353,11 @@ const ChurnReportPanel = ({
           name: member.name,
           daysSince: risk.daysSince,
           credits: Number(member.credits || 0),
-          subject: member.subject || t("g_aef1a1") || "일반",
+          subject: member.subject || t("g_aef1a1") || "General",
           level: risk.level === 'critical' ? t("g_504b38") || "위험" : risk.level === 'high' ? t("g_33f311") || "주의" : t("g_d7c2ad") || "관찰"
         }));
         getChurnAnalysis({
-          branch: t("g_934dd2") || "전체",
+          branch: t("g_934dd2") || "All",
           activeCount: 0,
           totalMembers: 0,
           criticalCount,
@@ -394,7 +396,7 @@ const ChurnReportPanel = ({
             color: '#A855F7',
             fontSize: '0.85rem',
             fontWeight: '700'
-          }}>{t("g_7665fc") || "🧠 AI가 회원별 데이터를 상세 분석 중..."}</div>
+          }}>{t("g_7665fc") || "🧠 AI가 Member별 데이터를 상세 분석 중..."}</div>
                             <div style={{
             color: '#a1a1aa',
             fontSize: '0.75rem',
@@ -497,7 +499,7 @@ const ChurnReportPanel = ({
         padding: '14px 16px',
         fontSize: '0.85rem',
         color: '#a1a1aa'
-      }}>{t("g_29d7b1") || "📊 이탈 위험 회원"}{analysisResults.length}{t("g_2f1aee") || "명이 감지되었습니다."}</div>}
+      }}>{t("g_29d7b1") || "📊 이탈 위험 Member"}{analysisResults.length}{t("g_2f1aee") || "명이 감지되었습니다."}</div>}
             </div>
 
             {/* Risk Summary Cards */}
@@ -548,7 +550,7 @@ const ChurnReportPanel = ({
           fontSize: '1.5rem',
           fontWeight: '800',
           color: cat.color
-        }}>{cat.count}{t("g_5a62fd") || "명"}</div>
+        }}>{cat.count}{t("g_5a62fd") || "people"}</div>
                         {cat.loss > 0 && <div style={{
           fontSize: '0.75rem',
           color: cat.color,
@@ -556,7 +558,7 @@ const ChurnReportPanel = ({
           marginTop: '2px',
           fontWeight: '600'
         }}>
-                                💸 {cat.loss >= 10000 ? `${Math.round(cat.loss / 10000)}만원` : `${cat.loss.toLocaleString()}원`}
+                                💸 {cat.loss >= 10000 ? `${Math.round(cat.loss / 10000)}만원` : `${formatCurrency(cat.loss, language)}`}
                             </div>}
                         {cat.count > 0 && <button onClick={e => {
           e.stopPropagation();
@@ -664,7 +666,7 @@ const ChurnReportPanel = ({
             fontSize: '0.9rem',
             fontWeight: '800',
             color: risk.color
-          }}>{risk.daysSince}{t("g_06cf3e") || "일"}</span>
+          }}>{risk.daysSince}{t("g_06cf3e") || "Sun"}</span>
                         </div>
 
                         {/* Member Info */}
@@ -686,7 +688,7 @@ const ChurnReportPanel = ({
                                 <span style={{
               fontSize: '0.75rem',
               color: '#a1a1aa'
-            }}>{member.phone}</span>
+            }}>{formatPhoneNumber(member.phone, language)}</span>
                             </div>
                             <div style={{
             fontSize: '0.8rem',
@@ -696,7 +698,7 @@ const ChurnReportPanel = ({
             fontSize: '0.75rem',
             color: '#71717a',
             marginTop: '2px'
-          }}>{t("g_599737") || "잔여"}{member.credits}{t("g_3b53dd") || "회 •"}{member.subject || t("g_aef1a1") || "일반"}
+          }}>{t("g_599737") || "Remaining "}{member.credits}{t("g_3b53dd") || "x •"}{member.subject || t("g_aef1a1") || "General"}
                             </div>
                         </div>
 
@@ -740,7 +742,7 @@ const ChurnReportPanel = ({
       color: '#a1a1aa',
       lineHeight: '1.5'
     }}>
-                💡 <strong>{t("g_39b300") || "기준"}</strong>{t("g_68be2e") || ": 위험(30일+ 미출석 또는 잔여 ≤1회) → 주의(21~29일) → 관찰(14~20일)"}<br />📨 <strong>{t("g_96330a") || "메시지"}</strong>{t("g_3581e0") || "는 이탈 위험도에 맞춰 자동 생성되며, 전송 전 내용을 확인·수정할 수 있습니다."}</div>
+                💡 <strong>{t("g_39b300") || "기준"}</strong>{t("g_68be2e") || ": 위험(30일+ 미출석 또는 잔여 ≤1회) → 주의(21~29일) → 관찰(14~20일)"}<br />📨 <strong>{t("g_96330a") || "Message"}</strong>{t("g_3581e0") || "는 이탈 위험도에 맞춰 자동 생성되며, 전송 전 내용을 확인·수정할 수 있습니다."}</div>
 
             {/* ─── [NEW] 메시지 컨펌 모달 ─── */}
             {confirmTarget && <div style={{
@@ -783,7 +785,7 @@ const ChurnReportPanel = ({
               fontSize: '1rem',
               color: 'white'
             }}>
-                                    {confirmTarget.member.name}{t("g_91558f") || "회원에게 보내기"}</h3>
+                                    {confirmTarget.member.name}{t("g_91558f") || "Member에게 보내기"}</h3>
                             </div>
                             <button onClick={() => setConfirmTarget(null)} style={{
             background: 'none',
@@ -895,7 +897,7 @@ const ChurnReportPanel = ({
             cursor: 'pointer',
             fontSize: '0.9rem',
             fontWeight: '600'
-          }}>{t("g_19b2d1") || "취소"}</button>
+          }}>{t("g_19b2d1") || "Cancel"}</button>
                             <button onClick={handleConfirmSend} disabled={!editMessage.trim()} style={{
             flex: 2,
             padding: '12px',
@@ -961,7 +963,7 @@ const ChurnReportPanel = ({
               margin: 0,
               fontSize: '1rem',
               color: 'white'
-            }}>{t("g_fb52d3") || "일괄전송 확인 —"}{bulkConfirm.label} {bulkConfirm.count}{t("g_5a62fd") || "명"}</h3>
+            }}>{t("g_fb52d3") || "일괄전송 확인 —"}{bulkConfirm.label} {bulkConfirm.count}{t("g_5a62fd") || "people"}</h3>
                             </div>
                             <button onClick={() => {
             setBulkConfirm(null);
@@ -1037,7 +1039,7 @@ const ChurnReportPanel = ({
                 fontSize: '0.75rem',
                 color: '#a1a1aa',
                 fontWeight: '400'
-              }}>{member.phone}</span>
+              }}>{formatPhoneNumber(member.phone, language)}</span>
                                     </div>
                                     <textarea value={message} onChange={e => {
               const updated = [...bulkMessages];
@@ -1081,7 +1083,7 @@ const ChurnReportPanel = ({
             cursor: 'pointer',
             fontSize: '0.9rem',
             fontWeight: '600'
-          }}>{t("g_19b2d1") || "취소"}</button>
+          }}>{t("g_19b2d1") || "Cancel"}</button>
                             <button onClick={handleBulkConfirmSend} style={{
             flex: 2,
             padding: '12px',

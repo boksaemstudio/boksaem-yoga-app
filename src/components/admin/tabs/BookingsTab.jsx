@@ -15,7 +15,7 @@ import { storageService } from '../../../services/storage';
 const BookingsTab = ({
   currentBranch
 }) => {
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   const {
     config
   } = useStudioConfig();
@@ -41,7 +41,7 @@ const BookingsTab = ({
       setLoading(false);
     };
     loadClasses();
-  }, [selectedDate, branchId]);
+  }, [selectedDate, branchId, language]);
 
   // [실시간] 선택된 날짜의 예약 구독
   useEffect(() => {
@@ -49,14 +49,14 @@ const BookingsTab = ({
       setDayBookings(bookings);
     });
     return () => unsub();
-  }, [selectedDate, branchId]);
+  }, [selectedDate, branchId, language]);
 
   // 관리자 예약 취소
   const handleCancelBooking = async booking => {
     if (!window.confirm((t('confirm_cancel_booking') || `Cancel booking for ${booking.memberName}?`).replace('{name}', booking.memberName))) return;
     try {
       await bookingService.cancelBooking(booking.date, booking.classIndex, booking.memberId, branchId, config);
-      alert(t("g_f70065") || "예약이 취소되었습니다.");
+      alert(t("g_f70065") || "Booking cancelled.");
       // 실시간 구독이므로 별도 새로고침 불필요
     } catch (e) {
       alert((t("g_5dd93c") || "취소 실패: ") + e.message);
@@ -87,13 +87,13 @@ const BookingsTab = ({
         allBookings: classBookings.filter(b => b.status !== 'cancelled')
       };
     });
-  }, [dailyClasses, dayBookings, branchId, config]);
+  }, [dailyClasses, dayBookings, branchId, config, language]);
 
-  // 월간 예약 수 로드
+  // 간 예약 수 로드
   const calYear = parseInt(selectedDate.split('-')[0]);
   const calMonth = parseInt(selectedDate.split('-')[1]);
 
-  // [실시간] 월간 예약 구독
+  // [실시간] 간 예약 구독
   useEffect(() => {
     const unsub = bookingService.subscribeMonthBookings(branchId, calYear, calMonth, bookings => {
       const counts = {};
@@ -105,7 +105,7 @@ const BookingsTab = ({
       setMonthlyBookingCounts(counts);
     });
     return () => unsub();
-  }, [calYear, calMonth, branchId]);
+  }, [calYear, calMonth, branchId, language]);
 
   // 날짜 이동
   const moveDate = days => {
@@ -135,7 +135,7 @@ const BookingsTab = ({
 
     const daysInMonth = new Date(calYear, calMonth, 0).getDate();
     const firstDay = new Date(calYear, calMonth - 1, 1).getDay();
-    const dayNames = [t("g_06cf3e") || "일", t("g_754486") || "월", t("g_adb4a2") || "화", t("g_c04eb2") || "수", t("g_5664a6") || "목", t("g_cf5632") || "금", t("g_b9e406") || "토"];
+    const dayNames = [t("g_06cf3e") || "Sun", t("g_754486") || "month", t("g_adb4a2") || "Tue", t("g_c04eb2") || "Wed", t("g_5664a6") || "Thu", t("g_cf5632") || "Fri", t("g_b9e406") || "Sat"];
     const cells = [];
     for (let i = 0; i < firstDay; i++) cells.push(<div key={`e-${i}`} />);
     for (let d = 1; d <= daysInMonth; d++) {
@@ -183,7 +183,7 @@ const BookingsTab = ({
           fontWeight: 800,
           fontSize: '1rem',
           color: 'white'
-        }}>{calYear}{t("g_cdb423") || "년"}{calMonth}{t("g_754486") || "월"}</span>
+        }}>{calYear}{t("g_cdb423") || ""}{calMonth}{t("g_754486") || "month"}</span>
                     <button onClick={() => moveMonth(1)} style={dateBtnStyle}>▶</button>
                 </div>
                 <div style={{
@@ -211,7 +211,7 @@ const BookingsTab = ({
           fontSize: '0.7rem',
           cursor: 'pointer'
         }}>
-                            {t('오늘로 돌아가기')}
+                            {t("g_6249fa")}
                         </button>
                     </div>}
             </div>;
@@ -255,10 +255,10 @@ const BookingsTab = ({
       gridTemplateColumns: 'repeat(4, 1fr)',
       gap: '10px'
     }}>
-                <StatCard label={t('예약')} value={totalBooked} color="var(--primary-gold)" />
-                <StatCard label={t('출석')} value={totalAttended} color="#2ed573" />
-                <StatCard label={t('노쇼')} value={totalNoshow} color="#ff4757" />
-                <StatCard label={t('대기')} value={totalWaitlisted} color="#f39c12" />
+                <StatCard label={t("g_0b3bf0")} value={totalBooked} color="var(--primary-gold)" />
+                <StatCard label={t("g_b31acb")} value={totalAttended} color="#2ed573" />
+                <StatCard label={t("g_4091b0")} value={totalNoshow} color="#ff4757" />
+                <StatCard label={t("g_65905a")} value={totalWaitlisted} color="#f39c12" />
             </div>
 
             {/* 수업별 예약 현황 */}
@@ -266,12 +266,12 @@ const BookingsTab = ({
       textAlign: 'center',
       padding: '40px',
       color: 'rgba(255,255,255,0.5)'
-    }}>{t('로딩 중...')}</div> : dailyClasses.length === 0 ? <div className="dashboard-card" style={{
+    }}>{t("g_06057f")}</div> : dailyClasses.length === 0 ? <div className="dashboard-card" style={{
       textAlign: 'center',
       padding: '40px',
       color: 'rgba(255,255,255,0.4)'
     }}>
-                    {t('이 날짜에 등록된 수업이 없습니다')}
+                    {t("g_0e537f")}
                 </div> : classBookingGroups.map(group => <ClassBookingCard key={group.idx} group={group} rules={rules} onCancel={handleCancelBooking} />)}
         </div>;
 };
@@ -303,7 +303,7 @@ const ClassBookingCard = ({
   rules,
   onCancel
 }) => {
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   const [expanded, setExpanded] = useState(false);
   const {
     cls,
@@ -364,7 +364,7 @@ const ClassBookingCard = ({
           fontWeight: 'bold',
           color: fillRate >= 100 ? '#ff4757' : 'var(--primary-gold)'
         }}>
-                        {totalActive}/{capacity}{t("g_5a62fd") || "명"}</div>
+                        {totalActive}/{capacity}{t("g_5a62fd") || "people"}</div>
                     {/* 미니 정원바 */}
                     <div style={{
           width: '60px',
@@ -385,7 +385,7 @@ const ClassBookingCard = ({
           fontSize: '0.65rem',
           color: '#f39c12',
           marginTop: '2px'
-        }}>{t("g_df72a8") || "대기"}{waitlisted.length}{t("g_5a62fd") || "명"}</div>}
+        }}>{t("g_df72a8") || "Waitlist"}{waitlisted.length}{t("g_5a62fd") || "people"}</div>}
                 </div>
             </div>
 
@@ -400,17 +400,17 @@ const ClassBookingCard = ({
         textAlign: 'center',
         padding: '10px'
       }}>
-                            {t('예약자 없음')}
+                            {t("g_4044df")}
                         </div> : <div style={{
         display: 'flex',
         flexDirection: 'column',
         gap: '6px'
       }}>
                             {/* 상태별 그룹 표시 */}
-                            {attended.length > 0 && <BookingGroup label={t('✅ 출석')} members={attended} color="#2ed573" />}
-                            {booked.length > 0 && <BookingGroup label={t('📋 예약')} members={booked} color="var(--primary-gold)" onCancel={onCancel} />}
-                            {waitlisted.length > 0 && <BookingGroup label={t('⏳ 대기')} members={waitlisted} color="#f39c12" onCancel={onCancel} />}
-                            {noshow.length > 0 && <BookingGroup label={t('❌ 노쇼')} members={noshow} color="#ff4757" />}
+                            {attended.length > 0 && <BookingGroup label={t("g_e2d33c")} members={attended} color="#2ed573" />}
+                            {booked.length > 0 && <BookingGroup label={t("g_0f986e")} members={booked} color="var(--primary-gold)" onCancel={onCancel} />}
+                            {waitlisted.length > 0 && <BookingGroup label={t("g_264b19")} members={waitlisted} color="#f39c12" onCancel={onCancel} />}
+                            {noshow.length > 0 && <BookingGroup label={t("g_77de54")} members={noshow} color="#ff4757" />}
                         </div>}
                 </div>}
         </div>;
@@ -423,7 +423,7 @@ const BookingGroup = ({
   color,
   onCancel
 }) => {
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   return <div>
         <div style={{
       fontSize: '0.7rem',
@@ -465,7 +465,7 @@ const BookingGroup = ({
           fontSize: '0.6rem',
           color: '#ff4757',
           marginLeft: '4px'
-        }}>{t('취소')}</button>}
+        }}>{t("g_d9de21")}</button>}
                 </div>)}
         </div>
     </div>;

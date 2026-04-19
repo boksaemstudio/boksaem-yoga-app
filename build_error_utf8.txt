@@ -1,0 +1,44 @@
+﻿
+> yoga-app@1.3.0 build
+> vite build
+
+node.exe : [33mplugin-legacy overrode 'build.target'. You should pass 'targets' as an option to this plugin with the l
+ist of legacy browsers to support instead.[39m
+위치 줄:1 문자:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([33mplugin-leg...t instead.[39m:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32m??[39m 58 modules transformed.
+[31m??[39m Build failed in 1.14s
+[31merror during build:
+[31m[vite-plugin-pwa:build] There was an error during the build:
+  src/utils/translations.js (28406:0): Unexpected token `<eof>`. Expected identifier, string literal, numeric literal o
+r [ for the computed key
+Additionally, handling the error in the 'buildEnd' hook caused the following error:
+  src/utils/translations.js (28406:0): Unexpected token `<eof>`. Expected identifier, string literal, numeric literal o
+r [ for the computed key[31m
+file: [36mC:/Users/boksoon/.gemini/antigravity/scratch/yoga-app/src/utils/translations.js:28406:0[31m
+[33m
+28404:     "g_e413a9": "錫꾝릴錫붲른錫?툈錫?링仙錫□른",
+28405:   },
+[31m
+    at getRollupError (file:///C:/Users/boksoon/.gemini/antigravity/scratch/yoga-app/node_modules/rollup/dist/es/shared
+/parseAst.js:402:41)
+    at file:///C:/Users/boksoon/.gemini/antigravity/scratch/yoga-app/node_modules/rollup/dist/es/shared/node-entry.js:2
+3467:39
+    at async catchUnfinishedHookActions (file:///C:/Users/boksoon/.gemini/antigravity/scratch/yoga-app/node_modules/rol
+lup/dist/es/shared/node-entry.js:22925:16)
+    at async rollupInternal (file:///C:/Users/boksoon/.gemini/antigravity/scratch/yoga-app/node_modules/rollup/dist/es/
+shared/node-entry.js:23450:5)
+    at async buildEnvironment (file:///C:/Users/boksoon/.gemini/antigravity/scratch/yoga-app/node_modules/vite/dist/nod
+e/chunks/config.js:33541:12)
+    at async Object.build (file:///C:/Users/boksoon/.gemini/antigravity/scratch/yoga-app/node_modules/vite/dist/node/ch
+unks/config.js:33900:19)
+    at async Object.buildApp (file:///C:/Users/boksoon/.gemini/antigravity/scratch/yoga-app/node_modules/vite/dist/node
+/chunks/config.js:33897:153)
+    at async CAC.<anonymous> (file:///C:/Users/boksoon/.gemini/antigravity/scratch/yoga-app/node_modules/vite/dist/node
+/cli.js:629:3)[39m

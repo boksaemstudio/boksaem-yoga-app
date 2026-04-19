@@ -60,7 +60,7 @@ export const StudioProvider = ({ children }) => {
                 try {
                     await signInAnonymously(auth);
                 } catch (e) {
-                    console.warn((t("g_90531c") || "[스튜디오] 익명 인증 실패, 기본 설정으로 진행:"), e);
+                    console.warn((t("g_90531c") || "[스튜디오] 익명 Authentication Failed, 기본 설정으로 진행:"), e);
                     setLoading(false);
                     return;
                 }
@@ -74,7 +74,7 @@ export const StudioProvider = ({ children }) => {
                     await setDoc(studioDocRef, STATIC_CONFIG);
                 }
             } catch (e) {
-                console.error((t("g_951aa6") || "[스튜디오] 초기 설정 저장 실패:"), e);
+                console.error((t("g_951aa6") || "[Studio] Initial config save failed:"), e);
             }
 
         // [REAL-TIME SYNC]
@@ -139,7 +139,7 @@ export const StudioProvider = ({ children }) => {
                     if (!merged.ASSETS.LOGO?.SQUARE || merged.ASSETS.LOGO.SQUARE === '/') merged.ASSETS.LOGO.SQUARE = '/assets/passflow_square_logo.png';
                 }
 
-                // [FIX] 원장님 요청: 데모 사이트에서도 SaaS 로고 변경 테스트가 가능하도록 하드코딩 오버라이드 제거.
+                // [FIX] 원장 요청: 데모 사이트에서도 SaaS 로고 변경 테스트가 가능하도록 하드코딩 오버라이드 제거.
                 // 이제 관리자 앱에서 수정한 로고가 passflowai.web.app에도 정상 반영됩니다.
 
                 
@@ -156,7 +156,7 @@ export const StudioProvider = ({ children }) => {
             setLoading(false);
                 useStudioStore.getState().setLoading(false);
         }, (error) => {
-            console.error((t("g_4c2197") || "[스튜디오] 설정 동기화 오류:"), error);
+            console.error((t("g_4c2197") || "[Studio] Config sync error:"), error);
             setLoading(false);
                 useStudioStore.getState().setLoading(false);
         });
@@ -175,7 +175,7 @@ export const StudioProvider = ({ children }) => {
             await setDoc(studioDocRef, newConfig, { merge: true });
             return true;
         } catch (e) {
-            console.error((t("g_aaf0ca") || "[스튜디오] 설정 업데이트 실패:"), e);
+            console.error((t("g_aaf0ca") || "[Studio] Config update failed:"), e);
             throw e;
         }
     };
@@ -219,7 +219,7 @@ export const StudioProvider = ({ children }) => {
                             if (typeof window === 'undefined') return 'Loading Studio...';
                             const lang = new URLSearchParams(window.location.search).get('lang') || 'ko';
                             const loadingMap = {
-                                ko: (t("g_8916eb") || "스튜디오 준비 중..."),
+                                ko: (t("g_8916eb") || "Setting up studio..."),
                                 en: 'Loading Studio...',
                                 ja: (t("g_dbdc54") || "スタジオ準備中..."),
                                 zh: (t("g_24d026") || "工作室加载中..."),

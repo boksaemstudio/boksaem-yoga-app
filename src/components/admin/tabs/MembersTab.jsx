@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef, memo } from 'react';
 import { useLanguageStore } from '../../../stores/useLanguageStore';
+import { formatPhoneNumber } from '../../../utils/formatters';
 import CollapsibleCard from '../CollapsibleCard';
 import { BellRinging, Check, Info, Plus, NotePencil, PaperPlaneTilt, UserFocus, CaretDown, CaretUp } from '@phosphor-icons/react';
 import { useStudioConfig } from '../../../contexts/StudioContext';
@@ -31,7 +32,7 @@ const MembersTab = ({
   todayReRegMemberIds,
   sales
 }) => {
-  const t = useLanguageStore(s => s.t);
+  const { t, language } = useLanguageStore();
   const {
     config
   } = useStudioConfig();
@@ -81,7 +82,7 @@ const MembersTab = ({
       }
       return changed ? next : prev;
     });
-  }, []);
+  }, [language]);
   const toggleCard = (e, key) => {
     e.stopPropagation();
     setExpandedCards(prev => {
@@ -108,7 +109,7 @@ const MembersTab = ({
     };
     window.addEventListener('toggleAllCards', handler);
     return () => window.removeEventListener('toggleAllCards', handler);
-  }, []);
+  }, [language]);
 
   // [FIX] 자정 넘김 시 날짜 자동 갱신 — dateKey가 변경되면 todayKstStr/todayStartMs도 재계산
   const [dateKey, setDateKey] = useState(() => new Date().toLocaleDateString('sv-SE', {
@@ -122,18 +123,18 @@ const MembersTab = ({
       if (now !== dateKey) setDateKey(now);
     }, 60000); // 매 1분 체크
     return () => clearInterval(interval);
-  }, [dateKey]);
+  }, [dateKey, language]);
   const todayKstStr = useMemo(() => dateKey, [dateKey]);
   const todayStartMs = useMemo(() => {
     return new Date(dateKey).getTime();
-  }, [dateKey]);
+  }, [dateKey, language]);
 
   // [churn] ChurnReportPanel용 — 검색 필터 무시, 전체 dormant
   const allDormantMembers = useMemo(() => {
     if (filterType !== 'churn' || !getDormantSegments) return [];
     const segments = getDormantSegments(members);
     return segments['all'] || [];
-  }, [filterType, members, getDormantSegments]);
+  }, [filterType, members, getDormantSegments, language]);
   const finalFiltered = useMemo(() => {
     let result = filteredMembers;
     if ((filterType === 'dormant' || filterType === 'churn') && getDormantSegments) {
@@ -160,7 +161,7 @@ const MembersTab = ({
       });
     }
     return result;
-  }, [filteredMembers, filterType, getDormantSegments, localSort]);
+  }, [filteredMembers, filterType, getDormantSegments, localSort, language]);
   if (!summary || !filteredMembers) return <div style={{
     padding: '20px',
     textAlign: 'center',
@@ -195,10 +196,10 @@ const MembersTab = ({
 
             {/* Summary Grid */}
             <div className={`stats-grid`} style={{
-      gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
       gap: '12px'
     }}>
-                        {/* 1. 활성 회원 (핵심 자산) */}
+                        {/* 1. 활성 Member (핵심 자산) */}
                         <div className={`dashboard-card interactive ${filterType === 'active' ? 'highlight' : ''}`} onClick={() => handleToggleFilter('active')} style={{
         padding: '16px',
         background: 'rgba(255,255,255,0.03)',
@@ -214,7 +215,7 @@ const MembersTab = ({
           fontSize: '1.6rem',
           fontWeight: 800,
           color: 'var(--primary-theme-color)'
-        }}>{summary.activeMembers}{t('단위_명') || t("g_5a62fd") || "명"}</div>
+        }}>{summary.activeMembers}{t('단위_명') || t("g_5a62fd") || "people"}</div>
                         </div>
 
                 <div className={`dashboard-card interactive ${filterType === 'registration' ? 'highlight' : ''}`} onClick={() => handleToggleFilter('registration')}>
@@ -260,7 +261,7 @@ const MembersTab = ({
                     <div className="card-value success" style={{
           fontSize: '1.8rem'
         }}>
-                        {summary.todayRegistration}{t('단위_명') || t("g_5a62fd") || "명"}
+                        {summary.todayRegistration}{t('단위_명') || t("g_5a62fd") || "people"}
                     </div>
 
                     <div style={{
@@ -277,11 +278,11 @@ const MembersTab = ({
             gap: '8px',
             fontWeight: 'bold'
           }}>
-                            <span>{t('admin_tab_new') || t("g_884009") || "신규"} {summary.todayNewCount || 0}</span>
+                            <span>{t('admin_tab_new') || t("g_884009") || "New"} {summary.todayNewCount || 0}</span>
                             <span style={{
               opacity: 0.4
             }}>|</span>
-                            <span>{t('admin_tab_rereg') || t("g_fc669b") || "재등록"} {summary.todayReRegCount || 0}</span>
+                            <span>{t('admin_tab_rereg') || t("g_fc669b") || "Renewal"} {summary.todayReRegCount || 0}</span>
                         </div>
 
                     {/* 재등록률 */}
@@ -329,8 +330,8 @@ const MembersTab = ({
               fontSize: '0.8rem',
               color: '#71717a'
             }}>
-                            <span>{t('admin_tab_rereg') || t("g_fc669b") || "재등록"} {summary.membersReRegistered || 0}{t('명')} / {t('admin_tab_paid_members') || t("g_0f90ca") || "결제 회원"} {summary.membersWithSales || 0}{t('명')}</span>
-                            <span>{t('admin_tab_recent_3m') || t("g_d18483") || "최근3개월"} {summary.recentReRegRate || 0}% ({summary.recentReRegisteredCount || 0}/{summary.recentExpiredCount || 0})</span>
+                            <span>{t('admin_tab_rereg') || t("g_fc669b") || "Renewal"} {summary.membersReRegistered || 0}{t("g_7b3c6e")} / {t('admin_tab_paid_members') || t("g_0f90ca") || "결제 Member"} {summary.membersWithSales || 0}{t("g_7b3c6e")}</span>
+                            <span>{t('admin_tab_recent_3m') || t("g_d18483") || "최근3개"} {summary.recentReRegRate || 0}% ({summary.recentReRegisteredCount || 0}/{summary.recentExpiredCount || 0})</span>
                         </div>
                     </div>
                  </div>
@@ -402,7 +403,7 @@ const MembersTab = ({
                 name: m.name,
                 daysSince: risk.daysSince,
                 credits: Number(m.credits || 0),
-                subject: m.subject || t("g_aef1a1") || "일반",
+                subject: m.subject || t("g_aef1a1") || "General",
                 level: risk.level === 'critical' ? t("g_504b38") || "위험" : risk.level === 'high' ? t("g_33f311") || "주의" : t("g_d7c2ad") || "관찰"
               });
             });
@@ -414,7 +415,7 @@ const MembersTab = ({
             churnAiCalledRef.current = true;
             setChurnAiLoading(true);
             getChurnAnalysis({
-              branch: t("g_934dd2") || "전체",
+              branch: t("g_934dd2") || "All",
               activeCount: summary.activeMembers || 0,
               totalMembers: summary.totalMembers || 0,
               criticalCount,
@@ -430,7 +431,7 @@ const MembersTab = ({
             });
           }
           return <>
-                                <div className="card-value error">{totalCount}{t('단위_명') || t("g_5a62fd") || "명"}</div>
+                                <div className="card-value error">{totalCount}{t('단위_명') || t("g_5a62fd") || "people"}</div>
                                 <div style={{
               maxHeight: expandedCards.churn ? '500px' : '0px',
               opacity: expandedCards.churn ? 1 : 0,
@@ -559,11 +560,11 @@ const MembersTab = ({
               fontSize: '0.9rem',
               color: '#A7F3D0',
               fontWeight: 'bold'
-            }}>{t('admin_label_member') || t("g_dae3ed") || "회원"}</span>
+            }}>{t('admin_label_member') || t("g_dae3ed") || "Member"}</span>
                             <div className="card-value success" style={{
               fontSize: '1.4rem'
             }}>
-                                {summary.pushEnabledCount}{t('단위_명') || t("g_5a62fd") || "명"}
+                                {summary.pushEnabledCount}{t('단위_명') || t("g_5a62fd") || "people"}
                             </div>
                             <span style={{
               fontSize: '0.85rem',
@@ -581,11 +582,11 @@ const MembersTab = ({
               fontSize: '0.9rem',
               color: '#FDE047',
               fontWeight: 'bold'
-            }}>{t('admin_label_instructor') || t("g_620be2") || "선생님"}</span>
+            }}>{t('admin_label_instructor') || t("g_620be2") || "Instructor"}</span>
                             <div className="card-value gold" style={{
               fontSize: '1.4rem'
             }}>
-                                {summary.instructorPushCount || 0}{t('단위_명') || t("g_5a62fd") || "명"}
+                                {summary.instructorPushCount || 0}{t('단위_명') || t("g_5a62fd") || "people"}
                             </div>
                         </div>
                         <div style={{
@@ -604,12 +605,12 @@ const MembersTab = ({
                                 <span style={{
                 color: '#93C5FD',
                 fontSize: '0.85rem'
-              }}>{t('admin_tab_push_installed') || t('admin_tab_installed_member') || t("g_0d3e15") || "\uC571 \uC124\uCE58 \uD68C\uC6D0"} {summary.installedCount}{t('명')} ({summary.installRatio}%)</span>
+              }}>{t('admin_tab_push_installed') || t('admin_tab_installed_member') || t("g_0d3e15") || "\uC571 \uC124\uCE58 \uD68C\uC6D0"} {summary.installedCount}{t("g_7b3c6e")} ({summary.installRatio}%)</span>
                                 <span style={{
                 margin: '0 4px',
                 opacity: 0.3
               }}>|</span>
-                                 {t('오늘')} +{summary.todayInstalledCount}
+                                 {t("g_e1e8a7")} +{summary.todayInstalledCount}
                             </div>
                         </div>
                     </div>
@@ -637,7 +638,7 @@ const MembersTab = ({
                     <div className="card-value info" style={{
           color: '#60A5FA'
         }}>
-                        {summary.bioMissingCount || 0}{t('명')}
+                        {summary.bioMissingCount || 0}{t("g_7b3c6e")}
                         <span style={{
             fontSize: '1rem',
             marginLeft: '6px',
@@ -670,7 +671,7 @@ const MembersTab = ({
       const day = now.getDate();
       const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
       const progressPct = Math.round(day / daysInMonth * 100);
-      return <CollapsibleCard id="members-revenue" title={`💰 ${month}${t('admin_tab_monthly_revenue') || t("g_c70a4a") || "월 매출 현황"}`} titleExtra={`${summary.monthlyRevenue.toLocaleString()}${t('단위_원') || t("g_21ba07") || "원"}`} defaultOpen={false} className="interactive animated-show" style={{
+      return <CollapsibleCard id="members-revenue" title={`💰 ${month}${t('admin_tab_monthly_revenue') || t("g_c70a4a") || " 매출 현황"}`} titleExtra={`${summary.monthlyRevenue.toLocaleString()}${t('단위_원') || t("g_21ba07") || ""}`} defaultOpen={false} className="interactive animated-show" style={{
         marginBottom: '24px',
         cursor: 'pointer'
       }} onClick={() => setActiveTab('revenue')}>
@@ -693,14 +694,14 @@ const MembersTab = ({
               color: 'var(--primary-gold)',
               textShadow: '0 0 20px var(--primary-gold-glow)'
             }}>
-                                    {summary.monthlyRevenue.toLocaleString()}{t('단위_원') || t("g_21ba07") || "원"}
+                                    {summary.monthlyRevenue.toLocaleString()}{t('단위_원') || t("g_21ba07") || ""}
                                 </div>
                             </div>
                             <div style={{
             fontSize: '0.9rem',
             color: 'var(--text-secondary)'
           }}>
-                                {t('오늘')}: {summary.totalRevenueToday.toLocaleString()}{t('단위_원') || t("g_21ba07") || "원"}
+                                {t("g_e1e8a7")}: {summary.totalRevenueToday.toLocaleString()}{t('단위_원') || t("g_21ba07") || ""}
                             </div>
                         </div>
                         <div style={{
@@ -721,7 +722,7 @@ const MembersTab = ({
               fontSize: '0.85rem',
               color: 'var(--text-secondary)',
               fontWeight: '600'
-            }}>{t('admin_tab_days_left') || t("g_599737") || "잔여"} {daysInMonth - day}{t('단위_일') || t("g_06cf3e") || "일"}</span>
+            }}>{t('admin_tab_days_left') || t("g_599737") || "Remaining "} {daysInMonth - day}{t('단위_일') || t("g_06cf3e") || "Sun"}</span>
                             </div>
                             <div style={{
             position: 'relative',
@@ -761,7 +762,7 @@ const MembersTab = ({
                     </CollapsibleCard>;
     })()}
 
-            {/* 월별 재등록 추이 (매출 카드 아래, 검색 위) — 접기/펼치기 적용 */}
+            {/* 별 재등록 추이 (매출 카드 아래, 검색 위) — 접기/펼치기 적용 */}
             {filterType === 'registration' && summary.monthlyReRegTrend && <CollapsibleCard id="members-rereg-trend" title={t('admin_tab_monthly_rereg_trend') || (t("g_23b8f6") || "\uD83D\uDCCA \uC6D4\uBCC4 \uC7AC\uB4F1\uB85D \uCD94\uC774 (\uCD5C\uADFC 6\uAC1C\uC6D4)")} titleExtra={`재등록률 ${summary.reRegistrationRate || 0}%`} defaultOpen={false} className="animated-show" style={{
       marginBottom: '24px',
       overflow: 'visible'
@@ -857,7 +858,7 @@ const MembersTab = ({
             borderRadius: '2px',
             background: '#10b981',
             display: 'inline-block'
-          }} /> {t('admin_tab_rereg') || t("g_fc669b") || "재등록"}</span>
+          }} /> {t('admin_tab_rereg') || t("g_fc669b") || "Renewal"}</span>
                         <span style={{
           display: 'flex',
           alignItems: 'center',
@@ -913,15 +914,15 @@ const MembersTab = ({
                     {t('admin_tab_curr') || (t("g_e7755c") || "\uD604\uC7AC")} <strong style={{
           color: 'var(--primary-gold)'
         }}>
-                        {filterType === 'all' && (t('admin_tab_all_member') || t("g_e8c706") || "전체 회원")}
-                        {filterType === 'active' && (t('admin_tab_active_member') || t("g_b0c1d1") || "활성 회원")}
-                        {filterType === 'attendance' && (t('admin_tab_today_att_member') || t("g_c1fec4") || "오늘 출석 회원")}
-                        {filterType === 'registration' && (t('admin_tab_today_reg_member') || t("g_8cd435") || "오늘 등록 회원")}
-                        {filterType === 'expiring' && (t('admin_tab_expiring_member') || t("g_41f035") || "만료/횟수 임박 회원")}
-                        {filterType === 'dormant' && (t('admin_tab_dormant_member') || t("g_27c16f") || "잠든 회원")}
-                        {filterType === 'churn' && (t('admin_tab_ai_risk_member') || t("g_6d831d") || "AI 이탈 예측 회원")}
-                        {filterType === 'installed' && (t('admin_tab_push_installed') || t('admin_tab_installed_member') || t("g_5b52c7") || "앱 설치 회원")}
-                        {filterType === 'bio_missing' && (t('admin_tab_bio_missing') || t("g_0c92ba") || "안면 미등록 회원")}
+                        {filterType === 'all' && (t('admin_tab_all_member') || t("g_e8c706") || "전체 Member")}
+                        {filterType === 'active' && (t('admin_tab_active_member') || t("g_b0c1d1") || "활성 Member")}
+                        {filterType === 'attendance' && (t('admin_tab_today_att_member') || t("g_c1fec4") || "오늘 출석 Member")}
+                        {filterType === 'registration' && (t('admin_tab_today_reg_member') || t("g_8cd435") || "오늘 등록 Member")}
+                        {filterType === 'expiring' && (t('admin_tab_expiring_member') || t("g_41f035") || "만료/횟수 임박 Member")}
+                        {filterType === 'dormant' && (t('admin_tab_dormant_member') || t("g_27c16f") || "Dormant")}
+                        {filterType === 'churn' && (t('admin_tab_ai_risk_member') || t("g_6d831d") || "AI 이탈 예측 Member")}
+                        {filterType === 'installed' && (t('admin_tab_push_installed') || t('admin_tab_installed_member') || t("g_5b52c7") || "앱 설치 Member")}
+                        {filterType === 'bio_missing' && (t('admin_tab_bio_missing') || t("g_0c92ba") || "안면 미등록 Member")}
                     </strong>{t("g_4539db") || "목록을"}{' '}
                     <strong style={{
           color: 'var(--text-secondary)'
@@ -1000,7 +1001,7 @@ const MembersTab = ({
               }}>
                                         {finalFiltered.length > 0 && finalFiltered.every(m => selectedMemberIds.includes(m.id)) && <Check size={10} color="#000" weight="bold" />}
                                     </div>
-                                    {t('admin_tab_select_all') || t("g_0aa04a") || "전체 선택"} ({finalFiltered.length}{t('단위_명') || t("g_5a62fd") || "명"})
+                                    {t('admin_tab_select_all') || t("g_0aa04a") || "전체 선택"} ({finalFiltered.length}{t('단위_명') || t("g_5a62fd") || "people"})
                                 </div>
                                 
                                 {/* [NEW] Bulk Action Button */}
@@ -1072,12 +1073,12 @@ const MembersTab = ({
                   border: member.role === 'instructor' ? '1px solid rgba(251, 191, 36, 0.4)' : '1px solid rgba(16, 185, 129, 0.4)',
                   padding: '2px 6px'
                 }}>
-                                                            {member.role === 'instructor' ? t('admin_label_instructor') || t("g_620be2") || "선생님" : t('admin_label_member') || t("g_dae3ed") || "회원"}
+                                                            {member.role === 'instructor' ? t('admin_label_instructor') || t("g_620be2") || "Instructor" : t('admin_label_member') || t("g_dae3ed") || "Member"}
                                                         </span>}
                                                     <span style={{
                   fontSize: '0.8rem',
                   color: 'var(--text-secondary)'
-                }}>{member.phone}</span>
+                }}>{formatPhoneNumber(member.phone, language)}</span>
                                                     {member.role !== 'instructor' && <button onClick={e => {
                   e.stopPropagation();
                   onNoteClick && onNoteClick(member);
@@ -1186,7 +1187,7 @@ const MembersTab = ({
                   color: '#10B981',
                   border: '1px solid rgba(16, 185, 129, 0.3)'
                 }}>
-                                                        {t('admin_tab_new') || t("g_884009") || "신규"}
+                                                        {t('admin_tab_new') || t("g_884009") || "New"}
                                                     </span>}
                                                 {/* Note: In MembersTab, we might not have todayReRegMemberIds prop yet. 
                                                     Let's use summary or pass it down. 
@@ -1203,21 +1204,21 @@ const MembersTab = ({
                   border: '1px solid rgba(59, 130, 246, 0.5)',
                   fontWeight: 'bold'
                 }}>
-                                                {t('admin_tab_rereg') || t("g_fc669b") || "재등록"}
+                                                {t('admin_tab_rereg') || t("g_fc669b") || "Renewal"}
                                             </span>}
                                         {summary.multiAttendedMemberIds && summary.multiAttendedMemberIds.includes(member.id) && <span className="badge" style={{
                   background: 'rgba(245, 158, 11, 0.25)',
                   color: '#FBBF24',
                   border: '1px solid rgba(245, 158, 11, 0.5)',
                   fontWeight: 'bold'
-                }}>{t("g_2bdce5") || "오늘"}{summary?.attendanceCountMap?.[member.id] || 2}{t("g_4934bf") || "회 출석 🔥"}</span>}
+                }}>{t("g_2bdce5") || "Today"}{summary?.attendanceCountMap?.[member.id] || 2}{t("g_4934bf") || "회 출석 🔥"}</span>}
                                                 {/* Status Context Badges */}
                                                 {filterType === 'dormant' && (() => {
                   let lastDateMs = member.lastAttendance ? new Date(member.lastAttendance).getTime() : member.regDate ? new Date(member.regDate).getTime() : null;
                   if (!lastDateMs) return <span className="badge" style={{
                     background: 'var(--gray-700)',
                     color: '#bbb'
-                  }}>{t('기록 없음')}</span>;
+                  }}>{t("g_0daea1")}</span>;
                   const diffTime = Math.abs(Date.now() - lastDateMs);
                   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                   return <span className="badge" style={{
@@ -1246,7 +1247,7 @@ const MembersTab = ({
                                                 <span style={{
                   fontSize: '0.8rem',
                   color: 'var(--text-secondary)'
-                }}>{member.phone}</span>
+                }}>{formatPhoneNumber(member.phone, language)}</span>
                                                 <span className="badge" style={{
                   fontSize: '0.7rem',
                   // [UI] Neutralize branch color in member list as requested
@@ -1269,7 +1270,7 @@ const MembersTab = ({
                   fontWeight: 'bold',
                   border: '1px solid rgba(52, 211, 153, 0.2)'
                 }}>
-                                                        <BellRinging size={12} weight="fill" /> {t('푸시 ON')}
+                                                        <BellRinging size={12} weight="fill" /> {t("g_bf6c29")}
                                                     </div> : filterType === 'installed' && <div style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -1281,7 +1282,7 @@ const MembersTab = ({
                   fontSize: '0.7rem',
                   border: '1px solid rgba(156, 163, 175, 0.2)'
                 }}>
-                                                            <BellRinging size={12} weight="regular" /> {t('알림 꺼짐')}
+                                                            <BellRinging size={12} weight="regular" /> {t("g_5c41cc")}
                                                         </div>}
                                                 {member.attendanceTime && (member.attendanceStatus === 'denied' ? <span style={{
                   fontSize: '0.75rem',
@@ -1307,7 +1308,7 @@ const MembersTab = ({
                                                             {member.attendanceClass} ({member.attendanceTime})
                                                         </span>)}
                                             </div>
-                                            {/* [FIX] 선생님(instructor)에게는 수강정보(일반/잔여/종료일) 표시하지 않음 */}
+                                            {/* [FIX] Instructor(instructor)에게는 수강정보(일반/잔여/종료일) 표시하지 않음 */}
                                             {member.role !== 'instructor' && <div style={{
                 fontSize: '0.9rem',
                 color: 'var(--text-secondary)',
@@ -1316,7 +1317,7 @@ const MembersTab = ({
                 gap: '8px',
                 alignItems: 'center'
               }}>
-                                                <span>{member.subject || t("g_aef1a1") || "일반"}</span>
+                                                <span>{member.subject || t("g_aef1a1") || "General"}</span>
                                                 <span style={{
                   opacity: 0.3
                 }}>|</span>
@@ -1344,7 +1345,7 @@ const MembersTab = ({
                                                             <span style={{
                       color: member.credits <= 0 ? 'var(--accent-error)' : member.credits <= 2 ? '#f59e0b' : 'var(--text-primary)',
                       fontWeight: 'bold'
-                    }}>{t("g_599737") || "잔여"}{member.credits}{t("g_2fc05c") || "회"}</span>
+                    }}>{t("g_599737") || "Remaining "}{member.credits}{t("g_2fc05c") || "회"}</span>
                                                             <span style={{
                       opacity: 0.3
                     }}>|</span>

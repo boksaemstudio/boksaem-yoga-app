@@ -32,7 +32,7 @@ const AuthActionPage = () => {
         setLoading(false);
       }).catch(err => {
         console.error('Verify error:', err);
-        setError(t("g_ace592") || "만료되었거나 유효하지 않은 비밀번호 재설정 링크입니다. 원장님께 새로운 링크 발급을 요청해주세요.");
+        setError(t("g_ace592") || "만료되었거나 유효하지 않은 비밀번호 재설정 링크입니다. 원장께 새로운 링크 발급을 요청해주세요.");
         setLoading(false);
       });
     } else {

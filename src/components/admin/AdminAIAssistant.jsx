@@ -180,19 +180,19 @@ const AdminAIAssistant = () => {
 
     const map = {
       member: {
-        label: t("g_dae3ed") || "회원",
+        label: t("g_dae3ed") || "Member",
         color: '#3B82F6'
       },
       attendance: {
-        label: t("g_937c42") || "출석",
+        label: t("g_937c42") || "Attendance",
         color: '#10B981'
       },
       revenue: {
-        label: t("g_191145") || "매출",
+        label: t("g_191145") || "Revenue",
         color: '#F59E0B'
       },
       schedule: {
-        label: t("g_7fa4b7") || "스케줄",
+        label: t("g_7fa4b7") || "Schedule",
         color: '#8B5CF6'
       },
       strategy: {
@@ -200,11 +200,11 @@ const AdminAIAssistant = () => {
         color: '#EC4899'
       },
       general: {
-        label: t("g_aef1a1") || "일반",
+        label: t("g_aef1a1") || "General",
         color: '#6B7280'
       },
       error: {
-        label: t("g_3efa8a") || "오류",
+        label: t("g_3efa8a") || "Error",
         color: '#EF4444'
       }
     };
@@ -263,7 +263,7 @@ const AdminAIAssistant = () => {
                         <div style={{
             fontSize: '0.65rem',
             color: 'var(--text-tertiary)'
-          }}>{t("g_2bdce5") || "오늘"}{quota.used}/{quota.limit}{t("g_5f86fc") || "회 사용"}</div>
+          }}>{t("g_2bdce5") || "Today"}{quota.used}/{quota.limit}{t("g_5f86fc") || "회 사용"}</div>
                     </div>
                 </div>
                 <div style={{
@@ -424,7 +424,7 @@ const AdminAIAssistant = () => {
             fontSize: '0.8rem',
             color: 'var(--text-tertiary)',
             lineHeight: '1.6'
-          }}>{t("g_3eada3") || "이름·전화번호·종목으로 회원 검색, 출석·매출 분석까지"}<br />{t("g_8e36a0") || "스튜디오의"}<span style={{
+          }}>{t("g_3eada3") || "이름·전화번호·종목으로 Member 검색, 출석·매출 분석까지"}<br />{t("g_8e36a0") || "스튜디오의"}<span style={{
               color: 'var(--primary-gold)',
               fontWeight: 'bold'
             }}>{t("g_3c636f") || "모든 데이터"}</span>{t("g_6a033c") || "를 기반으로 답변합니다."}<br />
@@ -443,7 +443,7 @@ const AdminAIAssistant = () => {
           justifyContent: 'center',
           maxWidth: '420px'
         }}>
-                            {[t("g_3acbce") || "홍길동 회원 정보 알려줘", t("g_dce2e2") || "오늘 출석 현황", t("g_70b524") || "이번 달 매출 분석", t("g_5646c3") || "만료 임박 회원 누구야", t("g_84dc88") || "횟수 부족한 회원 알려줘", t("g_9a166d") || "마케팅 아이디어 줘"].map(q => <button key={q} onClick={() => {
+                            {[t("g_3acbce") || "홍길동 Member 정보 알려줘", t("g_dce2e2") || "오늘 출석 현황", t("g_70b524") || "이번 달 매출 분석", t("g_5646c3") || "만료 임박 Member 누구야", t("g_84dc88") || "횟수 부족한 Member 알려줘", t("g_9a166d") || "마케팅 아이디어 줘"].map(q => <button key={q} onClick={() => {
             setInput(q);
             setTimeout(() => {
               handleSend();
@@ -681,7 +681,7 @@ const AdminAIAssistant = () => {
           flexShrink: 0,
           opacity: loading ? 0.5 : 1,
           boxShadow: input.trim() ? '0 4px 12px rgba(var(--primary-rgb), 0.3)' : 'none'
-        }} title={t("g_4077ce") || "전송"}>
+        }} title={t("g_4077ce") || "Send"}>
                         <PaperPlaneRight size={18} weight="fill" />
                     </button>
                 </div>

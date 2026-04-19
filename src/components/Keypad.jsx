@@ -22,7 +22,7 @@ const Keypad = memo(({
                 <div style={{
         fontSize: '2.5rem',
         fontWeight: 'bold'
-      }}>{t("g_5435ef") || "지움"}</div>
+      }}>{t("g_5435ef") || "Clear"}</div>
             </KeyButton>
         </div>;
 });

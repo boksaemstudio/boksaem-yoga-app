@@ -3,7 +3,7 @@ import LanguageSelector from '../LanguageSelector';
 import { profileStyles } from './profileStyles';
 
 /**
- * LoginPage — 회원 로그인 화면
+ * LoginPage — Member 로그인 화면
  * MemberProfile.jsx에서 추출 (~100줄)
  */
 const LoginPage = ({
@@ -185,7 +185,7 @@ const LoginPage = ({
         }}>{t('checkRecordBtn')}</button>
                     
                     {/* SaaS Demo Quick Login Button */}
-                    {typeof window !== 'undefined' && window.location.hostname.includes('passflow') && <button type="button" onClick={e => {
+                    {typeof window !== 'undefined' && (window.location.hostname.includes('passflow') || config?.tenantId === 'demo-yoga' || window.location.hostname === 'localhost') && <button type="button" onClick={e => {
           e.preventDefault();
           setName(t("g_a484b5") || "\uAE40\uBC29\uBB38");
           setPhone("1234");

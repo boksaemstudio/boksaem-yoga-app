@@ -6,7 +6,7 @@ import { useMemo } from 'react';
  * 출석 통계 계산을 위한 커스텀 훅
  * 
  * @param {Array} attendanceLogs - 출석 로그 배열
- * @param {string} memberId - 회원 ID (선택적, 특정 회원의 통계만 계산)
+ * @param {string} memberId - Member ID (선택적, 특정 Member의 통계만 계산)
  * @returns {Object} 통계 객체
  */
 export const useAttendanceStats = (attendanceLogs = [], memberId = null) => {
