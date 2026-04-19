@@ -64,7 +64,7 @@ const SuccessDetails = memo(({
             </div>;
   };
   return <div className="attendance-info" style={{
-    marginTop: '40px',
+    marginTop: '15px',
     padding: '40px 50px',
     background: 'rgba(255,255,255,0.05)',
     borderRadius: '30px',
@@ -92,7 +92,7 @@ const SuccessDetails = memo(({
           fontWeight: 800,
           color: 'var(--primary-gold)'
         }}>
-                        {credits}{t("g_bcbcd4")?.replace('건', '회') || t("g_a0d062")?.replace('회 · 삭제:', '회') || "회"}
+                        {credits}{t('kiosk_success_credits_unit') || '회'}
                     </div>
                 </div>
                 

@@ -143,8 +143,7 @@ const CheckInInfoSection = memo(({
         }} onClick={onCameraTouch}>
                             <video ref={el => {
             videoRef.current = el;
-            if (attendanceVideoRef) attendanceVideoRef.current = el;
-            if (cameraVideoRef) cameraVideoRef.current = el;
+            if (el && cameraVideoRef) cameraVideoRef.current = el;
             if (el && streamRef.current && !el.srcObject) {
               el.srcObject = streamRef.current;
               el.play().catch(() => {});
@@ -345,8 +344,7 @@ const CheckInInfoSection = memo(({
         }} onClick={onCameraTouch}>
                             <video ref={el => {
             videoRef.current = el;
-            if (attendanceVideoRef) attendanceVideoRef.current = el;
-            if (cameraVideoRef) cameraVideoRef.current = el;
+            if (el && cameraVideoRef) cameraVideoRef.current = el;
           }} autoPlay playsInline muted style={{
             width: '100%',
             height: '100%',
@@ -474,7 +472,6 @@ const CheckInInfoSection = memo(({
             {!showCamera && (faceRecognitionEnabled || isProximityEnabled) && (
               <HiddenFaceVideo ref={el => {
                 if (cameraVideoRef) cameraVideoRef.current = el;
-                if (attendanceVideoRef) attendanceVideoRef.current = el;
                 if (el && cameraStream && !el.srcObject) {
                   el.srcObject = cameraStream;
                   el.play().catch(() => {});
