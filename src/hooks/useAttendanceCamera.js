@@ -182,15 +182,23 @@ export const useAttendanceCamera = PHOTO_ENABLED => {
     if (video.readyState < 2 || video.paused) {
       console.warn(`[PHOTO] ⚠️ Video not ready (readyState=${video.readyState}, paused=${video.paused}). Attempting play + delayed retry...`);
       video.play().catch(() => {});
-      // [FIX] 즉시 포기하지 말고 500ms 후 한번 더 시도
-      setTimeout(() => {
-        if (video.readyState >= 2 && !video.paused) {
-          console.log('[PHOTO] Retry after play() succeeded. Capturing now...');
-          doCapture(video);
-        } else {
-          console.warn('[PHOTO] ⚠️ Retry failed. Video still not ready.');
-        }
-      }, 500);
+      isCapturingRef.current = true;
+      capturedPhotoRef.current = null;
+      
+      const retryPromise = new Promise(resolve => {
+        setTimeout(async () => {
+          if (video.readyState >= 2 && !video.paused) {
+            console.log('[PHOTO] Retry after play() succeeded. Capturing now...');
+            const finalBlob = await doCapture(video);
+            resolve(finalBlob);
+          } else {
+            console.warn('[PHOTO] ⚠️ Retry failed. Video still not ready.');
+            isCapturingRef.current = false;
+            resolve(null);
+          }
+        }, 500);
+      });
+      capturePromisesRef.current.push(retryPromise);
       return;
     }
     doCapture(video);
@@ -251,6 +259,7 @@ export const useAttendanceCamera = PHOTO_ENABLED => {
     });
     capturePromisesRef.current.push(capturePromise);
     if (capturePromisesRef.current.length > 3) capturePromisesRef.current.shift();
+    return capturePromise;
   }, []);
 
   // [PHOTO] 비동기 업로드
