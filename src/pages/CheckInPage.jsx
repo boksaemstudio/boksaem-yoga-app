@@ -593,7 +593,8 @@ const CheckInPage = () => {
         return null;
       });
     }
-    capturePhoto();
+    // [FIX] capturePhoto()는 handleKeyPress의 첫 키 입력 시 이미 호출됨 (카메라 프리뷰 활성 상태).
+    // handleSubmit에서 중복 호출하면 이미 캡처된 사진을 null로 덮어쓰는 문제 발생.
     const duplicateThresholdMs = 300000; // 5분 (백엔드 차단 시간과 동일)
     const isDup = recentCheckInsRef.current.some(e => e.pin === pinCode && Date.now() - e.timestamp < duplicateThresholdMs);
     if (isDup) {
@@ -605,7 +606,7 @@ const CheckInPage = () => {
     } else {
       proceedWithCheckIn(pinCode, false, null, facialTask);
     }
-  }, [loading, currentBranch, config.POLICIES, faceModelsLoaded, capturePhoto]);
+  }, [loading, currentBranch, config.POLICIES, faceModelsLoaded]);
 
   const handleQRInteraction = useCallback(() => setShowKioskInstallGuide(true), []);
   const handleCameraTouch = useCallback(() => setShowFaceRegModal(true), []);
